@@ -1,16 +1,16 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/kex2provisioner.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type KexStartArg struct{}
+type KexStartArg struct {
+}
 
 type Kex2ProvisionerInterface interface {
 	KexStart(context.Context) error

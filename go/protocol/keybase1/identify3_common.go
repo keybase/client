@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/identify3_common.avdl
 
 package keybase1
@@ -19,7 +19,8 @@ func (o Identify3GUIID) DeepCopy() Identify3GUIID {
 	return o
 }
 
-type Identify3CommonInterface any
+type Identify3CommonInterface interface {
+}
 
 func Identify3CommonProtocol(i Identify3CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

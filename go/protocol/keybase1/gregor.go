@@ -1,17 +1,17 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/gregor.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type GetStateArg struct{}
+type GetStateArg struct {
+}
 
 type InjectItemArg struct {
 	Cat   string               `codec:"cat" json:"cat"`

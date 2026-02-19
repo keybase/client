@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/login.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ConfiguredAccount struct {
@@ -101,7 +100,8 @@ type LoginOneshotArg struct {
 	PaperKey  string `codec:"paperKey" json:"paperKey"`
 }
 
-type IsOnlineArg struct{}
+type IsOnlineArg struct {
+}
 
 type LoginInterface interface {
 	// Returns an array of information about accounts configured on the local

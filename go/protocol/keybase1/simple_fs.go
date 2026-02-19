@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/simple_fs.avdl
 
 package keybase1
@@ -7,9 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type OpID [16]byte
@@ -2230,7 +2229,8 @@ type SimpleFSReadRevisionsArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSMakeOpidArg struct{}
+type SimpleFSMakeOpidArg struct {
+}
 
 type SimpleFSCloseArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
@@ -2244,13 +2244,15 @@ type SimpleFSCheckArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSGetOpsArg struct{}
+type SimpleFSGetOpsArg struct {
+}
 
 type SimpleFSWaitArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SimpleFSDumpDebuggingInfoArg struct{}
+type SimpleFSDumpDebuggingInfoArg struct {
+}
 
 type SimpleFSClearConflictStateArg struct {
 	Path Path `codec:"path" json:"path"`
@@ -2268,15 +2270,18 @@ type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
-type SimpleFSUserEditHistoryArg struct{}
+type SimpleFSUserEditHistoryArg struct {
+}
 
 type SimpleFSFolderEditHistoryArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSListFavoritesArg struct{}
+type SimpleFSListFavoritesArg struct {
+}
 
-type SimpleFSGetUserQuotaUsageArg struct{}
+type SimpleFSGetUserQuotaUsageArg struct {
+}
 
 type SimpleFSGetTeamQuotaUsageArg struct {
 	TeamName TeamName `codec:"teamName" json:"teamName"`
@@ -2308,13 +2313,15 @@ type SimpleFSGetOnlineStatusArg struct {
 	ClientID string `codec:"clientID" json:"clientID"`
 }
 
-type SimpleFSCheckReachabilityArg struct{}
+type SimpleFSCheckReachabilityArg struct {
+}
 
 type SimpleFSSetDebugLevelArg struct {
 	Level string `codec:"level" json:"level"`
 }
 
-type SimpleFSSettingsArg struct{}
+type SimpleFSSettingsArg struct {
+}
 
 type SimpleFSSetNotificationThresholdArg struct {
 	Threshold int64 `codec:"threshold" json:"threshold"`
@@ -2336,7 +2343,8 @@ type SimpleFSDeobfuscatePathArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSGetStatsArg struct{}
+type SimpleFSGetStatsArg struct {
+}
 
 type SimpleFSSubscribePathArg struct {
 	IdentifyBehavior          *TLFIdentifyBehavior  `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
@@ -2370,7 +2378,8 @@ type SimpleFSGetDownloadInfoArg struct {
 	DownloadID string `codec:"downloadID" json:"downloadID"`
 }
 
-type SimpleFSGetDownloadStatusArg struct{}
+type SimpleFSGetDownloadStatusArg struct {
+}
 
 type SimpleFSCancelDownloadArg struct {
 	DownloadID string `codec:"downloadID" json:"downloadID"`
@@ -2385,14 +2394,16 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
-type SimpleFSMakeTempDirForUploadArg struct{}
+type SimpleFSMakeTempDirForUploadArg struct {
+}
 
 type SimpleFSStartUploadArg struct {
 	SourceLocalPath  string   `codec:"sourceLocalPath" json:"sourceLocalPath"`
 	TargetParentPath KBFSPath `codec:"targetParentPath" json:"targetParentPath"`
 }
 
-type SimpleFSGetUploadStatusArg struct{}
+type SimpleFSGetUploadStatusArg struct {
+}
 
 type SimpleFSCancelUploadArg struct {
 	UploadID string `codec:"uploadID" json:"uploadID"`
@@ -2402,7 +2413,8 @@ type SimpleFSDismissUploadArg struct {
 	UploadID string `codec:"uploadID" json:"uploadID"`
 }
 
-type SimpleFSGetFilesTabBadgeArg struct{}
+type SimpleFSGetFilesTabBadgeArg struct {
+}
 
 type SimpleFSGetGUIFileContextArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
@@ -2422,9 +2434,11 @@ type SimpleFSSearchArg struct {
 	StartingFrom int    `codec:"startingFrom" json:"startingFrom"`
 }
 
-type SimpleFSResetIndexArg struct{}
+type SimpleFSResetIndexArg struct {
+}
 
-type SimpleFSGetIndexProgressArg struct{}
+type SimpleFSGetIndexProgressArg struct {
+}
 
 type SimpleFSCancelJournalUploadsArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
@@ -2440,7 +2454,8 @@ type SimpleFSArchiveCancelOrDismissJobArg struct {
 	JobID string `codec:"jobID" json:"jobID"`
 }
 
-type SimpleFSGetArchiveStatusArg struct{}
+type SimpleFSGetArchiveStatusArg struct {
+}
 
 type SimpleFSGetArchiveJobFreshnessArg struct {
 	JobID string `codec:"jobID" json:"jobID"`

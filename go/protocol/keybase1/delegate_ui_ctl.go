@@ -1,32 +1,40 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/delegate_ui_ctl.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type RegisterIdentifyUIArg struct{}
+type RegisterIdentifyUIArg struct {
+}
 
-type RegisterSecretUIArg struct{}
+type RegisterSecretUIArg struct {
+}
 
-type RegisterUpdateUIArg struct{}
+type RegisterUpdateUIArg struct {
+}
 
-type RegisterRekeyUIArg struct{}
+type RegisterRekeyUIArg struct {
+}
 
-type RegisterHomeUIArg struct{}
+type RegisterHomeUIArg struct {
+}
 
-type RegisterIdentify3UIArg struct{}
+type RegisterIdentify3UIArg struct {
+}
 
-type RegisterChatUIArg struct{}
+type RegisterChatUIArg struct {
+}
 
-type RegisterLogUIArg struct{}
+type RegisterLogUIArg struct {
+}
 
-type RegisterGregorFirehoseArg struct{}
+type RegisterGregorFirehoseArg struct {
+}
 
 type RegisterGregorFirehoseFilteredArg struct {
 	Systems []string `codec:"systems" json:"systems"`

@@ -1,11 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/reset.avdl
 
 package keybase1
 
 import (
 	"fmt"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -119,7 +118,8 @@ func (o ResetSummary) DeepCopy() ResetSummary {
 	}
 }
 
-type ResetInterface any
+type ResetInterface interface {
+}
 
 func ResetProtocol(i ResetInterface) rpc.Protocol {
 	return rpc.Protocol{

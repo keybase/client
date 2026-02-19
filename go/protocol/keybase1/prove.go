@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/prove.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type CheckProofStatus struct {
@@ -51,9 +50,11 @@ type CheckProofArg struct {
 	SigID     SigID `codec:"sigID" json:"sigID"`
 }
 
-type ListSomeProofServicesArg struct{}
+type ListSomeProofServicesArg struct {
+}
 
-type ListProofServicesArg struct{}
+type ListProofServicesArg struct {
+}
 
 type ValidateUsernameArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`

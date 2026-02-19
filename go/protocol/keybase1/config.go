@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/config.avdl
 
 package keybase1
@@ -7,9 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type CurrentStatus struct {
@@ -936,11 +935,14 @@ type GuiGetValueArg struct {
 	Path string `codec:"path" json:"path"`
 }
 
-type CheckAPIServerOutOfDateWarningArg struct{}
+type CheckAPIServerOutOfDateWarningArg struct {
+}
 
-type GetUpdateInfoArg struct{}
+type GetUpdateInfoArg struct {
+}
 
-type StartUpdateIfNeededArg struct{}
+type StartUpdateIfNeededArg struct {
+}
 
 type WaitForClientArg struct {
 	ClientType ClientType  `codec:"clientType" json:"clientType"`
@@ -973,15 +975,18 @@ type SetProxyDataArg struct {
 	ProxyData ProxyData `codec:"proxyData" json:"proxyData"`
 }
 
-type GetProxyDataArg struct{}
+type GetProxyDataArg struct {
+}
 
-type ToggleRuntimeStatsArg struct{}
+type ToggleRuntimeStatsArg struct {
+}
 
 type AppendGUILogsArg struct {
 	Content string `codec:"content" json:"content"`
 }
 
-type GenerateWebAuthTokenArg struct{}
+type GenerateWebAuthTokenArg struct {
+}
 
 type UpdateLastLoggedInAndServerConfigArg struct {
 	ServerConfigPath string `codec:"serverConfigPath" json:"serverConfigPath"`

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/identify_ui.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ProofResult struct {
@@ -452,7 +451,8 @@ type DisplayTLFCreateWithInviteArg struct {
 	Throttled       bool            `codec:"throttled" json:"throttled"`
 }
 
-type DelegateIdentifyUIArg struct{}
+type DelegateIdentifyUIArg struct {
+}
 
 type StartArg struct {
 	SessionID    int            `codec:"sessionID" json:"sessionID"`

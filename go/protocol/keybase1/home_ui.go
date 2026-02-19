@@ -1,16 +1,16 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/home_ui.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type HomeUIRefreshArg struct{}
+type HomeUIRefreshArg struct {
+}
 
 type HomeUIInterface interface {
 	HomeUIRefresh(context.Context) error

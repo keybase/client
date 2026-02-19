@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/invite_friends.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type InviteCounts struct {
@@ -67,9 +66,11 @@ type InvitePeopleArg struct {
 	Phones []PhoneNumber `codec:"phones" json:"phones"`
 }
 
-type GetInviteCountsArg struct{}
+type GetInviteCountsArg struct {
+}
 
-type RequestInviteCountsArg struct{}
+type RequestInviteCountsArg struct {
+}
 
 type InviteFriendsInterface interface {
 	InvitePeople(context.Context, InvitePeopleArg) (int, error)

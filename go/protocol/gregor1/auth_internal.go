@@ -1,16 +1,16 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/gregor1/auth_internal.avdl
 
 package gregor1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type CreateGregorSuperUserSessionTokenArg struct{}
+type CreateGregorSuperUserSessionTokenArg struct {
+}
 
 type AuthInternalInterface interface {
 	CreateGregorSuperUserSessionToken(context.Context) (SessionToken, error)

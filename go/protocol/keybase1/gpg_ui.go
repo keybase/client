@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/gpg_ui.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type SelectKeyRes struct {
@@ -49,7 +48,8 @@ type SignArg struct {
 	Fingerprint []byte `codec:"fingerprint" json:"fingerprint"`
 }
 
-type GetTTYArg struct{}
+type GetTTYArg struct {
+}
 
 type GpgUiInterface interface {
 	WantToAddGPGKey(context.Context, int) (bool, error)

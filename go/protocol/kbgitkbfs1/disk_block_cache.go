@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/kbgitkbfs1/disk_block_cache.avdl
 
 package kbgitkbfs1
@@ -6,9 +6,8 @@ package kbgitkbfs1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type PrefetchStatus int

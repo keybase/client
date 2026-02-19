@@ -1,22 +1,25 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/kbfsmount.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
-type GetCurrentMountDirArg struct{}
+type GetCurrentMountDirArg struct {
+}
 
-type WaitForMountsArg struct{}
+type WaitForMountsArg struct {
+}
 
-type GetPreferredMountDirsArg struct{}
+type GetPreferredMountDirsArg struct {
+}
 
-type GetAllAvailableMountDirsArg struct{}
+type GetAllAvailableMountDirsArg struct {
+}
 
 type SetCurrentMountDirArg struct {
 	Dir string `codec:"dir" json:"dir"`

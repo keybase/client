@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/unfurl.avdl
 
 package chat1
@@ -6,7 +6,6 @@ package chat1
 import (
 	"errors"
 	"fmt"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -113,7 +112,8 @@ func (o UnfurlGenericRaw) DeepCopy() UnfurlGenericRaw {
 	}
 }
 
-type UnfurlYoutubeRaw struct{}
+type UnfurlYoutubeRaw struct {
+}
 
 func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
 	return UnfurlYoutubeRaw{}
@@ -403,7 +403,8 @@ func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
 	}
 }
 
-type UnfurlYoutube struct{}
+type UnfurlYoutube struct {
+}
 
 func (o UnfurlYoutube) DeepCopy() UnfurlYoutube {
 	return UnfurlYoutube{}
@@ -629,7 +630,8 @@ func (o UnfurlGenericDisplay) DeepCopy() UnfurlGenericDisplay {
 	}
 }
 
-type UnfurlYoutubeDisplay struct{}
+type UnfurlYoutubeDisplay struct {
+}
 
 func (o UnfurlYoutubeDisplay) DeepCopy() UnfurlYoutubeDisplay {
 	return UnfurlYoutubeDisplay{}
@@ -847,7 +849,8 @@ func (o UnfurlSettingsDisplay) DeepCopy() UnfurlSettingsDisplay {
 	}
 }
 
-type UnfurlInterface any
+type UnfurlInterface interface {
+}
 
 func UnfurlProtocol(i UnfurlInterface) rpc.Protocol {
 	return rpc.Protocol{

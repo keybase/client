@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/install.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 // Install status describes state of install for a component or service.
@@ -247,13 +246,17 @@ type FuseStatusArg struct {
 	BundleVersion string `codec:"bundleVersion" json:"bundleVersion"`
 }
 
-type InstallFuseArg struct{}
+type InstallFuseArg struct {
+}
 
-type InstallKBFSArg struct{}
+type InstallKBFSArg struct {
+}
 
-type UninstallKBFSArg struct{}
+type UninstallKBFSArg struct {
+}
 
-type InstallCommandLinePrivilegedArg struct{}
+type InstallCommandLinePrivilegedArg struct {
+}
 
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)

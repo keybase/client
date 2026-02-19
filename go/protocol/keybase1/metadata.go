@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/metadata.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type KeyHalf struct {
@@ -181,7 +180,8 @@ func (o FindNextMDResponse) DeepCopy() FindNextMDResponse {
 	}
 }
 
-type GetChallengeArg struct{}
+type GetChallengeArg struct {
+}
 
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
@@ -260,9 +260,11 @@ type GetFoldersForRekeyArg struct {
 	DeviceKID KID `codec:"deviceKID" json:"deviceKID"`
 }
 
-type PingArg struct{}
+type PingArg struct {
+}
 
-type Ping2Arg struct{}
+type Ping2Arg struct {
+}
 
 type GetLatestFolderHandleArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
@@ -315,7 +317,8 @@ type SetImplicitTeamModeForTestArg struct {
 	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
 }
 
-type ForceMerkleBuildForTestArg struct{}
+type ForceMerkleBuildForTestArg struct {
+}
 
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)

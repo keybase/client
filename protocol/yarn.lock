@@ -19,7 +19,7 @@ amdefine@>=0.0.4:
 
 "avdl-compiler@github:keybase/node-avdl-compiler#master":
   version "1.4.10"
-  resolved "https://codeload.github.com/keybase/node-avdl-compiler/tar.gz/f40e647da9c578bca26cd256d7446e412f288f23"
+  resolved "https://codeload.github.com/keybase/node-avdl-compiler/tar.gz/4b29feaf4fdf84f90382b1fff1f09c2943874f13"
   dependencies:
     avdl2json "^2.2.5"
     iced-error "0.0.9"

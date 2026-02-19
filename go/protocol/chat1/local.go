@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/local.avdl
 
 package chat1
@@ -7,12 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type VersionKind string
@@ -1137,7 +1136,8 @@ func (o MessageJoin) DeepCopy() MessageJoin {
 	}
 }
 
-type MessageLeave struct{}
+type MessageLeave struct {
+}
 
 func (o MessageLeave) DeepCopy() MessageLeave {
 	return MessageLeave{}
@@ -6537,7 +6537,8 @@ func (o EmojiFetchOpts) DeepCopy() EmojiFetchOpts {
 	}
 }
 
-type TrackGiphySelectRes struct{}
+type TrackGiphySelectRes struct {
+}
 
 func (o TrackGiphySelectRes) DeepCopy() TrackGiphySelectRes {
 	return TrackGiphySelectRes{}
@@ -6767,9 +6768,11 @@ type RequestInboxUnboxArg struct {
 	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
 }
 
-type RequestInboxSmallIncreaseArg struct{}
+type RequestInboxSmallIncreaseArg struct {
+}
 
-type RequestInboxSmallResetArg struct{}
+type RequestInboxSmallResetArg struct {
+}
 
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
@@ -6788,7 +6791,8 @@ type PostLocalArg struct {
 	SkipInChatPayments bool                         `codec:"skipInChatPayments" json:"skipInChatPayments"`
 }
 
-type GenerateOutboxIDArg struct{}
+type GenerateOutboxIDArg struct {
+}
 
 type PostLocalNonblockArg struct {
 	SessionID          int                          `codec:"sessionID" json:"sessionID"`
@@ -7129,7 +7133,8 @@ type SetGlobalAppNotificationSettingsLocalArg struct {
 	Settings map[string]bool `codec:"settings" json:"settings"`
 }
 
-type GetGlobalAppNotificationSettingsLocalArg struct{}
+type GetGlobalAppNotificationSettingsLocalArg struct {
+}
 
 type UnboxMobilePushNotificationArg struct {
 	Payload     string                  `codec:"payload" json:"payload"`
@@ -7144,7 +7149,8 @@ type AddTeamMemberAfterResetArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
 
-type GetAllResetConvMembersArg struct{}
+type GetAllResetConvMembersArg struct {
+}
 
 type SetConvRetentionLocalArg struct {
 	ConvID ConversationID  `codec:"convID" json:"convID"`
@@ -7177,7 +7183,8 @@ type SearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type CancelActiveInboxSearchArg struct{}
+type CancelActiveInboxSearchArg struct {
+}
 
 type SearchInboxArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
@@ -7191,13 +7198,15 @@ type SimpleSearchInboxConvNamesArg struct {
 	Query string `codec:"query" json:"query"`
 }
 
-type CancelActiveSearchArg struct{}
+type CancelActiveSearchArg struct {
+}
 
 type ProfileChatSearchArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetStaticConfigArg struct{}
+type GetStaticConfigArg struct {
+}
 
 type ResolveUnfurlPromptArg struct {
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
@@ -7206,7 +7215,8 @@ type ResolveUnfurlPromptArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetUnfurlSettingsArg struct{}
+type GetUnfurlSettingsArg struct {
+}
 
 type SaveUnfurlSettingsArg struct {
 	Mode      UnfurlMode `codec:"mode" json:"mode"`
@@ -7362,7 +7372,8 @@ type GetLastActiveForTLFArg struct {
 	TlfID TLFIDStr `codec:"tlfID" json:"tlfID"`
 }
 
-type GetLastActiveForTeamsArg struct{}
+type GetLastActiveForTeamsArg struct {
+}
 
 type GetRecentJoinsLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`

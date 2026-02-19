@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/stellar1/remote.avdl
 
 package stellar1
@@ -7,10 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ChatConversationID string
@@ -1023,7 +1022,8 @@ type SetInflationDestinationArg struct {
 	SignedTransaction string               `codec:"signedTransaction" json:"signedTransaction"`
 }
 
-type PingArg struct{}
+type PingArg struct {
+}
 
 type NetworkOptionsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`

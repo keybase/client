@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/remote.avdl
 
 package chat1
@@ -7,11 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type MessageBoxed struct {
@@ -1195,7 +1194,8 @@ func (o AdvertiseBotCommandsRes) DeepCopy() AdvertiseBotCommandsRes {
 	}
 }
 
-type RemoteClearBotCommandsFilterPublic struct{}
+type RemoteClearBotCommandsFilterPublic struct {
+}
 
 func (o RemoteClearBotCommandsFilterPublic) DeepCopy() RemoteClearBotCommandsFilterPublic {
 	return RemoteClearBotCommandsFilterPublic{}
@@ -1800,7 +1800,8 @@ type SetGlobalAppNotificationSettingsArg struct {
 	Settings GlobalAppNotificationSettings `codec:"settings" json:"settings"`
 }
 
-type GetGlobalAppNotificationSettingsArg struct{}
+type GetGlobalAppNotificationSettingsArg struct {
+}
 
 type RemoteNotificationSuccessfulArg struct {
 	AuthToken        gregor1.SessionToken `codec:"authToken" json:"authToken"`
@@ -1854,7 +1855,8 @@ type TeamIDOfConvArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type ServerNowArg struct{}
+type ServerNowArg struct {
+}
 
 type GetExternalAPIKeysArg struct {
 	Typs []ExternalAPIKeyTyp `codec:"typs" json:"typs"`
@@ -1897,7 +1899,8 @@ type GetLastActiveAtArg struct {
 	Uid    gregor1.UID     `codec:"uid" json:"uid"`
 }
 
-type GetResetConversationsArg struct{}
+type GetResetConversationsArg struct {
+}
 
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)

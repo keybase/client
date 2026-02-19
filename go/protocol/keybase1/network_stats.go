@@ -1,11 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/network_stats.avdl
 
 package keybase1
 
 import (
 	"fmt"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -67,7 +66,8 @@ func (o InstrumentationStat) DeepCopy() InstrumentationStat {
 	}
 }
 
-type NetworkStatsInterface any
+type NetworkStatsInterface interface {
+}
 
 func NetworkStatsProtocol(i NetworkStatsInterface) rpc.Protocol {
 	return rpc.Protocol{

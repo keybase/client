@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/gregor1/common.avdl
 
 package gregor1
@@ -397,7 +397,8 @@ func (o SessionToken) DeepCopy() SessionToken {
 	return o
 }
 
-type CommonInterface any
+type CommonInterface interface {
+}
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

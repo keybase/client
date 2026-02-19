@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/block.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type BlockStatus int
@@ -181,7 +180,8 @@ func (o ReferenceCountRes) DeepCopy() ReferenceCountRes {
 	}
 }
 
-type BlockPingResponse struct{}
+type BlockPingResponse struct {
+}
 
 func (o BlockPingResponse) DeepCopy() BlockPingResponse {
 	return BlockPingResponse{}
@@ -259,7 +259,8 @@ func (o BlockQuotaInfo) DeepCopy() BlockQuotaInfo {
 	}
 }
 
-type GetSessionChallengeArg struct{}
+type GetSessionChallengeArg struct {
+}
 
 type AuthenticateSessionArg struct {
 	Signature string `codec:"signature" json:"signature"`
@@ -321,7 +322,8 @@ type GetReferenceCountArg struct {
 	Status BlockStatus    `codec:"status" json:"status"`
 }
 
-type GetUserQuotaInfoArg struct{}
+type GetUserQuotaInfoArg struct {
+}
 
 type GetTeamQuotaInfoArg struct {
 	Tid TeamID `codec:"tid" json:"tid"`
@@ -336,7 +338,8 @@ type GetTeamQuotaInfo2Arg struct {
 	IncludeFolders bool   `codec:"includeFolders" json:"includeFolders"`
 }
 
-type BlockPingArg struct{}
+type BlockPingArg struct {
+}
 
 type BlockInterface interface {
 	GetSessionChallenge(context.Context) (ChallengeInfo, error)

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/stellar1/local.avdl
 
 package stellar1
@@ -6,9 +6,8 @@ package stellar1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type WalletAccountLocal struct {
@@ -1670,11 +1669,14 @@ type PaymentDetailCLILocalArg struct {
 	TxID string `codec:"txID" json:"txID"`
 }
 
-type WalletInitLocalArg struct{}
+type WalletInitLocalArg struct {
+}
 
-type WalletDumpLocalArg struct{}
+type WalletDumpLocalArg struct {
+}
 
-type WalletGetAccountsCLILocalArg struct{}
+type WalletGetAccountsCLILocalArg struct {
+}
 
 type OwnAccountLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
@@ -1699,7 +1701,8 @@ type ExchangeRateLocalArg struct {
 	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
-type GetAvailableLocalCurrenciesArg struct{}
+type GetAvailableLocalCurrenciesArg struct {
+}
 
 type FormatLocalCurrencyStringArg struct {
 	Amount string              `codec:"amount" json:"amount"`
@@ -1759,7 +1762,8 @@ type SignTransactionXdrLocalArg struct {
 	Submit      bool       `codec:"submit" json:"submit"`
 }
 
-type GetStaticConfigLocalArg struct{}
+type GetStaticConfigLocalArg struct {
+}
 
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)

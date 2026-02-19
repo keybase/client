@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/ctl.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ExitCode int
@@ -189,7 +188,8 @@ type SetOnLoginStartupArg struct {
 	Enabled bool `codec:"enabled" json:"enabled"`
 }
 
-type GetOnLoginStartupArg struct{}
+type GetOnLoginStartupArg struct {
+}
 
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error

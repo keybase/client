@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/gregor1/incoming.avdl
 
 package gregor1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type SyncResult struct {
@@ -97,7 +96,8 @@ type ConsumeMessageMultiArg struct {
 	Uids []UID   `codec:"uids" json:"uids"`
 }
 
-type PingArg struct{}
+type PingArg struct {
+}
 
 type VersionArg struct {
 	Uid UID `codec:"uid" json:"uid"`

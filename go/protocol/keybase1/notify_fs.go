@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_fs.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type FSActivityArg struct {
@@ -36,7 +35,8 @@ type FSOverallSyncStatusChangedArg struct {
 	Status FolderSyncStatus `codec:"status" json:"status"`
 }
 
-type FSFavoritesChangedArg struct{}
+type FSFavoritesChangedArg struct {
+}
 
 type FSOnlineStatusChangedArg struct {
 	Online bool `codec:"online" json:"online"`

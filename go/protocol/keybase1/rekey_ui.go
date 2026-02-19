@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/rekey_ui.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type RekeyEventType int
@@ -70,7 +69,8 @@ func (o RekeyEvent) DeepCopy() RekeyEvent {
 	}
 }
 
-type DelegateRekeyUIArg struct{}
+type DelegateRekeyUIArg struct {
+}
 
 type RefreshArg struct {
 	SessionID         int               `codec:"sessionID" json:"sessionID"`
