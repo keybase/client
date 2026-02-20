@@ -153,7 +153,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			//
 			//nolint:gosec // G115: Version difference for delay calculation, safe to convert
 			max(
-
 				time.Duration(newVers-vers-1)*time.Second, 0), time.Minute)
 
 		deadline = deadline.Add(dur)
