@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import openUrl from '@/util/open-url'
 import {useColorScheme} from 'react-native'
 
 export type Props = {
@@ -228,10 +229,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
         <Kb.Text type="Body" style={styles.assertionTextContainer}>
           <Kb.Text
             type="BodyPrimaryLink"
-            onClick={a.siteURL ? () => {
-              // handled via openUrl in the full app, but in remote window just open directly
-              window.open(a.siteURL, '_blank')
-            } : undefined}
+            onClick={a.siteURL ? () => openUrl(a.siteURL) : undefined}
             style={Kb.Styles.collapseStyles([
               styles.assertionValue,
               a.state === 'revoked' && styles.strikeThrough,
@@ -246,6 +244,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
           type={stateToIcon(a.state)}
           fontSize={20}
           color={assertionColorToColor(a.color)}
+          onClick={a.proofURL ? () => openUrl(a.proofURL) : undefined}
         />
       </Kb.Box2>
       {!!a.metas.length && (
