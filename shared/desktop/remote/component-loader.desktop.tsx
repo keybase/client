@@ -1,9 +1,9 @@
-// This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
-// Also protects it with an error boundary
+// Loads a remote component. Receives props from the main window via IPC.
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
-import RemoteStore from './store.desktop'
+import * as R from '@/constants/remote'
+import * as RemoteGen from '@/actions/remote-gen'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {CanFixOverdrawContext} from '@/styles'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
@@ -15,45 +15,41 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 
 setServiceDecoration(ServiceDecoration)
 
-const {closeWindow, showInactive} = KB2.functions
+const {closeWindow, showInactive, ipcRendererOn} = KB2.functions
 
 disableDragDrop()
 module.hot?.accept()
 
 type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker'
 
-type Props<DeserializeProps, SerializeProps> = {
-  child: (p: DeserializeProps) => React.ReactNode
-  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
+type Props<P> = {
+  child: (p: P) => React.ReactNode
   name: RemoteComponents
   params: string
   showOnProps: boolean
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
-  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>(undefined)
-  const {deserialize, name, params, showOnProps} = p
-  const [value, setValue] = React.useState<DeserializeProps | undefined>()
+function RemoteComponentLoader<P>(p: Props<P>) {
+  const {name, params, showOnProps} = p
+  const [value, setValue] = React.useState<P | null>(null)
 
   React.useEffect(() => {
-    if (!storeRef.current) {
-      storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
-        deserialize,
-        gotPropsCallback: () => {
-          if (showOnProps) {
-            showInactive?.()
-          }
-        },
-        onUpdated: v => {
-          setValue(v)
-        },
-        windowComponent: name,
-        windowParam: params,
-      })
+    ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
+      const str = raw as string
+      const parsed = JSON.parse(str) as P
+      setTimeout(() => setValue(parsed), 1)
+    })
+    R.remoteDispatch(
+      RemoteGen.createRemoteWindowWantsProps({component: name, param: params})
+    )
+  }, [name, params])
+
+  React.useEffect(() => {
+    if (value && showOnProps) {
+      showInactive?.()
     }
-    setValue(storeRef.current._value)
-  }, [deserialize, name, params, showOnProps])
+  }, [value, showOnProps])
 
   if (!value) return null
 
@@ -84,9 +80,8 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default function Loader<DeserializeProps, SerializeProps>(options: {
-  child: (p: DeserializeProps) => React.ReactNode
-  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
+export default function Loader<P>(options: {
+  child: (p: P) => React.ReactNode
   name: RemoteComponents
   params?: string
   style?: Kb.Styles.StylesCrossPlatform
@@ -96,12 +91,11 @@ export default function Loader<DeserializeProps, SerializeProps>(options: {
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.createRoot(node).render(
-      <RemoteComponentLoader<DeserializeProps, SerializeProps>
+      <RemoteComponentLoader<P>
         name={options.name}
         params={options.params || ''}
         style={options.style}
         showOnProps={options.showOnProps ?? true}
-        deserialize={options.deserialize}
         child={options.child}
       />
     )

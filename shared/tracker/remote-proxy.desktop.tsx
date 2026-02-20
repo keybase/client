@@ -1,26 +1,23 @@
 // A mirror of the remote tracker windows.
-import * as C from '@/constants'
-import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useConfigState} from '@/stores/config'
-import * as React from 'react'
+import type * as React from 'react'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
-import {serialize, type ProxyProps} from './remote-serializer.desktop'
-import {intersect} from '@/util/set'
-import {mapFilterByKey} from '@/util/map'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConfigState} from '@/stores/config'
+import type {Props as TrackerProps} from './index.desktop'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
+type ProxyProps = Omit<TrackerProps, 'onAccept' | 'onChat' | 'onClose' | 'onFollow' | 'onIgnoreFor24Hours' | 'onReload'>
+
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
   const details = useTrackerState(s => s.getDetails(trackerUsername))
-  const infoMap = useUsersState(s => s.infoMap)
   const blockMap = useUsersState(s => s.blockMap)
   const followers = useFollowerState(s => s.followers)
   const following = useFollowerState(s => s.following)
@@ -28,47 +25,29 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const httpSrv = useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
-  const counts = new Map([
-    [C.waitingKeyTracker, C.useWaitingState(s => s.counts.get(C.waitingKeyTracker) ?? 0)],
-  ])
-  const errors = new Map([[C.waitingKeyTracker, C.useWaitingState(s => s.errors.get(C.waitingKeyTracker))]])
-  const trackerUsernames = new Set([trackerUsername])
+  const isDarkMode = useColorScheme() === 'dark'
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 
-  const avatarCount = useAvatarState(s => s.counts.get(trackerUsername) ?? 0)
-
-  const avatarRefreshCounter = React.useMemo(() => {
-    return new Map([[trackerUsername, avatarCount]])
-  }, [trackerUsername, avatarCount])
-
-  const isDarkMode = useColorScheme() === 'dark'
-
   const p: ProxyProps = {
-    assertions,
-    avatarRefreshCounter,
+    assertions: assertions ? [...assertions.values()] : undefined,
     bio,
-    blockMap: mapFilterByKey(blockMap, trackerUsernames),
     blocked,
-    counts,
     darkMode: isDarkMode,
-    errors,
-    followers: intersect(followers, trackerUsernames),
+    followThem: following.has(trackerUsername),
     followersCount,
-    following: intersect(following, trackerUsernames),
     followingCount,
+    followsYou: followers.has(trackerUsername),
     fullname,
     guiID,
     hidFromFollowers,
     httpSrvAddress: httpSrv.address,
     httpSrvToken: httpSrv.token,
-    infoMap: mapFilterByKey(infoMap, trackerUsernames),
+    isYou: username === trackerUsername,
     location,
     reason,
-    resetBrokeTrack: false,
     state: details.state,
     teamShowcase,
     trackerUsername,
-    username,
   }
 
   const windowComponent = 'tracker'
@@ -81,7 +60,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     windowTitle: `Tracker - ${trackerUsername}`,
   })
 
-  useSerializeProps(p, serialize, windowComponent, windowParam)
+  useSerializeProps(p, windowComponent, windowParam)
 
   return null
 }

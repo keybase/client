@@ -25,7 +25,6 @@ const makeRow = (item: ChatInboxRowItem, navKey: string, selected: boolean) => {
     case 'small':
       return (
         <SmallTeam
-          isInWidget={false}
           conversationIDKey={item.conversationIDKey}
           layoutIsTeam={item.isTeam}
           layoutName={item.teamname}
