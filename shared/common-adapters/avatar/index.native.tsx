@@ -34,7 +34,7 @@ const Avatar = React.memo(function Avatar(p: Props) {
 
   return (
     <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
-      <Kb.Box2 direction="vertical" style={containerStyle}>
+      <Kb.Box2 direction="vertical" style={boxStyles[size]}>
         {!props.skipBackground && (
           <Kb.Box2
             direction="vertical"
