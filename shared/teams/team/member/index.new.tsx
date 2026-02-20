@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
 import {useProfileState} from '@/stores/profile'

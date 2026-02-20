@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -164,10 +164,10 @@ const TeamPicker = (props: Props) => {
               {error}
             </Kb.Text>
           ) : (
-            <Kb.List2
+            <Kb.List
               indexAsKey={true}
               items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
           )}

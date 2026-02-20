@@ -207,7 +207,7 @@ const Teams = React.memo(function Teams(p: Props) {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.BoxGrow>
-        <Kb.List2 items={items} renderItem={renderItem} itemHeight={itemHeight} />
+        <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
       </Kb.BoxGrow>
     </Kb.Box2>
   )

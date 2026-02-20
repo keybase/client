@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,7 +9,7 @@ import {settingsFeedbackTab} from '@/stores/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {useFSState} from '@/stores/fs'
-import {useRouterState} from '@/stores/router2'
+import {useRouterState} from '@/stores/router'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)

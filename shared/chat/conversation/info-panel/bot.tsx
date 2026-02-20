@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -115,7 +115,7 @@ export const Bot = (props: BotProps) => {
     </Kb.Box2>
   )
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"

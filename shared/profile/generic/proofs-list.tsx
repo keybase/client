@@ -5,7 +5,7 @@ import type * as T from '@/constants/types'
 import {SiteIcon} from './shared'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 
 const Container = () => {
@@ -155,7 +155,7 @@ const Providers = React.memo(function Providers({filter, providerClicked, provid
 
   return (
     <Kb.BoxGrow2>
-      <Kb.List2 items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
+      <Kb.List items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
     </Kb.BoxGrow2>
   )
 })

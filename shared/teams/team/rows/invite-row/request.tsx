@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import {useProfileState} from '@/stores/profile'
 import type * as T from '@/constants/types'
@@ -82,7 +82,7 @@ export const TeamRequestRow = (props: Props) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       icon={<Kb.Avatar username={username} size={32} />}
       body={

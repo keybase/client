@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useProfileState} from '@/stores/profile'
@@ -154,7 +154,7 @@ export const asRows = (
     : noRows
 
 /*
- * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
+ * This banner is used as part of a List in fs/folder/rows/rows.js, so it's
  * important to keep height stable, thus all the height/minHeight/maxHeight in
  * styles.  Please make sure the height is still calculated in getHeight when
  * layout changes.

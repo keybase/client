@@ -168,7 +168,7 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numImages; i++) {
     children.push(
-      <Kb.Image2
+      <Kb.Image
         key={i}
         src={isDarkMode ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}

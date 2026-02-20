@@ -16,7 +16,7 @@ import {useConfigState} from '@/stores/config'
 import {usePinentryState} from '@/stores/pinentry'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {switchTab} from '@/constants/router2'
+import {switchTab} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
 import {handleAppLink} from '@/constants/deeplinks'
@@ -164,19 +164,19 @@ const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.trackerChangeFollow: {
-      storeRegistry.getState('tracker2').dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+      storeRegistry.getState('tracker').dispatch.changeFollow(action.payload.guiID, action.payload.follow)
       break
     }
     case RemoteGen.trackerIgnore: {
-      storeRegistry.getState('tracker2').dispatch.ignore(action.payload.guiID)
+      storeRegistry.getState('tracker').dispatch.ignore(action.payload.guiID)
       break
     }
     case RemoteGen.trackerCloseTracker: {
-      storeRegistry.getState('tracker2').dispatch.closeTracker(action.payload.guiID)
+      storeRegistry.getState('tracker').dispatch.closeTracker(action.payload.guiID)
       break
     }
     case RemoteGen.trackerLoad: {
-      storeRegistry.getState('tracker2').dispatch.load(action.payload)
+      storeRegistry.getState('tracker').dispatch.load(action.payload)
       break
     }
     case RemoteGen.link:

@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
@@ -26,7 +26,7 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
         </Kb.Text>
       )
       break
-    case 'chat2':
+    case 'chat':
       bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
       onAddOverride.onAdd = onSelfChat
       break

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import type * as Styles from '@/styles'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -248,7 +248,7 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
         <Kb.Button type="Dim" onClick={onToggleThreadSearch} label="Cancel" />
       </Kb.Box2>
       {hits.length > 0 && (
-        <Kb.List2
+        <Kb.List
           indexAsKey={true}
           items={hits}
           itemHeight={{height: hitHeight, type: 'fixed'}}

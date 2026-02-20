@@ -1,6 +1,6 @@
 import * as Platforms from './platform'
 import type * as T from './types'
-import {conversationIDKeyToString} from './types/chat2/common'
+import {conversationIDKeyToString} from './types/chat/common'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const addEmailWaitingKey = 'settings:addEmail'
@@ -26,8 +26,8 @@ export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey)
 export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
-export const waitingKeyTracker = 'tracker2:waitingKey'
-export const waitingKeyTrackerProfileLoad = 'tracker2:profileLoad'
+export const waitingKeyTracker = 'tracker:waitingKey'
+export const waitingKeyTrackerProfileLoad = 'tracker:profileLoad'
 
 export const waitingKeyProvision = 'provision:waiting'
 export const waitingKeyProvisionForgotUsername = 'provision:forgotUsername'

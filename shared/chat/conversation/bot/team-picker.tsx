@@ -100,10 +100,10 @@ const BotTeamPicker = (props: Props) => {
               {error}
             </Kb.Text>
           ) : (
-            <Kb.List2
+            <Kb.List
               indexAsKey={true}
               items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
           )}

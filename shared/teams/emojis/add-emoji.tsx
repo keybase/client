@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'
@@ -325,7 +325,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
       ])}
     >
       <Kb.Box2 direction="vertical" style={styles.emojiToAddImageContainer}>
-        <Kb.Image2 src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
+        <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
       </Kb.Box2>
       <AliasInput
         error={item.emojiToAdd.error}
@@ -376,7 +376,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
         {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
       </Kb.Text>
       <Kb.BoxGrow>
-        <Kb.List2
+        <Kb.List
           items={items}
           keyProperty="key"
           renderItem={renderRow}

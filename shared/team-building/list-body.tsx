@@ -352,7 +352,7 @@ export const ListBody = (
     <>
       {searchResults?.length ? (
         <Kb.BoxGrow>
-          <Kb.List2
+          <Kb.List
             reAnimated={true}
             items={searchResults}
             selectedIndex={highlightedIndex || 0}

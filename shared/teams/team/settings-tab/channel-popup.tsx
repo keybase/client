@@ -72,7 +72,7 @@ const ChannelPopup = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.BoxGrow>
-        <Kb.List2
+        <Kb.List
           itemHeight={{height: 48, type: 'fixed'}}
           items={channelsFiltered}
           keyProperty="conversationIDKey"

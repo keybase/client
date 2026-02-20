@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import chatNewChat from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import inboxGetOptions from './inbox/get-options'
-import inboxAndConvoGetOptions from './inbox-and-conversation-2-get-options'
+import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 
 const Convo = React.lazy(async () => import('./conversation/container'))
 
@@ -21,7 +21,7 @@ export const newRoutes = {
   },
   chatRoot: Chat.isSplit
     ? Chat.makeChatScreen(
-        React.lazy(async () => import('./inbox-and-conversation-2')),
+        React.lazy(async () => import('./inbox-and-conversation')),
         {getOptions: inboxAndConvoGetOptions, skipProvider: true}
       )
     : Chat.makeChatScreen(

@@ -1,4 +1,4 @@
-import type {ConversationIDKey} from '@/constants/types/chat2'
+import type {ConversationIDKey} from '@/constants/types/chat'
 import type * as T from '@/constants/types'
 
 export type ChatInboxRowItemSmall = {

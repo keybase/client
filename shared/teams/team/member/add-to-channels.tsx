@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -256,7 +256,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
             />
           </Kb.Box2>
           <Kb.BoxGrow2>
-            <Kb.List2 items={items} renderItem={renderItem} itemHeight={itemHeight} />
+            <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
           </Kb.BoxGrow2>
         </Kb.Box2>
       )}
@@ -505,7 +505,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       </Kb.Box2>
     </Kb.ClickableBox>
   ) : (
-    <Kb.ListItem2
+    <Kb.ListItem
       fullDivider={true}
       onMouseDown={
         selfMode || channelMeta.channelname === 'general' || allInChannel

@@ -208,7 +208,7 @@ const AccountSettings = () => {
   }
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
-    navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
+    navigateAppend({props: {namespace: 'chat'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }
   const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)

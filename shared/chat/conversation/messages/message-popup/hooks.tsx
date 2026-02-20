@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import {useConfigState} from '@/stores/config'
 import {useProfileState} from '@/stores/profile'

@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openURL from '@/util/open-url'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -91,7 +91,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
 
   const canEdit = canDelete && !!teamname
   const url = gitURL
-  // TODO use ListItem2
+  // TODO use ListItem
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile}>

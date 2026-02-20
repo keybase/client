@@ -135,7 +135,7 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
     </Kb.Box2>
   ) : (
     <Kb.BoxGrow>
-      <Kb.List2
+      <Kb.List
         key={listKey}
         items={items}
         bounces={true}
@@ -152,7 +152,7 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
 const RowsWithAutoLoad = (props: Props) => {
   useFsChildren(props.path, /* recursive */ true) // need recursive for the EMPTY tag
 
-  // List2 caches offsets. So have the key derive from layouts so that we
+  // List caches offsets. So have the key derive from layouts so that we
   // trigger a re-render when layout changes. Also encode items length into
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.

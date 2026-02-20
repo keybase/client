@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
 import {useBotsState} from '@/stores/bots'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 
 export type Props = {
@@ -68,7 +68,7 @@ export const TeamBotRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  // TODO: switch this to a ListItem2 so that we get dividers, free styling, etc
+  // TODO: switch this to a ListItem so that we get dividers, free styling, etc
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>

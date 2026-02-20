@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import type {RefType as InputRef} from '@/common-adapters/input'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -99,7 +99,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
 
 type UseDataSourceProps = {
   filter: string
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   lastTextRef: React.RefObject<string>
 }
 
@@ -169,7 +169,7 @@ type ListProps = Pick<
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 } & {
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   lastTextRef: React.RefObject<string>
 }
 export const List = (p: ListProps) => {

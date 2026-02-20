@@ -11,16 +11,16 @@ import {
   getVisibleScreen,
   getModalStack,
   navToThread,
-} from '@/constants/router2'
+} from '@/constants/router'
 import {isIOS} from '@/constants/platform'
 import {updateImmer} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import * as Common from '@/constants/chat2/common'
+import * as Common from '@/constants/chat/common'
 import * as Tabs from '@/constants/tabs'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as Message from '@/constants/chat2/message'
-import * as Meta from '@/constants/chat2/meta'
+import * as Message from '@/constants/chat/message'
+import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import {navToPath} from '@/constants/fs'
@@ -32,7 +32,7 @@ import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
 import {findLast} from '@/util/arrays'
 import {mapGetEnsureValue} from '@/util/map'
-import {noConversationIDKey} from '@/constants/types/chat2/common'
+import {noConversationIDKey} from '@/constants/types/chat/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Platform from '@/constants/platform'
 import KB2 from '@/util/electron'
@@ -48,7 +48,7 @@ import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type {useChatState, RefreshReason} from '@/stores/chat2'
+import type {useChatState, RefreshReason} from '@/stores/chat'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 

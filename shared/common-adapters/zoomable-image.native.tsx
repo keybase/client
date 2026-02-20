@@ -1,7 +1,7 @@
 import type {Props} from './zoomable-image'
 import * as Styles from '@/styles'
 import * as React from 'react'
-import Image2 from './image2.native'
+import Image from './image.native'
 import {View, type LayoutChangeEvent} from 'react-native'
 import {useSharedValue, runOnJS} from 'react-native-reanimated'
 import {
@@ -78,7 +78,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   } else {
     const size = fitContainer(resolution.width / resolution.height, containerSize)
     content = (
-      <Image2
+      <Image
         contentFit="fill"
         src={src}
         style={size}

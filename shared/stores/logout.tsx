@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
 import {settingsPasswordTab} from '@/constants/settings'
-import {navigateAppend} from '@/constants/router2'
+import {navigateAppend} from '@/constants/router'
 import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
 

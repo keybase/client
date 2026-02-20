@@ -28,7 +28,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
     </Kb.Box2>
   )
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       onClick={() => onShowProfile(username)}
       firstItem={firstItem}
       type="Large"

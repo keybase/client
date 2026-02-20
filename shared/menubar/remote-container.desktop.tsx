@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import Menubar from './index.desktop'
 import {useConfigState} from '@/stores/config'
 import type {DeserializeProps} from './remote-serializer.desktop'

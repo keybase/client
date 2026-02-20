@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,7 +11,7 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
-import {MaxInputAreaContext} from '../input-area/normal2/max-input-area-context'
+import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import logger from '@/logger'
 
 const Offline = () => (

@@ -79,7 +79,7 @@ const ContactRow = React.memo(function ContactRow({
   const bottomText = item.name ? (item.valueFormatted ?? item.value) : undefined
   const onCheck = (check: boolean) => onSelect(item, check)
   const listItem = (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={index === 0}
       body={
@@ -94,7 +94,7 @@ const ContactRow = React.memo(function ContactRow({
       }
       icon={
         item.pictureUri ? (
-          <Kb.Image2 style={styles.thumbnail} src={item.pictureUri} />
+          <Kb.Image style={styles.thumbnail} src={item.pictureUri} />
         ) : (
           <Kb.Avatar size={32} username="" />
         )

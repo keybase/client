@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, ModalType} from '@/constants/types/router2'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, ModalType} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -73,7 +73,7 @@ const ErrorMessage = () => {
       {createConversationDisallowedUsers.length > 0 && (
         <>
           {createConversationDisallowedUsers.map((username, idx) => (
-            <Kb.ListItem2
+            <Kb.ListItem
               key={username}
               type={Kb.Styles.isMobile ? 'Large' : 'Small'}
               icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}

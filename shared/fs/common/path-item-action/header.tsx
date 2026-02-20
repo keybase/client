@@ -9,7 +9,7 @@ const Header = (props: Props) => (
   <Kb.ClickableBox
     onClick={
       // This box is necessary as otherwise the click event propagates into
-      // the ListItem2 backed row.
+      // the ListItem backed row.
       event => event.stopPropagation()
     }
   >

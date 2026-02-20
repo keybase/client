@@ -3,7 +3,7 @@
 import type * as T from '@/constants/types'
 import type * as ConvoStateType from '@/stores/convostate'
 import type {ConvoState} from '@/stores/convostate'
-import type {State as ChatState, useChatState} from '@/stores/chat2'
+import type {State as ChatState, useChatState} from '@/stores/chat'
 import type {State as DaemonState, useDaemonState} from '@/stores/daemon'
 import type {State as FSState, useFSState} from '@/stores/fs'
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
@@ -19,7 +19,7 @@ import type {State as SettingsEmailState, useSettingsEmailState} from '@/stores/
 import type {State as SettingsPhoneState, useSettingsPhoneState} from '@/stores/settings-phone'
 import type {State as SignupState, useSignupState} from '@/stores/signup'
 import type {State as TeamsState, useTeamsState} from '@/stores/teams'
-import type {State as Tracker2State, useTrackerState} from '@/stores/tracker2'
+import type {State as TrackerState, useTrackerState} from '@/stores/tracker'
 import type {State as UsersState, useUsersState} from '@/stores/users'
 
 type StoreName =
@@ -36,7 +36,7 @@ type StoreName =
   | 'settings-phone'
   | 'signup'
   | 'teams'
-  | 'tracker2'
+  | 'tracker'
   | 'users'
 
 type StoreStates = {
@@ -53,7 +53,7 @@ type StoreStates = {
   'settings-phone': SettingsPhoneState
   signup: SignupState
   teams: TeamsState
-  tracker2: Tracker2State
+  tracker: TrackerState
   users: UsersState
 }
 
@@ -71,7 +71,7 @@ type StoreHooks = {
   'settings-phone': typeof useSettingsPhoneState
   signup: typeof useSignupState
   teams: typeof useTeamsState
-  tracker2: typeof useTrackerState
+  tracker: typeof useTrackerState
   users: typeof useUsersState
 }
 
@@ -80,7 +80,7 @@ class StoreRegistry {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
     switch (storeName) {
       case 'chat': {
-        const {useChatState} = require('@/stores/chat2')
+        const {useChatState} = require('@/stores/chat')
         return useChatState
       }
       case 'daemon': {
@@ -131,8 +131,8 @@ class StoreRegistry {
         const {useTeamsState} = require('@/stores/teams')
         return useTeamsState
       }
-      case 'tracker2': {
-        const {useTrackerState} = require('@/stores/tracker2')
+      case 'tracker': {
+        const {useTrackerState} = require('@/stores/tracker')
         return useTrackerState
       }
       case 'users': {

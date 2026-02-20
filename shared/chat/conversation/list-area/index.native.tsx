@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -11,10 +11,10 @@ import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
-import {mobileTypingContainerHeight} from '../input-area/normal2/typing'
+import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
-// import {useChatDebugDump} from '@/constants/chat2/debug'
+// import {useChatDebugDump} from '@/constants/chat/debug'
 import {usingFlashList} from './flashlist-config'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
@@ -235,7 +235,7 @@ const ConversationList = React.memo(function ConversationList() {
   //     //   _totalWidth: unknown
   //     // }
   //     // const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-  //     // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
+  //     // const mm = window.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)
   //     // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
   //
   //     console.log(listRef.current)

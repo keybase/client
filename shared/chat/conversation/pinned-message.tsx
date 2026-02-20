@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -67,7 +67,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
         {!!imageURL && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
             <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
-              <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+              <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
             </Kb.Box2>
           </Kb.Box2>
         )}

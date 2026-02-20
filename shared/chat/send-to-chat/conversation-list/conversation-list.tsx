@@ -140,7 +140,7 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
-        <Kb.List2
+        <Kb.List
           itemHeight={{height: 65, type: 'fixed'}}
           items={props.results.map((r, index) => ({
             isSelected: index === props.selected,

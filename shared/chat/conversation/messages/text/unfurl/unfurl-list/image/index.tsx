@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
 import openURL from '@/util/open-url'
@@ -43,7 +43,7 @@ const UnfurlImage = (p: Props) => {
     />
   ) : (
     <Kb.ClickableBox onClick={onClick || onOpenURL}>
-      <Kb.Image2
+      <Kb.Image
         src={url}
         style={Kb.Styles.collapseStyles([
           styles.video,

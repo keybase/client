@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -161,7 +161,7 @@ const AccountRow = (props: AccountRowProps) => {
         props.onSelectAccount(props.entry.account.username)
       }
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type={Kb.Styles.isMobile ? 'Large' : 'Small'}
       icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}

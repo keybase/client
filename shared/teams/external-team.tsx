@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -179,7 +179,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   const roleString = Teams.teamRoleByEnum[member.role]
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}

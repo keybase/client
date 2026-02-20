@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -65,7 +65,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-      {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
+      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
       <Kb.BoxGrow style={styles.fastStyle}>
         <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
           {siteName}
@@ -124,7 +124,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const rightImage =
     imageLocation === 'side' && mediaUrl ? (
       <Kb.Box2 direction="vertical">
-        <Kb.Image2 src={mediaUrl} style={styles.sideImage} />
+        <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null
 

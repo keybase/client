@@ -8,7 +8,7 @@ import {type CommonResponseHandler} from '@/engine/types'
 import isEqual from 'lodash/isEqual'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {invalidPasswordErrorString} from '@/constants/config'
-import {clearModals, navigateAppend} from '@/constants/router2'
+import {clearModals, navigateAppend} from '@/constants/router'
 import {useWaitingState} from '@/stores/waiting'
 
 export type Device = {

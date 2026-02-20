@@ -1,7 +1,7 @@
 import * as Tabs from '@/constants/tabs'
 import * as S from '@/constants/strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
-import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router2'
+import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useLogoutState} from '@/stores/logout'

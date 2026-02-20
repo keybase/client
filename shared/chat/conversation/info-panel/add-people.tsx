@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'

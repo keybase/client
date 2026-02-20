@@ -6,7 +6,7 @@ import * as Tabs from '@/constants/tabs'
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseBotsStateType from '@/stores/bots'
-import type * as UseChatStateType from '@/stores/chat2'
+import type * as UseChatStateType from '@/stores/chat'
 import type * as UseDevicesStateType from '@/stores/devices'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
@@ -16,18 +16,18 @@ import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
-import type * as UseTracker2StateType from '@/stores/tracker2'
+import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {createTBStore, getTBStore} from '@/stores/team-building'
-import {getSelectedConversation} from '@/constants/chat2/common'
+import {getSelectedConversation} from '@/constants/chat/common'
 import {handleKeybaseLink} from '@/constants/deeplinks'
 import {ignorePromise} from '../utils'
 import {isMobile, serverConfigFileName} from '../platform'
 import {storeRegistry} from '@/stores/store-registry'
 import {useAutoResetState} from '@/stores/autoreset'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useChatState} from '@/stores/chat2'
+import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useCryptoState} from '@/stores/crypto'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -46,11 +46,11 @@ import {useSettingsState} from '@/stores/settings'
 import {useSignupState} from '@/stores/signup'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
 import {useWhatsNewState} from '@/stores/whats-new'
-import {useRouterState} from '@/stores/router2'
-import * as Util from '@/constants/router2'
+import {useRouterState} from '@/stores/router'
+import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__
@@ -141,7 +141,7 @@ export const initTeamBuildingCallbacks = () => {
     },
   }
 
-  const namespaces: Array<T.TB.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people']
+  const namespaces: Array<T.TB.AllowedNamespace> = ['chat', 'crypto', 'teams', 'people']
   for (const namespace of namespaces) {
     const store = createTBStore(namespace)
     const currentState = store.getState()
@@ -151,7 +151,7 @@ export const initTeamBuildingCallbacks = () => {
         defer: {
           ...currentState.dispatch.defer,
           ...commonCallbacks,
-          ...(namespace === 'chat2'
+          ...(namespace === 'chat'
             ? {
                 onFinishedTeamBuildingChat: users => {
                   storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
@@ -623,9 +623,9 @@ export const initSharedSubscriptions = () => {
     const prev = old.navState as Util.NavState
     if (prev === next) return
 
-    const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+    const namespaces = ['chat', 'crypto', 'teams', 'people'] as const
     const namespaceToRoute = new Map([
-      ['chat2', 'chatNewChat'],
+      ['chat', 'chatNewChat'],
       ['crypto', 'cryptoTeamBuilder'],
       ['teams', 'teamsTeamBuilder'],
       ['people', 'peopleTeamBuilder'],
@@ -751,7 +751,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
@@ -862,7 +862,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.chat1NotifyChatChatSetConvRetention:
     case EngineGen.chat1NotifyChatChatSetTeamRetention:
       {
-        const {useChatState} = require('@/stores/chat2') as typeof UseChatStateType
+        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
@@ -883,7 +883,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1NotifyTrackingTrackingChanged: {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-      const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+      const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
       useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
@@ -909,7 +909,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
     case EngineGen.keybase1Identify3UiIdentify3Summary:
       {
-        const {useTrackerState} = require('@/stores/tracker2') as typeof UseTracker2StateType
+        const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
         useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       }
       {

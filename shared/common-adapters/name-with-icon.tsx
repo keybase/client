@@ -9,7 +9,7 @@ import Icon, {type IconType} from './icon'
 import Text from './text'
 import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'

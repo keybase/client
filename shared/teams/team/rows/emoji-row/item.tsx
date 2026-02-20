@@ -75,7 +75,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         body={
           <Kb.Box2

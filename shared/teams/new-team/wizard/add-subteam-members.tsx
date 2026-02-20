@@ -54,7 +54,7 @@ const AddSubteamMembers = () => {
     }
 
     return (
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         icon={<Kb.Avatar username={m.username} size={32} />}
         body={
@@ -117,10 +117,10 @@ const AddSubteamMembers = () => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.BoxGrow>
-          <Kb.List2
+          <Kb.List
             items={filteredMembers}
             renderItem={renderItem}
-            itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+            itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
           />
         </Kb.BoxGrow>
       </Kb.Box2>
