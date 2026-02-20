@@ -7,7 +7,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
-import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
+import {isValidUsername} from '@/util/simple-validators'
 import {navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 
@@ -50,13 +50,11 @@ export interface State extends Store {
       onShowPermissionsPrompt?: (p: {justSignedUp?: boolean}) => void
     }
     checkDeviceName: (devicename: string) => void
-    checkInviteCode: () => void
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     requestAutoInvite: (username?: string) => void
-    requestInvite: (email: string, name: string) => void
     resetState: () => void
     restartSignup: () => void
     setJustSignedUpEmail: (email: string) => void
@@ -78,8 +76,8 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
       }
 
       const {username, inviteCode, devicename} = get()
-      if (!username || !inviteCode || !devicename) {
-        logger.warn('Missing data during signup phase', username, inviteCode, devicename)
+      if (!username || !devicename) {
+        logger.warn('Missing data during signup phase', username, devicename)
         throw new Error('Missing data for signup')
       }
 
@@ -160,29 +158,6 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
             const msg = error.desc
             set(s => {
               s.devicenameError = msg
-            })
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    checkInviteCode: () => {
-      const invitationCode = get().inviteCode
-      const f = async () => {
-        try {
-          await T.RPCGen.signupCheckInvitationCodeRpcPromise({invitationCode}, S.waitingKeySignup)
-          set(s => {
-            s.signupError = undefined
-          })
-          if (noErrors()) {
-            navigateUp()
-            navigateAppend('signupEnterUsername')
-          }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            const e = error
-            set(s => {
-              s.signupError = e
             })
           }
         }
@@ -275,43 +250,13 @@ export const useSignupState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.inviteCode = inviteCode
           })
-          get().dispatch.checkInviteCode()
         } catch {
           set(s => {
             s.inviteCode = ''
           })
-          navigateAppend('signupError')
         }
-      }
-      ignorePromise(f())
-    },
-    // shouldn't ever be used
-    requestInvite: (email, name) => {
-      set(s => {
-        s.email = email
-        s.emailError = isValidEmail(email)
-        s.name = name
-        s.nameError = isValidName(name)
-      })
-      const f = async () => {
-        if (!noErrors()) {
-          return
-        }
-        try {
-          await T.RPCGen.signupInviteRequestRpcPromise(
-            {email, fullname: name, notes: 'Requested through GUI app'},
-            S.waitingKeySignup
-          )
-          // C.useRouterState.getState().dispatch.navigateAppend('signupRequestInviteSuccess')
-        } catch (error) {
-          if (error instanceof RPCError) {
-            const emailError = `Sorry can't get an invite: ${error.desc}`
-            set(s => {
-              s.emailError = emailError
-              s.nameError = ''
-            })
-          }
-        }
+        navigateUp()
+        navigateAppend('signupEnterUsername')
       }
       ignorePromise(f())
     },

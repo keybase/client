@@ -114,14 +114,6 @@ const LeftNav = (props: Props) => {
           selected={props.selected === Settings.settingsFsTab}
           onClick={props.onClick}
         />
-        {!Kb.Styles.isTablet && (
-          <SettingsItem
-            text="Invitations"
-            type={Settings.settingsInvitationsTab}
-            selected={props.selected === Settings.settingsInvitationsTab}
-            onClick={props.onClick}
-          />
-        )}
         <SettingsItem
           badgeNumber={badgeNotifications}
           text="Notifications"
