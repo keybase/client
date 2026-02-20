@@ -4,9 +4,9 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize, type ProxyProps} from './remote-serializer.desktop'
 import {useColorScheme} from 'react-native'
 import {usePinentryState} from '@/stores/pinentry'
+import type {ProxyProps} from './main2.desktop'
 
 const windowOpts = {height: 230, width: 440}
 
@@ -21,7 +21,7 @@ const Pinentry = (p: ProxyProps) => {
     windowTitle: 'Pinentry',
   })
 
-  useSerializeProps(p, serialize, windowComponent, windowParam)
+  useSerializeProps(p, windowComponent, windowParam)
   return null
 }
 

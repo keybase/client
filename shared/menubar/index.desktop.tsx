@@ -4,8 +4,8 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RemoteGen from '@/actions/remote-gen'
-import ChatContainer from './chat-container.desktop'
-import FilesPreview from './files-container.desktop'
+import * as FsUtil from '@/util/kbfs'
+import * as TimestampUtil from '@/util/timestamp'
 import KB2 from '@/util/electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '@/fs/footer/upload'
@@ -14,29 +14,72 @@ import {Loading} from '@/fs/simple-screens'
 import {isLinux, isDarwin} from '@/constants/platform'
 import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
-import type {DeserializeProps} from './remote-serializer.desktop'
 import {useColorScheme} from 'react-native'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
-export type Props = Pick<DeserializeProps, 'remoteTlfUpdates' | 'conversationsToSend'> & {
+export type Conversation = {
+  conversationIDKey: string
+  teamType?: T.Chat.TeamType
+  tlfname?: string
+  teamname?: string
+  timestamp?: number
+  channelname?: string
+  snippetDecorated?: string
+  hasBadge?: true
+  hasUnread?: true
+  participants?: Array<string>
+}
+
+export type RemoteTlfUpdates = {
+  timestamp: number
+  tlf: T.FS.Path
+  updates: Array<{path: T.FS.Path; uploading: boolean}>
+  writer: string
+}
+
+type KbfsDaemonStatus = {
+  readonly rpcStatus: T.FS.KbfsDaemonRpcStatus
+  readonly onlineStatus: T.FS.KbfsDaemonOnlineStatus
+}
+
+export type Props = {
+  conversationsToSend: ReadonlyArray<Conversation>
   daemonHandshakeState: T.Config.DaemonHandshakeState
   diskSpaceStatus: T.FS.DiskSpaceStatus
-  loggedIn: boolean
-  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
-  kbfsEnabled: boolean
-  outOfDate: T.Config.OutOfDate
-  showingDiskSpaceBanner: boolean
-  username: string
-  navBadges: ReadonlyMap<string, number>
-  windowShownCount: number
-
-  // UploadCountdownHOCProps
   endEstimate?: number
-  files: number
   fileName?: string
+  files: number
+  httpSrvAddress: string
+  httpSrvToken: string
+  kbfsDaemonStatus: KbfsDaemonStatus
+  kbfsEnabled: boolean
+  loggedIn: boolean
+  navBadges: {[tab: string]: number}
+  outOfDate: T.Config.OutOfDate
+  remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>
+  showingDiskSpaceBanner: boolean
   totalSyncingBytes: number
+  username: string
+  windowShownCount: number
+  darkMode: boolean
 }
+
+// Simple avatar via httpSrv
+const HttpAvatar = (p: {
+  name: string
+  isTeam?: boolean
+  size: number
+  httpSrvAddress: string
+  httpSrvToken: string
+  style?: React.CSSProperties
+}) => {
+  const isDarkMode = useColorScheme() === 'dark'
+  const typ = p.isTeam ? 'team' : 'user'
+  const src = `http://${p.httpSrvAddress}/av?typ=${typ}&name=${p.name}&format=square_${p.size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${p.httpSrvToken}`
+  return <img src={src} width={p.size} height={p.size} style={{...avatarStyle, ...p.style}} loading="lazy" />
+}
+const avatarStyle: React.CSSProperties = {borderRadius: '50%', flexShrink: 0}
 
 const ArrowTick = () => {
   const isDarkMode = useColorScheme() === 'dark'
@@ -50,6 +93,7 @@ const ArrowTick = () => {
     />
   )
 }
+
 type UWCDProps = {
   endEstimate?: number
   files: number
@@ -60,24 +104,154 @@ type UWCDProps = {
 }
 const UploadWithCountdown = (p: UWCDProps) => {
   const {endEstimate, files, fileName, totalSyncingBytes, isOnline, smallMode} = p
-
-  const np = useUploadCountdown({
-    endEstimate,
-    fileName,
-    files,
-    isOnline,
-    smallMode,
-    totalSyncingBytes,
-  })
-
+  const np = useUploadCountdown({endEstimate, fileName, files, isOnline, smallMode, totalSyncingBytes})
   return <Upload {...np} />
+}
+
+// Inline chat row (replaces SmallTeam + ChatProvider)
+const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: string; username: string}) => {
+  const {conv, httpSrvAddress, httpSrvToken, username} = p
+  const isTeam = conv.teamType !== 'adhoc'
+  const name = isTeam ? conv.tlfname || '' : conv.participants?.filter(u => u !== username).join(', ') || conv.tlfname || ''
+  const avatarName = isTeam ? conv.tlfname || '' : conv.participants?.find(u => u !== username) || ''
+
+  return (
+    <Kb.ClickableBox
+      onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: conv.conversationIDKey}))}
+      style={styles.chatRow}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.chatRowInner}>
+        <HttpAvatar
+          name={avatarName}
+          isTeam={isTeam}
+          size={32}
+          httpSrvAddress={httpSrvAddress}
+          httpSrvToken={httpSrvToken}
+        />
+        <Kb.Box2 direction="vertical" style={styles.chatRowText}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowNameContainer}>
+            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.chatRowName}>
+              {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
+            </Kb.Text>
+            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
+          </Kb.Box2>
+          {!!conv.snippetDecorated && (
+            <Kb.Text type="BodySmall" lineClamp={1} style={styles.chatSnippet}>
+              {conv.snippetDecorated}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
+
+const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convLimit?: number; httpSrvAddress: string; httpSrvToken: string; username: string}) => {
+  const {conversationsToSend, convLimit, httpSrvAddress, httpSrvToken, username} = p
+  const convs = conversationsToSend.slice(0, convLimit ?? conversationsToSend.length)
+
+  const openInbox = React.useCallback(() => {
+    R.remoteDispatch(RemoteGen.createShowMain())
+    R.remoteDispatch(RemoteGen.createSwitchTab({tab: C.Tabs.chatTab}))
+  }, [])
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
+      {convs.map(c => (
+        <ChatRow key={c.conversationIDKey} conv={c} httpSrvAddress={httpSrvAddress} httpSrvToken={httpSrvToken} username={username} />
+      ))}
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
+        <Kb.Button label="Open inbox" onClick={openInbox} small={true} mode="Secondary" />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+// Inline file updates (replaces FilesContainer + files.desktop.tsx with store-connected components)
+const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
+  <Kb.ClickableBox className="hover-underline-container" onClick={p.onClick} style={styles.fileFullWidth}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
+      <Kb.Icon type="icon-file-16" style={styles.fileIcon} />
+      {p.uploading && (
+        <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
+          <Kb.Icon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
+        </Kb.Box2>
+      )}
+      <Kb.Text type="Body" className="hover-underline-child" lineClamp={1} style={styles.fileName}>
+        {T.FS.getPathName(p.path)}
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
+)
+
+const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; httpSrvAddress: string; httpSrvToken: string}) => {
+  const {remoteTlfUpdates, httpSrvAddress, httpSrvToken} = p
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
+        <Kb.Text type="BodySmallSemibold" style={styles.tlfSectionHeader}>
+          Recent files
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {remoteTlfUpdates.map(update => {
+          const tlf = T.FS.pathToString(update.tlf)
+          const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
+          const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
+          return (
+            <Kb.Box2 key={tlf + update.writer + update.timestamp} direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
+              <HttpAvatar
+                name={update.writer}
+                size={32}
+                httpSrvAddress={httpSrvAddress}
+                httpSrvToken={httpSrvToken}
+                style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              />
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
+                  <Kb.Text type="BodyBold">{update.writer}</Kb.Text>
+                  <Kb.Text type="BodyTiny" style={styles.tlfTime}>
+                    {TimestampUtil.formatTimeForConversationList(update.timestamp)}
+                  </Kb.Text>
+                </Kb.Box2>
+                <Kb.Box2 direction="horizontal" fullWidth={true}>
+                  <Kb.Text type="BodySmall" style={styles.tlfParticipants}>in&nbsp;</Kb.Text>
+                  <Kb.Text
+                    className="hover-underline"
+                    type="BodySmall"
+                    style={styles.tlfParticipants}
+                    onClick={() => update.tlf && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: update.tlf}))}
+                  >
+                    {tlfType === T.FS.TlfType.Team
+                      ? teamname
+                      : tlfType === T.FS.TlfType.Public
+                        ? `${(participants || []).join(',')} (public)`
+                        : (participants || []).join(',')}
+                  </Kb.Text>
+                </Kb.Box2>
+                <Kb.Box2 direction="vertical" fullWidth={true}>
+                  {update.updates.map(u => (
+                    <FileUpdate
+                      key={T.FS.pathToString(u.path)}
+                      path={u.path}
+                      uploading={u.uploading}
+                      onClick={() => u.path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: u.path}))}
+                    />
+                  ))}
+                </Kb.Box2>
+              </Kb.Box2>
+            </Kb.Box2>
+          )
+        })}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
 const useMenuItems = (
   p: Props & {showBadges?: boolean; openApp: (tab?: C.Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
-  const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
 
   const ret = React.useMemo(() => {
@@ -87,9 +261,7 @@ const useMenuItems = (
         onClick: () => {
           const version = __VERSION__
           openUrl(
-            `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
-              version
-            )}`
+            `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`
           )
         },
         title: 'Report a bug',
@@ -110,7 +282,6 @@ const useMenuItems = (
               R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
-          // In case dump log doesn't exit for us
           hideWindow?.()
           setTimeout(() => {
             ctlQuit?.()
@@ -131,29 +302,17 @@ const useMenuItems = (
         {
           onClick: () => openApp(C.Tabs.gitTab),
           title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.Tabs.gitTab)} />,
+          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={navBadges[C.Tabs.gitTab]} />,
         },
         {
           onClick: () => openApp(C.Tabs.devicesTab),
           title: 'Devices',
-          view: (
-            <TabView
-              title="Devices"
-              iconType="iconfont-nav-2-devices"
-              count={countMap.get(C.Tabs.devicesTab)}
-            />
-          ),
+          view: <TabView title="Devices" iconType="iconfont-nav-2-devices" count={navBadges[C.Tabs.devicesTab]} />,
         },
         {
           onClick: () => openApp(C.Tabs.settingsTab),
           title: 'Settings',
-          view: (
-            <TabView
-              title="Settings"
-              iconType="iconfont-nav-2-settings"
-              count={countMap.get(C.Tabs.settingsTab)}
-            />
-          ),
+          view: <TabView title="Settings" iconType="iconfont-nav-2-settings" count={navBadges[C.Tabs.settingsTab]} />,
         },
         'Divider' as const,
         ...openAppItem,
@@ -172,7 +331,7 @@ const useMenuItems = (
       ] as const
     }
     return [...openAppItem, ...common] as const
-  }, [username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
+  }, [username, navBadges, kbfsEnabled, openApp, showBadges, startingUp])
   return ret
 }
 
@@ -203,7 +362,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
+  const badgeCountInMenu = badgesInMenu.reduce((acc, val) => (navBadges[val] ?? 0) + acc, 0)
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2
@@ -252,6 +411,7 @@ const badgesInMenu = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as c
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount, conversationsToSend, remoteTlfUpdates} = p
+  const {httpSrvAddress, httpSrvToken, username} = p
 
   const refreshUserFileEdits = C.useThrottledCallback(() => {
     R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
@@ -265,9 +425,19 @@ const LoggedIn = (p: Props) => {
     <>
       <OutOfDate outOfDate={outOfDate} />
       <Kb.ScrollView style={styles.flexOne}>
-        <ChatContainer convLimit={5} conversationsToSend={conversationsToSend} />
+        <ChatPreview
+          convLimit={5}
+          conversationsToSend={conversationsToSend}
+          httpSrvAddress={httpSrvAddress}
+          httpSrvToken={httpSrvToken}
+          username={username}
+        />
         {kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected ? (
-          <FilesPreview remoteTlfUpdates={remoteTlfUpdates} />
+          <FilesPreview
+            remoteTlfUpdates={remoteTlfUpdates}
+            httpSrvAddress={httpSrvAddress}
+            httpSrvToken={httpSrvToken}
+          />
         ) : (
           <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
             <Loading />
@@ -299,10 +469,8 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
       ? 'Connecting interface to crypto engine... This may take a few seconds.'
       : 'Starting up Keybase...'
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     R.remoteDispatch(RemoteGen.createShowMain())
-    navigateAppend(C.Tabs.loginTab)
   }
   return (
     <>
@@ -383,9 +551,9 @@ const iconMap = {
 
 type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
 
-const BadgeIcon = (p: {tab: Tabs; countMap: ReadonlyMap<string, number>; openApp: (t: Tabs) => void}) => {
+const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t: Tabs) => void}) => {
   const {tab, countMap, openApp} = p
-  const count = countMap.get(tab)
+  const count = countMap[tab]
   const iconType = iconMap[tab]
   const isDarkMode = useColorScheme() === 'dark'
 
@@ -435,6 +603,56 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
+  buttonContainer: {
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
+  },
+  chatBadge: {
+    backgroundColor: Kb.Styles.globalColors.blue,
+    borderRadius: 4,
+    height: 8,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
+    width: 8,
+  },
+  chatContainer: {
+    backgroundColor: Kb.Styles.globalColors.white,
+    color: Kb.Styles.globalColors.black,
+  },
+  chatRow: Kb.Styles.platformStyles({
+    isElectron: {
+      ...Kb.Styles.desktopStyles.clickable,
+    },
+  }),
+  chatRowInner: {
+    alignItems: 'center',
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
+  },
+  chatRowName: {flexShrink: 1},
+  chatRowNameContainer: {alignItems: 'center'},
+  chatRowText: {flexGrow: 1, flexShrink: 1, overflow: 'hidden'},
+  chatSnippet: {color: Kb.Styles.globalColors.black_50},
+  fileFullWidth: {width: '100%'},
+  fileIcon: {
+    flexShrink: 0,
+    height: 16,
+    marginRight: Kb.Styles.globalMargins.xtiny,
+    position: 'relative',
+    top: 1,
+    width: 16,
+  },
+  fileIconBadge: {height: 12, width: 12},
+  fileIconBadgeBox: {marginLeft: -12, marginRight: 12, marginTop: 12, width: 0, zIndex: 100},
+  fileName: Kb.Styles.platformStyles({
+    common: {flexShrink: 1},
+    isElectron: {wordBreak: 'break-all'},
+  }),
+  fileUpdateRow: {
+    marginTop: Kb.Styles.globalMargins.xtiny,
+    paddingRight: Kb.Styles.globalMargins.large,
+  },
   flexOne: {flexGrow: 1},
   footer: {width: 360},
   headerBadgesContainer: {
@@ -447,6 +665,28 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: 12,
   },
   navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
+  tlfContainer: {
+    backgroundColor: Kb.Styles.globalColors.white,
+    color: Kb.Styles.globalColors.black,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
+  },
+  tlfParticipants: {fontSize: 12},
+  tlfRowContainer: {
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
+  },
+  tlfSectionHeader: {
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    color: Kb.Styles.globalColors.black_50,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
+  },
+  tlfSectionHeaderContainer: {backgroundColor: Kb.Styles.globalColors.white},
+  tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
+  tlfTopLine: {justifyContent: 'space-between'},
   topRow: {
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
