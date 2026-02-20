@@ -37,6 +37,16 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DBPERF0126E0000100000009"
+               BuildableName = "KeybaseUITests.xctest"
+               BlueprintName = "KeybaseUITests"
+               ReferencedContainer = "container:Keybase.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

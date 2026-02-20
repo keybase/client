@@ -349,6 +349,7 @@ const Inbox = React.memo(function Inbox(p: TInbox.Props) {
           </Kb.Box2>
         ) : (
           <List
+            testID="inboxList"
             // @ts-ignore flashlist props, leave for now
             disableAutoLayout={true}
             ListHeaderComponent={HeadComponent}

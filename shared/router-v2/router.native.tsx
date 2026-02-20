@@ -26,6 +26,14 @@ if (module.hot) {
   module.hot.accept('', () => {})
 }
 
+const tabToLabel = new Map<string, string>([
+  [Tabs.chatTab, 'Chat'],
+  [Tabs.fsTab, 'Files'],
+  [Tabs.teamsTab, 'Teams'],
+  [Tabs.peopleTab, 'People'],
+  [Tabs.settingsTab, 'More'],
+])
+
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
@@ -81,6 +89,7 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
   return {
     ...Common.defaultNavigationOptions,
     headerShown: false,
+    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
     tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
     tabBarButton: (p: BottomTabBarButtonProps) => (
       <PlatformPressable {...p} android_ripple={android_rippleFix}>
