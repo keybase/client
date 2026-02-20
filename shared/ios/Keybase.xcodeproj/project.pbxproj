@@ -42,6 +42,7 @@
 		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
 		DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */; };
 		DBPERF0126E0000100000004 /* ScrollPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */; };
+		DBPERF022600000002 /* PerfFPSMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBPERF022600000001 /* PerfFPSMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +131,7 @@
 		DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollPerformanceTests.swift; sourceTree = "<group>"; };
 		DBPERF0126E0000100000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBPERF0126E0000100000003 /* KeybaseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeybaseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBPERF022600000001 /* PerfFPSMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfFPSMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -296,6 +298,7 @@
 				DBD252972DF32D5C008A43FF /* Fs.swift */,
 				DBDF89F52DF7779900EA18C2 /* Pusher.swift */,
 				DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */,
+				DBPERF022600000001 /* PerfFPSMonitor.swift */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				DAA243C38335068656BC36B1 /* PrivacyInfo.xcprivacy */,
 			);
@@ -648,6 +651,7 @@
 				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
 				DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */,
 				DBD252982DF32D5C008A43FF /* Fs.swift in Sources */,
+				DBPERF022600000002 /* PerfFPSMonitor.swift in Sources */,
 				9E1460E4A90E8D73A7347FED /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

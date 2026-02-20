@@ -93,6 +93,30 @@ if [ -d "$RESULT_BUNDLE" ]; then
     echo "  Trace:     $TRACE_FILE"
   fi
 
+  # Extract PERF_RESULT lines from the test log
+  echo ""
+  echo "=== Performance Results ==="
+  grep "PERF_RESULT:" "$LOG_FILE" 2>/dev/null || echo "(no PERF_RESULT lines found)"
+
+  # Extract FPS data from the simulator's app container
+  echo ""
+  echo "=== FPS Data ==="
+  APP_CONTAINER=$(xcrun simctl get_app_container booted keybase.ios data 2>/dev/null || true)
+  if [ -n "$APP_CONTAINER" ]; then
+    FPS_FILE="$APP_CONTAINER/tmp/perf-fps.json"
+    if [ -f "$FPS_FILE" ]; then
+      cp "$FPS_FILE" "$OUTPUT_DIR/ios-fps.json"
+      echo "FPS data saved to: $OUTPUT_DIR/ios-fps.json"
+      cat "$OUTPUT_DIR/ios-fps.json"
+    else
+      echo "(no FPS data file found at $FPS_FILE)"
+      # Try to find it via NSLog in the test output
+      grep "PerfFPSMonitor:" "$LOG_FILE" 2>/dev/null || echo "(no PerfFPSMonitor log lines found)"
+    fi
+  else
+    echo "(could not find app container — is the simulator running?)"
+  fi
+
   echo ""
   echo "Parse results with: node $SCRIPT_DIR/parse-ios-results.js"
 else

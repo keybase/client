@@ -98,6 +98,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
+    // Start FPS monitoring if launched with -PERF_FPS_MONITOR
+    PerfFPSMonitor.startIfEnabled()
+
     if let rootView = self.window?.rootViewController?.view {
       self.addDrop(rootView)
       self.didLaunchSetupAfter(application: application, rootView: rootView)
@@ -374,6 +377,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidEnterBackground(_ application: UIApplication) {
+    PerfFPSMonitor.appDidEnterBackground()
     application.ignoreSnapshotOnNextApplicationLaunch()
     NSLog("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()

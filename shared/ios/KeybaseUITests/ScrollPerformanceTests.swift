@@ -5,24 +5,28 @@ final class ScrollPerformanceTests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = false
+        app.launchArguments.append("-PERF_FPS_MONITOR")
         app.launch()
 
-        // Wait for the app to be ready — either on inbox or inside a conversation.
-        // Try to find the Chat tab; if not found, we may already be on the chat screen.
         let chatTab = app.buttons["Chat"]
-        if chatTab.waitForExistence(timeout: 30) {
+        if chatTab.waitForExistence(timeout: 60) {
             chatTab.tap()
         }
 
         // If we're inside a conversation, go back to inbox
         let inbox = app.otherElements["inboxList"].firstMatch
-        if !inbox.waitForExistence(timeout: 5) {
-            // Try tapping the back chevron
+        if !inbox.waitForExistence(timeout: 10) {
             let backButton = app.buttons["Back"]
             if backButton.exists {
                 backButton.tap()
             }
         }
+    }
+
+    override func tearDown() {
+        // Background the app to trigger PerfFPSMonitor to write results via NSLog
+        XCUIDevice.shared.press(.home)
+        sleep(2)
     }
 
     private func openFirstConversation() {
