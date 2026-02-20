@@ -587,6 +587,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
         onCopyCapture={onCopyCapture}
       >
         <div
+          data-testid="message-list"
           className="chat-scroller"
           key={conversationIDKey}
           style={Kb.Styles.castStyleDesktop(

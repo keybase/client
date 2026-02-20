@@ -26,6 +26,14 @@ if (module.hot) {
   module.hot.accept('', () => {})
 }
 
+const tabToLabel = new Map<string, string>([
+  [Tabs.chatTab, 'Chat'],
+  [Tabs.fsTab, 'Files'],
+  [Tabs.teamsTab, 'Teams'],
+  [Tabs.peopleTab, 'People'],
+  [Tabs.settingsTab, 'More'],
+])
+
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
@@ -95,6 +103,7 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     tabBarLabel: ({focused}: {focused: boolean}) => (
       <TabBar.TabBarLabelWrapper routeName={route.name as Tabs.Tab} focused={focused} />
     ),
+    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
     tabBarShowLabel: Kb.Styles.isTablet,
     tabBarStyle: Common.tabBarStyle,
   }

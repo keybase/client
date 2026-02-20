@@ -274,6 +274,7 @@ const ConversationList = React.memo(function ConversationList() {
         <ForceListRedrawContext.Provider value={forceListRedraw}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
             <List
+              testID="messageList"
               onScrollToIndexFailed={noop}
               extraData={extraData}
               removeClippedSubviews={Kb.Styles.isAndroid}
