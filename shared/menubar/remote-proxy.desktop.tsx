@@ -11,6 +11,7 @@ import {useColorScheme} from 'react-native'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useFollowerState} from '@/stores/followers'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
@@ -163,6 +164,8 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   }
 
   const daemonHandshakeState = useDaemonState(s => s.handshakeState)
+  const followingSet = useFollowerState(s => s.following)
+  const following = React.useMemo(() => [...followingSet], [followingSet])
 
   // Convert navBadges Map to plain object
   const navBadges: {[tab: string]: number} = React.useMemo(() => {
@@ -180,6 +183,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     darkMode: isDarkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
+    following,
     httpSrvAddress: httpSrv.address,
     httpSrvToken: httpSrv.token,
     kbfsDaemonStatus,

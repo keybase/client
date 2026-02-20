@@ -14,7 +14,6 @@ import TeamMenu from '@/chat/conversation/info-panel/menu'
 
 export type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
-  isInWidget: boolean
   isSelected: boolean
   layoutIsTeam?: boolean
   layoutName?: string
@@ -33,7 +32,7 @@ const SmallTeam = (p: Props) => {
 }
 
 const SmallTeamInner = (p: Props) => {
-  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration, isInWidget} = p
+  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
 
   const you = useCurrentUserState(s => s.username)
 
@@ -41,8 +40,8 @@ const SmallTeamInner = (p: Props) => {
     Chat.useChatContext(
       C.useShallow(s => {
         const typingSnippet = (() => {
-          const typers = !isInWidget ? s.typing : undefined
-          if (!typers?.size) return undefined
+          const typers = s.typing
+          if (!typers.size) return undefined
           if (typers.size === 1) {
             const [t] = typers
             return `${t} is typing...`
@@ -59,10 +58,6 @@ const SmallTeamInner = (p: Props) => {
             ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
             : meta.snippetDecoration
         const metaTeamname = (meta.teamname || (layoutIsTeam ? layoutName : '')) || ''
-        const channelname = isInWidget ? meta.channelname : ''
-        const teamDisplayName = metaTeamname
-          ? channelname ? `${metaTeamname}#${channelname}` : metaTeamname
-          : ''
 
         return {
           hasBadge: s.badge > 0,
@@ -72,7 +67,7 @@ const SmallTeamInner = (p: Props) => {
           navigateToThread: s.dispatch.navigateToThread,
           snippet,
           snippetDecoration,
-          teamDisplayName,
+          teamDisplayName: metaTeamname,
           timestamp: meta.timestamp || layoutTime || 0,
         }
       })
@@ -106,13 +101,11 @@ const SmallTeamInner = (p: Props) => {
           navigateToThread('inboxSmall')
         }))
 
-  const backgroundColor = isInWidget
-    ? Kb.Styles.globalColors.white
-    : isSelected
-      ? Kb.Styles.globalColors.blue
-      : Kb.Styles.isPhone && !Kb.Styles.isTablet
-        ? Kb.Styles.globalColors.fastBlank
-        : Kb.Styles.globalColors.blueGrey
+  const backgroundColor = isSelected
+    ? Kb.Styles.globalColors.blue
+    : Kb.Styles.isPhone && !Kb.Styles.isTablet
+      ? Kb.Styles.globalColors.fastBlank
+      : Kb.Styles.globalColors.blueGrey
 
   const teamname = teamDisplayName ? teamDisplayName.split('#')[0] ?? '' : ''
   const participantOne = teamname ? '' : participants[0] ?? ''
@@ -124,7 +117,7 @@ const SmallTeamInner = (p: Props) => {
         onClick={onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}
         style={
-          isInWidget || Kb.Styles.isTablet
+          Kb.Styles.isTablet
             ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
             : styles.container
         }
@@ -146,7 +139,6 @@ const SmallTeamInner = (p: Props) => {
             <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
               <TopLine
                 isSelected={isSelected}
-                isInWidget={isInWidget}
                 hasUnread={hasUnread}
                 hasBadge={hasBadge}
                 backgroundColor={backgroundColor}
@@ -170,7 +162,6 @@ const SmallTeamInner = (p: Props) => {
 
 type TopLineProps = {
   isSelected: boolean
-  isInWidget: boolean
   hasUnread: boolean
   hasBadge: boolean
   backgroundColor: string
@@ -180,8 +171,7 @@ type TopLineProps = {
 }
 
 const TopLine = (p: TopLineProps) => {
-  const {isSelected, isInWidget, hasUnread, hasBadge, backgroundColor, teamDisplayName, participants, timestamp} = p
-  const showGear = !isInWidget
+  const {isSelected, hasUnread, hasBadge, backgroundColor, teamDisplayName, participants, timestamp} = p
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
@@ -221,7 +211,7 @@ const TopLine = (p: TopLineProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-      {showGear && showingPopup && popup}
+      {showingPopup && popup}
       <Kb.Box2 direction="horizontal" style={styles.insideContainer}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
@@ -251,7 +241,7 @@ const TopLine = (p: TopLineProps) => {
       <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
       </Kb.Text>
-      {!Kb.Styles.isMobile && showGear && (
+      {!Kb.Styles.isMobile && (
         <Kb.Icon
           type="iconfont-gear"
           className="conversation-gear"

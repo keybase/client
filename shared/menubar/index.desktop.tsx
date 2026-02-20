@@ -51,6 +51,7 @@ export type Props = {
   endEstimate?: number
   fileName?: string
   files: number
+  following: ReadonlyArray<string>
   httpSrvAddress: string
   httpSrvToken: string
   kbfsDaemonStatus: KbfsDaemonStatus
@@ -115,29 +116,50 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
   const isTeam = conv.teamType !== 'adhoc'
   const name = isTeam ? conv.tlfname || '' : conv.participants?.filter(u => u !== username).join(', ') || conv.tlfname || ''
   const avatarName = isTeam ? conv.tlfname || '' : conv.participants?.find(u => u !== username) || ''
+  const timestamp = conv.timestamp ? TimestampUtil.formatTimeForConversationList(conv.timestamp) : ''
 
   return (
     <Kb.ClickableBox
       onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: conv.conversationIDKey}))}
       style={styles.chatRow}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.chatRowInner}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowInner}>
         <HttpAvatar
           name={avatarName}
           isTeam={isTeam}
-          size={32}
+          size={48}
           httpSrvAddress={httpSrvAddress}
           httpSrvToken={httpSrvToken}
         />
         <Kb.Box2 direction="vertical" style={styles.chatRowText}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowNameContainer}>
-            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.chatRowName}>
-              {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
-            </Kb.Text>
-            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
+            <Kb.Box2 direction="horizontal" style={styles.chatRowNameLeft}>
+              <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
+                {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
+              </Kb.Text>
+              {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
+            </Kb.Box2>
+            {!!timestamp && (
+              <Kb.Text
+                type="BodyTiny"
+                style={Kb.Styles.collapseStyles([
+                  styles.chatTimestamp,
+                  conv.hasUnread && styles.bold,
+                ])}
+              >
+                {timestamp}
+              </Kb.Text>
+            )}
           </Kb.Box2>
           {!!conv.snippetDecorated && (
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.chatSnippet}>
+            <Kb.Text
+              type="BodySmall"
+              lineClamp={1}
+              style={Kb.Styles.collapseStyles([
+                conv.hasUnread ? styles.chatSnippetUnread : styles.chatSnippet,
+                conv.hasUnread && styles.bold,
+              ])}
+            >
               {conv.snippetDecorated}
             </Kb.Text>
           )}
@@ -178,15 +200,43 @@ const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void
           <Kb.Icon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
         </Kb.Box2>
       )}
-      <Kb.Text type="Body" className="hover-underline-child" lineClamp={1} style={styles.fileName}>
-        {T.FS.getPathName(p.path)}
-      </Kb.Text>
+      <Filename type="Body" path={p.path} />
     </Kb.Box2>
   </Kb.ClickableBox>
 )
 
-const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; httpSrvAddress: string; httpSrvToken: string}) => {
-  const {remoteTlfUpdates, httpSrvAddress, httpSrvToken} = p
+const defaultNumFileOptionsShown = 3
+
+const FileUpdates = (p: {updates: ReadonlyArray<{path: T.FS.Path; uploading: boolean}>}) => {
+  const [isShowingAll, setIsShowingAll] = React.useState(false)
+  const shown = isShowingAll ? p.updates : p.updates.slice(0, defaultNumFileOptionsShown)
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      {shown.map(u => (
+        <FileUpdate
+          key={T.FS.pathToString(u.path)}
+          path={u.path}
+          uploading={u.uploading}
+          onClick={() => u.path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: u.path}))}
+        />
+      ))}
+      {p.updates.length > defaultNumFileOptionsShown && !isShowingAll && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.showMoreContainer}>
+          <Kb.Button
+            label={`+ ${p.updates.length - defaultNumFileOptionsShown} more`}
+            onClick={() => setIsShowingAll(true)}
+            small={true}
+            type="Dim"
+          />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; following: ReadonlyArray<string>; httpSrvAddress: string; httpSrvToken: string}) => {
+  const {remoteTlfUpdates, following, httpSrvAddress, httpSrvToken} = p
+  const followingSet = React.useMemo(() => new Set(following), [following])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
@@ -210,7 +260,13 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; htt
               />
               <Kb.Box2 direction="vertical" fullWidth={true}>
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
-                  <Kb.Text type="BodyBold">{update.writer}</Kb.Text>
+                  <Kb.Text
+                    type="BodyBold"
+                    style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : undefined}
+                    className="hover-underline"
+                  >
+                    {update.writer}
+                  </Kb.Text>
                   <Kb.Text type="BodyTiny" style={styles.tlfTime}>
                     {TimestampUtil.formatTimeForConversationList(update.timestamp)}
                   </Kb.Text>
@@ -226,20 +282,16 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; htt
                     {tlfType === T.FS.TlfType.Team
                       ? teamname
                       : tlfType === T.FS.TlfType.Public
-                        ? `${(participants || []).join(',')} (public)`
+                        ? (
+                            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+                              {(participants || []).join(',')}
+                              <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} size="Small" title="PUBLIC" />
+                            </Kb.Box2>
+                          )
                         : (participants || []).join(',')}
                   </Kb.Text>
                 </Kb.Box2>
-                <Kb.Box2 direction="vertical" fullWidth={true}>
-                  {update.updates.map(u => (
-                    <FileUpdate
-                      key={T.FS.pathToString(u.path)}
-                      path={u.path}
-                      uploading={u.uploading}
-                      onClick={() => u.path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: u.path}))}
-                    />
-                  ))}
-                </Kb.Box2>
+                <FileUpdates updates={update.updates} />
               </Kb.Box2>
             </Kb.Box2>
           )
@@ -410,7 +462,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
 const badgeTypesInHeader = [C.Tabs.peopleTab, C.Tabs.chatTab, C.Tabs.fsTab, C.Tabs.teamsTab] as const
 const badgesInMenu = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as const
 const LoggedIn = (p: Props) => {
-  const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
+  const {endEstimate, files, following, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount, conversationsToSend, remoteTlfUpdates} = p
   const {httpSrvAddress, httpSrvToken, username} = p
 
@@ -436,6 +488,7 @@ const LoggedIn = (p: Props) => {
         {kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected ? (
           <FilesPreview
             remoteTlfUpdates={remoteTlfUpdates}
+            following={following}
             httpSrvAddress={httpSrvAddress}
             httpSrvToken={httpSrvToken}
           />
@@ -604,6 +657,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
+  bold: {...Kb.Styles.globalStyles.fontBold},
   buttonContainer: {
     marginBottom: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.tiny,
@@ -627,14 +681,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   chatRowInner: {
     alignItems: 'center',
     paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+    paddingRight: Kb.Styles.globalMargins.xsmall,
     paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   chatRowName: {flexShrink: 1},
-  chatRowNameContainer: {alignItems: 'center'},
-  chatRowText: {flexGrow: 1, flexShrink: 1, overflow: 'hidden'},
+  chatRowNameContainer: {alignItems: 'center', justifyContent: 'space-between'},
+  chatRowNameLeft: {alignItems: 'center', flexShrink: 1, overflow: 'hidden'},
+  chatRowText: {flexGrow: 1, flexShrink: 1, marginLeft: Kb.Styles.globalMargins.tiny, overflow: 'hidden'},
   chatSnippet: {color: Kb.Styles.globalColors.black_50},
+  chatSnippetUnread: {color: Kb.Styles.globalColors.black},
+  chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
   fileFullWidth: {width: '100%'},
   fileIcon: {
     flexShrink: 0,
@@ -646,10 +703,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   fileIconBadge: {height: 12, width: 12},
   fileIconBadgeBox: {marginLeft: -12, marginRight: 12, marginTop: 12, width: 0, zIndex: 100},
-  fileName: Kb.Styles.platformStyles({
-    common: {flexShrink: 1},
-    isElectron: {wordBreak: 'break-all'},
-  }),
   fileUpdateRow: {
     marginTop: Kb.Styles.globalMargins.xtiny,
     paddingRight: Kb.Styles.globalMargins.large,
@@ -666,6 +719,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: 12,
   },
   navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
+  showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
   tlfContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
@@ -688,6 +742,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   tlfSectionHeaderContainer: {backgroundColor: Kb.Styles.globalColors.white},
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
   tlfTopLine: {justifyContent: 'space-between'},
+  tlfWriterFollowing: {color: Kb.Styles.globalColors.greenDark},
   topRow: {
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
