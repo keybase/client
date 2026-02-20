@@ -262,7 +262,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
                   <Kb.Text
                     type="BodyBold"
-                    style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : undefined}
+                    style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : styles.tlfWriterNotFollowing}
                     className="hover-underline"
                   >
                     {update.writer}
@@ -743,6 +743,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
   tlfTopLine: {justifyContent: 'space-between'},
   tlfWriterFollowing: {color: Kb.Styles.globalColors.greenDark},
+  tlfWriterNotFollowing: {color: Kb.Styles.globalColors.blueDark},
   topRow: {
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
