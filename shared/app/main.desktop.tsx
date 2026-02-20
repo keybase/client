@@ -26,7 +26,7 @@ const useDarkHookup = () => {
   }, [setSystemDarkMode])
 }
 
-const Main = React.memo(function Main() {
+const Main = function Main() {
   useDarkHookup()
   return (
     <>
@@ -37,7 +37,7 @@ const Main = React.memo(function Main() {
       <OutOfDate />
     </>
   )
-})
+}
 // get focus so react doesn't hold onto old divs
 
 export default Main
