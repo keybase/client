@@ -17,24 +17,15 @@ const debugUnusedChunks = false
 const evalDevtools = false
 
 if (enableWDYR || debugUnusedChunks || evalDevtools) {
-  for (let i = 0; i < 10; ++i) {
-    console.error('Webpack debugging on!!!', {
-      enableWDYR,
-      debugUnusedChunks,
-      evalDevtools,
-    })
-  }
+  console.error('*** Webpack debugging on! ***', {enableWDYR, debugUnusedChunks, evalDevtools})
 }
 
-// When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
   const isHot = isDev && !!process.env['HOT']
   const isProfile = !isDev && !!process.env['PROFILE']
   if (isProfile) {
-    for (let i = 0; i < 10; ++i) {
-      console.log('Webpack profiling on')
-    }
+    console.warn('*** Webpack profiling on ***')
   }
 
   const fileSuffix = isDev ? '.dev' : isProfile ? '.profile' : ''
@@ -50,7 +41,6 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [
           ['module-resolver', {alias: {'@': './'}}],
-          // ['module-resolver', {alias: {'@': path.resolve(__dirname, '..')}}],
           ...(isHot && !nodeThread ? ['react-refresh/babel'] : []),
         ],
         presets: [
@@ -99,7 +89,6 @@ const config = (_, {mode}) => {
         test: /\.(native\.js|gif|png|jpg)$/,
         use: ['null-loader'],
       },
-
       {
         include: path.resolve(__dirname, '../node_modules/@react-navigation/elements/lib/module/assets'),
         test: /\.(native\.js|gif|png|jpg)$/,
@@ -143,98 +132,89 @@ const config = (_, {mode}) => {
 
   const publicPath = isHot ? 'http://localhost:4000/dist/' : '../dist/'
 
-  const makeCommonConfig = () => {
-    // If we use the hot server it pulls in this config
-    const defines = {
-      __FILE_SUFFIX__: JSON.stringify(fileSuffix),
-      __PROFILE__: isProfile,
-      __DEV__: isDev,
-      __HOT__: isHot,
-      __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
-    }
-    console.warn('Injecting defines: ', defines)
+  const defines = {
+    __FILE_SUFFIX__: JSON.stringify(fileSuffix),
+    __PROFILE__: isProfile,
+    __DEV__: isDev,
+    __HOT__: isHot,
+    __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
+  }
+  console.warn('Injecting defines: ', defines)
 
-    const alias = ignoredModules.reduce(
-      (acc, name) => {
-        acc[name] = path.resolve(__dirname, '../null-module.js')
-        return acc
-      },
-      {
-        'react-native$': 'react-native-web',
-        'react-native-reanimated': false,
-      }
-    )
-
-    if (!isDev) {
-      alias['@welldone-software/why-did-you-render'] = false
+  const alias = ignoredModules.reduce(
+    (acc, name) => {
+      acc[name] = path.resolve(__dirname, '../null-module.js')
+      return acc
+    },
+    {
+      'react-native$': 'react-native-web',
+      'react-native-reanimated': false,
     }
+  )
 
-    return {
-      bail: true,
-      context: path.resolve(__dirname, '..'),
-      devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
-      mode: isDev ? 'development' : 'production',
-      node: false,
-      output: {
-        filename: `[name]${fileSuffix}.bundle.js`,
-        path: path.resolve(__dirname, 'dist'),
-        // can be the same?
-        publicPath,
-      },
-      plugins: [
-        new webpack.DefinePlugin(defines), // Inject some defines
-        new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
-        ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash, but needed by why did
-      ],
-      resolve: {
-        alias,
-        extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
-      },
-      ...(isDev
-        ? {}
-        : {
-            optimization: {
-              minimizer: [
-                // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
-                new TerserPlugin({
-                  parallel: true,
-                  terserOptions: {
-                    parse: {ecma: 8},
-                    compress: {
-                      comparisons: false,
-                      ecma: 5,
-                      inline: 2,
-                      warnings: false,
-                    },
-                    keep_fnames: true,
-                    keep_classnames: true,
-                    mangle: false,
-                    output: {comments: false},
-                    // warnings: 'verbose', // uncomment to see more of what uglify is doing
-                  },
-                }),
-              ],
-            },
-          }),
-    }
+  if (!isDev) {
+    alias['@welldone-software/why-did-you-render'] = false
   }
 
-  const commonConfig = makeCommonConfig()
+  const commonConfig = {
+    bail: true,
+    context: path.resolve(__dirname, '..'),
+    devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
+    mode: isDev ? 'development' : 'production',
+    node: false,
+    output: {
+      filename: `[name]${fileSuffix}.bundle.js`,
+      path: path.resolve(__dirname, 'dist'),
+      publicPath,
+    },
+    plugins: [
+      new webpack.DefinePlugin(defines),
+      new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}),
+      ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]),
+    ],
+    resolve: {
+      alias,
+      extensions: ['.desktop.js', '.desktop.tsx', '.web.js', '.js', '.jsx', '.tsx', '.ts', '.json'],
+    },
+    ...(isDev
+      ? {}
+      : {
+          optimization: {
+            minimizer: [
+              new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                  parse: {ecma: 2020},
+                  compress: {
+                    comparisons: false,
+                    ecma: 2020,
+                    inline: 2,
+                  },
+                  keep_fnames: true,
+                  keep_classnames: true,
+                  mangle: false,
+                  output: {comments: false},
+                },
+              }),
+            ],
+          },
+        }),
+  }
+
   const nodeConfig = merge(commonConfig, {
     entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
-      // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
+      // Ensure the view layer doesn't bleed into the node layer
       new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
     ],
     stats: {
-      ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
+      usedExports: isDev ? undefined : false,
     },
     target: 'electron-main',
   })
 
-  const makeHtmlName = name => `${name}${fileSuffix}.html`
   const makeViewPlugins = names =>
     [
       ...(debugUnusedChunks
@@ -249,13 +229,12 @@ const config = (_, {mode}) => {
         global: 'globalThis',
         'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
       }),
-      ...(isHot ? [new ReactRefreshWebpackPlugin()] : []),
-      // Map since we generate multiple html files
+      ...(isHot ? [new ReactRefreshWebpackPlugin({forceEnable: true})] : []),
       ...names.map(
         name =>
           new HtmlWebpackPlugin({
             chunks: [name],
-            filename: makeHtmlName(name),
+            filename: `${name}${fileSuffix}.html`,
             inject: false,
             isDev,
             name,
@@ -327,9 +306,6 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
-    externals: {
-      ...(isDev ? {} : {}),
-    },
     module: {rules: makeRules(false)},
     name: 'Keybase',
     ...(isHot
@@ -349,12 +325,11 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
       fallback: {process: false, url: false},
     },
     target: 'web',
-    node: false,
   })
   const preloadConfig = merge(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},
-    name: 'Keybase',
+    name: 'preload',
     plugins: [],
     target: 'electron-preload',
   })

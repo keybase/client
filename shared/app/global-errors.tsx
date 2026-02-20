@@ -28,7 +28,7 @@ const useData = () => {
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onFeedback = React.useCallback(() => {
+  const onFeedback = () => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
@@ -36,49 +36,30 @@ const useData = () => {
     } else {
       navigateAppend('feedback')
     }
-  }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const onDismiss = React.useCallback(() => {
+  }
+  const onDismiss = () => {
     setGlobalError()
-  }, [setGlobalError])
+  }
 
   const [cachedSummary, setSummary] = React.useState(summaryForError(error))
   const [cachedDetails, setDetails] = React.useState(detailsForError(error))
   const [size, setSize] = React.useState<Size>('Closed')
   const countdownTimerRef = React.useRef<undefined | ReturnType<typeof setTimeout>>(undefined)
 
-  const clearCountdown = React.useCallback(() => {
+  const clearCountdown = () => {
     countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
     countdownTimerRef.current = undefined
-  }, [countdownTimerRef])
+  }
 
-  const onExpandClick = React.useCallback(() => {
+  const onExpandClick = () => {
     setSize('Big')
     if (!C.isMobile) {
       clearCountdown()
     }
-  }, [clearCountdown])
-
-  const resetError = React.useCallback(
-    (newError: boolean) => {
-      setSize(newError ? 'Small' : 'Closed')
-      if (!C.isMobile) {
-        clearCountdown()
-        if (newError) {
-          countdownTimerRef.current = setTimeout(() => {
-            onDismiss()
-          }, 10000)
-        }
-      }
-    },
-    [clearCountdown, onDismiss]
-  )
+  }
 
   C.useOnUnMountOnce(() => {
     clearCountdown()
-  })
-
-  C.useOnMountOnce(() => {
-    resetError(!!error)
   })
 
   React.useEffect(() => {
@@ -91,11 +72,21 @@ const useData = () => {
       },
       error ? 0 : 7000
     ) // if it's set, do it immediately, if it's cleared set it in a bit
-    resetError(!!error)
+    const newError = !!error
+    setSize(newError ? 'Small' : 'Closed')
+    if (!C.isMobile) {
+      if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current)
+      countdownTimerRef.current = undefined
+      if (newError) {
+        countdownTimerRef.current = setTimeout(() => {
+          setGlobalError()
+        }, 10000)
+      }
+    }
     return () => {
       clearTimeout(id)
     }
-  }, [error, resetError])
+  }, [error, setGlobalError])
 
   return {
     cachedDetails,
