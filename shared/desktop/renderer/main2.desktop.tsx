@@ -115,24 +115,17 @@ const Root = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-const FontLoader = () => (
-  <div style={{height: 0, overflow: 'hidden', width: 0}}>
-    <p style={{fontFamily: 'kb'}}>kb</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 500}}>source code pro 500</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 400}}>keybase 400</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 400}}>keybase 400 i</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 600}}>keybase 600</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 600}}>keybase 600 i</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 700}}>keybase 700</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 700}}>keybase 700 i</p>
-  </div>
-)
-
-const UseStrict = true as boolean
-const WRAP = UseStrict
-  ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
-  : ({children}: {children: React.ReactNode}) => <>{children}</>
+const preloadFonts = () => {
+  void document.fonts.load('400 16px "kb"')
+  void document.fonts.load('500 16px "Source Code Pro"')
+  void document.fonts.load('600 16px "Source Code Pro"')
+  void document.fonts.load('400 16px "Keybase"')
+  void document.fonts.load('italic 400 16px "Keybase"')
+  void document.fonts.load('600 16px "Keybase"')
+  void document.fonts.load('italic 600 16px "Keybase"')
+  void document.fonts.load('700 16px "Keybase"')
+  void document.fonts.load('italic 700 16px "Keybase"')
+}
 
 const render = (Component = Main) => {
   const root = document.getElementById('root')
@@ -141,14 +134,13 @@ const render = (Component = Main) => {
   }
 
   ReactDOM.createRoot(root).render(
-    <WRAP>
+    <React.StrictMode>
       <Root>
-        <FontLoader />
         <div style={{display: 'flex', flex: 1}}>
           <Component />
         </div>
       </Root>
-    </WRAP>
+    </React.StrictMode>
   )
 }
 
@@ -177,6 +169,7 @@ const load = () => {
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
+  preloadFonts()
   setupApp()
   setupHMR()
   render()
