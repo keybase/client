@@ -100,7 +100,25 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
       return {desktopAppBadgeCount, navBadges, widgetBadge}
     })
   )
-  const widgetList = Chat.useChatState(s => s.inboxLayout?.widgetList)
+  const {widgetList, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
+    C.useShallow(s => ({
+      ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
+      inboxRefresh: s.dispatch.inboxRefresh,
+      widgetList: s.inboxLayout?.widgetList,
+    }))
+  )
+  // Ensure widgetList is populated by triggering an inbox refresh if needed
+  React.useEffect(() => {
+    if (loggedIn && !widgetList) {
+      inboxRefresh('widgetRefresh')
+    }
+  }, [loggedIn, widgetList, inboxRefresh])
+  // Ensure conversation metadata is loaded for widget conversations
+  React.useEffect(() => {
+    if (widgetList) {
+      ensureWidgetMetas()
+    }
+  }, [widgetList, ensureWidgetMetas])
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
@@ -110,30 +128,17 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
     [tlfUpdates, uploads]
   )
 
-  const [remakeChat, setRemakeChat] = React.useState(0)
+  const [conversationsToSend, setConversationsToSend] = React.useState<ReadonlyArray<Conversation>>([])
   React.useEffect(() => {
-    const unsubs = widgetList?.map(v => {
-      return Chat.chatStores.get(v.convID)?.subscribe((s, old) => {
-        if (convoDiff(s, old)) {
-          setRemakeChat(c => c + 1)
-        }
-      })
-    })
+    if (!widgetList) return
 
-    return () => {
-      for (const unsub of unsubs ?? []) {
-        unsub?.()
-      }
-    }
-  }, [widgetList])
-
-  const conversationsToSend: ReadonlyArray<Conversation> = React.useMemo(
-    () =>
-      widgetList?.map(v => {
-        remakeChat // implied dependency
-        const {badge, unread, participants, meta} = Chat.getConvoState(v.convID)
-        const c = meta
-        return {
+    const computeConversations = () => {
+      const result: Array<Conversation> = []
+      widgetList.forEach(v => {
+        const cs = Chat.getConvoState(v.convID)
+        if (!cs.isMetaGood()) return
+        const {badge, unread, participants, meta: c} = cs
+        result.push({
           channelname: c.channelname,
           conversationIDKey: v.convID,
           snippetDecorated: c.snippetDecorated,
@@ -143,10 +148,28 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
           ...(badge > 0 ? {hasBadge: true as const} : {}),
           ...(unread > 0 ? {hasUnread: true as const} : {}),
           ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
+        })
+      })
+      setConversationsToSend(result)
+    }
+
+    computeConversations()
+
+    const unsubs = widgetList.map(v => {
+      Chat.getConvoState(v.convID)
+      return Chat.chatStores.get(v.convID)?.subscribe((s, old) => {
+        if (convoDiff(s, old)) {
+          computeConversations()
         }
-      }) ?? [],
-    [widgetList, remakeChat]
-  )
+      })
+    })
+
+    return () => {
+      for (const unsub of unsubs) {
+        unsub?.()
+      }
+    }
+  }, [widgetList])
 
   // Filter some data based on visible users.
   // We just use syncingPaths rather than merging with writingToJournal here

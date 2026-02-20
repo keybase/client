@@ -36,7 +36,8 @@ function RemoteComponentLoader<P>(p: Props<P>) {
 
   React.useEffect(() => {
     ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
-      const parsed = JSON.parse(raw as string) as P
+      const str = raw as string
+      const parsed = JSON.parse(str) as P
       setTimeout(() => setValue(parsed), 1)
     })
     R.remoteDispatch(
