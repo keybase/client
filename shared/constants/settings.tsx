@@ -12,7 +12,6 @@ export const settingsFeedbackTab = 'settingsTabs.feedbackTab'
 export const settingsFoldersTab = 'settingsTabs.foldersTab'
 export const settingsFsTab = 'settingsTabs.fsTab'
 export const settingsGitTab = 'settingsTabs.gitTab'
-export const settingsInvitationsTab = 'settingsTabs.invitationsTab'
 export const settingsAccountTab = 'settingsTabs.accountTab'
 export const settingsNotificationsTab = 'settingsTabs.notificationsTab'
 export const settingsPasswordTab = 'settingsTabs.password'
@@ -26,7 +25,6 @@ export const settingsWhatsNewTab = 'settingsTabs.whatsNewTab'
 export type SettingsTab =
   | typeof settingsAccountTab
   | typeof settingsUpdatePaymentTab
-  | typeof settingsInvitationsTab
   | typeof settingsNotificationsTab
   | typeof settingsAdvancedTab
   | typeof settingsFeedbackTab
