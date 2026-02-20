@@ -89,6 +89,7 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
   return {
     ...Common.defaultNavigationOptions,
     headerShown: false,
+    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
     tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
     tabBarButton: (p: BottomTabBarButtonProps) => (
       <PlatformPressable {...p} android_ripple={android_rippleFix}>
@@ -103,7 +104,6 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     tabBarLabel: ({focused}: {focused: boolean}) => (
       <TabBar.TabBarLabelWrapper routeName={route.name as Tabs.Tab} focused={focused} />
     ),
-    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
     tabBarShowLabel: Kb.Styles.isTablet,
     tabBarStyle: Common.tabBarStyle,
   }

@@ -45,6 +45,26 @@
   }
 
   window.__perf = {
+    scrollContainer(selector, options = {}) {
+      const {distance = 2000, direction = 'down', stepMs = 16, stepPx = 50} = options
+      return new Promise((resolve, reject) => {
+        const el = document.querySelector(selector)
+        if (!el) {
+          reject(new Error('Element not found: ' + selector))
+          return
+        }
+        let scrolled = 0
+        const dir = direction === 'up' ? -1 : 1
+        const interval = setInterval(() => {
+          el.scrollTop += dir * stepPx
+          scrolled += stepPx
+          if (scrolled >= distance) {
+            clearInterval(interval)
+            resolve()
+          }
+        }, stepMs)
+      })
+    },
     start() {
       running = true
       startTime = performance.now()
@@ -71,27 +91,6 @@
       }
 
       rafId = requestAnimationFrame(countFrames)
-    },
-
-    scrollContainer(selector, options = {}) {
-      const {distance = 2000, direction = 'down', stepMs = 16, stepPx = 50} = options
-      return new Promise((resolve, reject) => {
-        const el = document.querySelector(selector)
-        if (!el) {
-          reject(new Error('Element not found: ' + selector))
-          return
-        }
-        let scrolled = 0
-        const dir = direction === 'up' ? -1 : 1
-        const interval = setInterval(() => {
-          el.scrollTop += dir * stepPx
-          scrolled += stepPx
-          if (scrolled >= distance) {
-            clearInterval(interval)
-            resolve()
-          }
-        }, stepMs)
-      })
     },
 
     stop() {
@@ -124,7 +123,11 @@
       return {
         durationMs: Math.round(durationMs),
         fps: {avg: Math.round(avg * 10) / 10, max, min, p5, samples},
-        longTasks: {count: longTaskEntries.length, entries: longTaskEntries, totalMs: Math.round(totalLongTaskMs)},
+        longTasks: {
+          count: longTaskEntries.length,
+          entries: longTaskEntries,
+          totalMs: Math.round(totalLongTaskMs),
+        },
         marks,
         memory: {
           endHeapMB: Math.round(memoryEnd * 10) / 10,

@@ -60,7 +60,10 @@ async function main() {
   // Find the main page (not DevTools, not service worker)
   const page = targets.find(t => t.type === 'page' && !t.url.includes('devtools://'))
   if (!page) {
-    console.error('No suitable page target found. Targets:', targets.map(t => ({title: t.title, type: t.type})))
+    console.error(
+      'No suitable page target found. Targets:',
+      targets.map(t => ({title: t.title, type: t.type}))
+    )
     process.exit(1)
   }
 
@@ -81,7 +84,7 @@ async function main() {
   function send(method, params = {}) {
     return new Promise((resolve, reject) => {
       const id = ++msgId
-      pending.set(id, {resolve, reject})
+      pending.set(id, {reject, resolve})
       ws.send(JSON.stringify({id, method, params}))
     })
   }
@@ -113,7 +116,7 @@ async function main() {
     await send('Profiler.start')
     console.log(`Profiling for ${duration}ms...`)
 
-    await new Promise(r => setTimeout(r, duration))
+    await new Promise(resolve => setTimeout(resvolve, duration))
 
     // 4. Stop and save
     const result = await send('Profiler.stop')
