@@ -7,7 +7,7 @@ type PlaceholderProps = {
 }
 
 const PlaceholderRow = ({type}: PlaceholderProps) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     firstItem={true /* we add divider in Rows */}
     statusIcon={<Kb.Box2 direction="vertical" />}

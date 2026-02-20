@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {isTablet, isIOS} from '@/constants/platform'
-import type {GetOptions, GetOptionsParams} from '@/constants/types/router2'
+import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
 
 const modalOffset = isIOS ? 40 : 0
 

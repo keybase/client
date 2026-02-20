@@ -10,7 +10,7 @@ import {
   type TextInputSelectionChangeEventData,
 } from 'react-native'
 import {Box2} from './box'
-import {checkTextInfo} from './input.shared'
+import {checkTextInfo} from './plain-input.shared'
 import {getTextStyle} from './text.styles'
 import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'

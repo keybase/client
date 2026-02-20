@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import WaitingButton from '@/common-adapters/waiting-button'

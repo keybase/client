@@ -31,7 +31,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
   }, [editID, filename, setEditName])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={true /* we add divider in Rows */}
       statusIcon={

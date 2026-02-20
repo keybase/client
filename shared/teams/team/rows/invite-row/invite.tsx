@@ -18,7 +18,7 @@ export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
   const text2 = subLabel ? `${subLabel} · ${Teams.typeToLabel[role]}` : Teams.typeToLabel[role]
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       icon={<Kb.Avatar username={isKeybaseUser ? label : '+'} size={32} />}
       body={

@@ -25,7 +25,7 @@ const NavRow = (props: Props) => {
         hover_background_color_blueGreyDark: !isSelected,
       })}
     >
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         firstItem={true}
         statusIcon={

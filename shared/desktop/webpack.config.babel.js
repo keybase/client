@@ -301,7 +301,7 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
   const entryOverride = {main: 'desktop/renderer'}
 
   // multiple entries so we can chunk shared parts
-  const entries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
+  const entries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
   const viewConfig = merge(commonConfig, {
     devServer: {
       compress: false,

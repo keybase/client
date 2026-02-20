@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as React from 'react'
 import UnfurlImage from './image'
@@ -50,7 +50,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
           <Kb.Box2 direction="horizontal" gap="tiny">
-            {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
+            {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall" style={styles.fastStyle}>
               Giphy
             </Kb.Text>

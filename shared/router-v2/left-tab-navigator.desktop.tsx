@@ -4,8 +4,8 @@ import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import type * as Tabs from '@/constants/tabs'
-import {useRouterState} from '@/stores/router2'
-import {getModalStack} from '@/constants/router2'
+import {useRouterState} from '@/stores/router'
+import {getModalStack} from '@/constants/router'
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}

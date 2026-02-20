@@ -25,7 +25,7 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
         You may lose access to these folders forever:
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
-        <Kb.List2
+        <Kb.List
           items={props.endangeredTLFs}
           renderItem={_renderTLFEntry}
           indexAsKey={true}

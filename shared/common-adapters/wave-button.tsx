@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'

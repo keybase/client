@@ -27,7 +27,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
   const isRevoked = !!device.revokedByName
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={firstItem}
       onClick={showExistingDevicePage}

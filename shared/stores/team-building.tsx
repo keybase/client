@@ -11,7 +11,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
-import {navigateUp, getModalStack} from '@/constants/router2'
+import {navigateUp, getModalStack} from '@/constants/router'
 export {allServices, selfToUser} from '@/constants/team-building'
 export {searchWaitingKey} from '@/constants/strings'
 
@@ -80,7 +80,7 @@ export interface State extends Store {
 }
 
 const namespaceToRoute = new Map([
-  ['chat2', 'chatNewChat'],
+  ['chat', 'chatNewChat'],
   ['crypto', 'cryptoTeamBuilder'],
   ['teams', 'teamsTeamBuilder'],
   ['people', 'peopleTeamBuilder'],
@@ -334,7 +334,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       },
     },
     fetchUserRecs: () => {
-      const includeContacts = get().namespace === 'chat2'
+      const includeContacts = get().namespace === 'chat'
       const f = async () => {
         try {
           const [_suggestionRes, _contactRes] = await Promise.all([
@@ -396,7 +396,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           get().dispatch.defer.onFinishedTeamBuildingCrypto(finishedTeam)
           break
         }
-        case 'chat2': {
+        case 'chat': {
           get().dispatch.defer.onFinishedTeamBuildingChat(finishedTeam)
           break
         }

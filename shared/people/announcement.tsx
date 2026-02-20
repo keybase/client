@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import openURL from '@/util/open-url'
 import * as Kb from '@/common-adapters'
@@ -82,7 +82,7 @@ const Container = (ownProps: OwnProps) => {
       badged={badged}
       icon={
         iconUrl ? (
-          <Kb.Image2 src={iconUrl} style={styles.icon} />
+          <Kb.Image src={iconUrl} style={styles.icon} />
         ) : (
           <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
         )

@@ -2,7 +2,7 @@ import Icon from '../icon'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from '../clickable-box'
-import Image2 from '../image2'
+import Image from '../image'
 import {Box2} from '../box'
 import type {Props, AvatarSize} from '.'
 import useHook from './hooks'
@@ -11,7 +11,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Icon,
-  Image2,
+  Image,
 }
 
 const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
@@ -47,7 +47,7 @@ const Avatar = React.memo(function Avatar(p: Props) {
           </Kb.Box2>
         )}
         {!!props.url && (
-          <Kb.Image2
+          <Kb.Image
             showLoadingStateUntilLoaded={false}
             src={props.url}
             style={Styles.collapseStyles([

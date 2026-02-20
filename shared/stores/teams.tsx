@@ -9,7 +9,7 @@ import {
   navigateUp,
   navUpToScreen,
   navToProfile,
-} from '@/constants/router2'
+} from '@/constants/router'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
@@ -22,10 +22,10 @@ import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
 import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
-import {type useChatState} from '@/stores/chat2'
+import {type useChatState} from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Util from '@/constants/teams'
-import {getTab} from '@/constants/router2'
+import {getTab} from '@/constants/router'
 
 export {
   baseRetentionPolicies,

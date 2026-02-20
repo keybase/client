@@ -6,7 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {type Device} from '@/stores/provision'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
-import {clearModals, navigateAppend, navigateUp} from '@/constants/router2'
+import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{

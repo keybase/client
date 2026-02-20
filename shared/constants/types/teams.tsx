@@ -1,5 +1,5 @@
 import type * as RPCTypes from './rpc-gen'
-import type {ConversationIDKey} from './chat2'
+import type {ConversationIDKey} from './chat'
 
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s

@@ -144,7 +144,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         seen={seen}
         primaryButtonText="Try it"
         onPrimaryButtonClick={() => {
-          onNavigate({props: {namespace: 'chat2' as const, title: 'New chat'}, selected: 'chatNewChat'})
+          onNavigate({props: {namespace: 'chat' as const, title: 'New chat'}, selected: 'chatNewChat'})
         }}
         secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {

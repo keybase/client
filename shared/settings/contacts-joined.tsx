@@ -5,11 +5,11 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
-type ItemHeight = React.ComponentProps<typeof Kb.List2<T.RPCGen.ProcessedContact>>['itemHeight']
+type ItemHeight = React.ComponentProps<typeof Kb.List<T.RPCGen.ProcessedContact>>['itemHeight']
 const itemHeight: ItemHeight = {height: 96, type: 'fixed'}
 
 type FollowProps = {
@@ -95,7 +95,7 @@ const ContactsJoinedModal = () => {
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
-      <Kb.List2 items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
+      <Kb.List items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
     </Kb.Modal>
   )
 }

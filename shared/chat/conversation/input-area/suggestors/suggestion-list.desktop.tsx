@@ -41,7 +41,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
     >
-      <Kb.List2 desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} />
+      <Kb.List desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">

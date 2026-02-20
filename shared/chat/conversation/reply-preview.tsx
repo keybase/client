@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -54,7 +54,7 @@ const ReplyPreview = () => {
               {!!imageURL && (
                 <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                   <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
                   </Kb.Box2>
                 </Kb.Box2>
               )}

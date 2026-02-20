@@ -47,7 +47,7 @@ const VideoImpl = (p: Props) => {
             direction="vertical"
             style={Kb.Styles.collapseStyles([styles.posterContainer, {height, width}])}
           >
-            <Kb.Image2 src={previewURL} style={Kb.Styles.collapseStyles([styles.poster, {height, width}])} />
+            <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([styles.poster, {height, width}])} />
             {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
             <Kb.Box2 direction="vertical" style={styles.durationContainer}>
               <Kb.Text type="BodyTinyBold" style={styles.durationText}>

@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'

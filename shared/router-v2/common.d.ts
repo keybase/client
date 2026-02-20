@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type {NavigationContainerRef} from '@react-navigation/core'
-import type {NavState} from '@/constants/router2'
+import type {NavState} from '@/constants/router'
 import type * as Styles from '@/styles'
 import type {HeaderOptions} from '@react-navigation/elements'
 export const tabBarStyle: Styles.StylesCrossPlatform

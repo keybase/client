@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
@@ -35,7 +35,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   //   useDebugLayout()
   // React.useCallback(() => {
   //   const {conversationIDKey, ordinal} = getIds()
-  //   return global.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  //   return global.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)?.get(ordinal)
   // }, [getIds])
 
   const inner = (

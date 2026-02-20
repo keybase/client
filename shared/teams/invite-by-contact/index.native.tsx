@@ -20,7 +20,7 @@ const contactRow = (_: number, props: ContactRowProps) => {
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
           {!!hasThumbnail && !!props.pictureUri && (
-            <Kb.Image2 style={styles.thumbnail} src={props.pictureUri} />
+            <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
           )}
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box2 direction="vertical">
@@ -126,7 +126,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
               <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
             </Kb.Text>
           </Kb.ClickableBox>
-          <Kb.List2
+          <Kb.List
             keyProperty="id"
             items={listItems}
             itemHeight={{height: 56, type: 'fixed'}}

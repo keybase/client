@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -265,7 +265,7 @@ const ChannelMemberRow = (props: Props) => {
       }
     : {}
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
@@ -292,7 +292,7 @@ const styles = Kb.Styles.styleSheetCreate(
       fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
       listItemMargin: {marginLeft: 0},
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
       nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
       widenClickableArea: {margin: -5, padding: 5},

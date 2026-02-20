@@ -49,7 +49,7 @@ type RowProps = {
   selected: boolean
 }
 const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     firstItem={false}
     body={
@@ -128,7 +128,7 @@ const ChannelPicker = (props: Props) => {
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
         <Kb.Box2 direction="horizontal" style={{backgroundColor: Kb.Styles.globalColors.blueGrey}}>
-          <Kb.ListItem2
+          <Kb.ListItem
             type="Small"
             firstItem={true}
             body={<Kb.Text type="BodyBold">All channels</Kb.Text>}

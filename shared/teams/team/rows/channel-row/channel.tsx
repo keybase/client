@@ -151,7 +151,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       }
     : {}
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
@@ -173,7 +173,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
       row: {
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },

@@ -5,7 +5,7 @@ import {waitingKeyConfigLogin} from '@/constants/strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Stats from '@/engine/stats'
 import * as Z from '@/util/zustand'
-import {noConversationIDKey} from '@/constants/types/chat2/common'
+import {noConversationIDKey} from '@/constants/types/chat/common'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {Tab} from '@/constants/tabs'
@@ -13,7 +13,7 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
-import {navigateAppend} from '@/constants/router2'
+import {navigateAppend} from '@/constants/router'
 
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 

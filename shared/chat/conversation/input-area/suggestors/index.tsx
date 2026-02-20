@@ -1,13 +1,13 @@
 import * as Channels from './channels'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
-import type {Props} from '../normal2/platform-input'
-import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import type {Props} from '../normal/platform-input'
+import type {RefType as InputRef} from '@/common-adapters/input'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -52,7 +52,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
@@ -63,7 +63,7 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
@@ -403,7 +403,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   children: React.ReactNode
 }
 const Popup = (p: PopupProps) => {

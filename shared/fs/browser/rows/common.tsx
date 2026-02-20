@@ -20,7 +20,7 @@ export const StillCommon = (
     uploadErrored?: boolean
   }
 ) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     statusIcon={<PathStatusIcon path={props.path} />}
     icon={
@@ -92,4 +92,4 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export const normalRowHeight = Kb.smallListItem2Height
+export const normalRowHeight = Kb.smallListItemHeight

@@ -19,7 +19,7 @@ type SiteIconProps = {
 export const SiteIcon = (props: SiteIconProps) => {
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon
   return Kb.Styles.isMobile ? (
-    <Kb.Image2
+    <Kb.Image
       src={siteIconToNativeSrcSet(props.set)}
       style={Kb.Styles.collapseStyles([style, props.style])}
     />

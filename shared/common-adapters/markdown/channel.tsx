@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
 import Text from '../text'
 import type {StylesTextCrossPlatform} from '../text.shared'

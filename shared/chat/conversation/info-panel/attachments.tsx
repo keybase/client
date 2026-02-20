@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
@@ -194,7 +194,7 @@ const MediaThumb = (props: MediaThumbProps) => {
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Image2 src={thumb.previewURL} style={{...sizing.dims}} />
+          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} />
         )}
       </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (

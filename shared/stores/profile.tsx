@@ -7,10 +7,10 @@ import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {clearModals, navigateAppend, navigateUp} from '@/constants/router2'
+import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
-import {navToProfile} from '@/constants/router2'
-import type {useTrackerState} from '@/stores/tracker2'
+import {navToProfile} from '@/constants/router'
+import type {useTrackerState} from '@/stores/tracker'
 
 type ProveGenericParams = {
   logoBlack: T.Tracker.SiteIconSet

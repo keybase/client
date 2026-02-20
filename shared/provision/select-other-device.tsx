@@ -15,7 +15,7 @@ type Props = {
 type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'}
 
 const deviceSmallHeight = Kb.Styles.isMobile ? 56 : 48
-// "or" text with padding (~36) + ListItem2 Small
+// "or" text with padding (~36) + ListItem Small
 const resetHeight = 36 + deviceSmallHeight
 // Header text with padding
 const headerHeight = Kb.Styles.isMobile ? 80 : 60
@@ -82,7 +82,7 @@ const SelectOtherDevice = (props: Props) => {
             <Kb.Text type="BodySmall" style={styles.or}>
               or
             </Kb.Text>
-            <Kb.ListItem2
+            <Kb.ListItem
               type="Small"
               firstItem={true}
               onClick={onResetAccount}
@@ -103,7 +103,7 @@ const SelectOtherDevice = (props: Props) => {
           mobile: 'Phone',
         }
         return (
-          <Kb.ListItem2
+          <Kb.ListItem
             type="Small"
             firstItem={index === 1}
             onClick={() => onSelect(item.device.name)}
@@ -130,7 +130,7 @@ const SelectOtherDevice = (props: Props) => {
       contentContainerStyle={Kb.Styles.padding(0)}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox} gap="medium">
-        <Kb.List2
+        <Kb.List
           style={styles.list}
           items={items}
           renderItem={renderItem}

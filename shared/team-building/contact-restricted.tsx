@@ -76,7 +76,7 @@ export const ContactRestricted = (props: Props) => {
         {disallowedUsers.length > 0 && (
           <>
             {disallowedUsers.map((username, idx) => (
-              <Kb.ListItem2
+              <Kb.ListItem
                 key={username}
                 type={Kb.Styles.isMobile ? 'Large' : 'Small'}
                 icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}

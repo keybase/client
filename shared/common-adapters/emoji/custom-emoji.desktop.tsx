@@ -1,12 +1,12 @@
 import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import WithTooltip from '@/common-adapters/with-tooltip'
-import Image2 from '@/common-adapters/image2'
+import Image from '@/common-adapters/image'
 import type {Props} from './custom-emoji'
 
 const Kb = {
   Box2,
-  Image2,
+  Image,
   Styles,
   WithTooltip,
 }
@@ -27,7 +27,7 @@ const CustomEmoji = (props: Props) => {
       ])}
     >
       <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
-        <Kb.Image2
+        <Kb.Image
           src={src}
           style={Kb.Styles.collapseStyles([
             {

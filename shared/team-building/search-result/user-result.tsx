@@ -10,7 +10,7 @@ const UserResult = React.memo(function UserResult(props: ResultProps) {
   }
 
   // Fancy special case for new convo hellobot row
-  if (props.username === 'hellobot' && props.namespace === 'chat2') {
+  if (props.username === 'hellobot' && props.namespace === 'chat') {
     return <HellobotResult {...props} />
   }
 

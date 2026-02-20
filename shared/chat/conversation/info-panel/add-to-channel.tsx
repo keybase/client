@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -116,7 +116,7 @@ const AddToChannel = (props: Props) => {
         style={styles.filterInput}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <Kb.List2
+        <Kb.List
           items={membersFiltered}
           renderItem={(idx, item) => {
             const alreadyIn = participants.includes(item.username)
@@ -130,7 +130,7 @@ const AddToChannel = (props: Props) => {
               }
             }
             return (
-              <Kb.ListItem2
+              <Kb.ListItem
                 firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
@@ -162,7 +162,7 @@ const AddToChannel = (props: Props) => {
               />
             )
           }}
-          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
           style={styles.list}
         />
       </Kb.Box2>

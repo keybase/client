@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {isLinux, isMobile} from '@/constants/platform'
-import {navigateAppend} from '@/constants/router2'
+import {navigateAppend} from '@/constants/router'
 
 // Prefetch Constants
 const prefetchNotStarted: T.FS.PrefetchNotStarted = {

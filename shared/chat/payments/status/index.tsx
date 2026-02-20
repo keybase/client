@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'

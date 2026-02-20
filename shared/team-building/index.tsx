@@ -102,7 +102,7 @@ const TeamBuilding = (p: OwnProps) => {
   const _search = TB.useTBContext(s => s.dispatch.search)
   const search = C.useThrottledCallback(
     (query: string, service: T.TB.ServiceIdWithContact, limit?: number) => {
-      _search(query, service, namespace === 'chat2', limit)
+      _search(query, service, namespace === 'chat', limit)
     },
     500
   )
@@ -242,7 +242,7 @@ const TeamBuilding = (p: OwnProps) => {
   }
   const teamBox = !!teamSoFar.length && (
     <TeamBox
-      allowPhoneEmail={selectedService === 'keybase' && namespace === 'chat2'}
+      allowPhoneEmail={selectedService === 'keybase' && namespace === 'chat'}
       onChangeText={onChangeText}
       onDownArrowKeyDown={onDownArrowKeyDown}
       onUpArrowKeyDown={onUpArrowKeyDown}

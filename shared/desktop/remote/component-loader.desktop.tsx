@@ -19,7 +19,7 @@ const {closeWindow, showInactive} = KB2.functions
 disableDragDrop()
 module.hot?.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
+type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker'
 
 type Props<DeserializeProps, SerializeProps> = {
   child: (p: DeserializeProps) => React.ReactNode

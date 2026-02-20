@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useOrdinal, useIsHighlighted} from '../ids-context'
@@ -49,7 +49,7 @@ const ReplyImage = () => {
   return (
     <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
       <Kb.Box2 direction="vertical" style={sizing?.margins}>
-        <Kb.Image2 src={imageURL} style={sizing?.dims} />
+        <Kb.Image src={imageURL} style={sizing?.dims} />
       </Kb.Box2>
     </Kb.Box2>
   )

@@ -113,7 +113,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
   }
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       firstItem={index === 0}
       type="Small"
       body={
@@ -133,7 +133,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
           {actions}
         </Kb.Box2>
       }
-    ></Kb.ListItem2>
+    ></Kb.ListItem>
   )
 })
 
@@ -211,7 +211,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       : null
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       firstItem={index === -1}
       type="Small"
       body={
@@ -305,7 +305,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
           {popup}
         </Kb.Box2Measure>
       }
-    ></Kb.ListItem2>
+    ></Kb.ListItem>
   )
 })
 

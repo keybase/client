@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTrackerState} from '@/stores/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -267,7 +267,7 @@ export const TeamMemberRow = (props: Props) => {
     : {}
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
@@ -291,7 +291,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
   lockedOutMeta: {marginRight: Kb.Styles.globalMargins.xtiny},
-  mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+  mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
   nameContainer: {
     flex: 1,
     justifyContent: 'center',

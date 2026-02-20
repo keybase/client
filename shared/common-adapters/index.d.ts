@@ -45,18 +45,18 @@ export {HeaderHocHeader, HeaderHocWrapper, HeaderLeftBlank, HeaderLeftCancel} fr
 export {PopupWrapper} from './header-or-popup'
 export {useHotKey} from './hot-key'
 export {default as Icon, urlsToImgSet, type IconStyle} from './icon'
-export {default as Image2} from './image2'
+export {default as Image} from './image'
 export {default as InfoNote} from './info-note'
-export {Input2} from './input2'
+export {Input} from './input'
 export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 export {default as LabeledInput} from './labeled-input'
-export {default as List2} from './list2'
+export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'
 export {
-  default as ListItem2,
-  largeHeight as largeListItem2Height,
-  smallHeight as smallListItem2Height,
-} from './list-item2'
+  default as ListItem,
+  largeHeight as largeListItemHeight,
+  smallHeight as smallListItemHeight,
+} from './list-item'
 export {default as Markdown} from './markdown'
 
 export {default as Meta} from './meta'

@@ -249,7 +249,7 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
       >
         {src ? (
           <CropZoom cropSize={cropSize} resolution={resolution} ref={czref} panMode="clamp" minScale={1}>
-            <Kb.Image2 src={src} style={imageStyle} />
+            <Kb.Image src={src} style={imageStyle} />
           </CropZoom>
         ) : null}
       </Kb.Box2>

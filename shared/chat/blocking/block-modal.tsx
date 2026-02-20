@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/stores/chat2'
+import * as Chat from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
 
@@ -500,7 +500,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       }}
       noScrollView={true}
     >
-      <Kb.List2
+      <Kb.List
         items={items}
         renderItem={renderItem}
         indexAsKey={true}
