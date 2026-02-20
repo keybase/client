@@ -6,6 +6,7 @@ import * as React from 'react'
 import * as RemoteGen from '@/actions/remote-gen'
 import * as FsUtil from '@/util/kbfs'
 import * as TimestampUtil from '@/util/timestamp'
+import Filename from '@/fs/common/filename'
 import KB2 from '@/util/electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '@/fs/footer/upload'
@@ -76,7 +77,7 @@ const HttpAvatar = (p: {
 }) => {
   const isDarkMode = useColorScheme() === 'dark'
   const typ = p.isTeam ? 'team' : 'user'
-  const src = `http://${p.httpSrvAddress}/av?typ=${typ}&name=${p.name}&format=square_${p.size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${p.httpSrvToken}`
+  const src = `http://${p.httpSrvAddress}/av?typ=${typ}&name=${p.name}&format=square_192&mode=${isDarkMode ? 'dark' : 'light'}&token=${p.httpSrvToken}&count=0`
   return <img src={src} width={p.size} height={p.size} style={{...avatarStyle, ...p.style}} loading="lazy" />
 }
 const avatarStyle: React.CSSProperties = {borderRadius: '50%', flexShrink: 0}

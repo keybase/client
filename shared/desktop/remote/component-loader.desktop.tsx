@@ -36,7 +36,8 @@ function RemoteComponentLoader<P>(p: Props<P>) {
 
   React.useEffect(() => {
     ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
-      setValue(JSON.parse(raw as string) as P)
+      const parsed = JSON.parse(raw as string) as P
+      setTimeout(() => setValue(parsed), 1)
     })
     R.remoteDispatch(
       RemoteGen.createRemoteWindowWantsProps({component: name, param: params})

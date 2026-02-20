@@ -30,11 +30,11 @@ export type Props = {
   trackerUsername: string
 }
 
-const avatarUrl = (httpSrvAddress: string, httpSrvToken: string, username: string, size: number, darkMode: boolean) =>
-  `http://${httpSrvAddress}/av?typ=user&name=${username}&format=square_${size}&mode=${darkMode ? 'dark' : 'light'}&token=${httpSrvToken}`
+const avatarUrl = (httpSrvAddress: string, httpSrvToken: string, username: string, darkMode: boolean) =>
+  `http://${httpSrvAddress}/av?typ=user&name=${username}&format=square_192&mode=${darkMode ? 'dark' : 'light'}&token=${httpSrvToken}&count=0`
 
-const teamAvatarUrl = (httpSrvAddress: string, httpSrvToken: string, teamname: string, size: number, darkMode: boolean) =>
-  `http://${httpSrvAddress}/av?typ=team&name=${teamname}&format=square_${size}&mode=${darkMode ? 'dark' : 'light'}&token=${httpSrvToken}`
+const teamAvatarUrl = (httpSrvAddress: string, httpSrvToken: string, teamname: string, darkMode: boolean) =>
+  `http://${httpSrvAddress}/av?typ=team&name=${teamname}&format=square_192&mode=${darkMode ? 'dark' : 'light'}&token=${httpSrvToken}&count=0`
 
 const getButtons = (props: Props) => {
   const buttonClose = (
@@ -264,7 +264,7 @@ const TeamShowcase = (props: {name: string; httpSrvAddress: string; httpSrvToken
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
       <img
-        src={teamAvatarUrl(props.httpSrvAddress, props.httpSrvToken, props.name, 32, isDarkMode)}
+        src={teamAvatarUrl(props.httpSrvAddress, props.httpSrvToken, props.name, isDarkMode)}
         width={32}
         height={32}
         style={styles.teamAvatar}
@@ -308,7 +308,7 @@ const Tracker = (props: Props) => {
             <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>
               <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny">
                 <img
-                  src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, 96, isDarkMode)}
+                  src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
                   width={96}
                   height={96}
                   style={styles.avatar}
