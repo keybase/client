@@ -375,7 +375,7 @@ function Inbox(props: TInbox.Props) {
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <div style={styles.list} ref={scrollDiv}>
+        <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
               listRef={listRef}
