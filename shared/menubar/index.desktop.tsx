@@ -123,7 +123,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
       onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: conv.conversationIDKey}))}
       style={styles.chatRow}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowInner}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny" style={styles.chatRowInner}>
         <HttpAvatar
           name={avatarName}
           isTeam={isTeam}
@@ -132,8 +132,8 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
           httpSrvToken={httpSrvToken}
         />
         <Kb.Box2 direction="vertical" style={styles.chatRowText}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.chatRowNameContainer}>
-            <Kb.Box2 direction="horizontal" style={styles.chatRowNameLeft}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.chatRowNameContainer}>
+            <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" style={styles.chatRowNameLeft}>
               <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
                 {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
               </Kb.Text>
@@ -144,7 +144,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
                 type="BodyTiny"
                 style={Kb.Styles.collapseStyles([
                   styles.chatTimestamp,
-                  conv.hasUnread && styles.bold,
+                  conv.hasUnread && Kb.Styles.globalStyles.fontBold,
                 ])}
               >
                 {timestamp}
@@ -157,7 +157,7 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
               lineClamp={1}
               style={Kb.Styles.collapseStyles([
                 conv.hasUnread ? styles.chatSnippetUnread : styles.chatSnippet,
-                conv.hasUnread && styles.bold,
+                conv.hasUnread && Kb.Styles.globalStyles.fontBold,
               ])}
             >
               {conv.snippetDecorated}
@@ -250,13 +250,12 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
           const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
           return (
-            <Kb.Box2 key={tlf + update.writer + update.timestamp} direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
+            <Kb.Box2 key={tlf + update.writer + update.timestamp} direction="horizontal" fullWidth={true} gap="tiny" style={styles.tlfRowContainer}>
               <HttpAvatar
                 name={update.writer}
                 size={32}
                 httpSrvAddress={httpSrvAddress}
                 httpSrvToken={httpSrvToken}
-                style={{marginRight: Kb.Styles.globalMargins.tiny}}
               />
               <Kb.Box2 direction="vertical" fullWidth={true}>
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
@@ -434,16 +433,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
             ))
           : null}
       </Kb.Box2>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.platformStyles({
-          isElectron: {
-            ...Kb.Styles.desktopStyles.clickable,
-            marginRight: Kb.Styles.globalMargins.tiny,
-            position: 'relative',
-          } as const,
-        })}
-      >
+      <Kb.Box2 direction="vertical" style={styles.hamburgerContainer}>
         <Kb.Icon
           color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
           hoverColor={Kb.Styles.globalColors.whiteOrWhite}
@@ -477,7 +467,7 @@ const LoggedIn = (p: Props) => {
   return (
     <>
       <OutOfDate outOfDate={outOfDate} />
-      <Kb.ScrollView style={styles.flexOne}>
+      <Kb.ScrollView style={Kb.Styles.globalStyles.flexGrow}>
         <ChatPreview
           convLimit={5}
           conversationsToSend={conversationsToSend}
@@ -493,7 +483,7 @@ const LoggedIn = (p: Props) => {
             httpSrvToken={httpSrvToken}
           />
         ) : (
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.loadingContainer}>
             <Loading />
           </Kb.Box2>
         )}
@@ -533,7 +523,8 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={{alignItems: 'center', justifyContent: 'center', padding: Kb.Styles.globalMargins.small}}
+          centerChildren={true}
+          style={styles.loggedOutContainer}
         >
           <Kb.Box2 direction="vertical">
             <Kb.Icon
@@ -541,7 +532,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
               style={styles.logo}
               color={Kb.Styles.globalColors.yellow}
             />
-            <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
+            <Kb.Text type="Body" style={styles.loggedOutText}>
               {text}
             </Kb.Text>
             {fullyLoggedOut ? (
@@ -581,12 +572,12 @@ const MenubarRender = (p: Props) => {
 const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
-      <Kb.Box2 direction="vertical" style={{marginRight: Kb.Styles.globalMargins.tiny, position: 'relative'}}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
+      <Kb.Box2 direction="vertical" style={styles.tabIconContainer}>
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
-      <Kb.Text className="title" type="BodySemibold" style={Kb.Styles.collapseStyles([{color: undefined}])}>
+      <Kb.Text className="title" type="BodySemibold">
         {title}
       </Kb.Text>
     </Kb.Box2>
@@ -616,12 +607,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      style={Kb.Styles.platformStyles({
-        isElectron: {...Kb.Styles.desktopStyles.clickable, position: 'relative'},
-      })}
-    >
+    <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
       <Kb.Icon
         color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
         hoverColor={Kb.Styles.globalColors.whiteOrWhite}
@@ -657,7 +643,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: -2,
     top: -4,
   },
-  bold: {...Kb.Styles.globalStyles.fontBold},
+  badgeIconContainer: Kb.Styles.platformStyles({
+    isElectron: {...Kb.Styles.desktopStyles.clickable, position: 'relative'},
+  }),
   buttonContainer: {
     marginBottom: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.tiny,
@@ -666,7 +654,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.blue,
     borderRadius: 4,
     height: 8,
-    marginLeft: Kb.Styles.globalMargins.xtiny,
     width: 8,
   },
   chatContainer: {
@@ -678,17 +665,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.desktopStyles.clickable,
     },
   }),
-  chatRowInner: {
-    alignItems: 'center',
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
+  chatRowInner: Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall),
   chatRowName: {flexShrink: 1},
-  chatRowNameContainer: {alignItems: 'center', justifyContent: 'space-between'},
-  chatRowNameLeft: {alignItems: 'center', flexShrink: 1, overflow: 'hidden'},
-  chatRowText: {flexGrow: 1, flexShrink: 1, marginLeft: Kb.Styles.globalMargins.tiny, overflow: 'hidden'},
+  chatRowNameContainer: {justifyContent: 'space-between'},
+  chatRowNameLeft: {flexShrink: 1, overflow: 'hidden'},
+  chatRowText: {flexGrow: 1, flexShrink: 1, overflow: 'hidden'},
   chatSnippet: {color: Kb.Styles.globalColors.black_50},
   chatSnippetUnread: {color: Kb.Styles.globalColors.black},
   chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
@@ -707,19 +688,29 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: Kb.Styles.globalMargins.xtiny,
     paddingRight: Kb.Styles.globalMargins.large,
   },
-  flexOne: {flexGrow: 1},
   footer: {width: 360},
+  hamburgerContainer: Kb.Styles.platformStyles({
+    isElectron: {
+      ...Kb.Styles.desktopStyles.clickable,
+      marginRight: Kb.Styles.globalMargins.tiny,
+      position: 'relative',
+    },
+  }),
   headerBadgesContainer: {
     flex: 1,
     justifyContent: 'center',
-    marginLeft: 24 + 8,
+    marginLeft: Kb.Styles.globalMargins.mediumLarge,
   },
+  loadingContainer: {height: 200},
+  loggedOutContainer: {padding: Kb.Styles.globalMargins.small},
+  loggedOutText: {alignSelf: 'center', marginTop: 6},
   logo: {
     alignSelf: 'center',
-    marginBottom: 12,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
   },
   navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
   showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
+  tabIconContainer: {position: 'relative'},
   tlfContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
@@ -750,8 +741,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flex: 1,
     maxHeight: 40,
     minHeight: 40,
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
   widgetContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
