@@ -127,11 +127,11 @@
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
 		DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareIntentDonatorImpl.swift; sourceTree = "<group>"; };
-		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollPerformanceTests.swift; sourceTree = "<group>"; };
 		DBPERF0126E0000100000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBPERF0126E0000100000003 /* KeybaseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeybaseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBPERF022600000001 /* PerfFPSMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfFPSMonitor.swift; sourceTree = "<group>"; };
+		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1152,6 +1152,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -1175,6 +1176,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

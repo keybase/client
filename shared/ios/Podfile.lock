@@ -1989,7 +1989,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-netinfo (11.5.2):
+  - react-native-netinfo (12.0.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2722,7 +2722,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.2.1):
+  - RNReanimated (4.2.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2749,11 +2749,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.2.1)
+    - RNReanimated/reanimated (= 4.2.2)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated (4.2.1):
+  - RNReanimated/reanimated (4.2.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2780,11 +2780,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.2.1)
+    - RNReanimated/reanimated/apple (= 4.2.2)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated/apple (4.2.1):
+  - RNReanimated/reanimated/apple (4.2.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2873,7 +2873,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNWorklets (0.7.3):
+  - RNWorklets (0.7.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -2900,10 +2900,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets (= 0.7.3)
+    - RNWorklets/worklets (= 0.7.4)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets (0.7.3):
+  - RNWorklets/worklets (0.7.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -2930,10 +2930,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets/apple (= 0.7.3)
+    - RNWorklets/worklets/apple (= 0.7.4)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets/apple (0.7.3):
+  - RNWorklets/worklets/apple (0.7.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -3386,7 +3386,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 63ee6730cec233feab9cdcc0c100dc28a12e4165
   react-native-kb: 078843e8c52d210aff0c50cbb4c4abe888c28ee2
   react-native-keyboard-controller: a9e423beaa20d00a4b9664b0fa37f1cdf3a59975
-  react-native-netinfo: 64f05e94821ee3f3adcd9b67b35c1480e5564915
+  react-native-netinfo: 9fad4eedfec9840a10e73ac4591ea1158523309b
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e
   React-NativeModulesApple: cbceb3c4cb726838c461b13802a76cefa6f3476f
@@ -3422,9 +3422,9 @@ SPEC CHECKSUMS:
   RNCMaskedView: d707a83784c67099b54b37d056ababb2767ce15e
   RNCPicker: 35fc66f352403cdfe99d53b541f5180482ca2bc5
   RNGestureHandler: 043d32e7e7ae6bdcca06264682d5a078712903a1
-  RNReanimated: e79d7f42b76ba026e7dc5fb3e3f81991c590d3af
+  RNReanimated: 372fdfc5e6abdf42bddf588e206d15aedf46121a
   RNScreens: 199799bdab32fa1e17ebf938b06fec52033e81e5
-  RNWorklets: ff9b9ff38df9accccbbbad692b6e435fec64e24e
+  RNWorklets: ca03ce776c15a592ef0700386071466810c41ea0
   SDWebImage: 1bb6a1b84b6fe87b972a102bdc77dd589df33477
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
