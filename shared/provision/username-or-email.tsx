@@ -133,6 +133,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
               onChangeText={setUsername}
               value={username}
               textType="BodySemibold"
+              placeholderInline={true}
             />
             <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?

@@ -13,12 +13,13 @@ export type _Props = {
   error?: boolean
   hoverPlaceholder?: string // placeholder while there is no text; if this is set then props.placholder is used as a label only.
   placeholder: string // placeholder while unselected, label while selected
+  placeholderInline?: boolean
 }
 
 export type Props = PropsWithInput<_Props>
 
 const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function LabeledInputImple(props, ref) {
-  const {containerStyle, error, placeholder, ...plainInputProps} = props
+  const {containerStyle, error, placeholder, placeholderInline, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
   const isDarkMode = useColorScheme() === 'dark'
@@ -66,23 +67,25 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
         containerStyle,
       ])}
     >
-      <Text
-        type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
-        style={Styles.collapseStyles([
-          styles.label,
-          props.placeholderColor && {color: props.placeholderColor},
-          collapsed ? styles.labelSmall : styles.labelLarge,
-          focused && styles.labelFocused,
-        ])}
-      >
-        {placeholder}
-      </Text>
+      {placeholderInline ? null : (
+        <Text
+          type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
+          style={Styles.collapseStyles([
+            styles.label,
+            props.placeholderColor && {color: props.placeholderColor},
+            collapsed ? styles.labelSmall : styles.labelLarge,
+            focused && styles.labelFocused,
+          ])}
+        >
+          {placeholder}
+        </Text>
+      )}
       <PlainInput
         {...plainInputProps}
         onChangeText={_onChangeText}
         onFocus={_onFocus}
         onBlur={_onBlur}
-        placeholder={collapsed ? props.hoverPlaceholder : undefined}
+        placeholder={placeholderInline ? props.placeholder : collapsed ? props.hoverPlaceholder : undefined}
         ref={ref}
         style={Styles.collapseStyles([
           styles.input,
