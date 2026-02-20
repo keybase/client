@@ -168,10 +168,7 @@ module.exports = {
   get List2() {
     return require('./list2').default
   },
-  get ListItem() {
-    return require('./list-item').default
-  },
-  get ListItem2() {
+get ListItem2() {
     return require('./list-item2').default
   },
   get LoadingLine() {

@@ -52,7 +52,6 @@ export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 export {default as LabeledInput} from './labeled-input'
 export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
-export {default as ListItem} from './list-item'
 export {
   default as ListItem2,
   largeHeight as largeListItem2Height,
