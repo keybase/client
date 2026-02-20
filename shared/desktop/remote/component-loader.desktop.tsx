@@ -4,7 +4,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
 import RemoteStore from './store.desktop'
-import Root from '../renderer/container.desktop'
+import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {CanFixOverdrawContext} from '@/styles'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
@@ -59,7 +60,9 @@ function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<Deseri
   return (
     <div id="RemoteComponentRoot" style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}>
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-        <Root>{p.child(value)}</Root>
+        <GlobalKeyEventHandler>
+          <CanFixOverdrawContext.Provider value={true}>{p.child(value)}</CanFixOverdrawContext.Provider>
+        </GlobalKeyEventHandler>
       </ErrorBoundary>
     </div>
   )

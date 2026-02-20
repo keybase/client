@@ -5,7 +5,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/actions/remote-gen'
-import Root from './container.desktop'
+import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {CanFixOverdrawContext} from '@/styles'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
@@ -85,6 +86,35 @@ const setupApp = () => {
   appStartedUp?.()
 }
 
+const useDarkHookup = () => {
+  const initedRef = React.useRef(false)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  React.useEffect(() => {
+    const m = window.matchMedia('(prefers-color-scheme: dark)')
+    if (!initedRef.current) {
+      initedRef.current = true
+      setSystemDarkMode(m.matches)
+    }
+
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemDarkMode(e.matches)
+    }
+    m.addEventListener('change', handler)
+    return () => {
+      m.removeEventListener('change', handler)
+    }
+  }, [setSystemDarkMode])
+}
+
+const Root = ({children}: {children: React.ReactNode}) => {
+  useDarkHookup()
+  return (
+    <GlobalKeyEventHandler>
+      <CanFixOverdrawContext.Provider value={true}>{children}</CanFixOverdrawContext.Provider>
+    </GlobalKeyEventHandler>
+  )
+}
+
 const FontLoader = () => (
   <div style={{height: 0, overflow: 'hidden', width: 0}}>
     <p style={{fontFamily: 'kb'}}>kb</p>
@@ -110,9 +140,6 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
-  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
-  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
-  // else all nav stuff is broken
   ReactDOM.createRoot(root).render(
     <WRAP>
       <Root>
