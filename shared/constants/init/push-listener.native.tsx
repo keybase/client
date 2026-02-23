@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import logger from '@/logger'
-import {handleAppLink} from '@/constants/deeplinks'
+import {emitDeepLink} from '@/router-v2/linking'
 import {isAndroid, isIOS} from '@/constants/platform'
 import {
   getRegistrationToken,
@@ -246,9 +246,7 @@ export const initPushListener = () => {
           } else {
             return
           }
-          try {
-            handleAppLink('keybase://incoming-share')
-          } catch {}
+          emitDeepLink('keybase://incoming-share')
         })
         shareListenersRegistered()
       }

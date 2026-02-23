@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as T from './types'
-import * as Tabs from './tabs'
+import type * as Tabs from './tabs'
 import {
   StackActions,
   CommonActions,
@@ -11,9 +11,8 @@ import {
 } from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from './types/router'
-import {produce} from 'immer'
-import isEqual from 'lodash/isEqual'
-import {isMobile, isTablet} from './platform'
+import {makeChatConversationState} from '@/router-v2/linking'
+import {isMobile} from './platform'
 import {shallowEqual, type ViewPropsToPageProps} from './utils'
 import {registerDebugClear} from '@/util/debug'
 
@@ -30,8 +29,6 @@ export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
-
-const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef.isReady()) return
@@ -131,51 +128,6 @@ export const logState = () => {
   return {loggedIn: _isLoggedIn(rs), modals, visible}
 }
 
-type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
-
-const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
-  const route = s?.routes?.[s.index ?? -1] as DeepWriteable<Route> | undefined
-  if (!route) {
-    return
-  }
-
-  // found?
-  if (route.name === name) {
-    // selected a root stack? choose just the root item
-    if (route.state?.type === 'stack') {
-      route.state.routes.length = 1
-      route.state.index = 0
-    } else {
-      // leave alone? maybe this never happens
-      route.state = undefined
-    }
-    return
-  }
-
-  // search stack for target
-  if (route.state?.type === 'stack') {
-    const idx = route.state.routes.findIndex((r: {name: string}) => r.name === name)
-    // found
-    if (idx !== -1) {
-      route.state.index = idx
-      route.state.routes.length = idx + 1
-      return
-    }
-  }
-  // try the incoming s
-  if (s?.type === 'stack') {
-    const idx: number = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
-    // found
-    if (idx !== -1 && s.routes) {
-      s.index = idx
-      s.routes.length = idx + 1
-      return
-    }
-  }
-
-  navUpHelper(route.state, name)
-}
-
 export const getRouteTab = (route: Array<Route>) => {
   return route[1]?.name
 }
@@ -233,21 +185,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
   const n = _getNavigator()
   if (!n) return
-  const ns = getRootState()
-  // some kind of unknown race, just bail
-  if (!ns) {
-    console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-    return
-  }
-  if (!ns.routes) {
-    console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-    return
-  }
-
-  const nextState = produce(ns, draft => {
-    navUpHelper(draft as DeepWriteable<NavState>, name)
-  })
-  n.dispatch(CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]))
+  n.dispatch(StackActions.popTo(name))
 }
 
 export const navigateAppend = (path: PathParam, replace?: boolean) => {
@@ -315,88 +253,16 @@ export const navToProfile = (username: string) => {
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
+  const n = _getNavigator()
+  if (!n) return
   const rs = getRootState()
-  // some kind of unknown race, just bail
-  if (!rs) {
-    console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-    return
-  }
-  if (!rs.routes) {
-    console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-    return
-  }
+  if (!rs?.key) return
 
-  const nextState = produce(rs, draft => {
-    const loggedInRoute = draft.routes?.[0]
-    const loggedInTabs = loggedInRoute?.state?.routes
-    if (!loggedInTabs) {
-      return
-    }
-    const chatTabIdx = loggedInTabs.findIndex((r: {name: string}) => r.name === Tabs.chatTab)
-    const chatStack = loggedInTabs[chatTabIdx]
-
-    if (!chatStack) {
-      return
-    }
-
-    // select tabs
-    draft.index = 0
-    // remove modals
-    if (draft.routes) {
-      draft.routes.length = 1
-    }
-
-    // select chat tab
-    if (loggedInRoute.state) {
-      loggedInRoute.state.index = chatTabIdx
-    }
-
-    const oldChatState = chatStack.state
-
-    // setup root
-    chatStack.state = {
-      index: 0,
-      routes: [{key: oldChatState?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
-    }
-
-    if (isSplit) {
-      const _chatRoot = oldChatState?.routes[0]
-      // key is required or you'll run into issues w/ the nav
-      const chatRoot = {
-        key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
-        name: 'chatRoot',
-        params: {conversationIDKey},
-      } as const
-      chatStack.state.routes = [chatRoot]
-    } else {
-      // key is required or you'll run into issues w/ the nav
-      let convoRoute = {
-        key: `chatConversation-${conversationIDKey}`,
-        name: 'chatConversation',
-        params: {conversationIDKey},
-      } as const
-      // reuse visible route if it's the same
-      const visible = oldChatState?.routes.at(-1)
-      if (visible) {
-        const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
-        if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
-          convoRoute = visible as typeof convoRoute
-        }
-      }
-
-      const chatRoot = chatStack.state.routes[0]
-      chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
-      chatStack.state.index = 1
-    }
+  const nextState = makeChatConversationState(conversationIDKey)
+  n.dispatch({
+    ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
+    target: rs.key,
   })
-
-  if (!isEqual(rs, nextState)) {
-    rs.key &&
-      _getNavigator()?.dispatch({
-        ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
-        target: rs.key,
-      })
-  }
 }
 
 export const appendPeopleBuilder = () => {

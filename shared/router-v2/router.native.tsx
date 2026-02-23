@@ -16,8 +16,10 @@ import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigati
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import * as Hooks from './hooks.native'
+import {useRootKey} from './hooks.native'
 import * as TabBar from './tab-bar.native'
+import {createLinkingConfig} from './linking'
+import {handleAppLink} from '@/constants/deeplinks'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useColorScheme} from 'react-native'
 import {useDaemonState} from '@/stores/daemon'
@@ -146,6 +148,10 @@ const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',
 } as const
+// Create once, stable across renders. handleAppLink is used as fallback for
+// URL patterns not yet handled by the linking config.
+const linkingConfig = createLinkingConfig(handleAppLink)
+
 const RNApp = React.memo(function RNApp() {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
@@ -154,8 +160,9 @@ const RNApp = React.memo(function RNApp() {
     return loaded
   })
 
-  const {initialState, initialStateState} = Hooks.useInitialState(loggedInLoaded)
-  const loggedIn = useConfigState(s => s.loggedIn)
+  const {loggedIn, startupLoaded} = useConfigState(
+    C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
+  )
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
     const ns = C.Router2.getRootState()
@@ -172,25 +179,14 @@ const RNApp = React.memo(function RNApp() {
     }
   }, [])
 
-  const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
-  if (DEBUG_RNAPP_RENDER) {
-    console.log('DEBUG RNApp render', {
-      initialState,
-      initialStateState,
-      loggedIn,
-      loggedInLoaded,
-      onStateChange,
-    })
-  }
-
   const isDarkMode = useColorScheme() === 'dark'
   const barStyle = useDarkModeState(s => {
     return s.darkModePreference === 'system' ? 'default' : isDarkMode ? 'light-content' : 'dark-content'
   })
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  const rootKey = Hooks.useRootKey()
+  const rootKey = useRootKey()
 
-  if (initialStateState !== 'loaded' || !loggedInLoaded) {
+  if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
         <Shared.SimpleLoading />
@@ -203,12 +199,11 @@ const RNApp = React.memo(function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
+        linking={loggedIn ? linkingConfig : undefined}
+        onStateChange={onStateChange}
+        onUnhandledAction={onUnhandledAction}
         ref={navRef}
         theme={Shared.theme}
-        // eslint-disable-next-line
-        initialState={initialState as any}
-        onUnhandledAction={onUnhandledAction}
-        onStateChange={onStateChange}
       >
         <RootStack.Navigator key="root" screenOptions={rootStackScreenOptions}>
           {loggedIn ? (

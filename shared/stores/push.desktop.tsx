@@ -19,8 +19,6 @@ export const usePushState = Z.createZustand<State>(() => {
       onGetDaemonHandshakeState: () => {
         return 'done'
       },
-      onNavigateToThread: () => {},
-      onShowUserProfile: () => {},
     },
     deleteToken: () => {},
     handlePush: () => {},

@@ -1,7 +1,6 @@
-import * as Tabs from '@/constants/tabs'
 import * as S from '@/constants/strings'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
-import {navigateAppend, navUpToScreen, switchTab} from '@/constants/router'
+import {emitDeepLink} from '@/router-v2/linking'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useLogoutState} from '@/stores/logout'
@@ -72,7 +71,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    get().dispatch.defer.onNavigateToThread?.(conversationIDKey, 'push', unboxPayload)
+    emitDeepLink(`keybase://convid/${conversationIDKey}`)
     if (unboxPayload && membersType && !isIOS) {
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
@@ -119,12 +118,6 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       onGetDaemonHandshakeState: () => {
         throw new Error('onGetDaemonHandshakeState not implemented')
       },
-      onNavigateToThread: () => {
-        throw new Error('onNavigateToThread not implemented')
-      },
-      onShowUserProfile: () => {
-        throw new Error('onShowUserProfile not implemented')
-      },
     },
     deleteToken: version => {
       const f = async () => {
@@ -170,19 +163,18 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
-                get().dispatch.defer.onShowUserProfile?.(username)
+                emitDeepLink(`keybase://profile/show/${username}`)
               }
               break
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                get().dispatch.defer.onNavigateToThread?.(conversationIDKey, 'extension')
+                emitDeepLink(`keybase://convid/${conversationIDKey}`)
               }
               break
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
-                switchTab(Tabs.peopleTab)
-                navUpToScreen('peopleRoot')
+                emitDeepLink('keybase://people')
               }
               break
           }
@@ -324,8 +316,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await timeoutPromise(100)
-          switchTab(Tabs.peopleTab)
-          navigateAppend('settingsPushPrompt')
+          emitDeepLink('keybase://settingsPushPrompt')
         }
       }
       ignorePromise(monsterPrompt())
