@@ -12,6 +12,7 @@ import {
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from './types/router'
 import {makeChatConversationState} from '@/router-v2/linking'
+import {isSplit} from './chat/common'
 import {isMobile} from './platform'
 import {shallowEqual, type ViewPropsToPageProps} from './utils'
 import {registerDebugClear} from '@/util/debug'
@@ -258,11 +259,20 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const rs = getRootState()
   if (!rs?.key) return
 
-  const nextState = makeChatConversationState(conversationIDKey)
-  n.dispatch({
-    ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
-    target: rs.key,
-  })
+  if (isSplit) {
+    // Desktop/tablet split view: switch to chat tab and update chatRoot params.
+    // navigateAppend with replace uses setParams when the screen is already visible,
+    // which avoids remounting the navigator tree.
+    switchTab('chatTab' as Tabs.AppTab)
+    navigateAppend({props: {conversationIDKey}, selected: 'chatRoot'}, true)
+  } else {
+    // Phone: full reset to build the chat → conversation stack
+    const nextState = makeChatConversationState(conversationIDKey)
+    n.dispatch({
+      ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
+      target: rs.key,
+    })
+  }
 }
 
 export const appendPeopleBuilder = () => {

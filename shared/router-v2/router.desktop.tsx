@@ -116,7 +116,8 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
-const linkingConfig = createLinkingConfig(handleAppLink)
+// Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
+createLinkingConfig(handleAppLink)
 
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
@@ -149,7 +150,6 @@ const ElectronApp = React.memo(function ElectronApp() {
   return (
     <NavigationContainer
       documentTitle={documentTitle}
-      linking={loggedIn ? linkingConfig : undefined}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
       ref={navRef}
