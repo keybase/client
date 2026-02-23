@@ -498,7 +498,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 
 type MadeStore = UseBoundStore<StoreApi<State>>
 export const TBstores: Map<T.TB.AllowedNamespace, MadeStore> = __DEV__
-  ? ((globalThis as any).__hmr_TBstores ??= new Map())
+  ? ((globalThis.__hmr_TBstores ??= new Map()) as Map<T.TB.AllowedNamespace, MadeStore>)
   : new Map()
 
 registerDebugClear(() => {

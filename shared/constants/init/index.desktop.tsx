@@ -253,11 +253,11 @@ const onInstallCachedDokan = async () => {
 }
 
 const _platformUnsubs: Array<() => void> = __DEV__
-  ? ((globalThis as any).__hmr_platformUnsubs ??= [])
+  ? (globalThis.__hmr_platformUnsubs ??= [])
   : []
 
 let _oneTimeInitDone: boolean = __DEV__
-  ? ((globalThis as any).__hmr_oneTimeInitDone ?? false)
+  ? (globalThis.__hmr_oneTimeInitDone ?? false)
   : false
 
 export const initPlatformListener = () => {
@@ -327,7 +327,7 @@ export const initPlatformListener = () => {
   // One-time setup: window event listeners and input monitor (skip on HMR to avoid duplicates)
   if (!_oneTimeInitDone) {
     _oneTimeInitDone = true
-    if (__DEV__) (globalThis as any).__hmr_oneTimeInitDone = true
+    if (__DEV__) globalThis.__hmr_oneTimeInitDone = true
 
     const handleWindowFocusEvents = () => {
       const handle = (appFocused: boolean) => {

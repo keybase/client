@@ -29,7 +29,7 @@ const SaveIndicator = (props: Props) => {
   const lastSavingRef = React.useRef(saving)
 
   React.useEffect(() => {
-    let id = 0
+    let id: ReturnType<typeof setTimeout> | undefined
     if (lastSavingRef.current !== saving) {
       if (saving) {
         setState('saving')
@@ -37,14 +37,14 @@ const SaveIndicator = (props: Props) => {
         setState('saved')
         id = setTimeout(() => {
           setState('init')
-        }, 1000) as unknown as number
+        }, 1000)
       }
 
       lastSavingRef.current = saving
     }
 
     return () => {
-      clearTimeout(id)
+      if (id !== undefined) clearTimeout(id)
     }
   }, [saving])
 

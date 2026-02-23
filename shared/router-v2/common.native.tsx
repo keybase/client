@@ -93,7 +93,7 @@ export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, s
         ? navigation.emit({
             canPreventDefault: true,
             target: route.key,
-            // @ts-ignore
+            // @ts-ignore tabPress is valid but not in the emit type
             type: 'tabPress',
           })
         : {defaultPrevented: false}

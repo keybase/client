@@ -432,12 +432,12 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
 }
 
 let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
-  ? (globalThis as any).__hmr_convoDeferImpl
+  ? (globalThis.__hmr_convoDeferImpl as ConvoState['dispatch']['defer'] | undefined)
   : undefined
 
 export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
   convoDeferImpl = impl
-  if (__DEV__) (globalThis as any).__hmr_convoDeferImpl = impl
+  if (__DEV__) globalThis.__hmr_convoDeferImpl = impl
   for (const store of chatStores.values()) {
     const s = store.getState()
     store.setState({
@@ -3317,7 +3317,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
-  ? ((globalThis as any).__hmr_chatStores ??= new Map())
+  ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
   : new Map()
 
 export const clearChatStores = () => {

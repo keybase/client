@@ -11,7 +11,7 @@ setResult is only called if you're still mounted
  @returns submit: ([rpcArgs], setResult: (rpcResult) => void, setError: (RPCError) => void) => void
  */
 function useRPC<
-  C extends (...r: Array<any>) => any,
+  C extends (...r: any[]) => any,
   RET = RPCPromiseType<C>,
   ARGS extends Array<any> = Parameters<C>,
 >(call: C) {

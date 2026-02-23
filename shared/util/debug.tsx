@@ -39,10 +39,10 @@ export function createLoggingProxy<T extends {[key: string]: unknown}>(
         if (cache.get(propKey)) {
           return cache.get(propKey)
         }
-        const originalMethod = obj[propKey] as any as unknown
+        const originalMethod: unknown = obj[propKey]
         if (typeof originalMethod === 'function') {
           if (logMethods) {
-            const ret = function (...args: any[]) {
+            const ret = function (...args: Array<unknown>) {
               console.log(`[PROXY] Calling method: ${String(propKey)}`)
               console.log('[PROXY] Arguments:', args)
               const result = originalMethod.apply(obj, args) as unknown
@@ -67,7 +67,7 @@ export function createLoggingProxy<T extends {[key: string]: unknown}>(
   return proxy as T
 }
 
-export function wrapErrors<T extends (...args: Array<any>) => any>(f: T, logExtra: string = ''): T {
+export function wrapErrors<T extends (...args: any[]) => any>(f: T, logExtra: string = ''): T {
   return ((...p: Parameters<T>): ReturnType<T> => {
     try {
       const result = f(...p) as unknown
