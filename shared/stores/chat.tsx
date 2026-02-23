@@ -992,10 +992,15 @@ export const useChatState = Z.createZustand<State>((set, get) => {
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
       setTimeout(() => {
-        navUpToScreen('chatRoot')
-        if (allowSwitchTab) {
-          switchTab(Tabs.chatTab)
+        if (getTab() !== Tabs.chatTab) {
+          // Not on chat tab — switching lands on chatRoot (the tab's initial route).
+          // Don't call navUpToScreen which would push chatRoot onto the wrong tab's stack.
+          if (allowSwitchTab) {
+            switchTab(Tabs.chatTab)
+          }
+          return
         }
+        navUpToScreen('chatRoot')
       }, 1)
     },
     onChatInboxSynced: action => {

@@ -168,6 +168,10 @@ const RNApp = React.memo(function RNApp() {
     const ns = C.Router2.getRootState()
     setNavState(ns)
   }, [setNavState])
+  // Sync the initial state from the linking config into the router store.
+  // onStateChange doesn't fire for the initial state, so this ensures
+  // onRouteChanged runs and conversation data gets loaded on startup.
+  const onReady = onStateChange
 
   const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
@@ -200,6 +204,7 @@ const RNApp = React.memo(function RNApp() {
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={loggedIn ? linkingConfig : undefined}
+        onReady={onReady}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
         ref={navRef}

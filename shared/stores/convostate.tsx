@@ -2605,6 +2605,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       })
       fetchConversationBio()
       get().dispatch.defer.chatResetConversationErrored()
+      // Load messages if not already loaded (e.g., screen rendered via linking state restoration)
+      if (!get().loaded) {
+        get().dispatch.loadMoreMessages({forceClear: true, reason: 'focused'})
+      }
     },
     sendAudioRecording: async (path, duration, amps) => {
       const outboxID = Common.generateOutboxID()
