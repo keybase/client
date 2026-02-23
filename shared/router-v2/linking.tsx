@@ -188,12 +188,20 @@ const customGetStateFromPath = (
 // Listener for programmatic deep link emission (e.g., from desktop IPC, engine events)
 let _deepLinkListener: ((url: string) => void) | undefined
 
+// Fallback handler for when no linking subscription is active (desktop).
+// Set by createLinkingConfig.
+let _fallbackHandler: ((link: string) => void) | undefined
+
 // Emit a deep link URL from non-Linking sources (desktop IPC, engine notifications, etc.)
-// The URL will be processed through the linking config's getStateFromPath.
+// On native (with linking config), routes through the linking subscription.
+// On desktop (no linking config), falls back to handleAppLink.
 export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
-  if (normalized) {
-    _deepLinkListener?.(normalized)
+  if (!normalized) return
+  if (_deepLinkListener) {
+    _deepLinkListener(normalized)
+  } else {
+    _fallbackHandler?.(normalized)
   }
 }
 
@@ -201,8 +209,10 @@ export const emitDeepLink = (url: string) => {
 
 export const createLinkingConfig = (
   handleAppLink: (link: string) => void
-): LinkingOptions<RootParamList> => ({
-  getInitialURL: async () => {
+): LinkingOptions<RootParamList> => {
+  _fallbackHandler = handleAppLink
+  return {
+    getInitialURL: async () => {
     // Compute the startup URL from saved state, push notifications, and deep links.
     // This replaces the manual NavigationState construction that was in useInitialState.
     const {loggedIn, startup, androidShare} = useConfigState.getState()
@@ -269,6 +279,10 @@ export const createLinkingConfig = (
     return null
   },
 
+  // Prevent React Navigation from updating window.location on Electron (file:// protocol).
+  // On native this is a no-op since there's no browser URL to update.
+  getPathFromState: () => '',
+
   getStateFromPath: customGetStateFromPath as LinkingOptions<RootParamList>['getStateFromPath'],
 
   prefixes: ['keybase://'],
@@ -308,4 +322,5 @@ export const createLinkingConfig = (
       removeLinkingSub?.()
     }
   },
-})
+  }
+}
