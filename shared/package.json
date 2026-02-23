@@ -61,6 +61,7 @@
     "android-install-downgrade-unsigned": "adb install -r -d android/app/build/outputs/apk/releaseUnsigned/app-releaseUnsigned.apk",
     "android-logs": "adb logcat | grep $(adb shell pidof io.keybase.ossifrage)",
     "android-log-clear": "adb logcat -b all -c",
+    "ios-test-push": "xcrun simctl push booted keybase.ios ~/Desktop/testpush.apns",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
     "coverage": "rm -rf coverage-ts; npx typescript-coverage-report",
     "sync-kb-modules": "rm -rf node_modules/react-native-kb ; yarn --check-files"
