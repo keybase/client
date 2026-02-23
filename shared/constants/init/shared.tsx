@@ -3,6 +3,27 @@ import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __hmr_startupOnce: boolean | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_devicesLoaded: boolean | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_gitLoaded: boolean | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_sharedUnsubs: Array<() => void> | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_platformUnsubs: Array<() => void> | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_oneTimeInitDone: boolean | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_convoDeferImpl: unknown
+  // eslint-disable-next-line no-var
+  var __hmr_chatStores: Map<unknown, unknown> | undefined
+  // eslint-disable-next-line no-var
+  var __hmr_TBstores: Map<unknown, unknown> | undefined
+}
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseBotsStateType from '@/stores/bots'
@@ -54,13 +75,13 @@ import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__
-  ? ((globalThis as any).__hmr_startupOnce ?? false)
+  ? (globalThis.__hmr_startupOnce ?? false)
   : false
-let _devicesLoaded: boolean = __DEV__ ? ((globalThis as any).__hmr_devicesLoaded ?? false) : false
-let _gitLoaded: boolean = __DEV__ ? ((globalThis as any).__hmr_gitLoaded ?? false) : false
+let _devicesLoaded: boolean = __DEV__ ? (globalThis.__hmr_devicesLoaded ?? false) : false
+let _gitLoaded: boolean = __DEV__ ? (globalThis.__hmr_gitLoaded ?? false) : false
 
 const _sharedUnsubs: Array<() => void> = __DEV__
-  ? ((globalThis as any).__hmr_sharedUnsubs ??= [])
+  ? (globalThis.__hmr_sharedUnsubs ??= [])
   : []
 
 export const onEngineConnected = () => {
@@ -597,7 +618,7 @@ export const initSharedSubscriptions = () => {
       if (s.handshakeState === 'done') {
         if (!_emitStartupOnLoadDaemonConnectedOnce) {
           _emitStartupOnLoadDaemonConnectedOnce = true
-          if (__DEV__) (globalThis as any).__hmr_startupOnce = true
+          if (__DEV__) globalThis.__hmr_startupOnce = true
           useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
         }
       }
@@ -732,7 +753,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
         if (_devicesLoaded || hasValue) {
           _devicesLoaded = true
-          if (__DEV__) (globalThis as any).__hmr_devicesLoaded = true
+          if (__DEV__) globalThis.__hmr_devicesLoaded = true
           const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
           useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
         }
@@ -740,7 +761,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
         if (_gitLoaded || badges.size) {
           _gitLoaded = true
-          if (__DEV__) (globalThis as any).__hmr_gitLoaded = true
+          if (__DEV__) globalThis.__hmr_gitLoaded = true
           const {useGitState} = require('@/stores/git') as typeof UseGitStateType
           useGitState.getState().dispatch.onEngineIncomingImpl(action)
         }

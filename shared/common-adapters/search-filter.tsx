@@ -77,18 +77,18 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
 
   React.useEffect(() => {
     mounted.current = true
-    let id = 0
+    let id: ReturnType<typeof setTimeout> | undefined
     if (focusOnMountRef.current) {
       focusOnMountRef.current = false
       id = setTimeout(() => {
         if (mounted.current) {
           inputRef.current?.focus()
         }
-      }, 20) as unknown as number
+      }, 20)
     }
     return () => {
       mounted.current = false
-      clearTimeout(id)
+      if (id !== undefined) clearTimeout(id)
     }
   }, [])
 
