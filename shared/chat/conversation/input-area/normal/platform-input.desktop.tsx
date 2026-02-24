@@ -522,7 +522,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputBox: {
         flexGrow: 1,
-        flexShrink: 0,
+        minWidth: 0,
+        overflow: 'hidden',
         paddingBottom: Kb.Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,

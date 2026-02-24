@@ -181,7 +181,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box2 direction="vertical">
+    <Box2 direction="vertical" fullWidth={true}>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -234,7 +234,7 @@ const reactComponentsForMarkdownType = {
       state.inBlockQuote = true
 
       const ret = (
-        <Box2 direction="vertical" key={state.key} style={markdownStyles.quoteStyle}>
+        <Box2 direction="vertical" fullWidth={true} key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
         </Box2>
       )
