@@ -314,6 +314,12 @@ export const createLinkingConfig = (
 
     // Set up the programmatic deep link listener
     _deepLinkListener = (url: string) => {
+      // Profile deep links need imperative navigation to properly set up
+      // the back stack. State-based linking may not create intermediate screens.
+      if (url.startsWith('keybase://profile/')) {
+        handleAppLink(url)
+        return
+      }
       if (isHandledByLinkingConfig(url)) {
         dedupedListener(url)
       } else {
@@ -331,6 +337,12 @@ export const createLinkingConfig = (
         const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
           const normalized = normalizeUrl(url)
           if (!normalized) return
+          // Profile deep links need imperative navigation to properly set up
+          // the back stack. State-based linking may not create intermediate screens.
+          if (normalized.startsWith('keybase://profile/')) {
+            handleAppLink(normalized)
+            return
+          }
           if (isHandledByLinkingConfig(normalized)) {
             dedupedListener(normalized)
           } else {

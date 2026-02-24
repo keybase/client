@@ -68,6 +68,7 @@ const handleKeybaseLink = (link: string) => {
       break
     case 'profile':
       if (parts[1] === 'show' && parts[2]) {
+        switchTab(Tabs.peopleTab)
         useProfileState.getState().dispatch.showUserProfile(parts[2])
         return
       }
