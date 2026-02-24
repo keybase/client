@@ -17,7 +17,6 @@ import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import keybase.ChatNotification
-import me.leolin.shortcutbadger.ShortcutBadger
 import com.reactnativekb.KbModule
 import org.json.JSONArray
 import org.json.JSONObject
@@ -66,10 +65,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
             }
             if (!bundle.containsKey("color")) {
                 bundle.putString("color", data.optString("color", ""))
-            }
-            val badge = data.optInt("badge", -1)
-            if (badge >= 0) {
-                ShortcutBadger.applyCount(this, badge)
             }
         }
         try {
