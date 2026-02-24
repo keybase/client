@@ -512,9 +512,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       why: string
       markAsRead?: boolean
       incomingMessage?: boolean
+      clearFirst?: boolean
     }
   ) => {
-    const {why, markAsRead = true, incomingMessage = false} = opt
+    const {why, markAsRead = true, incomingMessage = false, clearFirst = false} = opt
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
@@ -523,6 +524,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     set(s => {
+      if (clearFirst) {
+        s.pendingOutboxToOrdinal.clear()
+        s.messageMap.clear()
+        s.messageTypeMap.clear()
+      }
       for (const _m of messages) {
         const m = T.castDraft(_m)
         const regularMessage = m.conversationMessage !== false
@@ -1374,8 +1380,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     jumpToRecent: () => {
       setMessageCenterOrdinal()
-      get().dispatch.messagesClear()
-      get().dispatch.loadMoreMessages({reason: 'jump to recent'})
+      get().dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
@@ -1510,10 +1515,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = true
       }
 
-      // clear immediately to avoid races and avoid desktop having to churn while it loads a lot of waypoints
+      // Set loaded = false to preserve the justLoaded false→true transition for scroll-to-bottom
       if (forceClear) {
-        get().dispatch.messagesClear()
+        set(s => {
+          s.loaded = false
+        })
       }
+
+      // Track whether onGotThread should atomically clear before adding messages
+      let needsClear = forceClear
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -1598,7 +1608,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
 
           if (messages.length) {
-            messagesAdd(messages, {why: `load more ongotthread: ${why}`})
+            messagesAdd(messages, {clearFirst: needsClear, why: `load more ongotthread: ${why}`})
+            needsClear = false
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})

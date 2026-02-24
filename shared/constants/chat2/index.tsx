@@ -1028,12 +1028,21 @@ export const useChatState = Z.createZustand<State>((set, get) => {
           )
           get().dispatch.unboxRows(conversationIDKeys, true)
           if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
-            conversationIDKeys.forEach(convID => storeRegistry.getConvoState(convID).dispatch.messagesClear())
+            conversationIDKeys.forEach(convID => {
+              // For the selected conversation, skip immediate clear — the deferred
+              // atomic clear+add in loadMoreMessages avoids a blank flash
+              if (convID !== selectedConversation) {
+                storeRegistry.getConvoState(convID).dispatch.messagesClear()
+              }
+            })
           }
         }
       })
       if (loadMore) {
-        storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+        storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({
+          forceClear: true,
+          reason: 'got stale',
+        })
       }
     },
     onEngineIncomingImpl: action => {
