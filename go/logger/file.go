@@ -6,11 +6,9 @@ package logger
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -64,13 +62,7 @@ func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	if first {
 		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
 		w.stopFlushing = shutdown
-		backendWriter := buf
-		// On iOS, use MultiWriter to write to both file and stderr (like tee)
-		// This allows logs to appear in Xcode console while also being written to file
-		if runtime.GOOS == "ios" {
-			backendWriter = io.MultiWriter(buf, ErrorWriter())
-		}
-		fileBackend := logging.NewLogBackend(backendWriter, "", 0)
+		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
