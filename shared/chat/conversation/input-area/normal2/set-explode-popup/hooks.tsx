@@ -31,8 +31,10 @@ export default (p: Props) => {
   const selected = Chat.useChatContext(s => s.explodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
-      setExplodingMode(seconds)
-      onAfterSelect?.(seconds)
+      setTimeout(() => {
+        setExplodingMode(seconds)
+        onAfterSelect?.(seconds)
+      }, 0)
     },
     [setExplodingMode, onAfterSelect]
   )

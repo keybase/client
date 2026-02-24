@@ -18,7 +18,6 @@ const SetExplodePopup = (p: Props) => {
   const items = props.items.map(item => ({
     onClick: () => {
       props.onSelect(item.seconds)
-      props.onHidden()
     },
     title: item.text,
     value: item.seconds,
