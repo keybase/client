@@ -192,12 +192,22 @@ let _deepLinkListener: ((url: string) => void) | undefined
 // Set by createLinkingConfig.
 let _fallbackHandler: ((link: string) => void) | undefined
 
+// URL returned by getInitialURL, used to deduplicate cold-start push notifications.
+// On cold start from a push tap, the same notification is processed by both
+// getInitialURL (via startupConversation) and the push listener (via handlePush).
+// This prevents the second navigation.
+let _initialURLOnce: string | undefined
+
 // Emit a deep link URL from non-Linking sources (desktop IPC, engine notifications, etc.)
 // On native (with linking config), routes through the linking subscription.
 // On desktop (no linking config), falls back to handleAppLink.
 export const emitDeepLink = (url: string) => {
   const normalized = normalizeUrl(url)
   if (!normalized) return
+  if (_initialURLOnce && _initialURLOnce === normalized) {
+    _initialURLOnce = undefined
+    return
+  }
   if (_deepLinkListener) {
     _deepLinkListener(normalized)
   } else {
@@ -263,12 +273,14 @@ export const createLinkingConfig = (
 
     // Push notification follow user
     if (startupFollowUser && !startupConversation) {
-      return `keybase://profile/show/${startupFollowUser}`
+      _initialURLOnce = `keybase://profile/show/${startupFollowUser}`
+      return _initialURLOnce
     }
 
     // Saved conversation from last session
     if (startupConversation) {
-      return `keybase://convid/${startupConversation}`
+      _initialURLOnce = `keybase://convid/${startupConversation}`
+      return _initialURLOnce
     }
 
     // Saved tab from last session
@@ -288,10 +300,22 @@ export const createLinkingConfig = (
   prefixes: ['keybase://'],
 
   subscribe: (listener: (url: string) => void) => {
+    // Deduplicate rapid calls to listener from multiple sources (e.g., push handler
+    // via emitDeepLink AND RN Linking 'url' event both firing for the same push tap).
+    let _lastUrl: string | undefined
+    let _lastTime = 0
+    const dedupedListener = (url: string) => {
+      const now = Date.now()
+      if (url === _lastUrl && now - _lastTime < 1500) return
+      _lastUrl = url
+      _lastTime = now
+      listener(url)
+    }
+
     // Set up the programmatic deep link listener
     _deepLinkListener = (url: string) => {
       if (isHandledByLinkingConfig(url)) {
-        listener(url)
+        dedupedListener(url)
       } else {
         handleAppLink(url)
       }
@@ -308,7 +332,7 @@ export const createLinkingConfig = (
           const normalized = normalizeUrl(url)
           if (!normalized) return
           if (isHandledByLinkingConfig(normalized)) {
-            listener(normalized)
+            dedupedListener(normalized)
           } else {
             handleAppLink(normalized)
           }
