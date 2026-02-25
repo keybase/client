@@ -33,7 +33,6 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
@@ -747,19 +746,17 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     private fun emitPushNotificationInternal(notification: Bundle) {
         android.util.Log.d("KbModule", "emitPushNotificationInternal called")
-        if (reactContext.hasActiveCatalystInstance()) {
-            android.util.Log.d("KbModule", "emitPushNotificationInternal has active catalyst instance, emitting event")
+        if (reactContext.hasActiveReactInstance()) {
+            android.util.Log.d("KbModule", "emitPushNotificationInternal has active react instance, emitting event")
             try {
                 val payload = Arguments.fromBundle(notification)
-                reactContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    .emit("onPushNotification", payload)
+                reactContext.emitDeviceEvent("onPushNotification", payload)
                 android.util.Log.d("KbModule", "emitPushNotificationInternal event emitted successfully")
             } catch (e: Exception) {
                 android.util.Log.e("KbModule", "emitPushNotificationInternal failed to emit: " + e.message)
             }
         } else {
-            android.util.Log.w("KbModule", "emitPushNotificationInternal no active catalyst instance")
+            android.util.Log.w("KbModule", "emitPushNotificationInternal no active react instance")
         }
     }
 
@@ -877,7 +874,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                 try {
                     Thread.currentThread().setName("ReadFromKBLib")
                     val data: ByteArray = readArr()
-                    if (!reactContext.hasActiveCatalystInstance()) {
+                    if (!reactContext.hasActiveReactInstance()) {
                         NativeLogger.info(NAME.toString() + ": JS Bridge is dead, dropping engine message: " + data)
 
                     }
@@ -896,7 +893,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                         NativeLogger.error("Exception in ReadFromKBLib.run", e)
                     }
                 }
-            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance())
+            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveReactInstance())
         }
     }
 
@@ -938,9 +935,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private fun sendHardwareKeyEvent(keyName: String) {
         val params = Arguments.createMap()
         params.putString("pressedKey", keyName)
-        reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(HW_KEY_EVENT, params)
+        reactContext.emitDeviceEvent(HW_KEY_EVENT, params)
     }
 
     companion object {
@@ -991,12 +986,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
         // engine
         private fun relayReset(reactContext: ReactApplicationContext) {
-            if (!reactContext.hasActiveCatalystInstance()) {
+            if (!reactContext.hasActiveReactInstance()) {
                 NativeLogger.info(NAME.toString() + ": JS Bridge is dead, Can't send EOF message")
             } else {
-                reactContext
-                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                        .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET)
+                reactContext.emitDeviceEvent(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET)
             }
         }
     }

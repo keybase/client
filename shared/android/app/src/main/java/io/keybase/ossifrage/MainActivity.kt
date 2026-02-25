@@ -25,7 +25,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.PermissionListener
 import com.reactnativekb.DarkModePreference
 import com.reactnativekb.KbModule
@@ -300,10 +299,6 @@ class MainActivity : ReactActivity() {
             NativeLogger.info("MainActivity.handleIntent: no react context, will retry")
             return false
         }
-        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: run {
-            NativeLogger.info("MainActivity.handleIntent: no emitter, will retry")
-            return false
-        }
         if (!jsIsListening) {
             NativeLogger.info("MainActivity.handleIntent: JS not listening yet, will retry")
             return false
@@ -332,12 +327,12 @@ class MainActivity : ReactActivity() {
                 val bundle1 = bundleFromNotification.clone() as Bundle
                 val bundle2 = bundleFromNotification.clone() as Bundle
                 val payload1 = Arguments.fromBundle(bundle1)
-                emitter.emit(
+                rc.emitDeviceEvent(
                     "initialIntentFromNotification",
                     payload1
                 )
                 val payload2 = Arguments.fromBundle(bundle2)
-                emitter.emit(
+                rc.emitDeviceEvent(
                     "onPushNotification",
                     payload2
                 )
@@ -388,7 +383,7 @@ class MainActivity : ReactActivity() {
                 // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
                 val args = Arguments.createMap()
                 args.putString("text", text ?: textPayload)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (filePaths.isNotEmpty()) {
                 val args = Arguments.createMap()
@@ -397,18 +392,18 @@ class MainActivity : ReactActivity() {
                     lPaths.pushString(path)
                 }
                 args.putArray("localPaths", lPaths)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (textPayload.isNotEmpty()) {
                 // Fallback: non-text MIME but no files resolved, send text
                 val args = Arguments.createMap()
                 args.putString("text", textPayload)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (uris.isNotEmpty()) {
                 val args = Arguments.createMap()
                 args.putArray("localPaths", Arguments.createArray())
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             }
         }
