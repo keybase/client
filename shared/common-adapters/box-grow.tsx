@@ -10,7 +10,7 @@ type Props = {
 
 const BoxGrow = (p: Props) => {
   return (
-    <Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
+    <Box2 direction="vertical" alignSelf="stretch" style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
       <Box2 direction="vertical" style={styles.inner}>
         {p.children}
       </Box2>
