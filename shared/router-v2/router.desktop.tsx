@@ -12,6 +12,8 @@ import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {createLinkingConfig} from './linking'
+import {handleAppLink} from '@/constants/deeplinks'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
@@ -114,6 +116,9 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
+// Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
+createLinkingConfig(handleAppLink)
+
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
 const ElectronApp = React.memo(function ElectronApp() {
   useConnectNavToState()
@@ -144,11 +149,11 @@ const ElectronApp = React.memo(function ElectronApp() {
 
   return (
     <NavigationContainer
-      ref={navRef}
-      theme={Shared.theme}
+      documentTitle={documentTitle}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
-      documentTitle={documentTitle}
+      ref={navRef}
+      theme={Shared.theme}
     >
       <RootStack.Navigator key="root" screenOptions={rootScreenOptions}>
         {!loggedInLoaded && (

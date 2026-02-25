@@ -2,11 +2,10 @@ import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {handleAppLink} from '@/constants/deeplinks'
 import Main from './main.native'
 import {KeyboardProvider} from 'react-native-keyboard-controller'
 import Animated, {ReducedMotionConfig, ReduceMotion} from 'react-native-reanimated'
-import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
+import {AppRegistry, AppState, Appearance, Keyboard} from 'react-native'
 import {PortalProvider} from '@/common-adapters/portal.native'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
@@ -109,15 +108,6 @@ const StoreHelper = (p: {children: React.ReactNode}): React.ReactNode => {
   const {children} = p
   useDarkHookup()
   useKeyboardHookup()
-
-  React.useEffect(() => {
-    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
-      handleAppLink(url)
-    })
-    return () => {
-      linkingSub.remove()
-    }
-  }, [])
 
   return children
 }

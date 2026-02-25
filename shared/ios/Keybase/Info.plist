@@ -87,6 +87,10 @@
 		<string>SourceCodePro-Semibold.ttf</string>
 		<string>kb.ttf</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.keybase.app.refresh</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

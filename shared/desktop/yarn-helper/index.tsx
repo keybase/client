@@ -125,8 +125,8 @@ const decorateInfo = (info: Command) => {
 
 const getMsgPack = () => {
   if (process.platform === 'darwin') {
-    const ver = '6.1.0'
-    const shasum = '09b6b71cdfb4b176e5bb12b02b4ffc290ec10b41'
+    const ver = '7.0.0'
+    const shasum = '37bbdbf69ef44392c7af215b9cb419891a9e1c9c'
     const file = `msgpack-cxx-${ver}.tar.gz`
     const url = `https://github.com/msgpack/msgpack-c/releases/download/cpp-${ver}/${file}`
     const prefix = path.resolve(__dirname, '..', '..', 'node_modules')

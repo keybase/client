@@ -7,7 +7,7 @@ import {ignorePromise} from '@/constants/utils'
 import {switchTab} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
-import {handleAppLink} from '@/constants/deeplinks'
+import {emitDeepLink} from '@/router-v2/linking'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
 import {useConfigState} from '@/stores/config'
@@ -150,10 +150,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.link:
-      {
-        const {link} = action.payload
-        handleAppLink(link)
-      }
+      emitDeepLink(action.payload.link)
       break
     case RemoteGen.installerRan:
       useConfigState.getState().dispatch.installerRan()

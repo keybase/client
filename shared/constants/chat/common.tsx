@@ -1,7 +1,7 @@
 import * as T from '../types'
-import {isMobile, isTablet} from '../platform'
 import {getVisibleScreen} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
+import {isSplit, threadRouteName} from './layout'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
@@ -14,9 +14,7 @@ export const getSelectedConversation = (allowUnderModal: boolean = false): T.Cha
   return T.Chat.noConversationIDKey
 }
 
-// in split mode the root is the 'inbox'
-export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
-export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
+export {isSplit, threadRouteName} from './layout'
 
 export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const selectedConversationIDKey = getSelectedConversation()

@@ -29,7 +29,7 @@ interface State extends Store {
     resetState: 'default'
   }
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>('wallets', (set, get) => {
   const dispatch: State['dispatch'] = {
     load: () => {
       const f = async () => {

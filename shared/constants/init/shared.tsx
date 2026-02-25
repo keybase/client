@@ -42,7 +42,7 @@ import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {createTBStore, getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
-import {handleKeybaseLink} from '@/constants/deeplinks'
+import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, serverConfigFileName} from '../platform'
 import {storeRegistry} from '@/stores/store-registry'
@@ -330,18 +330,6 @@ export const initPushCallbacks = () => {
         ...currentState.dispatch.defer,
         onGetDaemonHandshakeState: () => {
           return useDaemonState.getState().handshakeState
-        },
-        onNavigateToThread: (
-          conversationIDKey: T.Chat.ConversationIDKey,
-          reason: 'push' | 'extension',
-          pushBody?: string
-        ) => {
-          storeRegistry
-            .getConvoState(conversationIDKey)
-            .dispatch.navigateToThread(reason, undefined, pushBody)
-        },
-        onShowUserProfile: (username: string) => {
-          useProfileState.getState().dispatch.showUserProfile(username)
         },
       },
     },
@@ -893,7 +881,10 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         if (deferred && !link.startsWith('keybase://team-invite-link/')) {
           return
         }
-        handleKeybaseLink(link)
+        // Route through the linking config; it falls back to handleAppLink
+        // for URL patterns not handled declaratively.
+        const fullUrl = link.startsWith('keybase://') ? link : `keybase://${link}`
+        emitDeepLink(fullUrl)
       }
       break
     case EngineGen.keybase1NotifyTeamAvatarUpdated: {

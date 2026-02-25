@@ -57,7 +57,7 @@ export interface State extends Store {
 }
 
 let maybeLoadAppLinkOnce = false
-export const useSettingsState = Z.createZustand<State>((set, get) => {
+export const useSettingsState = Z.createZustand<State>('settings', (set, get) => {
   const maybeLoadAppLink = () => {
     const phones = get().dispatch.defer.getSettingsPhonePhones()
     if (!phones || phones.size > 0) {

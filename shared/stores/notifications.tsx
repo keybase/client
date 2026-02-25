@@ -83,7 +83,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
 
   return counts
 }
-export const useNotifState = Z.createZustand<State>((set, get) => {
+export const useNotifState = Z.createZustand<State>('notifications', (set, get) => {
   const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
     const {keyState} = s

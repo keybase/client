@@ -166,7 +166,7 @@ export type State = Store & {
   }
 }
 
-export const useCryptoState = Z.createZustand<State>((set, get) => {
+export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
   const resetWarnings = (o: CommonStore) => {
     o.errorMessage = new HiddenString('')
     o.warningMessage = new HiddenString('')

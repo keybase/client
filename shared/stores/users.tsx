@@ -36,7 +36,7 @@ export interface State extends Store {
   }
 }
 
-export const useUsersState = Z.createZustand<State>((set, get) => {
+export const useUsersState = Z.createZustand<State>('users', (set, get) => {
   const dispatch: State['dispatch'] = {
     getBio: username => {
       const f = async () => {

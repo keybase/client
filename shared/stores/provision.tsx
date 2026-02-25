@@ -122,7 +122,7 @@ export interface State extends Store {
   }
 }
 
-export const useProvisionState = Z.createZustand<State>((set, get) => {
+export const useProvisionState = Z.createZustand<State>('provision', (set, get) => {
   const _cancel = wrapErrors((ignoreWarning?: boolean) => {
     useWaitingState.getState().dispatch.clear(waitingKeyProvision)
     if (!ignoreWarning) {

@@ -12,12 +12,6 @@ export type State = Store & {
   dispatch: {
     defer: {
       onGetDaemonHandshakeState?: () => T.Config.DaemonHandshakeState
-      onNavigateToThread?: (
-        conversationIDKey: T.Chat.ConversationIDKey,
-        reason: 'push' | 'extension',
-        pushBody?: string
-      ) => void
-      onShowUserProfile?: (username: string) => void
     }
     checkPermissions: () => Promise<boolean>
     deleteToken: (version: number) => void

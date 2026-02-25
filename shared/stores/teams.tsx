@@ -1059,7 +1059,7 @@ export interface State extends Store {
   }
 }
 
-export const useTeamsState = Z.createZustand<State>((set, get) => {
+export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {

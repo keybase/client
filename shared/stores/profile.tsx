@@ -142,7 +142,7 @@ export interface State extends Store {
   }
 }
 
-export const useProfileState = Z.createZustand<State>((set, get) => {
+export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
   const clearErrors = (s: Z.WritableDraft<Store>) => {
     s.errorCode = undefined
     s.errorText = ''
