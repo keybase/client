@@ -3,103 +3,56 @@
 #include <ReactCommon/CallInvoker.h>
 #include <android/log.h>
 #include <fbjni/fbjni.h>
-#include <jni.h>
 #include <jsi/jsi.h>
-#include <pthread.h>
-#include <sys/types.h>
 
 using namespace facebook;
 using namespace facebook::jsi;
 using namespace facebook::react;
 
-static std::shared_ptr<kb::KBBridge> g_bridge;
-static JavaVM *java_vm = nullptr;
-static jobject java_object = nullptr;
-static jclass g_kbClass = nullptr;
-static jmethodID g_rpcOnGoMethod = nullptr;
+struct JKbModule : jni::JavaClass<JKbModule> {
+  static constexpr auto kJavaDescriptor = "Lcom/reactnativekb/KbModule;";
+};
 
-/**
- * A simple callback function that allows us to detach current JNI Environment
- * when the thread is destroyed.
- * See https://stackoverflow.com/a/30026231 for detailed explanation
- */
-void DeferThreadDetach(JNIEnv *env) {
-  static pthread_key_t thread_key;
+class KbNativeAdapter {
+public:
+  jni::global_ref<JKbModule::javaobject> jModule_;
+  std::shared_ptr<kb::KBBridge> bridge_;
 
-  static auto run_once = [] {
-    const auto err = pthread_key_create(&thread_key, [](void *ts_env) {
-      if (ts_env) {
-        java_vm->DetachCurrentThread();
-      }
-    });
-    if (err) {
-    }
-    return 0;
-  }();
-  static_cast<void>(run_once);
+  explicit KbNativeAdapter(jni::alias_ref<JKbModule::javaobject> jModule)
+      : jModule_(jni::make_global(jModule)) {}
 
-  const auto ts_env = pthread_getspecific(thread_key);
-  if (!ts_env) {
-    if (pthread_setspecific(thread_key, env)) {
-    }
+  void writeToGo(void *ptr, size_t size) {
+    jni::ThreadScope scope;
+    auto env = jni::Environment::current();
+    auto jba = env->NewByteArray(size);
+    env->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
+    static auto method =
+        JKbModule::javaClassStatic()
+            ->getMethod<void(jni::alias_ref<jni::JArrayByte>)>("rpcOnGo");
+    method(jModule_, jni::wrap_alias(jba));
+    env->DeleteLocalRef(jba);
   }
-}
+};
 
-/**
- * Get a JNIEnv* valid for this thread, regardless of whether
- * we're on a native thread or a Java thread.
- * See https://stackoverflow.com/a/30026231 for detailed explanation
- */
-JNIEnv *GetJniEnv() {
-  JNIEnv *env = nullptr;
-  auto get_env_result = java_vm->GetEnv((void **)&env, JNI_VERSION_1_6);
-  if (get_env_result == JNI_EDETACHED) {
-    if (java_vm->AttachCurrentThread(&env, nullptr) == JNI_OK) {
-      DeferThreadDetach(env);
-    }
-  }
-  return env;
-}
-
-static void cacheJNIMethods(JNIEnv *env) {
-  if (!g_kbClass && java_object) {
-    jclass cls = env->GetObjectClass(java_object);
-    g_kbClass = (jclass)env->NewGlobalRef(cls);
-    g_rpcOnGoMethod = env->GetMethodID(g_kbClass, "rpcOnGo", "([B)V");
-    env->DeleteLocalRef(cls);
-  }
-}
+static std::shared_ptr<KbNativeAdapter> g_adapter;
 
 static jni::local_ref<BindingsInstallerHolder::javaobject>
-getBindingsInstaller(jni::alias_ref<jni::JObject> thiz) {
-  JNIEnv *env = jni::Environment::current();
-  env->GetJavaVM(&java_vm);
-  if (java_object) {
-    env->DeleteGlobalRef(java_object);
-  }
-  java_object = env->NewGlobalRef(thiz.get());
-  cacheJNIMethods(env);
+getBindingsInstaller(jni::alias_ref<JKbModule::javaobject> thiz) {
+  g_adapter = std::make_shared<KbNativeAdapter>(thiz);
 
   return BindingsInstallerHolder::newObjectCxxArgs(
-      [](jsi::Runtime &runtime,
-         const std::shared_ptr<CallInvoker> &callInvoker) {
-        if (g_bridge) {
-          g_bridge->teardown();
+      [adapter = g_adapter](jsi::Runtime &runtime,
+                            const std::shared_ptr<CallInvoker> &callInvoker) {
+        if (adapter->bridge_) {
+          adapter->bridge_->teardown();
         }
-        g_bridge = std::make_shared<kb::KBBridge>();
-        g_bridge->install(
+        adapter->bridge_ = std::make_shared<kb::KBBridge>();
+        adapter->bridge_->install(
             runtime, callInvoker,
-            // writeToGo: called from JS thread when rpcOnGo fires
-            [](void *ptr, size_t size) {
-              JNIEnv *jniEnv = GetJniEnv();
-              if (!jniEnv || !java_object || !g_rpcOnGoMethod)
-                return;
-              jbyteArray jba = jniEnv->NewByteArray(size);
-              jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
-              jniEnv->CallVoidMethod(java_object, g_rpcOnGoMethod, jba);
-              jniEnv->DeleteLocalRef(jba);
+            [weak = std::weak_ptr(adapter)](void *ptr, size_t size) {
+              if (auto a = weak.lock())
+                a->writeToGo(ptr, size);
             },
-            // onError
             [](const std::string &err) {
               __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
                                   "JSI error: %s", err.c_str());
@@ -107,23 +60,17 @@ getBindingsInstaller(jni::alias_ref<jni::JObject> thiz) {
       });
 }
 
-static void nativeOnDataFromGo(jni::alias_ref<jni::JObject> thiz,
+static void nativeOnDataFromGo(jni::alias_ref<JKbModule::javaobject> thiz,
                                 jni::alias_ref<jni::JArrayByte> data) {
-  auto bridge = g_bridge;
-  if (!bridge || !data)
+  auto adapter = g_adapter;
+  if (!adapter || !adapter->bridge_ || !data)
     return;
-  JNIEnv *env = jni::Environment::current();
-  auto rawArray = data.get();
-  auto size = static_cast<int>(env->GetArrayLength(rawArray));
-  auto bytes =
-      reinterpret_cast<uint8_t *>(env->GetByteArrayElements(rawArray, nullptr));
-  bridge->onDataFromGo(bytes, size);
-  env->ReleaseByteArrayElements(rawArray, reinterpret_cast<jbyte *>(bytes),
-                                JNI_ABORT);
+  auto pinned = data->pin();
+  adapter->bridge_->onDataFromGo(reinterpret_cast<uint8_t *>(pinned.get()),
+                                  pinned.size());
 }
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
-  java_vm = vm;
   return jni::initialize(vm, [] {
     jni::findClassStatic("com/reactnativekb/KbModule")
         ->registerNatives({
