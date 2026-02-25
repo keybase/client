@@ -1,11 +1,19 @@
 #include "react-native-kb.h"
 #include <cstring>
+#include <msgpack.hpp>
 #include <string>
 
 using namespace facebook;
 using namespace facebook::jsi;
 
 namespace kb {
+
+struct KBBridge::MsgpackState {
+  msgpack::unpacker unpacker;
+};
+
+KBBridge::KBBridge() = default;
+KBBridge::~KBBridge() = default;
 
 void KBBridge::teardown() {
   isTornDown_.store(true);
@@ -44,7 +52,8 @@ static std::string mpToString(msgpack::object &o) {
   }
 }
 
-Value KBBridge::convertMPToJSI(Runtime &runtime, msgpack::object &o) {
+Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
+  auto &o = *static_cast<msgpack::object *>(mpObj);
   switch (o.type) {
   case msgpack::type::STR:
     return jsi::String::createFromUtf8(runtime, o.as<std::string>());
@@ -68,7 +77,7 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     auto *const pend = o.via.map.ptr + o.via.map.size;
     for (; p < pend; ++p) {
       auto key = mpToString(p->key);
-      auto val = convertMPToJSI(runtime, p->val);
+      auto val = convertMPToJSI(runtime, &p->val);
       obj.setProperty(runtime, jsi::String::createFromUtf8(runtime, key), val);
     }
     return obj;
@@ -98,7 +107,7 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     jsi::Array arr(runtime, size);
     for (uint32_t i = 0; i < size; ++i) {
       arr.setValueAtIndex(runtime, i,
-                          convertMPToJSI(runtime, o.via.array.ptr[i]));
+                          convertMPToJSI(runtime, &o.via.array.ptr[i]));
     }
     return arr;
   }
@@ -114,6 +123,7 @@ void KBBridge::install(
     std::function<void(const std::string &)> onError) {
   callInvoker_ = std::move(callInvoker);
   onError_ = std::move(onError);
+  mp_ = std::make_unique<MsgpackState>();
 
   auto rpcOnGo = Function::createFromHostFunction(
       runtime, PropNameID::forAscii(runtime, "rpcOnGo"), 1,
@@ -175,12 +185,12 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
 
   try {
     auto values = std::make_shared<std::vector<msgpack::object_handle>>();
-    unpacker_.reserve_buffer(size);
-    std::copy(data, data + size, unpacker_.buffer());
-    unpacker_.buffer_consumed(size);
+    mp_->unpacker.reserve_buffer(size);
+    std::copy(data, data + size, mp_->unpacker.buffer());
+    mp_->unpacker.buffer_consumed(size);
     while (true) {
       msgpack::object_handle result;
-      if (unpacker_.next(result)) {
+      if (mp_->unpacker.next(result)) {
         if (readState_ == ReadState::needSize) {
           readState_ = ReadState::needContent;
         } else {
@@ -220,7 +230,7 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
 
         for (auto &result : *values) {
           msgpack::object obj(result.get());
-          Value value = self->convertMPToJSI(runtime, obj);
+          Value value = self->convertMPToJSI(runtime, &obj);
           if (self->isTornDown_.load()) {
             return;
           }
