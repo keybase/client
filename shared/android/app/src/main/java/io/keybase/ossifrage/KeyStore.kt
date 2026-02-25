@@ -3,7 +3,6 @@ package io.keybase.ossifrage
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.util.Base64
 import io.keybase.ossifrage.keystore.KeyStoreHelper
@@ -60,14 +59,14 @@ class KeyStore(private val context: Context, private val prefs: SharedPreference
         NativeLogger.info("KeyStore: getting users with stored secrets for $serviceName")
         return try {
             val keyIterator: Iterator<String> = prefs.all.keys.iterator()
-            val userNames = ArrayList<String>()
+            val userNames = mutableListOf<String>()
             while (keyIterator.hasNext()) {
                 val key = keyIterator.next()
                 if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
                     userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length))
                 }
             }
-            NativeLogger.info("KeyStore: got " + userNames.size + " users with stored secrets for " + serviceName)
+            NativeLogger.info("KeyStore: got ${userNames.size} users with stored secrets for $serviceName")
             val packer = MessagePack.newDefaultBufferPacker()
             packer.packArrayHeader(userNames.size)
             for (s in userNames) {
@@ -91,16 +90,16 @@ class KeyStore(private val context: Context, private val prefs: SharedPreference
             val entry = ks.getEntry(keyStoreAlias(serviceName), null)
                     ?: throw KeyStoreException("No RSA keys in the keystore")
             if (entry !is KeyStore.PrivateKeyEntry) {
-                throw KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.javaClass)
+                throw KeyStoreException("Entry is not a PrivateKeyEntry. It is: ${entry.javaClass}")
             }
             try {
                 val secret = unwrapSecret(entry, wrappedSecret).encoded
-                NativeLogger.info("KeyStore: retrieved " + secret.size + "-byte secret for " + id)
+                NativeLogger.info("KeyStore: retrieved ${secret.size}-byte secret for $id")
                 secret
             } catch (e: InvalidKeyException) {
                 // Invalid key, this can happen when a user changes their lock screen from something to nothing
                 // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e is KeyPermanentlyInvalidatedException) {
+                if (e is KeyPermanentlyInvalidatedException) {
                     NativeLogger.info("KeyStore: key no longer valid; deleting entry", e)
                     ks.deleteEntry(keyStoreAlias(serviceName))
                 }
@@ -150,7 +149,7 @@ class KeyStore(private val context: Context, private val prefs: SharedPreference
     @Throws(Exception::class)
     override fun storeSecret(serviceName: String, key: String, bytes: ByteArray) {
         val id = "$serviceName:$key"
-        NativeLogger.info("KeyStore: storing " + bytes.size + "-byte secret for " + id)
+        NativeLogger.info("KeyStore: storing ${bytes.size}-byte secret for $id")
         try {
             val entry = ks.getEntry(keyStoreAlias(serviceName), null)
                     ?: throw KeyStoreException("No RSA keys in the keystore")
@@ -160,7 +159,7 @@ class KeyStore(private val context: Context, private val prefs: SharedPreference
             NativeLogger.error("KeyStore: error storing secret for $id", e)
             throw e
         }
-        NativeLogger.info("KeyStore: stored " + bytes.size + "-byte secret for " + id)
+        NativeLogger.info("KeyStore: stored ${bytes.size}-byte secret for $id")
     }
 
     companion object {

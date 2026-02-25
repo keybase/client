@@ -33,9 +33,9 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.turbomodule.core.CallInvokerHolderImpl
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
+import com.facebook.react.turbomodule.core.interfaces.TurboModuleWithJSIBindings
+import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder
+import com.facebook.proguard.annotations.DoNotStrip
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.FirebaseApp
@@ -54,14 +54,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 import keybase.Keybase
 import me.leolin.shortcutbadger.ShortcutBadger
 import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
-import com.facebook.react.common.annotations.FrameworkAPI
 import android.media.MediaMetadataRetriever
 import androidx.media3.transformer.TransformationRequest
 import androidx.media3.transformer.Transformer
@@ -79,16 +76,16 @@ import androidx.media3.transformer.DefaultEncoderFactory
 import java.nio.ByteBuffer
 import kotlin.math.min
 
-@OptIn(FrameworkAPI::class)
-class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
+class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), TurboModuleWithJSIBindings {
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
-    private external fun registerNatives(jsiPtr: Long)
-    private external fun installJSI(jsiPtr: Long)
-    private external fun emit(jsiPtr: Long, jsInvoker: CallInvokerHolderImpl?, data: ByteArray?)
+
+    @DoNotStrip
+    external override fun getBindingsInstaller(): BindingsInstallerHolder
+    private external fun nativeOnDataFromGo(data: ByteArray)
+
     private var executor: ExecutorService? = null
-    private var jsiInstalled: Boolean? = false
 
     override fun getName(): String {
         return NAME
@@ -111,170 +108,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun setEnablePasteImage(enabled: Boolean) {
         // not used
     }
-
-    /*
-    @ReactMethod
-    override fun processVideo(path: String, promise: Promise) {
-        Executors.newSingleThreadExecutor().execute {
-            try {
-                val inputFile = File(path)
-                if (!inputFile.exists()) {
-                    promise.reject("FILE_NOT_FOUND", "Video file not found: $path")
-                    return@execute
-                }
-
-                val retriever = MediaMetadataRetriever()
-                try {
-                    retriever.setDataSource(path)
-                    val widthStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                    val heightStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                    val fileSize = inputFile.length()
-
-                    val width = widthStr?.toIntOrNull() ?: 0
-                    val height = heightStr?.toIntOrNull() ?: 0
-                    val maxPixels = 1920 * 1080
-                    val maxFileSize = 50L * 1024 * 1024 // 50MB
-                    val pixelCount = width * height
-
-                    val needsCompression = pixelCount > maxPixels || fileSize > maxFileSize
-                    NativeLogger.info("Video processing: width=$width, height=$height, pixelCount=$pixelCount, fileSize=$fileSize, needsCompression=$needsCompression")
-
-                    if (!needsCompression) {
-                        Log.i("VideoCompression", "Video does not need compression, returning original path")
-                        promise.resolve(path)
-                        return@execute
-                    }
-
-                    val outputFile = File(inputFile.parent, "${inputFile.nameWithoutExtension}.processed.mp4")
-                    NativeLogger.info("Starting video compression: $path -> ${outputFile.absolutePath}")
-                    compressVideo(path, outputFile.absolutePath, width, height, maxPixels)
-
-                    // Verify output file exists and is valid before resolving
-                    if (!outputFile.exists()) {
-                        throw IllegalStateException("Compressed video file does not exist: ${outputFile.absolutePath}")
-                    }
-                    val outputSize = outputFile.length()
-                    if (outputSize == 0L) {
-                        throw IllegalStateException("Compressed video file is empty: ${outputFile.absolutePath}")
-                    }
-                    NativeLogger.info("Video compression completed successfully: ${outputFile.absolutePath}, size=$outputSize bytes (original=${inputFile.length()} bytes)")
-                    promise.resolve(outputFile.absolutePath)
-                } finally {
-                    retriever.release()
-                }
-            } catch (e: Exception) {
-                NativeLogger.error("Error compressing video", e)
-                promise.reject("COMPRESSION_ERROR", "Failed to compress video: ${e.message}", e)
-            }
-        }
-    }
-    */
-
-    /*
-    private fun compressVideo(inputPath: String, outputPath: String, originalWidth: Int, originalHeight: Int, maxPixels: Int) {
-        val (outputWidth, outputHeight) = calculateOutputDimensions(originalWidth, originalHeight, maxPixels)
-        val targetBitrate = calculateBitrate(outputWidth, outputHeight)
-
-        // Ensure output directory exists
-        val outputFile = File(outputPath)
-        outputFile.parentFile?.mkdirs()
-
-        // Use Media3 Transformer for simple, reliable transcoding
-        // Note: Bitrate is controlled by the encoder automatically based on resolution
-        // Media3 Transformer doesn't expose direct bitrate control in TransformationRequest
-        // Transformer and all Media3 objects must be created and used on a thread with a Looper (main thread)
-        val latch = CountDownLatch(1)
-        val exceptionRef = AtomicReference<Exception?>(null)
-        val mainHandler = Handler(Looper.getMainLooper())
-
-        mainHandler.post {
-            try {
-                NativeLogger.info("compressVideo: Creating Media3 objects on main thread")
-                // Create file URI properly
-                val inputFile = File(inputPath)
-                val inputUri = Uri.fromFile(inputFile)
-                val mediaItem = MediaItem.fromUri(inputUri)
-
-                // Apply scaling transformation if needed
-                val editedMediaItemBuilder = EditedMediaItem.Builder(mediaItem)
-                if (outputWidth != originalWidth || outputHeight != originalHeight) {
-                    val scaleX = outputWidth.toFloat() / originalWidth.toFloat()
-                    val scaleY = outputHeight.toFloat() / originalHeight.toFloat()
-                    NativeLogger.info("compressVideo: Scaling from ${originalWidth}x${originalHeight} to ${outputWidth}x${outputHeight} (scale=$scaleX,$scaleY)")
-                    val scaleTransformation = ScaleAndRotateTransformation.Builder()
-                        .setScale(scaleX, scaleY)
-                        .build()
-                    // Effects class wraps video effects and audio processors
-                    // Constructor takes (audioProcessors, videoEffects) as positional parameters
-                    editedMediaItemBuilder.setEffects(
-                        Effects(listOf(), listOf(scaleTransformation))
-                    )
-                }
-                val editedMediaItem = editedMediaItemBuilder.build()
-
-                // Set video encoder settings with target bitrate to actually compress the video
-                val videoEncoderSettings = VideoEncoderSettings.Builder()
-                    .setBitrate(targetBitrate)
-                    .build()
-
-                // Create encoder factory with video encoder settings
-                val encoderFactory = DefaultEncoderFactory.Builder(reactContext)
-                    .setRequestedVideoEncoderSettings(videoEncoderSettings)
-                    .build()
-
-                val transformationRequest = TransformationRequest.Builder()
-                    .setVideoMimeType(MimeTypes.VIDEO_H264)
-                    .setAudioMimeType(MimeTypes.AUDIO_AAC)
-                    .build()
-
-                NativeLogger.info("compressVideo: Creating Transformer with listener")
-                val transformer = Transformer.Builder(reactContext)
-                    .setTransformationRequest(transformationRequest)
-                    .setEncoderFactory(encoderFactory)
-                    .addListener(object : Listener {
-                        override fun onCompleted(composition: Composition, result: ExportResult) {
-                            NativeLogger.info("compressVideo: Transformation completed successfully")
-                            latch.countDown()
-                        }
-
-                        override fun onError(composition: Composition, result: ExportResult, exception: ExportException) {
-                            NativeLogger.error("compressVideo: Transformation error", exception)
-                            exceptionRef.set(exception)
-                            latch.countDown()
-                        }
-                    })
-                    .build()
-
-                NativeLogger.info("compressVideo: Starting Transformer.start() (asynchronous)")
-                // Transformer.start() is asynchronous - completion is signaled via Listener callbacks
-                transformer.start(editedMediaItem, outputPath)
-            } catch (e: Exception) {
-                NativeLogger.error("Error in compressVideo Transformer operation", e)
-                exceptionRef.set(e)
-                latch.countDown()
-            }
-        }
-
-        // Wait for Transformer operation to complete on main thread
-        // The Listener callbacks will signal completion via latch.countDown()
-        latch.await()
-
-        // Check if an exception occurred during transformation
-        val exception = exceptionRef.get()
-        if (exception != null) {
-            throw exception
-        }
-
-        // Validate that output file was created and is valid
-        if (!outputFile.exists()) {
-            throw IllegalStateException("Compressed video file was not created: $outputPath")
-        }
-        if (outputFile.length() == 0L) {
-            throw IllegalStateException("Compressed video file is empty: $outputPath")
-        }
-        NativeLogger.info("compressVideo: Output file validated - size=${outputFile.length()} bytes")
-    }
-    */
 
     private fun calculateOutputDimensions(width: Int, height: Int, maxPixels: Int): Pair<Int, Int> {
         val pixelCount = width * height
@@ -308,7 +141,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
      */
     private fun getBuildConfigValue(fieldName: String): Any?  {
         try {
-            val clazz: Class<*> = Class.forName(reactContext.getPackageName() + ".BuildConfig")
+            val clazz: Class<*> = Class.forName("${reactContext.packageName}.BuildConfig")
             val field = clazz.getField(fieldName)
             return field.get(null)
         } catch (e: ClassNotFoundException) {
@@ -322,7 +155,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     private fun readGuiConfig(): String? {
-        return GuiConfig.getInstance(reactContext.getFilesDir())?.asString()
+        return GuiConfig.getInstance(reactContext.filesDir)?.asString()
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -332,28 +165,28 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         var isDeviceSecure = false
         try {
             val keyguardManager: KeyguardManager = reactContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            isDeviceSecure = keyguardManager.isKeyguardSecure()
+            isDeviceSecure = keyguardManager.isKeyguardSecure
         } catch (e: Exception) {
             NativeLogger.warn(": Error reading keyguard secure state", e)
         }
         var serverConfig = ""
         try {
-            serverConfig = ReadFileAsString.read(reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig")
+            serverConfig = ReadFileAsString.read("${reactContext.cacheDir.absolutePath}/Keybase/keybase.app.serverConfig")
         } catch (e: Exception) {
             NativeLogger.warn(": Error reading server config", e)
         }
         var cacheDir = ""
         run {
-            val dir: File? = reactContext.getCacheDir()
+            val dir: File? = reactContext.cacheDir
             if (dir != null) {
-                cacheDir = dir.getAbsolutePath()
+                cacheDir = dir.absolutePath
             }
         }
         var downloadDir = ""
         run {
             val dir: File? = reactContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             if (dir != null) {
-                downloadDir = dir.getAbsolutePath()
+                downloadDir = dir.absolutePath
             }
         }
 
@@ -377,7 +210,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun getDefaultCountryCode(promise: Promise) {
         try {
             val tm: TelephonyManager = reactContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            val countryCode: String = tm.getNetworkCountryIso()
+            val countryCode: String = tm.networkCountryIso
             promise.resolve(countryCode)
         } catch (e: Exception) {
             promise.reject(e)
@@ -403,7 +236,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun androidOpenSettings() {
         val intent = Intent()
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", reactContext.getPackageName(), null)
+        val uri: Uri = Uri.fromParts("package", reactContext.packageName, null)
         intent.setData(uri)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         reactContext.startActivity(intent)
@@ -428,19 +261,16 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
      private fun setSecureFlag() {
         val prefs: SharedPreferences = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE)
         val setSecure: Boolean = prefs.getBoolean("setSecure", !misTestDevice)
-        val activity: Activity? = reactContext.getCurrentActivity()
+        val activity: Activity? = reactContext.currentActivity
         if (activity != null) {
-            activity.runOnUiThread(object : Runnable {
-                @Override
-                override fun run() {
-                    val window: Window = activity.getWindow()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && setSecure) {
-                        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                    } else {
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                    }
+            activity.runOnUiThread {
+                val window: Window = activity.window
+                if (setSecure) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 }
-            })
+            }
         }
     }
 
@@ -448,12 +278,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     @ReactMethod
     override fun shareListenersRegistered() {
         try {
-            val activity: Activity? = reactContext.getCurrentActivity()
+            val activity: Activity? = reactContext.currentActivity
             if (activity != null) {
                 val m: Method = activity.javaClass.getMethod("shareListenersRegistered")
                 m.invoke(activity)
             }
         } catch (ex: Exception) {
+            NativeLogger.warn("Error calling shareListenersRegistered", ex)
         }
     }
 
@@ -497,12 +328,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     private fun handleNonTextFileSharing(file: File, intent: Intent, promise: Promise) {
         try {
             // note in JS initPlatformSpecific changes the cache dir so this works
-            val fileUri: Uri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file)
+            val fileUri: Uri = FileProvider.getUriForFile(reactContext, "${reactContext.packageName}.fileprovider", file)
             intent.putExtra(Intent.EXTRA_STREAM, fileUri)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startSharing(intent, promise)
         } catch (ex: Exception) {
-            promise.reject(Error("Error sharing file " + ex.getLocalizedMessage()))
+            promise.reject(Error("Error sharing file ${ex.localizedMessage}"))
         }
     }
 
@@ -551,28 +382,28 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     override fun getRegistrationToken(promise: Promise) {
         ensureFirebase()
         FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(OnCompleteListener { task ->
-                        if (!task.isSuccessful()) {
-                            NativeLogger.info("Fetching FCM registration token failed " + task.getException())
-                            promise.reject("Fetching FCM registration token failed")
-                            return@OnCompleteListener
+                .addOnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            NativeLogger.info("Fetching FCM registration token failed ${task.exception}")
+                            promise.reject("E_FCM_TOKEN", "Fetching FCM registration token failed")
+                            return@addOnCompleteListener
                         }
 
                         // Get new FCM registration token
                         val token: String? = task.result
                         if (token == null) {
-                            promise.reject("null token")
-                            return@OnCompleteListener
+                            promise.reject("E_FCM_TOKEN", "null token")
+                            return@addOnCompleteListener
                          }
                         NativeLogger.info("Got token: $token")
                         promise.resolve(token)
-                    })
+                    }
     }
 
     // Unlink
     @Throws(IOException::class)
     private fun deleteRecursive(fileOrDirectory: File) {
-        if (fileOrDirectory.isDirectory()) {
+        if (fileOrDirectory.isDirectory) {
             val files = fileOrDirectory.listFiles()
             if (files == null) {
                 throw NullPointerException("Received null trying to list files of directory '$fileOrDirectory'")
@@ -594,16 +425,13 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         misTestDevice = isTestDevice(reactContext)
         setSecureFlag()
         reactContext.addLifecycleEventListener(object : LifecycleEventListener {
-            @Override
             override fun onHostResume() {
                 setSecureFlag()
             }
 
-            @Override
             override fun onHostPause() {
             }
 
-            @Override
             override fun onHostDestroy() {
             }
         })
@@ -635,7 +463,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             deleteRecursive(File(normalizedPath))
             promise.resolve(true)
         } catch (err: Exception) {
-            promise.reject("EUNSPECIFIED", err.getLocalizedMessage())
+            promise.reject("EUNSPECIFIED", err.localizedMessage)
         }
     }
 
@@ -647,20 +475,20 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             val stat: WritableMap = Arguments.createMap()
             if (isAsset(path)) {
                 val name: String = path.replace(FILE_PREFIX_BUNDLE_ASSET, "")
-                val fd: AssetFileDescriptor = reactContext.getAssets().openFd(name)
+                val fd: AssetFileDescriptor = reactContext.assets.openFd(name)
                 stat.putString("filename", name)
                 stat.putString("path", path)
                 stat.putString("type", "asset")
-                stat.putString("size", fd.getLength().toString())
+                stat.putString("size", fd.length.toString())
                 stat.putInt("lastModified", 0)
             } else {
                 val target = File(path)
                 if (!target.exists()) {
                     return null
                 }
-                stat.putString("filename", target.getName())
-                stat.putString("path", target.getPath())
-                stat.putString("type", if (target.isDirectory()) "directory" else "file")
+                stat.putString("filename", target.name)
+                stat.putString("path", target.path)
+                stat.putString("type", if (target.isDirectory) "directory" else "file")
                 stat.putString("size", target.length().toString())
                 val lastModified: String = target.lastModified().toString()
                 stat.putString("lastModified", lastModified)
@@ -693,6 +521,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     size = sizeStr.toLong()
                 }
             }
+            @Suppress("DEPRECATION")
             dm.addCompletedDownload(
                     if (config.hasKey("title")) config.getString("title") else "",
                     if (config.hasKey("description")) config.getString("description") else "",
@@ -704,7 +533,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             )
             promise.resolve(null)
         } catch (ex: Exception) {
-            promise.reject("EUNSPECIFIED", ex.getLocalizedMessage())
+            promise.reject("EUNSPECIFIED", ex.localizedMessage)
         }
     }
 
@@ -713,13 +542,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     @ReactMethod
     override fun androidAppColorSchemeChanged(prefString: String) {
         try {
-            val activity: Activity? = reactContext.getCurrentActivity()
+            val activity: Activity? = reactContext.currentActivity
             if (activity != null) {
                 val m: Method = activity.javaClass.getMethod("setBackgroundColor", DarkModePreference::class.java)
                 val pref: DarkModePreference = DarkModePrefHelper.fromString(prefString)
                 m.invoke(activity, pref)
             }
         } catch (ex: Exception) {
+            NativeLogger.warn("Error calling androidAppColorSchemeChanged", ex)
         }
     }
 
@@ -797,20 +627,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     override fun install(): Boolean {
-        try {
-            System.loadLibrary("cpp")
-            jsiInstalled = true
-            val jsi = reactContext.javaScriptContextHolder?.get()
-            if (jsi != null) {
-                registerNatives(jsi)
-                installJSI(jsi)
-            } else {
-                throw Exception("No context holder")
-            }
-        } catch (exception: Exception) {
-            NativeLogger.error("Exception in installJSI", exception)
-        }
-        return true;
+        // No-op: JSI bindings are now installed via TurboModuleWithJSIBindings.getBindingsInstaller()
+        return true
     }
 
     @ReactMethod
@@ -848,7 +666,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
         init {
             this.reactContext = reactContext
             reactContext.addLifecycleEventListener(object : LifecycleEventListener {
-                @Override
                 override fun onHostResume() {
                     if (executor == null) {
                         val ex = Executors.newSingleThreadExecutor()
@@ -857,35 +674,25 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     }
                 }
 
-                @Override
                 override fun onHostPause() {
                 }
 
-                @Override
                 override fun onHostDestroy() {
                     destroy()
                 }
             })
         }
 
-        @Override
         override fun run() {
             do {
                 try {
-                    Thread.currentThread().setName("ReadFromKBLib")
+                    Thread.currentThread().name = "ReadFromKBLib"
                     val data: ByteArray = readArr()
                     if (!reactContext.hasActiveReactInstance()) {
-                        NativeLogger.info(NAME.toString() + ": JS Bridge is dead, dropping engine message: " + data)
-
+                        NativeLogger.info("$NAME: JS Bridge is dead, dropping engine message")
+                        continue
                     }
-
-                    val callInvoker: CallInvokerHolderImpl = reactContext.getJSCallInvokerHolder() as CallInvokerHolderImpl
-                    val jsi = reactContext.javaScriptContextHolder?.get()
-                    if (jsi != null) {
-                        emit(jsi, callInvoker, data)
-                    } else {
-                        throw Exception("No context holder")
-                    }
+                    nativeOnDataFromGo(data)
                 } catch (e: Exception) {
                     if (e.message != null && e.message.equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read. Likely because of reset.")
@@ -893,7 +700,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                         NativeLogger.error("Exception in ReadFromKBLib.run", e)
                     }
                 }
-            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveReactInstance())
+            } while (!Thread.currentThread().isInterrupted && reactContext.hasActiveReactInstance())
         }
     }
 
@@ -910,7 +717,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
             if (executor?.awaitTermination(3, TimeUnit.SECONDS)== false) {
-                NativeLogger.warn(NAME.toString() + ": Executor pool didn't shut down cleanly")
+                NativeLogger.warn("$NAME: Executor pool didn't shut down cleanly")
             }
             executor = null
         } catch (e: Exception) {
@@ -939,10 +746,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     companion object {
+        init {
+            System.loadLibrary("cpp")
+        }
+
         const val NAME: String = "Kb"
-        private val RN_NAME: String = "ReactNativeJS"
-        private val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
-        private val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
+        private const val RN_NAME: String = "ReactNativeJS"
+        private const val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"
+        private const val RPC_META_EVENT_ENGINE_RESET: String = "kb-engine-reset"
         private const val MAX_TEXT_FILE_SIZE = 100 * 1024 // 100 kiB
         private val LINE_SEPARATOR: String? = System.getProperty("line.separator")
         private const val HW_KEY_EVENT: String = "hardwareKeyPressed"
@@ -982,12 +793,12 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
             return "true".equals(testLabSetting)
         }
 
-        private val FILE_PREFIX_BUNDLE_ASSET: String = "bundle-assets://"
+        private const val FILE_PREFIX_BUNDLE_ASSET: String = "bundle-assets://"
 
         // engine
         private fun relayReset(reactContext: ReactApplicationContext) {
             if (!reactContext.hasActiveReactInstance()) {
-                NativeLogger.info(NAME.toString() + ": JS Bridge is dead, Can't send EOF message")
+                NativeLogger.info("$NAME: JS Bridge is dead, Can't send EOF message")
             } else {
                 reactContext.emitDeviceEvent(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET)
             }

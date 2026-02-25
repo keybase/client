@@ -9,6 +9,9 @@ import Foundation
 import Intents
 import Keybasego
 import UIKit
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "share")
 
 private struct ShareConversation: Decodable {
   let convID: String
@@ -29,29 +32,29 @@ private struct ShareConversation: Decodable {
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
   func deleteAllDonations() {
     INInteraction.deleteAll { _ in }
-    NSLog("ShareIntentDonator: deleteAllDonations completed")
+    log.info("ShareIntentDonator: deleteAllDonations completed")
   }
 
   func deleteDonation(_ conversationID: String?) {
     guard let id = conversationID, !id.isEmpty else { return }
     INInteraction.delete(with: id, completion: nil)
-    NSLog("ShareIntentDonator: deleteDonation completed for %@", id)
+    log.info("ShareIntentDonator: deleteDonation completed for \(id, privacy: .public)")
   }
 
   func donateShareConversations(_ conversationsJSON: String?) {
     guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
-      NSLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
+      log.info("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
       return
     }
     guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      NSLog("ShareIntentDonator: donateShareConversations: JSON decode failed")
+      log.info("ShareIntentDonator: donateShareConversations: JSON decode failed")
       return
     }
     guard !conversations.isEmpty else {
-      NSLog("ShareIntentDonator: donateShareConversations: empty conversations array")
+      log.info("ShareIntentDonator: donateShareConversations: empty conversations array")
       return
     }
-    NSLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
+    log.info("ShareIntentDonator: donateShareConversations: donating \(conversations.count) conversations")
     donateConversations(conversations)
   }
 
@@ -163,7 +166,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let interaction = INInteraction(intent: intent, response: nil)
     interaction.donate { error in
       if let error = error {
-        NSLog("ShareIntentDonator: donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
+        log.error("ShareIntentDonator: donateIntent failed for \(intent.conversationIdentifier ?? "?", privacy: .public): \(error.localizedDescription, privacy: .public)")
       }
     }
   }

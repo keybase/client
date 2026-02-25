@@ -1,25 +1,7 @@
-import {NativeModules, Platform, NativeEventEmitter} from 'react-native'
+import {Platform, NativeEventEmitter} from 'react-native'
+import KbNative from './NativeKb'
 
-const LINKING_ERROR =
-  `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ios: "- You have run 'pod install'\n", default: ''}) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n'
-
-const isTurboModuleEnabled = global.__turboModuleProxy != null
-
-const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules['Kb']
-
-const Kb = KbModule
-  ? KbModule
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR)
-        },
-      }
-    )
+const Kb = KbNative
 
 export const getDefaultCountryCode = (): Promise<string> => {
   return Kb.getDefaultCountryCode()
@@ -37,7 +19,7 @@ export const logSend = (
 }
 
 export const install = () => {
-  Kb.install()
+  // No-op: JSI bindings are now installed automatically via TurboModuleWithJSIBindings
 }
 export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   if (Platform.OS === 'ios') {
