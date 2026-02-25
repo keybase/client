@@ -2,7 +2,7 @@ project(cpp)
 cmake_minimum_required(VERSION 3.4.1)
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 set (NODE_MODULES_DIR "${CMAKE_SOURCE_DIR}/../..")
 
 add_library(cpp
@@ -21,7 +21,7 @@ include_directories(
 
 set_target_properties(
         cpp PROPERTIES
-        CXX_STANDARD 17
+        CXX_STANDARD 20
         CXX_EXTENSIONS OFF
         POSITION_INDEPENDENT_CODE ON
 )

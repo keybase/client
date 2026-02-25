@@ -3,9 +3,6 @@
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <Foundation/Foundation.h>
-#import <JavaScriptCore/JavaScriptCore.h>
-#import <React/RCTBridge+Private.h>
-#import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTCallInvoker.h>
@@ -15,7 +12,6 @@
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
 #import <objc/runtime.h>
-#import "./KBJSScheduler.h"
 #import "RNKbSpec.h"
 #import <KBCommon/KBCommon-Swift.h>
 
@@ -23,23 +19,6 @@ using namespace facebook::jsi;
 using namespace facebook;
 using namespace std;
 using namespace kb;
-
-// used to keep track of objects getting destroyed on the js side
-class KBTearDown : public jsi::HostObject {
-public:
-  KBTearDown() { Tearup(); }
-  virtual ~KBTearDown() {
-    NSLog(@"KBTeardown!!!");
-    Teardown();
-  }
-  virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
-    return jsi::Value::undefined();
-  }
-  virtual void set(jsi::Runtime &, const jsi::PropNameID &name, const jsi::Value &value) {}
-  virtual std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) {
-    return {};
-  }
-};
 
 @implementation FsPathsHolder
 
@@ -75,32 +54,14 @@ static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
 
-@interface RCTBridge (JSIRuntime)
-- (void *)runtime;
-@end
-
-@interface RCTBridge (RCTTurboModule)
-- (std::shared_ptr<facebook::react::CallInvoker>)jsCallInvoker;
-- (void)_tryAndHandleError:(dispatch_block_t)block;
-@end
-
-@interface RCTBridge ()
-- (JSGlobalContextRef)jsContextRef;
-- (void *)runtime;
-- (void)dispatchBlock:(dispatch_block_t)block queue:(dispatch_queue_t)queue;
-@end
-
 @interface Kb ()
 @property dispatch_queue_t readQueue;
 @end
 
-@implementation Kb
-
-jsi::Runtime *_jsRuntime;
-std::shared_ptr<KBJSScheduler> jsScheduler;
-
-// sanity check the runtime isn't out of sync due to reload etc
-void *currentRuntime = nil;
+@implementation Kb {
+  std::shared_ptr<kb::KBBridge> kbBridge_;
+  BOOL isInvalidated_;
+}
 
 RCT_EXPORT_MODULE()
 
@@ -111,6 +72,7 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
   self = [super init];
   kbSharedInstance = self;
+  isInvalidated_ = NO;
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleHardwareKeyPressed:)
                                                name:@"hardwareKeyPressed"
@@ -161,12 +123,13 @@ RCT_EXPORT_MODULE()
 
 - (void)invalidate {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  currentRuntime = nil;
-  _jsRuntime = nil;
+  isInvalidated_ = YES;
   kbPasteImageEnabled = NO;
+  if (kbBridge_) {
+    kbBridge_->teardown();
+    kbBridge_.reset();
+  }
   [super invalidate];
-  Teardown();
-  self.bridge = nil;
   self.readQueue = nil;
   NSError *error = nil;
   KeybaseReset(&error);
@@ -186,45 +149,30 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
     return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 
-- (void)sendToJS:(NSData *)data {
-  __weak __typeof__(self) weakSelf = self;
-
-  jsScheduler->scheduleOnJS([data, weakSelf](jsi::Runtime &jsiRuntime) {
-    __typeof__(self) strongSelf = weakSelf;
-    if (!strongSelf) {
-      NSLog(@"Failed to find self in sendToJS invokeAsync!!!");
-      return;
-    }
-    auto jsRuntimePtr = [strongSelf javaScriptRuntimePointer];
-    if (!jsRuntimePtr) {
-      NSLog(@"Failed to find jsi in sendToJS invokeAsync!!!");
-      return;
-    }
-
-    int size = (int)[data length];
-    if (size <= 0) {
-      NSLog(@"Invalid data size in sendToJS: %d", size);
-      return;
-    }
-    try {
-        auto values = PrepRpcOnJS(jsiRuntime, (uint8_t *)[data bytes], size);
-        RpcOnJS(jsiRuntime, values, [](const std::string &err) {
-        KeybaseLogToService([NSString
-            stringWithFormat:@"dNativeLogger: [%f,\"jsi rpconjs error: %@\"]",
-                            [[NSDate date] timeIntervalSince1970] * 1000,
-                            [NSString stringWithUTF8String:err.c_str()]]);
+// RCTTurboModuleWithJSIBindings — called automatically by RN when the module loads
+- (void)installJSIBindingsWithRuntime:(jsi::Runtime &)runtime
+                          callInvoker:(const std::shared_ptr<facebook::react::CallInvoker> &)callInvoker {
+    kbBridge_ = std::make_shared<kb::KBBridge>();
+    kbBridge_->install(runtime, callInvoker,
+        // writeToGo callback
+        [](void *ptr, size_t size) {
+            NSData *data = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
+            NSError *error = nil;
+            KeybaseWriteArr(data, &error);
+            if (error) {
+                NSLog(@"Error writing data: %@", error);
+            }
+        },
+        // error callback
+        [](const std::string &err) {
+            KeybaseLogToService([NSString
+                stringWithFormat:@"dNativeLogger: [%f,\"jsi error: %s\"]",
+                                [[NSDate date] timeIntervalSince1970] * 1000,
+                                err.c_str()]);
         });
-    } catch (const std::exception &e) {
-      NSLog(@"Exception in sendToJS msgpack processing: %s", e.what());
-      KeybaseLogToService([NSString
-          stringWithFormat:@"dNativeLogger: [%f,\"sendToJS unknown exception\"]",
-                           [[NSDate date] timeIntervalSince1970] * 1000]);
-    }
-  });
-}
 
-- (jsi::Runtime *)javaScriptRuntimePointer {
-    return _jsRuntime;
+    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success (via installJSIBindings)\"]",
+                         [[NSDate date] timeIntervalSince1970] * 1000]);
 }
 
 // from react-native-localize
@@ -319,16 +267,15 @@ RCT_EXPORT_METHOD(engineReset) {
   }
 }
 
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
+    // No-op: JSI bindings are now installed via installJSIBindingsWithRuntime:callInvoker:
+    return @YES;
+}
+
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
   dispatch_async(dispatch_get_main_queue(), ^{
-    // Setup infrastructure
-    [[NSNotificationCenter defaultCenter]
-        addObserver:self
-           selector:@selector(engineReset)
-               name:RCTJavaScriptWillStartLoadingNotification
-             object:nil];
     self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
 
     // Signal to Go that JS is ready
@@ -340,8 +287,8 @@ RCT_EXPORT_METHOD(notifyJSReady) {
       while (true) {
         {
           __typeof__(self) strongSelf = weakSelf;
-          if (!strongSelf || !strongSelf.bridge) {
-            NSLog(@"Bridge dead, bailing from ReadArr loop");
+          if (!strongSelf || strongSelf->isInvalidated_) {
+            NSLog(@"Module invalidated, bailing from ReadArr loop");
             return;
           }
         }
@@ -352,8 +299,8 @@ RCT_EXPORT_METHOD(notifyJSReady) {
           NSLog(@"Error reading data: %@", error);
         } else if (data) {
           __typeof__(self) strongSelf = weakSelf;
-          if (strongSelf) {
-            [strongSelf sendToJS:data];
+          if (strongSelf && strongSelf->kbBridge_) {
+            strongSelf->kbBridge_->onDataFromGo((uint8_t *)[data bytes], (int)[data length]);
           }
         }
       }
@@ -362,36 +309,6 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 }
 
 @synthesize callInvoker = _callInvoker;
-
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
-    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
-    _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
-    auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
-    jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, _callInvoker.callInvoker);
-
-    // stash the current runtime to keep in sync
-    auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {
-        return RpcOnGo(runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
-            NSData *result = [NSData dataWithBytesNoCopy:ptr length:size freeWhenDone:NO];
-            NSError *error = nil;
-            KeybaseWriteArr(result, &error);
-            if (error) {
-                NSLog(@"Error writing data: %@", error);
-            }
-        });
-    };
-
-    KeybaseLogToService([NSString stringWithFormat:@"dNativeLogger: [%f,\"jsi install success\"]",
-                         [[NSDate date] timeIntervalSince1970] * 1000]);
-
-    _jsRuntime->global().setProperty(*_jsRuntime, "rpcOnGo",
-    Function::createFromHostFunction(*_jsRuntime, PropNameID::forAscii(*_jsRuntime, "rpcOnGo"), 1, std::move(rpcOnGoWrap)));
-
-    // register a global so we get notified when the runtime is killed so we can
-    // cleanup
-    _jsRuntime->global().setProperty(*_jsRuntime, "kbTeardown", jsi::Object::createFromHostObject(*_jsRuntime, std::make_shared<KBTearDown>()));
-    return @YES;
-}
 
 RCT_EXPORT_METHOD(getDefaultCountryCode
                  : (RCTPromiseResolveBlock)resolve reject
@@ -489,33 +406,33 @@ RCT_EXPORT_METHOD(clearLocalLogs: (RCTPromiseResolveBlock)resolve reject: (RCTPr
   FsPathsHolder *holder = [FsPathsHolder sharedFsPathsHolder];
   NSDictionary<NSString *, NSString *> *fsPaths = holder.fsPaths;
   NSString *logFilePath = fsPaths[@"logFile"];
-  
+
   if (!logFilePath || logFilePath.length == 0) {
     resolve(@YES);
     return;
   }
-  
+
   NSString *logDir = [logFilePath stringByDeletingLastPathComponent];
   NSFileManager *fm = [NSFileManager defaultManager];
-  
+
   if (![fm fileExistsAtPath:logDir]) {
     resolve(@YES);
     return;
   }
-  
+
   NSError *error = nil;
   NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:logDir error:&error];
-  
+
   if (error) {
     NSLog(@"Error listing log directory: %@", error.localizedDescription);
     resolve(@YES);
     return;
   }
-  
+
   for (NSString *fileName in files) {
     NSString *filePath = [logDir stringByAppendingPathComponent:fileName];
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
-    
+
     if (fileHandle) {
       @try {
         [fileHandle truncateFileAtOffset:0];
@@ -526,7 +443,7 @@ RCT_EXPORT_METHOD(clearLocalLogs: (RCTPromiseResolveBlock)resolve reject: (RCTPr
       }
     }
   }
-  
+
   resolve(@YES);
 }
 

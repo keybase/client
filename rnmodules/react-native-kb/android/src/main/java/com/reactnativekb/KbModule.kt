@@ -33,7 +33,9 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.turbomodule.core.CallInvokerHolderImpl
+import com.facebook.react.turbomodule.core.interfaces.TurboModuleWithJSIBindings
+import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder
+import com.facebook.proguard.annotations.DoNotStrip
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -61,7 +63,6 @@ import me.leolin.shortcutbadger.ShortcutBadger
 import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
-import com.facebook.react.common.annotations.FrameworkAPI
 import android.media.MediaMetadataRetriever
 import androidx.media3.transformer.TransformationRequest
 import androidx.media3.transformer.Transformer
@@ -79,16 +80,16 @@ import androidx.media3.transformer.DefaultEncoderFactory
 import java.nio.ByteBuffer
 import kotlin.math.min
 
-@OptIn(FrameworkAPI::class)
-class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
+class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), TurboModuleWithJSIBindings {
     private val misTestDevice: Boolean
     private val initialIntent: HashMap<String?, String?>? = null
     private val reactContext: ReactApplicationContext
-    private external fun registerNatives(jsiPtr: Long)
-    private external fun installJSI(jsiPtr: Long)
-    private external fun emit(jsiPtr: Long, jsInvoker: CallInvokerHolderImpl?, data: ByteArray?)
+
+    @DoNotStrip
+    external override fun getBindingsInstaller(): BindingsInstallerHolder
+    private external fun nativeOnDataFromGo(data: ByteArray)
+
     private var executor: ExecutorService? = null
-    private var jsiInstalled: Boolean? = false
 
     override fun getName(): String {
         return NAME
@@ -797,20 +798,8 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     override fun install(): Boolean {
-        try {
-            System.loadLibrary("cpp")
-            jsiInstalled = true
-            val jsi = reactContext.javaScriptContextHolder?.get()
-            if (jsi != null) {
-                registerNatives(jsi)
-                installJSI(jsi)
-            } else {
-                throw Exception("No context holder")
-            }
-        } catch (exception: Exception) {
-            NativeLogger.error("Exception in installJSI", exception)
-        }
-        return true;
+        // No-op: JSI bindings are now installed via TurboModuleWithJSIBindings.getBindingsInstaller()
+        return true
     }
 
     @ReactMethod
@@ -875,17 +864,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
                     Thread.currentThread().setName("ReadFromKBLib")
                     val data: ByteArray = readArr()
                     if (!reactContext.hasActiveReactInstance()) {
-                        NativeLogger.info(NAME.toString() + ": JS Bridge is dead, dropping engine message: " + data)
-
+                        NativeLogger.info("$NAME: JS Bridge is dead, dropping engine message")
+                        continue
                     }
-
-                    val callInvoker: CallInvokerHolderImpl = reactContext.getJSCallInvokerHolder() as CallInvokerHolderImpl
-                    val jsi = reactContext.javaScriptContextHolder?.get()
-                    if (jsi != null) {
-                        emit(jsi, callInvoker, data)
-                    } else {
-                        throw Exception("No context holder")
-                    }
+                    nativeOnDataFromGo(data)
                 } catch (e: Exception) {
                     if (e.message != null && e.message.equals("Read error: EOF")) {
                         NativeLogger.info("Got EOF from read. Likely because of reset.")
@@ -939,6 +921,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext) {
     }
 
     companion object {
+        init {
+            System.loadLibrary("cpp")
+        }
+
         const val NAME: String = "Kb"
         private val RN_NAME: String = "ReactNativeJS"
         private val RPC_META_EVENT_NAME: String = "kb-meta-engine-event"

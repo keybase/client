@@ -1,36 +1,31 @@
-// https://github.com/ammarahm-ed/react-native-jsi-template/blob/master/android/cpp-adapter.cpp
-#include "pthread.h"
 #include "react-native-kb.h"
+#include <ReactCommon/BindingsInstallerHolder.h>
 #include <ReactCommon/CallInvoker.h>
-#include <ReactCommon/CallInvokerHolder.h>
+#include <android/log.h>
 #include <fbjni/fbjni.h>
 #include <jni.h>
 #include <jsi/jsi.h>
+#include <pthread.h>
 #include <sys/types.h>
 
 using namespace facebook;
 using namespace facebook::jsi;
-using namespace std;
-using namespace kb;
+using namespace facebook::react;
 
-JavaVM *java_vm = NULL;
-jclass java_class;
-jobject java_object;
+static std::shared_ptr<kb::KBBridge> g_bridge;
+static JavaVM *java_vm = nullptr;
+static jobject java_object = nullptr;
+static jclass g_kbClass = nullptr;
+static jmethodID g_rpcOnGoMethod = nullptr;
 
 /**
  * A simple callback function that allows us to detach current JNI Environment
- * when the thread
+ * when the thread is destroyed.
  * See https://stackoverflow.com/a/30026231 for detailed explanation
  */
-
 void DeferThreadDetach(JNIEnv *env) {
   static pthread_key_t thread_key;
 
-  // Set up a Thread Specific Data key, and a callback that
-  // will be executed when a thread is destroyed.
-  // This is only done once, across all threads, and the value
-  // associated with the key for any given thread will initially
-  // be NULL.
   static auto run_once = [] {
     const auto err = pthread_key_create(&thread_key, [](void *ts_env) {
       if (ts_env) {
@@ -38,20 +33,14 @@ void DeferThreadDetach(JNIEnv *env) {
       }
     });
     if (err) {
-      // Failed to create TSD key. Throw an exception if you want to.
     }
     return 0;
   }();
   static_cast<void>(run_once);
 
-  // For the callback to actually be executed when a thread exits
-  // we need to associate a non-NULL value with the key on that thread.
-  // We can use the JNIEnv* as that value.
   const auto ts_env = pthread_getspecific(thread_key);
   if (!ts_env) {
     if (pthread_setspecific(thread_key, env)) {
-      // Failed to set thread-specific value for key. Throw an exception if you
-      // want to.
     }
   }
 }
@@ -59,100 +48,87 @@ void DeferThreadDetach(JNIEnv *env) {
 /**
  * Get a JNIEnv* valid for this thread, regardless of whether
  * we're on a native thread or a Java thread.
- * If the calling thread is not currently attached to the JVM
- * it will be attached, and then automatically detached when the
- * thread is destroyed.
- *
  * See https://stackoverflow.com/a/30026231 for detailed explanation
  */
 JNIEnv *GetJniEnv() {
   JNIEnv *env = nullptr;
-  // We still call GetEnv first to detect if the thread already
-  // is attached. This is done to avoid setting up a DetachCurrentThread
-  // call on a Java thread.
-
-  // g_vm is a global.
   auto get_env_result = java_vm->GetEnv((void **)&env, JNI_VERSION_1_6);
   if (get_env_result == JNI_EDETACHED) {
-    if (java_vm->AttachCurrentThread(&env, NULL) == JNI_OK) {
+    if (java_vm->AttachCurrentThread(&env, nullptr) == JNI_OK) {
       DeferThreadDetach(env);
-    } else {
-      // Failed to attach thread. Throw an exception if you want to.
     }
-  } else if (get_env_result == JNI_EVERSION) {
-    // Unsupported JNI version. Throw an exception if you want to.
   }
   return env;
 }
 
-static jstring string2jstring(JNIEnv *env, const string &str) {
-  return (*env).NewStringUTF(str.c_str());
+static void cacheJNIMethods(JNIEnv *env) {
+  if (!g_kbClass && java_object) {
+    jclass cls = env->GetObjectClass(java_object);
+    g_kbClass = (jclass)env->NewGlobalRef(cls);
+    g_rpcOnGoMethod = env->GetMethodID(g_kbClass, "rpcOnGo", "([B)V");
+    env->DeleteLocalRef(cls);
+  }
 }
 
-void install(facebook::jsi::Runtime &jsiRuntime) {
-  auto rpcOnGo = Function::createFromHostFunction(
-      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-      [](Runtime &runtime, const Value &thisValue, const Value *arguments,
-         size_t count) -> Value {
-        return RpcOnGo(
-            runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
+static jni::local_ref<BindingsInstallerHolder::javaobject>
+getBindingsInstaller(jni::alias_ref<jni::JObject> thiz) {
+  JNIEnv *env = jni::Environment::current();
+  env->GetJavaVM(&java_vm);
+  if (java_object) {
+    env->DeleteGlobalRef(java_object);
+  }
+  java_object = env->NewGlobalRef(thiz.get());
+  cacheJNIMethods(env);
+
+  return BindingsInstallerHolder::newObjectCxxArgs(
+      [](jsi::Runtime &runtime,
+         const std::shared_ptr<CallInvoker> &callInvoker) {
+        if (g_bridge) {
+          g_bridge->teardown();
+        }
+        g_bridge = std::make_shared<kb::KBBridge>();
+        g_bridge->install(
+            runtime, callInvoker,
+            // writeToGo: called from JS thread when rpcOnGo fires
+            [](void *ptr, size_t size) {
               JNIEnv *jniEnv = GetJniEnv();
-              java_class = jniEnv->GetObjectClass(java_object);
-              jmethodID rpcOnGo =
-                  jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
+              if (!jniEnv || !java_object || !g_rpcOnGoMethod)
+                return;
               jbyteArray jba = jniEnv->NewByteArray(size);
               jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
-              jvalue params[1];
-              params[0].l = jba;
-              jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
+              jniEnv->CallVoidMethod(java_object, g_rpcOnGoMethod, jba);
+              jniEnv->DeleteLocalRef(jba);
+            },
+            // onError
+            [](const std::string &err) {
+              __android_log_print(ANDROID_LOG_ERROR, "KBBridge",
+                                  "JSI error: %s", err.c_str());
             });
       });
-  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", std::move(rpcOnGo));
 }
 
-extern "C" JNIEXPORT void JNICALL installJSI(JNIEnv *env, jobject thiz, jlong jsi) {
-  auto runtime = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
-  if (runtime) {
-    install(*runtime);
-  }
-  env->GetJavaVM(&java_vm);
-  java_object = env->NewGlobalRef(thiz);
+static void nativeOnDataFromGo(jni::alias_ref<jni::JObject> thiz,
+                                jni::alias_ref<jni::JArrayByte> data) {
+  auto bridge = g_bridge;
+  if (!bridge || !data)
+    return;
+  JNIEnv *env = jni::Environment::current();
+  auto rawArray = data.get();
+  auto size = static_cast<int>(env->GetArrayLength(rawArray));
+  auto bytes =
+      reinterpret_cast<uint8_t *>(env->GetByteArrayElements(rawArray, nullptr));
+  bridge->onDataFromGo(bytes, size);
+  env->ReleaseByteArrayElements(rawArray, reinterpret_cast<jbyte *>(bytes),
+                                JNI_ABORT);
 }
 
-extern "C" JNIEXPORT void JNICALL emit(JNIEnv *env, jclass clazz, jlong jsi, jobject boxedCallInvokerHolder, jbyteArray data) {
-  auto rPtr = reinterpret_cast<facebook::jsi::Runtime *>(jsi);
-  auto &runtime = *rPtr;
-  auto boxedCallInvokerRef = jni::make_local(boxedCallInvokerHolder);
-  auto callInvokerHolder =
-      jni::dynamic_ref_cast<react::CallInvokerHolder::javaobject>(
-          boxedCallInvokerRef);
-  auto callInvoker = callInvokerHolder->cthis()->getCallInvoker();
-
-  auto size = static_cast<int>(env->GetArrayLength(data));
-  auto payloadBytes =
-      reinterpret_cast<uint8_t *>(env->GetByteArrayElements(data, nullptr));
-  auto values = PrepRpcOnJS(runtime, payloadBytes, size);
-  callInvoker->invokeAsync([values, &runtime]() {
-    RpcOnJS(runtime, values, [](const std::string &err) {
-      JNIEnv *jniEnv = GetJniEnv();
-      java_class = jniEnv->GetObjectClass(java_object);
-      jmethodID log =
-          jniEnv->GetMethodID(java_class, "log", "(Ljava/lang/String;)V");
-      auto s = string2jstring(jniEnv, err);
-      jvalue params[1];
-      params[0].l = s;
-      jniEnv->CallVoidMethodA(java_object, log, params);
-    });
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
+  java_vm = vm;
+  return jni::initialize(vm, [] {
+    jni::findClassStatic("com/reactnativekb/KbModule")
+        ->registerNatives({
+            makeNativeMethod("getBindingsInstaller", getBindingsInstaller),
+            makeNativeMethod("nativeOnDataFromGo", nativeOnDataFromGo),
+        });
   });
-}
-
-static JNINativeMethod methods[] = {
-    {"installJSI", "(J)V", (void *)&installJSI},
-    {"emit",       "(JLcom/facebook/react/turbomodule/core/CallInvokerHolderImpl;[B)V", (void *)&emit},
-};
-
-
-extern "C" JNIEXPORT void JNICALL Java_com_reactnativekb_KbModule_registerNatives(JNIEnv *env, jobject thiz, jlong jsi) {
- jclass clazz = env->FindClass("com/reactnativekb/KbModule");
- env->RegisterNatives(clazz, methods, sizeof(methods)/sizeof(methods[0]));
 }

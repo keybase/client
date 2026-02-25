@@ -1,35 +1,33 @@
 #include "react-native-kb.h"
-#include <chrono>
-#include <msgpack.hpp>
+#include <cstring>
 #include <string>
 
 using namespace facebook;
 using namespace facebook::jsi;
 
 namespace kb {
-std::atomic<bool> isTornDown{false};
 
-void Teardown() { isTornDown.store(true); }
+void KBBridge::teardown() {
+  isTornDown_.store(true);
+  // Clear cached JSI objects while the runtime is still alive.
+  // This prevents stale jsi::Function destructors from crashing
+  // if the bridge outlives the runtime (due to shared_ptr captures).
+  cachedUint8ArrayCtor_.reset();
+  cachedRpcOnJs_.reset();
+  cachedRuntime_ = nullptr;
+}
 
-void Tearup() { isTornDown.store(false); }
+void KBBridge::tearup() { isTornDown_.store(false); }
 
-Value RpcOnGo(Runtime &runtime, const Value &thisValue, const Value *arguments,
-              size_t count, void (*callback)(void *ptr, size_t size)) {
-  try {
-    auto obj = arguments[0].asObject(runtime);
-    auto buffer = obj.getArrayBuffer(runtime);
-    auto ptr = buffer.data(runtime);
-    auto size = buffer.size(runtime);
-    callback(ptr, size);
-    return Value(true);
-  } catch (const std::exception &e) {
-    throw std::runtime_error("Error in RpcOnGo: " + std::string(e.what()));
-  } catch (...) {
-    throw std::runtime_error("Unknown error in RpcOnGo");
+void KBBridge::resetCaches(Runtime &runtime) {
+  if (cachedRuntime_ != &runtime) {
+    cachedUint8ArrayCtor_.reset();
+    cachedRpcOnJs_.reset();
+    cachedRuntime_ = &runtime;
   }
 }
 
-std::string mpToString(msgpack::object &o) {
+static std::string mpToString(msgpack::object &o) {
   switch (o.type) {
   case msgpack::type::STR:
     return o.as<std::string>();
@@ -46,7 +44,7 @@ std::string mpToString(msgpack::object &o) {
   }
 }
 
-Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
+Value KBBridge::convertMPToJSI(Runtime &runtime, msgpack::object &o) {
   switch (o.type) {
   case msgpack::type::STR:
     return jsi::String::createFromUtf8(runtime, o.as<std::string>());
@@ -79,30 +77,28 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
     auto ptr = o.via.bin.ptr;
     int size = o.via.bin.size;
 
-    // make ArrayBuffer and copy in data
-    // non-owning
-    static Function* cachedUint8ArrayCtor = nullptr;
-    static Runtime* cachedRuntime = nullptr;
-    if (cachedRuntime != &runtime) {
-        cachedUint8ArrayCtor = nullptr;
-        cachedRuntime = &runtime;
-    }
-    if (!cachedUint8ArrayCtor) {
-        auto ctor = runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
-        cachedUint8ArrayCtor = new Function(std::move(ctor));
+    resetCaches(runtime);
+    if (!cachedUint8ArrayCtor_) {
+      auto ctor =
+          runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+      cachedUint8ArrayCtor_ = std::make_unique<Function>(std::move(ctor));
     }
 
-    Value uint8Array = cachedUint8ArrayCtor->callAsConstructor(runtime, size);
+    Value uint8Array =
+        cachedUint8ArrayCtor_->callAsConstructor(runtime, size);
     Object uint8ArrayObj = uint8Array.asObject(runtime);
-    ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer").asObject(runtime).getArrayBuffer(runtime);
+    ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer")
+                             .asObject(runtime)
+                             .getArrayBuffer(runtime);
     std::memcpy(buffer.data(runtime), ptr, size);
     return uint8Array;
   }
   case msgpack::type::ARRAY: {
     auto size = o.via.array.size;
     jsi::Array arr(runtime, size);
-    for (int i = 0; i < size; ++i) {
-      arr.setValueAtIndex(runtime, i, convertMPToJSI(runtime, o.via.array.ptr[i]));
+    for (uint32_t i = 0; i < size; ++i) {
+      arr.setValueAtIndex(runtime, i,
+                          convertMPToJSI(runtime, o.via.array.ptr[i]));
     }
     return arr;
   }
@@ -111,81 +107,144 @@ Value convertMPToJSI(Runtime &runtime, msgpack::object &o) {
   }
 }
 
-enum class ReadState { needSize, needContent };
-ReadState g_state = ReadState::needSize;
-msgpack::unpacker unp;
+void KBBridge::install(
+    Runtime &runtime,
+    std::shared_ptr<facebook::react::CallInvoker> callInvoker,
+    std::function<void(void *ptr, size_t size)> writeToGo,
+    std::function<void(const std::string &)> onError) {
+  callInvoker_ = std::move(callInvoker);
+  onError_ = std::move(onError);
 
-ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
-  try {
-    auto values = std::make_shared<std::vector<msgpack::object_handle>>();
-    if (size > 0) {
-      unp.reserve_buffer(size);
-      std::copy(data, data + size, unp.buffer());
-      unp.buffer_consumed(size);
-      while (true) {
-        msgpack::object_handle result;
-        if (unp.next(result)) {
-          if (g_state == ReadState::needSize) {
-            g_state = ReadState::needContent;
-          } else {
-            values->push_back(std::move(result));
-            g_state = ReadState::needSize;
-          }
-        } else {
-          break;
+  auto rpcOnGo = Function::createFromHostFunction(
+      runtime, PropNameID::forAscii(runtime, "rpcOnGo"), 1,
+      [writeToGo = std::move(writeToGo)](Runtime &runtime,
+                                         const Value &thisValue,
+                                         const Value *arguments,
+                                         size_t count) -> Value {
+        try {
+          auto obj = arguments[0].asObject(runtime);
+          auto buffer = obj.getArrayBuffer(runtime);
+          auto ptr = buffer.data(runtime);
+          auto size = buffer.size(runtime);
+          writeToGo(ptr, size);
+          return Value(true);
+        } catch (const std::exception &e) {
+          throw std::runtime_error("Error in rpcOnGo: " +
+                                   std::string(e.what()));
+        } catch (...) {
+          throw std::runtime_error("Unknown error in rpcOnGo");
         }
+      });
+
+  runtime.global().setProperty(runtime, "rpcOnGo", std::move(rpcOnGo));
+
+  // HostObject that calls teardown when the JS runtime is destroyed
+  class KBTearDownSimple : public jsi::HostObject {
+  public:
+    KBTearDownSimple(std::weak_ptr<KBBridge> bridge) : bridge_(bridge) {
+      if (auto b = bridge_.lock()) {
+        b->tearup();
       }
     }
-    return values;
-  } catch (const std::exception &e) {
-    throw std::runtime_error("Error in PrepRpcOnJS: " +
-                                 std::string(e.what()));
-  } catch (...) {
-    throw std::runtime_error("Unknown error in PrepRpcOnJS");
-  }
+    ~KBTearDownSimple() override {
+      if (auto b = bridge_.lock()) {
+        b->teardown();
+      }
+    }
+    Value get(Runtime &, const PropNameID &) override {
+      return Value::undefined();
+    }
+    void set(Runtime &, const PropNameID &, const Value &) override {}
+    std::vector<PropNameID> getPropertyNames(Runtime &) override { return {}; }
+
+  private:
+    std::weak_ptr<KBBridge> bridge_;
+  };
+
+  runtime.global().setProperty(
+      runtime, "kbTeardown",
+      Object::createFromHostObject(
+          runtime,
+          std::make_shared<KBTearDownSimple>(shared_from_this())));
 }
 
-void RpcOnJS(Runtime &runtime, ShareValues values, void (*err_callback)(const std::string &err)) {
+void KBBridge::onDataFromGo(uint8_t *data, int size) {
+  if (isTornDown_.load() || size <= 0) {
+    return;
+  }
+
   try {
-    if (isTornDown.load()) {
+    auto values = std::make_shared<std::vector<msgpack::object_handle>>();
+    unpacker_.reserve_buffer(size);
+    std::copy(data, data + size, unpacker_.buffer());
+    unpacker_.buffer_consumed(size);
+    while (true) {
+      msgpack::object_handle result;
+      if (unpacker_.next(result)) {
+        if (readState_ == ReadState::needSize) {
+          readState_ = ReadState::needContent;
+        } else {
+          values->push_back(std::move(result));
+          readState_ = ReadState::needSize;
+        }
+      } else {
+        break;
+      }
+    }
+
+    if (values->empty()) {
       return;
     }
 
-    // non-owning
-    static Function* cachedRpcOnJs = nullptr;
-    static Runtime* cachedRuntime = nullptr;
-
-    if (cachedRuntime != &runtime) {
-      cachedRpcOnJs = nullptr;
-      cachedRuntime = &runtime;
-    }
-
-    if (!cachedRpcOnJs) {
+    auto self = shared_from_this();
+    callInvoker_->invokeAsync([values, self](jsi::Runtime &runtime) {
       try {
-        auto func = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-        cachedRpcOnJs = new Function(std::move(func));
-      } catch (...) {
-        err_callback("Failed to get rpcOnJs function");
-        throw std::runtime_error("Failed to get rpcOnJs function:");
-        return;
-      }
-    }
+        if (self->isTornDown_.load()) {
+          return;
+        }
 
-    for (auto &result : *values) {
-      msgpack::object obj(result.get());
-      Value value = convertMPToJSI(runtime, obj);
-      if (isTornDown.load()) {
-        return;
+        self->resetCaches(runtime);
+        if (!self->cachedRpcOnJs_) {
+          try {
+            auto func =
+                runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
+            self->cachedRpcOnJs_ =
+                std::make_unique<Function>(std::move(func));
+          } catch (...) {
+            if (self->onError_) {
+              self->onError_("Failed to get rpcOnJs function");
+            }
+            return;
+          }
+        }
+
+        for (auto &result : *values) {
+          msgpack::object obj(result.get());
+          Value value = self->convertMPToJSI(runtime, obj);
+          if (self->isTornDown_.load()) {
+            return;
+          }
+          self->cachedRpcOnJs_->call(runtime, std::move(value), 1);
+        }
+      } catch (const std::exception &e) {
+        if (self->onError_) {
+          self->onError_(e.what());
+        }
+      } catch (...) {
+        if (self->onError_) {
+          self->onError_("unknown error in onDataFromGo JS callback");
+        }
       }
-      Function rpcOnJs = runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-      rpcOnJs.call(runtime, std::move(value), 1);
-    }
+    });
   } catch (const std::exception &e) {
-    err_callback(e.what());
-    throw std::runtime_error("Error in RpcOnJS: " + std::string(e.what()));
+    if (onError_) {
+      onError_(std::string("Error in onDataFromGo: ") + e.what());
+    }
   } catch (...) {
-    err_callback("unknown error");
-    throw std::runtime_error("Unknown error in RpcOnJS");
+    if (onError_) {
+      onError_("Unknown error in onDataFromGo");
+    }
   }
 }
+
 } // namespace kb
