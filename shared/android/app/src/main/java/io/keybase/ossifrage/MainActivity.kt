@@ -79,11 +79,10 @@ class MainActivity : ReactActivity() {
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
             try {
-                var gc = GuiConfig.getInstance(filesDir)
-                if (gc != null) {
-                    setBackgroundColor(gc.getDarkMode())
-                }
+                val gc = GuiConfig.getInstance(filesDir)
+                gc?.let { setBackgroundColor(it.getDarkMode()) }
             } catch (e: Exception) {
+                NativeLogger.warn("Error reading GuiConfig in onCreate", e)
             }
         }, 300)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
@@ -426,11 +425,10 @@ class MainActivity : ReactActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         try {
-            var gc = GuiConfig.getInstance(filesDir)
-            if (gc != null) {
-                setBackgroundColor(gc.getDarkMode())
-            }
+            val gc = GuiConfig.getInstance(filesDir)
+            gc?.let { setBackgroundColor(it.getDarkMode()) }
         } catch (e: Exception) {
+            NativeLogger.warn("Error reading GuiConfig in onConfigurationChanged", e)
         }
         if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
             isUsingHardwareKeyboard = true
@@ -440,13 +438,12 @@ class MainActivity : ReactActivity() {
     }
 
     fun setBackgroundColor(pref: DarkModePreference) {
-        val bgColor: Int
-        bgColor = if (pref == DarkModePreference.System) {
-            if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
-        } else if (pref == DarkModePreference.AlwaysDark) {
-            R.color.black
-        } else {
-            R.color.white
+        val bgColor = when (pref) {
+            DarkModePreference.System -> {
+                if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
+            }
+            DarkModePreference.AlwaysDark -> R.color.black
+            DarkModePreference.AlwaysLight -> R.color.white
         }
         val mainWindow = this.window
         val handler = Handler(Looper.getMainLooper())

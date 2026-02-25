@@ -1,6 +1,9 @@
 import Foundation
 import QuartzCore
 import UIKit
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "perf")
 
 /// Lightweight FPS monitor using CADisplayLink.
 /// Activated by the `-PERF_FPS_MONITOR` launch argument.
@@ -35,7 +38,7 @@ import UIKit
         // Use .common so it fires during scroll tracking
         displayLink?.add(to: .main, forMode: .common)
 
-        NSLog("PerfFPSMonitor: started")
+        log.info("PerfFPSMonitor: started")
     }
 
     func stop() {
@@ -48,7 +51,7 @@ import UIKit
             samples.append(frameCount)
         }
         writeResults()
-        NSLog("PerfFPSMonitor: stopped, wrote %d samples to %@", samples.count, PerfFPSMonitor.outputPath)
+        log.info("PerfFPSMonitor: stopped, wrote \(self.samples.count) samples to \(PerfFPSMonitor.outputPath, privacy: .public)")
     }
 
     @objc private func tick(_ link: CADisplayLink) {

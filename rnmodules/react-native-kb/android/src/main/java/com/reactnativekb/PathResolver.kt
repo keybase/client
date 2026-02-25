@@ -1,10 +1,8 @@
 package com.reactnativekb
 // part of https://raw.githubusercontent.com/RonRadtke/react-native-blob-util/master/android/src/main/java/com/ReactNativeBlobUtil/Utils/PathResolver.java
-import android.annotation.TargetApi
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.content.ContentUris
@@ -14,15 +12,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 object PathResolver {
-    @TargetApi(19)
     fun getRealPathFromURI(context: Context?, uri: Uri?): String? {
         if (context == null || uri == null) {
             return null
         }
-        val isKitKat: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
 
         // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
                 val docId: String = DocumentsContract.getDocumentId(uri)
@@ -41,7 +37,7 @@ object PathResolver {
                     //but might also be a "raw:/some/file/path" URL
                     if (id.startsWith("raw:/")) {
                         val rawuri: Uri = Uri.parse(id)
-                        return rawuri.getPath()
+                        return rawuri.path
                     }
                     var docId: Long? = null
                     //Since Android 10, uri can start with msf scheme like "msf:12345"
@@ -68,40 +64,36 @@ object PathResolver {
                 val docId: String = DocumentsContract.getDocumentId(uri)
                 val split: List<String?> = docId.split(":")
                 val type = split[0]
-                var contentUri: Uri? = null
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                val contentUri: Uri? = when (type) {
+                    "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    "audio" -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    else -> null
                 }
                 val selection = "_id=?"
                 val selectionArgs = arrayOf(
                         split[1]
                 )
                 return getDataColumn(context, contentUri, selection, selectionArgs)
-            } else if ("content".equals(uri.getScheme(), ignoreCase = true)) {
+            } else if ("content".equals(uri.scheme, ignoreCase = true)) {
                 // Return the remote address
-                return if (isGooglePhotosUri(uri)) uri.getLastPathSegment() else getDataColumn(context, uri, null, null)
+                return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(context, uri, null, null)
             } else {
                 try {
-                    val cr = context.getContentResolver()
-                    if (cr != null) {
-                        val attachment: InputStream? = cr.openInputStream(uri)
-                        if (attachment != null) {
-                            val filename = getContentName(context.getContentResolver(), uri)
-                            if (filename != null) {
-                                val file = File(context.getCacheDir(), filename)
-                                val tmp = FileOutputStream(file)
-                                val buffer = ByteArray(1024)
-                                while (attachment.read(buffer) > 0) {
-                                    tmp.write(buffer)
-                                }
-                                tmp.close()
-                                attachment.close()
-                                return file.getAbsolutePath()
+                    val cr = context.contentResolver
+                    val attachment: InputStream? = cr.openInputStream(uri)
+                    if (attachment != null) {
+                        val filename = getContentName(context.contentResolver, uri)
+                        if (filename != null) {
+                            val file = File(context.cacheDir, filename)
+                            val tmp = FileOutputStream(file)
+                            val buffer = ByteArray(1024)
+                            while (attachment.read(buffer) > 0) {
+                                tmp.write(buffer)
                             }
+                            tmp.close()
+                            attachment.close()
+                            return file.absolutePath
                         }
                     }
                 } catch (e: Exception) {
@@ -109,12 +101,12 @@ object PathResolver {
                     return null
                 }
             }
-        } else if ("content".equals(uri.getScheme(), ignoreCase = true)) {
+        } else if ("content".equals(uri.scheme, ignoreCase = true)) {
 
             // Return the remote address
-            return if (isGooglePhotosUri(uri)) uri.getLastPathSegment() else getDataColumn(context, uri, null, null)
-        } else if ("file".equals(uri.getScheme(), ignoreCase = true)) {
-            return uri.getPath()
+            return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(context, uri, null, null)
+        } else if ("file".equals(uri.scheme, ignoreCase = true)) {
+            return uri.path
         }
         return null
     }
@@ -152,26 +144,18 @@ object PathResolver {
         if (context == null || uri == null) {
             return null
         }
-        var cursor: Cursor? = null
-        var result: String? = null
         val column = "_data"
         val projection = arrayOf<String?>(
                 column
         )
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-                    null)
-            if (cursor != null && cursor.moveToFirst()) {
+        context.contentResolver.query(uri, projection, selection, selectionArgs,
+                null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
                 val index: Int = cursor.getColumnIndexOrThrow(column)
-                result = cursor.getString(index)
+                return cursor.getString(index)
             }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            return null
-        } finally {
-            if (cursor != null) cursor.close()
         }
-        return result
+        return null
     }
 
     /**
@@ -179,7 +163,7 @@ object PathResolver {
      * @return Whether the Uri authority is ExternalStorageProvider.
      */
     fun isExternalStorageDocument(uri: Uri): Boolean {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority())
+        return "com.android.externalstorage.documents" == uri.authority
     }
 
     /**
@@ -187,7 +171,7 @@ object PathResolver {
      * @return Whether the Uri authority is DownloadsProvider.
      */
     fun isDownloadsDocument(uri: Uri): Boolean {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority())
+        return "com.android.providers.downloads.documents" == uri.authority
     }
 
     /**
@@ -195,7 +179,7 @@ object PathResolver {
      * @return Whether the Uri authority is MediaProvider.
      */
     fun isMediaDocument(uri: Uri): Boolean {
-        return "com.android.providers.media.documents".equals(uri.getAuthority())
+        return "com.android.providers.media.documents" == uri.authority
     }
 
     /**
@@ -203,6 +187,6 @@ object PathResolver {
      * @return Whether the Uri authority is Google Photos.
      */
     fun isGooglePhotosUri(uri: Uri): Boolean {
-        return "com.google.android.apps.photos.content".equals(uri.getAuthority())
+        return "com.google.android.apps.photos.content" == uri.authority
     }
 }

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package io.keybase.ossifrage
 
 import android.app.Application
@@ -8,7 +6,6 @@ import android.content.res.Configuration
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.multidex.MultiDex
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
@@ -30,7 +27,6 @@ import io.keybase.ossifrage.modules.BackgroundSyncWorker
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import java.util.concurrent.TimeUnit
-import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 internal class AppLifecycleListener(private val context: Context?) :
@@ -40,6 +36,7 @@ internal class AppLifecycleListener(private val context: Context?) :
             try {
                 Glide.get(context!!).clearDiskCache()
             } catch (e: Exception) {
+                NativeLogger.warn("AppLifecycleListener: error clearing Glide disk cache", e)
             }
         }.start()
     }
@@ -93,11 +90,6 @@ class MainApplication : Application(), ReactApplication {
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             AppLifecycleListener(context)
         )
-    }
-
-    override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

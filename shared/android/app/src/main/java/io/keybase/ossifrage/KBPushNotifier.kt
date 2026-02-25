@@ -11,35 +11,26 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
-import io.keybase.ossifrage.MainActivity
 import keybase.ChatNotification
 import keybase.PushNotifier
 import java.io.BufferedInputStream
 import java.io.IOException
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import android.util.Log
 
 class KBPushNotifier internal constructor(private val context: Context, private val bundle: Bundle) : PushNotifier {
     private var convMsgCache: SmallMsgRingBuffer? = null
     private fun buildStyle(person: Person): NotificationCompat.MessagingStyle {
         val style = NotificationCompat.MessagingStyle(person)
-        if (convMsgCache != null) {
-            for (msg in convMsgCache!!.summary()) {
-                style.addMessage(msg)
-            }
-        }
+        convMsgCache?.summary()?.forEach { style.addMessage(it) }
         return style
     }
 
@@ -79,7 +70,6 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     private fun newReplyAction(context: Context, convData: ConvData, openConv: PendingIntent): NotificationCompat.Action {
         val replyLabel = "Reply"
         val remoteInput = RemoteInput.Builder(ChatBroadcastReceiver.KEY_TEXT_REPLY)
@@ -131,33 +121,26 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             notificationDefaults = notificationDefaults or NotificationCompat.DEFAULT_SOUND
         } else {
             val soundResource = filenameResourceName(chatNotification.soundName)
-            val soundUriStr = "android.resource://" + context.packageName + "/raw/" + soundResource
+            val soundUriStr = "android.resource://${context.packageName}/raw/$soundResource"
             val soundUri = Uri.parse(soundUriStr)
             builder.setSound(soundUri)
         }
         builder.setDefaults(notificationDefaults)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-            builder.addAction(newReplyAction(context, convData, pending_intent))
-        }
+        builder.addAction(newReplyAction(context, convData, pending_intent))
         val msg = chatNotification.message
         val from = msg.from
         val personBuilder = Person.Builder()
                 .setName(from?.keybaseUsername ?: "")
                 .setBot(from?.isBot ?: false)
         val avatarUri = chatNotification.message.from?.keybaseAvatar
-        if (avatarUri != null && avatarUri.isNotEmpty()) {
-            val icon = getKeybaseAvatar(avatarUri)
-            if (icon != null) {
-                personBuilder.setIcon(icon)
-            }
-        }
+        avatarUri?.takeIf { it.isNotEmpty() }?.let { getKeybaseAvatar(it) }?.let { personBuilder.setIcon(it) }
         val fromPerson = personBuilder.build()
-        if (convMsgCache != null) {
+        convMsgCache?.let { cache ->
             var msgText = if (chatNotification.isPlaintext) chatNotification.message.plaintext else ""
             if (msgText.isEmpty()) {
                 msgText = chatNotification.message.serverMessage
             }
-            convMsgCache!!.add(NotificationCompat.MessagingStyle.Message(msgText, msg.at, fromPerson))
+            cache.add(NotificationCompat.MessagingStyle.Message(msgText, msg.at, fromPerson))
         }
         val style = buildStyle(fromPerson)
         style.setConversationTitle(chatNotification.conversationName ?: "")
