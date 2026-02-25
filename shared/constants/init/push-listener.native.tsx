@@ -12,6 +12,7 @@ import {
   shareListenersRegistered,
 } from 'react-native-kb'
 import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useLogoutState} from '@/stores/logout'
 import {usePushState} from '@/stores/push'
 
@@ -197,6 +198,17 @@ export const initPushListener = () => {
       removeAllPendingNotificationRequests()
     }
     lastCount = count
+  })
+
+  // Retry token upload when user state becomes available.
+  // The FCM token often arrives before username/deviceID are loaded,
+  // so the initial upload silently bails. This retries once user state is ready.
+  useCurrentUserState.subscribe((s, old) => {
+    if (s.username === old.username && s.deviceID === old.deviceID) return
+    const token = usePushState.getState().token
+    if (token && s.username && s.deviceID) {
+      usePushState.getState().dispatch.setPushToken(token)
+    }
   })
 
   usePushState.getState().dispatch.initialPermissionsCheck()

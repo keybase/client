@@ -275,6 +275,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       const uploadPushToken = async () => {
         const {deviceID, username} = useCurrentUserState.getState()
         if (!username || !deviceID) {
+          logger.info('[PushToken] skipping upload, no user state yet')
           return
         }
         try {
