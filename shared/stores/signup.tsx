@@ -61,7 +61,7 @@ export interface State extends Store {
   }
 }
 
-export const useSignupState = Z.createZustand<State>((set, get) => {
+export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
   const noErrors = () => {
     const {devicenameError, emailError} = get()
     const {nameError, usernameError, signupError, usernameTaken} = get()

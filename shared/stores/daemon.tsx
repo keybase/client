@@ -50,7 +50,7 @@ export interface State extends Store {
   }
 }
 
-export const useDaemonState = Z.createZustand<State>((set, get) => {
+export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')

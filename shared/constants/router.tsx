@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as T from './types'
-import type * as Tabs from './tabs'
+import * as Tabs from './tabs'
 import {
   StackActions,
   CommonActions,
@@ -11,8 +11,7 @@ import {
 } from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from './types/router'
-import {makeChatConversationState} from '@/router-v2/linking'
-import {isSplit} from './chat/common'
+import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
 import {shallowEqual, type ViewPropsToPageProps} from './utils'
 import {registerDebugClear} from '@/util/debug'
@@ -267,7 +266,14 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatRoot'}, true)
   } else {
     // Phone: full reset to build the chat → conversation stack
-    const nextState = makeChatConversationState(conversationIDKey)
+    const nextState = {
+      routes: [{name: 'loggedIn', state: {
+        routes: [{name: Tabs.chatTab, state: {
+          index: 1,
+          routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
+        }}],
+      }}],
+    }
     n.dispatch({
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,

@@ -10,7 +10,7 @@ const initialStore: Store = {
   token: '',
 }
 
-export const usePushState = Z.createZustand<State>(() => {
+export const usePushState = Z.createZustand<State>('push', () => {
   const dispatch: State['dispatch'] = {
     checkPermissions: async () => {
       return Promise.resolve(false)

@@ -560,7 +560,7 @@ const updatePathItem = (
   return newPathItemFromAction
 }
 
-export const useFSState = Z.createZustand<State>((set, get) => {
+export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false

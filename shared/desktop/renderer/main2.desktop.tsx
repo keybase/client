@@ -127,13 +127,21 @@ const preloadFonts = () => {
   void document.fonts.load('italic 700 16px "Keybase"')
 }
 
+// Cache React root across HMR to avoid remounting the entire tree
+// eslint-disable-next-line
+const _rootRef: {current?: ReactDOM.Root} = (globalThis as any).__hmr_reactRoot ??= {}
+
 const render = (Component = Main) => {
-  const root = document.getElementById('root')
-  if (!root) {
+  const rootEl = document.getElementById('root')
+  if (!rootEl) {
     throw new Error('No root element?')
   }
 
-  ReactDOM.createRoot(root).render(
+  if (!_rootRef.current) {
+    _rootRef.current = ReactDOM.createRoot(rootEl)
+  }
+
+  _rootRef.current.render(
     <React.StrictMode>
       <Root>
         <div style={{display: 'flex', flex: 1}}>

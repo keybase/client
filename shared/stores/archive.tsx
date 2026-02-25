@@ -90,7 +90,7 @@ export interface State extends Store {
   }
 }
 
-export const useArchiveState = Z.createZustand<State>((set, get) => {
+export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
   const setKBFSJobStatus = (status: T.RPCGen.SimpleFSArchiveStatus) => {
     set(s => {
       s.kbfsJobs = new Map(

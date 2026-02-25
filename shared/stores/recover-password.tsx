@@ -50,7 +50,7 @@ export interface State extends Store {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>('recover-password', (set, get) => {
   const dispatch: State['dispatch'] = {
     defer: {
       onProvisionCancel: () => {

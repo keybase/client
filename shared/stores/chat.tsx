@@ -391,7 +391,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const useChatState = Z.createZustand<State>((set, get) => {
+export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 

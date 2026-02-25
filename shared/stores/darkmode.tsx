@@ -34,7 +34,7 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
-export const useDarkModeState = Z.createZustand<State>((set, get) => {
+export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) => {
   const dispatch: State['dispatch'] = {
     loadDarkPrefs: () => {
       const f = async () => {

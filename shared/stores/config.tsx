@@ -213,7 +213,7 @@ export interface State extends Store {
 }
 
 export const openAtLoginKey = 'openAtLogin'
-export const useConfigState = Z.createZustand<State>((set, get) => {
+export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
   const forceSmallNavKey = 'ui.forceSmallNav'

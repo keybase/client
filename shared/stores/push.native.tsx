@@ -29,7 +29,7 @@ const initialStore: Store = {
 }
 
 const monsterStorageKey = 'shownMonsterPushPrompt'
-export const usePushState = Z.createZustand<State>((set, get) => {
+export const usePushState = Z.createZustand<State>('push', (set, get) => {
   const neverShowMonsterAgain = async () => {
     await T.RPCGen.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,

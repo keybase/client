@@ -1,5 +1,5 @@
 import * as Tabs from '@/constants/tabs'
-import {isSplit} from '@/constants/chat/common'
+import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey} from '@/constants/types/chat/common'
 import {isMobile} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'

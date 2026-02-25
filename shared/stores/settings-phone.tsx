@@ -85,7 +85,7 @@ export interface State extends Store {
   }
 }
 
-export const useSettingsPhoneState = Z.createZustand<State>((set, get) => {
+export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (set, get) => {
   const dispatch: State['dispatch'] = {
     addPhoneNumber: (phoneNumber, searchable) => {
       const f = async () => {

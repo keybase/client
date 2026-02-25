@@ -43,7 +43,7 @@ export interface State extends Store {
   }
 }
 
-export const usePinentryState = Z.createZustand<State>((set, get) => {
+export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       onCancel: undefined,
