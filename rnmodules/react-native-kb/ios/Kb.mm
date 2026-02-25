@@ -533,7 +533,7 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 - (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSString *)androidGetRegistrationToken {return @"";}
-- (void)androidAddCompleteDownload:(/*JS::NativeKb::SpecAndroidAddCompleteDownloadO &*/id)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
+- (void)androidAddCompleteDownload:(JS::NativeKb::SpecAndroidAddCompleteDownloadO &)o resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}

@@ -41,10 +41,15 @@ private:
   std::unique_ptr<facebook::jsi::Function> cachedUint8ArrayCtor_;
   std::unique_ptr<facebook::jsi::Function> cachedRpcOnJs_;
   facebook::jsi::Runtime *cachedRuntime_ = nullptr;
+  std::function<void(void *ptr, size_t size)> writeToGo_;
 
   void resetCaches(facebook::jsi::Runtime &runtime);
   facebook::jsi::Value convertMPToJSI(facebook::jsi::Runtime &runtime,
                                       void *mpObj);
+  void convertJSIToMP(facebook::jsi::Runtime &runtime,
+                      const facebook::jsi::Value &value, void *packer);
+  void packAndSend(facebook::jsi::Runtime &runtime,
+                   const facebook::jsi::Value &value);
 };
 
 } // namespace kb

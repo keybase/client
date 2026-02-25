@@ -1,4 +1,5 @@
 #include "react-native-kb.h"
+#include <cmath>
 #include <cstring>
 #include <msgpack.hpp>
 #include <string>
@@ -56,7 +57,8 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
   auto &o = *static_cast<msgpack::object *>(mpObj);
   switch (o.type) {
   case msgpack::type::STR:
-    return jsi::String::createFromUtf8(runtime, o.as<std::string>());
+    return jsi::String::createFromUtf8(runtime,
+        reinterpret_cast<const uint8_t*>(o.via.str.ptr), o.via.str.size);
   case msgpack::type::POSITIVE_INTEGER:
     return jsi::Value(o.as<double>());
   case msgpack::type::NEGATIVE_INTEGER:
@@ -76,9 +78,18 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
     auto *p = o.via.map.ptr;
     auto *const pend = o.via.map.ptr + o.via.map.size;
     for (; p < pend; ++p) {
-      auto key = mpToString(p->key);
       auto val = convertMPToJSI(runtime, &p->val);
-      obj.setProperty(runtime, jsi::String::createFromUtf8(runtime, key), val);
+      auto &k = p->key;
+      if (k.type == msgpack::type::STR) {
+        obj.setProperty(runtime,
+            jsi::PropNameID::forUtf8(runtime,
+                reinterpret_cast<const uint8_t*>(k.via.str.ptr), k.via.str.size),
+            val);
+      } else {
+        auto keyStr = mpToString(k);
+        obj.setProperty(runtime,
+            jsi::PropNameID::forUtf8(runtime, keyStr), val);
+      }
     }
     return obj;
   }
@@ -116,6 +127,99 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
   }
 }
 
+void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
+                              void *packer) {
+  auto &pk = *static_cast<msgpack::packer<msgpack::sbuffer> *>(packer);
+  if (value.isNull() || value.isUndefined()) {
+    pk.pack_nil();
+  } else if (value.isBool()) {
+    pk.pack(value.getBool());
+  } else if (value.isNumber()) {
+    double d = value.getNumber();
+    // Doubles can exactly represent integers up to 2^53. Encode exact
+    // integers as msgpack int/uint (matching @msgpack/msgpack JS behavior)
+    // so Go's decoder sees integer types, not float64.
+    if (d == std::floor(d) && std::isfinite(d)) {
+      if (d >= 0) {
+        pk.pack(static_cast<uint64_t>(d));
+      } else {
+        pk.pack(static_cast<int64_t>(d));
+      }
+    } else {
+      pk.pack(d);
+    }
+  } else if (value.isString()) {
+    auto str = value.getString(runtime).utf8(runtime);
+    pk.pack(str);
+  } else if (value.isObject()) {
+    auto obj = value.getObject(runtime);
+    if (obj.isArrayBuffer(runtime)) {
+      auto buf = obj.getArrayBuffer(runtime);
+      pk.pack_bin(buf.size(runtime));
+      pk.pack_bin_body(reinterpret_cast<const char *>(buf.data(runtime)),
+                       buf.size(runtime));
+    } else if (obj.isArray(runtime)) {
+      auto arr = obj.getArray(runtime);
+      auto len = arr.size(runtime);
+      pk.pack_array(static_cast<uint32_t>(len));
+      for (size_t i = 0; i < len; ++i) {
+        convertJSIToMP(runtime, arr.getValueAtIndex(runtime, i), &pk);
+      }
+    } else {
+      // Check for Uint8Array: has "byteLength" and "buffer" properties
+      // where "buffer" is an ArrayBuffer
+      auto byteLengthProp = obj.getProperty(runtime, "byteLength");
+      if (byteLengthProp.isNumber()) {
+        auto bufferProp = obj.getProperty(runtime, "buffer");
+        if (bufferProp.isObject()) {
+          auto bufferObj = bufferProp.asObject(runtime);
+          if (bufferObj.isArrayBuffer(runtime)) {
+            // This is a TypedArray (Uint8Array) — encode as BIN
+            auto arrayBuf = bufferObj.getArrayBuffer(runtime);
+            auto byteOffset = obj.getProperty(runtime, "byteOffset");
+            size_t offset = byteOffset.isNumber()
+                                ? static_cast<size_t>(byteOffset.getNumber())
+                                : 0;
+            size_t length = static_cast<size_t>(byteLengthProp.getNumber());
+            pk.pack_bin(static_cast<uint32_t>(length));
+            pk.pack_bin_body(
+                reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
+                length);
+            return;
+          }
+        }
+      }
+      // Regular object — encode as MAP
+      auto names = obj.getPropertyNames(runtime);
+      auto len = names.size(runtime);
+      pk.pack_map(static_cast<uint32_t>(len));
+      for (size_t i = 0; i < len; ++i) {
+        auto name = names.getValueAtIndex(runtime, i).getString(runtime);
+        auto nameStr = name.utf8(runtime);
+        pk.pack(nameStr);
+        convertJSIToMP(runtime, obj.getProperty(runtime, name), &pk);
+      }
+    }
+  }
+}
+
+void KBBridge::packAndSend(Runtime &runtime, const Value &value) {
+  msgpack::sbuffer sbuf;
+  msgpack::packer<msgpack::sbuffer> pk(&sbuf);
+  convertJSIToMP(runtime, value, &pk);
+
+  // Write framed: [length prefix][content]
+  msgpack::sbuffer frameBuf;
+  msgpack::packer<msgpack::sbuffer> framePk(&frameBuf);
+  framePk.pack(static_cast<uint32_t>(sbuf.size()));
+
+  std::vector<uint8_t> combined(frameBuf.size() + sbuf.size());
+  std::memcpy(combined.data(), frameBuf.data(), frameBuf.size());
+  std::memcpy(combined.data() + frameBuf.size(), sbuf.data(), sbuf.size());
+
+  writeToGo_(combined.data(), combined.size());
+}
+
 void KBBridge::install(
     Runtime &runtime,
     std::shared_ptr<facebook::react::CallInvoker> callInvoker,
@@ -123,20 +227,16 @@ void KBBridge::install(
     std::function<void(const std::string &)> onError) {
   callInvoker_ = std::move(callInvoker);
   onError_ = std::move(onError);
+  writeToGo_ = std::move(writeToGo);
   mp_ = std::make_unique<MsgpackState>();
 
   auto rpcOnGo = Function::createFromHostFunction(
       runtime, PropNameID::forAscii(runtime, "rpcOnGo"), 1,
-      [writeToGo = std::move(writeToGo)](Runtime &runtime,
-                                         const Value &thisValue,
-                                         const Value *arguments,
-                                         size_t count) -> Value {
+      [self = shared_from_this()](Runtime &runtime, const Value &thisValue,
+                                  const Value *arguments,
+                                  size_t count) -> Value {
         try {
-          auto obj = arguments[0].asObject(runtime);
-          auto buffer = obj.getArrayBuffer(runtime);
-          auto ptr = buffer.data(runtime);
-          auto size = buffer.size(runtime);
-          writeToGo(ptr, size);
+          self->packAndSend(runtime, arguments[0]);
           return Value(true);
         } catch (const std::exception &e) {
           throw std::runtime_error("Error in rpcOnGo: " +
@@ -228,13 +328,29 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
           }
         }
 
-        for (auto &result : *values) {
-          msgpack::object obj(result.get());
+        if (values->size() == 1) {
+          // Single message: pass directly (no array wrapper)
+          msgpack::object obj((*values)[0].get());
           Value value = self->convertMPToJSI(runtime, &obj);
           if (self->isTornDown_.load()) {
             return;
           }
-          self->cachedRpcOnJs_->call(runtime, std::move(value), 1);
+          self->cachedRpcOnJs_->call(runtime, std::move(value),
+                                     jsi::Value(1));
+        } else {
+          // Multiple messages: batch into array, pass count
+          jsi::Array arr(runtime, values->size());
+          for (size_t i = 0; i < values->size(); ++i) {
+            msgpack::object obj((*values)[i].get());
+            arr.setValueAtIndex(runtime, i,
+                                self->convertMPToJSI(runtime, &obj));
+          }
+          if (self->isTornDown_.load()) {
+            return;
+          }
+          self->cachedRpcOnJs_->call(
+              runtime, std::move(arr),
+              jsi::Value(static_cast<int>(values->size())));
         }
       } catch (const std::exception &e) {
         if (self->onError_) {
