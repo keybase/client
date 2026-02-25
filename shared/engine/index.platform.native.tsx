@@ -1,5 +1,4 @@
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {encode} from '@msgpack/msgpack'
 import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import logger from '@/logger'
 import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
@@ -33,17 +32,11 @@ class NativeTransport extends TransportShared {
 
   // A custom send override to write to the react native bridge
   send(msg: unknown) {
-    const packed = encode(msg)
-    const len = encode(packed.length)
-    const buf = new Uint8Array(len.length + packed.length)
-    buf.set(len, 0)
-    buf.set(packed, len.length)
-    // Pass data over to the native side to be handled, with JSI!
     try {
       if (!global.rpcOnGo) {
         logger.error('>>>> rpcOnGo send before rpcOnGo global?')
       }
-      global.rpcOnGo?.(buf.buffer)
+      global.rpcOnGo?.(msg)
     } catch (e) {
       logger.error('>>>> rpcOnGo JS thrown!', e)
     }
@@ -60,9 +53,16 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = (objs: unknown) => {
+  global.rpcOnJs = (objs: unknown, count: number) => {
     try {
-      client.transport._dispatch(objs)
+      if (count > 1) {
+        const arr = objs as Array<unknown>
+        for (const obj of arr) {
+          client.transport._dispatch(obj)
+        }
+      } else {
+        client.transport._dispatch(objs)
+      }
     } catch (e) {
       logger.error('>>>> rpcOnJs JS thrown!', e)
     }

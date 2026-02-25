@@ -73,25 +73,26 @@ object DeviceLockType {
     fun getCurrent(contentResolver: ContentResolver?): Int {
         val mode = Settings.Secure.getLong(contentResolver, PASSWORD_TYPE_KEY,
                 DevicePolicyManager.PASSWORD_QUALITY_SOMETHING.toLong())
-        return if (mode == DevicePolicyManager.PASSWORD_QUALITY_SOMETHING.toLong()) {
-            @Suppress("DEPRECATION")
-            if (Settings.Secure.getInt(contentResolver, Settings.Secure.LOCK_PATTERN_ENABLED, 0) == 1) {
-                PATTERN
-            } else NONE_OR_SLIDER
-        } else if (mode == DevicePolicyManager.PASSWORD_QUALITY_BIOMETRIC_WEAK.toLong()) {
-            val dataDirPath = Environment.getDataDirectory().absolutePath
-            if (nonEmptyFileExists("$dataDirPath/system/gesture.key")) {
-                FACE_WITH_PATTERN
-            } else if (nonEmptyFileExists("$dataDirPath/system/password.key")) {
-                FACE_WITH_PIN
-            } else FACE_WITH_SOMETHING_ELSE
-        } else if (mode == DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC.toLong()) {
-            PASSWORD_ALPHANUMERIC
-        } else if (mode == DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC.toLong()) {
-            PASSWORD_ALPHABETIC
-        } else if (mode == DevicePolicyManager.PASSWORD_QUALITY_NUMERIC.toLong()) {
-            PIN
-        } else SOMETHING_ELSE
+        return when (mode) {
+            DevicePolicyManager.PASSWORD_QUALITY_SOMETHING.toLong() -> {
+                @Suppress("DEPRECATION")
+                if (Settings.Secure.getInt(contentResolver, Settings.Secure.LOCK_PATTERN_ENABLED, 0) == 1) {
+                    PATTERN
+                } else NONE_OR_SLIDER
+            }
+            DevicePolicyManager.PASSWORD_QUALITY_BIOMETRIC_WEAK.toLong() -> {
+                val dataDirPath = Environment.getDataDirectory().absolutePath
+                if (nonEmptyFileExists("$dataDirPath/system/gesture.key")) {
+                    FACE_WITH_PATTERN
+                } else if (nonEmptyFileExists("$dataDirPath/system/password.key")) {
+                    FACE_WITH_PIN
+                } else FACE_WITH_SOMETHING_ELSE
+            }
+            DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC.toLong() -> PASSWORD_ALPHANUMERIC
+            DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC.toLong() -> PASSWORD_ALPHABETIC
+            DevicePolicyManager.PASSWORD_QUALITY_NUMERIC.toLong() -> PIN
+            else -> SOMETHING_ELSE
+        }
     }
 
     private fun nonEmptyFileExists(filename: String): Boolean {

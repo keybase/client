@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -16,11 +15,9 @@ import com.google.firebase.messaging.RemoteMessage
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
-import keybase.ChatNotification
 import com.reactnativekb.KbModule
 import org.json.JSONArray
 import org.json.JSONObject
-import android.util.Log
 
 class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     // This keeps a small ring buffer cache of the last 5 messages per conversation the user
@@ -244,14 +241,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
     }
 
     companion object {
-        @JvmField
-        var CHAT_CHANNEL_ID = "kb_chat_channel"
-        @JvmField
-        var FOLLOW_CHANNEL_ID = "kb_follow_channel"
-        @JvmField
-        var DEVICE_CHANNEL_ID = "kb_device_channel"
-        @JvmField
-        var GENERAL_CHANNEL_ID = "kb_rest_channel"
+        const val CHAT_CHANNEL_ID = "kb_chat_channel"
+        const val FOLLOW_CHANNEL_ID = "kb_follow_channel"
+        const val DEVICE_CHANNEL_ID = "kb_device_channel"
+        const val GENERAL_CHANNEL_ID = "kb_rest_channel"
         fun createNotificationChannel(context: Context) {
             // Create the NotificationChannel, but only on API 26+ because
             // the NotificationChannel class is new and not in the support library
@@ -323,7 +316,7 @@ class SmallMsgRingBuffer {
     }
 }
 
-internal class NotificationData @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1) constructor(type: String, bundle: Bundle) {
+internal class NotificationData(type: String, bundle: Bundle) {
     val displayPlaintext: Boolean
     val membersType: Int
     var convID: String? = null

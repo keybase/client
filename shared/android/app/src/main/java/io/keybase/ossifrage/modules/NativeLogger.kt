@@ -18,7 +18,7 @@ class NativeLogger(reactContext: ReactApplicationContext?) : ReactContextBaseJav
 
         private fun formatLine(tagPrefix: String, toLog: String): String {
             // Copies the Style JS outputs in native/logger.native.tsx
-            return tagPrefix + NAME + ": [" + System.currentTimeMillis() + ",\"" + toLog + "\"]"
+            return "${tagPrefix}${NAME}: [${System.currentTimeMillis()},\"$toLog\"]"
         }
 
         fun error(log: String) {

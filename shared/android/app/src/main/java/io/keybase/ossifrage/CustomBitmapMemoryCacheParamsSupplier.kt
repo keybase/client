@@ -2,7 +2,6 @@ package io.keybase.ossifrage
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import com.facebook.common.internal.Supplier
 import com.facebook.common.util.ByteConstants
 import com.facebook.imagepipeline.cache.MemoryCacheParams
@@ -27,12 +26,10 @@ class CustomBitmapMemoryCacheParamsSupplier(context: Context) : Supplier<MemoryC
     private val maxCacheSize: Int
          get() {
             val maxMemory = Math.min(activityManager.memoryClass * ByteConstants.MB, Int.MAX_VALUE)
-            return if (maxMemory < 32 * ByteConstants.MB) {
-                4 * ByteConstants.MB
-            } else if (maxMemory < 64 * ByteConstants.MB) {
-                6 * ByteConstants.MB
-            } else {
-                maxMemory / CACHE_DIVISION
+            return when {
+                maxMemory < 32 * ByteConstants.MB -> 4 * ByteConstants.MB
+                maxMemory < 64 * ByteConstants.MB -> 6 * ByteConstants.MB
+                else -> maxMemory / CACHE_DIVISION
             }
         }
 

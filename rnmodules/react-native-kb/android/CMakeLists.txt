@@ -16,7 +16,7 @@ message(INFO "params: ${NODE_MODULES_DIR}")
 # Specifies a path to native header files.
 include_directories(
    ../cpp
-   "${NODE_MODULES_DIR}/msgpack-cxx-6.1.0/include"
+   "${NODE_MODULES_DIR}/msgpack-cxx-7.0.0/include"
 )
 
 set_target_properties(

@@ -60,6 +60,7 @@
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned' --appId io.keybase.ossifrage.unsigned",
     "android-install-downgrade-unsigned": "adb install -r -d android/app/build/outputs/apk/releaseUnsigned/app-releaseUnsigned.apk",
     "android-logs": "adb logcat | grep $(adb shell pidof io.keybase.ossifrage)",
+    "android-logs-dump": "adb logcat -d --pid=$(adb shell pidof io.keybase.ossifrage)",
     "android-log-clear": "adb logcat -b all -c",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
     "coverage": "rm -rf coverage-ts; npx typescript-coverage-report",
