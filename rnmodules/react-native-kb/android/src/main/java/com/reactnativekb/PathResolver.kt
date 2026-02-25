@@ -28,7 +28,7 @@ object PathResolver {
                 val docId: String = DocumentsContract.getDocumentId(uri)
                 val split: List<String?> = docId.split(":")
                 val type = split[0]
-                if ("primary".equals(type, ignoreCase = true) && context != null) {
+                if ("primary".equals(type, ignoreCase = true)) {
                     val dir: File? = context.getExternalFilesDir(null)
                     return if (dir != null) dir.toString() + "/" + split[1] else ""
                 }
@@ -39,13 +39,13 @@ object PathResolver {
                     val id: String = DocumentsContract.getDocumentId(uri)
                     //Starting with Android O, this "id" is not necessarily a long (row number),
                     //but might also be a "raw:/some/file/path" URL
-                    if (id != null && id.startsWith("raw:/")) {
+                    if (id.startsWith("raw:/")) {
                         val rawuri: Uri = Uri.parse(id)
                         return rawuri.getPath()
                     }
                     var docId: Long? = null
                     //Since Android 10, uri can start with msf scheme like "msf:12345"
-                    if (id != null && id.startsWith("msf:")) {
+                    if (id.startsWith("msf:")) {
                         val split: List<String?> = id.split(":")
                         val v = split[1]
                         if (v != null) {

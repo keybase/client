@@ -258,6 +258,7 @@ class MainActivity : ReactActivity() {
 
         // Avoid getParcelableArrayListExtra() here: some senders incorrectly use ACTION_SEND_MULTIPLE
         // but provide a single Uri in EXTRA_STREAM, which would cause a ClassCast log/warning.
+        @Suppress("DEPRECATION")
         when (val streamExtra = intent.extras?.get(Intent.EXTRA_STREAM)) {
             is Uri -> uris.add(streamExtra)
             is ArrayList<*> -> streamExtra.filterIsInstance<Uri>().forEach { uris.add(it) }

@@ -155,9 +155,9 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
     auto obj = value.getObject(runtime);
     if (obj.isArrayBuffer(runtime)) {
       auto buf = obj.getArrayBuffer(runtime);
-      pk.pack_bin(buf.size(runtime));
+      pk.pack_bin(static_cast<uint32_t>(buf.size(runtime)));
       pk.pack_bin_body(reinterpret_cast<const char *>(buf.data(runtime)),
-                       buf.size(runtime));
+                       static_cast<uint32_t>(buf.size(runtime)));
     } else if (obj.isArray(runtime)) {
       auto arr = obj.getArray(runtime);
       auto len = arr.size(runtime);
@@ -184,7 +184,7 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
             pk.pack_bin(static_cast<uint32_t>(length));
             pk.pack_bin_body(
                 reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
-                length);
+                static_cast<uint32_t>(length));
             return;
           }
         }

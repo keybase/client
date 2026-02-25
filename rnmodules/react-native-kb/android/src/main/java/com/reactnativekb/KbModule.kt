@@ -555,14 +555,14 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                 .addOnCompleteListener(OnCompleteListener { task ->
                         if (!task.isSuccessful()) {
                             NativeLogger.info("Fetching FCM registration token failed " + task.getException())
-                            promise.reject("Fetching FCM registration token failed")
+                            promise.reject("E_FCM_TOKEN", "Fetching FCM registration token failed")
                             return@OnCompleteListener
                         }
 
                         // Get new FCM registration token
                         val token: String? = task.result
                         if (token == null) {
-                            promise.reject("null token")
+                            promise.reject("E_FCM_TOKEN", "null token")
                             return@OnCompleteListener
                          }
                         NativeLogger.info("Got token: $token")
@@ -694,6 +694,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     size = sizeStr.toLong()
                 }
             }
+            @Suppress("DEPRECATION")
             dm.addCompletedDownload(
                     if (config.hasKey("title")) config.getString("title") else "",
                     if (config.hasKey("description")) config.getString("description") else "",

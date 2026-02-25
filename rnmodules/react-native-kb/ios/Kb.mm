@@ -1,7 +1,5 @@
 #import "Kb.h"
 #import "Keybasego.h"
-#import <CoreTelephony/CTCarrier.h>
-#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <Foundation/Foundation.h>
 #import <React/RCTEventDispatcher.h>
 #import <ReactCommon/CallInvoker.h>
@@ -87,13 +85,13 @@ RCT_EXPORT_MODULE()
     Class cls = [UITextView class];
 
     SEL originalPaste = @selector(paste:);
-    SEL swizzledPaste = @selector(kb_paste:);
+    SEL swizzledPaste = NSSelectorFromString(@"kb_paste:");
     Method originalPasteMethod = class_getInstanceMethod(cls, originalPaste);
     Method swizzledPasteMethod = class_getInstanceMethod(cls, swizzledPaste);
     method_exchangeImplementations(originalPasteMethod, swizzledPasteMethod);
 
     SEL originalCanPerform = @selector(canPerformAction:withSender:);
-    SEL swizzledCanPerform = @selector(kb_canPerformAction:withSender:);
+    SEL swizzledCanPerform = NSSelectorFromString(@"kb_canPerformAction:withSender:");
     Method originalCanPerformMethod = class_getInstanceMethod(cls, originalCanPerform);
     Method swizzledCanPerformMethod = class_getInstanceMethod(cls, swizzledCanPerform);
     method_exchangeImplementations(originalCanPerformMethod, swizzledCanPerformMethod);
@@ -313,10 +311,10 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 RCT_EXPORT_METHOD(getDefaultCountryCode
                  : (RCTPromiseResolveBlock)resolve reject
                  : (RCTPromiseRejectBlock)reject) {
-  CTTelephonyNetworkInfo *network_Info = [CTTelephonyNetworkInfo new];
-    // TODO this will stop working at some point
-  CTCarrier *carrier = network_Info.subscriberCellularProvider;
-  resolve(carrier.isoCountryCode);
+  // CTCarrier was removed in iOS 16.4 with no replacement.
+  // Use the locale's region code instead — good enough for phone number formatting.
+  NSString *countryCode = [[NSLocale currentLocale] countryCode];
+  resolve(countryCode ?: @"");
 }
 
 RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendLogs:(BOOL)sendLogs sendMaxBytes:(BOOL)sendMaxBytes traceDir:(NSString *)traceDir cpuProfileDir:(NSString *)cpuProfileDir resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
@@ -501,10 +499,6 @@ RCT_EXPORT_METHOD(processVideo:(NSString *)path resolve:(RCTPromiseResolveBlock)
 }
 
 + (void)emitPushNotification:(NSDictionary *)notification {
-  NSString *type = notification[@"type"] ?: @"unknown";
-  NSString *convID = notification[@"convID"] ?: notification[@"c"] ?: @"unknown";
-  NSNumber *userInteraction = notification[@"userInteraction"];
-
   if (kbSharedInstance) {
     [kbSharedInstance sendEventWithName:@"onPushNotification" body:notification];
     NSLog(@"Kb.emitPushNotification: sent event 'onPushNotification' to JS");

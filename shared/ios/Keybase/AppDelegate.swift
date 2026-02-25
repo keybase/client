@@ -138,18 +138,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
 
     if self.startupLogFileHandle == nil {
-      do {
-        if !FileManager.default.fileExists(atPath: logFilePath) {
-          FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
-        }
+      if !FileManager.default.fileExists(atPath: logFilePath) {
+        FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+      }
 
-        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-          fileHandle.seekToEndOfFile()
-          self.startupLogFileHandle = fileHandle
-        }
-      } catch {
-        NSLog("Error opening startup timing log file: \(error)")
-        return
+      if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
+        fileHandle.seekToEndOfFile()
+        self.startupLogFileHandle = fileHandle
       }
     }
 
@@ -174,12 +169,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       return
     }
 
-    do {
-      fileHandle.write(logData)
-      fileHandle.synchronizeFile()
-    } catch {
-      NSLog("Error writing startup timing log: \(error)")
-    }
+    fileHandle.write(logData)
+    fileHandle.synchronizeFile()
   }
 
   private func closeStartupLogFile() {
@@ -332,9 +323,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = true
 
-    let type = notificationDict["type"] as? String ?? "unknown"
-    let convID = notificationDict["convID"] as? String ?? notificationDict["c"] as? String ?? "unknown"
-
     // Store the notification so it can be processed when app becomes active
     // This ensures navigation works even if React Native isn't ready yet
     KbSetInitialNotification(notificationDict)
@@ -421,8 +409,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     // This handles the case where app was backgrounded and notification was clicked
     // but React Native wasn't ready yet
     if let storedNotification = KbGetAndClearInitialNotification() {
-      let type = storedNotification["type"] as? String ?? "unknown"
-      let convID = storedNotification["convID"] as? String ?? storedNotification["c"] as? String ?? "unknown"
       let userInteraction = storedNotification["userInteraction"] as? Bool ?? false
 
       if userInteraction {
@@ -432,9 +418,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         } else {
           NSLog("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
           KbEmitPushNotification(storedNotification)
-          var copy = Dictionary(uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
+          var copy = storedNotification
           copy["reEmittedInBecomeActive"] = true
-          KbSetInitialNotification(copy as NSDictionary as! [AnyHashable : Any])
+          KbSetInitialNotification(copy)
         }
       } else {
         NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
