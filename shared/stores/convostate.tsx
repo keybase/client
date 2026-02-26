@@ -132,6 +132,7 @@ type ConvoStore = T.Immutable<{
   moreToLoadForward: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
   participants: T.Chat.ParticipantInfo
+  pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
@@ -142,6 +143,7 @@ type ConvoStore = T.Immutable<{
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
   unsentText?: string
+  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }>
 
 const initialConvoStore: ConvoStore = {
@@ -170,6 +172,7 @@ const initialConvoStore: ConvoStore = {
   moreToLoadForward: false,
   mutualTeams: [],
   participants: noParticipantInfo,
+  pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
   separatorMap: new Map(),
@@ -180,11 +183,11 @@ const initialConvoStore: ConvoStore = {
   unfurlPrompt: new Map(),
   unread: 0,
   unsentText: undefined,
+  validatedOrdinalRange: undefined,
 }
 
 type LoadMoreMessagesParams = {
   forceContainsLatestCalc?: boolean
-  forceReload?: boolean
   messageIDControl?: T.RPCChat.MessageIDControl
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
@@ -604,10 +607,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       why: string
       markAsRead?: boolean
       incomingMessage?: boolean
-      replaceOrdinals?: boolean
+      validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
     }
   ) => {
-    const {why, markAsRead = true, incomingMessage = false, replaceOrdinals = false} = opt
+    const {why, markAsRead = true, incomingMessage = false, validatedRange} = opt
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
@@ -622,20 +625,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         if (m.conversationMessage !== false && m.type !== 'deleted') {
           incomingOrdinals.add(m.ordinal)
         }
-      }
-
-      if (replaceOrdinals) {
-        // Clean up ordinals that are no longer in the incoming set
-        const oldOrdinals = s.messageOrdinals ?? []
-        for (const o of oldOrdinals) {
-          if (!incomingOrdinals.has(o)) {
-            s.messageMap.delete(o)
-            s.messageTypeMap.delete(o)
-          }
-        }
-        s.pendingOutboxToOrdinal.clear()
-        // Set ordinals to exactly the incoming set (sorted)
-        s.messageOrdinals = [...incomingOrdinals].sort((a, b) => a - b)
       }
 
       for (const _m of messages) {
@@ -664,6 +653,12 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           }
 
           if (m.ordinal !== mapOrdinal) {
+            // Outbox remap: fix incomingOrdinals so the original ordinal doesn't
+            // get merged into messageOrdinals with no backing message
+            if (regularMessage && m.type !== 'deleted') {
+              incomingOrdinals.delete(m.ordinal)
+              incomingOrdinals.add(mapOrdinal)
+            }
             m.ordinal = mapOrdinal
           }
 
@@ -689,29 +684,48 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         }
       }
 
-      // For non-replace case, merge incoming ordinals into existing
-      if (!replaceOrdinals) {
-        const existing = new Set(s.messageOrdinals ?? [])
-        let changed = false
-        for (const o of incomingOrdinals) {
-          if (!existing.has(o)) {
-            existing.add(o)
+      // Merge incoming ordinals into existing
+      const existing = new Set(s.messageOrdinals ?? [])
+      let changed = false
+      for (const o of incomingOrdinals) {
+        if (!existing.has(o)) {
+          existing.add(o)
+          changed = true
+        }
+      }
+      // Remove deleted ordinals
+      for (const _m of messages) {
+        const m = T.castDraft(_m)
+        if (m.conversationMessage !== false && m.type === 'deleted') {
+          if (existing.has(m.ordinal)) {
+            existing.delete(m.ordinal)
             changed = true
           }
         }
-        // Also remove deleted ordinals
-        for (const _m of messages) {
-          const m = T.castDraft(_m)
-          if (m.conversationMessage !== false && m.type === 'deleted') {
-            if (existing.has(m.ordinal)) {
-              existing.delete(m.ordinal)
-              changed = true
-            }
+      }
+      // Reconcile via validatedRange: prune ordinals within the range that the server didn't return
+      if (validatedRange) {
+        for (const o of existing) {
+          if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
+            existing.delete(o)
+            s.messageMap.delete(o)
+            s.messageTypeMap.delete(o)
+            changed = true
           }
         }
-        if (changed || !s.messageOrdinals) {
-          s.messageOrdinals = [...existing].sort((a, b) => a - b)
+        // Expand the validated range (union of old + new)
+        const prev = s.validatedOrdinalRange
+        if (prev) {
+          s.validatedOrdinalRange = {
+            from: (Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal),
+            to: (Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal),
+          }
+        } else {
+          s.validatedOrdinalRange = validatedRange
         }
+      }
+      if (changed || !s.messageOrdinals) {
+        s.messageOrdinals = [...existing].sort((a, b) => a - b)
       }
 
       syncSeparatorMap(s)
@@ -1526,7 +1540,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     jumpToRecent: () => {
       setMessageCenterOrdinal()
-      get().dispatch.loadMoreMessages({forceReload: true, reason: 'jump to recent'})
+      set(s => {
+        s.validatedOrdinalRange = undefined
+      })
+      get().dispatch.loadMoreMessages({reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
@@ -1633,6 +1650,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       ignorePromise(f())
     },
     loadMessagesCentered: (messageID, highlightMode) => {
+      get().dispatch.messagesClear()
       get().dispatch.loadMoreMessages({
         centeredMessageID: {
           conversationIDKey: Common.getSelectedConversation(),
@@ -1654,20 +1672,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
-
-      const forceReload = p.forceReload ?? false
-
-      const needsReloadBase = forceReload || !!centeredMessageID
-
-      // Only flash loaded = false if we're not already loaded
-      if (needsReloadBase && !get().loaded) {
-        set(s => {
-          s.loaded = false
-        })
-      }
-
-      // Track whether onGotThread should replace ordinals instead of merging
-      let needsReplace = needsReloadBase
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -1709,6 +1713,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
         const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
         const convID = get().getConvID()
+        let reconciled = false
         const onGotThread = (thread: string, why: string) => {
           if (!thread) {
             return
@@ -1754,8 +1759,21 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           })
 
           if (messages.length) {
-            messagesAdd(messages, {replaceOrdinals: needsReplace, why: `load more ongotthread: ${why}`})
-            needsReplace = false
+            // Only reconcile on the first response of an initial load (not scrolls)
+            let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
+            if (sd === 'none' && !reconciled) {
+              const ords = messages
+                .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
+                .map(m => m.ordinal)
+              if (ords.length > 0) {
+                validatedRange = {
+                  from: Math.min(...ords) as T.Chat.Ordinal,
+                  to: Math.max(...ords) as T.Chat.Ordinal,
+                }
+              }
+              reconciled = true
+            }
+            messagesAdd(messages, {validatedRange, why: `load more ongotthread: ${why}`})
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
@@ -2175,6 +2193,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         s.messageMap.clear()
         s.messageOrdinals = undefined
         s.messageTypeMap.clear()
+        s.validatedOrdinalRange = undefined
         syncSeparatorMap(s)
       })
     },
@@ -2250,51 +2269,15 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       ignorePromise(f())
     },
-    navigateToThread: (_reason, highlightMessageID, pushBody) => {
+    navigateToThread: (_reason, highlightMessageID, _pushBody) => {
       set(s => {
         s.threadSearchInfo.visible = false
         // force loaded if we're an error
         if (s.id === T.Chat.pendingErrorConversationIDKey) {
           s.loaded = true
         }
+        s.pendingJumpMessageID = highlightMessageID
       })
-
-      const loadMessages = () => {
-        let reason: LoadMoreReason = _reason
-        let forceContainsLatestCalc = false
-        let messageIDControl: T.RPCChat.MessageIDControl | undefined
-        const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
-        const centeredMessageID = highlightMessageID
-          ? {
-              conversationIDKey: get().id,
-              highlightMode: 'flash' as const,
-              messageID: highlightMessageID,
-            }
-          : undefined
-
-        if (highlightMessageID) {
-          reason = 'centered'
-          messageIDControl = {
-            mode: T.RPCChat.MessageIDControlMode.centered,
-            num: numMessagesOnInitialLoad,
-            pivot: highlightMessageID,
-          }
-          forceContainsLatestCalc = true
-        }
-
-        get().dispatch.loadMoreMessages({
-          centeredMessageID,
-          forceContainsLatestCalc,
-          forceReload: true,
-          knownRemotes,
-          messageIDControl,
-          reason,
-        })
-      }
-      loadMessages()
-
-      // load meta
-      get().dispatch.defer.chatUnboxRows([get().id], true)
 
       const updateNav = () => {
         const reason = _reason
@@ -2686,9 +2669,15 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       })
       fetchConversationBio()
       get().dispatch.defer.chatResetConversationErrored()
-      // Load messages if not already loaded (e.g., screen rendered via linking state restoration)
-      if (!get().loaded) {
-        get().dispatch.loadMoreMessages({forceReload: true, reason: 'focused'})
+      // Handle pending jump (e.g. from notification deep link)
+      const pendingJump = get().pendingJumpMessageID
+      if (pendingJump) {
+        set(s => {
+          s.pendingJumpMessageID = undefined
+        })
+        get().dispatch.loadMessagesCentered(pendingJump, 'flash')
+      } else {
+        get().dispatch.loadMoreMessages({reason: 'focused'})
       }
     },
     sendAudioRecording: async (path, duration, amps) => {

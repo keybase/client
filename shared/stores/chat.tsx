@@ -1092,7 +1092,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       })
       if (loadMore) {
         storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({
-          forceReload: true,
           reason: 'got stale',
         })
       }
