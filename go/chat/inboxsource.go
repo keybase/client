@@ -21,6 +21,56 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	inboxPageSizeCI      = 3
+	inboxPageSizeMobile  = 500
+	inboxPageSizeDesktop = 1000
+)
+
+func getInboxPageSize(g *globals.Context) int {
+	if g.GetEnv().RunningInCI() {
+		return inboxPageSizeCI
+	}
+	if g.IsMobileAppType() {
+		return inboxPageSizeMobile
+	}
+	return inboxPageSizeDesktop
+}
+
+// fetchInboxPaginated fetches all pages of the inbox via GetInboxRemote, accumulating
+// conversations and using only the first full response's Vers for the combined result.
+func fetchInboxPaginated(ctx context.Context, getChatInterface func() chat1.RemoteInterface,
+	query *chat1.GetInboxQuery, pageSize int,
+) (convs []chat1.Conversation, vers chat1.InboxVers, err error) {
+	arg := chat1.GetInboxRemoteArg{
+		Query:      query,
+		Pagination: &chat1.Pagination{Num: pageSize},
+	}
+	ib, err := getChatInterface().GetInboxRemote(ctx, arg)
+	if err != nil {
+		return nil, 0, err
+	}
+	full := ib.Inbox.Full()
+	convs = append(convs, full.Conversations...)
+	vers = full.Vers
+	for full.Pagination != nil && !full.Pagination.Last && len(full.Pagination.Next) > 0 {
+		arg = chat1.GetInboxRemoteArg{
+			Query: query,
+			Pagination: &chat1.Pagination{
+				Num:  pageSize,
+				Next: full.Pagination.Next,
+			},
+		}
+		ib, err = getChatInterface().GetInboxRemote(ctx, arg)
+		if err != nil {
+			return nil, 0, err
+		}
+		full = ib.Inbox.Full()
+		convs = append(convs, full.Conversations...)
+	}
+	return convs, vers, nil
+}
+
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
 	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo,
 ) (res []chat1.ConversationLocal, err error) {
@@ -341,15 +391,15 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	if s.IsOffline(ctx) {
 		return types.Inbox{}, OfflineError{}
 	}
-	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: s.setDefaultParticipantMode(rquery),
-	})
+	query := s.setDefaultParticipantMode(rquery)
+	pageSize := getInboxPageSize(s.G())
+	convs, vers, err := fetchInboxPaginated(ctx, s.getChatInterface, query, pageSize)
 	if err != nil {
 		return types.Inbox{}, err
 	}
 	return types.Inbox{
-		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
+		Version:         vers,
+		ConvsUnverified: utils.RemoteConvs(convs),
 	}, nil
 }
 
@@ -982,9 +1032,9 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	}
 	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
-	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: s.setDefaultParticipantMode(&rquery),
-	})
+	remoteQuery := s.setDefaultParticipantMode(&rquery)
+	pageSize := getInboxPageSize(s.G())
+	convs, vers, err := fetchInboxPaginated(ctx, s.getChatInterface, remoteQuery, pageSize)
 	if err != nil {
 		return types.Inbox{}, err
 	}
@@ -997,7 +1047,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		maxBgEnqueued = 3
 	}
 
-	for _, conv := range ib.Inbox.Full().Conversations {
+	for _, conv := range convs {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
@@ -1024,11 +1074,11 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			bgEnqueued++
 		}
 	}
-	convs := utils.RemoteConvs(ib.Inbox.Full().Conversations)
-	convs = utils.ApplyInboxQuery(ctx, s.DebugLabeler, query, convs)
+	convsUnverified := utils.RemoteConvs(convs)
+	convsUnverified = utils.ApplyInboxQuery(ctx, s.DebugLabeler, query, convsUnverified)
 	return types.Inbox{
-		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: convs,
+		Version:         vers,
+		ConvsUnverified: convsUnverified,
 	}, nil
 }
 

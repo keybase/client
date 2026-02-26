@@ -233,3 +233,44 @@ func TestChatConversationDeleted(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// TestInboxPaginationMultiPage exercises the pagination path against the real server.
+// It creates a team conversation and numConvs distinct channels so the server returns
+// multiple pages when the client uses page size 3 (e.g. under KEYBASE_RUN_CI=1).
+func TestInboxPaginationMultiPage(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestInboxPaginationMultiPage", 3)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[users[0].Username].ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
+	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := users[0].User.GetUID().ToBytes()
+
+	// Create a team conversation (default channel), then numConvs distinct channels.
+	const numConvs = 25
+	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[1], users[2])
+	consumeNewConversation(t, listener, teamConv.Id)
+
+	for i := range numConvs {
+		topicName := fmt.Sprintf("pagination-%d", i+1)
+		conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			&topicName, chat1.ConversationMembersType_TEAM, users[1], users[2])
+		consumeNewConversation(t, listener, conv.Id)
+	}
+
+	minConvs := 1 + numConvs // team + channels
+	ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceRemoteOnly, nil)
+	require.NoError(t, err)
+	require.NotNil(t, ib.ConvsUnverified, "inbox convs should be non-nil")
+	require.GreaterOrEqual(t, len(ib.ConvsUnverified), minConvs,
+		"inbox should contain at least %d conversations (team + channels) to exercise pagination", minConvs)
+	require.GreaterOrEqual(t, ib.Version, chat1.InboxVers(0), "inbox version should be set")
+}
