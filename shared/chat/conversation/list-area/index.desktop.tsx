@@ -655,13 +655,14 @@ if (colorWaypoints) {
   }
 }
 
-// When rendering the first time, let it auto size
-// when you're out of view (!isIntersecting) then replace with a placeholder div with a fixed height
-// when you're back in view auto size
+// Start unmeasured waypoints as placeholders with estimated height.
+// Intersection Observer fires synchronously for elements in the viewport on mount,
+// so visible waypoints render immediately. Off-screen ones stay as placeholders until scrolled to.
 const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
+  const estimatedHeight = 40 * ordinals.length
   const [height, setHeight] = React.useState(-1)
-  const [isVisible, setVisible] = React.useState(true)
+  const [isVisible, setVisible] = React.useState(false)
   const [wRef, setRef] = React.useState<HTMLDivElement | null>(null)
   const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
   const {isIntersecting} = useIntersectionObserver(wRef, {root})
@@ -673,7 +674,7 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointPr
     setVisible(isIntersecting)
   }, [isIntersecting])
 
-  const renderMessages = height < 0 || isVisible
+  const renderMessages = isVisible
   let content: React.ReactElement
 
   const lastRenderMessages = React.useRef(false)
@@ -692,7 +693,7 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointPr
   if (renderMessages) {
     content = <Content key={id} id={id} ref={setRef} ordinals={ordinals} rowRenderer={rowRenderer} />
   } else {
-    content = <Dummy key={id} id={id} height={height} ref={setRef} />
+    content = <Dummy key={id} id={id} height={height < 0 ? estimatedHeight : height} ref={setRef} />
   }
 
   if (colorWaypoints) {
