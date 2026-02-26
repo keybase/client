@@ -541,6 +541,30 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     s.separatorMap = sm
   }
 
+  const messageUnchanged = (
+    existing: Z.WritableDraft<T.Chat.Message>,
+    incoming: Z.WritableDraft<T.Chat.Message>
+  ): boolean => {
+    if (existing.id !== incoming.id || existing.type !== incoming.type) return false
+    if (existing.type === 'placeholder') return false
+    // Common mutable fields
+    if (existing.exploded !== incoming.exploded) return false
+    if (existing.submitState !== incoming.submitState) return false
+    if ((existing.reactions?.size ?? 0) !== (incoming.reactions?.size ?? 0)) return false
+    if ((existing.unfurls?.size ?? 0) !== (incoming.unfurls?.size ?? 0)) return false
+    // Type-specific content
+    if (existing.type === 'text' && incoming.type === 'text') {
+      if (existing.text.stringValue() !== incoming.text.stringValue()) return false
+      if (existing.decoratedText?.stringValue() !== incoming.decoratedText?.stringValue()) return false
+    }
+    if (existing.type === 'attachment' && incoming.type === 'attachment') {
+      if (existing.title !== incoming.title) return false
+      if (existing.transferProgress !== incoming.transferProgress) return false
+      if (existing.transferState !== incoming.transferState) return false
+    }
+    return true
+  }
+
   const desktopNotification = (author: string, body: string) => {
     if (isMobile) return
 
@@ -641,6 +665,12 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
           if (m.ordinal !== mapOrdinal) {
             m.ordinal = mapOrdinal
+          }
+
+          // Preserve existing reference if content hasn't changed
+          const existingMsg = s.messageMap.get(mapOrdinal)
+          if (existingMsg && messageUnchanged(existingMsg, m)) {
+            continue
           }
 
           s.messageMap.set(mapOrdinal, T.castDraft(m))
