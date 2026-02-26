@@ -184,7 +184,7 @@ const initialConvoStore: ConvoStore = {
 
 type LoadMoreMessagesParams = {
   forceContainsLatestCalc?: boolean
-  forceClear?: boolean
+  forceReload?: boolean
   messageIDControl?: T.RPCChat.MessageIDControl
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
@@ -530,20 +530,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     return clientPrev || T.Chat.numberToMessageID(0)
   }
 
-  const syncMessageDerived = (s: Z.WritableDraft<ConvoState>) => {
-    const mo = [...s.messageMap]
-      .filter(([, m]) => {
-        const regularMessage = m.conversationMessage !== false
-        return regularMessage
-      })
-      .map(([ord]) => ord)
-      .sort((a, b) => a - b)
-    if (shallowEqual(s.messageOrdinals, mo)) {
-      return
-    }
-
-    s.messageOrdinals = mo
-
+  const syncSeparatorMap = (s: Z.WritableDraft<ConvoState>) => {
+    const mo = s.messageOrdinals ?? []
     const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
     let p = T.Chat.numberToOrdinal(0)
     for (const o of mo) {
@@ -592,10 +580,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       why: string
       markAsRead?: boolean
       incomingMessage?: boolean
-      clearFirst?: boolean
+      replaceOrdinals?: boolean
     }
   ) => {
-    const {why, markAsRead = true, incomingMessage = false, clearFirst = false} = opt
+    const {why, markAsRead = true, incomingMessage = false, replaceOrdinals = false} = opt
     logger.info('[CHATDEBUG] adding', messages.length, why, messages.at(0)?.id, messages.at(-1)?.id)
 
     // we can't allow gaps in the ordinals so if we get an incoming message and we're in a search ignore it
@@ -604,11 +592,28 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     }
 
     set(s => {
-      if (clearFirst) {
-        s.pendingOutboxToOrdinal.clear()
-        s.messageMap.clear()
-        s.messageTypeMap.clear()
+      // Build set of incoming regular ordinals for ordinal management
+      const incomingOrdinals = new Set<T.Chat.Ordinal>()
+      for (const m of messages) {
+        if (m.conversationMessage !== false && m.type !== 'deleted') {
+          incomingOrdinals.add(m.ordinal)
+        }
       }
+
+      if (replaceOrdinals) {
+        // Clean up ordinals that are no longer in the incoming set
+        const oldOrdinals = s.messageOrdinals ?? []
+        for (const o of oldOrdinals) {
+          if (!incomingOrdinals.has(o)) {
+            s.messageMap.delete(o)
+            s.messageTypeMap.delete(o)
+          }
+        }
+        s.pendingOutboxToOrdinal.clear()
+        // Set ordinals to exactly the incoming set (sorted)
+        s.messageOrdinals = [...incomingOrdinals].sort((a, b) => a - b)
+      }
+
       for (const _m of messages) {
         const m = T.castDraft(_m)
         const regularMessage = m.conversationMessage !== false
@@ -653,7 +658,33 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           }
         }
       }
-      syncMessageDerived(s)
+
+      // For non-replace case, merge incoming ordinals into existing
+      if (!replaceOrdinals) {
+        const existing = new Set(s.messageOrdinals ?? [])
+        let changed = false
+        for (const o of incomingOrdinals) {
+          if (!existing.has(o)) {
+            existing.add(o)
+            changed = true
+          }
+        }
+        // Also remove deleted ordinals
+        for (const _m of messages) {
+          const m = T.castDraft(_m)
+          if (m.conversationMessage !== false && m.type === 'deleted') {
+            if (existing.has(m.ordinal)) {
+              existing.delete(m.ordinal)
+              changed = true
+            }
+          }
+        }
+        if (changed || !s.messageOrdinals) {
+          s.messageOrdinals = [...existing].sort((a, b) => a - b)
+        }
+      }
+
+      syncSeparatorMap(s)
     })
 
     if (markAsRead) {
@@ -996,7 +1027,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     if (existing) {
       set(s => {
         s.messageMap.delete(toDelOrdinal)
-        syncMessageDerived(s)
+        s.messageTypeMap.delete(toDelOrdinal)
+        if (s.messageOrdinals) {
+          s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
+        }
+        syncSeparatorMap(s)
       })
     }
 
@@ -1461,7 +1496,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     jumpToRecent: () => {
       setMessageCenterOrdinal()
-      get().dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
+      get().dispatch.loadMoreMessages({forceReload: true, reason: 'jump to recent'})
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
@@ -1590,21 +1625,19 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
       const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
-      let forceClear = p.forceClear ?? false
+      const forceReload = p.forceReload ?? false
 
-      if (centeredMessageID) {
-        forceClear = true
-      }
+      const needsReloadBase = forceReload || !!centeredMessageID
 
-      // Set loaded = false to preserve the justLoaded false→true transition for scroll-to-bottom
-      if (forceClear) {
+      // Only flash loaded = false if we're not already loaded
+      if (needsReloadBase && !get().loaded) {
         set(s => {
           s.loaded = false
         })
       }
 
-      // Track whether onGotThread should atomically clear before adding messages
-      let needsClear = forceClear
+      // Track whether onGotThread should replace ordinals instead of merging
+      let needsReplace = needsReloadBase
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -1651,9 +1684,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             return
           }
 
-          set(s => {
-            s.loaded = true
-          })
+          if (!get().loaded) {
+            set(s => {
+              s.loaded = true
+            })
+          }
 
           const username = useCurrentUserState.getState().username
           const devicename = useCurrentUserState.getState().deviceName
@@ -1689,8 +1724,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           })
 
           if (messages.length) {
-            messagesAdd(messages, {clearFirst: needsClear, why: `load more ongotthread: ${why}`})
-            needsClear = false
+            messagesAdd(messages, {replaceOrdinals: needsReplace, why: `load more ongotthread: ${why}`})
+            needsReplace = false
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
@@ -2108,8 +2143,9 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         s.pendingOutboxToOrdinal.clear()
         s.loaded = false
         s.messageMap.clear()
-        syncMessageDerived(s)
+        s.messageOrdinals = undefined
         s.messageTypeMap.clear()
+        syncSeparatorMap(s)
       })
     },
     messagesExploded: (messageIDs, explodedBy) => {
@@ -2166,8 +2202,12 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       set(s => {
         allOrdinals.forEach(ordinal => {
           s.messageMap.delete(ordinal)
+          s.messageTypeMap.delete(ordinal)
         })
-        syncMessageDerived(s)
+        if (s.messageOrdinals) {
+          s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
+        }
+        syncSeparatorMap(s)
       })
     },
     mute: m => {
@@ -2214,8 +2254,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
         get().dispatch.loadMoreMessages({
           centeredMessageID,
-          forceClear: true,
           forceContainsLatestCalc,
+          forceReload: true,
           knownRemotes,
           messageIDControl,
           reason,
@@ -2618,7 +2658,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       get().dispatch.defer.chatResetConversationErrored()
       // Load messages if not already loaded (e.g., screen rendered via linking state restoration)
       if (!get().loaded) {
-        get().dispatch.loadMoreMessages({forceClear: true, reason: 'focused'})
+        get().dispatch.loadMoreMessages({forceReload: true, reason: 'focused'})
       }
     },
     sendAudioRecording: async (path, duration, amps) => {
