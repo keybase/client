@@ -19,7 +19,7 @@ import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSO
 import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
-import * as FileSystem from 'expo-file-system/legacy'
+import {File} from 'expo-file-system'
 import AudioSend from './audio-send.native'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
@@ -377,7 +377,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     pathRef.current = ''
     if (path) {
       try {
-        await FileSystem.deleteAsync(path, {idempotent: true})
+        new File(path).delete()
       } catch {}
     }
     recordStartRef.current = 0

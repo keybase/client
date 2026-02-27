@@ -500,7 +500,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		06FBFC2D831E6ACEC5FD0C58 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
+			alwaysOutOfDate = 0;
 			buildActionMask = 2147483647;
 			files = (
 			);
