@@ -3,7 +3,8 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import type {Props} from './video'
 import {StatusBar} from 'react-native'
-import {Video as AVVideo, VideoFullscreenUpdate} from 'expo-av'
+import {useVideoPlayer, VideoView} from 'expo-video'
+import {useEventListener} from 'expo'
 import {useCheckURL} from './video.shared'
 
 const Kb = {Box2}
@@ -23,28 +24,30 @@ const DelayMount = ({children}: {children: React.ReactNode}): React.ReactNode =>
 const Video = (props: Props) => {
   const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
   const url = Styles.urlEscapeFilePath(_url)
-  const source = React.useMemo(() => {
-    if (allowFile) {
-      return {uri: Styles.normalizePath(url)}
+  const uri = allowFile ? Styles.normalizePath(url) : url
+
+  const player = useVideoPlayer(uri, p => {
+    p.muted = muted ?? false
+    if (autoPlay ?? true) {
+      p.play()
     }
-    return {uri: url}
-  }, [url, allowFile])
+  })
+
+  useEventListener(player, 'statusChange', ({status, error}) => {
+    if (status === 'error' && error && onUrlError) {
+      onUrlError(JSON.stringify(error))
+    }
+  })
 
   const content = (
     <DelayMount>
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
-        <AVVideo
-          isMuted={muted}
-          source={source}
-          onError={e => {
-            onUrlError?.(JSON.stringify(e))
-          }}
-          useNativeControls={true}
-          shouldPlay={autoPlay ?? true}
-          onFullscreenUpdate={event => {
-            if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-              StatusBar.setHidden(false)
-            }
+        <VideoView
+          player={player}
+          nativeControls={true}
+          contentFit="contain"
+          onFullscreenExit={() => {
+            StatusBar.setHidden(false)
           }}
           style={styles.video}
         />

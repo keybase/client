@@ -1,18 +1,21 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useState} from './use-state'
 import {ShowToastAfterSaving} from '../shared'
-import {Video, ResizeMode, type AVPlaybackStatus} from 'expo-av'
+import {useVideoPlayer, VideoView} from 'expo-video'
+import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'
 import type {Props} from './videoimpl'
 
 const VideoImpl = (p: Props) => {
   const {allowPlay, showPopup} = p
   const {previewURL, height, width, url, transferState, videoDuration} = useState()
-  const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
+  const sourceUri = `${url}&contentforce=true`
 
-  const ref = React.useRef<Video | null>(null)
+  const player = useVideoPlayer(sourceUri, pl => {
+    pl.loop = false
+  })
+
   const [showPoster, setShowPoster] = React.useState(true)
   const [lastUrl, setLastUrl] = React.useState(url)
 
@@ -23,20 +26,12 @@ const VideoImpl = (p: Props) => {
 
   const onPress = React.useCallback(() => {
     setShowPoster(false)
-  }, [])
+    player.play()
+  }, [player])
 
-  const onPlaybackStatusUpdate = React.useCallback((status: AVPlaybackStatus) => {
-    const f = async () => {
-      if (!status.isLoaded) {
-        return
-      }
-
-      if (status.didJustFinish) {
-        await ref.current?.setPositionAsync(0)
-      }
-    }
-    C.ignorePromise(f())
-  }, [])
+  useEventListener(player, 'playToEnd', () => {
+    player.replay()
+  })
 
   return (
     <>
@@ -56,15 +51,11 @@ const VideoImpl = (p: Props) => {
             </Kb.Box2>
           </Kb.Box2>
         ) : (
-          <Video
-            ref={ref}
-            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-            source={source}
-            useNativeControls={true}
-            shouldPlay={true}
-            usePoster={false}
+          <VideoView
+            player={player}
+            nativeControls={true}
+            contentFit="cover"
             style={Kb.Styles.collapseStyles([styles.video, {height, width}])}
-            resizeMode={ResizeMode.COVER}
           />
         )}
       </Pressable>

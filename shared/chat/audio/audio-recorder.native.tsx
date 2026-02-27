@@ -15,11 +15,11 @@ import {
 } from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
-import {Audio} from 'expo-av'
+import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
 import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import AudioSend from './audio-send.native'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
@@ -308,48 +308,50 @@ const vibrate = (short: boolean) => {
   }
 }
 
-const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
-  vibrate(true)
-
-  const recording = new Audio.Recording()
-  await recording.prepareToRecordAsync({
-    android: {
-      audioEncoder: Audio.AndroidAudioEncoder.AAC,
-      bitRate: 32000,
-      extension: '.m4a',
-      numberOfChannels: 1,
-      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-      sampleRate: 22050,
-    },
-    ios: {
-      audioQuality: Audio.IOSAudioQuality.MIN,
-      bitRate: 32000,
-      extension: '.m4a',
-      linearPCMBitDepth: 16,
-      linearPCMIsBigEndian: false,
-      linearPCMIsFloat: false,
-      numberOfChannels: 1,
-      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-      sampleRate: 22050,
-    },
-    isMeteringEnabled: true,
-    web: {},
-  })
-  recording.setProgressUpdateInterval(100)
-  recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
-  return recording
+const recordingOptions = {
+  android: {
+    audioEncoder: 'aac' as const,
+    outputFormat: 'mpeg4' as const,
+  },
+  bitRate: 32000,
+  extension: '.m4a',
+  ios: {
+    audioQuality: AudioQuality.MIN,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+    outputFormat: IOSOutputFormat.MPEG4AAC,
+  },
+  isMeteringEnabled: true,
+  numberOfChannels: 1,
+  sampleRate: 22050,
+  web: {},
 }
 
 // Hook for interfacing with the native recorder
 const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
   const {ampSV, setShowAudioSend, showAudioSend} = p
-  const recordingRef = React.useRef<Audio.Recording | undefined>(undefined)
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
+
+  const recorder = useAudioRecorder(recordingOptions)
+  const recorderState = useAudioRecorderState(recorder, 100)
+
+  React.useEffect(() => {
+    const inamp = recorderState.metering
+    if (inamp === undefined) {
+      return
+    }
+    const amp = 10 ** (inamp * 0.05)
+    ampTracker.addAmp(amp)
+    const maxScale = 8
+    const minScale = 3
+    ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
+  }, [recorderState, ampTracker, ampSV])
 
   const stopRecording = React.useCallback(async () => {
     const needsTeardown = hasSetupRecording.current
@@ -359,17 +361,12 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordEndRef.current = Date.now()
 
-    const recording = recordingRef.current
-    recordingRef.current = undefined
-    if (recording) {
-      recording.setOnRecordingStatusUpdate(null)
-      try {
-        await recording.stopAndUnloadAsync()
-      } catch (e) {
-        console.log('Recoding stopping fail', e)
-      }
+    try {
+      await recorder.stop()
+    } catch (e) {
+      console.log('Recording stopping fail', e)
     }
-  }, [])
+  }, [recorder])
 
   const onReset = React.useCallback(async () => {
     try {
@@ -391,15 +388,14 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = React.useCallback(() => {
-    // calls of this never handle the promise so just handle it here
     const checkPerms = async () => {
       try {
-        let {status} = await Audio.getPermissionsAsync()
-        if (status === Audio.PermissionStatus.UNDETERMINED) {
-          const askRes = await Audio.requestPermissionsAsync()
+        let {status} = await AudioModule.getRecordingPermissionsAsync()
+        if (status === 'undetermined') {
+          const askRes = await AudioModule.requestRecordingPermissionsAsync()
           status = askRes.status
         }
-        if (status === Audio.PermissionStatus.DENIED) {
+        if (status === 'denied') {
           throw new Error('Please allow Keybase to access the microphone in the phone settings.')
         }
         return true
@@ -423,27 +419,16 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
 
       await setupAudioMode(true)
       hasSetupRecording.current = true
-      const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
-        const inamp = status.metering
-        if (inamp === undefined) {
-          return
-        }
-        const amp = 10 ** (inamp * 0.05)
-        ampTracker.addAmp(amp)
-        const maxScale = 8
-        const minScale = 3
-        ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
-      }
+      vibrate(true)
 
-      const recording = await makeRecorder(onRecordingStatusUpdate)
-      const audioPath = recording.getURI()?.substring('file://'.length)
+      await recorder.prepareToRecordAsync()
+      const audioPath = recorder.uri?.replace(/^file:\/\//, '')
       if (!audioPath) {
         throw new Error("Couldn't start audio recording")
       }
       pathRef.current = audioPath
-      recordingRef.current = recording
 
-      await recording.startAsync()
+      recorder.record()
       recordStartRef.current = Date.now()
       recordEndRef.current = recordStartRef.current
     }
@@ -451,14 +436,10 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {
-        onReset()
-          // eslint-disable-next-line
-          .then(() => {})
-          // eslint-disable-next-line
-          .catch(() => {})
+        void onReset()
       })
     return
-  }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
+  }, [setCommandStatusInfo, recorder, onReset])
 
   const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
-import {Video, ResizeMode} from 'expo-av'
+import {useVideoPlayer, VideoView} from 'expo-video'
 import logger from '@/logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
@@ -9,6 +9,44 @@ import {useData, usePreviewFallback} from './hooks'
 import {type GestureResponderEvent, Animated, View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {Image} from 'expo-image'
+
+const FullscreenVideo = (p: {
+  path: string
+  previewHeight: number
+  onTouchStart: (e: GestureResponderEvent) => void
+  onTouchEnd: (e: GestureResponderEvent) => void
+  onLoaded: () => void
+}) => {
+  const {path, previewHeight, onTouchStart, onTouchEnd, onLoaded} = p
+  const sourceUri = `${path}&contentforce=true`
+  const player = useVideoPlayer(sourceUri)
+
+  React.useEffect(() => {
+    const sub = player.addListener('statusChange', ({status, error}) => {
+      if (status === 'readyToPlay') {
+        onLoaded()
+      }
+      if (status === 'error' && error) {
+        logger.error(`Error loading vid: ${JSON.stringify(error)}`)
+      }
+    })
+    return () => sub.remove()
+  }, [player, onLoaded])
+
+  return (
+    <View style={styles.videoWrapper} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <VideoView
+        player={player}
+        nativeControls={true}
+        contentFit="contain"
+        style={{
+          height: Math.max(previewHeight, 100),
+          width: '100%',
+        }}
+      />
+    </View>
+  )
+}
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
@@ -94,22 +132,14 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   if (path) {
     if (isVideo) {
       content = (
-        <View style={styles.videoWrapper} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <Video
-            source={{uri: `${path}&contentforce=true`}}
-            onError={e => {
-              logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-            }}
-            onLoad={() => setLoaded(true)}
-            shouldPlay={false}
-            useNativeControls={true}
-            style={{
-              height: Math.max(previewHeight, 100),
-              width: '100%',
-            }}
-            resizeMode={ResizeMode.CONTAIN}
-          />
-        </View>
+        <FullscreenVideo
+          key={path}
+          path={path}
+          previewHeight={previewHeight}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onLoaded={() => setLoaded(true)}
+        />
       )
     } else {
       content = (
