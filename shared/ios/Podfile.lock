@@ -65,6 +65,8 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (55.0.4):
     - ExpoModulesCore
+  - ExpoLocalization (55.0.8):
+    - ExpoModulesCore
   - ExpoLocation (55.1.2):
     - ExpoModulesCore
   - ExpoLogBox (55.0.7):
@@ -110,6 +112,8 @@ PODS:
     - React-Core
     - React-runtimescheduler
     - ReactCommon
+  - ExpoScreenCapture (55.0.3):
+    - ExpoModulesCore
   - ExpoSMS (55.0.8):
     - ExpoModulesCore
   - ExpoTaskManager (55.0.9):
@@ -3204,12 +3208,14 @@ DEPENDENCIES:
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImagePicker (from `../node_modules/expo-image-picker/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
+  - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoLocation (from `../node_modules/expo-location/ios`)
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoMailComposer (from `../node_modules/expo-mail-composer/ios`)
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
+  - ExpoScreenCapture (from `../node_modules/expo-screen-capture/ios`)
   - ExpoSMS (from `../node_modules/expo-sms/ios`)
   - ExpoTaskManager (from `../node_modules/expo-task-manager/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
@@ -3351,6 +3357,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-image-picker/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
+  ExpoLocalization:
+    :path: "../node_modules/expo-localization/ios"
   ExpoLocation:
     :path: "../node_modules/expo-location/ios"
   ExpoLogBox:
@@ -3363,6 +3371,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-core"
+  ExpoScreenCapture:
+    :path: "../node_modules/expo-screen-capture/ios"
   ExpoSMS:
     :path: "../node_modules/expo-sms/ios"
   ExpoTaskManager:
@@ -3566,12 +3576,14 @@ SPEC CHECKSUMS:
   ExpoImage: 91c9af23b21f8fdbfc4428669502e0057ebef178
   ExpoImagePicker: 550f22a1db18bf74a6fe81e87c934001d67b5074
   ExpoKeepAwake: 7f3b28c361c37389b18841bb52a58003b39fcb33
+  ExpoLocalization: 72770c847c00bff938bd11bfd614dbfbe2d96fa1
   ExpoLocation: ac9ed9d974a7370210a215a2b09e81ae7a6ad724
   ExpoLogBox: 89b634d5a8a64c4a6a7caad8f9985a28463c7002
   ExpoMailComposer: fb9c80ee9c67839c20204cc59c573b96e4974647
   ExpoMediaLibrary: f8e720ddfc229477f09ac94174b6e4a00b4a91ee
   ExpoModulesCore: 22201377365ab97073b761e50ff64312df663334
   ExpoModulesJSI: bcc87b51e04bdfc9a23102baac1d886630316e49
+  ExpoScreenCapture: 2edd2ee326b5ae3063a2baf6c8c956977fd55f56
   ExpoSMS: 28e9a39322fc9634d8f880f3b61c715ed49b9379
   ExpoTaskManager: 6038b80fbe63915383dcf57fa0156b23e2615fab
   ExpoVideo: e26820485c2d3143290afb9dc91493c5befd5e91

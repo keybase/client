@@ -5,7 +5,6 @@ import android.app.DownloadManager
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import android.os.Build
@@ -14,11 +13,8 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.telephony.TelephonyManager
 import android.text.format.DateFormat
 import android.util.Log
-import android.view.Window
-import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
@@ -205,18 +201,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
         return constants
     }
 
-    // country code
-    @ReactMethod
-    override fun getDefaultCountryCode(promise: Promise) {
-        try {
-            val tm: TelephonyManager = reactContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            val countryCode: String = tm.networkCountryIso
-            promise.resolve(countryCode)
-        } catch (e: Exception) {
-            promise.reject(e)
-        }
-    }
-
     // Logging
     @ReactMethod
     override fun logSend(status: String, feedback: String, sendLogs: Boolean, sendMaxBytes: Boolean, traceDir: String, cpuProfileDir: String, promise: Promise) {
@@ -230,50 +214,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             promise.reject(e)
         }
     }
-
-    // Settings
-    @ReactMethod
-    override fun androidOpenSettings() {
-        val intent = Intent()
-        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", reactContext.packageName, null)
-        intent.setData(uri)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        reactContext.startActivity(intent)
-    }
-
-    // Screen protector
-    @ReactMethod
-    override fun androidSetSecureFlagSetting(setSecure: Boolean, promise: Promise) {
-        val prefs: SharedPreferences = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE)
-        val success: Boolean = prefs.edit().putBoolean("setSecure", setSecure).commit()
-        promise.resolve(success)
-        setSecureFlag()
-    }
-
-    @ReactMethod
-    override fun androidGetSecureFlagSetting(promise: Promise) {
-        val prefs: SharedPreferences = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE)
-        val setSecure: Boolean = prefs.getBoolean("setSecure", !misTestDevice)
-        promise.resolve(setSecure)
-    }
-
-     private fun setSecureFlag() {
-        val prefs: SharedPreferences = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE)
-        val setSecure: Boolean = prefs.getBoolean("setSecure", !misTestDevice)
-        val activity: Activity? = reactContext.currentActivity
-        if (activity != null) {
-            activity.runOnUiThread {
-                val window: Window = activity.window
-                if (setSecure) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                } else {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
-            }
-        }
-    }
-
 
     @ReactMethod
     override fun shareListenersRegistered() {
@@ -400,41 +340,10 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     }
     }
 
-    // Unlink
-    @Throws(IOException::class)
-    private fun deleteRecursive(fileOrDirectory: File) {
-        if (fileOrDirectory.isDirectory) {
-            val files = fileOrDirectory.listFiles()
-            if (files == null) {
-                throw NullPointerException("Received null trying to list files of directory '$fileOrDirectory'")
-            } else {
-                for (child in files) {
-                    deleteRecursive(child)
-                }
-            }
-        }
-        val result: Boolean = fileOrDirectory.delete()
-        if (!result) {
-            throw IOException("Failed to delete '$fileOrDirectory'")
-        }
-    }
-
     init {
         this.reactContext = reactContext!!
         instance = this
         misTestDevice = isTestDevice(reactContext)
-        setSecureFlag()
-        reactContext.addLifecycleEventListener(object : LifecycleEventListener {
-            override fun onHostResume() {
-                setSecureFlag()
-            }
-
-            override fun onHostPause() {
-            }
-
-            override fun onHostDestroy() {
-            }
-        })
     }
 
     private fun isAsset(path: String): Boolean {
@@ -453,17 +362,6 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
             return path
         } else {
             return PathResolver.getRealPathFromURI(reactContext, uri) ?: ""
-        }
-    }
-
-    @ReactMethod
-    override fun androidUnlink(path: String, promise: Promise) {
-        try {
-            val normalizedPath = normalizePath(path)
-            deleteRecursive(File(normalizedPath))
-            promise.resolve(true)
-        } catch (err: Exception) {
-            promise.reject("EUNSPECIFIED", err.localizedMessage)
         }
     }
 

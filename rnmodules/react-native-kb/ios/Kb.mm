@@ -308,15 +308,6 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 
 @synthesize callInvoker = _callInvoker;
 
-RCT_EXPORT_METHOD(getDefaultCountryCode
-                 : (RCTPromiseResolveBlock)resolve reject
-                 : (RCTPromiseRejectBlock)reject) {
-  // CTCarrier was removed in iOS 16.4 with no replacement.
-  // Use the locale's region code instead — good enough for phone number formatting.
-  NSString *countryCode = [[NSLocale currentLocale] countryCode];
-  resolve(countryCode ?: @"");
-}
-
 RCT_EXPORT_METHOD(logSend:(NSString *)status feedback:(NSString *)feedback sendLogs:(BOOL)sendLogs sendMaxBytes:(BOOL)sendMaxBytes traceDir:(NSString *)traceDir cpuProfileDir:(NSString *)cpuProfileDir resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
   NSString *logId = nil;
   NSError *err = nil;
@@ -521,9 +512,7 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 }
 
 - (NSNumber *)androidCheckPushPermissions {return @-1;}
-- (NSNumber *)androidGetSecureFlagSetting {return @-1;}
 - (NSNumber *)androidRequestPushPermissions {return @-1;}
-- (NSNumber *)androidSetSecureFlagSetting:(BOOL)s {return @-1;}
 - (NSNumber *)androidShare:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (NSString *)androidGetRegistrationToken {return @"";}
@@ -531,16 +520,10 @@ RCT_EXPORT_METHOD(keyPressed:(NSString *)keyName) {
 - (void)androidAppColorSchemeChanged:(NSString *)mode {}
 - (void)androidCheckPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidGetRegistrationToken:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidGetSecureFlagSetting:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidOpenSettings {}
 - (void)androidRequestPushPermissions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{}
 - (void)androidSetApplicationIconBadgeNumber:(double)n {}
-- (void)androidSetSecureFlagSetting:(BOOL)s resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShare:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
 - (void)androidShareText:(NSString *)text mimeType:(NSString *)mimeType resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidUnlink:(NSString *)path resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {}
-- (void)androidUnlink:(NSString *)path {}
-
 @end
 
 @implementation UITextView (KBPasteImage)

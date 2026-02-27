@@ -7,7 +7,7 @@ import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import type {Store, State} from './settings-contacts'
 import {RPCError} from '@/util/errors'
-import {getDefaultCountryCode} from 'react-native-kb'
+import * as Localization from 'expo-localization'
 import {getE164} from '@/util/phone-numbers'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from '@/constants/router'
@@ -182,15 +182,11 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
             fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
           })
 
-          try {
-            defaultCountryCode = await getDefaultCountryCode()
-            if (__DEV__ && !defaultCountryCode) {
-              // behavior of parsing can be unexpectedly different with no country code.
-              // iOS sim + android emu don't supply country codes, so use this one.
-              defaultCountryCode = 'us'
-            }
-          } catch (error) {
-            logger.warn(`Error loading default country code: ${String(error)}`)
+          defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
+          if (__DEV__ && !defaultCountryCode) {
+            // behavior of parsing can be unexpectedly different with no country code.
+            // iOS sim + android emu don't supply country codes, so use this one.
+            defaultCountryCode = 'us'
           }
           mapped = nativeContactsToContacts(_contacts, defaultCountryCode)
         } catch (_error) {
