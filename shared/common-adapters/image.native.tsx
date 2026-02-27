@@ -47,6 +47,7 @@ const Image = (p: Props) => {
         contentFit={contentFit}
         onError={_onError}
         allowDownscaling={allowDownscaling}
+        recyclingKey={typeof src === 'string' ? src : undefined}
       />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
