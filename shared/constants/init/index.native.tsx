@@ -26,7 +26,6 @@ import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
   androidAddCompleteDownload,
-  androidOpenSettings,
   fsCacheDir,
   fsDownloadDir,
   androidAppColorSchemeChanged,
@@ -46,7 +45,9 @@ import {
 } from '@/util/platform-specific/index.native'
 import * as FS from '@/constants/fs'
 import {errorToActionOrThrow} from '@/stores/fs'
+import * as ScreenCapture from 'expo-screen-capture'
 import * as Styles from '@/styles'
+import {getSecureFlagSetting} from '@/constants/platform.native'
 
 const finishedRegularDownloadIDs = new Set<string>()
 
@@ -471,6 +472,22 @@ export const initPlatformListener = () => {
     }
   })
 
+  // Default to screen capture prevention on Android (matches native default of secure).
+  // Once daemon is ready, sync with the user's saved preference.
+  if (isAndroid) {
+    ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
+    useDaemonState.subscribe((s, old) => {
+      if (s.handshakeState !== 'done' || old.handshakeState === 'done') return
+      const f = async () => {
+        const secure = await getSecureFlagSetting()
+        if (!secure) {
+          await ScreenCapture.allowScreenCaptureAsync('screenprotector')
+        }
+      }
+      ignorePromise(f())
+    })
+  }
+
   // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())
   initPushListener()
@@ -493,20 +510,7 @@ export const initPlatformListener = () => {
 
   useConfigState.setState(s => {
     s.dispatch.defer.openAppSettings = wrapErrors(() => {
-      const f = async () => {
-        if (isAndroid) {
-          androidOpenSettings()
-        } else {
-          const settingsURL = 'app-settings:'
-          const can = await Linking.canOpenURL(settingsURL)
-          if (can) {
-            await Linking.openURL(settingsURL)
-          } else {
-            logger.warn('Unable to open app settings')
-          }
-        }
-      }
-      ignorePromise(f())
+      ignorePromise(Linking.openSettings())
     })
   })
 

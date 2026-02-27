@@ -1,11 +1,12 @@
 import * as T from '@/constants/types'
 import * as ExpoLocation from 'expo-location'
 import * as MediaLibrary from 'expo-media-library'
+import * as FileSystem from 'expo-file-system'
 import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import {ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '@/constants/platform.native'
-import {androidShare, androidShareText, androidUnlink} from 'react-native-kb'
+import {androidShare, androidShareText} from 'react-native-kb'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -68,7 +69,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     throw e
   } finally {
     try {
-      await androidUnlink(filePath)
+      await FileSystem.deleteAsync(filePath, {idempotent: true})
     } catch {
       logger.warn('failed to unlink')
     }

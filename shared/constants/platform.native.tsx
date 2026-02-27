@@ -1,9 +1,9 @@
 import {Dimensions, Platform} from 'react-native'
 import Constants from 'expo-constants'
+import * as ScreenCapture from 'expo-screen-capture'
+import * as T from '@/constants/types'
 import {
   androidIsDeviceSecure,
-  androidSetSecureFlagSetting,
-  androidGetSecureFlagSetting,
   fsCacheDir,
 } from 'react-native-kb'
 
@@ -11,8 +11,37 @@ export {version, androidIsTestDevice, uses24HourClock, fsCacheDir} from 'react-n
 
 export const isNewArch = !!global.__turboModuleProxy
 
-export const setSecureFlagSetting = androidSetSecureFlagSetting
-export const getSecureFlagSetting = androidGetSecureFlagSetting
+const screenProtectorConfigKey = 'ui.screenprotector'
+
+export const getSecureFlagSetting = async (): Promise<boolean> => {
+  if (!isAndroid) return false
+  try {
+    const value = await T.RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
+    // Default to secure (true) if not explicitly set
+    if (!value.isNull && value.b === false) return false
+    return true
+  } catch {
+    return true
+  }
+}
+
+export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> => {
+  if (!isAndroid) return false
+  try {
+    if (secure) {
+      await ScreenCapture.preventScreenCaptureAsync('screenprotector')
+    } else {
+      await ScreenCapture.allowScreenCaptureAsync('screenprotector')
+    }
+    await T.RPCGen.configGuiSetValueRpcPromise({
+      path: screenProtectorConfigKey,
+      value: {b: secure, isNull: false},
+    })
+    return true
+  } catch {
+    return false
+  }
+}
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid = androidIsDeviceSecure
