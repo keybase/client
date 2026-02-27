@@ -119,6 +119,9 @@ android {
 
     buildTypes {
         debug {
+            ndk {
+                abiFilters = (findProperty('reactNativeArchitectures') ?: 'arm64-v8a').split(',').collect { it.trim() }
+            }
         }
         release {
             signingConfig signingConfigs.release
