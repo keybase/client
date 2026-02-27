@@ -41,7 +41,7 @@ const UserBubble = (props: Props) => {
             titleStyle={styles.userBubbleTitle}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" className="hover-visible" style={styles.remove}>
+        <Kb.Box2 direction="horizontal" className="hover-visible" style={styles.remove} justifyContent="center">
           <RemoveBubble onRemove={props.onRemove} />
         </Kb.Box2>
       </Kb.WithTooltip>
@@ -81,7 +81,6 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 100,
           height: removeSize,
-          justifyContent: 'center',
           position: 'absolute',
           top: 0,
           width: removeSize,

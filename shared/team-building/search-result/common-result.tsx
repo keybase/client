@@ -80,7 +80,7 @@ const CommonResult = (props: CommonResultProps) => {
           keybaseUsername={keybaseUsername}
           pictureUrl={props.pictureUrl}
         />
-        <Kb.Box2 direction="vertical" style={styles.username}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
           {serviceUsername ? (
             <>
               <Username
@@ -188,7 +188,7 @@ const ServicesIcons = (props: {
       ? props.prettyName === props.keybaseUsername
       : !props.displayLabel
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} style={styles.services}>
+    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
@@ -361,11 +361,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: Kb.Styles.globalMargins.xtiny,
   },
-  services: {
-    justifyContent: 'flex-start',
-  },
   username: {
-    flex: 1,
     marginLeft: Kb.Styles.globalMargins.small,
   },
 }))

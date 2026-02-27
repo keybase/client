@@ -1,12 +1,12 @@
 import * as Kb from '@/common-adapters'
 
 const YouAreReset = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+  <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
     <Kb.Box2
       direction="vertical"
       centerChildren={true}
       fullWidth={true}
-      style={{flex: 1}}
+      flex={1}
     >
       <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>

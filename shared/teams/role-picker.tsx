@@ -87,7 +87,8 @@ const RoleRow = (p: RoleRowProps) => {
       direction="vertical"
       fullWidth={true}
       alignItems="flex-start"
-      style={p.selected ? styles.rowSelected : styles.row}
+          relative={true}
+      style={p.selected ? undefined : styles.row}
     >
       {p.disabledReason ? (
         <Kb.WithTooltip tooltip={p.disabledReason} showOnPressMobile={true}>
@@ -299,7 +300,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         })}
       </Kb.ScrollView>
 
-      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer} justifyContent="flex-end">
         {props.footerComponent}
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
           <Kb.Button
@@ -348,7 +349,6 @@ const styles = Kb.Styles.styleSheetCreate(
       disabledRow: {opacity: 0.4},
       footer: {
         flexGrow: 0,
-        justifyContent: 'flex-end',
         paddingBottom: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
@@ -372,7 +372,6 @@ const styles = Kb.Styles.styleSheetCreate(
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
       row: {
         backgroundColor: Kb.Styles.globalColors.blueGreyLight,
-        position: 'relative',
       },
       rowBody: Kb.Styles.platformStyles({
         // To push the body out of the zone visible when deselected
@@ -397,9 +396,6 @@ const styles = Kb.Styles.styleSheetCreate(
       rowPadding: Kb.Styles.platformStyles({
         isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
-      rowSelected: {
-        position: 'relative',
-      },
       text: {
         textAlign: 'left',
       },

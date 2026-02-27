@@ -209,9 +209,9 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
   const noResults = status === 'done' && hits.length === 0
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={style}>
-      <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
-        <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
+      <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
             <Kb.PlainInput
               autoFocus={true}
               flexable={true}
@@ -277,14 +277,14 @@ const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
 
   return (
     <Kb.Box2 direction="horizontal" style={style}>
-      <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
+      <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} gap="tiny">
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
           <Kb.Text type="BodySemibold" style={styles.done} onClick={onToggleThreadSearch}>
             Cancel
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
+        <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
             <Kb.PlainInput
               ref={inputRef}
               autoFocus={false}
@@ -362,7 +362,6 @@ const styles = Kb.Styles.styleSheetCreate(
           borderStyle: 'solid',
           borderWidth: 1,
           flex: 1,
-          justifyContent: 'space-between',
         },
         isElectron: {
           paddingBottom: Kb.Styles.globalMargins.xtiny,
@@ -374,11 +373,9 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       outerContainer: {
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
-        justifyContent: 'space-between',
         padding: Kb.Styles.globalMargins.tiny,
       },
       progress: {height: 16},
-      queryContainer: {flex: 1},
       results: {color: Kb.Styles.globalColors.black_50},
       resultsContainer: {flexShrink: 0},
       time: {flexShrink: 0},

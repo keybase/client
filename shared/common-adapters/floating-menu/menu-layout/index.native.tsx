@@ -61,7 +61,7 @@ const MenuRow = (props: MenuRowProps) => (
         gap={props.icon ? 'small' : undefined}
       >
         {props.icon || props.isSelected ? (
-          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.iconContainer}>
+          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" justifyContent="center" style={styles.iconContainer}>
             {props.isSelected && (
               <Kb.Icon
                 type="iconfont-check"
@@ -93,7 +93,7 @@ const MenuRow = (props: MenuRowProps) => (
             fullHeight={true}
             fullWidth={true}
             alignItems="center"
-            style={{justifyContent: 'center'}}
+            justifyContent="center"
           >
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
@@ -274,7 +274,6 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
-        justifyContent: 'center',
         width: 20,
       },
       itemContainer: {

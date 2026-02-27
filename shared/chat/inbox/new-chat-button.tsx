@@ -24,8 +24,8 @@ const HeaderNewChatButton = () => {
     >
       <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
         <Kb.Box2 direction="vertical" style={styles.gradientRed} />
-        <Kb.Box2 direction="vertical" style={styles.gradientOrange} />
-        <Kb.Box2 direction="vertical" style={styles.gradientYellow} />
+        <Kb.Box2 direction="vertical" flex={1} style={styles.gradientOrange} />
+        <Kb.Box2 direction="vertical" flex={1} style={styles.gradientYellow} />
         <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
       </Kb.Box2>
       <Kb.Button
@@ -65,7 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
+      gradientOrange: {backgroundColor: '#FFAC3D'},
       gradientRed: Kb.Styles.platformStyles({
         common: {
           backgroundColor: '#FF5D5D',
@@ -74,7 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
+      gradientYellow: {backgroundColor: '#FFF75A'},
       rainbowButton: Kb.Styles.platformStyles({
         common: {
           margin: 2,

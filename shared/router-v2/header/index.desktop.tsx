@@ -200,7 +200,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
               />
             </Kb.ClickableBox>
           )}
-          <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
+          <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
                 p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
@@ -218,7 +218,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
           fullWidth={true}
           style={Kb.Styles.collapseStyles([styles.bottom, headerBottomStyle])}
         >
-          <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
+          <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={styles.bottomTitle}>
             {titleNode}
           </Kb.Box2>
           {!!title && rightActions}
@@ -250,7 +250,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
-      bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
+      bottomTitle: {height: '100%', maxHeight: '100%'},
       headerBack: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -310,7 +310,6 @@ const styles = Kb.Styles.styleSheetCreate(
       plainText: {
         ...Kb.Styles.globalStyles.flexGrow,
       },
-      topRightContainer: {flex: 1, justifyContent: 'flex-end'},
     }) as const
 )
 

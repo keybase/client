@@ -95,6 +95,8 @@ export const Email = () => {
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
+        flex={1}
+          relative={true}
         style={styles.body}
       >
         <EnterEmailBody
@@ -211,6 +213,8 @@ export const Phone = () => {
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
+        flex={1}
+          relative={true}
         style={styles.body}
       >
         <EnterPhoneNumberBody
@@ -367,8 +371,6 @@ const styles = Kb.Styles.styleSheetCreate(
           0
         ),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
-        position: 'relative',
       },
       buttonBar: {
         minHeight: undefined,

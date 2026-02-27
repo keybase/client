@@ -82,7 +82,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
             direction="horizontal"
             fullWidth={true}
             alignItems="center"
-            style={styles.container}
+            justifyContent="flex-end"
             gap="small"
           >
             <Kb.Emoji
@@ -145,9 +145,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: Kb.Styles.globalMargins.small,
         },
       }),
-      container: {
-        justifyContent: 'flex-end',
-      },
       date: {
         maxWidth: 130,
         width: 130,

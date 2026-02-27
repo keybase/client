@@ -62,7 +62,7 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
       <Kb.Box2 direction="vertical" style={styles.avatar}>
         <Kb.Avatar username={username} size={48} />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.rightBox}>
+      <Kb.Box2 direction="vertical" flex={1}>
         <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={username} />
         <Kb.Text type="BodySmall">{label}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
@@ -115,7 +115,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      rightBox: {flexGrow: 1},
       woot: {
         marginBottom: Kb.Styles.globalMargins.small,
         marginLeft: Kb.Styles.globalMargins.medium,

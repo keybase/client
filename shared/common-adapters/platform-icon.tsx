@@ -48,7 +48,7 @@ const getSpecForPlatform = (platform: T.More.PlatformsExpandedType): IconSpec =>
 const Render = ({platform, overlay, style}: Props) => {
   const iconSpec = getSpecForPlatform(platform)
   return (
-    <Box2 direction="vertical" style={{position: 'relative', ...style}}>
+    <Box2 direction="vertical" relative={true} style={style}>
       <Icon type={iconSpec.icon} />
       <Icon
         type={overlay}

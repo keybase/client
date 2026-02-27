@@ -47,6 +47,7 @@ const Video = React.memo(function Video(p: Props) {
         >
           <Kb.Box2
             direction="vertical"
+          relative={true}
             style={styles.contentContainer}
             alignSelf="flex-start"
             alignItems="center"
@@ -68,7 +69,7 @@ const Video = React.memo(function Video(p: Props) {
   }, [openFullscreen, showPopup, showTitle, filename, transferProgress, transferState, submitState])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={containerStyle} alignItems="flex-start">
       {isCollapsed ? <Collapsed /> : content}
     </Kb.Box2>
   )
@@ -80,14 +81,12 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         alignSelf: 'center',
         paddingRight: Kb.Styles.isMobile ? 0 : Kb.Styles.globalMargins.tiny,
-        position: 'relative',
       },
       contentContainer: {
         backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         borderRadius: Kb.Styles.borderRadius,
         maxWidth: Kb.Styles.isMobile ? '100%' : 356 + 3 * 2,
         padding: 3,
-        position: 'relative',
       },
       transferIcon: {left: -32, position: 'absolute'},
     }) as const

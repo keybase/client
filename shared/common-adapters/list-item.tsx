@@ -66,6 +66,7 @@ const ListItem = (props: Props) => (
           style={getStatusIconStyle(props)}
           alignSelf="flex-start"
           alignItems="center"
+          justifyContent="center"
         >
           {props.statusIcon}
         </Kb.Box2>
@@ -83,7 +84,7 @@ const ListItem = (props: Props) => (
       <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
         {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
-          <Kb.Box2 fullHeight={true} direction="horizontal" style={styles.bodyContainer}>
+          <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>
             {props.body}
           </Kb.Box2>
         </Kb.BoxGrow>
@@ -130,11 +131,8 @@ const styles = Styles.styleSheetCreate(() => {
     } as const,
     bodyContainer: {
       alignItems: 'center',
-      flexGrow: 1,
       flexShrink: 1,
-      justifyContent: 'flex-start',
       maxWidth: '100%',
-      position: 'relative',
     } as const,
     clickableBoxLarge: {
       flexShrink: 0,
@@ -180,7 +178,6 @@ const styles = Styles.styleSheetCreate(() => {
       position: 'relative',
     } as const,
     statusIcon: {
-      justifyContent: 'center',
       position: 'absolute',
       width: statusIconWidth,
     } as const,

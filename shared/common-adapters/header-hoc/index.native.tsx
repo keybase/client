@@ -156,7 +156,7 @@ const renderAction = (action: RightAction, index: number): React.ReactNode =>
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skipHeader?: boolean}) => {
   const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle, skipHeader} = props
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} relative={true}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
       {!skipHeader && <HeaderHocHeader {...props} />}
       <Kb.BoxGrow>{children}</Kb.BoxGrow>
@@ -188,9 +188,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       borderless: {borderBottomWidth: 0},
-      container: {
-        position: 'relative',
-      },
       grow: {flexGrow: 1},
       header: Styles.platformStyles({
         common: {

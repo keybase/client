@@ -86,12 +86,12 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
         height={Kb.Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
-            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
+            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" flex={1} style={styles.bodyLeft}>
               <Kb.Box2
                 direction="vertical"
                 fullHeight={true}
                 alignItems="flex-start"
-                style={styles.bodyLeftText}
+                justifyContent="center"
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
                   <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
@@ -178,10 +178,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
-    flex: 1,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
     flex: 0.7,
   },

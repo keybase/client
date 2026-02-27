@@ -18,7 +18,8 @@ const DbNukeConfirm = () => {
       direction="vertical"
       centerChildren={true}
       fullWidth={true}
-      style={{flex: 1, padding: Kb.Styles.globalMargins.medium}}
+      flex={1}
+      style={{padding: Kb.Styles.globalMargins.medium}}
     >
       <Kb.Text center={true} type="Header" style={{marginTop: Kb.Styles.globalMargins.medium, width: 320}}>
         Are you sure you want to blast away your local database?

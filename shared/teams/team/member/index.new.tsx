@@ -220,7 +220,7 @@ const TeamMember = (props: OwnProps) => {
 
   const sections: Array<Section> = [nodesInSection, nodesNotInSection]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true}>
       {errors.length > 0 && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
@@ -734,8 +734,6 @@ const BlockDropdown = (props: {username: string}) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative',
     width: '100%',
   },
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({

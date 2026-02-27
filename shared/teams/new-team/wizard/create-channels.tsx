@@ -78,6 +78,7 @@ export const CreateChannelsModal = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        flex={1}
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
@@ -144,7 +145,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       body: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-        flex: 1,
       },
       input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},

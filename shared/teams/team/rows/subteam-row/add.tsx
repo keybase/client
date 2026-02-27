@@ -17,7 +17,7 @@ const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
     [setSubteamFilter]
   )
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
       <Kb.Button mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
       {!Kb.Styles.isMobile && (
         <Kb.SearchFilter
@@ -38,7 +38,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
     ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    justifyContent: 'space-between',
   },
   filterInput: {maxWidth: 148},
 }))

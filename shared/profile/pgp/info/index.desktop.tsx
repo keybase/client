@@ -33,7 +33,7 @@ const Info = () => {
   const nextDisabled = !data.pgpEmail1 || !data.pgpFullName || !!data.pgpErrorText
   return (
     <Modal onCancel={onCancel} skipButton={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
         <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
         <Kb.Text type="BodySemibold" style={styles.centered}>
           Fill in your public info.
@@ -81,7 +81,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       centered: {alignSelf: 'center'},
-      content: {flexGrow: 1},
       math: {flexGrow: 1},
     }) as const
 )

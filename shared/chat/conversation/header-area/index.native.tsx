@@ -242,7 +242,7 @@ const UsernameHeader = () => {
           {theirFullname}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer} justifyContent="center">
         <Kb.ConnectedUsernames
           colorFollowing={true}
           inline={false}
@@ -308,7 +308,6 @@ const styles = Kb.Styles.styleSheetCreate(
       lessMargins: {marginBottom: -5},
       nameMutedContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
       },
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},
       usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},

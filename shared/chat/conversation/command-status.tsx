@@ -53,7 +53,7 @@ const Container = () => {
           color={textColor(props.displayType)}
           boxStyle={styles.close}
         />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} gap="tiny">
           <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
             {props.displayText}
           </Kb.Text>
@@ -112,7 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         padding: Kb.Styles.globalMargins.tiny,
       },
-      contentContainer: {flex: 1},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,

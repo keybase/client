@@ -177,7 +177,7 @@ type MediaThumbProps = {
 const MediaThumb = (props: MediaThumbProps) => {
   const {sizing, thumb} = props
   return (
-    <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
       <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
@@ -407,10 +407,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderLeftWidth: 1,
         borderTopLeftRadius: Kb.Styles.borderRadius,
         borderTopRightRadius: 0,
-      },
-      thumbContainer: {
-        overflow: 'hidden',
-        position: 'relative',
       },
     }) as const
 )

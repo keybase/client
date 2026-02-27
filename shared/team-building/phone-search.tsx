@@ -57,7 +57,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.flexGrow}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} flex={1}>
           <Kb.PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
@@ -142,9 +142,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '90%'},
       }),
-      flexGrow: {
-        flex: 1,
-      },
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
@@ -155,7 +152,6 @@ const styles = Kb.Styles.styleSheetCreate(
       loading: {alignSelf: 'center'},
       userMatchMention: {
         alignSelf: 'flex-start',
-        justifyContent: 'center',
       },
     }) as const
 )

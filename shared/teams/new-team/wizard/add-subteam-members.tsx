@@ -79,7 +79,7 @@ const AddSubteamMembers = () => {
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: Kb.Styles.isMobile ? (
-          <Kb.Box2 direction="horizontal" style={styles.noWrap}>
+          <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
             <Kb.Text type="BodyBigLink" onClick={onContinue}>
               {doneLabel}
             </Kb.Text>
@@ -96,7 +96,7 @@ const AddSubteamMembers = () => {
       }
       noScrollView={true}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.hideOverflow}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchContainer}>
           <Kb.SearchFilter
             size="full-width"
@@ -108,7 +108,7 @@ const AddSubteamMembers = () => {
           />
         </Kb.Box2>
         {/* TODO: once it's easier to make a single different-height header, make this part of the list2 */}
-        <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" style={styles.header} fullWidth={true} justifyContent="space-between">
           <Kb.Text type="BodySmallSemibold" lineClamp={1} style={styles.flexShrink}>
             Members of {parentTeamName}
           </Kb.Text>
@@ -134,13 +134,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.blueGrey,
     height: Kb.Styles.globalMargins.mediumLarge,
-    justifyContent: 'space-between',
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,
   },
-  hideOverflow: {overflow: 'hidden'},
   noWrap: {
-    justifyContent: 'flex-end',
     width: 48, // wide enough for "Done" or "Skip" to fit. workaround modal2 header measurement onmount
   },
   search: {

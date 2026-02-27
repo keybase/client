@@ -72,7 +72,7 @@ export const TeamBotRow = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.clickable}>
+        <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
             size={Kb.Styles.isMobile ? 48 : 32}
@@ -113,9 +113,6 @@ export const TeamBotRow = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  clickable: {
-    flexGrow: 1,
-  },
   container: {
     backgroundColor: Kb.Styles.globalColors.white,
     flex: 1,

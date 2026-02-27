@@ -25,7 +25,7 @@ const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="small" style={styles.noChatsContainer}>
+    <Kb.Box2 direction="vertical" gapStart={true} gap="small" justifyContent="flex-end" style={styles.noChatsContainer}>
       <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySmall" center={true}>
@@ -427,7 +427,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       noChatsContainer: {
         alignItems: 'center',
-        justifyContent: 'flex-end',
         paddingBottom: Kb.Styles.globalMargins.large,
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,

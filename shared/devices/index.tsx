@@ -116,7 +116,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
       title=""
     >
       <NewContext.Provider value={badged}>
-        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
           {Kb.Styles.isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
@@ -151,7 +151,6 @@ export type Props = {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {position: 'relative'},
       progress: {
         left: 12,
         position: 'absolute',
@@ -187,7 +186,7 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
         <Kb.Icon
           type={Kb.Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
         />
-        <Kb.Box2 direction="vertical" style={paperKeyNudgeStyles.flexOne}>
+        <Kb.Box2 direction="vertical" flex={1}>
           <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
           <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
             A paper key can be used to access your account in case you lose all your devices. Keep one in a
@@ -230,7 +229,6 @@ const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
           maxWidth: 450,
         },
       }),
-      flexOne: {flex: 1},
     }) as const
 )
 export default ReloadableDevices

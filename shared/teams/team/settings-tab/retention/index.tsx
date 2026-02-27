@@ -225,7 +225,7 @@ const RetentionPicker = (p: Props) => {
         style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
         underlayColor={Kb.Styles.globalColors.white_40}
       >
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
@@ -282,7 +282,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
       label: {
-        justifyContent: 'flex-start',
         minHeight: Kb.Styles.isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },

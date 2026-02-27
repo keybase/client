@@ -18,14 +18,14 @@ const ServiceIcon = (props: IconProps) => {
       onMouseLeave={() => setHover(false)}
       style={styles.serviceIconFlex}
     >
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.serviceIconContainer}>
         <Kb.Box2
           direction="vertical"
           centerChildren={true}
           fullHeight={true}
-          style={styles.serviceIconContainerInner}
+          justifyContent="flex-start"
         >
-          <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+          <Kb.Box2 direction="vertical" relative={true}>
             {serviceIdToBadge(props.service) && (
               <Kb.Badge
                 border={true}
@@ -94,7 +94,7 @@ const MoreNetworksButton = (props: {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1}>
         <Kb.Box2Measure
           direction="vertical"
           style={styles.moreNetworks1}
@@ -196,7 +196,6 @@ const styles = Kb.Styles.styleSheetCreate(
         minWidth: 64,
       },
       moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      moreNetworks0: {flex: 1},
       moreNetworks1: {
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
@@ -230,14 +229,13 @@ const styles = Kb.Styles.styleSheetCreate(
       moreText: {color: Kb.Styles.globalColors.black_50},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
-        flex: 1,
         height: 70,
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xtiny,
         maxWidth: 72,
         minWidth: 40,
       },
-      serviceIconContainerInner: {justifyContent: 'flex-start'},
+
       serviceIconFlex: {
         flex: 1,
         maxWidth: 90,

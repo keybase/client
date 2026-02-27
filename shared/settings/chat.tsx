@@ -312,7 +312,7 @@ const Links = () => {
                         Restore
                       </Kb.Text>
                     ) : (
-                      <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+                      <Kb.Box2 direction="vertical" relative={true}>
                         <Kb.WithTooltip tooltip="Remove">
                           <Kb.Icon
                             onClick={() => toggleUnfurlWhitelist(w)}

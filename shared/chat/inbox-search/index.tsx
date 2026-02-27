@@ -443,7 +443,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         onMouseOver={() => setHovering(true)}
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Text
             type="BodySemibold"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}

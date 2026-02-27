@@ -129,6 +129,7 @@ export const UpdatePassword = (props: Props) => {
         centerChildren={!Kb.Styles.isTablet}
         direction="vertical"
         fullHeight={true}
+        flex={1}
         style={styles.container}
       >
         <Kb.Text type="Body" style={styles.bodyText} center={true}>
@@ -192,7 +193,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
         padding: Kb.Styles.globalMargins.small,
       },
       passwordBackground: Kb.Styles.platformStyles({

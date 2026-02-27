@@ -289,12 +289,12 @@ const Tracker = (props: Props) => {
   const buttons = getButtons(props)
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} style={styles.container}>
       <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
       {/* Close button must go after reason text for z-ordering on Linux */}
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header} justifyContent="flex-end">
         <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
@@ -302,7 +302,7 @@ const Tracker = (props: Props) => {
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.avatarContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.avatarContainer}>
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
             <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>
               <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny">
@@ -396,7 +396,7 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         top: avatarSize / 2,
       },
-      avatarContainer: {flexShrink: 0, position: 'relative'},
+      avatarContainer: {flexShrink: 0},
       bioContainer: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
       bioText: Kb.Styles.platformStyles({
         common: {
@@ -435,14 +435,12 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         backgroundColor: Kb.Styles.globalColors.white,
-        position: 'relative',
       },
       fullNameContainer: {
         paddingLeft: Kb.Styles.globalMargins.mediumLarge,
         paddingRight: Kb.Styles.globalMargins.mediumLarge,
       },
       header: {
-        justifyContent: 'flex-end',
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'absolute',

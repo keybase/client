@@ -317,7 +317,8 @@ export const ListBody = (
         fullHeight={true}
         gap="xtiny"
         centerChildren={true}
-        style={styles.loadingContainer}
+        flex={1}
+        justifyContent="flex-start"
       >
         {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
       </Kb.Box2>
@@ -423,10 +424,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 48,
         },
       }),
-      loadingContainer: {
-        flex: 1,
-        justifyContent: 'flex-start',
-      },
       noResults: {
         flex: 1,
         textAlign: 'center',

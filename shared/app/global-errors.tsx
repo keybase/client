@@ -130,7 +130,7 @@ const GlobalError = () => {
             {message}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.overlayFill}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.overlayFill}>
           <Kb.Animation animationType="disconnected" height={175} width={600} />
         </Kb.Box2>
       </Kb.Box2>
@@ -207,7 +207,7 @@ const GlobalError = () => {
 
   return (
     <Kb.ClickableBox style={stylesContainer} onClick={onExpandClick}>
-      <Kb.Box2 direction="horizontal" style={styles.innerContainer}>
+      <Kb.Box2 direction="horizontal" flex={1} style={styles.innerContainer}>
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
         </Kb.Text>
@@ -266,7 +266,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     innerContainer: {
       ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.black,
-      flex: 1,
       gap: Kb.Styles.globalMargins.small,
       minHeight: maxHeightForSize('Small'),
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small),
@@ -306,7 +305,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     overlayFill: {
       ...Kb.Styles.globalStyles.flexBoxCenter,
       backgroundColor: Kb.Styles.globalColors.white,
-      flex: 1,
     },
     overlayRow: {
       ...Kb.Styles.globalStyles.flexBoxCenter,

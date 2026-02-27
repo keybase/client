@@ -131,9 +131,9 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
           httpSrvAddress={httpSrvAddress}
           httpSrvToken={httpSrvToken}
         />
-        <Kb.Box2 direction="vertical" style={styles.chatRowText}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.chatRowNameContainer}>
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" style={styles.chatRowNameLeft}>
+        <Kb.Box2 direction="vertical" flex={1} overflow="hidden" style={styles.chatRowText}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
+            <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
               <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
                 {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
               </Kb.Text>
@@ -258,7 +258,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
                 httpSrvToken={httpSrvToken}
               />
               <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
+                <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
                   <Kb.Text
                     type="BodyBold"
                     style={followingSet.has(update.writer) ? styles.tlfWriterFollowing : styles.tlfWriterNotFollowing}
@@ -426,7 +426,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         {backgroundColor: isDarkMode ? '#2d2d2d' : Kb.Styles.globalColors.blueDark},
       ])}
     >
-      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.headerBadgesContainer}>
+      <Kb.Box2 direction="horizontal" alignItems="center" flex={1} style={styles.headerBadgesContainer} justifyContent="center">
         {showBadges
           ? badgeTypesInHeader.map(tab => (
               <BadgeIcon key={tab} tab={tab} countMap={navBadges} openApp={openApp} />
@@ -561,7 +561,7 @@ const MenubarRender = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.widgetContainer}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.widgetContainer}>
       {isDarwin && <ArrowTick />}
       <IconBar {...p} showBadges={loggedIn} />
       {content}
@@ -573,7 +573,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-      <Kb.Box2 direction="vertical" style={styles.tabIconContainer}>
+      <Kb.Box2 direction="vertical" relative={true}>
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
@@ -667,9 +667,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   chatRowInner: Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall),
   chatRowName: {flexShrink: 1},
-  chatRowNameContainer: {justifyContent: 'space-between'},
-  chatRowNameLeft: {flexShrink: 1, overflow: 'hidden'},
-  chatRowText: {flexGrow: 1, flexShrink: 1, overflow: 'hidden'},
+
+  chatRowNameLeft: {flexShrink: 1},
+  chatRowText: {flexShrink: 1},
   chatSnippet: {color: Kb.Styles.globalColors.black_50},
   chatSnippetUnread: {color: Kb.Styles.globalColors.black},
   chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
@@ -697,8 +697,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   headerBadgesContainer: {
-    flex: 1,
-    justifyContent: 'center',
     marginLeft: Kb.Styles.globalMargins.mediumLarge,
   },
   loadingContainer: {height: 200},
@@ -710,7 +708,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
   showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
-  tabIconContainer: {position: 'relative'},
   tlfContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
@@ -732,7 +729,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   tlfSectionHeaderContainer: {backgroundColor: Kb.Styles.globalColors.white},
   tlfTime: {marginRight: Kb.Styles.globalMargins.tiny},
-  tlfTopLine: {justifyContent: 'space-between'},
+
   tlfWriterFollowing: {color: Kb.Styles.globalColors.greenDark},
   tlfWriterNotFollowing: {color: Kb.Styles.globalColors.blueDark},
   topRow: {
@@ -748,10 +745,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
-    flex: 1,
     height: '100%',
     marginTop: isDarwin ? 13 : 0,
-    position: 'relative',
     width: '100%',
   },
 }))

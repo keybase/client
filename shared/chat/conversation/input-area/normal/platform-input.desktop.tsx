@@ -61,6 +61,7 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
         direction="vertical"
         style={styles.explodingInsideWrapper}
         tooltip={explodingModeSeconds ? undefined : 'Timer'}
+        justifyContent="center"
       >
         {explodingModeSeconds ? (
           <Kb.Text type="BodyTinyBold" negative={true}>
@@ -193,7 +194,7 @@ const FileButton = React.memo(function FileButton(p: {
 
 const Footer = () => {
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.footerContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" justifyContent="space-between">
       <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, !>spoiler<!, @user, @team, #channel`}
@@ -444,7 +445,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 direction="horizontal" style={styles.inputBox}>
+            <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={styles.inputBox}>
               <Kb.Input
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
@@ -491,7 +492,7 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.desktopStyles.clickable,
         },
       }),
-      explodingInsideWrapper: {alignItems: 'center', height: 32, justifyContent: 'center'},
+      explodingInsideWrapper: {alignItems: 'center', height: 32},
       footer: {
         alignSelf: 'flex-end',
         color: Kb.Styles.globalColors.black_20,
@@ -500,9 +501,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: 2,
         textAlign: 'right',
       },
-      footerContainer: {
-        justifyContent: 'space-between',
-      },
+
       hidden: {display: 'none'},
       icon: {
         alignSelf: 'flex-end',
@@ -521,9 +520,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       inputBox: {
-        flexGrow: 1,
         minWidth: 0,
-        overflow: 'hidden',
         paddingBottom: Kb.Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,

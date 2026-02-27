@@ -106,7 +106,7 @@ const Dropdown = (props: Props) => {
             visible={modalVisible}
             onRequestClose={() => showModal(false)}
           >
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.pickerContainer}>
+            <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" flex={1} style={styles.pickerContainer}>
               <TouchableWithoutFeedback onPress={() => showModal(false)}>
                 <View style={{flex: 1}} />
               </TouchableWithoutFeedback>
@@ -164,8 +164,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       pickerContainer: {
         backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
-        flex: 1,
-        justifyContent: 'flex-end',
       },
     }) as const
 )

@@ -37,7 +37,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
       {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
       <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+        <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
           <Kb.Icon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
@@ -123,10 +123,8 @@ const styles = Styles.styleSheetCreate(
         isElectron: {wordBreak: 'break-all'},
       }),
       reload: {
-        flexGrow: 1,
         maxHeight: '100%',
         maxWidth: '100%',
-        padding: Styles.globalMargins.small,
       },
     }) as const
 )

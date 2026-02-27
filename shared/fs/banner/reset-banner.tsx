@@ -92,7 +92,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           If you want to let them into this folder and the matching chat, you should either:
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true}>
+      <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true} justifyContent="center">
         <Kb.Text type="BodySemibold" negative={true}>
           1. Be satisfied with their new proofs, or
         </Kb.Text>
@@ -185,7 +185,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       listTextContainer: {
         ...fixedHeight(C.isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
-        justifyContent: 'center',
         maxWidth: C.isMobile ? 280 : 400,
       },
       textDontLetThemIn: {

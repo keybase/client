@@ -25,9 +25,9 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        justifyContent="center"
         style={{
           backgroundColor: Kb.Styles.globalColors.red,
-          justifyContent: 'center',
         }}
       >
         <Kb.Text

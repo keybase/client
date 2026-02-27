@@ -35,7 +35,7 @@ const ChoiceList = ({options}: Props) => {
                   </Kb.Box2>
                 )}
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.infoContainer}>
+              <Kb.Box2 direction="vertical" alignItems="flex-start" justifyContent="center" flex={1} style={styles.infoContainer}>
                 <Text type="BodyBigLink">{op.title}</Text>
                 <Text type="Body">{op.description}</Text>
               </Kb.Box2>
@@ -64,8 +64,6 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 80,
   },
   infoContainer: {
-    flex: 1,
-    justifyContent: 'center',
     marginLeft: Styles.globalMargins.small,
     textAlign: 'left',
   },

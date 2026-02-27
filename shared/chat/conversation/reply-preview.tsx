@@ -42,7 +42,7 @@ const ReplyPreview = () => {
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
@@ -52,7 +52,7 @@ const ReplyPreview = () => {
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!imageURL && (
-                <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+                <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
                   <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
                     <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
                   </Kb.Box2>
@@ -92,12 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       replyContainer: {
-        justifyContent: 'space-between',
         padding: Kb.Styles.globalMargins.tiny,
-      },
-      replyImageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
       },
       text: Kb.Styles.platformStyles({
         isElectron: {

@@ -112,7 +112,7 @@ const EnterUsername = (props: Props) => {
           alignItems="center"
           gap={Kb.Styles.isMobile ? 'small' : 'medium'}
           direction="vertical"
-          style={styles.body}
+          flex={1}
           fullWidth={true}
         >
           <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
@@ -136,9 +136,6 @@ const EnterUsername = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  body: {
-    flex: 1,
-  },
   input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},

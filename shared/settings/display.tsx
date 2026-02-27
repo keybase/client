@@ -29,7 +29,7 @@ const Display = () => {
   }
   return (
     <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="Header">Appearance</Kb.Text>
@@ -77,7 +77,6 @@ const Display = () => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    flex: 1,
     padding: Kb.Styles.globalMargins.small,
   },
   scrollview: {

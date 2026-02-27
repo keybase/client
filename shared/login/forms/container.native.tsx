@@ -5,7 +5,7 @@ import NativeScrollView from '@/common-adapters/scroll-view.native'
 const Container = ({children, style, outerStyle}: Props) => {
   return (
     <NativeScrollView style={{...styles.container, ...outerStyle}}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{...styles.innerContainer, ...style}}>{children}</Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={{...styles.innerContainer, ...style}}>{children}</Kb.Box2>
     </NativeScrollView>
   )
 }
@@ -20,7 +20,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.medium,
       },
       innerContainer: {
-        flexGrow: 1,
         marginTop: Kb.Styles.globalMargins.medium,
       },
     }) as const

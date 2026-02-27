@@ -117,7 +117,7 @@ export const TeamMemberRow = (props: Props) => {
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
-      <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer} justifyContent="center">
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames
             type="BodyBold"
@@ -293,8 +293,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   lockedOutMeta: {marginRight: Kb.Styles.globalMargins.xtiny},
   mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
   nameContainer: {
-    flex: 1,
-    justifyContent: 'center',
     marginLeft: Kb.Styles.globalMargins.small,
   },
   selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},

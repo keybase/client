@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
       bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
       safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.Icon
           type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={styles.icon}
@@ -66,7 +66,6 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  flexOne: {flex: 1},
   header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},

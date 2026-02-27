@@ -76,11 +76,11 @@ const Header = (props: HeaderProps) => (
     style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
   >
     {(props.showInfoIcon || props.showInfoIconRow) && (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
         <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
       </Kb.Box2>
     )}
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
@@ -112,7 +112,7 @@ const Header = (props: HeaderProps) => (
         />
       )}
       {props.rightActionComponent && (
-        <Kb.Box2 direction="horizontal" style={styles.rightAction}>
+        <Kb.Box2 direction="horizontal" style={styles.rightAction} justifyContent="center">
           {props.rightActionComponent}
         </Kb.Box2>
       )}
@@ -203,6 +203,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
     <Kb.Box2
       alignItems="center"
       direction="vertical"
+          relative={true}
       style={Kb.Styles.collapseStyles([
         styles.background,
         props.noBackground ? styles.whiteBackground : styles.blueBackground,
@@ -272,7 +273,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       background: {
         flex: 1,
-        position: 'relative',
       },
       banners: {
         left: 0,
@@ -324,7 +324,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
       },
       infoIconContainer: {
-        justifyContent: 'flex-end',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
       },
       opacityNone: {
@@ -335,7 +334,6 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           alignSelf: 'flex-end',
           bottom: 0,
-          justifyContent: 'center',
           paddingRight: Kb.Styles.globalMargins.small,
           position: 'absolute',
           right: 0,
@@ -353,7 +351,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       titleContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, Kb.Styles.globalMargins.small),
-        position: 'relative',
       },
       whiteBackground: {
         backgroundColor: Kb.Styles.globalColors.white,

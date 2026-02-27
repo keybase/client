@@ -6,6 +6,7 @@ import './box.css'
 
 const getProps = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
+  const {flex, justifyContent, overflow, padding, relative} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
   const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
   const {style: _style, className: _className, title, tooltip} = p
@@ -19,7 +20,10 @@ const getProps = (p: Box2Props) => {
   //   backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
   // }
 
-  const style = Styles.collapseStyles([_style]) as unknown as React.CSSProperties
+  const style = Styles.collapseStyles([
+    flex != null && flex !== 1 ? {flex} : undefined,
+    _style,
+  ]) as unknown as React.CSSProperties
 
   const className = Styles.classNames(
     {
@@ -28,13 +32,18 @@ const getProps = (p: Box2Props) => {
       [`box2_gapEnd_${gap ?? ''}`]: gapEnd,
       [`box2_gapStart_${gap ?? ''}`]: gapStart,
       [`box2_gap_${gap ?? ''}`]: gap,
+      [`box2_justifyContent_${justifyContent ?? ''}`]: justifyContent,
+      [`box2_overflow_${overflow ?? ''}`]: overflow,
+      [`box2_padding_${padding ?? ''}`]: padding,
       box2_centered: !fullHeight && !fullWidth,
       box2_centeredChildren: centerChildren,
+      box2_flex1: flex === 1,
       box2_fullHeight: fullHeight,
       box2_fullWidth: fullWidth,
       box2_horizontal: horizontal,
       box2_no_shrink: noShrink,
       box2_pointerEvents_none: pointerEvents === 'none',
+      box2_relative: relative,
       box2_reverse: reverse,
       box2_vertical: !horizontal,
       tooltip,

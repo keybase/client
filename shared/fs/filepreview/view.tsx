@@ -57,7 +57,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   const reloadBanner = loadedLastModifiedTimestamp !== pathItem.lastModifiedTimestamp && (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bannerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.bannerContainer}>
       <Kb.Banner color="blue" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="blue"
@@ -140,7 +140,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       bannerContainer: {
-        position: 'relative',
         zIndex: 200, // needed for mobile
       },
       container: {

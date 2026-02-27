@@ -45,6 +45,7 @@ const Image = React.memo(function Image(p: Props) {
         >
           <Kb.Box2
             direction="vertical"
+          relative={true}
             style={styles.contentContainer}
             alignSelf="flex-start"
             alignItems="flex-start"
@@ -83,7 +84,6 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       borderRadius: Kb.Styles.borderRadius,
       maxWidth: Kb.Styles.isMobile ? '100%' : 330,
       padding: 3,
-      position: 'relative',
     },
     imageContainer: {alignSelf: 'center'},
     transferIcon: {left: -32, position: 'absolute'},

@@ -28,7 +28,7 @@ const ChatPDF = (props: Props) => {
         <Kb.WebView
           originWhitelist={['*']}
           renderLoading={() => (
-            <Kb.Box2 direction="vertical" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
+            <Kb.Box2 direction="vertical" justifyContent="center" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
               <Kb.ProgressIndicator white={true} />
             </Kb.Box2>
           )}
@@ -46,7 +46,6 @@ const ChatPDF = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   progressContainer: {
-    justifyContent: 'center',
     position: 'absolute',
   },
   webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},

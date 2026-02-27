@@ -48,7 +48,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">
             {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall" style={styles.fastStyle}>
@@ -130,7 +130,6 @@ const styles = Kb.Styles.styleSheetCreate(
       siteNameContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          justifyContent: 'space-between',
         },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.xxtiny,

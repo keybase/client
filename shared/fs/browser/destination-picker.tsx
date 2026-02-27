@@ -130,7 +130,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     >
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
             <NavHeaderTitle inDestinationPicker={true} path={parentPath} />
             {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
           </Kb.Box2>
@@ -270,7 +270,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       anotherHeader: {
         height: 48,
-        justifyContent: 'space-between',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       desktopHeader: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10),

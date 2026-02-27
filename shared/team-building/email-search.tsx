@@ -49,7 +49,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexGrow}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -120,9 +120,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '90%'},
       }),
-      flexGrow: {
-        flex: 1,
-      },
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {

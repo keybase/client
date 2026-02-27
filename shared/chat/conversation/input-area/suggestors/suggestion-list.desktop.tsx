@@ -44,7 +44,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
       <Kb.List desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
-        <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+        <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical" justifyContent="center">
           <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
         </Kb.Box2>
       ) : null}
@@ -57,7 +57,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       commandStatusContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
-        justifyContent: 'center',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
       listContainer: {

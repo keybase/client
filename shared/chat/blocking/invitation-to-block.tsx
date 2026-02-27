@@ -86,6 +86,7 @@ const BlockButtons = () => {
       direction="vertical"
       centerChildren={true}
       gap="tiny"
+          relative={true}
       style={styles.dismissContainer}
       fullWidth={true}
     >
@@ -133,7 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         paddingBottom: Kb.Styles.globalMargins.xsmall,
         paddingTop: Kb.Styles.globalMargins.xsmall,
-        position: 'relative',
       },
       dismissIcon: {
         position: 'absolute',

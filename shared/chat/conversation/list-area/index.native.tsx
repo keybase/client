@@ -272,7 +272,7 @@ const ConversationList = React.memo(function ConversationList() {
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
         <ForceListRedrawContext.Provider value={forceListRedraw}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
             <List
               testID="messageList"
               onScrollToIndexFailed={noop}
@@ -351,7 +351,6 @@ const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: nu
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {flex: 1, position: 'relative'},
       contentContainer: {
         paddingBottom: 0,
         paddingTop: mobileTypingContainerHeight,

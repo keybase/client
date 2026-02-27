@@ -39,13 +39,13 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
   return (
     <Chat.ChatProvider id={conversationIDKey} canBeNull={true}>
       <Kb.KeyboardAvoidingView2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
           {!C.isTablet && inboxSearch ? (
             <InboxSearch />
           ) : (
             <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
           )}
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
+          <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
             <Conversation />
           </Kb.Box2>
           {infoPanelShowing ? (
@@ -62,8 +62,6 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {position: 'relative'},
-      conversation: {flexGrow: 1},
       infoPanel: {
         backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,

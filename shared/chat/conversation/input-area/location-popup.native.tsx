@@ -134,7 +134,7 @@ const LocationPopup = () => {
       }}
     >
       {locationDenied ? (
-        <Kb.Box2 direction="vertical" style={styles.denied} gap="small">
+        <Kb.Box2 direction="vertical" style={styles.denied} gap="small" justifyContent="center">
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Location permission denied.
           </Kb.Text>
@@ -158,7 +158,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       denied: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        justifyContent: 'center',
         padding: Kb.Styles.globalMargins.small,
       },
       deniedText: {

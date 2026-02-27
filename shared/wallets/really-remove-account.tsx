@@ -78,7 +78,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewBottomStyle={styles.background}
       safeAreaViewTopStyle={styles.background}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.Icon
           type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
@@ -115,7 +115,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   background: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.yellow},
   }),
-  flexOne: {flex: 1},
   header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},

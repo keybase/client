@@ -38,6 +38,7 @@ const PaperKey = () => {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
+          flex={1}
           style={styles.contents}
           centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
           gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
@@ -68,7 +69,6 @@ const PaperKey = () => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
-    flexGrow: 1,
     maxWidth: Kb.Styles.isMobile ? '100%' : 460,
     width: '100%',
   },

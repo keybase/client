@@ -23,7 +23,7 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function A
   }))
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
         <Kb.NewInput
           ref={inputRef}
@@ -90,7 +90,7 @@ export const Modal = (props: ModalProps) => {
             <Kb.Text type="Header">{props.title}</Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
           <Kb.Icon type={props.bannerImage} noContainer={true} style={styles.bannerImage} />
           {!!props.bannerError && (
             <Kb.Banner color="red" style={styles.bannerError}>
@@ -140,7 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
-  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
+  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1},
   aliasInputLarge: Kb.Styles.platformStyles({
     common: {
       paddingLeft: Kb.Styles.globalMargins.small,
@@ -159,7 +159,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
-    position: 'relative',
   },
   bannerError: Kb.Styles.platformStyles({
     common: {

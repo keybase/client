@@ -188,7 +188,8 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-      style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack, position: 'relative'}}
+          relative={true}
+      style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack}}
       fullWidth={true}
       fullHeight={true}
     >

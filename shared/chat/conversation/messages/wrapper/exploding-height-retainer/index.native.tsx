@@ -159,7 +159,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
     setChildren(children)
   }, [running, numImages])
 
-  return <Kb.Box2 direction="vertical" style={styles.emojiTower}>{children}</Kb.Box2>
+  return <Kb.Box2 direction="vertical" overflow="hidden" style={styles.emojiTower}>{children}</Kb.Box2>
 }
 
 const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
@@ -215,7 +215,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {flex: 1},
       emojiTower: {
         bottom: 0,
-        overflow: 'hidden',
         position: 'absolute',
         right: 0,
         top: 0,

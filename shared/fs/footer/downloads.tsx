@@ -64,7 +64,7 @@ const Desktop = () => {
             />
           </Kb.WithTooltip>
         )}
-        <Kb.Box2 direction="horizontal" style={styles.space} />
+        <Kb.Box2 direction="horizontal" flex={1} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
@@ -95,7 +95,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: 4,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },
-      space: {flex: 1},
     }) as const
 )
 

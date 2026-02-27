@@ -28,7 +28,7 @@ export const HeaderHocHeader = ({
       />
     )}
     {title && (
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={_titleStyle}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={_titleStyle}>
         <Kb.Text type="Header">{title}</Kb.Text>
       </Kb.Box2>
     )}
@@ -110,7 +110,6 @@ const _styleCloseThemed = {
 
 const _titleStyle = {
   bottom: 0,
-  flex: 1,
   left: 0,
   position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
   right: 0,

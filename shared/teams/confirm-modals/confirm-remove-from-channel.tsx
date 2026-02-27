@@ -49,7 +49,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const prompt = `Remove ${Teams.stringifyPeople(members)} from #${channelname}?`
   const header = (
-    <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Icon
         boxStyle={members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer}
@@ -102,8 +102,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     bottom: -3,
     position: 'absolute',
     right: 0,
-  },
-  positionRelative: {
-    position: 'relative',
   },
 }))

@@ -32,7 +32,7 @@ type HeaderProps = {
 export type Props = OwnProps & HeaderProps
 
 const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
     <Kb.ClickableBox
       style={styles.bigButton}
       onClick={props.onCreateTeam}
@@ -40,7 +40,7 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
     >
       <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.relative}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar isTeam={true} size={96} />
           <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
         </Kb.Box2>
@@ -232,7 +232,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       emptyNote: Kb.Styles.padding(60, 42, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium),
-      relative: {position: 'relative'},
       sortHeader: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isElectron: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
@@ -241,7 +240,6 @@ const styles = Kb.Styles.styleSheetCreate(
       teamButtons: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'flex-start',
       },
       teamPlus: {
         bottom: -2,

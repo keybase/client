@@ -40,7 +40,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderWidth: 1,
     height: 32,
-    justifyContent: 'center',
     width: 32,
   },
 }))
@@ -236,7 +235,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       gap="tiny"
     >
       {Chat.isSpecialMention(username ?? '') ? (
-        <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
+        <Kb.Box2 direction="horizontal" style={styles.iconPeople} justifyContent="center">
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (

@@ -121,7 +121,7 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
           <Kb.Box2 direction="vertical" style={{padding: Kb.Styles.isMobile ? 4 : 8, width: 32}}>
             <Kb.Icon type="iconfont-chat" />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.jobLeft} gap="xtiny">
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.jobLeft} gap="xtiny">
             {sub}
             {!done && <Kb.ProgressBar ratio={progress} />}
           </Kb.Box2>
@@ -228,7 +228,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
           ) : (
             <Kb.Icon type="icon-folder-32" />
           )}
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.kbfsJobLeft}>
+          <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" flex={1} style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">
               <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
@@ -284,7 +284,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
                 )}
               </Kb.Box2>
             ) : (
-              <Kb.Box2 direction="vertical" alignItems="center" style={styles.kbfsActions}>
+              <Kb.Box2 direction="vertical" alignItems="center" justifyContent="flex-end" style={styles.kbfsActions}>
                 {job.phase === 'Done' ? (
                   <Kb.Text type="BodySmallPrimaryLink" onClick={onShowFinder}>
                     Show in {C.fileUIName}
@@ -363,7 +363,7 @@ const Archive = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
-          <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true} alignItems="center">
+          <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
               {
                 "Easily backup your Keybase data by choosing 'backup' in chat and files or click to backup all."
@@ -391,7 +391,7 @@ const Archive = () => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Text type="Header">Active backup jobs</Kb.Text>
           {chatJobs.length + kbfsJobs.length ? (
-            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+            <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true}>
               {chatJobs.map((id, idx) => (
                 <ChatJob id={id} key={id} index={idx} />
               ))}
@@ -408,7 +408,7 @@ const Archive = () => {
               ) : null}
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" style={styles.jobs} fullWidth={true}>
+            <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true}>
               <Kb.Text type="Body">• No active backup jobs</Kb.Text>
             </Kb.Box2>
           )}
@@ -423,22 +423,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   clear: {alignSelf: 'flex-start', marginTop: 16},
   container: {padding: Kb.Styles.isMobile ? 8 : 16},
   errorTip: {justifyContent: 'center'},
-  jobLeft: {flexGrow: 1, flexShrink: 1},
+  jobLeft: {flexShrink: 1},
   jobs: {
-    flexGrow: 1,
     flexShrink: 1,
   },
   kbfsActions: {
     alignSelf: 'center',
     flexShrink: 0,
-    justifyContent: 'flex-end',
     paddingLeft: 8,
   },
   kbfsCancel: {color: Kb.Styles.globalColors.red},
   kbfsJobLeft: {
-    flexGrow: 1,
     flexShrink: 1,
-    justifyContent: 'center',
   },
   kbfsJobRight: {flexShrink: 0},
   kbfsProgress: {

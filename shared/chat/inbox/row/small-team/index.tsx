@@ -136,7 +136,7 @@ const SmallTeamInner = (p: Props) => {
             />
           )}
           <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
+            <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
               <TopLine
                 isSelected={isSelected}
                 hasUnread={hasUnread}
@@ -212,7 +212,7 @@ const TopLine = (p: TopLineProps) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
       {showingPopup && popup}
-      <Kb.Box2 direction="horizontal" style={styles.insideContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.insideContainer} relative={true}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -361,7 +361,7 @@ const BottomLine = (p: BottomLineProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
+    <Kb.Box2 direction="vertical" justifyContent="flex-start" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
         {hasResetUsers && (
           <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
@@ -478,7 +478,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {marginTop: 2},
       }),
       bold: {...Kb.Styles.globalStyles.fontBold},
-      bottom: {justifyContent: 'flex-start'},
       bottomLine: Kb.Styles.platformStyles({
         isElectron: {
           color: Kb.Styles.globalColors.black_50,
@@ -529,7 +528,6 @@ const styles = Kb.Styles.styleSheetCreate(
       insideContainer: {
         flexGrow: 1,
         height: Kb.Styles.isMobile ? 21 : 17,
-        position: 'relative',
       },
       name: {paddingRight: Kb.Styles.globalMargins.tiny},
       nameContainer: {
@@ -570,7 +568,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 8,
       },
       withBottomLine: {
-        justifyContent: 'flex-end',
         paddingBottom: Kb.Styles.globalMargins.xxtiny,
       },
       youAreResetText: Kb.Styles.platformStyles({

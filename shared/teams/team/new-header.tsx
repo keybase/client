@@ -50,7 +50,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       alignSelf="flex-end"
       fullWidth={true}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.illustration}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.illustration}>
         <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
       </Kb.Box2>
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
@@ -269,6 +269,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.flexShrinkGrow}
       >
         {topDescriptors}
@@ -389,11 +390,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       flexShrink: {flexShrink: 1},
       flexShrinkGrow: {
-        flexGrow: 1,
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      illustration: {borderRadius: 4, width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

@@ -70,7 +70,7 @@ const NewFeature = (props: Props) => {
             <Kb.Icon type={props.image} style={Kb.Styles.collapseStyles([styles.image, props.imageStyle])} />
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny">
+        <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny" justifyContent="space-between">
           {primaryButton}
           {secondaryButton}
         </Kb.Box2>
@@ -93,7 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonRowContainer: {
         ...Kb.Styles.globalStyles.flexWrap,
         alignSelf: 'flex-start',
-        justifyContent: 'space-between',
       },
       buttons: {
         // Apply margins to buttons so that when they wrap there is vertical space between them

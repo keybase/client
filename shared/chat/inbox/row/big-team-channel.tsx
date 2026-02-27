@@ -144,7 +144,8 @@ const BigTeamChannelInner = (props: Props) => {
               direction="horizontal"
               alignSelf="center"
               alignItems="center"
-              style={styles.iconContainer}
+              justifyContent="flex-end"
+              flex={1}
               tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
             >
               {draftIcon}
@@ -195,10 +196,6 @@ const styles = Kb.Styles.styleSheetCreate(
       icon: {
         display: 'flex',
         margin: 3,
-      },
-      iconContainer: {
-        flex: 1,
-        justifyContent: 'flex-end',
       },
       muted: {marginLeft: Kb.Styles.globalMargins.xtiny},
       rowContainer: Kb.Styles.platformStyles({

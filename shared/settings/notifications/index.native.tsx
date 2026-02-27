@@ -38,11 +38,11 @@ const TurnOnNotifications = () => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
+      relative={true}
+      overflow="hidden"
       style={{
         backgroundColor: Kb.Styles.globalColors.red,
         height: 330,
-        overflow: 'hidden',
-        position: 'relative',
       }}
     >
       <Kb.Box2

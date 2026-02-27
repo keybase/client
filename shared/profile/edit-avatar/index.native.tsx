@@ -240,10 +240,10 @@ const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number;
     return (
       <Kb.Box2
         direction="vertical"
+        overflow="hidden"
         style={{
           borderRadius: avatarSize / 2,
           height: avatarSize,
-          overflow: 'hidden',
           width: avatarSize,
         }}
       >
