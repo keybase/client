@@ -36,8 +36,8 @@ const VideoImpl = (p: Props) => {
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
-      <Pressable onPress={onPress} style={styles.pressable} onLongPress={showPopup}>
-        {showPoster ? (
+      {showPoster ? (
+        <Pressable onPress={onPress} style={styles.pressable} onLongPress={showPopup}>
           <Kb.Box2
             direction="vertical"
             style={Kb.Styles.collapseStyles([styles.posterContainer, {height, width}])}
@@ -50,15 +50,15 @@ const VideoImpl = (p: Props) => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-        ) : (
-          <VideoView
-            player={player}
-            nativeControls={true}
-            contentFit="cover"
-            style={Kb.Styles.collapseStyles([styles.video, {height, width}])}
-          />
-        )}
-      </Pressable>
+        </Pressable>
+      ) : (
+        <VideoView
+          player={player}
+          nativeControls={true}
+          contentFit="cover"
+          style={Kb.Styles.collapseStyles([styles.video, {height, width}])}
+        />
+      )}
     </>
   )
 }
