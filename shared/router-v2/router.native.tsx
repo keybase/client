@@ -58,6 +58,7 @@ const dynamicColorWorkaround = true
 
 const useIOSHeaderOptions = () => {
   const isDark = useColorScheme() === 'dark'
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!dynamicColorWorkaround || !Kb.Styles.isIOS) return tabStackOptions
   const titleColor = isDark ? (darkColors.black as string) : (colors.black as string)
   return {
