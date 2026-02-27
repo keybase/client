@@ -120,6 +120,7 @@ const CodePageContainer = () => {
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
+          justifyContent="center"
           style={currentDeviceAlreadyProvisioned ? styles.imageContainerOnLeft : styles.imageContainerOnRight}
         >
           <Kb.Icon
@@ -139,9 +140,9 @@ const CodePageContainer = () => {
           </>
         )}
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny" justifyContent="space-between">
               <Instructions
                 currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
                 currentDevice={currentDevice}
@@ -515,7 +516,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: Kb.Styles.platformStyles({
-        common: {justifyContent: 'space-between'},
         isElectron: {
           height: '100%',
           padding: Kb.Styles.globalMargins.large,
@@ -580,13 +580,11 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
-        justifyContent: 'center',
       },
       imageContainerOnRight: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
-        justifyContent: 'center',
       },
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
@@ -611,10 +609,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
-      },
-      scrollContainer: {
-        flexGrow: 1,
-        position: 'relative',
       },
       switchTab: {
         marginBottom: Kb.Styles.globalMargins.xtiny,

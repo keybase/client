@@ -40,7 +40,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
         />
       }
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
               {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}

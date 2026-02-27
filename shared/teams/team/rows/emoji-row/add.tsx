@@ -25,7 +25,7 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
     })
   // clear filter on unmount
   return !canManageEmoji ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Button
           mode="Secondary"
@@ -61,7 +61,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
     ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    justifyContent: 'space-between',
   },
   filterInput: {
     marginRight: Kb.Styles.globalMargins.tiny,

@@ -187,7 +187,7 @@ const Container = (ownProps: OwnProps) => {
           style={styles.menuHeader}
           fullWidth={true}
         >
-          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+          <Kb.Box2 direction="vertical" relative={true}>
             <AssertionSiteIcon
               full={true}
               siteIconFullDarkmode={siteIconFullDarkmode}
@@ -586,7 +586,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
       },
       metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
-      positionRelative: {position: 'relative'},
       site: {color: Kb.Styles.globalColors.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
       statusContainer: Kb.Styles.platformStyles({

@@ -101,7 +101,7 @@ const EmptyRow = (props: Props) => {
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
   return (
-    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true} justifyContent="flex-start">
       <Kb.Box2 direction="horizontal">
         <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>
@@ -135,7 +135,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         ...Kb.Styles.padding(40, 0),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},
       text: Kb.Styles.platformStyles({

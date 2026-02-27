@@ -3,13 +3,13 @@ import type {Props} from './you-rekey'
 
 const YouRekey = ({onRekey}: Props) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        justifyContent="center"
         style={{
           backgroundColor: Kb.Styles.globalColors.red,
-          justifyContent: 'center',
         }}
       >
         <Kb.Text
@@ -32,8 +32,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         backgroundColor: Kb.Styles.globalColors.blueDarker2,
-        flex: 1,
-        justifyContent: 'flex-start',
       },
     }) as const
 )

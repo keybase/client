@@ -46,14 +46,14 @@ const MultiUserJoinedNotice = (p: {
   ) : null
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={{position: 'relative'}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" relative={true}>
       <UserNotice>
         <Kb.Box2
           direction="horizontal"
           gap="xtiny"
           fullWidth={true}
           alignSelf="flex-start"
-          style={{position: 'relative'}}
+          relative={true}
         >
           <Kb.Text type="Body">•</Kb.Text>
           <Kb.Text type="BodySmall" lineClamp={2} title={who.join(', ')}>

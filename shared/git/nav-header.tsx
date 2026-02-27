@@ -9,6 +9,7 @@ export const HeaderTitle = () => {
     <Kb.Box2
       direction="vertical"
       alignItems="flex-start"
+      flex={1}
       style={styles.headerTitle}
       className="hover-underline-container"
     >
@@ -78,7 +79,6 @@ export const HeaderRightActions = () => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   headerTitle: {
-    flex: 1,
     paddingBottom: Kb.Styles.globalMargins.xtiny,
     paddingLeft: Kb.Styles.globalMargins.xsmall,
   },

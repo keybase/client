@@ -64,7 +64,7 @@ const ConnectedEnterUsername = () => {
           gap="xtiny"
           style={styles.serviceIconHeaderContainer}
         >
-          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+          <Kb.Box2 direction="vertical" relative={true}>
             <SiteIcon set={serviceIconFull} full={true} style={styles.serviceIconFull} />
             <Kb.Icon
               type={unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
@@ -83,6 +83,8 @@ const ConnectedEnterUsername = () => {
           direction="vertical"
           alignItems="flex-start"
           gap="xtiny"
+          justifyContent="center"
+          flex={1}
           style={styles.inputContainer}
         >
           {unreachable ? (
@@ -186,7 +188,7 @@ const EnterUsernameInput = (props: InputProps) => {
           full={false}
           style={username ? styles.opacity75 : styles.opacity40}
         />
-        <Kb.Box2 direction="horizontal" style={styles.positionRelative} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" relative={true} fullWidth={true}>
           <Kb.PlainInput
             autoFocus={true}
             flexable={true}
@@ -234,7 +236,7 @@ const Unreachable = (props: {
       full={false}
       style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
-    <Kb.Box2 direction="vertical" style={styles.flexOne}>
+    <Kb.Box2 direction="vertical" flex={1}>
       <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
@@ -275,7 +277,7 @@ const styles = Kb.Styles.styleSheetCreate(
       colorBlue: {color: Kb.Styles.globalColors.blueDark},
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
-      flexOne: {flex: 1},
+
       inlineIcon: {
         position: 'relative',
         top: 1,
@@ -299,8 +301,6 @@ const styles = Kb.Styles.styleSheetCreate(
           0,
           Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.medium
         ),
-        flex: 1,
-        justifyContent: 'center',
       },
       inputPlaceholder: {
         left: 1,
@@ -319,7 +319,6 @@ const styles = Kb.Styles.styleSheetCreate(
       paddingRightTiny: {paddingRight: Kb.Styles.globalMargins.tiny},
       placeholder: {color: Kb.Styles.globalColors.black_35},
       placeholderService: {color: Kb.Styles.globalColors.black_20},
-      positionRelative: {position: 'relative'},
       serviceIconFull: {
         height: 64,
         width: 64,

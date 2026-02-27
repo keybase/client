@@ -62,7 +62,6 @@ const JoinFromInvite = () => {
       loaded ? (
         <Kb.Box2
           direction="vertical"
-          style={styles.center}
           fullWidth={true}
           fullHeight={true}
           gap="small"
@@ -73,7 +72,6 @@ const JoinFromInvite = () => {
       ) : (
         <Kb.Box2
           direction="vertical"
-          style={styles.center}
           fullWidth={true}
           fullHeight={true}
           gap="small"
@@ -86,7 +84,6 @@ const JoinFromInvite = () => {
     ) : showSuccess ? (
       <Kb.Box2
         direction="vertical"
-        style={styles.center}
         fullWidth={true}
         fullHeight={true}
         gap="small"
@@ -199,8 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      buttonBar: {justifyContent: 'center', paddingTop: Kb.Styles.globalMargins.small},
-      center: {justifyContent: 'center'},
+      buttonBar: {paddingTop: Kb.Styles.globalMargins.small},
       description: Kb.Styles.platformStyles({
         isElectron: {width: 460},
         isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),

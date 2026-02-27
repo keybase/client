@@ -246,7 +246,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
     </Kb.ButtonBar>
   ) : null
   return Kb.Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
+    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" style={styles.bioAndProofs}>
       {!!props.reason && (
         <Kb.Text
           type="BodySmallSemibold"
@@ -257,7 +257,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           {props.reason}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
@@ -284,7 +284,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           colorTypeToStyle(props.backgroundColorType),
         ])}
       />
-      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} justifyContent="space-around" style={styles.bioAndProofs}>
         <BioLayout {...props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
@@ -480,7 +480,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   bioAndProofs: Kb.Styles.platformStyles({
     common: {
-      justifyContent: 'space-around',
       paddingBottom: Kb.Styles.globalMargins.medium,
       position: 'relative',
     },

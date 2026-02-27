@@ -21,7 +21,7 @@ const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 const FakeRow = ({idx}: {idx: number}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
     <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
-    <Kb.Box2 direction="vertical" style={styles.fakeText}>
+    <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={styles.fakeText}>
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
@@ -439,9 +439,7 @@ const styles = Kb.Styles.styleSheetCreate(
         zIndex: 9999,
       },
       fakeText: {
-        flexGrow: 1,
         height: '100%',
-        justifyContent: 'space-around',
         padding: 8,
         paddingLeft: 16,
       },

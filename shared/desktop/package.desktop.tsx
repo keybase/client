@@ -10,7 +10,7 @@ import {electronChecksums} from './electron-sums'
 
 const TEMP_SKIP_BUILD: boolean = false
 
-// absolute path relative to this script
+// absolute path relative={true} to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
 async function walk(dir: string, onlyExts: Array<string>): Promise<Array<string>> {

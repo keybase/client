@@ -37,7 +37,7 @@ const SelectableBigTeamChannel = (props: Props) => {
   const rowLoadedContent = (
     <>
       <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.textContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Text
             type="BodySemibold"
@@ -161,7 +161,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       textContainer: {
         flexShrink: 1,
-        overflow: 'hidden',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const

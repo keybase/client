@@ -40,7 +40,7 @@ const Conversation = React.memo(function Conversation() {
 
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
         <ThreadLoadStatus />
         <PinnedMessage />
         <ListArea />
@@ -77,10 +77,11 @@ const Conversation = React.memo(function Conversation() {
   const content = (
     <Kb.Box2
       direction="vertical"
-      style={styles.innerContainer}
+      flex={1}
       fullWidth={true}
       fullHeight={true}
       key={conversationIDKey}
+          relative={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {threadLoadedOffline && <Offline />}
@@ -109,10 +110,6 @@ const Conversation = React.memo(function Conversation() {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      innerContainer: {
-        flex: 1,
-        position: 'relative',
-      },
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
     }) as const
 )

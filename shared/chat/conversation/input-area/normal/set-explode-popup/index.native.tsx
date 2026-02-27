@@ -3,14 +3,13 @@ import type {Props} from '.'
 import useHooks from './hooks'
 
 const Prompt = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle} justifyContent="center">
     <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>
   </Kb.Box2>
 )
 
 const promptContainerStyle = {
   alignItems: 'center',
-  justifyContent: 'center',
 } as const
 
 const SetExplodePopup = (p: Props) => {

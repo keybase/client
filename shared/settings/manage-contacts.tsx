@@ -36,7 +36,7 @@ const ManageContacts = () => {
   }, [editContactImportEnabled, requestPermissions, contactsImported, status])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
       <Kb.BoxGrow>
         <ManageContactsBanner />
         <SettingsSection>
@@ -134,7 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: undefined,
         width: undefined,
       },
-      positionRelative: {position: 'relative'},
     }) as const
 )
 

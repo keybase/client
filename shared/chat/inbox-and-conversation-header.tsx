@@ -240,7 +240,7 @@ const Header2 = () => {
   )
 
   const bottomRow = renderDescription ? (
-    <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.descriptionContainer} fullWidth={true}>
       {!!fullName && !!withoutSelf && withoutSelf.length === 1 ? (
         <Kb.BoxGrow>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
@@ -270,7 +270,7 @@ const Header2 = () => {
   ) : null
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="horizontal" flex={1} style={styles.container}>
       {leftSide}
       <Kb.Box2
         direction="horizontal"
@@ -298,7 +298,6 @@ const styles = Kb.Styles.styleSheetCreate(
       actionIcons: {paddingBottom: Kb.Styles.globalMargins.tiny},
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
-        flexGrow: 1,
         flexShrink: 0,
         height: 40 - 1,
         width: '100%',
@@ -317,7 +316,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       descriptionContainer: {
         height: 17,
-        overflow: 'hidden',
       },
       descriptionTextContainer: Kb.Styles.platformStyles({
         isElectron: {alignItems: 'baseline'},

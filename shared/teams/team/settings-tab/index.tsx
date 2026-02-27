@@ -42,7 +42,7 @@ const SetMemberShowcase = (props: {
       checked={props.newPublicityMember}
       disabled={!props.canShowcase}
       labelComponent={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
             Feature team on your own profile
           </Kb.Text>
@@ -70,7 +70,7 @@ const PublicityAnyMember = (props: {
       <Kb.Checkbox
         checked={props.newPublicityAnyMember}
         labelComponent={
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             <Kb.Text type="Body">Allow non-admin members to feature the team on their profile</Kb.Text>
             <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
           </Kb.Box2>
@@ -90,7 +90,7 @@ const PublicityTeam = (props: {newPublicityTeam: boolean; setNewPublicityTeam: (
       <Kb.Checkbox
         checked={props.newPublicityTeam}
         labelComponent={
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             <Kb.Text type="Body">
               Publicize this team on{' '}
               <Kb.Text type="BodyPrimaryLink" {...teamsLinkUrlProps}>
@@ -172,7 +172,7 @@ const IgnoreAccessRequests = (props: {
       <Kb.Checkbox
         checked={props.newIgnoreAccessRequests}
         labelComponent={
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             <Kb.Text type="Body">{"Don't allow requests to join this team"}</Kb.Text>
             <Kb.Text type="BodySmall">
               Requests to join this team will be silently ignored by all admins.
@@ -235,7 +235,7 @@ export const Settings = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
-      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.main}>
+      <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.main} justifyContent="flex-start">
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
         <SetMemberShowcase
           yourOperationsJoinTeam={yourOperations.joinTeam}
@@ -316,8 +316,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'flex-start',
     backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: 0,
-    flexGrow: 1,
-    justifyContent: 'flex-start',
     maxWidth: 600,
     padding: Kb.Styles.globalMargins.small,
   },
@@ -333,7 +331,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingRight: Kb.Styles.globalMargins.small,
     paddingTop: Kb.Styles.globalMargins.small,
   },
-  shrink: {flex: 1},
   teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
 }))
 

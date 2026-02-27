@@ -20,7 +20,7 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
       <Kb.Icon
         type="iconfont-leave"
         color={Kb.Styles.globalColors.white}
@@ -102,7 +102,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 24,
         marginRight: -46,
         marginTop: -20,
-        overflow: 'hidden',
         width: 24,
         zIndex: 1,
       },

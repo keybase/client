@@ -159,6 +159,7 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
   return (
     <Kb.Box2
       direction="horizontal"
+      overflow="hidden"
       style={styles.transferring}
       alignItems="center"
       gap="xtiny"
@@ -237,7 +238,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.black_50,
     borderRadius: 2,
     left: Kb.Styles.globalMargins.tiny,
-    overflow: 'hidden',
     position: 'absolute',
     top: Kb.Styles.globalMargins.tiny,
   },

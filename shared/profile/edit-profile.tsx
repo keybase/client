@@ -75,7 +75,7 @@ const Container = () => {
               style={styles.widthFix}
             />
           </Kb.RoundedBox>
-          <Kb.Box2 direction="vertical" style={styles.gap} />
+          <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTracker}
             label="Save"
@@ -99,7 +99,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 350,
     },
   }),
-  gap: {flexGrow: 1, minHeight: Kb.Styles.globalMargins.small},
+  gap: {minHeight: Kb.Styles.globalMargins.small},
   header: {marginBottom: Kb.Styles.globalMargins.small},
   widthFix: Kb.Styles.platformStyles({
     isElectron: {

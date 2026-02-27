@@ -49,7 +49,7 @@ const Intro = () => {
       alignItems="center"
       style={styles.container}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" style={styles.header}>
         <InfoIcon />
       </Kb.Box2>
       {!!bannerMessage && <Kb.Banner color="blue">{bannerMessage}</Kb.Banner>}
@@ -104,7 +104,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
       },
       header: Kb.Styles.platformStyles({
-        common: {justifyContent: 'flex-end'},
         isElectron: {padding: Kb.Styles.globalMargins.small},
         isMobile: {
           paddingRight: Kb.Styles.globalMargins.small,

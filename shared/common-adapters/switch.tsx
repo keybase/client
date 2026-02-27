@@ -74,7 +74,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
           ] as const)}
         />
       </Kb.ClickableBox>
-      {!!props.gapInBetween && <Kb.Box2 direction="vertical" style={styles.gap} />}
+      {!!props.gapInBetween && <Kb.Box2 direction="vertical" flex={1} />}
       {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
@@ -120,7 +120,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   disabled: {opacity: 0.3},
-  gap: {flex: 1},
   labelContainer: {flexShrink: 1},
   switch: Styles.platformStyles({
     isMobile: {

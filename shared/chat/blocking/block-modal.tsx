@@ -52,7 +52,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       onClick={() => props.onCheck(!props.checked)}
       style={styles.shrink}
     />
-    <Kb.Box2 direction="vertical" style={styles.iconBox} />
+    <Kb.Box2 direction="vertical" flex={1} style={styles.iconBox} />
     {props.info && (
       <Kb.WithTooltip
         tooltip={props.info}
@@ -546,7 +546,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
   grow: {flexGrow: 1},
-  iconBox: {flex: 1, paddingLeft: Kb.Styles.globalMargins.tiny},
+  iconBox: {paddingLeft: Kb.Styles.globalMargins.tiny},
   loadingAnimation: Kb.Styles.platformStyles({
     isElectron: {
       height: 32,

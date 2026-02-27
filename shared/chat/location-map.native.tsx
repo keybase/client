@@ -17,7 +17,7 @@ const LocationMap = (props: Props) => {
     !!props.onLoad && props.onLoad()
   }
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
       {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
       {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
       <Kb.Banner color="white" style={styles.banner}>
@@ -48,7 +48,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        justifyContent: 'center',
       },
       loading: {
         bottom: '50%',

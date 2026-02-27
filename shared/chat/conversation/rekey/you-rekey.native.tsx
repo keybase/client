@@ -6,14 +6,12 @@ const YouRekey = ({onEnterPaperkey}: Props) => (
     <Kb.Banner color="red">
       <Kb.BannerParagraph bannerColor="red" content="This conversation needs to be rekeyed." />
     </Kb.Banner>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-        }}
+        justifyContent="center"
+        flex={1}
       >
         <Kb.Text center={true} type="BodySmall" style={styles.text} negative={true}>
           To unlock this conversation, open one of your other devices or enter a paperkey.
@@ -28,8 +26,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        flex: 1,
-        justifyContent: 'flex-start',
         padding: Kb.Styles.globalMargins.small,
       },
       text: {

@@ -136,7 +136,6 @@ const styles = Style.styleSheetCreate(
       }),
       label: {
         alignItems: 'center',
-        justifyContent: 'flex-start',
         minHeight: Style.isMobile ? 40 : 32,
         paddingLeft: Style.globalMargins.xsmall,
         width: '100%',

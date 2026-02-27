@@ -69,12 +69,13 @@ const TeamHeader = () => {
             />
           </>
         ) : (
-          <Kb.Box2 direction="vertical" gap="xxtiny" style={styles.channelnameContainer}>
+          <Kb.Box2 direction="vertical" gap="xxtiny" flex={1}>
             <Kb.Box2
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              style={styles.textWrapper}
+              flex={1}
+              justifyContent="space-between"
             >
               <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
                 # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
@@ -93,7 +94,8 @@ const TeamHeader = () => {
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              style={styles.textWrapper}
+              flex={1}
+              justifyContent="space-between"
             >
               <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Avatar teamname={teamname} size={16} />
@@ -175,7 +177,6 @@ const styles = Kb.Styles.styleSheetCreate(
       channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      channelnameContainer: {flex: 1},
       description: {
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
@@ -199,10 +200,6 @@ const styles = Kb.Styles.styleSheetCreate(
       smallContainer: {
         alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.small,
-      },
-      textWrapper: {
-        flex: 1,
-        justifyContent: 'space-between',
       },
     }) as const
 )

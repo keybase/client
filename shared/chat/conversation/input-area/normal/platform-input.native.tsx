@@ -434,7 +434,7 @@ const PlatformInput = (p: Props) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} relative={true}>
         {suggestorPopup}
         {popupMenu}
         {!suggestorPopup && <Typing />}
@@ -606,7 +606,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingBottom: Kb.Styles.globalMargins.tiny,
       },
       inputInner: {flexGrow: 1},
-      outerContainer: {position: 'relative'},
       sendBtn: {marginRight: Kb.Styles.globalMargins.tiny},
       sendWrapper: {backgroundColor: Kb.Styles.globalColors.white_90, position: 'absolute'},
       suggestionList: Kb.Styles.platformStyles({

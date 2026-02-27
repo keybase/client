@@ -49,7 +49,7 @@ const Container = (ownProps: OwnProps) => {
   const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem} justifyContent="flex-start">
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
@@ -213,7 +213,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       dropdownItem: {
-        justifyContent: 'flex-start',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
       error: {

@@ -73,13 +73,13 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
       }
       onHidden={props.onHidden}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.menu}>
+      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" style={styles.menu}>
         {props.header}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" style={styles.actionButtons}>
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
             Cancel
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={styles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
             Done
           </Kb.Text>
@@ -105,10 +105,6 @@ const styles = Styles.styleSheetCreate(
       actionButtons: {
         alignItems: 'stretch',
         height: 56,
-        justifyContent: 'flex-end',
-      },
-      flexOne: {
-        flex: 1,
       },
       item: {
         ...Styles.globalStyles.fontRegular,
@@ -122,7 +118,6 @@ const styles = Styles.styleSheetCreate(
       menu: {
         alignItems: 'stretch',
         backgroundColor: Styles.globalColors.white,
-        justifyContent: 'flex-end',
       },
       picker: Styles.platformStyles({
         isAndroid: {

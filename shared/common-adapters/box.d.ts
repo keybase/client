@@ -20,9 +20,12 @@ export type Box2Props = {
   className?: string
   collapsable?: boolean
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
+  flex?: number
   fullHeight?: boolean
   fullWidth?: boolean
+  justifyContent?: 'center' | 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'
   noShrink?: boolean
+  overflow?: 'hidden' | 'scroll' | 'visible' | 'auto'
   onDragLeave?: (syntheticDragEvent: React.DragEvent) => void // desktop only
   onDragOver?: (syntheticDragEvent: React.DragEvent) => void // desktop only
   onDrop?: (syntheticDragEvent: React.DragEvent) => void // desktop only
@@ -34,7 +37,9 @@ export type Box2Props = {
   onMouseOver?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onContextMenu?: () => void // desktop only
+  padding?: keyof typeof globalMargins
   pointerEvents?: 'none' | 'box-none'
+  relative?: boolean
   style?: StylesCrossPlatform
   gap?: keyof typeof globalMargins
   gapStart?: boolean

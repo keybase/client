@@ -65,7 +65,7 @@ const NavMobileHeader = (props: Props) => {
             {pop ? (
               <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
             ) : null}
-            <Kb.Box2 direction="horizontal" style={styles.gap} />
+            <Kb.Box2 direction="horizontal" flex={1} />
             <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
           </Kb.Box2>
         )}
@@ -115,7 +115,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isIOS: {height: 44},
       }),
       filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
-      gap: {flex: 1},
       headerContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderBottomColor: Kb.Styles.globalColors.black_10,

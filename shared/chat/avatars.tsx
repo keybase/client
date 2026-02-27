@@ -102,8 +102,8 @@ const Avatars = React.memo(function Avatars(p: Props) {
 
   if (!participantTwo) {
     return (
-      <Kb.Box2 direction="vertical" style={containerStyle}>
-        <Kb.Box2 direction="vertical" style={styles.outerBox}>
+      <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box2>
@@ -112,7 +112,7 @@ const Avatars = React.memo(function Avatars(p: Props) {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" style={containerStyle}>
+    <Kb.Box2 direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
       <Kb.Avatar {...leftProps} />
       <Kb.Avatar {...rightProps} />
       <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
@@ -125,14 +125,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flexShrink: 0,
     justifyContent: 'flex-start',
     marginRight: Kb.Styles.globalMargins.tiny,
-    position: 'relative',
   },
   mutedIcon: Kb.Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {bottom: -3, right: -1},
     isMobile: {bottom: -1, right: -1},
   }),
-  outerBox: {position: 'relative'},
 }))
 
 const TeamAvatar = React.memo(function TeamAvatar(p: {
@@ -144,7 +142,7 @@ const TeamAvatar = React.memo(function TeamAvatar(p: {
 }) {
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
       <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
     </Kb.Box2>

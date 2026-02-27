@@ -8,7 +8,7 @@ type Props = {
 const StartNewChat = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
         <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} hoverColor="inital" />
           <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
@@ -44,11 +44,9 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.isMobile
           ? Kb.Styles.globalColors.fastBlank
           : Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'center',
         minHeight: 48,
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
-        position: 'relative',
       },
       iconCompose: Kb.Styles.platformStyles({
         common: {

@@ -228,7 +228,7 @@ const NormalWrapper = ({
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   return (
-    <Kb.Box2 direction="vertical" style={style} fullWidth={!Kb.Styles.isMobile}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={style} fullWidth={!Kb.Styles.isMobile}>
       {children}
     </Kb.Box2>
   )
@@ -279,7 +279,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
         <NormalWrapper style={styles.background}>
           {content}
           <BottomSide
@@ -576,9 +576,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       background: {
         alignSelf: 'stretch',
-        flexGrow: 1,
         flexShrink: 1,
-        position: 'relative',
       },
       ellipsis: Kb.Styles.platformStyles({
         isElectron: {paddingTop: 2},
@@ -619,11 +617,9 @@ const styles = Kb.Styles.styleSheetCreate(
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
-        flexGrow: 1,
         flexShrink: 1,
         paddingLeft: Kb.Styles.isMobile ? 48 : 56,
         paddingRight: 4,
-        position: 'relative',
       },
       rightSide: Kb.Styles.platformStyles({
         common: {

@@ -187,6 +187,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.outerBoxDesktop}
       >
         {topDescriptors}
@@ -221,7 +222,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       outerBoxDesktop: {
-        flexGrow: 1,
         flexShrink: 1,
         marginBottom: Kb.Styles.globalMargins.small,
       },

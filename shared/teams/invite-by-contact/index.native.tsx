@@ -17,8 +17,8 @@ const contactRow = (_: number, props: ContactRowProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.contactRowBox}>
-      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.contactRowInnerBox}>
+      <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
+        <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           {!!hasThumbnail && !!props.pictureUri && (
             <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
           )}
@@ -92,14 +92,14 @@ export const InviteByContact = (props: InviteByContactProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.HeaderHocHeader onBack={props.onBack} title="Invite contacts" />
       {!!props.errorMessage && (
-        <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true} justifyContent="center">
           <Kb.Text center={true} type="BodySemibold" negative={true}>
             {props.errorMessage}
           </Kb.Text>
         </Kb.Box2>
       )}
       {hasItems && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.listContainer}>
           <Kb.Box2 direction="horizontal" style={styles.filterContainer}>
             <Kb.PlainInput
               autoFocus={true}
@@ -149,13 +149,9 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 56,
         padding: Kb.Styles.globalMargins.small,
       },
-      contactRowInnerBox: {
-        flex: 1,
-      },
       errorMessageContainer: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.red,
-        justifyContent: 'center',
         padding: Kb.Styles.globalMargins.tiny,
       },
       filter: {
@@ -172,7 +168,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 100,
       },
       listContainer: {
-        flex: 1,
         paddingBottom: Kb.Styles.globalMargins.xtiny,
       },
       placeHolderAvatar: {

@@ -322,11 +322,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
           'tab-tooltip',
           'tooltip-top-right'
         )}
+          relative={true}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-        <Kb.Box2 style={styles.iconBox} direction="horizontal">
+        <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
           <Kb.Icon
             className="tab-icon"
             type={Tabs.desktopTabMeta[tab].icon}
@@ -365,10 +366,6 @@ const styles = Kb.Styles.styleSheetCreate(
       headerBox: {
         paddingTop: Kb.Styles.globalMargins.small,
       },
-      iconBox: {
-        justifyContent: 'flex-end',
-        position: 'relative',
-      },
       menu: {marginLeft: Kb.Styles.globalMargins.tiny},
       nameContainer: {height: 24},
       osButtons: Kb.Styles.platformStyles({
@@ -380,7 +377,6 @@ const styles = Kb.Styles.styleSheetCreate(
       tab: {
         alignItems: 'center',
         paddingRight: 12,
-        position: 'relative',
       },
       username: Kb.Styles.platformStyles({
         isElectron: {color: Kb.Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},

@@ -37,7 +37,7 @@ type Props<TitleT extends string> = {
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Kb.Box2 style={styles.tabTextContainer} direction="horizontal">
+  <Kb.Box2 direction="horizontal" justifyContent="center">
     <Kb.Text type="BodySmallSemibold" style={selected ? styles.selected : undefined}>
       {text}
     </Kb.Text>
@@ -133,7 +133,6 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
-  tabTextContainer: {justifyContent: 'center'},
 }))
 
 export default Tabs

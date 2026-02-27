@@ -10,7 +10,7 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
         size={48}
         style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
       />
-      <Kb.Box2 direction="vertical" style={styles.innerRow}>
+      <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.innerRow}>
         <Kb.ConnectedUsernames inline={true} backgroundMode="Terminal" type="BodyBold" usernames={username} />
         <Kb.Text
           type="BodySmall"
@@ -25,13 +25,13 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
 )
 
 const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
+      justifyContent="center"
       style={{
         backgroundColor: Kb.Styles.globalColors.red,
-        justifyContent: 'center',
       }}
     >
       <Kb.Text
@@ -44,7 +44,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       </Kb.Text>
     </Kb.Box2>
     <NativeScrollView style={{flex: 1, paddingTop: 8}}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center', marginLeft: 8}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center" style={{marginLeft: 8}}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {rekeyers.map(username => (
             <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
@@ -60,14 +60,10 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         backgroundColor: Kb.Styles.globalColors.blueDarker2,
-        flex: 1,
-        justifyContent: 'flex-start',
       },
       innerRow: {
         borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
-        flex: 1,
-        justifyContent: 'center',
         minHeight: 56,
       },
       row: Kb.Styles.platformStyles({

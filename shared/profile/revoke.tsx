@@ -32,14 +32,14 @@ const RevokeProof = (ownProps: OwnProps) => {
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       {!!errorMessage && (
-        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.errorBanner}>
+        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} justifyContent="center" style={styles.errorBanner}>
           <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
             {errorMessage}
           </Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.contentContainer}>
-        <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+      <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.contentContainer}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
           <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box2>
@@ -75,7 +75,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
-        flexGrow: 1,
         margin: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         maxWidth: 512,
         textAlign: Kb.Styles.isMobile ? undefined : 'center',
@@ -83,7 +82,6 @@ const styles = Kb.Styles.styleSheetCreate(
       descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
       errorBanner: {
         backgroundColor: Kb.Styles.globalColors.red,
-        justifyContent: 'center',
         minHeight: Kb.Styles.globalMargins.large,
         padding: Kb.Styles.globalMargins.tiny,
         width: '100%',
@@ -105,7 +103,6 @@ const styles = Kb.Styles.styleSheetCreate(
           overflowWrap: 'break-word',
         },
       }),
-      positionRelative: {position: 'relative'},
       reminderText: {marginTop: Kb.Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
       siteIcon: Kb.Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},

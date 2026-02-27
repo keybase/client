@@ -134,7 +134,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
           <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             {fileName === title ? (
               // if the title is the filename, don't try to parse it as markdown
               <Kb.Text
@@ -262,7 +262,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'flex-start',
         marginTop: Kb.Styles.globalMargins.xtiny,
       },
-      titleStyle: {flex: 1},
     }) as const
 )
 

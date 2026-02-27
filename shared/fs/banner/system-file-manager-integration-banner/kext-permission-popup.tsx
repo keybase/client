@@ -31,7 +31,7 @@ const InstallSecurityPrefs = () => {
           </Kb.Text>
           <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
           <Kb.Box2 direction="horizontal">
-            <Kb.Box2 direction="vertical" style={styles.illustrationContainer}>
+            <Kb.Box2 direction="vertical" relative={true}>
               <Kb.Icon style={styles.image} type="illustration-security-preferences" />
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
@@ -89,9 +89,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
         top: 0,
-      },
-      illustrationContainer: {
-        position: 'relative',
       },
       image: {
         width: 408,

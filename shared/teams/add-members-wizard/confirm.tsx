@@ -131,7 +131,7 @@ const AddMembersConfirm = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers disabledRoles={disabledRoles} />
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
             <AddMoreMembers />
             <RoleSelector
               memberCount={addingMembers.length}
@@ -388,8 +388,8 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
     setAddMembersWizardIndividualRole(props.assertion, newRole)
   }
   return (
-    <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.memberPill}>
+    <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
           type="BodyBold"
@@ -499,7 +499,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: Kb.Styles.borderRadius,
-      justifyContent: 'space-between',
     },
     isElectron: {
       height: 32,
@@ -516,7 +515,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.black_20,
     borderRadius: Kb.Styles.borderRadius,
     height: 40,
-    justifyContent: 'center',
   },
   addingMembers: Kb.Styles.platformStyles({
     common: {
@@ -537,12 +535,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   body: {
     padding: Kb.Styles.globalMargins.small,
   },
-  controls: {
-    justifyContent: 'space-between',
-  },
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
-  memberPill: {flex: 1, width: 0},
+  memberPill: {width: 0},
 }))
 
 export default AddMembersConfirm

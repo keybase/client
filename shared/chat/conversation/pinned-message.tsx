@@ -65,13 +65,13 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         {!!imageURL && (
-          <Kb.Box2 direction="vertical" style={styles.imageContainer}>
+          <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
             <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
               <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodyTinyBold" style={styles.author}>
               {author}
@@ -173,10 +173,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderColor: Kb.Styles.globalColors.black_10,
         borderStyle: 'solid',
         width: '100%',
-      },
-      imageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
       },
       label: {color: Kb.Styles.globalColors.blueDark},
       popup: Kb.Styles.platformStyles({

@@ -113,7 +113,6 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           flex: 1,
-          justifyContent: 'center',
         },
         isMobile: {
           paddingLeft: Kb.Styles.globalMargins.large,

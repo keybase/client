@@ -114,7 +114,7 @@ const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificatio
 
 export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
       <EmailVerificationBanner />
       <ResentEmailVerificationBanner />
       {props.newItems

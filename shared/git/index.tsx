@@ -92,7 +92,7 @@ const Container = (ownProps: OwnProps) => {
       onReload={load}
       reloadOnMount={true}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>
@@ -136,7 +136,6 @@ const Container = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {position: 'relative'},
       header: {
         ...Kb.Styles.globalStyles.flexBoxCenter,
         ...Kb.Styles.globalStyles.flexBoxRow,

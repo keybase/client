@@ -61,7 +61,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
         </Kb.Box2>
       }
       action={
-        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox}>
+        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
@@ -105,7 +105,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       rightBox: {
         flexShrink: 1,
-        justifyContent: 'flex-end',
       },
       text: Kb.Styles.platformStyles({
         common: {

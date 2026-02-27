@@ -65,7 +65,7 @@ const ConfirmKickOut = (props: Props) => {
     </Kb.Text>
   )
   const header = (
-    <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Box2
         direction="horizontal"
@@ -140,9 +140,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   iconContainerMany: {
     right: Kb.Styles.isMobile ? 0 : 20,
-  },
-  positionRelative: {
-    position: 'relative',
   },
   prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
 }))

@@ -31,7 +31,7 @@ const VideoImpl = (p: Props) => {
     <div onClick={onPress} style={styles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
-      <Kb.Box2 direction="vertical" style={styles.durationContainer}>
+      <Kb.Box2 direction="vertical" overflow="hidden" style={styles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={styles.durationText}>
           {videoDuration}
         </Kb.Text>
@@ -64,7 +64,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.black_50,
         borderRadius: 2,
         bottom: Kb.Styles.globalMargins.tiny,
-        overflow: 'hidden',
         padding: 1,
         position: 'absolute',
         right: Kb.Styles.globalMargins.tiny,

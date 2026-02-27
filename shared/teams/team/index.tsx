@@ -168,7 +168,7 @@ const Team = (props: Props) => {
 
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={Kb.Styles.isMobile}
@@ -191,8 +191,6 @@ const Team = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    flex: 1,
-    position: 'relative',
   },
   list: Kb.Styles.platformStyles({}),
   listContentContainer: Kb.Styles.platformStyles({

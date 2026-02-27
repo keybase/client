@@ -35,7 +35,7 @@ const Notifications = () => {
   const props = useNotifications()
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
   return !props.groups.get('email')?.settings ? (
-    <Kb.Box2 direction="vertical" style={styles.loading}>
+    <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
@@ -72,7 +72,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
+      loading: {alignItems: 'center'},
       main: Kb.Styles.platformStyles({
         common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0},
         isElectron: Kb.Styles.desktopStyles.scrollable,

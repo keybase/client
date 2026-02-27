@@ -137,9 +137,9 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
                 direction="horizontal"
                 fullWidth={true}
                 alignItems="center"
+          relative={true}
                 style={{
                   maxWidth: '100%',
-                  position: 'relative',
                 }}
               >
                 <Kb.Text type="Body">Clone:</Kb.Text>

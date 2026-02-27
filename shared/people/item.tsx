@@ -38,7 +38,7 @@ const PeopleItem = (props: Props) => (
       style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
       {props.children}
-      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true} justifyContent="flex-start">
         {props.buttons &&
           props.buttons.length > 0 &&
           props.buttons.map((b, idx) =>
@@ -72,7 +72,6 @@ export default PeopleItem
 const styles = Kb.Styles.styleSheetCreate(() => ({
   actionContainer: {
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
   },
   badge: {
     marginLeft: Kb.Styles.globalMargins.xtiny,

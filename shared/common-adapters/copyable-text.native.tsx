@@ -28,7 +28,7 @@ const CopyableText = (props: Props) => {
       onPress={() => handleCopy()}
       style={props.style}
     >
-      <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.base}>
+      <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" relative={true} style={styles.base}>
         <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
           {props.value}
         </Text>
@@ -56,7 +56,6 @@ const styles = Styles.styleSheetCreate(
         minHeight:
           Styles.globalMargins.medium + Styles.globalMargins.tiny + 2 * Styles.globalMargins.small + 24,
         padding: 10,
-        position: 'relative',
       },
       copyToast: {
         backgroundColor: Styles.globalColors.black_50,

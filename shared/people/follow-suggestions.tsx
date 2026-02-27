@@ -8,7 +8,7 @@ export type Props = {
 }
 
 const FollowSuggestions = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.container}>
     <Kb.Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
     </Kb.Text>
@@ -37,7 +37,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Kb.Styles.globalColors.fastBlank,
     paddingTop: Kb.Styles.globalMargins.tiny,
-    position: 'relative',
   },
   meta: {
     paddingLeft: 2,

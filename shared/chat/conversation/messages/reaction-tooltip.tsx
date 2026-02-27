@@ -108,7 +108,7 @@ const ReactionTooltip = (p: OwnProps) => {
                 <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
                   Close
                 </Kb.Text>
-                <Kb.Box2 direction="horizontal" style={{flex: 1}} />
+                <Kb.Box2 direction="horizontal" flex={1} />
               </Kb.Box2>
             )}
             <Kb.SectionList

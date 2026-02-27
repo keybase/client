@@ -28,7 +28,7 @@ const LoginRender = (props: Props) => {
       style={Kb.Styles.globalStyles.flexOne}
     >
       <NativeScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
-        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.container}>
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
@@ -110,7 +110,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flex: 1,
       },
       createAccountContainer: Kb.Styles.platformStyles({
         common: {padding: Kb.Styles.globalMargins.medium},

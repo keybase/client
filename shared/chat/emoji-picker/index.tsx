@@ -306,7 +306,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
   const onSectionChange = C.useDebouncedCallback((section: Section) => setActiveSectionKey(section.key), 100)
 
   const makeNotFound = () => (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} justifyContent="space-between" style={styles.notFoundContainer}>
       <Kb.Icon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall" center={true}>
@@ -359,7 +359,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         fullWidth={true}
         centerChildren={true}
         alignItems="flex-start"
-        style={{...Kb.Styles.globalStyles.flexGrow, overflow: 'hidden'}}
+        overflow="hidden"
+        style={Kb.Styles.globalStyles.flexGrow}
       >
         <Kb.Box2
           direction="horizontal"
@@ -386,6 +387,8 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
         key="section-list-container"
         direction="vertical"
         fullWidth={true}
+        flex={1}
+        overflow="hidden"
         style={styles.sectionListContainer}
       >
         <Kb.SectionList
@@ -453,7 +456,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       notFoundContainer: {
         height: notFoundHeight,
-        justifyContent: 'space-between',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
@@ -463,9 +465,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       sectionListContainer: {
-        flexGrow: 1,
         flexShrink: 1,
-        overflow: 'hidden',
       },
     }) as const
 )

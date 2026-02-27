@@ -36,7 +36,7 @@ const ChoiceList = (props: Props) => {
                   <Kb.Box2 direction="vertical" style={styleIcon}>{op.icon}</Kb.Box2>
                 )}
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" style={styleInfoContainer}>
+              <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styleInfoContainer}>
                 <Kb.Text style={styleInfoTitle} type="Header">
                   {op.title}
                 </Kb.Text>
@@ -72,10 +72,8 @@ const styleIcon = {
 }
 
 const styleInfoContainer = {
-  flex: 1,
-  justifyContent: 'center',
   marginLeft: Styles.globalMargins.small,
-} as const
+}
 
 const styleInfoTitle = {
   color: Styles.globalColors.blueDark,

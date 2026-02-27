@@ -185,7 +185,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
       icon={<Kb.Avatar size={32} username={member.username} />}
       onClick={() => showUserProfile(member.username)}
       body={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
+        <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (
@@ -235,7 +235,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
   memberBody: {
-    flex: 1,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   meta: Kb.Styles.platformStyles({

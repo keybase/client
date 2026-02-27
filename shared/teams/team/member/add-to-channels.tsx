@@ -480,7 +480,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
-      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny">
+      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny" justifyContent="space-between">
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
@@ -589,7 +589,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {height: 48},
   }),
   item: Kb.Styles.platformStyles({
-    common: {justifyContent: 'space-between'},
     isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

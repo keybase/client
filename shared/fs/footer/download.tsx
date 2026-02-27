@@ -14,7 +14,7 @@ export type Props = {
 
 const getProgress = (dlState: T.FS.DownloadState) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
-    <Kb.Box2 direction="vertical" style={styles.tubeBox}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true}>
       <Kb.Box2 direction="vertical" style={styles.tube} />
       <Kb.Box2
         direction="vertical"
@@ -63,7 +63,7 @@ const Download = (props: Props) => {
             color={Kb.Styles.globalColors.black_20}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
             onClick={C.isMobile ? undefined : open}
@@ -114,7 +114,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       nameAndProgress: {
-        flex: 1,
         flexShrink: 1,
         minWidth: 0,
       },
@@ -129,10 +128,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: 4.5,
         height: 4,
         width: '100%',
-      },
-      tubeBox: {
-        flex: 1,
-        position: 'relative',
       },
       tubeStuffing: {
         backgroundColor: Kb.Styles.globalColors.white,

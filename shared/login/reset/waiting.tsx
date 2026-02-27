@@ -99,7 +99,7 @@ const Waiting = (props: Props) => {
               <Kb.Text type="Body" style={styles.mainText} center={true}>
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.positionRelative}>
+              <Kb.Box2 direction="horizontal" centerChildren={true} relative={true}>
                 <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
                   Send again
                 </Kb.Text>
@@ -123,9 +123,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   mainText: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
     maxWidth: 300,
-  },
-  positionRelative: {
-    position: 'relative',
   },
   progressContainer: {
     ...Kb.Styles.globalStyles.fillAbsolute,

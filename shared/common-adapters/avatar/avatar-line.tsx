@@ -30,7 +30,7 @@ const AvatarLine = (props: Props) => {
   return (
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
       {!!extra && (
-        <Kb.Box2 direction={props.layout} alignItems="center" style={styles.overflowBox}>
+        <Kb.Box2 direction={props.layout} alignItems="center" justifyContent="flex-end" style={styles.overflowBox}>
           <Kb.Text type={getTextSize(props.size)} style={styles.text}>
             +{extra}
           </Kb.Text>
@@ -67,7 +67,6 @@ const getSizeStyle = (size: AvatarSize) => ({
       borderBottomRightRadius: size,
       borderTopRightRadius: size,
       height: size,
-      justifyContent: 'flex-end',
       paddingLeft: size / 2,
     },
     text: {
@@ -87,7 +86,6 @@ const getSizeStyle = (size: AvatarSize) => ({
       backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomLeftRadius: size,
       borderBottomRightRadius: size,
-      justifyContent: 'flex-end',
       paddingTop: size / 2,
       width: size,
     },

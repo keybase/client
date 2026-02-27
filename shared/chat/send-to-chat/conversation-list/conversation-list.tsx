@@ -105,7 +105,7 @@ type ConversationListRenderProps = {
 
 const ConversationListRender = (props: ConversationListRenderProps) => {
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
         <Kb.SearchFilter
           placeholderText="Search chats..."
@@ -139,7 +139,7 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           }}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{flex: 1}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
         <Kb.List
           itemHeight={{height: 65, type: 'fixed'}}
           items={props.results.map((r, index) => ({

@@ -79,7 +79,7 @@ const Conversation = React.memo(function Conversation() {
         rejectReason={dragAndDropRejectReason}
       >
         {threadLoadedOffline && <Offline />}
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
           <ListArea />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
@@ -101,10 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        flex: 1,
-        position: 'relative',
-      },
-      innerContainer: {
         flex: 1,
         position: 'relative',
       },

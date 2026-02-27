@@ -255,7 +255,7 @@ const Channel = (props: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
       <Kb.SectionList
         renderSectionHeader={({section}) =>
           section.title ? <Kb.SectionDivider label={section.title} /> : null
@@ -263,7 +263,7 @@ const Channel = (props: OwnProps) => {
         stickySectionHeadersEnabled={Kb.Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
+
       />
       <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
     </Kb.Box2>
@@ -273,11 +273,6 @@ const Channel = (props: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        flex: 1,
-        position: 'relative',
-      },
-      list: {},
       listContentContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,

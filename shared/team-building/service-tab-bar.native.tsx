@@ -58,7 +58,7 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
   })
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
@@ -117,7 +117,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   return (
     <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, animatedWidth]}>
-        <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+        <Kb.Box2 direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}

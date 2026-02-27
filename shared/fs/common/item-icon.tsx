@@ -81,13 +81,13 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
     <Kb.Box2 direction="vertical" style={props.style}>
       {getTlfTypeIcon(props.size, props.tlfType)}
       {props.badgeOverride ? (
-        <Kb.Box2 direction="vertical" style={styles.badgeContainer}>
+        <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
           <Kb.Icon fixOverdraw={true} type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
           color={Kb.Styles.globalColors.greyDarker}
         </Kb.Box2>
       ) : (
         !!badgeCount && (
-          <Kb.Box2 direction="vertical" style={styles.badgeContainer}>
+          <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
             <Kb.Badge badgeNumber={badgeCount} badgeStyle={badgeStyle.numberBadge} />
           </Kb.Box2>
         )
@@ -111,7 +111,7 @@ const TlfIcon = (props: TlfIconProps) => (
       <Kb.Icon fixOverdraw={true} type={icons.folder[getIconSizeString(props.size)]} />
     )}
     {!!props.badgeOverride && (
-      <Kb.Box2 direction="vertical" style={styles.badgeContainer}>
+      <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
         <Kb.Icon
           fixOverdraw={true}
           type={props.badgeOverride}
@@ -150,7 +150,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
         <Kb.Icon type={icons.file[getIconSizeString(props.size)]} />
       )}
       {badgeIcon ? (
-        <Kb.Box2 direction="vertical" style={styles.badgeContainer}>
+        <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
           <Kb.Icon
             type={badgeIcon}
             style={badgeStyle.rightBottomBadge}
@@ -218,12 +218,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badgeContainer: {
-        // 1) Make position 'relative' so it's "positioned",
-        //    and that the badge inside can just use 'absolute' relative to this
-        //    container.
-        // 2) Make width/height explicit 0 so they don't affect nearby stuff.
+        // Make width/height explicit 0 so they don't affect nearby stuff.
         height: 0,
-        position: 'relative',
         width: 0,
       },
     }) as const

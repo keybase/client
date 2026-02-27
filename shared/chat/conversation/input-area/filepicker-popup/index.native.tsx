@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const Prompt = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer} justifyContent="center">
     <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
   </Kb.Box2>
 )
@@ -12,7 +12,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       promptContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
         paddingBottom: 24,
         paddingTop: 24,
       },

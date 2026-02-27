@@ -47,7 +47,7 @@ const ReplyImage = () => {
   const imageWidth = replyTo.previewWidth
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
-    <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
       <Kb.Box2 direction="vertical" style={sizing?.margins}>
         <Kb.Image src={imageURL} style={sizing?.dims} />
       </Kb.Box2>
@@ -97,13 +97,13 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
         className={Kb.Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
+        <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <AvatarHolder />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {showImage && <ReplyImage />}
-            <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
+            <Kb.Box2 direction="horizontal" flex={1} style={styles.replyTextContainer}>
               {isDeleted ? (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
                   The original message was deleted.
@@ -162,15 +162,9 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      replyContentContainer: {flex: 1},
       replyEdited: {color: Kb.Styles.globalColors.black_35},
-      replyImageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
       replyTextContainer: {
         alignSelf: 'flex-start',
-        flex: 1,
       },
       replyUsername: {alignSelf: 'center'},
       replyUsernameHighlighted: {color: Kb.Styles.globalColors.blackOrBlack},

@@ -105,7 +105,7 @@ const ChannelMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={username} size={32} />
 
-      <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
         </Kb.Box2>
@@ -293,7 +293,7 @@ const styles = Kb.Styles.styleSheetCreate(
       listItemMargin: {marginLeft: 0},
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
       mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
-      nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
+      nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
       widenClickableArea: {margin: -5, padding: 5},
     }) as const

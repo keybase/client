@@ -35,7 +35,7 @@ export const Video = (p: Props) => {
   }, [playing, onClick])
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="horizontal" relative={true} style={styles.container}>
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
       </Kb.Box2>
@@ -62,7 +62,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         alignSelf: 'flex-start',
-        position: 'relative',
       },
       playButton: {
         bottom: '50%',

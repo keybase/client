@@ -56,7 +56,7 @@ export const Last = ({seen}: VersionProps) => {
           <Kb.Text type="BodySmall" allowFontScaling={true}>
             Browse your image library
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={styles.ponyAlignment}>
+          <Kb.Box2 direction="horizontal" style={styles.ponyAlignment} justifyContent="center">
             <Kb.Text type="BodySmall" allowFontScaling={true}>
               And unleash that cute little pony
             </Kb.Text>
@@ -187,7 +187,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   ponyAlignment: {
     alignSelf: 'flex-start',
-    justifyContent: 'center',
   },
   ponyIcon: {marginLeft: Kb.Styles.globalMargins.tiny},
   versionTitle: {

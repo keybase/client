@@ -129,7 +129,7 @@ const Banner = (props: BannerProps) => (
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />
-    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
+    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer} justifyContent="center">
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
         <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
@@ -314,7 +314,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
-        justifyContent: 'center',
         maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
         padding: Kb.Styles.globalMargins.mediumLarge,
       },
