@@ -5748,6 +5748,13 @@ expo-keep-awake@~55.0.4:
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-55.0.4.tgz#8fe3685b75bda28e15268821a384e069f0395fab"
   integrity sha512-vwfdMtMS5Fxaon8gC0AiE70SpxTsHJ+rjeoVJl8kdfdbxczF7OIaVmfjFJ5Gfigd/WZiLqxhfZk34VAkXF4PNg==
 
+expo-localization@55.0.8:
+  version "55.0.8"
+  resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-55.0.8.tgz#1e78e8dc1af4d7f4eb5600cca48e10c6dff21bc0"
+  integrity sha512-uFmpTsoDT7JE5Nwgt0EQ5gBvFVo7/u458SlY6V9Ep9wY/WPucL0o00VpXoFULaMtKHquKBgVUdHwk6E+JFz4dg==
+  dependencies:
+    rtl-detect "^1.0.2"
+
 expo-location@55.1.2:
   version "55.1.2"
   resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-55.1.2.tgz#79056070bd3fc8ef393a0ea699bdba0fa3771fd8"
@@ -5781,6 +5788,11 @@ expo-modules-core@55.0.13:
   integrity sha512-DYLQTOJAR7jD3M9S0sH9myZaPEtShdicHrPiWcupIXMeMkQxFzErx+adUI8gZPy4AU45BgeGgtaogRfT25iLfw==
   dependencies:
     invariant "^2.2.4"
+
+expo-screen-capture@55.0.3:
+  version "55.0.3"
+  resolved "https://registry.yarnpkg.com/expo-screen-capture/-/expo-screen-capture-55.0.3.tgz#fce90cc3e8441d53ab0e457bccee05fe12e93fa7"
+  integrity sha512-3gF3JWVeFQhDYGJy6Tw/OSegZbotHFVIejftNN9VwMVgEfzPRYpBlBv/6pfzdPxfy0Fol+oLiBGRYnvhrg0SHg==
 
 expo-server@^55.0.6:
   version "55.0.6"
@@ -9901,6 +9913,11 @@ roarr@^2.15.3:
     json-stringify-safe "^5.0.1"
     semver-compare "^1.0.0"
     sprintf-js "^1.1.2"
+
+rtl-detect@^1.0.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/rtl-detect/-/rtl-detect-1.1.2.tgz#ca7f0330af5c6bb626c15675c642ba85ad6273c6"
+  integrity sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==
 
 run-applescript@^7.0.0:
   version "7.1.0"

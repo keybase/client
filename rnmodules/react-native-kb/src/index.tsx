@@ -3,10 +3,6 @@ import KbNative from './NativeKb'
 
 const Kb = KbNative
 
-export const getDefaultCountryCode = (): Promise<string> => {
-  return Kb.getDefaultCountryCode()
-}
-
 export const logSend = (
   status: string,
   feedback: string,
@@ -28,26 +24,6 @@ export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   return Promise.resolve(false)
 }
 
-export const androidOpenSettings = () => {
-  if (Platform.OS === 'android') {
-    Kb.androidOpenSettings()
-  }
-}
-
-export const androidSetSecureFlagSetting = (s: boolean): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidSetSecureFlagSetting(s)
-  }
-  return Promise.resolve(false)
-}
-
-export const androidGetSecureFlagSetting = (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidGetSecureFlagSetting()
-  }
-  return Promise.resolve(false)
-}
-
 export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)
@@ -60,13 +36,6 @@ export const androidShare = (text: string, mimeType: string): Promise<boolean> =
     return Kb.androidShare(text, mimeType)
   }
   return Promise.resolve(false)
-}
-
-export const androidUnlink = (path: string): Promise<void> => {
-  if (Platform.OS === 'android') {
-    return Kb.androidUnlink(path)
-  }
-  return Promise.reject()
 }
 
 export const androidAddCompleteDownload = (o: {
