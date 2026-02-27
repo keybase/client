@@ -73,7 +73,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     })
   }, [])
 
-  if (isFetching || !resolution) {
+  if (isFetching || !resolution || containerSize.width === 0 || containerSize.height === 0) {
     content = <></>
   } else {
     const size = fitContainer(resolution.width / resolution.height, containerSize)
