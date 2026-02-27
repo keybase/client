@@ -23,6 +23,7 @@ import {handleAppLink} from '@/constants/deeplinks'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useColorScheme} from 'react-native'
 import {useDaemonState} from '@/stores/daemon'
+import {colors, darkColors} from '@/styles/colors'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -51,11 +52,38 @@ const tabStackOptions = {
 } as const
 
 const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
+// Workaround: react-native-screens doesn't support DynamicColorIOS for native stack headers.
+// Remove when https://github.com/software-mansion/react-native-screens/issues/3570 is fixed.
+const dynamicColorWorkaround = true
+
+const useIOSHeaderOptions = () => {
+  const isDark = useColorScheme() === 'dark'
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!dynamicColorWorkaround || !Kb.Styles.isIOS) return tabStackOptions
+  const titleColor = isDark ? (darkColors.black as string) : (colors.black as string)
+  return {
+    ...tabStackOptions,
+    headerStyle: {
+      backgroundColor: isDark ? (darkColors.white as string) : (colors.white as string),
+      borderBottomColor: isDark ? (darkColors.black_10 as string) : (colors.black_10 as string),
+      borderBottomWidth: Kb.Styles.hairlineWidth,
+      height: 44,
+    },
+    headerTintColor: isDark ? (darkColors.black_50 as string) : (colors.black_50 as string),
+    headerTitle: (hp: {children: React.ReactNode}) => (
+      <Kb.Text type="BodyBig" style={{color: titleColor}} lineClamp={1} center={true}>
+        {hp.children}
+      </Kb.Text>
+    ),
+  }
+}
+
 const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
+  const options = useIOSHeaderOptions()
   return (
     <TabStackNavigator.Navigator
       initialRouteName={tabRoots[p.route.name] || undefined}
-      screenOptions={tabStackOptions}
+      screenOptions={options}
     >
       {tabScreens}
     </TabStackNavigator.Navigator>

@@ -8,12 +8,10 @@ def VERSION_NAME = "6.7.0"
 
 // KB: Number of commits, like ios
 Integer getVersionCode() {
-    def stdout = new ByteArrayOutputStream()
-    exec {
+    def result = providers.exec {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
-        standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10517785 // plus bump it so its above the old version code
+    return Integer.parseInt(result.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
@@ -121,6 +119,9 @@ android {
 
     buildTypes {
         debug {
+            ndk {
+                abiFilters = (findProperty('reactNativeArchitectures') ?: 'arm64-v8a').split(',').collect { it.trim() }
+            }
         }
         release {
             signingConfig signingConfigs.release
@@ -136,12 +137,6 @@ android {
         }
     }
 
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.versionCodeOverride = getVersionCode()
-        }
-    }
     bundle {
         language {
             enableSplit = true

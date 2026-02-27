@@ -10,7 +10,7 @@ type NormalPreviewProps = {
 }
 
 const NormalPreview = (props: NormalPreviewProps) => (
-  <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
     <Kbfs.Errs />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.greyContainer}>
       <View path={props.path} onUrlError={props.onUrlError} />
@@ -29,6 +29,9 @@ const styles = Kb.Styles.styleSheetCreate(
         flexGrow: 1,
         flexShrink: 1,
         width: '100%',
+      },
+      outerContainer: {
+        flexGrow: 1,
       },
     }) as const
 )

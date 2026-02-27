@@ -1,12 +1,11 @@
 import BackgroundTasks
-import Expo
+internal import Expo
 import React
 import ReactAppDependencyProvider
 import KBCommon
 import UIKit
 import UserNotifications
 import AVFoundation
-import ExpoModulesCore
 import Keybasego
 import os
 
@@ -37,7 +36,7 @@ class KeyboardWindow: UIWindow {
 }
 
 @main
-public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
+class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
@@ -49,7 +48,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var iph: ItemProviderHelper?
   var startupLogFileHandle: FileHandle?
 
-  public override func application(
+  override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
@@ -87,7 +86,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
 #if os(iOS) || os(tvOS)
     let screenBounds = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen.bounds ?? UIScreen.main.bounds
@@ -115,7 +113,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   // Linking API
-  public override func application(
+  override func application(
     _ app: UIApplication,
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
@@ -124,7 +122,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   // Universal Links
-  public override func application(
+  override func application(
     _ application: UIApplication,
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
@@ -307,13 +305,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
 
-  public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
     let token = tokenParts.joined()
     KbSetDeviceToken(token)
   }
 
-  public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+  override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
     guard let type = notification["type"] as? String else { return }
     if type == "chat.newmessageSilent_2" {
       DispatchQueue.global(qos: .default).async {
@@ -365,7 +363,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     completionHandler([])
   }
 
-  public override func applicationWillTerminate(_ application: UIApplication) {
+  override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
     Keybasego.KeybaseAppWillExit(PushNotifier())
   }
@@ -376,7 +374,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.alpha = 0
   }
 
-  public override func applicationWillResignActive(_ application: UIApplication) {
+  override func applicationWillResignActive(_ application: UIApplication) {
     log.info("applicationWillResignActive: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
     self.resignImageView?.superview?.bringSubviewToFront(self.resignImageView!)
@@ -389,7 +387,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     Keybasego.KeybaseSetAppStateInactive()
   }
 
-  public override func applicationDidEnterBackground(_ application: UIApplication) {
+  override func applicationDidEnterBackground(_ application: UIApplication) {
     PerfFPSMonitor.appDidEnterBackground()
     log.info("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
@@ -423,7 +421,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
 
-  public override func applicationDidBecomeActive(_ application: UIApplication) {
+  override func applicationDidBecomeActive(_ application: UIApplication) {
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     log.info("applicationDidBecomeActive: notifying service.")
@@ -454,7 +452,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
 
-  public override func applicationWillEnterForeground(_ application: UIApplication) {
+  override func applicationWillEnterForeground(_ application: UIApplication) {
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     hideCover()
   }
