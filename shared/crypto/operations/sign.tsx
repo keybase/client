@@ -29,9 +29,9 @@ const SignOutputBanner = () => {
 
 export const SignInput = () => {
   const blurCBRef = React.useRef(() => {})
-  const setBlurCB = React.useCallback((cb: () => void) => {
+  const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
-  }, [])
+  }
 
   const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {

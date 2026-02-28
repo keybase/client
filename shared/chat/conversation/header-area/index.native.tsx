@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
@@ -38,15 +37,15 @@ export const HeaderAreaRight = () => {
   // ) : null
 
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onShowInfoPanel = React.useCallback(() => showInfoPanel(true, undefined), [showInfoPanel])
+  const onShowInfoPanel = () => showInfoPanel(true, undefined)
   const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
     setTimeout(() => {
       toggleThreadSearch()
     }, 100)
-  }, [toggleThreadSearch])
+  }
 
   return (
     <Kb.Box2
@@ -66,7 +65,7 @@ enum HeaderType {
   User,
 }
 
-const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
+const HeaderBranchContainer = function HeaderBranchContainer() {
   const participantInfo = Chat.useChatContext(s => s.participants)
   const type = Chat.useChatContext(s => {
     const meta = s.meta
@@ -89,7 +88,7 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
     case HeaderType.User:
       return <UsernameHeader />
   }
-})
+}
 export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
@@ -133,12 +132,12 @@ export const useBackBadge = () => {
 const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const ShhIcon = React.memo(function ShhIcon() {
+const ShhIcon = function ShhIcon() {
   const isMuted = Chat.useChatContext(s => s.meta.isMuted)
   const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const unMuteConversation = React.useCallback(() => {
+  const unMuteConversation = () => {
     mute(false)
-  }, [mute])
+  }
   return isMuted ? (
     <Kb.Icon
       type="iconfont-shh"
@@ -148,13 +147,13 @@ const ShhIcon = React.memo(function ShhIcon() {
       onClick={unMuteConversation}
     />
   ) : null
-})
+}
 
 const useMaxWidthStyle = () => {
   const {width} = useSafeAreaFrame()
   const hasBadge = useBackBadge() > 0
   const w = width - 140 - (hasBadge ? 40 : 0)
-  return React.useMemo(() => ({maxWidth: w, minWidth: w}), [w])
+  return {maxWidth: w, minWidth: w}
 }
 
 const ChannelHeader = () => {
@@ -168,9 +167,9 @@ const ChannelHeader = () => {
   )
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     navigateAppend({props: {teamID}, selected: 'team'})
-  }, [navigateAppend, teamID])
+  }
   const maxWidthStyle = useMaxWidthStyle()
 
   return (
@@ -223,12 +222,9 @@ const UsernameHeader = () => {
     })
   )
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onShowProfile = React.useCallback(
-    (username: string) => {
-      showUserProfile(username)
-    },
-    [showUserProfile]
-  )
+  const onShowProfile = (username: string) => {
+    showUserProfile(username)
+  }
 
   const maxWidthStyle = useMaxWidthStyle()
 

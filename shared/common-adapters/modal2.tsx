@@ -55,15 +55,12 @@ const Header2 = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
   // Then, set this as the `width` of the sides and let the center expand.
   const [widerWidth, setWiderWidth] = React.useState(-1)
-  const onLayoutSide = React.useCallback(
-    (evt: LayoutEvent) => {
-      const {width} = evt.nativeEvent.layout
-      if (width > widerWidth) {
-        setWiderWidth(width)
-      }
-    },
-    [widerWidth]
-  )
+  const onLayoutSide = (evt: LayoutEvent) => {
+    const {width} = evt.nativeEvent.layout
+    if (width > widerWidth) {
+      setWiderWidth(width)
+    }
+  }
   // end mobile only
 
   let subTitle: React.ReactNode = null

@@ -41,24 +41,21 @@ const getChannelsForList = (
   }
 }
 
-const AddToChannels = React.memo(function AddToChannels(props: Props) {
+const AddToChannels = function AddToChannels(props: Props) {
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
-  const justMe = React.useMemo(() => [myUsername], [myUsername])
+  const justMe = [myUsername]
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = React.useMemo(
-    () => getChannelsForList(channelMetas, usernames),
-    [channelMetas, usernames]
-  )
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       C.ignorePromise(reloadChannels())
-    }, [reloadChannels])
+    }
   )
 
   const [filter, setFilter] = React.useState('')
@@ -126,7 +123,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
 
   const rowHeight = Kb.Styles.isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
 
-  const itemHeight = React.useMemo(() => {
+  const itemHeight = (() => {
     const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
       return item?.type === 'header'
@@ -138,7 +135,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
           }
     }
     return {getItemLayout, type: 'variable' as const}
-  }, [rowHeight, filtering])
+  })()
 
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
@@ -262,9 +259,9 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
       )}
     </Kb.Modal>
   )
-})
+}
 
-const HeaderRow = React.memo(function HeaderRow(p: {
+const HeaderRow = function HeaderRow(p: {
   teamID: T.Teams.TeamID
   mode: 'others' | 'self'
   onSelectAll?: () => void
@@ -301,9 +298,9 @@ const HeaderRow = React.memo(function HeaderRow(p: {
       )}
     </Kb.Box2>
   )
-})
+}
 
-const SelfChannelActions = React.memo(function SelfChannelActions(p: {
+const SelfChannelActions = function SelfChannelActions(p: {
   meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
@@ -316,9 +313,9 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
-  const stopWaiting = React.useCallback(() => setWaiting(false), [])
+  const stopWaiting = () => setWaiting(false)
 
-  const onEditChannel = React.useCallback(() => {
+  const onEditChannel = () => {
     nav.safeNavigateAppend({
       props: {
         channelname: meta.channelname,
@@ -328,29 +325,29 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       },
       selected: 'teamEditChannel',
     })
-  }, [nav, meta])
+  }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onChannelSettings = React.useCallback(() => {
+  const onChannelSettings = () => {
     clearModals()
     navigateAppend({
       props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
       selected: 'teamChannel',
     })
-  }, [meta, clearModals, navigateAppend])
-  const onDelete = React.useCallback(() => {
+  }
+  const onDelete = () => {
     // TODO: consider not using the confirm modal
     nav.safeNavigateAppend({
       props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
       selected: 'teamDeleteChannel',
     })
-  }, [nav, meta])
+  }
 
   const joinRPC = C.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = C.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
 
   const convID = T.Chat.keyToConversationID(meta.conversationIDKey)
-  const onLeave = React.useCallback(() => {
+  const onLeave = () => {
     setWaiting(true)
     leaveRPC(
       [{convID}],
@@ -361,8 +358,8 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       },
       stopWaiting
     )
-  }, [convID, leaveRPC, reloadChannels, stopWaiting])
-  const onJoin = React.useCallback(() => {
+  }
+  const onJoin = () => {
     setWaiting(true)
     joinRPC(
       [{convID}],
@@ -373,10 +370,9 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       },
       stopWaiting
     )
-  }, [convID, joinRPC, reloadChannels, stopWaiting])
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const menuItems = [
         {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
@@ -400,9 +396,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
           items={menuItems}
         />
       )
-    },
-    [onEditChannel, onChannelSettings, onDelete, isAdmin]
-  )
+    }
   const {popupAnchor, showPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
@@ -444,7 +438,7 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       )}
     </Kb.Box2>
   )
-})
+}
 
 type ChannelRowProps = {
   channelMeta: T.Chat.ConversationMeta
@@ -455,7 +449,7 @@ type ChannelRowProps = {
   usernames: string[]
   rowHeight: number
 }
-const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
+const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
@@ -474,9 +468,9 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       reason: 'manageView',
     })
 
-  const onSelect = React.useCallback(() => {
+  const onSelect = () => {
     _onSelect(conversationIDKey)
-  }, [_onSelect, conversationIDKey])
+  }
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
@@ -570,7 +564,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       ])}
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},

@@ -51,13 +51,13 @@ export const Video = (props: Props) => {
     return () => sub.remove()
   }, [player])
 
-  const _onClick = React.useCallback(() => {
+  const _onClick = () => {
     if (onClick) {
       onClick()
       return
     }
     setPlaying(p => !p)
-  }, [setPlaying, onClick])
+  }
 
   return (
     <Kb.ClickableBox onClick={_onClick} style={Kb.Styles.collapseStyles([style, styles.container])}>

@@ -26,9 +26,9 @@ type TodoOwnProps = {
 const installLinkURL = 'https://keybase.io/download'
 const useOnSkipTodo = (type: T.People.TodoType) => {
   const skipTodo = usePeopleState(s => s.dispatch.skipTodo)
-  return React.useCallback(() => {
+  return () => {
     skipTodo(type)
-  }, [skipTodo, type])
+  }
 }
 
 function makeDefaultButtons(

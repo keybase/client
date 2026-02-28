@@ -66,7 +66,7 @@ const useHintText = (p: {
   return 'Write a message'
 }
 
-const Input = React.memo(function Input() {
+const Input = function Input() {
   const showGiphySearch = Chat.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
   const showCommandStatus = Chat.useChatContext(s => !!s.commandStatus)
@@ -80,9 +80,33 @@ const Input = React.memo(function Input() {
       <ConnectedPlatformInput />
     </Kb.Box2>
   )
-})
+}
 
-const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
+const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, focus?: boolean) => {
+  if (!inputRef.current) {
+    console.log('injectText injectingTextRef null')
+    return
+  }
+  if (!text) {
+    inputRef.current.clear()
+  } else {
+    inputRef.current.transformText(
+      () => ({
+        selection:
+          text === '!>spoiler<!'
+            ? {end: text.length - 2, start: text.length - 2 - 7}
+            : {end: text.length, start: text.length},
+        text,
+      }),
+      true
+    )
+  }
+  if (focus) {
+    inputRef.current.focus()
+  }
+}
+
+const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -120,107 +144,72 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
 
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
   const inputRef = React.useRef<InputRef | null>(null)
-  const setLocalInputRef = React.useCallback((r: InputRef | null) => {
+  const setLocalInputRef = (r: InputRef | null) => {
     inputRef.current = r
-  }, [])
+  }
   const suggestionOverlayStyle = infoPanelShowing
     ? styles.suggestionOverlayInfoShowing
     : styles.suggestionOverlay
 
   const allowExplodingModeRef = React.useRef(-1)
-  const setExplodingMode = React.useCallback(
-    (mode: number) => {
-      allowExplodingModeRef.current = mode
-      setExplodingModeRaw(mode, false)
-    },
-    [setExplodingModeRaw]
-  )
+  const setExplodingMode = (mode: number) => {
+    allowExplodingModeRef.current = mode
+    setExplodingModeRaw(mode, false)
+  }
 
-  const injectText = React.useCallback((text: string, focus?: boolean) => {
-    if (!inputRef.current) {
-      console.log('injectText injectingTextRef null')
-      return
-    }
-    if (!text) {
-      inputRef.current.clear()
-    } else {
-      inputRef.current.transformText(
-        () => ({
-          selection:
-            text === '!>spoiler<!'
-              ? {end: text.length - 2, start: text.length - 2 - 7}
-              : {end: text.length, start: text.length},
-          text,
-        }),
-        true
-      )
-    }
-    if (focus) {
-      inputRef.current.focus()
-    }
-  }, [])
+  const injectText = (text: string, focus?: boolean) => {
+    doInjectText(inputRef, text, focus)
+  }
 
   const {scrollToBottom} = React.useContext(ScrollContext)
-  const onSubmit = React.useCallback(
-    (text: string) => {
-      if (!text) return
-      injectText('', true)
-      sendMessage(text)
-      const cs = Chat.getConvoState(conversationIDKey)
-      if (cs.messageCenterOrdinal) {
-        cs.dispatch.toggleThreadSearch(true)
-        jumpToRecent()
-      } else {
-        scrollToBottom()
-      }
-    },
-    [injectText, sendMessage, jumpToRecent, scrollToBottom, conversationIDKey]
-  )
+  const onSubmit = (text: string) => {
+    if (!text) return
+    injectText('', true)
+    sendMessage(text)
+    const cs = Chat.getConvoState(conversationIDKey)
+    if (cs.messageCenterOrdinal) {
+      cs.dispatch.toggleThreadSearch(true)
+      jumpToRecent()
+    } else {
+      scrollToBottom()
+    }
+  }
 
-  const sendTypingRaw = React.useCallback(
-    (typing: boolean) => {
-      const f = async () => {
-        await T.RPCChat.localUpdateTypingRpcPromise({conversationID: convoID, typing})
-      }
-      C.ignorePromise(f())
-    },
-    [convoID]
-  )
+  const sendTypingRaw = (typing: boolean) => {
+    const f = async () => {
+      await T.RPCChat.localUpdateTypingRpcPromise({conversationID: convoID, typing})
+    }
+    C.ignorePromise(f())
+  }
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
-  const updateDraftRaw = React.useCallback(
-    (text: string) => {
-      const f = async () => {
-        await T.RPCChat.localUpdateUnsentTextRpcPromise({
-          conversationID: convoID,
-          text,
-          tlfName: tlfname,
-        })
-      }
-      C.ignorePromise(f())
-    },
-    [convoID, tlfname]
-  )
+  const updateDraftRaw = (text: string) => {
+    const f = async () => {
+      await T.RPCChat.localUpdateUnsentTextRpcPromise({
+        conversationID: convoID,
+        text,
+        tlfName: tlfname,
+      })
+    }
+    C.ignorePromise(f())
+  }
   const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {trailing: true})
 
   const textValueRef = React.useRef('')
-  const onChangeText = React.useCallback(
-    (text: string) => {
-      textValueRef.current = text
-      const isTyping = text.length > 0
-      if (!isTyping) {
-        sendTyping.cancel()
-      }
-      sendTyping(isTyping)
-      updateDraft(text)
-    },
-    [sendTyping, updateDraft]
-  )
+  const onChangeText = (text: string) => {
+    textValueRef.current = text
+    const isTyping = text.length > 0
+    if (!isTyping) {
+      sendTyping.cancel()
+    }
+    sendTyping(isTyping)
+    updateDraft(text)
+  }
 
-  const onCancelEditing = React.useCallback(() => {
+  const onCancelEditing = () => {
     setEditing('clear')
     injectText('')
-  }, [injectText, setEditing])
+  }
 
   // on unmount load meta so we have an updated draft
   const loadIDOnUnloadRef = React.useRef(conversationIDKey)
@@ -243,16 +232,16 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     }
     loadedDraft.current = true
     if (textValueRef.current === '' && storeDraft) {
-      injectText(storeDraft)
+      doInjectText(inputRef, storeDraft)
     }
-  }, [injectText, storeDraft])
+  }, [storeDraft])
 
   React.useEffect(() => {
     if (unsentText !== undefined) {
-      injectText(unsentText)
+      doInjectText(inputRef, unsentText)
       updateUnsentText(undefined)
     }
-  }, [updateUnsentText, unsentText, injectText])
+  }, [updateUnsentText, unsentText])
 
   const {setInputRef} = React.useContext(FocusContext)
   React.useEffect(() => {
@@ -287,7 +276,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
       setExplodingMode={setExplodingMode}
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => {
   const suggestDesktop = {marginLeft: 15, marginRight: 15, marginTop: 'auto'}

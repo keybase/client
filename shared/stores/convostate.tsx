@@ -3428,11 +3428,7 @@ type ConvoProviderProps = React.PropsWithChildren<{
   id: T.Chat.ConversationIDKey
   canBeNull?: boolean
 }>
-export const ChatProvider = React.memo(function ChatProvider({
-  canBeNull,
-  children,
-  ...props
-}: ConvoProviderProps) {
+export function ChatProvider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
     // let it not crash out but likely you'll get wrong answers in prod
     if (__DEV__) {
@@ -3441,7 +3437,7 @@ export const ChatProvider = React.memo(function ChatProvider({
     }
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
-})
+}
 
 export function useHasContext() {
   const store = React.useContext(Context)
@@ -3468,27 +3464,20 @@ export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: T.C
 type RouteParams = {
   route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}
 }
-export const ProviderScreen = React.memo(function ProviderScreen(p: {
-  children: React.ReactNode
-  rp: RouteParams
-  canBeNull?: boolean
-}) {
+export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) {
   return (
     <ChatProvider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
       {p.children}
     </ChatProvider>
   )
-})
+}
 
 import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const cid = useChatContext(s => s.id)
-  return React.useCallback(
-    (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
-      navigateAppend(makePath(cid), replace)
-    },
-    [cid]
-  )
+  return (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
+    navigateAppend(makePath(cid), replace)
+  }
 }
 
 const formatTextForQuoting = (text: string) =>

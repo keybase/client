@@ -6,7 +6,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 
-const PinnedMessage = React.memo(function PinnedMessage() {
+const PinnedMessage = function PinnedMessage() {
   const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
@@ -31,27 +31,27 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     messageID && replyJump(messageID)
-  }, [replyJump, messageID])
-  const onUnpin = React.useCallback(() => {
+  }
+  const onUnpin = () => {
     pinMessage()
-  }, [pinMessage])
+  }
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore
-  const onDismiss = React.useCallback(() => {
+  const onDismiss = () => {
     setShowPopup(false)
     _onDismiss()
-  }, [_onDismiss])
+  }
 
-  const onIconClick = React.useCallback(() => {
+  const onIconClick = () => {
     if (dismissUnpins) {
       setShowPopup(true)
     } else {
       onDismiss()
     }
-  }, [dismissUnpins, onDismiss])
+  }
 
   if (!(type === 'text' || type === 'attachment')) {
     return null
@@ -115,7 +115,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       {popup}
     </>
   )
-})
+}
 
 type UnpinProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>

@@ -61,13 +61,11 @@ const Toast = (props: Props) => {
   }, [shouldRender, opacity])
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        setShouldRender(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      setShouldRender(false)
+    }
+  })
 
   const isDarkMode = useColorScheme() === 'dark'
 

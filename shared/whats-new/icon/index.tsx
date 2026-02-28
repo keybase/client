@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconStyle} from '@/common-adapters/icon'
 import {keybaseFM} from '@/stores/whats-new'
@@ -31,7 +31,7 @@ export const IconWithPopupDesktop = (p: PopupOwnProps) => {
   const baseColor = Kb.Styles.globalColors.black_50
   const iconColor = color ? color : baseColor
 
-  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return !Kb.Styles.isMobile ? (
       <Popup
@@ -41,7 +41,7 @@ export const IconWithPopupDesktop = (p: PopupOwnProps) => {
         onHidden={hidePopup}
       />
     ) : null
-  }, [])
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const popupVisibleColor = color || Kb.Styles.globalColors.black
   return (

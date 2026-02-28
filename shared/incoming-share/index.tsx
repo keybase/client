@@ -20,7 +20,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   const originalOnly = originalTotalSize <= scaledTotalSize
   const setUseOriginalInStore = useConfigState(s => s.dispatch.setIncomingShareUseOriginal)
 
-  const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
+  const setUseOriginalInService = (useOriginal: boolean) => {
     T.RPCGen.incomingShareSetPreferenceRpcPromise({
       preference: useOriginal
         ? {compressPreference: T.RPCGen.IncomingShareCompressPreference.original}
@@ -28,7 +28,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     })
       .then(() => {})
       .catch(() => {})
-  }, [])
+  }
 
   // If it's original only, set original in store.
   React.useEffect(() => {
@@ -37,63 +37,53 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   // From service to store, but only if this is not original only.
   const getRPC = C.useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
-  const syncCompressPreferenceFromServiceToStore = React.useCallback(() => {
-    getRPC(
-      [undefined],
-      pref =>
-        setUseOriginalInStore(pref.compressPreference === T.RPCGen.IncomingShareCompressPreference.original),
-      err => {
-        throw err
-      }
-    )
-  }, [getRPC, setUseOriginalInStore])
   React.useEffect(() => {
-    !originalOnly && syncCompressPreferenceFromServiceToStore()
-  }, [originalOnly, syncCompressPreferenceFromServiceToStore])
+    if (!originalOnly) {
+      getRPC(
+        [undefined],
+        pref =>
+          setUseOriginalInStore(
+            pref.compressPreference === T.RPCGen.IncomingShareCompressPreference.original
+          ),
+        err => {
+          throw err
+        }
+      )
+    }
+  }, [originalOnly, getRPC, setUseOriginalInStore])
 
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
 
   const isLarge = (useOriginalValue ? originalTotalSize : scaledTotalSize) > 1024 * 1024 * 150
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {hidePopup} = p
-      const setUseOriginalFromUI = (useOriginal: boolean) => {
-        !originalOnly && setUseOriginalInStore(useOriginal)
-        setUseOriginalInService(useOriginal)
-      }
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {hidePopup} = p
+    const setUseOriginalFromUI = (useOriginal: boolean) => {
+      !originalOnly && setUseOriginalInStore(useOriginal)
+      setUseOriginalInService(useOriginal)
+    }
 
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          visible={true}
-          onHidden={hidePopup}
-          items={[
-            {
-              icon: useOriginalValue ? 'iconfont-check' : undefined,
-              onClick: () => setUseOriginalFromUI(true),
-              rightTitle: isLarge ? 'Large file' : undefined,
-              title: `Keep full size (${FS.humanizeBytes(originalTotalSize, 1)})`,
-            },
-            {
-              icon: useOriginalValue ? undefined : 'iconfont-check',
-              onClick: () => setUseOriginalFromUI(false),
-              title: `Compress (${FS.humanizeBytes(scaledTotalSize, 1)})`,
-            },
-          ]}
-        />
-      )
-    },
-    [
-      isLarge,
-      originalTotalSize,
-      scaledTotalSize,
-      useOriginalValue,
-      originalOnly,
-      setUseOriginalInService,
-      setUseOriginalInStore,
-    ]
-  )
+    return (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        visible={true}
+        onHidden={hidePopup}
+        items={[
+          {
+            icon: useOriginalValue ? 'iconfont-check' : undefined,
+            onClick: () => setUseOriginalFromUI(true),
+            rightTitle: isLarge ? 'Large file' : undefined,
+            title: `Keep full size (${FS.humanizeBytes(originalTotalSize, 1)})`,
+          },
+          {
+            icon: useOriginalValue ? undefined : 'iconfont-check',
+            onClick: () => setUseOriginalFromUI(false),
+            title: `Compress (${FS.humanizeBytes(scaledTotalSize, 1)})`,
+          },
+        ]}
+      />
+    )
+  }
   const {popup, showPopup} = Kb.usePopup2(makePopup)
 
   if (originalOnly) {
@@ -309,7 +299,7 @@ const useIncomingShareItems = () => {
 
   // iOS
   const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
-  const getIncomingShareItemsIOS = React.useCallback(() => {
+  React.useEffect(() => {
     if (!C.isIOS) {
       return
     }
@@ -320,11 +310,10 @@ const useIncomingShareItems = () => {
       err => setIncomingShareError(err)
     )
   }, [rpc, setIncomingShareError, setIncomingShareItems])
-  React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
 
   // Android
   const androidShare = useConfigState(s => s.androidShare)
-  const getIncomingShareItemsAndroid = React.useCallback(() => {
+  React.useEffect(() => {
     if (!C.isAndroid || !androidShare) {
       return
     }
@@ -335,7 +324,6 @@ const useIncomingShareItems = () => {
         : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]
     setIncomingShareItems(items)
   }, [androidShare, setIncomingShareItems])
-  React.useEffect(getIncomingShareItemsAndroid, [getIncomingShareItemsAndroid])
 
   return {incomingShareError, incomingShareItems}
 }

@@ -160,8 +160,7 @@ const ChooseEmoji = Kb.Styles.isMobile
     }
   : (props: ChooseEmojiProps) => {
       const {onChoose} = props
-      const makePopup = React.useCallback(
-        (p: Kb.Popup2Parms) => {
+      const makePopup = (p: Kb.Popup2Parms) => {
           const {attachTo, hidePopup} = p
           return (
             <Kb.FloatingBox
@@ -180,9 +179,7 @@ const ChooseEmoji = Kb.Styles.isMobile
               />
             </Kb.FloatingBox>
           )
-        },
-        [onChoose]
-      )
+        }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>

@@ -21,7 +21,7 @@ type OwnProps = {
 const channelNameToString = (channelName?: string) => (channelName ? `#${channelName}` : '#general')
 
 const noGit = Git.makeGitInfo()
-const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
+function ConnectedRow(ownProps: OwnProps) {
   const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
   const git = Git.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = Teams.useTeamsState(s => (git.teamname ? Teams.getTeamID(s, git.teamname) : undefined))
@@ -34,60 +34,51 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
   const {url: gitURL, repoID, channelName, teamname, chatDisabled} = git
   const {canDelete, devicename, lastEditTime, lastEditUser, name} = git
 
-  const onArchiveGitRepo = React.useCallback(() => {
+  const onArchiveGitRepo = () => {
     gitURL &&
       navigateAppend({
         props: {gitURL, type: 'git' as const},
         selected: 'archiveModal',
       })
-  }, [navigateAppend, gitURL])
+  }
 
-  const _onOpenChannelSelection = React.useCallback(() => {
+  const _onOpenChannelSelection = () => {
     teamID &&
       navigateAppend({
         props: {repoID, selected: channelName || 'general', teamID},
         selected: 'gitSelectChannel',
       })
-  }, [navigateAppend, repoID, channelName, teamID])
+  }
 
-  const onToggleChatEnabled = React.useCallback(() => {
+  const onToggleChatEnabled = () => {
     teamname && setTeamRepoSettings('', teamname, repoID, !chatDisabled)
-  }, [teamname, chatDisabled, repoID, setTeamRepoSettings])
+  }
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const openUserTracker = React.useCallback(
-    (username: string) => {
-      showUser(username, true)
-    },
-    [showUser]
-  )
+  const openUserTracker = (username: string) => {
+    showUser(username, true)
+  }
 
-  const onBrowseGitRepo = React.useCallback(
-    () =>
-      _onBrowseGitRepo(
-        T.FS.stringToPath(
-          gitURL.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
-        )
-      ),
-    [_onBrowseGitRepo, gitURL]
-  )
+  const onBrowseGitRepo = () =>
+    _onBrowseGitRepo(
+      T.FS.stringToPath(
+        gitURL.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
+      )
+    )
 
-  const onShowDelete = React.useCallback(() => onShowDelete_(id), [onShowDelete_, id])
-  const onToggleExpand = React.useCallback(() => onToggleExpand_(id), [onToggleExpand_, id])
+  const onShowDelete = () => onShowDelete_(id)
+  const onToggleExpand = () => onToggleExpand_(id)
 
-  const onClickDevice = React.useCallback(() => {
+  const onClickDevice = () => {
     lastEditUser && openURL(`https://keybase.io/${lastEditUser}/devices`)
-  }, [lastEditUser])
+  }
 
-  const onChannelClick = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      if (!chatDisabled) {
-        e.preventDefault()
-        _onOpenChannelSelection()
-      }
-    },
-    [_onOpenChannelSelection, chatDisabled]
-  )
+  const onChannelClick = (e: React.BaseSyntheticEvent) => {
+    if (!chatDisabled) {
+      e.preventDefault()
+      _onOpenChannelSelection()
+    }
+  }
 
   const canEdit = canDelete && !!teamname
   const url = gitURL
@@ -276,7 +267,7 @@ const ConnectedRow = React.memo(function ConnectedRow(ownProps: OwnProps) {
       />
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

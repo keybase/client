@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
@@ -30,10 +31,9 @@ type PlainInputRef = {
   setSelection: (s: Selection) => void
 }
 
-const PlainInput = React.memo(
-  React.forwardRef<PlainInputRef, InternalProps>((p, ref) => {
+function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
     const {dummyInput, onFocus, value, maxBytes, onChangeText, onSelectionChange} = p
-    const {onPasteImage, onEnterKeyDown} = p
+    const {onPasteImage, onEnterKeyDown, ref} = p
 
     const inputRef = React.useRef<NativeTextInput>(null)
 
@@ -46,9 +46,9 @@ const PlainInput = React.memo(
 
     // Needed to support wrapping with e.g. a ClickableBox. See
     // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-    const setNativeProps = React.useCallback((nativeProps: object) => {
+    const setNativeProps = (nativeProps: object) => {
       inputRef.current?.setNativeProps(nativeProps)
-    }, [])
+    }
 
     // Validate that this selection makes sense with current value
     const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
@@ -58,68 +58,59 @@ const PlainInput = React.memo(
       return {end, start}
     }
 
-    const _setSelection = React.useCallback(
-      (selection: Selection) => {
-        const newSelection = _sanityCheckSelection(selection, lastNativeTextRef.current || '')
-        setNativeProps({selection: newSelection})
-        lastNativeSelectionRef.current = selection
-      },
-      [setNativeProps]
-    )
+    const _setSelection = C.useEvent((selection: Selection) => {
+      const newSelection = _sanityCheckSelection(selection, lastNativeTextRef.current || '')
+      setNativeProps({selection: newSelection})
+      lastNativeSelectionRef.current = selection
+    })
 
-    const _onChangeText = React.useCallback(
-      (t: string) => {
-        if (maxBytes) {
-          if (stringToUint8Array(t).byteLength > maxBytes) {
-            return
-          }
+    const _onChangeText = (t: string) => {
+      if (maxBytes) {
+        if (stringToUint8Array(t).byteLength > maxBytes) {
+          return
         }
-        lastNativeTextRef.current = t
-        onChangeText?.(t)
+      }
+      lastNativeTextRef.current = t
+      onChangeText?.(t)
 
-        // call if it hasn't been called already
-        afterTransformRef.current?.()
-      },
-      [maxBytes, onChangeText]
-    )
+      // call if it hasn't been called already
+      afterTransformRef.current?.()
+    }
 
-    const transformText = React.useCallback(
-      (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
-        if (controlled) {
-          const errMsg =
-            'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
-          logger.error(errMsg)
-          throw new Error(errMsg)
-        }
-        const currentTextInfo = {
-          selection: lastNativeSelectionRef.current || {end: 0, start: 0},
-          text: lastNativeTextRef.current || '',
-        }
-        const newTextInfo = fn(currentTextInfo)
-        const newCheckedSelection = _sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
-        checkTextInfo(newTextInfo)
+    const transformText = C.useEvent((fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
+      if (controlled) {
+        const errMsg =
+          'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      const currentTextInfo = {
+        selection: lastNativeSelectionRef.current || {end: 0, start: 0},
+        text: lastNativeTextRef.current || '',
+      }
+      const newTextInfo = fn(currentTextInfo)
+      const newCheckedSelection = _sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
+      checkTextInfo(newTextInfo)
 
-        // this is a very hacky workaround for internal bugs in RN TextInput
-        // write a stub with different content
+      // this is a very hacky workaround for internal bugs in RN TextInput
+      // write a stub with different content
 
-        afterTransformRef.current = () => {
-          afterTransformRef.current = undefined
-          setNativeProps({text: newTextInfo.text})
-          setTimeout(() => {
-            setNativeProps({selection: newCheckedSelection})
-          }, 20)
-          if (reflectChange) {
-            _onChangeText(newTextInfo.text)
-          }
-        }
-
-        // call if it hasn't been called already
+      afterTransformRef.current = () => {
+        afterTransformRef.current = undefined
+        setNativeProps({text: newTextInfo.text})
         setTimeout(() => {
-          afterTransformRef.current?.()
+          setNativeProps({selection: newCheckedSelection})
         }, 20)
-      },
-      [_onChangeText, controlled, setNativeProps]
-    )
+        if (reflectChange) {
+          _onChangeText(newTextInfo.text)
+        }
+      }
+
+      // call if it hasn't been called already
+      setTimeout(() => {
+        afterTransformRef.current?.()
+      }, 20)
+    })
 
     React.useImperativeHandle(ref, () => {
       return {
@@ -171,9 +162,9 @@ const PlainInput = React.memo(
       }
     }
 
-    const _onSubmitEditing = React.useCallback(() => {
+    const _onSubmitEditing = () => {
       onEnterKeyDown?.()
-    }, [onEnterKeyDown])
+    }
 
     const isDarkMode = useColorScheme() === 'dark'
 
@@ -286,8 +277,7 @@ const PlainInput = React.memo(
       )
     }
     return <NativeTextInput {...props} />
-  })
-)
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   common: {backgroundColor: Styles.globalColors.fastBlank, borderWidth: 0, flexGrow: 1},

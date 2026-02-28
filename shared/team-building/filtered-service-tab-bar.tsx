@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '@/constants/types'
 import {ServiceTabBar} from './service-tab-bar'
 import * as TeamBuilding from '@/stores/team-building'
@@ -11,13 +11,9 @@ export const FilteredServiceTabBar = (
   const {selectedService, onChangeService} = props
   const {servicesShown, minimalBorder, offset, filterServices} = props
 
-  const services = React.useMemo(
-    () =>
-      filterServices
+  const services = filterServices
         ? TeamBuilding.allServices.filter(serviceId => filterServices.includes(serviceId))
-        : TeamBuilding.allServices,
-    [filterServices]
-  )
+        : TeamBuilding.allServices
   return services.length === 1 && services[0] === 'keybase' ? null : (
     <ServiceTabBar
       services={services}

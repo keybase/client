@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -9,7 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 
-const SystemChangeRetentionContainer = React.memo(function SystemChangeRetentionContainer(p: OwnProps) {
+function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
@@ -18,9 +17,9 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
     meta.teamType === 'adhoc' ? true : Teams.getCanPerform(s, meta.teamname).setRetentionPolicy
   )
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onManageRetention = React.useCallback(() => {
+  const onManageRetention = () => {
     showInfoPanel(true, 'settings')
-  }, [showInfoPanel])
+  }
 
   const changedBy = you === user ? 'You ' : ''
   let convType = 'conversation'
@@ -46,7 +45,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
       ) : null}
     </UserNotice>
   )
-})
+}
 
 const getPolicySummary = (policy: T.RPCChat.RetentionPolicy | undefined) => {
   if (!policy) {

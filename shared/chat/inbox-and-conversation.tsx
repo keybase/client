@@ -11,7 +11,7 @@ import InfoPanel from './conversation/info-panel'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
-const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
+function InboxAndConversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const navKey = props.navKey ?? ''
   const inboxSearch = Chat.useChatState(s => s.inboxSearch)
@@ -57,7 +57,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
       </Kb.KeyboardAvoidingView2>
     </Chat.ChatProvider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

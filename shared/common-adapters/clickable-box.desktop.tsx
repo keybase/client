@@ -6,10 +6,8 @@ import type {_StylesCrossPlatform} from '@/styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
-  props: Props,
-  ref: React.Ref<MeasureRef | null>
-) {
+const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {ref} = props
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
 
@@ -51,6 +49,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
     onDoubleClick,
     className,
     tooltip,
+    ref: _ref,
     ...otherProps
   } = props
 
@@ -115,7 +114,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
       {children}
     </div>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -145,11 +144,8 @@ const styles = Styles.styleSheetCreate(
 
 export default ClickableBox
 
-export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function ClickableBox2(
-  p: Props2,
-  ref: React.Ref<MeasureRef | null>
-) {
-  const {onClick, children, style, className, onMouseOver} = p
+export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {onClick, children, style, className, onMouseOver, ref} = p
   const divRef = React.useRef<HTMLDivElement>(null)
 
   React.useImperativeHandle(ref, () => {
@@ -171,4 +167,4 @@ export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function Click
       {children}
     </div>
   )
-})
+}

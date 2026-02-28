@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -39,17 +40,14 @@ const Dropdown = (props: Props) => {
   const [value, setValue] = React.useState(_value || pickItemValue)
   const showingPick = !value
 
-  const selected = React.useCallback(
-    (v: string) => {
-      if (v === _value) return
-      if (v === otherItemValue) {
-        onOther()
-      } else {
-        onClick(v)
-      }
-    },
-    [onOther, onClick, _value]
-  )
+  const selected = C.useEvent((v: string) => {
+    if (v === _value) return
+    if (v === otherItemValue) {
+      onOther()
+    } else {
+      onClick(v)
+    }
+  })
 
   const showModal = (show: boolean) => {
     setModalVisible(show)

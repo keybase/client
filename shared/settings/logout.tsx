@@ -32,27 +32,24 @@ const LogoutContainer = () => {
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     resetCheckPassword()
     navigateUp()
-  }, [resetCheckPassword, navigateUp])
+  }
   const onCheckPassword = checkPassword
 
   const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
-  const _onLogout = React.useCallback(() => {
+  const _onLogout = () => {
     requestLogout()
     resetCheckPassword()
-  }, [resetCheckPassword, requestLogout])
+  }
 
-  const onSavePassword = React.useCallback(
-    (password: string) => {
-      _setPassword(password)
-      setPasswordConfirm(password)
-      submitNewPassword(true)
-    },
-    [submitNewPassword, _setPassword, setPasswordConfirm]
-  )
+  const onSavePassword = (password: string) => {
+    _setPassword(password)
+    setPasswordConfirm(password)
+    submitNewPassword(true)
+  }
 
   const onLogout = useSafeSubmit(_onLogout, false)
 

@@ -46,12 +46,9 @@ const Security = () => {
     _contactSettingsTeamsEnabled
   )
 
-  const serverSelectedTeams = React.useMemo(
-    () => new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}])),
-    [_contactSettingsTeams]
-  )
+  const serverSelectedTeams = new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))
 
-  const _contactSettingsSelectedTeams = React.useMemo(() => {
+  const _contactSettingsSelectedTeams = (() => {
     const s: {[K in T.Teams.TeamID]: boolean} = {}
     teamMeta.forEach(t => {
       if (serverSelectedTeams.has(t.id)) {
@@ -63,7 +60,7 @@ const Security = () => {
       }
     })
     return s
-  }, [teamMeta, serverSelectedTeams])
+  })()
 
   const [contactSettingsSelectedTeams, setContactSettingsSelectedTeams] = React.useState(
     _contactSettingsSelectedTeams
@@ -109,15 +106,12 @@ const Security = () => {
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
 
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
-  const onRefresh = React.useCallback(() => {
+
+  React.useEffect(() => {
     loadSettings()
     notifRefresh()
     contactSettingsRefresh()
   }, [contactSettingsRefresh, loadSettings, notifRefresh])
-
-  React.useEffect(() => {
-    onRefresh()
-  }, [onRefresh])
 
   return (
     <>

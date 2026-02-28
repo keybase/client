@@ -1,6 +1,5 @@
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
@@ -15,7 +14,7 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
-const TeamRow = React.memo(function TeamRow(props: Props) {
+const TeamRow = function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
   const nav = useSafeNavigation()
   const teamMeta = useTeamsState(s => Teams.getTeamMeta(s, teamID))
@@ -29,13 +28,10 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    },
-    [teamID]
-  )
+    }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const teamIDToResetUsers = useTeamsState(s => s.teamIDToResetUsers)
@@ -155,7 +151,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
       {popup}
     </>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {

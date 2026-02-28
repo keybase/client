@@ -9,24 +9,7 @@ import {getModalStack} from '@/constants/router'
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
-type Desc = ReturnType<typeof useNavigationBuilder>['descriptors'][0]
-
-// not memo as it changes every time
-const RouteBox = (p: {desc?: Desc; selected: boolean}) => {
-  const {desc, selected} = p
-  return (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      style={selected ? undefined : styles.hidden}
-    >
-      {desc?.render()}
-    </Kb.Box2>
-  )
-}
-
-const LeftTabNavigator = React.memo(function LeftTabNavigator({
+function LeftTabNavigator({
   backBehavior,
   initialRouteName,
   children,
@@ -38,18 +21,6 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
     initialRouteName,
     screenOptions,
   })
-
-  const {index: selectedIndex} = state
-  const selectedRoute = state.routes[selectedIndex]?.key
-
-  const [rendered, setRendered] = React.useState(new Set<string>(selectedRoute ? [selectedRoute] : []))
-  React.useEffect(() => {
-    if (!selectedRoute) return
-    if (rendered.has(selectedRoute)) return
-    const next = new Set(rendered)
-    next.add(selectedRoute)
-    setRendered(next)
-  }, [selectedRoute, rendered])
 
   const hasModals = useRouterState(() => getModalStack().length > 0)
 
@@ -65,27 +36,30 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
         />
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
-            const routeKey = route.key
-            const desc = descriptors[routeKey]
             const selected = i === state.index
-            const needDesc = desc ? rendered.has(routeKey) : false
-            return <RouteBox key={route.name} selected={selected} desc={needDesc ? desc : undefined} />
+            const desc = descriptors[route.key]
+            return (
+              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                  {desc?.render()}
+                </Kb.Box2>
+              </React.Activity>
+            )
           })}
         </Kb.BoxGrow>
         <ModalBackdrop hasModals={hasModals} />
       </Kb.Box2>
     </NavigationContent>
   )
-})
+}
 
-const ModalBackdrop = React.memo(function ModalBackdrop(p: {hasModals: boolean}) {
+function ModalBackdrop(p: {hasModals: boolean}) {
   const {hasModals} = p
   return <div className={Kb.Styles.classNames({'has-modals': hasModals, 'modal-backdrop': true})} />
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   box: {backgroundColor: Kb.Styles.globalColors.white},
-  hidden: {display: 'none'},
 }))
 
 type NavType = NavigatorTypeBagBase & {

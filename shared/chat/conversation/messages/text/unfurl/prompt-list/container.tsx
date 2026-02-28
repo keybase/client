@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -8,7 +7,7 @@ import Prompt from './prompt'
 
 const noMessageID = T.Chat.numberToMessageID(0)
 
-const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer() {
+function UnfurlPromptListContainer() {
   const ordinal = useOrdinal()
   const {unfurlResolvePrompt, messageID, promptDomains} = Chat.useChatContext(
     C.useShallow(s => {
@@ -19,12 +18,9 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
       return {messageID, promptDomains, unfurlResolvePrompt}
     })
   )
-  const _setPolicy = React.useCallback(
-    (domain: string, result: T.RPCChat.UnfurlPromptResult) => {
-      unfurlResolvePrompt(messageID, domain, result)
-    },
-    [messageID, unfurlResolvePrompt]
-  )
+  const _setPolicy = (domain: string, result: T.RPCChat.UnfurlPromptResult) => {
+    unfurlResolvePrompt(messageID, domain, result)
+  }
   const prompts = [...(promptDomains ?? [])].map(domain => ({
     domain,
     onAccept: () =>
@@ -58,6 +54,6 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
       ))}
     </Kb.Box2>
   )
-})
+}
 
 export default UnfurlPromptListContainer

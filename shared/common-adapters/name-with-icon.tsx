@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
@@ -103,7 +103,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       />
     )
   }
-  const usernames = React.useMemo(() => [username], [username])
+  const usernames = [username]
   const title = props.title || ''
   const usernameOrTitle = title ? (
     <TextOrComponent
@@ -365,20 +365,20 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onOpenTeamProfile = React.useCallback(() => {
+  const onOpenTeamProfile = () => {
     if (teamID) {
       clearModals()
       navigateAppend({props: {teamID}, selected: 'team'})
     }
-  }, [clearModals, navigateAppend, teamID])
+  }
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onOpenTracker = React.useCallback(() => {
+  const onOpenTracker = () => {
     username && showUser(username, true)
-  }, [showUser, username])
+  }
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onOpenUserProfile = React.useCallback(() => {
+  const onOpenUserProfile = () => {
     username && showUserProfile(username)
-  }, [username, showUserProfile])
+  }
 
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'

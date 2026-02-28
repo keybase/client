@@ -173,10 +173,10 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
   const {conversationsToSend, convLimit, httpSrvAddress, httpSrvToken, username} = p
   const convs = conversationsToSend.slice(0, convLimit ?? conversationsToSend.length)
 
-  const openInbox = React.useCallback(() => {
+  const openInbox = () => {
     R.remoteDispatch(RemoteGen.createShowMain())
     R.remoteDispatch(RemoteGen.createSwitchTab({tab: C.Tabs.chatTab}))
-  }, [])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
@@ -236,7 +236,7 @@ const FileUpdates = (p: {updates: ReadonlyArray<{path: T.FS.Path; uploading: boo
 
 const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; following: ReadonlyArray<string>; httpSrvAddress: string; httpSrvToken: string}) => {
   const {remoteTlfUpdates, following, httpSrvAddress, httpSrvToken} = p
-  const followingSet = React.useMemo(() => new Set(following), [following])
+  const followingSet = new Set(following)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
@@ -306,7 +306,7 @@ const useMenuItems = (
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const startingUp = daemonHandshakeState !== 'done'
 
-  const ret = React.useMemo(() => {
+  const ret = (() => {
     const common = [
       {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
       {
@@ -383,35 +383,32 @@ const useMenuItems = (
       ] as const
     }
     return [...openAppItem, ...common] as const
-  }, [username, navBadges, kbfsEnabled, openApp, showBadges, startingUp])
+  })()
   return ret
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const openApp = React.useCallback((tab?: C.Tabs.AppTab) => {
+  const openApp = (tab?: C.Tabs.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
     tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
-  }, [])
+  }
 
   const menuItems = useMenuItems({...p, openApp})
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          items={menuItems}
-          visible={true}
-          onHidden={hidePopup}
-          attachTo={attachTo}
-          position="bottom right"
-        />
-      )
-    },
-    [menuItems]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        items={menuItems}
+        visible={true}
+        onHidden={hidePopup}
+        attachTo={attachTo}
+        position="bottom right"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => (navBadges[val] ?? 0) + acc, 0)

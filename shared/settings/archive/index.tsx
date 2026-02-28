@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -8,7 +8,7 @@ import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 import {showShareActionSheet} from '@/util/platform-specific'
 
-const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
+function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
   const archiveState = useArchiveState(
     C.useShallow(s => ({
@@ -22,21 +22,21 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
 
   const errorStr = job?.error ?? ''
 
-  const onPause = React.useCallback(() => {
+  const onPause = () => {
     pause(id)
-  }, [pause, id])
+  }
 
-  const onResume = React.useCallback(() => {
+  const onResume = () => {
     resume(id)
-  }, [resume, id])
+  }
 
   const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
-  const onShowFinder = React.useCallback(() => {
+  const onShowFinder = () => {
     if (!job) return
     openFinder?.(job.outPath)
-  }, [job, openFinder])
+  }
 
-  const onShare = React.useCallback(() => {
+  const onShare = () => {
     if (!job?.outPath) return
     showShareActionSheet({
       filePath: job.outPath,
@@ -44,11 +44,11 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
     })
       .then(() => {})
       .catch(() => {})
-  }, [job])
+  }
 
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     cancel(id)
-  }, [cancel, id])
+  }
 
   if (!job) return null
   const {started, progress, outPath, context, status} = job
@@ -135,9 +135,9 @@ const ChatJob = React.memo(function ChatJob(p: {index: number; id: string}) {
       }
     ></Kb.ListItem>
   )
-})
+}
 
-const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
+function KBFSJob(p: {index: number; id: string}) {
   const {id, index} = p
   const archiveState = useArchiveState(
     C.useShallow(s => ({
@@ -154,42 +154,39 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
   })
 
   const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
-  const onShowFinder = React.useCallback(() => {
+  const onShowFinder = () => {
     if (Kb.Styles.isMobile || !job) {
       return
     }
     openFinder?.(job.zipFilePath)
-  }, [job, openFinder])
+  }
 
-  const onShare = React.useCallback(() => {
+  const onShare = () => {
     if (!Kb.Styles.isMobile || !job) {
       return
     }
     showShareActionSheet({filePath: job.zipFilePath, mimeType: 'application/zip'})
       .then(() => {})
       .catch(() => {})
-  }, [job])
+  }
 
-  const onCancelOrDismiss = React.useCallback(() => {
+  const onCancelOrDismiss = () => {
     C.ignorePromise(cancelOrDismiss(id))
-  }, [cancelOrDismiss, id])
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={[{onClick: onShare, title: 'Share'}]}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom center"
-        />
-      )
-    },
-    [onShare]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={[{onClick: onShare, title: 'Share'}]}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (!job) {
@@ -307,7 +304,7 @@ const KBFSJob = React.memo(function KBFSJob(p: {index: number; id: string}) {
       }
     ></Kb.ListItem>
   )
-})
+}
 
 const Archive = () => {
   const archiveState = useArchiveState(
@@ -339,21 +336,19 @@ const Archive = () => {
   const {chatJobMap, clearCompleted, kbfsJobMap, load, showClear} = archiveState
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      load()
-    }, [load])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    load()
+  })
 
-  const archiveChat = React.useCallback(() => {
+  const archiveChat = () => {
     navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
-  }, [navigateAppend])
-  const archiveFS = React.useCallback(() => {
+  }
+  const archiveFS = () => {
     navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
-  }, [navigateAppend])
-  const archiveGit = React.useCallback(() => {
+  }
+  const archiveGit = () => {
     navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
-  }, [navigateAppend])
+  }
 
   const chatJobs = [...chatJobMap.keys()]
   const kbfsJobs = [...kbfsJobMap.keys()]

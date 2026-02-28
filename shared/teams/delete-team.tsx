@@ -27,9 +27,9 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
   const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
-  const _onDelete = React.useCallback(() => {
+  const _onDelete = () => {
     deleteTeam(teamID)
-  }, [deleteTeam, teamID])
+  }
   const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
 
   const [checks, setChecks] = React.useState({

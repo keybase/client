@@ -118,13 +118,10 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   const _onJoinTeam = joinTeam
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onViewTeam = React.useCallback(
-    (teamID: T.Teams.TeamID) => {
-      clearModals()
-      navigateAppend({props: {teamID}, selected: 'team'})
-    },
-    [clearModals, navigateAppend]
-  )
+  const _onViewTeam = (teamID: T.Teams.TeamID) => {
+    clearModals()
+    navigateAppend({props: {teamID}, selected: 'team'})
+  }
 
   const props = {
     description: stateProps.description,

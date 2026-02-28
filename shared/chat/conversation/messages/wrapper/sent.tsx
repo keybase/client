@@ -4,7 +4,7 @@ import {Animated} from 'react-native'
 type SentProps = {
   children: React.ReactNode
 }
-export const Sent = React.memo(function Sent(p: SentProps) {
+export function Sent(p: SentProps) {
   const {children} = p
   const [done, setDone] = React.useState(false)
   const translateYRef = React.useRef(new Animated.Value(999))
@@ -57,4 +57,4 @@ export const Sent = React.memo(function Sent(p: SentProps) {
       {children}
     </Animated.View>
   )
-})
+}

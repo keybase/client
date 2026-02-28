@@ -10,7 +10,7 @@ const noop = () => {}
 const baseWidth = Kb.Styles.isMobile ? 100 : 150
 const mult = Kb.Styles.isMobile ? 5 : 10
 
-const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
+function WrapperPlaceholder(p: Props) {
   const {ordinal} = p
   const o = T.Chat.ordinalToNumber(ordinal)
   const code = o * 16807
@@ -43,7 +43,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
       </Kb.Box2>
     </WrapperMessage>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -47,13 +47,13 @@ export type Props = {
   snapPoints?: Array<string | number>
 }
 
-const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
+function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
-})
+}
 
-const Handle = React.memo(function Handle(p: BottomSheetHandleProps) {
+function Handle(p: BottomSheetHandleProps) {
   return <BottomSheetHandle {...p} style={styles.customHandleStyle} />
-})
+}
 
 const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
@@ -67,7 +67,7 @@ const useSafeNavigation: SafeNavigationHook = Styles.isMobile
   ? (useNavigation as SafeNavigationHook)
   : () => null
 
-const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
+function FloatingMenu(props: Props) {
   const {snapPoints, items, visible, onHidden} = props
   const isModal = React.useContext(FloatingModalContext)
   const shownRef = React.useRef(false)
@@ -160,7 +160,7 @@ const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
       {contents}
     </Kb.Overlay>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

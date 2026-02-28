@@ -210,9 +210,9 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return !!item.message
-  }, [item])
+  }
   const {showPopup, popup} = useMessagePopup({
     ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
     shouldShow,
@@ -439,15 +439,12 @@ export const useAttachmentSections = (
   const loadMessagesCentered = Chat.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
-  const jumpToAttachment = React.useCallback(
-    (messageID: T.Chat.MessageID) => {
-      if (C.isMobile) {
-        clearModals()
-      }
-      loadMessagesCentered(messageID, 'always')
-    },
-    [loadMessagesCentered, clearModals]
-  )
+  const jumpToAttachment = (messageID: T.Chat.MessageID) => {
+    if (C.isMobile) {
+      clearModals()
+    }
+    loadMessagesCentered(messageID, 'always')
+  }
 
   C.useOnMountOnce(() => {
     setTimeout(() => {

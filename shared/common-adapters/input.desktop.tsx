@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -7,9 +8,8 @@ import {useColorScheme} from 'react-native'
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
 
-export const Input = React.memo(
-  React.forwardRef<RefType, Props>(function Input(p, ref) {
-    const {style: _style, onChangeText: _onChangeText, multiline} = p
+export function Input(p: Props & {ref?: React.Ref<RefType>}) {
+    const {style: _style, onChangeText: _onChangeText, multiline, ref} = p
     const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
     const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
 
@@ -21,20 +21,17 @@ export const Input = React.memo(
     const inputSingleRef = React.useRef<HTMLInputElement>(null)
     const inputMultiRef = React.useRef<HTMLTextAreaElement>(null)
 
-    const onChange = React.useCallback(
-      (e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
-        const s = e.target.value
-        setValue(s)
-        _onChangeText?.(s)
-      },
-      [_onChangeText]
-    )
-    const onSelect = React.useCallback((e: {currentTarget: HTMLInputElement | HTMLTextAreaElement}) => {
+    const onChange = C.useEvent((e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
+      const s = e.target.value
+      setValue(s)
+      _onChangeText?.(s)
+    })
+    const onSelect = (e: {currentTarget: HTMLInputElement | HTMLTextAreaElement}) => {
       selectionRef.current = {
         end: e.currentTarget.selectionEnd || 0,
         start: e.currentTarget.selectionStart || 0,
       }
-    }, [])
+    }
 
     React.useImperativeHandle(ref, () => {
       const i = multiline ? inputMultiRef.current : inputSingleRef.current
@@ -88,7 +85,7 @@ export const Input = React.memo(
     }, [value, multiline, onChange])
 
     const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
-    const style = React.useMemo(() => {
+    const style = (() => {
       const textStyle = getTextStyle(textType, isDarkMode)
       if (multiline) {
         const heightStyles: {minHeight: number; maxHeight?: number} = {
@@ -123,7 +120,7 @@ export const Input = React.memo(
           _style,
         ])
       }
-    }, [_style, multiline, textType, padding, rowsMax, rows, isDarkMode])
+    })()
 
     const isComposingIMERef = React.useRef(false)
 
@@ -135,18 +132,15 @@ export const Input = React.memo(
       isComposingIMERef.current = false
     }
 
-    const onKeyDown = React.useCallback(
-      (e: React.KeyboardEvent) => {
-        if (isComposingIMERef.current) {
-          return
-        }
-        _onKeyDown?.(e)
-        if (onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
-          onEnterKeyDown(e)
-        }
-      },
-      [_onKeyDown, onEnterKeyDown]
-    )
+    const onKeyDown = (e: React.KeyboardEvent) => {
+      if (isComposingIMERef.current) {
+        return
+      }
+      _onKeyDown?.(e)
+      if (onEnterKeyDown && e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
+        onEnterKeyDown(e)
+      }
+    }
 
     const onKeyUp = (e: React.KeyboardEvent) => {
       if (isComposingIMERef.current) {
@@ -175,8 +169,7 @@ export const Input = React.memo(
     ) : (
       <input {...commonProps} ref={inputSingleRef} style={Styles.castStyleDesktop(style)} />
     )
-  })
-)
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   flexable: {

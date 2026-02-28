@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
@@ -84,11 +83,7 @@ const Connected = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   }
 
-  const teams = React.useMemo(
-    () =>
-      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
-    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
-  )
+  const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter)
 
   const loadTeams = getTeams
 

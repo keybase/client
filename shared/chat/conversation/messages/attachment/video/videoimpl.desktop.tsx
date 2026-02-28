@@ -16,14 +16,14 @@ const VideoImpl = (p: Props) => {
     setShowPoster(true)
   }
 
-  const onPress = React.useCallback(() => {
+  const onPress = () => {
     setShowPoster(false)
-  }, [])
+  }
 
-  const onDoubleClick = React.useCallback(() => {
+  const onDoubleClick = () => {
     ref.current?.pause()
     openFullscreen()
-  }, [openFullscreen])
+  }
 
   const ref = React.useRef<HTMLVideoElement | null>(null)
 

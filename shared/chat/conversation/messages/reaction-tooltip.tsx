@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
@@ -41,13 +41,13 @@ const ReactionTooltip = (p: OwnProps) => {
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onAddReaction = React.useCallback(() => {
+  const onAddReaction = () => {
     onHidden()
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
       selected: 'chatChooseEmoji',
     }))
-  }, [navigateAppend, onHidden, ordinal])
+  }
 
   let reactions = [...(_reactions?.keys() ?? [])]
     .map(emoji => {
@@ -69,10 +69,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const messageContext = React.useMemo(
-    () => ({canFixOverdraw: false, isHighlighted: false, ordinal}),
-    [ordinal]
-  )
+  const messageContext = {canFixOverdraw: false, isHighlighted: false, ordinal}
   if (!visible) {
     return null
   }

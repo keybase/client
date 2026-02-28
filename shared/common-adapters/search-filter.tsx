@@ -64,9 +64,9 @@ export type SearchFilterRef = {
   blur: () => void
   focus: () => void
 }
-const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFilter(props, ref) {
+function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const {onChange, onBlur: _onBlur, onFocus: _onFocus, hotkey} = props
-  const {onKeyDown: _onKeyDown, onCancel, measureRef} = props
+  const {onKeyDown: _onKeyDown, onCancel, measureRef, ref} = props
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
@@ -92,70 +92,58 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
     }
   }, [])
 
-  const onBlur = React.useCallback(() => {
+  const onBlur = () => {
     setFocused(false)
     _onBlur?.()
-  }, [_onBlur])
+  }
 
-  const onFocus = React.useCallback(() => {
+  const onFocus = () => {
     setFocused(true)
     _onFocus?.()
-  }, [_onFocus])
+  }
 
   const currentText = () => (props.valueControlled ? props.value : text)
 
-  const focus = React.useCallback(() => {
+  const focus = () => {
     inputRef.current?.focus()
-  }, [])
+  }
 
-  const blur = React.useCallback(() => {
+  const blur = () => {
     inputRef.current?.blur()
-  }, [])
+  }
 
   React.useImperativeHandle(ref, () => ({blur, focus}))
 
-  const update = React.useCallback(
-    (text: string) => {
-      setText(text)
-      onChange?.(text)
-    },
-    [onChange]
-  )
+  const update = (text: string) => {
+    setText(text)
+    onChange?.(text)
+  }
 
-  const clear = React.useCallback(() => {
+  const clear = () => {
     update('')
-  }, [update])
+  }
 
-  const cancel = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      blur()
-      onCancel ? onCancel() : clear()
-      e?.stopPropagation()
-    },
-    [blur, onCancel, clear]
-  )
+  const cancel = (e?: React.BaseSyntheticEvent) => {
+    blur()
+    onCancel ? onCancel() : clear()
+    e?.stopPropagation()
+  }
 
-  const mouseOver = React.useCallback(() => setHover(true), [])
-  const mouseLeave = React.useCallback(() => setHover(false), [])
+  const mouseOver = () => setHover(true)
+  const mouseLeave = () => setHover(false)
 
-  const onHotkey = React.useCallback(
-    (cmd: string) => {
-      if (hotkey && !props.onClick && cmd.endsWith('+' + hotkey)) {
-        focus()
-      }
-    },
-    [hotkey, focus, props.onClick]
-  )
+  const onHotkey = (cmd: string) => {
+    if (hotkey && !props.onClick && cmd.endsWith('+' + hotkey)) {
+      focus()
+    }
+  }
 
   Kb.useHotKey(props.hotkey && !props.onClick ? `mod+${props.hotkey}` : '', onHotkey)
 
-  const onKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      e.key === 'Escape' && cancel(e)
-      _onKeyDown?.(e)
-    },
-    [cancel, _onKeyDown]
-  )
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    e.key === 'Escape' && cancel(e)
+    _onKeyDown?.(e)
+  }
 
   const typing = () => focused || !!currentText()
 
@@ -329,7 +317,7 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
   ) : (
     content
   )
-})
+}
 
 export default SearchFilter
 

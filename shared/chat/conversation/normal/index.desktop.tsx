@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -28,19 +28,16 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation() {
+const Conversation = function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onAttach = React.useCallback(
-    (paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({path: p}))
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
-      }))
-    },
-    [navigateAppend]
-  )
+  const onAttach = (paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({path: p}))
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, pathAndOutboxIDs},
+      selected: 'chatAttachmentGetTitles',
+    }))
+  }
   const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
   const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
   const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
@@ -52,22 +49,19 @@ const Conversation = React.memo(function Conversation() {
       : undefined
   })
   const attachmentPasted = Chat.useChatContext(s => s.dispatch.attachmentPasted)
-  const onPaste = React.useCallback(
-    (e: React.SyntheticEvent) => {
-      readImageFromClipboard(e)
-        .then(clipboardData => {
-          if (clipboardData) {
-            attachmentPasted(clipboardData)
-          }
-        })
-        .catch(() => {})
-    },
-    [attachmentPasted]
-  )
+  const onPaste = (e: React.SyntheticEvent) => {
+    readImageFromClipboard(e)
+      .then(clipboardData => {
+        if (clipboardData) {
+          attachmentPasted(clipboardData)
+        }
+      })
+      .catch(() => {})
+  }
   const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     toggleThreadSearch()
-  }, [toggleThreadSearch])
+  }
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 
   return (
@@ -94,7 +88,7 @@ const Conversation = React.memo(function Conversation() {
       </Kb.DragAndDrop>
     </div>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

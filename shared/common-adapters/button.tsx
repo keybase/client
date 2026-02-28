@@ -1,5 +1,5 @@
 import './button.css'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
@@ -110,10 +110,8 @@ type ModeAndBGColor =
   | 'Primaryyellow'
   | 'Secondary'
 
-const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
-  props: Props,
-  ref: React.Ref<MeasureRef | null>
-) {
+const Button = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {ref} = props
   const {mode = 'Primary', type = 'Default'} = props
   const modeAndType = (mode + type) as ModeAndType
   const modeAndBGColor = (mode + (props.backgroundColor ?? '')) as ModeAndBGColor
@@ -151,13 +149,10 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
 
   containerStyle = Styles.collapseStyles([containerStyle, props.style])
   const {onClick: ponClick} = props
-  const _onClick = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.stopPropagation()
-      ponClick?.(e)
-    },
-    [ponClick]
-  )
+  const _onClick = (e: React.BaseSyntheticEvent) => {
+    e.stopPropagation()
+    ponClick?.(e)
+  }
   const onClick = !unclickable && props.onClick ? _onClick : props.disabledStopClick ? stopClick : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
@@ -258,7 +253,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   }
 
   return content
-})
+}
 
 const typeToColorName = {
   Danger: 'red',

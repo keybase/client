@@ -37,8 +37,7 @@ const useTabsState = (
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
-  const setSelectedTab = React.useCallback(
-    (t: T.Teams.TabKey) => {
+  const setSelectedTab = (t: T.Teams.TabKey) => {
       lastSelectedTabs.set(teamID, t)
       if (selectedTab !== 'settings' && t === 'settings') {
         resetErrorInSettings()
@@ -47,31 +46,30 @@ const useTabsState = (
         loadTeamChannelList(teamID)
       }
       _setSelectedTab(t)
-    },
-    [resetErrorInSettings, loadTeamChannelList, teamID, selectedTab]
-  )
+    }
 
   const prevTeamIDRef = React.useRef(teamID)
 
   React.useEffect(() => {
     if (teamID !== prevTeamIDRef.current) {
-      setSelectedTab(defaultSelectedTab)
+      prevTeamIDRef.current = teamID
+      lastSelectedTabs.set(teamID, defaultSelectedTab)
+      if (defaultSelectedTab === 'settings') {
+        resetErrorInSettings()
+      }
+      if (defaultSelectedTab === 'channels') {
+        loadTeamChannelList(teamID)
+      }
+      _setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, setSelectedTab, defaultSelectedTab])
-
-  React.useEffect(() => {
-    prevTeamIDRef.current = teamID
-  }, [teamID])
+  }, [teamID, defaultSelectedTab, resetErrorInSettings, loadTeamChannelList])
   return [selectedTab, setSelectedTab]
 }
 
 const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
   const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
-  const _bots = React.useMemo(
-    () => [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot'),
-    [teamDetails.members]
-  )
+  const _bots = [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
   React.useEffect(() => {
     if (shouldLoad) {
       _bots.forEach(bot => {
@@ -94,9 +92,9 @@ const Team = (props: Props) => {
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       return () => teamSeen(teamID)
-    }, [teamSeen, teamID])
+    }
   )
 
   useTeamsSubscribe()
@@ -150,21 +148,18 @@ const Team = (props: Props) => {
       break
   }
 
-  const renderSectionHeader = React.useCallback(
-    ({section}: {section: Section}) =>
+  const renderSectionHeader = ({section}: {section: Section}) =>
       section.title ? (
         <Kb.SectionDivider
           label={section.title}
           collapsed={section.collapsed}
           onToggleCollapsed={section.onToggleCollapsed}
         />
-      ) : null,
-    []
-  )
+      ) : null
 
-  const getItemHeight = React.useCallback(() => {
+  const getItemHeight = () => {
     return 48
-  }, [])
+  }
 
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>

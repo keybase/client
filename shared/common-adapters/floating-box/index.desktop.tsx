@@ -11,13 +11,10 @@ const FloatingBox = (props: Props) => {
 
   const cur = attachTo?.current
 
-  const getTargetRect = React.useCallback(() => {
-    return cur?.measure?.()
-  }, [cur])
-  const [targetRect, setTargetRect] = React.useState<MeasureDesktop | undefined>(getTargetRect())
+  const [targetRect, setTargetRect] = React.useState<MeasureDesktop | undefined>(cur?.measure?.())
 
   React.useEffect(() => {
-    const tr = getTargetRect()
+    const tr = cur?.measure?.()
 
     setTargetRect(t => {
       if (t === tr) {
@@ -31,7 +28,7 @@ const FloatingBox = (props: Props) => {
       }
       return tr
     })
-  }, [getTargetRect])
+  }, [cur])
 
   return (
     <RelativeFloatingBox

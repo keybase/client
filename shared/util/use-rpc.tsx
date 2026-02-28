@@ -1,5 +1,4 @@
 import {useIsMounted} from '@/constants/react'
-import * as React from 'react'
 import type {RPCError} from './errors'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> =
@@ -16,23 +15,20 @@ function useRPC<
   ARGS extends Array<any> = Parameters<C>,
 >(call: C) {
   const isMounted = useIsMounted()
-  const submit = React.useMemo(
-    () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-      const called = call(...args) as Promise<RET>
-      called
-        .then((result: RET) => {
-          if (isMounted()) {
-            setResult(result)
-          }
-        })
-        .catch((error: RPCError) => {
-          if (isMounted()) {
-            setError(error)
-          }
-        })
-    },
-    [call, isMounted]
-  )
+  const submit = (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+    const called = call(...args) as Promise<RET>
+    called
+      .then((result: RET) => {
+        if (isMounted()) {
+          setResult(result)
+        }
+      })
+      .catch((error: RPCError) => {
+        if (isMounted()) {
+          setError(error)
+        }
+      })
+  }
   return submit
 }
 

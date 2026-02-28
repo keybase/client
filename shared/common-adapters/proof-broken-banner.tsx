@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import {Banner, BannerParagraph} from './banner'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
@@ -11,16 +10,13 @@ type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onClickUsername = React.useCallback(
-    (username: string) => {
-      if (C.isMobile) {
-        showUserProfile(username)
-      } else {
-        showUser(username, true)
-      }
-    },
-    [showUser, showUserProfile]
-  )
+  const onClickUsername = (username: string) => {
+    if (C.isMobile) {
+      showUserProfile(username)
+    } else {
+      showUser(username, true)
+    }
+  }
   const content: Array<string | {text: string; onClick: () => void}> =
     props.users.length === 1
       ? [

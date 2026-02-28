@@ -78,7 +78,7 @@ const useIOSHeaderOptions = () => {
   }
 }
 
-const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
+function TabStack(p: {route: {name: Tabs.Tab}}) {
   const options = useIOSHeaderOptions()
   return (
     <TabStackNavigator.Navigator
@@ -88,7 +88,7 @@ const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
       {tabScreens}
     </TabStackNavigator.Navigator>
   )
-})
+}
 
 // so we have a stack per tab
 const tabScreenOptions = ({route}: {route: {name: string}}) => {
@@ -138,17 +138,13 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     tabBarStyle: Common.tabBarStyle,
   }
 }
-const AppTabs = React.memo(
-  function AppTabsImpl() {
-    return (
-      <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
-        {tabStacks}
-      </Tab.Navigator>
-    )
-  },
-  // ignore all props from the nav layer which we don't control or use
-  () => true
-)
+function AppTabs() {
+  return (
+    <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
+      {tabStacks}
+    </Tab.Navigator>
+  )
+}
 
 const LoggedOutStack = createNativeStackNavigator<RootParamList>()
 const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
@@ -156,14 +152,14 @@ const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
   headerShown: false,
 }
-const LoggedOut = React.memo(function LoggedOut() {
+function LoggedOut() {
   return (
     // TODO show header and use nav headers
     <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutScreenOptions}>
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
-})
+}
 
 const RootStack = createNativeStackNavigator<
   RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
@@ -180,7 +176,7 @@ const modalScreenOptions = {
 // URL patterns not yet handled by the linking config.
 const linkingConfig = createLinkingConfig(handleAppLink)
 
-const RNApp = React.memo(function RNApp() {
+function RNApp() {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
@@ -192,24 +188,24 @@ const RNApp = React.memo(function RNApp() {
     C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
   )
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = React.useCallback(() => {
+  const onStateChange = () => {
     const ns = C.Router2.getRootState()
     setNavState(ns)
-  }, [setNavState])
+  }
   // Sync the initial state from the linking config into the router store.
   // onStateChange doesn't fire for the initial state, so this ensures
   // onRouteChanged runs and conversation data gets loaded on startup.
   const onReady = onStateChange
 
-  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+  const onUnhandledAction = (a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }, [])
+  }
 
-  const navRef = React.useCallback((ref: typeof Constants.navigationRef.current) => {
+  const navRef = (ref: typeof Constants.navigationRef.current) => {
     if (ref) {
       Constants.navigationRef.current = ref
     }
-  }, [])
+  }
 
   const isDarkMode = useColorScheme() === 'dark'
   const barStyle = useDarkModeState(s => {
@@ -251,6 +247,6 @@ const RNApp = React.memo(function RNApp() {
       </NavigationContainer>
     </Kb.Box2>
   )
-})
+}
 
 export default RNApp

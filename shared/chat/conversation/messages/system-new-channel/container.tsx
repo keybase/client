@@ -1,33 +1,28 @@
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import {useTeamsState} from '@/stores/teams'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import UserNotice from '../user-notice'
 
 type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
-const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(p: OwnProps) {
+function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
   const {teamID} = Chat.useChatContext(s => s.meta)
   const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
-  const onManageChannels = React.useCallback(() => {
+  const onManageChannels = () => {
     manageChatChannels(teamID)
-  }, [manageChatChannels, teamID])
+  }
 
-  const descStyleOverride = React.useMemo(
-    () =>
-      ({
-        link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},
-        paragraph: {
-          color: Kb.Styles.isMobile
-            ? Kb.Styles.globalColors.black_50
-            : Kb.Styles.globalColors.black_50OrWhite_40,
-          fontSize: Kb.Styles.isMobile ? 15 : 13,
-        },
-      }) as const,
-    []
-  )
+  const descStyleOverride = {
+    link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},
+    paragraph: {
+      color: Kb.Styles.isMobile
+        ? Kb.Styles.globalColors.black_50
+        : Kb.Styles.globalColors.black_50OrWhite_40,
+      fontSize: Kb.Styles.isMobile ? 15 : 13,
+    },
+  } as const
   return (
     <UserNotice>
       <Kb.Markdown
@@ -47,7 +42,7 @@ const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

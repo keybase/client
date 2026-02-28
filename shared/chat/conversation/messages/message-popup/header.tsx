@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {useProfileState} from '@/stores/profile'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
@@ -55,13 +54,10 @@ const MessagePopupHeader = (props: Props) => {
   const whoRevoked = yourMessage ? 'You' : author
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onUsernameClicked = React.useCallback(
-    (user: string) => {
-      showUserProfile(user)
-      onHidden()
-    },
-    [showUserProfile, onHidden]
-  )
+  const onUsernameClicked = (user: string) => {
+    showUserProfile(user)
+    onHidden()
+  }
 
   return (
     <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>

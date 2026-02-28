@@ -1,5 +1,4 @@
 import Icon from '../icon'
-import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from '../clickable-box'
 import Image from '../image'
@@ -26,7 +25,7 @@ const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
 const backgroundOffset = 1
 // Layer on top to extend outside of the image
 
-const Avatar = React.memo(function Avatar(p: Props) {
+function Avatar(p: Props) {
   const props = useHook(p)
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
@@ -73,7 +72,7 @@ const Avatar = React.memo(function Avatar(p: Props) {
       </Kb.Box2>
     </Kb.ClickableBox>
   )
-})
+}
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
 const iconStyles = Styles.styleSheetCreate(

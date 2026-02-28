@@ -243,19 +243,13 @@ export const ListBody = (
   const userRecs = TB.useTBContext(s => s.userRecs)
   const _teamSoFar = TB.useTBContext(s => s.teamSoFar)
   const _searchResults = TB.useTBContext(s => s.searchResults)
-  const _recommendations = React.useMemo(
-    () => deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers),
-    [userRecs, _teamSoFar, username, following, preExistingTeamMembers]
-  )
+  const _recommendations = deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers)
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const searchResults = React.useMemo(
-    () => deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers),
-    [userResults, _teamSoFar, username, following, preExistingTeamMembers]
-  )
+  const searchResults = deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers)
 
   const showResults = !!searchString
   const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
@@ -264,9 +258,7 @@ export const ListBody = (
   const showLoading = !!searchString && !searchResults
 
   const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
-  const recommendations = React.useMemo(() => {
-    return showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
-  }, [showRecs, _recommendations, showingContactsButton])
+  const recommendations = showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
 
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -77,22 +77,19 @@ const Container = (ownProps: OwnProps) => {
   const addProof = useProfileState(s => s.dispatch.addProof)
   const hideStellar = useProfileState(s => s.dispatch.hideStellar)
   const recheckProof = useProfileState(s => s.dispatch.recheckProof)
-  const _onCreateProof = React.useCallback(() => {
+  const _onCreateProof = () => {
     addProof(type, 'profile')
-  }, [addProof, type])
-  const onHideStellar = React.useCallback(
-    (hidden: boolean) => {
-      hideStellar(hidden)
-    },
-    [hideStellar]
-  )
-  const onRecheck = React.useCallback(() => {
+  }
+  const onHideStellar = (hidden: boolean) => {
+    hideStellar(hidden)
+  }
+  const onRecheck = () => {
     recheckProof(sigID)
-  }, [recheckProof, sigID])
+  }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const _onRevoke = React.useCallback(() => {
+  const _onRevoke = () => {
     navigateAppend({
       props: {
         icon: siteIconFull,
@@ -102,24 +99,24 @@ const Container = (ownProps: OwnProps) => {
       },
       selected: 'profileRevoke',
     })
-  }, [type, value, sigID, siteIconFull, navigateAppend])
+  }
 
-  const metas = React.useMemo(() => _metas.map(({color, label}) => ({color, label})), [_metas])
+  const metas = _metas.map(({color, label}) => ({color, label}))
 
   const onCreateProof = notAUser ? undefined : ownProps.isSuggestion ? _onCreateProof : undefined
 
-  const openProof = React.useCallback(() => {
+  const openProof = () => {
     openUrl(proofURL)
-  }, [proofURL])
-  const openSite = React.useCallback(() => {
+  }
+  const openSite = () => {
     openUrl(siteURL)
-  }, [siteURL])
+  }
 
   const onShowProof = notAUser || !proofURL ? undefined : openProof
   const onShowSite = notAUser || !siteURL ? undefined : openSite
   const isSuggestion = !!ownProps.isSuggestion
 
-  const {header, items} = React.useMemo(() => {
+  const {header, items} = (() => {
     if (!isYours || isSuggestion) {
       return {}
     }
@@ -212,43 +209,23 @@ const Container = (ownProps: OwnProps) => {
       ),
       items: [{onClick: onShowProof, title: `View ${proofTypeToDesc(type)}`}, onRevoke],
     }
-  }, [
-    _onRevoke,
-    isSuggestion,
-    isYours,
-    metas,
-    onCreateProof,
-    onRecheck,
-    onShowProof,
-    siteIcon,
-    siteIconDarkmode,
-    siteIconFull,
-    siteIconFullDarkmode,
-    state,
-    stellarHidden,
-    timestamp,
-    type,
-    onHideStellar,
-  ])
+  })()
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return items ? (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          visible={true}
-          onHidden={hidePopup}
-          attachTo={attachTo}
-          position="bottom right"
-          containerStyle={styles.floatingMenu}
-          header={header}
-          items={items}
-        />
-      ) : null
-    },
-    [items, header]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return items ? (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        visible={true}
+        onHidden={hidePopup}
+        attachTo={attachTo}
+        position="bottom right"
+        containerStyle={styles.floatingMenu}
+        header={header}
+        items={items}
+      />
+    ) : null
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const tooltip = state === 'valid' || state === 'revoked' ? 'View proof' : undefined
 
@@ -425,31 +402,25 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
-  const onCopyAddress = React.useCallback(() => {
+  const onCopyAddress = () => {
     copyToClipboard(value)
-  }, [copyToClipboard, value])
+  }
 
-  const menuItems: Kb.MenuItems = React.useMemo(
-    () => [{onClick: onCopyAddress, title: 'Copy address'}],
-    [onCopyAddress]
-  )
+  const menuItems: Kb.MenuItems = [{onClick: onCopyAddress, title: 'Copy address'}]
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom center"
-        />
-      )
-    },
-    [menuItems]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const label = (

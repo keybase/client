@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {useColorScheme} from 'react-native'
@@ -8,7 +7,7 @@ import type {ProxyProps} from './main2.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
-const UnlockFolders = React.memo(function UnlockFolders(p: ProxyProps) {
+function UnlockFolders(p: ProxyProps) {
   const windowComponent = 'unlock-folders'
   const windowParam = windowComponent
 
@@ -21,7 +20,7 @@ const UnlockFolders = React.memo(function UnlockFolders(p: ProxyProps) {
 
   useSerializeProps(p, windowComponent, windowParam)
   return null
-})
+}
 
 const UnlockRemoteProxy = () => {
   const devices = useConfigState(s => s.unlockFoldersDevices)

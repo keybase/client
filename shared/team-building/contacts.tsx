@@ -18,12 +18,12 @@ const useContactsProps = () => {
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled
 
-  const onImportContactsPermissionsGranted = React.useCallback(() => {
+  const onImportContactsPermissionsGranted = () => {
     editContactImportEnabled(true, false)
-  }, [editContactImportEnabled])
-  const onImportContactsPermissionsNotGranted = React.useCallback(() => {
+  }
+  const onImportContactsPermissionsNotGranted = () => {
     requestPermissions(true, false)
-  }, [requestPermissions])
+  }
 
   const onImportContacts =
     contactsPermissionStatus === 'denied'

@@ -71,10 +71,10 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       setFocused(true)
       return () => setFocused(false)
-    }, [setFocused])
+    }
   )
 
   // For boosting the list to scroll not behind the popup on mobile

@@ -37,31 +37,18 @@ const RetentionPicker = (p: Props) => {
 
   const userSelectedRef = React.useRef(false)
 
-  const setSelected = React.useCallback(
-    (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
+  const setSelected = (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
       if (userSelected) {
         userSelectedRef.current = userSelected
       }
       _setSelected(r)
-    },
-    [_setSelected]
-  )
+    }
 
   const showSaved = React.useRef(false)
 
-  const setInitialSelected = React.useCallback(
-    (p?: T.Retention.RetentionPolicy) => {
-      setSelected(p || policy, false)
-    },
-    [setSelected, policy]
-  )
-
-  const isSelected = React.useCallback(
-    (p: T.Retention.RetentionPolicy) => {
+  const isSelected = (p: T.Retention.RetentionPolicy) => {
       return policyEquals(policy, p)
-    },
-    [policy]
-  )
+    }
 
   const modalConfirmed = useConfirm(s => s.confirmed)
   const modalOpen = useConfirm(s => s.modalOpen)
@@ -74,10 +61,10 @@ const RetentionPicker = (p: Props) => {
     if (lastModalOpen !== modalOpen) {
       setLastModalOpen(modalOpen)
       if (!modalOpen) {
-        setInitialSelected()
+        setSelected(policy, false)
       }
     }
-  }, [lastModalOpen, modalOpen, setInitialSelected])
+  }, [lastModalOpen, modalOpen, policy])
 
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
@@ -129,14 +116,13 @@ const RetentionPicker = (p: Props) => {
         // we just got updated retention policy matching the selected one
         setSaving(false)
       } // we could show a notice that we received a new value in an else block
-      setInitialSelected(policy)
+      setSelected(policy, false)
     }
     lastPolicy.current = policy
     lastTeamPolicy.current = teamPolicy
-  }, [policy, teamPolicy, selected, setInitialSelected])
+  }, [policy, teamPolicy, selected])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
 
       const makeItems = () => {
@@ -208,9 +194,7 @@ const RetentionPicker = (p: Props) => {
           position="top center"
         />
       )
-    },
-    [isSelected, setSelected, showInheritOption, teamPolicy]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

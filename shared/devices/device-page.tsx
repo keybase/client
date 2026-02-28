@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 
@@ -97,9 +96,9 @@ const DevicePage = (ownProps: OwnProps) => {
   const device = Devices.useDevicesState(s => s.deviceMap.get(id))
   const canRevoke = Devices.useActiveDeviceCounts() > 1
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showRevokeDevicePage = React.useCallback(() => {
+  const showRevokeDevicePage = () => {
     navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})
-  }, [navigateAppend, id])
+  }
 
   const metaOne = device?.currentDevice ? (
     'Current device'

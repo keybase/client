@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import ConflictBanner from '../banner/conflict-banner'
 import Footer from '../footer/footer'
@@ -62,17 +62,14 @@ const SelfReset = (_: Props) => (
   </Kb.Box2>
 )
 
-const DragAndDrop = React.memo(function DragAndDrop(p: {
+function DragAndDrop(p: {
   children: React.ReactNode
   path: T.FS.Path
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
   const uploadFromDragAndDrop = useFSState(s => s.dispatch.defer.uploadFromDragAndDropDesktop)
-  const onAttach = React.useCallback(
-    (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths),
-    [path, uploadFromDragAndDrop]
-  )
+  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
   return (
     <Kb.DragAndDrop
       allowFolders={true}
@@ -84,9 +81,9 @@ const DragAndDrop = React.memo(function DragAndDrop(p: {
       {children}
     </Kb.DragAndDrop>
   )
-})
+}
 
-const BrowserContent = React.memo(function BrowserContent(props: Props) {
+function BrowserContent(props: Props) {
   const parsedPath = FS.parsePath(props.path)
   if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
@@ -134,6 +131,6 @@ const BrowserContent = React.memo(function BrowserContent(props: Props) {
       <Rows path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
     </DragAndDrop>
   )
-})
+}
 
 export default Container

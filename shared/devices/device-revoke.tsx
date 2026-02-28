@@ -96,7 +96,7 @@ const useRevoke = (deviceID = '') => {
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
-  return React.useCallback(() => {
+  return () => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
@@ -119,7 +119,7 @@ const useRevoke = (deviceID = '') => {
       }
     }
     C.ignorePromise(f())
-  }, [navUpToScreen, deviceID, deviceName, load, username, wasCurrentDevice])
+  }
 }
 
 const DeviceRevoke = (ownProps: OwnProps) => {

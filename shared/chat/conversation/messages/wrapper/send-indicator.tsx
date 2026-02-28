@@ -48,7 +48,7 @@ const statusToIconDarkExploding = {
 
 const shownEncryptingSet = new Set()
 
-const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
+function SendIndicatorContainer() {
   const ordinal = useOrdinal()
 
   const {isExploding, sent, failed, id} = Chat.useChatContext(
@@ -137,7 +137,7 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
       style={styles.animationVisible}
     />
   ) : null
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

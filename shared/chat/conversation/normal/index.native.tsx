@@ -29,11 +29,11 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation() {
+const Conversation = function Conversation() {
   const [maxInputArea, setMaxInputArea] = React.useState(0)
-  const onLayout = React.useCallback((e: LayoutEvent) => {
+  const onLayout = (e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
-  }, [])
+  }
 
   const conversationIDKey = Chat.useChatContext(s => s.id)
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
@@ -59,18 +59,14 @@ const Conversation = React.memo(function Conversation() {
   const windowHeight = useSafeAreaFrame().height
   const height = windowHeight - insets.top - headerHeight
 
-  const safeStyle = React.useMemo(
-    () =>
-      Kb.Styles.isAndroid
-        ? {paddingBottom: insets.bottom}
-        : {
-            height,
-            maxHeight: height,
-            minHeight: height,
-            paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
-          },
-    [height, insets.bottom]
-  )
+  const safeStyle = Kb.Styles.isAndroid
+    ? {paddingBottom: insets.bottom}
+    : {
+        height,
+        maxHeight: height,
+        minHeight: height,
+        paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
+      }
 
   const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
 
@@ -105,7 +101,7 @@ const Conversation = React.memo(function Conversation() {
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import {emitDeepLink} from '@/router-v2/linking'
 import * as Styles from '@/styles'
@@ -31,13 +31,13 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     // Route through the linking config for keybase:// and https://keybase.io/ URLs
     // so React Navigation handles navigation declaratively.
     // emitDeepLink normalizes URLs and dispatches through the linking config,
     // falling back to handleAppLink for patterns not yet in the config.
     emitDeepLink(props.link)
-  }, [props.link])
+  }
 
   return (
     <Text

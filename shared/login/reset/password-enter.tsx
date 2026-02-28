@@ -11,12 +11,12 @@ const EnterPassword = () => {
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
-  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onBack = () => nav.safeNavigateUp()
 
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     resetAccount(password)
-  }, [resetAccount, password])
+  }
 
   const [now] = React.useState(() => Date.now())
 

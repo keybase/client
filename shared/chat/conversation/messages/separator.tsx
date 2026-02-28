@@ -83,18 +83,18 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
 }
 
 // Author Avatar
-const LeftSide = React.memo(function LeftSide(p: {username?: string}) {
+function LeftSide(p: {username?: string}) {
   const {username} = p
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onAuthorClick = React.useCallback(() => {
+  const onAuthorClick = () => {
     if (!username) return
     if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)
     }
-  }, [showUserProfile, showUser, username])
+  }
 
   return username ? (
     <Kb.Avatar
@@ -105,21 +105,21 @@ const LeftSide = React.memo(function LeftSide(p: {username?: string}) {
       style={styles.avatar}
     />
   ) : null
-})
+}
 
-const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
+function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
   const {ordinal, showUsername} = p
   const mdata = useState(ordinal)
   const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onAuthorClick = React.useCallback(() => {
+  const onAuthorClick = () => {
     if (C.isMobile) {
       showUsername && showUserProfile(showUsername)
     } else {
       showUsername && showUser(showUsername, true)
     }
-  }, [showUser, showUsername, showUserProfile])
+  }
 
   const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
@@ -189,7 +189,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const missingMessage = Chat.makeMessageDeleted({})
 
@@ -286,7 +286,7 @@ type Props = {
   trailingItem: T.Chat.Ordinal
 }
 
-const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
+function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
   const {ordinal, showUsername, orangeLineAbove, orangeTime} = useStateFast(
     trailingItem,
@@ -320,7 +320,7 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
       ) : null}
     </Kb.Box2>
   ) : null
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

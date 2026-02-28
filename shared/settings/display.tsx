@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
@@ -10,9 +9,9 @@ const Display = () => {
   const allowAnimatedEmojis = useConfigState(s => s.allowAnimatedEmojis)
   const forceSmallNav = useConfigState(s => s.forceSmallNav)
   const setForceSmallNav = useConfigState(s => s.dispatch.setForceSmallNav)
-  const toggleForceSmallNav = React.useCallback(() => {
+  const toggleForceSmallNav = () => {
     setForceSmallNav(!forceSmallNav)
-  }, [forceSmallNav, setForceSmallNav])
+  }
 
   const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
   const toggleAnimatedEmoji = C.useRPC(T.RPCChat.localToggleEmojiAnimationsRpcPromise)

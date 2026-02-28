@@ -122,17 +122,14 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDeleteTeam = React.useCallback(() => {
+  const onDeleteTeam = () => {
     navigateUp()
     navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
-  }, [navigateUp, navigateAppend, teamID])
+  }
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
-  const _onLeave = React.useCallback(
-    (permanent: boolean) => {
+  const _onLeave = (permanent: boolean) => {
       leaveTeam(teamname, permanent, 'teams')
-    },
-    [leaveTeam, teamname]
-  )
+    }
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
   const onLeave = useSafeSubmit(_onLeave, !leaving)

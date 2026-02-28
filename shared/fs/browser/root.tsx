@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import TlfType from './rows/tlf-type'
@@ -65,19 +64,15 @@ const useTopNTlfs = (
   tlfType: T.FS.TlfType
 }> =>
   // TODO move these sorting to Go HOTPOT-433
-  React.useMemo(
-    () =>
-      [...tlfs.values()]
-        .filter(({isIgnored}) => !isIgnored)
-        .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
-        .slice(0, n)
-        .map(({name, tlfMtime}) => ({
-          name,
-          tlfMtime,
-          tlfType,
-        })),
-    [tlfs, n, tlfType]
-  )
+  [...tlfs.values()]
+    .filter(({isIgnored}) => !isIgnored)
+    .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
+    .slice(0, n)
+    .map(({name, tlfMtime}) => ({
+      name,
+      tlfMtime,
+      tlfType,
+    }))
 
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
   const tlfs = useFSState(s => s.tlfs)
@@ -85,25 +80,23 @@ const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<Sectio
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)
   const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)
-  return React.useMemo(() => {
-    const recent = [...privateTopN, ...publicTopN, ...teamTopN]
-      .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
-      .map(({name, tlfType}) => ({name, tlfType}))
-    const afterFilter =
-      // This isn't perfect since it doesn't cover the case where a team TLF
-      // could be readonly. But to do that we'd need some new caching in KBFS
-      // to plumb it into the Tlfs structure without awful overhead.
-      typeof destinationPickerIndex === 'number'
-        ? recent.filter(
-            ({name, tlfType}) =>
-              !FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
-          )
-        : recent
-    return afterFilter.slice(0, n)
-  }, [destinationPickerIndex, privateTopN, publicTopN, teamTopN, n, username])
+  const recent = [...privateTopN, ...publicTopN, ...teamTopN]
+    .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
+    .map(({name, tlfType}) => ({name, tlfType}))
+  const afterFilter =
+    // This isn't perfect since it doesn't cover the case where a team TLF
+    // could be readonly. But to do that we'd need some new caching in KBFS
+    // to plumb it into the Tlfs structure without awful overhead.
+    typeof destinationPickerIndex === 'number'
+      ? recent.filter(
+          ({name, tlfType}) =>
+            !FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
+        )
+      : recent
+  return afterFilter.slice(0, n)
 }
 
-const Root = React.memo(function Root({destinationPickerIndex}: Props) {
+function Root({destinationPickerIndex}: Props) {
   const top10 = useRecentTlfs(10, destinationPickerIndex)
   const sections = [
     ...(destinationPickerIndex
@@ -129,7 +122,7 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
       title: 'Recent folders',
     },
   ]
-  const renderItem = React.useMemo(() => getRenderItem(destinationPickerIndex), [destinationPickerIndex])
+  const renderItem = getRenderItem(destinationPickerIndex)
 
   return (
     <Kb.BoxGrow>
@@ -141,6 +134,6 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
       />
     </Kb.BoxGrow>
   )
-})
+}
 
 export default Root

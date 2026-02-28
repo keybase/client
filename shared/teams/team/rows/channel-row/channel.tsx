@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
@@ -31,7 +30,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
-  const onEditChannel = React.useCallback(() => {
+  const onEditChannel = () => {
     nav.safeNavigateAppend({
       props: {
         channelname: channel.channelname,
@@ -41,8 +40,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       },
       selected: 'teamEditChannel',
     })
-  }, [nav, channel, teamID])
-  const onNavToChannel = React.useCallback(() => {
+  }
+  const onNavToChannel = () => {
     nav.safeNavigateAppend({
       props: {
         conversationIDKey: channel.conversationIDKey,
@@ -50,8 +49,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       },
       selected: 'teamChannel',
     })
-  }, [nav, channel, teamID])
-  const onNavToSettings = React.useCallback(() => {
+  }
+  const onNavToSettings = () => {
     nav.safeNavigateAppend({
       props: {
         ...props,
@@ -60,13 +59,13 @@ const ChannelRow = (props: ChannelRowProps) => {
       },
       selected: 'teamChannel',
     })
-  }, [channel, props, nav])
+  }
 
   const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
-  const onDeleteChannel = React.useCallback(() => {
+  const onDeleteChannel = () => {
     deleteChannelConfirmed(teamID, channel.conversationIDKey)
-  }, [deleteChannelConfirmed, channel, teamID])
+  }
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}
@@ -95,8 +94,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const menuItems: Array<Kb.MenuItem> = [
         {onClick: onNavToSettings, title: 'Settings'},
@@ -111,9 +109,7 @@ const ChannelRow = (props: ChannelRowProps) => {
           visible={true}
         />
       )
-    },
-    [canDelete, onDeleteChannel, onNavToSettings]
-  )
+    }
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = canPerform.deleteChannel ? (

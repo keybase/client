@@ -20,12 +20,9 @@ const Password = () => {
     navigateUp()
   }
   const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = React.useCallback(
-    (password: string) => !waiting && _onSubmit?.(password),
-    [_onSubmit, waiting]
-  )
+  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
   const [password, setPassword] = React.useState('')
-  const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
+  const _onSubmitClick = () => onSubmit(password)
   const resetState = useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {

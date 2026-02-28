@@ -1,7 +1,7 @@
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as React from 'react'
+import type * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
 
 type OwnProps = {
@@ -20,9 +20,9 @@ const JourneyCard = (ownProps: OwnProps) => {
   )
 
   const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
-  const onDismiss = React.useCallback(() => {
+  const onDismiss = () => {
     dismissJourneycard(cardType, ordinal)
-  }, [dismissJourneycard, cardType, ordinal])
+  }
 
   const items: Kb.MenuItems = [{icon: 'iconfont-close', onClick: onDismiss, title: 'Dismiss message'}]
 

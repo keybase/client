@@ -34,11 +34,13 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
     }))
   )
   const onFeature = () => setMemberPublicity(teamID, true)
-  const onNoThanks = React.useCallback(() => {
+  const onNoThanks = () => {
     setJustFinishedAddMembersWizard(false)
-  }, [setJustFinishedAddMembersWizard])
+  }
   // Automatically dismisses this when the user navigates away
-  React.useEffect(() => onNoThanks, [onNoThanks])
+  React.useEffect(() => {
+    return () => setJustFinishedAddMembersWizard(false)
+  }, [setJustFinishedAddMembersWizard])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
     <Kb.Box2
@@ -106,13 +108,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
-    },
-    [teamID]
-  )
+    }
   const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (

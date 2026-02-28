@@ -34,21 +34,16 @@ const KBWebViewBase = (props: WebViewProps) => {
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
   const [opacity, setOpacity] = React.useState(isLoaded ? 1 : 0)
 
-  const setLoading = React.useCallback(
-    (l: boolean) => {
-      _setLoading(l)
-      setOpacity(l ? 0 : 1)
-    },
-    [_setLoading]
-  )
+  const setLoading = (l: boolean) => {
+    _setLoading(l)
+    setOpacity(l ? 0 : 1)
+  }
 
   // on ios when we tab away and back pdfs won't rerender somehow
   const [forceReload, setForceReload] = React.useState(1)
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setForceReload(a => a + 1)
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setForceReload(a => a + 1)
+  })
 
   return (
     <>
@@ -103,7 +98,7 @@ const KBWebViewBase = (props: WebViewProps) => {
   )
 }
 
-const KBWebView = React.memo(KBWebViewBase)
+const KBWebView = KBWebViewBase
 
 const styles = Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},

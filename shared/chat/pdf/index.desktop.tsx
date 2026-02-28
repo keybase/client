@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 import {useFSState} from '@/stores/fs'
@@ -15,10 +14,10 @@ const ChatPDF = (props: Props) => {
   )
 
   const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
-  const onDownload = React.useCallback(() => {
+  const onDownload = () => {
     message && attachmentDownload(message.ordinal)
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
-  }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
+  }
   return (
     <Kb.Modal2
       header={{

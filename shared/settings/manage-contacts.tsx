@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -27,13 +26,13 @@ const ManageContacts = () => {
     loadContactImportEnabled()
   }
 
-  const onToggle = React.useCallback(() => {
+  const onToggle = () => {
     if (status !== 'granted') {
       requestPermissions(true, true)
     } else {
       editContactImportEnabled(!contactsImported, true)
     }
-  }, [editContactImportEnabled, requestPermissions, contactsImported, status])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
@@ -80,16 +79,16 @@ const ManageContactsBanner = () => {
       switchTab: s.dispatch.switchTab,
     }))
   )
-  const onStartChat = React.useCallback(() => {
+  const onStartChat = () => {
     switchTab(C.Tabs.chatTab)
     appendNewChatBuilder()
-  }, [appendNewChatBuilder, switchTab])
-  const onSendFeedback = React.useCallback(() => {
+  }
+  const onSendFeedback = () => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},
       selected: settingsFeedbackTab,
     })
-  }, [navigateAppend, error])
+  }
 
   return (
     <>

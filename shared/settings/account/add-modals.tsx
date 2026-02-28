@@ -52,14 +52,14 @@ export const Email = () => {
     }
   }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
-  const onClose = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const onContinue = React.useCallback(() => {
+  const onClose = () => nav.safeNavigateUp()
+  const onContinue = () => {
     if (disabled || waiting) {
       return
     }
     onAddEmailInProgress(emailTrimmed)
     addEmail(emailTrimmed, searchable)
-  }, [addEmail, disabled, waiting, emailTrimmed, searchable])
+  }
   return (
     <Kb.Modal
       onClose={onClose}
@@ -164,19 +164,19 @@ export const Phone = () => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const onClose = React.useCallback(() => {
+  const onClose = () => {
     clearPhoneNumberAdd()
     nav.safeNavigateUp()
-  }, [clearPhoneNumberAdd, nav])
+  }
 
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
-  }, [addPhoneNumber, disabled, waiting, searchable, phoneNumber])
+  }
 
-  const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     onChangeNumber(phoneNumber)
     onChangeValidity(validity)
-  }, [])
+  }
 
   return (
     <Kb.Modal
@@ -276,17 +276,14 @@ export const VerifyPhone = () => {
     }
   }, [verificationState, error, clearModals])
 
-  const onResend = React.useCallback(() => {
+  const onResend = () => {
     resendVerificationForPhone(pendingVerification)
-  }, [resendVerificationForPhone, pendingVerification])
-  const onClose = React.useCallback(() => {
+  }
+  const onClose = () => {
     clearPhoneNumberAdd()
     clearModals()
-  }, [clearPhoneNumberAdd, clearModals])
-  const onContinue = React.useCallback(
-    () => verifyPhoneNumber(pendingVerification, code),
-    [verifyPhoneNumber, code, pendingVerification]
-  )
+  }
+  const onContinue = () => verifyPhoneNumber(pendingVerification, code)
   const disabled = !code
 
   const displayPhone = e164ToDisplay(pendingVerification)

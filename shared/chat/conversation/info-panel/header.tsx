@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu'
@@ -26,24 +25,21 @@ const TeamHeader = () => {
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <InfoPanelMenu
-            attachTo={attachTo}
-            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={hidePopup}
-            hasHeader={false}
-            isSmallTeam={isSmallTeam}
-            visible={true}
-          />
-        </Chat.ChatProvider>
-      )
-    },
-    [conversationIDKey, isSmallTeam]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <InfoPanelMenu
+          attachTo={attachTo}
+          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+          onHidden={hidePopup}
+          hasHeader={false}
+          isSmallTeam={isSmallTeam}
+          visible={true}
+        />
+      </Chat.ChatProvider>
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

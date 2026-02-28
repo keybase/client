@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemGitPushType from './container'
 
-const SystemGitPush = React.memo(function SystemGitPush(p: Props) {
+function SystemGitPush(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemGitPush = React.memo(function SystemGitPush(p: Props) {
       <SystemGitPush message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemGitPush

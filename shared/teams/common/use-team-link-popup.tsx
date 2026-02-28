@@ -1,9 +1,7 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 
 export const useTeamLinkPopup = (teamname: string) => {
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const shareURLApp = `keybase://team-page/${teamname}`
       const shareURLWeb = `https://keybase.io/team/${teamname}`
@@ -29,9 +27,7 @@ export const useTeamLinkPopup = (teamname: string) => {
           {content}
         </Kb.Overlay>
       )
-    },
-    [teamname]
-  )
+    }
 
   return Kb.usePopup2(makePopup)
 }

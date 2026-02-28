@@ -30,69 +30,62 @@ const useCommon = (ownProps: OwnProps) => {
 
   const {conversationIDKey, _hits, status, initialText} = data
   const {loadMessagesCentered, setThreadSearchQuery, toggleThreadSearch, threadSearch} = data
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     toggleThreadSearch()
-  }, [toggleThreadSearch])
+  }
 
   const numHits = _hits.length
-  const hits = React.useMemo(
-    () =>
-      _hits.map(h => ({
-        author: h.author,
-        summary: h.bodySummary.stringValue(),
-        timestamp: h.timestamp,
-      })),
-    [_hits]
-  )
+  const hits = _hits.map(h => ({
+    author: h.author,
+    summary: h.bodySummary.stringValue(),
+    timestamp: h.timestamp,
+  }))
 
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   const [text, setText] = React.useState('')
   const [lastSearch, setLastSearch] = React.useState('')
 
-  const submitSearch = React.useCallback(() => {
+  const submitSearch = () => {
     setLastSearch(text)
     setSelectedIndex(0)
     threadSearch(text)
-  }, [text, threadSearch])
+  }
 
-  const selectResult = React.useCallback(
-    (index: number) => {
-      const message = _hits[index] || Chat.makeMessageText()
-      if (message.id > 0) {
-        loadMessagesCentered(message.id, 'always')
-      }
-      setSelectedIndex(index)
-    },
-    [loadMessagesCentered, _hits]
-  )
+  const selectResult = C.useEvent((index: number) => {
+    const message = _hits[index] || Chat.makeMessageText()
+    if (message.id > 0) {
+      loadMessagesCentered(message.id, 'always')
+    }
+    setSelectedIndex(index)
+  })
 
-  const onUp = React.useCallback(() => {
+  const onUp = () => {
     if (selectedIndex >= numHits - 1) {
       selectResult(0)
       return
     }
     selectResult(selectedIndex + 1)
-  }, [selectedIndex, numHits, selectResult])
+  }
 
-  const onEnter = React.useCallback(() => {
+  const onEnter = () => {
     if (lastSearch === text) {
       onUp()
     } else {
       submitSearch()
     }
-  }, [lastSearch, text, submitSearch, onUp])
+  }
 
-  const onDown = React.useCallback(() => {
+  const onDown = () => {
     if (selectedIndex <= 0) {
       selectResult(numHits - 1)
       return
     }
     selectResult(selectedIndex - 1)
-  }, [selectedIndex, numHits, selectResult])
+  }
 
-  const onChangedText = React.useCallback((newText: string) => {
+  const onChangedText = (newText: string) => {
     setText(newText)
-  }, [])
+  }
 
   const inProgress = status === 'inprogress'
   const hasResults = status === 'done' || numHits > 0
@@ -143,19 +136,16 @@ type SearchHit = {
   timestamp: number
 }
 
-const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps) {
+const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const props = useCommon(p)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
   const {onUp, onDown, onChangedText, inProgress, hasResults} = props
   const {selectedIndex, status, text, style, onToggleThreadSearch} = props
-  const onHotKey = React.useCallback(
-    (cmd: string) => {
-      if (cmd === 'esc') {
-        onToggleThreadSearch()
-      }
-    },
-    [onToggleThreadSearch]
-  )
+  const onHotKey = (cmd: string) => {
+    if (cmd === 'esc') {
+      onToggleThreadSearch()
+    }
+  }
   Kb.useHotKey('esc', onHotKey)
   const inputRef = React.createRef<Kb.PlainInputRef>()
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -258,9 +248,9 @@ const ThreadSearchDesktop = React.memo(function ThreadSearchDesktop(p: OwnProps)
       )}
     </Kb.Box2>
   )
-})
+}
 
-const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
+const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
   const props = useCommon(p)
   const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
   const {inProgress, hasResults, selectedIndex, text, style, status} = props
@@ -322,7 +312,7 @@ const ThreadSearchMobile = React.memo(function ThreadSearchMobile(p: OwnProps) {
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

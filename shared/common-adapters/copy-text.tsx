@@ -63,7 +63,20 @@ const CopyText = (props: Props) => {
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
-  const copy = React.useCallback(() => {
+  const doCopy = (t: string) => {
+    if (shareSheet) {
+      showShareActionSheet?.('', t, 'text/plain')
+    } else {
+      setShowingToast(true)
+      copyToClipboard(t)
+    }
+    onCopy?.()
+    if (hideOnCopy) {
+      setRevealed(false)
+    }
+  }
+
+  const copy = () => {
     if (!text) {
       if (!loadText) {
         logger.warn('no text to copy and no loadText method provided')
@@ -71,32 +84,29 @@ const CopyText = (props: Props) => {
       }
       setRequestedCopy(true)
     } else {
-      if (shareSheet) {
-        showShareActionSheet?.('', text, 'text/plain')
-      } else {
-        setShowingToast(true)
-        copyToClipboard(text)
-      }
-      onCopy?.()
-      if (hideOnCopy) {
-        setRevealed(false)
-      }
+      doCopy(text)
     }
-  }, [showShareActionSheet, copyToClipboard, text, loadText, shareSheet, onCopy, hideOnCopy])
+  }
 
   React.useEffect(() => {
     if (requestedCopy && loadText) {
-      // we're requesting a copy
       if (!text) {
-        // no text has been loaded
         loadText()
       } else {
-        // we want to copy something + have something to copy
-        copy() // props.text exists so this will not cause a recursive loop
+        if (shareSheet) {
+          showShareActionSheet?.('', text, 'text/plain')
+        } else {
+          setShowingToast(true)
+          copyToClipboard(text)
+        }
+        onCopy?.()
+        if (hideOnCopy) {
+          setRevealed(false)
+        }
         setRequestedCopy(false)
       }
     }
-  }, [requestedCopy, text, copy, loadText])
+  }, [requestedCopy, text, loadText, shareSheet, showShareActionSheet, copyToClipboard, onCopy, hideOnCopy])
 
   const reveal = () => {
     if (!props.text && props.loadText) {

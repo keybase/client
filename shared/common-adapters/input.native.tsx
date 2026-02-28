@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -12,9 +13,8 @@ import {
 import {useColorScheme} from 'react-native'
 import {registerPasteImage} from 'react-native-kb'
 
-export const Input = React.memo(
-  React.forwardRef<RefType, Props>(function Input(p, ref) {
-    const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
+export function Input(p: Props & {ref?: React.Ref<RefType>}) {
+    const {style: _style, onChangeText: _onChangeText, multiline, placeholder, ref} = p
     const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
     const {
       autoFocus: _autoFocus,
@@ -33,24 +33,18 @@ export const Input = React.memo(
     )
     const inputRef = React.useRef<TextInput | null>(null)
 
-    const setInputRef = React.useCallback((ti: TextInput | null) => {
+    const setInputRef = (ti: TextInput | null) => {
       inputRef.current = ti
-    }, [])
+    }
 
-    const onChangeText = React.useCallback(
-      (s: string) => {
-        setValue(s)
-        _onChangeText?.(s)
-      },
-      [_onChangeText]
-    )
-    const onSelectionChange = React.useCallback(
-      (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        setSelection(e.nativeEvent.selection)
-        _onSelectionChange?.(e)
-      },
-      [_onSelectionChange]
-    )
+    const onChangeText = C.useEvent((s: string) => {
+      setValue(s)
+      _onChangeText?.(s)
+    })
+    const onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+      setSelection(e.nativeEvent.selection)
+      _onSelectionChange?.(e)
+    }
 
     React.useImperativeHandle(ref, () => {
       const i = inputRef.current
@@ -84,7 +78,7 @@ export const Input = React.memo(
       }
     }, [onChangeText, selection, value])
 
-    const style = React.useMemo(() => {
+    const style = (() => {
       let textStyle = getTextStyle(textType, isDarkMode)
       // RN TextInput plays better without this
       if (isIOS) {
@@ -111,16 +105,13 @@ export const Input = React.memo(
       }
 
       return Styles.collapseStyles([commonStyle, ...lineStyle, _style])
-    }, [_style, multiline, textType, padding, rowsMax, rowsMin, isDarkMode])
+    })()
 
-    const onPasteImageImpl = React.useCallback(
-      (uris: Array<string>) => {
-        if (onPasteImage) {
-          onPasteImage(uris)
-        }
-      },
-      [onPasteImage]
-    )
+    const onPasteImageImpl = (uris: Array<string>) => {
+      if (onPasteImage) {
+        onPasteImage(uris)
+      }
+    }
 
     const onPaste = onPasteImage ? onPasteImageImpl : undefined
 
@@ -154,8 +145,7 @@ export const Input = React.memo(
         value={value}
       />
     )
-  })
-)
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   common: {backgroundColor: Styles.globalColors.fastBlank, borderWidth: 0, flexGrow: 1},

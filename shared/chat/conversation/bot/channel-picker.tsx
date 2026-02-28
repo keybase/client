@@ -98,10 +98,7 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const channels = React.useMemo(
-    () => getChannels(props.channelMetas, searchText),
-    [props.channelMetas, searchText]
-  )
+  const channels = getChannels(props.channelMetas, searchText)
   const rows = channels.map(meta => (
     <Row
       disabled={allSelected}

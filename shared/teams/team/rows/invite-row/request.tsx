@@ -42,8 +42,7 @@ export const TeamRequestRow = (props: Props) => {
   const approveWord = reset ? 'Readmit' : 'Approve'
   const denyWord = reset ? 'Remove' : 'Deny'
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -76,9 +75,7 @@ export const TeamRequestRow = (props: Props) => {
           positionFallbacks={positionFallbacks}
         />
       )
-    },
-    [approveWord, ctime, denyWord, fullName, props, reset, username]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

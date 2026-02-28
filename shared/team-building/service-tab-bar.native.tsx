@@ -39,7 +39,7 @@ const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension(props: {
+const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: {
   offset?: SharedValue<number>
   servicesCount: number
 }) {
@@ -74,9 +74,9 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
       />
     </Kb.Box2>
   )
-})
+}
 
-const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
+const ServiceIcon = function ServiceIcon(props: IconProps) {
   'use no memo'
   const {offset, isActive, service, label, onClick} = props
 
@@ -153,18 +153,15 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
       />
     </Kb.ClickableBox>
   )
-})
+}
 
 export const ServiceTabBar = (props: Props) => {
   'use no memo'
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
-  const onClick = React.useCallback(
-    (service: T.TB.ServiceIdWithContact) => {
+  const onClick = (service: T.TB.ServiceIdWithContact) => {
       onChangeService(service)
-    },
-    [onChangeService]
-  )
+    }
 
   React.useEffect(() => {
     bounceX.set(0)

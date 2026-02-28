@@ -13,10 +13,9 @@ const cssVarToColorName = (cssVar: string): string | undefined => {
   return match?.[1]
 }
 
-const Icon = React.memo<Props>(
-  React.forwardRef<MeasureRef, Props>(function Icon(props, ref) {
+const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
-    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
+    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true, ref} = props
     const iconType = type
     const hasDarkVariant = !!iconMeta[iconType].nameDark
 
@@ -179,8 +178,7 @@ const Icon = React.memo<Props>(
     } else {
       return iconElement
     }
-  })
-)
+}
 
 const imgName = (
   name: string,

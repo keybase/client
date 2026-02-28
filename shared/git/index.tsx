@@ -29,21 +29,16 @@ const Container = (ownProps: OwnProps) => {
     })
   )
   const {badged} = useLocalBadging(isNew, clearBadges)
-  const {personals, teams} = React.useMemo(() => getRepos(idToInfo), [idToInfo])
+  const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onShowDelete = React.useCallback(
-    (id: string) => {
-      setError(undefined)
-      navigateAppend({props: {id}, selected: 'gitDeleteRepo'})
-    },
-    [navigateAppend, setError]
-  )
+  const onShowDelete = (id: string) => {
+    setError(undefined)
+    navigateAppend({props: {id}, selected: 'gitDeleteRepo'})
+  }
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      load()
-    }, [load])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    load()
+  })
 
   const [expandedSet, setExpandedSet] = React.useState(
     ownProps.expanded ? new Set([ownProps.expanded]) : new Set()
@@ -54,35 +49,32 @@ const Container = (ownProps: OwnProps) => {
     setExpandedSet(new Set(expandedSet))
   }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const onNewPersonalRepo = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
-      }
-      const onNewTeamRepo = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
-      }
-      const {attachTo, hidePopup} = p
-      const menuItems = [
-        {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
-        {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
-      ]
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const onNewPersonalRepo = () => {
+      setError(undefined)
+      navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
+    }
+    const onNewTeamRepo = () => {
+      setError(undefined)
+      navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
+    }
+    const {attachTo, hidePopup} = p
+    const menuItems = [
+      {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
+      {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
+    ]
 
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom center"
-        />
-      )
-    },
-    [navigateAppend, setError]
-  )
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

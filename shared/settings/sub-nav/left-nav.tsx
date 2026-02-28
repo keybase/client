@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
@@ -20,9 +19,9 @@ const LeftNav = (props: Props) => {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
-  const onSignout = React.useCallback(() => {
+  const onSignout = () => {
     navigate(Settings.settingsLogOutTab)
-  }, [navigate])
+  }
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.ScrollView style={styles.container}>

@@ -1,10 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
 
-const UserResult = React.memo(function UserResult(props: ResultProps) {
+const UserResult = function UserResult(props: ResultProps) {
   if (props.isYou) {
     return <YouResult {...props} />
   }
@@ -34,7 +34,7 @@ const UserResult = React.memo(function UserResult(props: ResultProps) {
       }
     />
   )
-})
+}
 const actionButtonSize = Kb.Styles.isMobile ? 22 : Kb.Styles.globalMargins.small
 
 const ActionButton = (props: {

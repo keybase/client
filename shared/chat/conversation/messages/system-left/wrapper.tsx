@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemLeftType from './container'
 
-const SystemLeft = React.memo(function SystemLeft(p: Props) {
+function SystemLeft(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemLeft = React.memo(function SystemLeft(p: Props) {
       <SystemLeft />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemLeft

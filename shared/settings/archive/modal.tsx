@@ -38,9 +38,7 @@ const chatIDToDisplayname = (conversationIDKey: string) => {
 
 const ArchiveModal = (p: Props) => {
   const {type} = p
-  const displayname = React.useMemo(() => {
-    return p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
-  }, [p])
+  const displayname = p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
 
   let defaultPath = ''
   if (C.isElectron) {
@@ -81,7 +79,7 @@ const ArchiveModal = (p: Props) => {
 
   const canStart = !!((C.isMobile || outpath) && !started)
 
-  const onStart = React.useCallback(() => {
+  const onStart = () => {
     if (!canStart) return
     setStarted(true)
     switch (p.type) {
@@ -107,13 +105,13 @@ const ArchiveModal = (p: Props) => {
         start('git', p.gitURL, C.isMobile ? '' : outpath)
         break
     }
-  }, [outpath, canStart, p, start])
-  const onClose = React.useCallback(() => {
+  }
+  const onClose = () => {
     resetWaiters()
     navigateUp()
-  }, [navigateUp, resetWaiters])
+  }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onProgress = React.useCallback(() => {
+  const onProgress = () => {
     resetWaiters()
     navigateUp()
     setTimeout(() => {
@@ -122,15 +120,15 @@ const ArchiveModal = (p: Props) => {
         navigateAppend(settingsArchiveTab)
       }, 200)
     }, 200)
-  }, [navigateUp, resetWaiters, switchTab, navigateAppend])
+  }
 
-  const selectPath = React.useCallback(() => {
+  const selectPath = () => {
     const f = async () => {
       const path = await pickSave({})
       if (path) setOutpath(path)
     }
     C.ignorePromise(f())
-  }, [])
+  }
 
   let content: React.ReactNode = null
   switch (type) {

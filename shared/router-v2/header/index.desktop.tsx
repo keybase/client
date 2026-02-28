@@ -5,7 +5,6 @@ import SyncingFolders from './syncing-folders'
 import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
-import shallowEqual from 'shallowequal'
 import {useConfigState} from '@/stores/config'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
@@ -46,15 +45,15 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => (
 )
 
 const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
-  const onMinimize = React.useCallback(() => {
+  const onMinimize = () => {
     minimizeWindow?.()
-  }, [])
-  const onToggleMaximizeWindow = React.useCallback(() => {
+  }
+  const onToggleMaximizeWindow = () => {
     toggleMaximizeWindow?.()
-  }, [])
-  const onCloseWindow = React.useCallback(() => {
+  }
+  const onCloseWindow = () => {
     closeWindow?.()
-  }, [])
+  }
   return (
     <Kb.Box2 direction="horizontal">
       <Kb.ClickableBox
@@ -97,14 +96,14 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   )
 }
 
-const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
+function DesktopHeader(p: Props) {
   const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
-  const pop = React.useCallback(() => {
+  const pop = () => {
     back && navigation.pop()
-  }, [back, navigation])
+  }
 
   if (headerMode === 'none') {
     return null
@@ -227,7 +226,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
       {subHeaderNode}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -315,64 +314,39 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
-const DesktopHeaderWrapper = React.memo(
-  function DesktopHeaderWrapper(p: HeaderProps) {
-    const {options: _options, back, style, params, navigation} = p
-    const useNativeFrame = useConfigState(s => s.useNativeFrame)
-    const loggedIn = useConfigState(s => s.loggedIn)
-    const isMaximized = useConfigState(s => s.windowState.isMaximized)
-    const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-    const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
-    const options = React.useMemo(() => {
-      return {
-        headerBottomStyle,
-        headerLeft,
-        headerMode,
-        headerRightActions,
-        headerShadowVisible,
-        headerStyle,
-        headerTitle,
-        headerTransparent,
-        subHeader,
-        title,
-      }
-    }, [
-      headerBottomStyle,
-      headerLeft,
-      headerMode,
-      headerRightActions,
-      headerShadowVisible,
-      headerStyle,
-      headerTitle,
-      headerTransparent,
-      subHeader,
-      title,
-    ])
-
-    return (
-      <DesktopHeader
-        useNativeFrame={useNativeFrame}
-        loggedIn={loggedIn}
-        key={String(isMaximized)}
-        isMaximized={isMaximized}
-        options={options}
-        back={!!back /* not a bool upstream */}
-        style={style}
-        params={params}
-        navigation={navigation}
-      />
-    )
-  },
-  (a, b) => {
-    return shallowEqual(a, b, (obj: unknown, oth: unknown, key) => {
-      if (key === 'options') {
-        return shallowEqual(obj, oth)
-      } else if (key === 'back') {
-        return !!a.back === !!b.back
-      }
-      return undefined
-    })
+function DesktopHeaderWrapper(p: HeaderProps) {
+  const {options: _options, back, style, params, navigation} = p
+  const useNativeFrame = useConfigState(s => s.useNativeFrame)
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const isMaximized = useConfigState(s => s.windowState.isMaximized)
+  const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
+  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const options = {
+    headerBottomStyle,
+    headerLeft,
+    headerMode,
+    headerRightActions,
+    headerShadowVisible,
+    headerStyle,
+    headerTitle,
+    headerTransparent,
+    subHeader,
+    title,
   }
-)
+
+  return (
+    <DesktopHeader
+      useNativeFrame={useNativeFrame}
+      loggedIn={loggedIn}
+      key={String(isMaximized)}
+      isMaximized={isMaximized}
+      options={options}
+      back={!!back /* not a bool upstream */}
+      style={style}
+      params={params}
+      navigation={navigation}
+    />
+  )
+}
 
 export default DesktopHeaderWrapper

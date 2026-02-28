@@ -28,15 +28,12 @@ function WrapPicker<T>(p: {
   const {initialValue, onValueChange, options, prompt, style, itemStyle} = p
   const [localValue, setLocalValue] = React.useState(initialValue)
 
-  const handleValueChange = React.useCallback(
-    (value: T) => {
-      const selectedOption = options.find(option => option.value === value)
-      if (!selectedOption) return
-      setLocalValue(selectedOption.value)
-      onValueChange(selectedOption.value)
-    },
-    [onValueChange, options]
-  )
+  const handleValueChange = (value: T) => {
+    const selectedOption = options.find(option => option.value === value)
+    if (!selectedOption) return
+    setLocalValue(selectedOption.value)
+    onValueChange(selectedOption.value)
+  }
 
   return (
     <Picker

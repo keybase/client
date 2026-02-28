@@ -224,26 +224,24 @@ export const useFsWatchDownloadForMobile = C.isMobile
 export const useFuseClosedSourceConsent = (disabled: boolean, invert = false) => {
   const [agreed, setAgreed] = React.useState<boolean>(false)
 
-  const component = React.useMemo(() => {
-    return C.isDarwin ? (
-      <Kb.Checkbox
-        disabled={disabled}
-        checked={agreed}
-        onCheck={(v: boolean) => setAgreed(v)}
-        checkboxStyle={invert ? {backgroundColor: Kb.Styles.globalColors.white} : undefined}
-        checkboxColor={invert ? Kb.Styles.globalColors.black : undefined}
-        labelComponent={
-          <Kb.Text
-            type="BodySmall"
-            style={invert ? {color: Kb.Styles.globalColors.white} : undefined}
-            onClick={() => setAgreed(a => !a)}
-          >
-            {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
-          </Kb.Text>
-        }
-      />
-    ) : undefined
-  }, [disabled, agreed, invert])
+  const component = C.isDarwin ? (
+    <Kb.Checkbox
+      disabled={disabled}
+      checked={agreed}
+      onCheck={(v: boolean) => setAgreed(v)}
+      checkboxStyle={invert ? {backgroundColor: Kb.Styles.globalColors.white} : undefined}
+      checkboxColor={invert ? Kb.Styles.globalColors.black : undefined}
+      labelComponent={
+        <Kb.Text
+          type="BodySmall"
+          style={invert ? {color: Kb.Styles.globalColors.white} : undefined}
+          onClick={() => setAgreed(a => !a)}
+        >
+          {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
+        </Kb.Text>
+      }
+    />
+  ) : undefined
 
   return {
     canContinue: !C.isDarwin || agreed,

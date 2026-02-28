@@ -17,17 +17,14 @@ const ErrorMessage = () => {
   const createConversationError = Chat.useChatState(s => s.createConversationError)
   const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
-  const _onCreateWithoutThem = React.useCallback(
-    (allowedUsers: ReadonlyArray<string>) => {
-      createConversation(allowedUsers)
-    },
-    [createConversation]
-  )
+  const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
+    createConversation(allowedUsers)
+  }
 
   const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
-  const _onBack = React.useCallback(() => {
+  const _onBack = () => {
     navigateToInbox()
-  }, [navigateToInbox])
+  }
   const onBack = Kb.Styles.isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: ReadonlyArray<string> = []
@@ -110,7 +107,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = React.memo(function SpecialTopMessage() {
+function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -177,9 +174,9 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     }
   }, [])
 
-  const openPrivateFolder = React.useCallback(() => {
+  const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
-  }, [username])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -220,7 +217,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

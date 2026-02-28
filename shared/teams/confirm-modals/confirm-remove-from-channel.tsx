@@ -23,7 +23,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const {channelname} = channelInfo
 
   const nav = useSafeNavigation()
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onCancel = () => nav.safeNavigateUp()
 
   const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)

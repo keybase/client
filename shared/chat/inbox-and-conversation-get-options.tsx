@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import InboxAndConvoHeader from './inbox-and-conversation-header'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
-const TabletHeader = React.memo(function TabletHeader() {
+function TabletHeader() {
   const {width} = useSafeAreaFrame()
   return (
     <Kb.Box2
@@ -14,7 +13,7 @@ const TabletHeader = React.memo(function TabletHeader() {
       <InboxAndConvoHeader />
     </Kb.Box2>
   )
-})
+}
 
 export default Kb.Styles.isTablet
   ? {

@@ -98,10 +98,7 @@ export const RecsAndRecos = (
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
-  const highlightDetails = React.useMemo(
-    () => _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations),
-    [highlightedIndex, recommendations]
-  )
+  const highlightDetails = _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
 
   React.useEffect(() => {
     highlightedIndex >= 0 &&

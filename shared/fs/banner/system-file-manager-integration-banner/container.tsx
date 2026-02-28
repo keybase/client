@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -18,11 +18,8 @@ const SFMIContainer = (op: OwnProps) => {
       settings: s.settings,
     }))
   )
-  const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
-  const onDismiss = React.useCallback(
-    () => setSfmiBannerDismissedDesktop?.(true),
-    [setSfmiBannerDismissedDesktop]
-  )
+  const onDisable = () => driverDisable()
+  const onDismiss = () => setSfmiBannerDismissedDesktop?.(true)
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 

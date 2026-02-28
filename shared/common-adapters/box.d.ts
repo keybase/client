@@ -44,17 +44,16 @@ export type Box2Props = {
   gap?: keyof typeof globalMargins
   gapStart?: boolean
   gapEnd?: boolean
-  ref?: never
   title?: string
   tooltip?: string
 }
 
 export declare const Box2: (p: Box2Props) => React.ReactNode
 // wrapped by reanimated
-export declare const Box2Animated: ReturnType<typeof React.forwardRef<React.RefObject<typeof Box2>, Box2Props>>
+export declare function Box2Animated(p: Box2Props & {ref?: React.Ref<View>}): React.ReactNode
 // Box2 but with a special ref for targetting popups, split in case there's overhead we barely need
-export declare const Box2Measure: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
+export declare function Box2Measure(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
 // desktop only
-export declare const Box2Div: ReturnType<typeof React.forwardRef<HTMLDivElement, Box2Props>>
+export declare function Box2Div(p: Box2Props & {ref?: React.Ref<HTMLDivElement>}): React.ReactNode
 // mobile only
-export declare const Box2View: ReturnType<typeof React.forwardRef<View, Box2Props>>
+export declare function Box2View(p: Box2Props & {ref?: React.Ref<View>}): React.ReactNode

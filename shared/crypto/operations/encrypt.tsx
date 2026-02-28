@@ -9,7 +9,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 
 const operation = Crypto.Operations.Encrypt
 
-const EncryptOptions = React.memo(function EncryptOptions() {
+const EncryptOptions = () => {
   const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
@@ -54,7 +54,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
       />
     </Kb.Box2>
   )
-})
+}
 
 const EncryptOutputBanner = () => {
   const {hasRecipients, includeSelf, recipients, outputType} = Crypto.useCryptoState(
@@ -127,9 +127,9 @@ const styles = Kb.Styles.styleSheetCreate(
 
 export const EncryptInput = () => {
   const blurCBRef = React.useRef(() => {})
-  const setBlurCB = React.useCallback((cb: () => void) => {
+  const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
-  }, [])
+  }
 
   const options = C.isMobile ? (
     <InputActionsBar operation={operation} blurCBRef={blurCBRef}>

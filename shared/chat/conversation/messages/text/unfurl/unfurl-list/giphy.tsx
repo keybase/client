@@ -1,13 +1,12 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
-import * as React from 'react'
 import UnfurlImage from './image'
 import * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {getUnfurlInfo, useActions} from './use-state'
 
-const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
+function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
@@ -79,7 +78,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

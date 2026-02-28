@@ -46,9 +46,9 @@ const useScrolling = (p: {
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = Chat.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = C.useThrottledCallback(
-    React.useCallback(() => {
+    () => {
       loadNewerMessagesDueToScroll(numOrdinals)
-    }, [loadNewerMessagesDueToScroll, numOrdinals]),
+    },
     200
   )
   // if we scroll up try and keep the position
@@ -65,23 +65,20 @@ const useScrolling = (p: {
   const lockedToBottomRef = React.useRef(true)
   // so we can turn pointer events on / off
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const setPointerWrapperRef = React.useCallback((r: HTMLDivElement | null) => {
+  const setPointerWrapperRef = (r: HTMLDivElement | null) => {
     pointerWrapperRef.current = r
-  }, [])
+  }
 
-  const isLockedToBottom = React.useCallback(() => {
+  const isLockedToBottom = C.useEvent(() => {
     return lockedToBottomRef.current
-  }, [lockedToBottomRef])
+  })
 
-  const adjustScrollAndIgnoreOnScroll = React.useCallback(
-    (fn: () => void) => {
-      ignoreOnScrollRef.current = true
-      fn()
-    },
-    [ignoreOnScrollRef]
-  )
+  const adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
+    ignoreOnScrollRef.current = true
+    fn()
+  }
 
-  const checkForLoadMoreThrottled = React.useCallback(() => {
+  const checkForLoadMoreThrottled = () => {
     // are we at the top?
     const list = listRef.current
     if (list) {
@@ -95,9 +92,9 @@ const useScrolling = (p: {
         loadNewerMessages()
       }
     }
-  }, [listRef, containsLatestMessage, loadNewerMessages, loadOlderMessages, isLockedToBottom, numOrdinals])
+  }
 
-  const scrollToBottomSync = React.useCallback(() => {
+  const scrollToBottomSync = C.useEvent(() => {
     lockedToBottomRef.current = true
     const list = listRef.current
     if (list) {
@@ -105,16 +102,16 @@ const useScrolling = (p: {
         list.scrollTop = list.scrollHeight - list.clientHeight
       })
     }
-  }, [adjustScrollAndIgnoreOnScroll, listRef])
+  })
 
-  const scrollToBottom = React.useCallback(() => {
+  const scrollToBottom = C.useEvent(() => {
     scrollToBottomSync()
     setTimeout(() => {
       requestAnimationFrame(scrollToBottomSync)
     }, 1)
-  }, [scrollToBottomSync])
+  })
 
-  const performScrollToCentered = React.useCallback(() => {
+  const performScrollToCentered = C.useEvent(() => {
     const list = listRef.current
     const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)[0] as HTMLElement | undefined
     if (!list || !waypoint) return
@@ -126,26 +123,26 @@ const useScrolling = (p: {
     adjustScrollAndIgnoreOnScroll(() => {
       list.scrollTop = clamped
     })
-  }, [adjustScrollAndIgnoreOnScroll, listRef])
+  })
 
-  const scrollToCentered = React.useCallback(() => {
+  const scrollToCentered = C.useEvent(() => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         performScrollToCentered()
         setTimeout(performScrollToCentered, 50)
       })
     })
-  }, [performScrollToCentered])
+  })
 
-  const scrollDown = React.useCallback(() => {
+  const scrollDown = C.useEvent(() => {
     const list = listRef.current
     list &&
       adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop += list.clientHeight
       })
-  }, [listRef, adjustScrollAndIgnoreOnScroll])
+  })
 
-  const scrollUp = React.useCallback(() => {
+  const scrollUp = C.useEvent(() => {
     lockedToBottomRef.current = false
     const list = listRef.current
     list &&
@@ -153,7 +150,7 @@ const useScrolling = (p: {
         list.scrollTop -= list.clientHeight
         checkForLoadMoreThrottled()
       })
-  }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
+  })
 
   const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   React.useEffect(() => {
@@ -164,7 +161,7 @@ const useScrolling = (p: {
 
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
   const onScrollThrottled = C.useThrottledCallback(
-    React.useCallback(() => {
+    () => {
       clearTimeout(scrollCheckRef.current)
       scrollCheckRef.current = setTimeout(() => {
         if (isScrollingRef.current) {
@@ -189,7 +186,7 @@ const useScrolling = (p: {
           pointerWrapperRef.current.classList.add('scroll-ignore-pointer')
         }
       }
-    }, [listRef, centeredOrdinal]),
+    },
     100,
     {leading: true, trailing: true}
   )
@@ -197,7 +194,7 @@ const useScrolling = (p: {
   // we did it so we should ignore it
   const programaticScrollRef = React.useRef(false)
 
-  const onScroll = React.useCallback(() => {
+  const onScroll = C.useEvent(() => {
     if (programaticScrollRef.current) {
       programaticScrollRef.current = false
       return
@@ -215,30 +212,23 @@ const useScrolling = (p: {
     lockedToBottomRef.current = false
     checkForLoadMoreThrottled()
     onScrollThrottled()
-  }, [checkForLoadMoreThrottled, onScrollThrottled, listRef])
+  })
 
-  const setListRef = React.useCallback(
-    (list: HTMLDivElement | null) => {
-      if (listRef.current) {
-        listRef.current.removeEventListener('scroll', onScroll)
-      }
-      if (list) {
-        list.addEventListener('scroll', onScroll, {passive: true})
-      }
-      _setListRef(list)
-    },
-    [onScroll, listRef, _setListRef]
-  )
-
-  const cleanupDebounced = React.useCallback(() => {
-    onScrollThrottled.cancel()
-  }, [onScrollThrottled])
+  const setListRef = (list: HTMLDivElement | null) => {
+    if (listRef.current) {
+      listRef.current.removeEventListener('scroll', onScroll)
+    }
+    if (list) {
+      list.addEventListener('scroll', onScroll, {passive: true})
+    }
+    _setListRef(list)
+  }
 
   React.useEffect(() => {
     return () => {
-      cleanupDebounced()
+      onScrollThrottled.cancel()
     }
-  }, [cleanupDebounced])
+  }, [onScrollThrottled])
 
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
@@ -374,42 +364,39 @@ const useItems = (p: {
 }) => {
   const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
-  const rowRenderer = React.useCallback(
-    (ordinal: T.Chat.Ordinal) => {
-      const type = messageTypeMap?.get(ordinal) ?? 'text'
-      const Clazz = getMessageRender(type)
-      if (!Clazz) {
-        if (chatDebugEnabled) {
-          logger.error('[CHATDEBUG] no rendertype', {Clazz, ordinal, type})
-        }
-        return null
+  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
+    const type = messageTypeMap?.get(ordinal) ?? 'text'
+    const Clazz = getMessageRender(type)
+    if (!Clazz) {
+      if (chatDebugEnabled) {
+        logger.error('[CHATDEBUG] no rendertype', {Clazz, ordinal, type})
       }
+      return null
+    }
 
-      return (
-        <div
-          key={String(ordinal)}
-          data-debug={String(ordinal)}
-          className={Kb.Styles.classNames(
-            'hover-container',
-            'WrapperMessage',
-            'WrapperMessage-hoverBox',
-            'WrapperMessage-decorated',
-            'WrapperMessage-hoverColor',
-            {highlighted: centeredOrdinal === ordinal || editingOrdinal === ordinal}
-          )}
-        >
-          <Separator trailingItem={ordinal} />
-          <Clazz ordinal={ordinal} />
-        </div>
-      )
-    },
-    [messageTypeMap, centeredOrdinal, editingOrdinal]
-  )
+    return (
+      <div
+        key={String(ordinal)}
+        data-debug={String(ordinal)}
+        className={Kb.Styles.classNames(
+          'hover-container',
+          'WrapperMessage',
+          'WrapperMessage-hoverBox',
+          'WrapperMessage-decorated',
+          'WrapperMessage-hoverColor',
+          {highlighted: centeredOrdinal === ordinal || editingOrdinal === ordinal}
+        )}
+      >
+        <Separator trailingItem={ordinal} />
+        <Clazz ordinal={ordinal} />
+      </div>
+    )
+  }
 
   const wayOrdinalCachRef = React.useRef(new Map<string, Array<T.Chat.Ordinal>>())
 
   // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
-  const items = React.useMemo(() => {
+  const items = (() => {
     const items: Array<React.ReactNode> = []
     const numOrdinals = messageOrdinals.length
 
@@ -480,13 +467,13 @@ const useItems = (p: {
     })
 
     return [<SpecialTopMessage key="specialTop" />, ...items, <SpecialBottomMessage key="specialBottom" />]
-  }, [messageOrdinals, centeredOrdinal, rowRenderer])
+  })()
 
   return items
 }
 
 const noOrdinals = new Array<T.Chat.Ordinal>()
-const ThreadWrapper = React.memo(function ThreadWrapper() {
+const ThreadWrapper = function ThreadWrapper() {
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
@@ -508,9 +495,9 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  const _setListRef = React.useCallback((r: HTMLDivElement | null) => {
+  const _setListRef = (r: HTMLDivElement | null) => {
     listRef.current = r
-  }, [])
+  }
   const {isLockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
@@ -521,55 +508,49 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
-  const onCopyCapture = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      // Copy text only, not HTML/styling. We use virtualText on texts to make uncopyable text
-      e.preventDefault()
-      const sel = window.getSelection()
-      if (!sel) return
-      const temp = sel.getRangeAt(0).cloneContents()
-      // cloning it and making a new new fixes issues where icons will give you
-      // extra newlines only when you do toString() vs getting the textContents
-      const tempDiv = document.createElement('div')
-      tempDiv.appendChild(temp)
-      // filter
-      const styles = tempDiv.querySelectorAll('style')
-      styles.forEach(s => {
-        s.parentNode?.removeChild(s)
-      })
-      const imgs = tempDiv.querySelectorAll('img')
-      imgs.forEach(i => {
-        const dummy = document.createElement('div')
-        dummy.textContent = '\n[IMAGE]\n'
-        i.parentNode?.replaceChild(dummy, i)
-      })
+  const onCopyCapture = (e: React.BaseSyntheticEvent) => {
+    // Copy text only, not HTML/styling. We use virtualText on texts to make uncopyable text
+    e.preventDefault()
+    const sel = window.getSelection()
+    if (!sel) return
+    const temp = sel.getRangeAt(0).cloneContents()
+    // cloning it and making a new new fixes issues where icons will give you
+    // extra newlines only when you do toString() vs getting the textContents
+    const tempDiv = document.createElement('div')
+    tempDiv.appendChild(temp)
+    // filter
+    const styles = tempDiv.querySelectorAll('style')
+    styles.forEach(s => {
+      s.parentNode?.removeChild(s)
+    })
+    const imgs = tempDiv.querySelectorAll('img')
+    imgs.forEach(i => {
+      const dummy = document.createElement('div')
+      dummy.textContent = '\n[IMAGE]\n'
+      i.parentNode?.replaceChild(dummy, i)
+    })
 
-      const tc = tempDiv.textContent
-      tc && copyToClipboard(tc)
-      tempDiv.remove()
-    },
-    [copyToClipboard]
-  )
+    const tc = tempDiv.textContent
+    tc && copyToClipboard(tc)
+    tempDiv.remove()
+  }
   const {focusInput} = React.useContext(FocusContext)
-  const handleListClick = React.useCallback(
-    (ev: React.MouseEvent) => {
-      const target = ev.target
-      // allow focusing other inner inputs such as the reacji picker filter
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        (target as HTMLElement).closest('[data-search-filter="true"]')
-      ) {
-        return
-      }
+  const handleListClick = (ev: React.MouseEvent) => {
+    const target = ev.target
+    // allow focusing other inner inputs such as the reacji picker filter
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target as HTMLElement).closest('[data-search-filter="true"]')
+    ) {
+      return
+    }
 
-      const sel = window.getSelection()
-      if (sel?.isCollapsed) {
-        focusInput()
-      }
-    },
-    [focusInput]
-  )
+    const sel = window.getSelection()
+    if (sel?.isCollapsed) {
+      focusInput()
+    }
+  }
 
   const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
   const setListContents = useHandleListResize({
@@ -603,7 +584,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
       </div>
     </Kb.ErrorBoundary>
   )
-})
+}
 
 const useHandleListResize = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
@@ -613,27 +594,21 @@ const useHandleListResize = (p: {
 }) => {
   const {isLockedToBottom, scrollToBottom, setPointerWrapperRef, centeredOrdinal} = p
   const lastResizeHeightRef = React.useRef(0)
-  const onListSizeChanged = React.useCallback(
-    function onListSizeChanged(contentRect: {height: number}) {
-      const {height} = contentRect
-      if (height !== lastResizeHeightRef.current) {
-        lastResizeHeightRef.current = height
-        if (isLockedToBottom() && !centeredOrdinal) {
-          scrollToBottom()
-        }
+  const onListSizeChanged = function onListSizeChanged(contentRect: {height: number}) {
+    const {height} = contentRect
+    if (height !== lastResizeHeightRef.current) {
+      lastResizeHeightRef.current = height
+      if (isLockedToBottom() && !centeredOrdinal) {
+        scrollToBottom()
       }
-    },
-    [isLockedToBottom, scrollToBottom, centeredOrdinal]
-  )
+    }
+  }
 
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const setListContents = React.useCallback(
-    (listContents: HTMLDivElement | null) => {
-      setPointerWrapperRef(listContents)
-      pointerWrapperRef.current = listContents
-    },
-    [setPointerWrapperRef, pointerWrapperRef]
-  )
+  const setListContents = (listContents: HTMLDivElement | null) => {
+    setPointerWrapperRef(listContents)
+    pointerWrapperRef.current = listContents
+  }
 
   useResizeObserver(pointerWrapperRef, e => onListSizeChanged(e.contentRect))
 
@@ -658,7 +633,7 @@ if (colorWaypoints) {
 // Start unmeasured waypoints as placeholders with estimated height.
 // Intersection Observer fires synchronously for elements in the viewport on mount,
 // so visible waypoints render immediately. Off-screen ones stay as placeholders until scrolled to.
-const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointProps) {
+const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
   const [height, setHeight] = React.useState(-1)
@@ -704,36 +679,34 @@ const OrdinalWaypoint = React.memo(function OrdinalWaypoint(p: OrdinalWaypointPr
   } else {
     return content
   }
-})
+}
 
 type ContentType = {
   id: string
   ordinals: Array<T.Chat.Ordinal>
   rowRenderer: (o: T.Chat.Ordinal) => React.ReactNode
+  ref?: React.Ref<HTMLDivElement>
 }
-const Content = React.memo(
-  React.forwardRef<HTMLDivElement, ContentType>(function Content(p, ref) {
-    const {id, ordinals, rowRenderer} = p
-    // Apply data-key to the dom node so we can search for editing messages
-    return (
-      <div data-key={id} ref={ref}>
-        {ordinals.map((o): React.ReactNode => rowRenderer(o))}
-      </div>
-    )
-  })
-)
+function Content(p: ContentType) {
+  const {id, ordinals, rowRenderer, ref} = p
+  // Apply data-key to the dom node so we can search for editing messages
+  return (
+    <div data-key={id} ref={ref}>
+      {ordinals.map((o): React.ReactNode => rowRenderer(o))}
+    </div>
+  )
+}
 
 type DummyType = {
   id: string
   height: number
+  ref?: React.Ref<HTMLDivElement>
 }
-const Dummy = React.memo(
-  React.forwardRef<HTMLDivElement, DummyType>(function Dummy(p, ref) {
-    const {id, height} = p
-    // Apply data-key to the dom node so we can search for editing messages
-    return <div data-key={id} style={{contentVisibility: 'auto', height}} ref={ref} />
-  })
-)
+function Dummy(p: DummyType) {
+  const {id, height, ref} = p
+  // Apply data-key to the dom node so we can search for editing messages
+  return <div data-key={id} style={{contentVisibility: 'auto', height}} ref={ref} />
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
@@ -59,7 +59,8 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props, ref) {
+function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
+  const {ref} = props
   const content = (
     <>
       <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
@@ -103,7 +104,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
       {content}
     </Kb.WithTooltip>
   )
-})
+}
 
 export default Switch
 

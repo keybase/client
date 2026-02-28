@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import DeviceIcon from '../devices/device-icon'
 import {SignupScreen} from '../signup/common'
 import {type Device} from '@/stores/provision'
@@ -36,29 +35,23 @@ const getItemHeight = (item: Item | undefined): number => {
 const SelectOtherDevice = (props: Props) => {
   const {passwordRecovery, devices, onBack, onSelect, onResetAccount} = props
 
-  const items: Item[] = React.useMemo(
-    () => [
-      {type: 'header'},
-      ...devices.map(device => ({device, type: 'device'}) as const),
-      {type: 'reset'},
-    ],
-    [devices]
-  )
+  const items: Item[] = [
+    {type: 'header'},
+    ...devices.map(device => ({device, type: 'device'}) as const),
+    {type: 'reset'},
+  ]
 
-  const itemHeight = React.useMemo(
-    () => ({
-      getItemLayout: (index: number, item?: Item) => {
-        const length = getItemHeight(item)
-        let offset = 0
-        for (let i = 0; i < index; i++) {
-          offset += getItemHeight(items[i])
-        }
-        return {index, length, offset}
-      },
-      type: 'variable' as const,
-    }),
-    [items]
-  )
+  const itemHeight = {
+    getItemLayout: (index: number, item?: Item) => {
+      const length = getItemHeight(item)
+      let offset = 0
+      for (let i = 0; i < index; i++) {
+        offset += getItemHeight(items[i])
+      }
+      return {index, length, offset}
+    },
+    type: 'variable' as const,
+  }
 
   const renderItem = (index: number, item: Item) => {
     switch (item.type) {

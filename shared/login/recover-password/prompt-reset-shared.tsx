@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
@@ -23,7 +22,7 @@ const PromptReset = (props: Props) => {
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const username = useRecoverState(s => s.username)
 
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
       nav.safeNavigateUp()
@@ -37,14 +36,14 @@ const PromptReset = (props: Props) => {
     } else {
       nav.safeNavigateAppend('resetKnowPassword', true)
     }
-  }, [submitResetPassword, resetAccount, skipPassword, resetPassword, nav])
-  const onBack = React.useCallback(() => {
+  }
+  const onBack = () => {
     if (skipPassword) {
       startRecoverPassword({replaceRoute: true, username})
     } else {
       nav.safeNavigateUp()
     }
-  }, [startRecoverPassword, skipPassword, nav, username])
+  }
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
 
   return (

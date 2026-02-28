@@ -78,17 +78,14 @@ const AudioPlayer = (props: Props) => {
     }
   }
 
-  const onPositionUpdated = React.useCallback(
-    (ratio: number) => {
-      setPlayedRatio(ratio)
-    },
-    [setPlayedRatio]
-  )
+  const onPositionUpdated = (ratio: number) => {
+    setPlayedRatio(ratio)
+  }
 
-  const onEnded = React.useCallback(() => {
+  const onEnded = () => {
     setPaused(true)
     setPlayedRatio(0)
-  }, [setPaused, setPlayedRatio])
+  }
 
   const timeLeft = duration - playedRatio * duration
   return (

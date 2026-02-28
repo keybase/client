@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemTextType from './container'
 
-const SystemText = React.memo(function SystemText(p: Props) {
+function SystemText(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemText = React.memo(function SystemText(p: Props) {
       <SystemText text={message.text.stringValue()} />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemText

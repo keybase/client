@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '@/styles'
 import {smallHeight, largeHeight} from './list-item'
@@ -8,52 +7,43 @@ import noop from 'lodash/noop'
 
 const AnimatedFlatList = ReAnimated.FlatList
 
-const List = React.memo(function List<T>(p: Props<T>) {
+function List<T>(p: Props<T>) {
   const {indexAsKey, keyProperty, itemHeight, renderItem, ...props} = p
 
-  const itemRender = React.useCallback(
-    ({item, index}: {item: T; index: number}) => {
-      return renderItem(index, item)
-    },
-    [renderItem]
-  )
+  const itemRender = ({item, index}: {item: T; index: number}) => {
+    return renderItem(index, item)
+  }
 
-  const getItemLayout = React.useCallback(
-    (data: ArrayLike<T> | null | undefined, index: number) => {
-      switch (itemHeight.type) {
-        case 'fixed':
-          return {index, length: itemHeight.height, offset: itemHeight.height * index}
-        case 'fixedListItemAuto': {
-          const length = itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-          return {index, length, offset: length * index}
-        }
-        case 'variable':
-          return {...itemHeight.getItemLayout(index, data ? data[index] : undefined)}
-        default:
-          return {index, length: 0, offset: 0}
+  const getItemLayout = (data: ArrayLike<T> | null | undefined, index: number) => {
+    switch (itemHeight.type) {
+      case 'fixed':
+        return {index, length: itemHeight.height, offset: itemHeight.height * index}
+      case 'fixedListItemAuto': {
+        const length = itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+        return {index, length, offset: length * index}
       }
-    },
-    [itemHeight]
-  )
+      case 'variable':
+        return {...itemHeight.getItemLayout(index, data ? data[index] : undefined)}
+      default:
+        return {index, length: 0, offset: 0}
+    }
+  }
 
-  const keyExtractor = React.useCallback(
-    (item: T, index: number) => {
-      if (indexAsKey || !item) {
-        return String(index)
-      }
+  const keyExtractor = (item: T, index: number) => {
+    if (indexAsKey || !item) {
+      return String(index)
+    }
 
-      const keyProp = keyProperty || 'key'
-      const i: {[key: string]: string} = item
-      return i[keyProp] ?? String(index)
-    },
-    [indexAsKey, keyProperty]
-  )
+    const keyProp = keyProperty || 'key'
+    const i: {[key: string]: string} = item
+    return i[keyProp] ?? String(index)
+  }
 
-  const List = props.reAnimated ? AnimatedFlatList : FlatList
+  const ListComp = props.reAnimated ? AnimatedFlatList : FlatList
   return (
     <View style={styles.outerView}>
       {/* need windowSize so iphone 6 doesn't have OOM issues */}
-      <List
+      <ListComp
         overScrollMode="never"
         bounces={p.bounces}
         renderItem={itemRender}
@@ -69,7 +59,7 @@ const List = React.memo(function List<T>(p: Props<T>) {
       />
     </View>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

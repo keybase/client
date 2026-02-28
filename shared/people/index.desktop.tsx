@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {PeoplePageList} from './index.shared'
 import type {WrapProps} from '.'
 
-const People = React.memo(function People(props: WrapProps) {
+function People(props: WrapProps) {
   const {waiting, ...rest} = props
   return (
     <Kb.ScrollView style={styles.container}>
@@ -11,7 +10,7 @@ const People = React.memo(function People(props: WrapProps) {
       <PeoplePageList {...rest} />
     </Kb.ScrollView>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {

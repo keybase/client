@@ -70,8 +70,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
-  const menuItems: Array<Kb.MenuItem> = React.useMemo(
-    () => [
+  const menuItems: Array<Kb.MenuItem> = [
       // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
       // It's included in the other place this menu appears.
       ...(canDelete
@@ -86,12 +85,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             },
           ]
         : []),
-    ],
-    [deleteChannelConfirmed, nav, teamID, conversationIDKey, canDelete]
-  )
+    ]
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -102,9 +98,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           visible={true}
         />
       )
-    },
-    [menuItems]
-  )
+    }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 

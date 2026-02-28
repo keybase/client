@@ -24,10 +24,10 @@ const VideoImpl = (p: Props) => {
     setShowPoster(true)
   }
 
-  const onPress = React.useCallback(() => {
+  const onPress = () => {
     setShowPoster(false)
     player.play()
-  }, [player])
+  }
 
   useEventListener(player, 'playToEnd', () => {
     player.replay()

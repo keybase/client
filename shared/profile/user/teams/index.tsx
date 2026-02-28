@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useTrackerState} from '@/stores/tracker'
@@ -78,13 +77,10 @@ const Container = (ownProps: OwnProps) => {
 
 const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
   const {name, isOpen} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    },
-    [props]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.ClickableBox ref={popupAnchor} onClick={showPopup}>

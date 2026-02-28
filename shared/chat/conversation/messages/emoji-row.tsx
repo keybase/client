@@ -12,7 +12,7 @@ type OwnProps = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
+function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
 
@@ -28,21 +28,18 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
 
   const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = Chat.useChatNavigateAppend()
-  const _onForward = React.useCallback(() => {
+  const _onForward = () => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, ordinal},
       selected: 'chatForwardMsgPick',
     }))
-  }, [navigateAppend, ordinal])
-  const onReact = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
-  const _onReply = React.useCallback(() => {
+  }
+  const onReact = (emoji: string) => {
+    toggleMessageReaction(ordinal, emoji)
+  }
+  const _onReply = () => {
     setReplyTo(ordinal)
-  }, [setReplyTo, ordinal])
+  }
 
   const onForward = hasUnfurls || type === 'attachment' ? _onForward : undefined
   const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
@@ -106,12 +103,12 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
       )}
     </Kb.Box2Measure>
   )
-})
+}
 
 const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
   const [hovering, setHovering] = React.useState(false)
-  const _setHovering = React.useCallback(() => setHovering(true), [])
-  const _setNotHovering = React.useCallback(() => setHovering(false), [])
+  const _setHovering = () => setHovering(true)
+  const _setNotHovering = () => setHovering(false)
   return (
     <Kb.ClickableBox
       onClick={props.onClick}

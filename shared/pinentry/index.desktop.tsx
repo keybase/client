@@ -26,14 +26,14 @@ const Pinentry = (props: Props) => {
     }
   }, [_showTyping])
 
-  const handleCheck = React.useCallback((showTyping: boolean) => {
+  const handleCheck = (showTyping: boolean) => {
     setShowTyping(showTyping)
-  }, [])
+  }
 
-  const handleSubmit = React.useCallback(() => {
+  const handleSubmit = () => {
     onSubmit(password)
     setPassword('')
-  }, [password, onSubmit])
+  }
 
   const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
 

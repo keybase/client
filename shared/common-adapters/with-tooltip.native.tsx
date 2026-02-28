@@ -57,13 +57,11 @@ const WithTooltip = (props: Props) => {
   const {width: screenWidth, height: screenHeight} = useSafeAreaFrame()
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        setVisible(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      setVisible(false)
+    }
+  })
 
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {

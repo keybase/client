@@ -19,9 +19,9 @@ export const animationDuration = 1500
 const ExplodingHeightRetainer = (p: Props) => {
   const {retainHeight, explodedBy, messageKey, style, children} = p
   const [height, setHeight] = React.useState(20)
-  const onLayout = React.useCallback((evt: Kb.LayoutEvent) => {
+  const onLayout = (evt: Kb.LayoutEvent) => {
     setHeight(evt.nativeEvent.layout.height)
-  }, [])
+  }
   const numImages = Math.ceil(height / 80)
 
   return (

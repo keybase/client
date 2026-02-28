@@ -37,9 +37,7 @@ const CreateChannels = (props: Props) => {
     setSuccess(prevWaitingRef.current && !waiting && !error)
   }, [waiting, error])
 
-  const banners = React.useMemo(
-    () =>
-      error ? (
+  const banners = error ? (
         <Kb.Banner color="red" key="error">
           {error}
         </Kb.Banner>
@@ -47,9 +45,7 @@ const CreateChannels = (props: Props) => {
         <Kb.Banner color="green" key="success">
           Successfully created channels.
         </Kb.Banner>
-      ) : null,
-    [error, success]
-  )
+      ) : null
 
   const onSubmitChannels = (channels: Array<string>) => {
     createChannels(teamID, channels)

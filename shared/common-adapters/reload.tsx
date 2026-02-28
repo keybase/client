@@ -30,9 +30,9 @@ type ReloadProps = {
   title?: string
 }
 
-const Reload = React.memo(function Reload(props: ReloadProps) {
+function Reload(props: ReloadProps) {
   const [expanded, setExpanded] = React.useState(false)
-  const toggle = React.useCallback(() => setExpanded(e => !e), [])
+  const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
       {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
@@ -60,7 +60,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
       </Kb.ScrollView>
     </Kb.Box2>
   )
-})
+}
 
 export type Props = {
   children: React.ReactNode
@@ -76,13 +76,11 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  const onEventReload = C.useEvent(onReload)
+  const onEventReload = React.useEffectEvent(onReload)
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      reloadOnMount && onEventReload()
-    }, [reloadOnMount, onEventReload])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    reloadOnMount && onEventReload()
+  })
   if (!props.needsReload) {
     return <>{props.children}</>
   }

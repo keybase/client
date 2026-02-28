@@ -36,14 +36,7 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
-  const loadTeamList = React.useCallback(() => {
-    getTeamProfileAddList(them)
-  }, [getTeamProfileAddList, them])
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => {
-    navigateUp()
-    resetTeamProfileAddList()
-  }, [navigateUp, resetTeamProfileAddList])
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const _teamNameToRole = [...teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
@@ -56,15 +49,17 @@ const Container = (ownProps: OwnProps) => {
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
   const [sendNotification, setSendNotification] = React.useState(true)
 
-  const ownerDisabledReason = React.useMemo(
-    () => getOwnerDisabledReason(selectedTeams, _teamNameToRole),
-    [selectedTeams, _teamNameToRole]
-  )
+  const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, _teamNameToRole)
 
   React.useEffect(() => {
     clearAddUserToTeamsResults()
-    loadTeamList()
-  }, [clearAddUserToTeamsResults, loadTeamList])
+    getTeamProfileAddList(them)
+  }, [clearAddUserToTeamsResults, getTeamProfileAddList, them])
+
+  const onBack = () => {
+    navigateUp()
+    resetTeamProfileAddList()
+  }
 
   const onSave = () => {
     onAddToTeams(selectedRole, [...selectedTeams])
@@ -108,14 +103,12 @@ const Container = (ownProps: OwnProps) => {
 
   React.useEffect(() => {
     if (addUserToTeamsState === 'succeeded') {
-      // If we succeeded, close the modal
-      onBack()
+      navigateUp()
+      resetTeamProfileAddList()
     } else if (addUserToTeamsState === 'failed') {
-      // If we failed, reload the team list -- some teams might have succeeded
-      // and should be updated.
-      loadTeamList()
+      getTeamProfileAddList(them)
     }
-  }, [addUserToTeamsState, onBack, loadTeamList])
+  }, [addUserToTeamsState, navigateUp, resetTeamProfileAddList, getTeamProfileAddList, them])
 
   const selectedTeamCount = selectedTeams.size
 

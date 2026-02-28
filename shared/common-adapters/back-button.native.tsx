@@ -14,14 +14,14 @@ const Kb = {
   Icon,
 }
 
-const BackButton = React.memo(function BackButton(props: Props) {
+function BackButton(props: Props) {
   const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onNavUp = React.useCallback(() => {
+  const onNavUp = () => {
     // this helps with some timing issues w/ dismissing keyboard avoiding views
     Keyboard.dismiss()
     navigateUp()
-  }, [navigateUp])
+  }
   const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
     <Pressable onPress={onBack}>
@@ -36,7 +36,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
       </Kb.Box2>
     </Pressable>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   arrow: {

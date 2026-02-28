@@ -77,10 +77,10 @@ const useTooltip = () => {
     </Portal>
   ) : null
 
-  const flashTip = React.useCallback(() => {
+  const flashTip = () => {
     'worklet'
     runOnJS(setShowTooltip)(true)
-  }, [setShowTooltip])
+  }
 
   return {flashTip, tooltip}
 }
@@ -121,34 +121,34 @@ const useIconAndOverlay = (p: {
     }
   )
 
-  const onReset = React.useCallback(() => {
+  const onReset = () => {
     'worklet'
     fadeSV.set(withTiming(0, {duration: 200}))
     dragXSV.set(0)
     dragYSV.set(0)
     lockedSV.set(0)
     canceledSV.set(0)
-  }, [fadeSV, dragXSV, dragYSV, lockedSV, canceledSV])
+  }
 
-  const onCancelRecording = React.useCallback(() => {
+  const onCancelRecording = () => {
     onReset()
     cancelRecording()
-  }, [cancelRecording, onReset])
+  }
 
-  const onStageRecording = React.useCallback(() => {
+  const onStageRecording = () => {
     onReset()
     stageRecording()
-  }, [stageRecording, onReset])
+  }
 
-  const onSendRecording = React.useCallback(() => {
+  const onSendRecording = () => {
     onReset()
     sendRecording()
-  }, [sendRecording, onReset])
+  }
 
-  const onFlashTip = React.useCallback(() => {
+  const onFlashTip = () => {
     flashTip()
     onCancelRecording()
-  }, [flashTip, onCancelRecording])
+  }
 
   const [iconVisible, setIconVisible] = React.useState(false)
 
@@ -163,7 +163,7 @@ const useIconAndOverlay = (p: {
   }, [])
   const panStartSV = useSharedValue(0)
 
-  const gesture = React.useMemo(() => {
+  const gesture = (() => {
     let id: number
     const showOverlay = () => {
       // we get this multiple times for some reason
@@ -239,20 +239,7 @@ const useIconAndOverlay = (p: {
         }
       })
     return panGesture
-  }, [
-    onReset,
-    panStartSV,
-    fadeSV,
-    onFlashTip,
-    lockedSV,
-    canceledSV,
-    dragXSV,
-    dragYSV,
-    startRecording,
-    sendRecording,
-    onCancelRecording,
-    startedSV,
-  ])
+  })()
 
   const icon = iconVisible ? (
     <View>
@@ -353,7 +340,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
   }, [recorderState, ampTracker, ampSV])
 
-  const stopRecording = React.useCallback(async () => {
+  const stopRecording = async () => {
     const needsTeardown = hasSetupRecording.current
     if (needsTeardown) {
       hasSetupRecording.current = false
@@ -366,9 +353,9 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     } catch (e) {
       console.log('Recording stopping fail', e)
     }
-  }, [recorder])
+  }
 
-  const onReset = React.useCallback(async () => {
+  const onReset = async () => {
     try {
       await stopRecording()
     } catch {}
@@ -384,10 +371,10 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     recordEndRef.current = 0
     setStaged(false)
     setShowAudioSend(false)
-  }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
+  }
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
 
-  const startRecording = React.useCallback(() => {
+  const startRecording = () => {
     const checkPerms = async () => {
       try {
         let {status} = await AudioModule.getRecordingPermissionsAsync()
@@ -439,11 +426,11 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
         void onReset()
       })
     return
-  }, [setCommandStatusInfo, recorder, onReset])
+  }
 
   const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
 
-  const sendRecording = React.useCallback(() => {
+  const sendRecording = () => {
     const impl = async () => {
       await stopRecording()
       vibrate(false)
@@ -460,13 +447,13 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [sendAudioRecording, ampTracker, onReset, stopRecording])
+  }
 
-  const cancelRecording = React.useCallback(() => {
+  const cancelRecording = () => {
     onReset()
       .then(() => {})
       .catch(() => {})
-  }, [onReset])
+  }
 
   const audioSend = showAudioSend ? (
     <AudioSend
@@ -478,7 +465,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     />
   ) : null
 
-  const stageRecording = React.useCallback(() => {
+  const stageRecording = () => {
     const impl = async () => {
       await stopRecording()
       setStaged(true)
@@ -487,22 +474,24 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [stopRecording, setStaged, setShowAudioSend])
+  }
 
   // on unmount cleanup
+  const onResetRef = React.useRef(onReset)
+  onResetRef.current = onReset
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onReset()
+      onResetRef.current()
         .then(() => {})
         .catch(() => {})
     }
-  }, [onReset, setShowAudioSend])
+  }, [setShowAudioSend])
 
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
-const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
+const AudioRecorder = function AudioRecorder(props: Props) {
   const {setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
@@ -529,7 +518,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
       {overlay}
     </>
   )
-})
+}
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   'use no memo'

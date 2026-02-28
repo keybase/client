@@ -20,7 +20,7 @@ const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device
 
 const itemHeight = {height: 48, type: 'fixed'} as const
 
-const ReloadableDevices = React.memo(function ReloadableDevices() {
+function ReloadableDevices() {
   const deviceMap = Devices.useDevicesState(s => s.deviceMap)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const {load: loadDevices, clearBadges} = Devices.useDevicesState(s => s.dispatch)
@@ -30,9 +30,9 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
   const newlyChangedItemIds = badged
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       loadDevices()
-    }, [loadDevices])
+    }
   )
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -45,7 +45,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
     navigateUp()
   }
 
-  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, _items} = React.useMemo(() => {
+  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, _items} = (() => {
     const [revoked, normal] = splitAndSortDevices(deviceMap)
     const revokedItems = revoked.map(deviceToItem)
     const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), newlyChangedItemIds)
@@ -58,10 +58,10 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
       revokedItems,
       showPaperKeyNudge,
     }
-  }, [deviceMap, newlyChangedItemIds])
+  })()
 
   const [revokedExpanded, setRevokeExpanded] = React.useState(false)
-  const toggleExpanded = React.useCallback(() => setRevokeExpanded(p => !p), [])
+  const toggleExpanded = () => setRevokeExpanded(p => !p)
 
   React.useEffect(() => {
     loadDevices()
@@ -74,38 +74,32 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
       setRevokeExpanded(true)
     }
   }, [hasNewlyRevoked])
-  const renderItem = React.useCallback(
-    (index: number, item: Item) => {
-      if (item.type === 'revokedHeader') {
-        return (
-          <Kb.SectionDivider
-            key="revokedHeader"
-            collapsed={!revokedExpanded}
-            onToggleCollapsed={toggleExpanded}
-            label="Revoked devices"
-          />
-        )
-      } else if (item.type === 'revokedNote') {
-        return (
-          <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
-            Revoked devices are no longer able to access your Keybase account.
-          </Kb.Text>
-        )
-      } else {
-        return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
-      }
-    },
-    [revokedExpanded, toggleExpanded]
-  )
+  const renderItem = (index: number, item: Item) => {
+    if (item.type === 'revokedHeader') {
+      return (
+        <Kb.SectionDivider
+          key="revokedHeader"
+          collapsed={!revokedExpanded}
+          onToggleCollapsed={toggleExpanded}
+          label="Revoked devices"
+        />
+      )
+    } else if (item.type === 'revokedNote') {
+      return (
+        <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
+          Revoked devices are no longer able to access your Keybase account.
+        </Kb.Text>
+      )
+    } else {
+      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+    }
+  }
 
-  const items: Array<Item> = React.useMemo(
-    () => [
-      ..._items,
-      ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
-      ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
-    ],
-    [_items, revokedExpanded, revokedItems]
-  )
+  const items: Array<Item> = [
+    ..._items,
+    ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
+    ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
+  ]
 
   return (
     <Kb.Reloadable
@@ -131,7 +125,7 @@ const ReloadableDevices = React.memo(function ReloadableDevices() {
       </NewContext.Provider>
     </Kb.Reloadable>
   )
-})
+}
 
 type Item =
   | {key: string; id: T.Devices.DeviceID; type: 'device'}

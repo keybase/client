@@ -294,10 +294,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'})
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -412,10 +409,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     }
   }
 
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'})
 
   const {expanded, setExpanded} = props
 
@@ -700,8 +694,7 @@ export const TeamMemberHeader = (props: Props) => {
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
   const nav = useSafeNavigation()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
       return (
@@ -713,9 +706,7 @@ const BlockDropdown = (props: {username: string}) => {
           items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
         />
       )
-    },
-    [nav, username]
-  )
+    }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>

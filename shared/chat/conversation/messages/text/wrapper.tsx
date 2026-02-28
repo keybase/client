@@ -32,7 +32,7 @@ const getStyle = (
   }
 }
 
-const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
+function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
   const {style} = p
   const ordinal = useOrdinal()
   const text = Chat.useChatContext(s => {
@@ -43,7 +43,7 @@ const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles
     return decoratedText ? decoratedText.stringValue() : text.stringValue()
   })
 
-  const styleOverride = React.useMemo(() => (Kb.Styles.isMobile ? {paragraph: style} : undefined), [style])
+  const styleOverride = Kb.Styles.isMobile ? {paragraph: style} : undefined
 
   return (
     <Kb.Markdown
@@ -56,9 +56,9 @@ const MessageMarkdown = React.memo(function MessageMarkdown(p: {style: Kb.Styles
       {text}
     </Kb.Markdown>
   )
-})
+}
 
-const WrapperText = React.memo(function WrapperText(p: Props) {
+function WrapperText(p: Props) {
   const {ordinal} = p
   // Fetch message data once and share with both useCommon and WrapperMessage
   const messageData = useMessageData(ordinal)
@@ -117,14 +117,12 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
     setStyle(old => (isEqual(s, old) ? old : s))
   }, [textType, isEditing, showCenteredHighlight])
 
-  const children = React.useMemo(() => {
-    return (
-      <>
-        {reply}
-        <MessageMarkdown style={style} />
-      </>
-    )
-  }, [reply, style])
+  const children = (
+    <>
+      {reply}
+      <MessageMarkdown style={style} />
+    </>
+  )
 
   // due to recycling, we can have items that aren't connected to the list that might have live connectors
   // so when we load more etc the entire messagMap could no longer have your item
@@ -137,6 +135,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       {children}
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperText

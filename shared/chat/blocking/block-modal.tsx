@@ -123,7 +123,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
-const Container = React.memo(function BlockModal(ownProps: OwnProps) {
+const Container = function BlockModal(ownProps: OwnProps) {
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
@@ -140,47 +140,38 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
 
   const onClose = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
-  const leaveTeamAndBlock = React.useCallback(
-    (teamname: string) => {
-      leaveTeam(teamname, true, 'chat')
-    },
-    [leaveTeam]
-  )
+  const leaveTeamAndBlock = (teamname: string) => {
+    leaveTeam(teamname, true, 'chat')
+  }
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const _reportUser = useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
-  const reportUser = React.useCallback(
-    (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
-      _reportUser({
-        comment: report.extraNotes,
-        conversationIDKey,
-        includeTranscript: report.includeTranscript && !!conversationIDKey,
-        reason: report.reason,
-        username,
-      })
-    },
-    [_reportUser]
-  )
+  const reportUser = (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
+    _reportUser({
+      comment: report.extraNotes,
+      conversationIDKey,
+      includeTranscript: report.includeTranscript && !!conversationIDKey,
+      reason: report.reason,
+      username,
+    })
+  }
   const setConversationStatus = Chat.useChatContext(s => s.dispatch.blockConversation)
   const _setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
-  const setUserBlocks = React.useCallback(
-    (newBlocks: NewBlocksMap) => {
-      // Convert our state block array to action payload.
-      const blocks = [...newBlocks.entries()]
-        .filter(
-          ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
-        )
-        .map(([username, userBlocks]) => ({
-          setChatBlock: userBlocks.chatBlocked,
-          setFollowBlock: userBlocks.followBlocked,
-          username,
-        }))
-      if (blocks.length) {
-        _setUserBlocks(blocks)
-      }
-    },
-    [_setUserBlocks]
-  )
+  const setUserBlocks = (newBlocks: NewBlocksMap) => {
+    // Convert our state block array to action payload.
+    const blocks = [...newBlocks.entries()]
+      .filter(
+        ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
+      )
+      .map(([username, userBlocks]) => ({
+        setChatBlock: userBlocks.chatBlocked,
+        setFollowBlock: userBlocks.followBlocked,
+        username,
+      }))
+    if (blocks.length) {
+      _setUserBlocks(blocks)
+    }
+  }
 
   const otherUsernames = others && others.length > 0 ? others : undefined
   const finishWaiting = waitingForLeave || waitingForBlocking || waitingForReport
@@ -210,13 +201,6 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       onClose()
     }
   }
-  const refreshBlocks = React.useCallback(() => {
-    const usernames = [...(adderUsername ? [adderUsername] : []), ...(otherUsernames || [])]
-    if (usernames.length) {
-      refreshBlocksFor(usernames)
-    }
-  }, [adderUsername, otherUsernames, refreshBlocksFor])
-
   const [blockTeam, setBlockTeam] = React.useState(true)
   const [finishClicked, setFinishClicked] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
@@ -230,7 +214,10 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
 
     // Once we get here, trigger actions to refresh current block state of
     // users.
-    refreshBlocks()
+    const usernames = [...(adderUsername ? [adderUsername] : []), ...(otherUsernames || [])]
+    if (usernames.length) {
+      refreshBlocksFor(usernames)
+    }
 
     // Set default checkbox block values for adder user. We don't care if they
     // are already blocked, setting a block is idempotent.
@@ -259,7 +246,8 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
     context,
     flagUserByDefault,
     newBlocks,
-    refreshBlocks,
+    otherUsernames,
+    refreshBlocksFor,
     reportsUserByDefault,
   ])
 
@@ -516,7 +504,7 @@ const Container = React.memo(function BlockModal(ownProps: OwnProps) {
       />
     </Kb.Modal>
   )
-})
+}
 
 export default Container
 

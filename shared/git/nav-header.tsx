@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Git from '@/stores/git'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 export const HeaderTitle = () => {
@@ -33,34 +32,31 @@ export const HeaderRightActions = () => {
   const setError = Git.useGitState(s => s.dispatch.setError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onAddPersonal = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
-      }
-      const onAddTeam = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
-      }
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onAddPersonal = () => {
+      setError(undefined)
+      navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
+    }
+    const onAddTeam = () => {
+      setError(undefined)
+      navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
+    }
 
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          onHidden={hidePopup}
-          position="bottom center"
-          items={[
-            {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
-            {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
-          ]}
-        />
-      )
-    },
-    [navigateAppend, setError]
-  )
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        visible={true}
+        onHidden={hidePopup}
+        position="bottom center"
+        items={[
+          {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
+          {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
+        ]}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (

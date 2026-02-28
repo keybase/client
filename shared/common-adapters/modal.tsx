@@ -113,19 +113,16 @@ const Header = (props: HeaderProps) => {
   const [measured, setMeasured] = React.useState(false)
   const setMeasuredLater = Kb.useTimeout(() => setMeasured(true), 100)
   const [widerWidth, setWiderWidth] = React.useState(-1)
-  const onLayoutSide = React.useCallback(
-    (evt: LayoutEvent) => {
-      if (measured) {
-        return
-      }
-      const {width} = evt.nativeEvent.layout
-      if (width > widerWidth) {
-        setWiderWidth(width)
-        setMeasuredLater()
-      }
-    },
-    [measured, widerWidth, setMeasuredLater]
-  )
+  const onLayoutSide = (evt: LayoutEvent) => {
+    if (measured) {
+      return
+    }
+    const {width} = evt.nativeEvent.layout
+    if (width > widerWidth) {
+      setWiderWidth(width)
+      setMeasuredLater()
+    }
+  }
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
@@ -202,18 +199,14 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void): HeaderProps =>
-  React.useMemo(
-    () => ({
-      leftButton: (
-        <Kb.Text type="BodyBigLink" onClick={onCancel}>
-          Cancel
-        </Kb.Text>
-      ),
-      title,
-    }),
-    [title, onCancel]
-  )
+export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void): HeaderProps => ({
+  leftButton: (
+    <Kb.Text type="BodyBigLink" onClick={onCancel}>
+      Cancel
+    </Kb.Text>
+  ),
+  title,
+})
 
 const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
   <Kb.Box2

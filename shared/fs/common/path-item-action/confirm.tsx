@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import * as Kb from '@/common-adapters'
@@ -22,13 +21,10 @@ const Container = (ownProps: OwnProps) => {
       return {_pathItemActionMenu, download, setPathItemActionMenuView, size}
     })
   )
-  const _confirm = React.useCallback(
-    ({view, previousView}: typeof _pathItemActionMenu) => {
-      download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
-      setPathItemActionMenuView(previousView)
-    },
-    [setPathItemActionMenuView, download, path]
-  )
+  const _confirm = ({view, previousView}: typeof _pathItemActionMenu) => {
+    download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
+    setPathItemActionMenuView(previousView)
+  }
   const action =
     _pathItemActionMenu.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
       ? 'save-media'

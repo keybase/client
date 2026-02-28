@@ -43,7 +43,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   const canSubmit = !!user && !waiting && isPhoneValid
 
-  const _onContinue = React.useCallback(() => {
+  const _onContinue = () => {
     if (!canSubmit) {
       return
     }
@@ -52,7 +52,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setPhoneValidity(false)
-  }, [addUsersToTeamSoFar, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
+  }
 
   return (
     <>

@@ -15,7 +15,7 @@ export const Video = (p: Props) => {
     setPlaying(autoPlay)
   }
 
-  const _onClick = React.useCallback(() => {
+  const _onClick = () => {
     if (onClick) {
       onClick()
       return
@@ -32,7 +32,7 @@ export const Video = (p: Props) => {
       videoRef.current.pause()
     }
     setPlaying(p => !p)
-  }, [playing, onClick])
+  }
 
   return (
     <Kb.Box2 direction="horizontal" relative={true} style={styles.container}>

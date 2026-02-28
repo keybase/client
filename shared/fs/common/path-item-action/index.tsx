@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
@@ -38,7 +38,7 @@ type ICProps = {
   sizeType: SizeType
   actionIconWhite?: boolean | undefined
 }
-const IconClickable = React.memo(function IconClickable(props: ICProps) {
+function IconClickable(props: ICProps) {
   const {measureRef, actionIconWhite, sizeType, onClick} = props
   return (
     <Kb.WithTooltip tooltip="More actions">
@@ -54,7 +54,7 @@ const IconClickable = React.memo(function IconClickable(props: ICProps) {
       />
     </Kb.WithTooltip>
   )
-})
+}
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
@@ -66,43 +66,38 @@ const PathItemAction = (props: Props) => {
     })
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
 
-      const hide = () => {
-        hidePopup()
-        setPathItemActionMenuDownload()
-      }
+    const hide = () => {
+      hidePopup()
+      setPathItemActionMenuDownload()
+    }
 
-      return (
-        <ChooseView
-          path={path}
-          mode={mode}
-          floatingMenuProps={{
-            attachTo,
-            containerStyle: styles.floatingContainer,
-            hide,
-            visible: true,
-          }}
-        />
-      )
-    },
-    [setPathItemActionMenuDownload, path, mode]
-  )
+    return (
+      <ChooseView
+        path={path}
+        mode={mode}
+        floatingMenuProps={{
+          attachTo,
+          containerStyle: styles.floatingContainer,
+          hide,
+          visible: true,
+        }}
+      />
+    )
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     setPathItemActionMenuView(initView)
     showPopup()
-  }, [initView, setPathItemActionMenuView, showPopup])
+  }
 
   if (props.path === FS.defaultPath) {
     return null
   }
 
-  // TODO: should probably React.memo this as it's on every row. Would need to
-  // do something about the `clickable` prop though, perhaps flattening it.
   return (
     <>
       {props.clickable.type === 'component' && (

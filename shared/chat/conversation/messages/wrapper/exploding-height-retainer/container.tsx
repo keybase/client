@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
+import type * as React from 'react'
 import ExplodingHeightRetainer from '.'
 import {useOrdinal} from '../../ids-context'
 
@@ -8,7 +8,7 @@ type OwnProps = {
   children: React.ReactElement
 }
 
-const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {
+function ExplodingHeightRetainerContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const {children} = p
   const {forceAsh, exploding, exploded, explodedBy, messageKey} = Chat.useChatContext(
@@ -35,6 +35,6 @@ const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightReta
   }
 
   return <ExplodingHeightRetainer {...props} />
-})
+}
 
 export default ExplodingHeightRetainerContainer

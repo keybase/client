@@ -20,13 +20,13 @@ const Waiting = (props: Props) => {
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
   const nav = useSafeNavigation()
-  const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
+  const onClose = () => nav.safeNavigateAppend('login', true)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onSendAgain = React.useCallback(() => {
+  const onSendAgain = () => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
     resetAccount()
-  }, [resetAccount])
+  }
   const _sendAgainWaiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaitingRef = React.useRef(sendAgainWaiting)

@@ -16,25 +16,22 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   })
 
   const loadNextAttachment = Chat.useChatContext(s => s.dispatch.loadNextAttachment)
-  const onSwitchAttachment = React.useCallback(
-    (backInTime: boolean) => {
-      const f = async () => {
-        if (conversationIDKey !== blankMessage.conversationIDKey) {
-          const o = await loadNextAttachment(ordinal, backInTime)
-          setOrdinal(o)
-        }
+  const onSwitchAttachment = (backInTime: boolean) => {
+    const f = async () => {
+      if (conversationIDKey !== blankMessage.conversationIDKey) {
+        const o = await loadNextAttachment(ordinal, backInTime)
+        setOrdinal(o)
       }
-      C.ignorePromise(f())
-    },
-    [conversationIDKey, loadNextAttachment, ordinal]
-  )
+    }
+    C.ignorePromise(f())
+  }
 
-  const onNextAttachment = React.useCallback(() => {
+  const onNextAttachment = () => {
     onSwitchAttachment(false)
-  }, [onSwitchAttachment])
-  const onPreviousAttachment = React.useCallback(() => {
+  }
+  const onPreviousAttachment = () => {
     onSwitchAttachment(true)
-  }, [onSwitchAttachment])
+  }
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop

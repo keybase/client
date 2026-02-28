@@ -27,13 +27,13 @@ const ForgotUsername = () => {
 
   const forgotUsername = useProvisionState(s => s.dispatch.forgotUsername)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!emailSelected && phoneNumber) {
       forgotUsername(phoneNumber)
     } else if (emailSelected) {
       forgotUsername(undefined, email)
     }
-  }, [forgotUsername, email, phoneNumber, emailSelected])
+  }
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === undefined) || (emailSelected && !email)

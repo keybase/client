@@ -1,15 +1,15 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {List as ReactWindowList, type RowComponentProps} from 'react-window'
 import type {Props} from './list'
 import {smallHeight, largeHeight} from './list-item'
 
-const Row = React.memo(function Row(
+const Row = ((
   p: RowComponentProps<{
     items: ReadonlyArray<unknown>
     renderItem: (index: number, item: unknown) => React.ReactElement | null
   }>
-) {
+) => {
   const {index, style, items, renderItem} = p
   const item = items[index]
   return item ? <div style={style}>{renderItem(index, item)}</div> : <div style={style} />

@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemChangeAvatarType from '.'
 
-const SystemChangeAvatar = React.memo(function SystemChangeAvatar(p: Props) {
+function SystemChangeAvatar(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemChangeAvatar = React.memo(function SystemChangeAvatar(p: Props) {
       <SystemChangeAvatar message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemChangeAvatar

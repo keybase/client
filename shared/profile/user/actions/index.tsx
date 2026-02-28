@@ -183,48 +183,36 @@ type DropdownProps = {
 const DropdownButton = (p: DropdownProps) => {
   const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
   const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const items: Kb.MenuItems = [
-        isBot
-          ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
-          : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
-        {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
-        {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
-        onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
-        {
-          danger: true,
-          icon: 'iconfont-remove',
-          onClick: onManageBlocking,
-          title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
-        },
-      ].reduce<Kb.MenuItems>((arr, i) => {
-        i && arr.push(i as Kb.MenuItem)
-        return arr
-      }, [])
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          attachTo={attachTo}
-          items={items}
-          onHidden={hidePopup}
-          position="bottom right"
-          visible={true}
-        />
-      )
-    },
-    [
-      blockedOrHidFromFollowers,
-      isBot,
-      onAddToTeam,
-      onBrowsePublicFolder,
-      onInstallBot,
-      onManageBlocking,
-      onOpenPrivateFolder,
-      onUnfollow,
-    ]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const items: Kb.MenuItems = [
+      isBot
+        ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
+        : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
+      {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
+      {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
+      onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
+      {
+        danger: true,
+        icon: 'iconfont-remove',
+        onClick: onManageBlocking,
+        title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+      },
+    ].reduce<Kb.MenuItems>((arr, i) => {
+      i && arr.push(i as Kb.MenuItem)
+      return arr
+    }, [])
+    return (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        attachTo={attachTo}
+        items={items}
+        onHidden={hidePopup}
+        position="bottom right"
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

@@ -13,13 +13,13 @@ type OwnProps = {
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
-const Container = React.memo(function Container(ownProps: OwnProps) {
+function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps
   const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showExistingDevicePage = React.useCallback(() => {
+  const showExistingDevicePage = () => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})
-  }, [navigateAppend, deviceID])
+  }
 
   const isNew = React.useContext(NewContext).has(deviceID)
   if (!device) return null
@@ -58,7 +58,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

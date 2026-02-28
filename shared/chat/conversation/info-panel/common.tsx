@@ -28,11 +28,11 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
     getMembers(teamID)
   }
   const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const bots = React.useMemo(() => {
+  const bots = (() => {
     const ret = new Set<string>()
     teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))
     return ret
-  }, [teamMembers])
+  })()
   const teamHumanCount = (teamMembers?.size ?? 0) - bots.size
   return {bots, teamHumanCount}
 }

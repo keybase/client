@@ -80,13 +80,10 @@ const ConnectedEnterPhoneNumber = () => {
   const onClear = clearPhoneNumberErrors
   const addPhoneNumber = useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onGoToVerify = React.useCallback(() => {
-    navigateAppend('signupVerifyPhoneNumber')
-  }, [navigateAppend])
-  const onSkip = React.useCallback(() => {
+  const onSkip = () => {
     clearPhoneNumberAdd()
     navigateAppend('signupEnterEmail', true)
-  }, [clearPhoneNumberAdd, navigateAppend])
+  }
 
   React.useEffect(() => {
     return () => {
@@ -97,10 +94,10 @@ const ConnectedEnterPhoneNumber = () => {
   const lastPendingVerificationRef = React.useRef(pendingVerification)
   React.useEffect(() => {
     if (!error && pendingVerification && lastPendingVerificationRef.current !== pendingVerification) {
-      onGoToVerify()
+      navigateAppend('signupVerifyPhoneNumber')
     }
     lastPendingVerificationRef.current = pendingVerification
-  }, [pendingVerification, error, onGoToVerify])
+  }, [pendingVerification, error, navigateAppend])
 
   // trigger a default phone number country rpc if it's not already loaded
   const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)

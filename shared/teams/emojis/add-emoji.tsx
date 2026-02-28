@@ -41,7 +41,7 @@ const useDoAddEmojis = (
   const addEmojisRpc = C.useRPC(T.RPCChat.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
-  const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
+  const clearBannerError = () => setBannerError('')
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddEmojis =
@@ -85,8 +85,7 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
 
-  const addFiles = React.useCallback(
-    (paths: Array<string>) => {
+  const addFiles = (paths: Array<string>) => {
       const pathsToAdd = paths.reduce(
         ({deduplicated, set}, path) => {
           if (!set.has(path)) {
@@ -108,34 +107,25 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
         )
       )
       setFilePaths([...filePaths, ...pathsToAdd])
-    },
-    [filePaths, aliasMap, setFilePaths]
-  )
-  const clearFiles = React.useCallback(() => setFilePaths([]), [setFilePaths])
+    }
+  const clearFiles = () => setFilePaths([])
 
-  const removeFilePath = React.useCallback(
-    (toRemove: Set<string> | string) =>
+  const removeFilePath = (toRemove: Set<string> | string) =>
       setFilePaths(fps =>
         typeof toRemove === 'string'
           ? fps.filter(filePath => toRemove !== filePath)
           : fps.filter(filePath => !toRemove.has(filePath))
-      ),
-    [setFilePaths]
-  )
+      )
 
   const [errors, setErrors] = React.useState(new Map<string, string>())
 
-  const emojisToAdd = React.useMemo(
-    () =>
-      filePaths.map(path => ({
+  const emojisToAdd = filePaths.map(path => ({
         alias: aliasMap.get(path) || '',
         error: errors.get(path) || '',
         onChangeAlias: (newAlias: string) => setAliasMap(new Map([...aliasMap, [path, newAlias]])),
         onRemove: () => removeFilePath(path),
         path,
-      })),
-    [errors, filePaths, aliasMap, removeFilePath]
-  )
+      }))
 
   const {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
     conversationIDKey,
@@ -144,10 +134,10 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
     removeFilePath,
     onChange
   )
-  const clearErrors = React.useCallback(() => {
+  const clearErrors = () => {
     clearBannerError()
     setErrors(new Map<string, string>())
-  }, [clearBannerError, setErrors])
+  }
 
   return {
     addFiles,
@@ -340,7 +330,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
 const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
   const {emojisToAdd} = props
-  const items = React.useMemo(() => {
+  const items = (() => {
     const ret = emojisToAdd.reduce<Array<EmojiToAddOrAddRow>>((arr, emojiToAdd, index) => {
       const previous = arr[index - 1]
       arr.push({
@@ -361,7 +351,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       type: 'add',
     })
     return ret
-  }, [emojisToAdd, pick])
+  })()
 
   return (
     <Kb.Box2

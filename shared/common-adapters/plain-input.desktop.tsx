@@ -32,74 +32,64 @@ type NativeTextRef = {
   selectionEnd: number | null
 }
 
-const PlainInput = React.memo(
-  React.forwardRef<PlainInputRef, InternalProps>((p, ref) => {
+function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
     const {onKeyDown: _onKeyDown, onEnterKeyDown: _onEnterKeyDown, onKeyUp: _onKeyUp} = p
     const {growAndScroll, multiline, onFocus: _onFocus, selectTextOnFocus, onChangeText} = p
     const {maxBytes, globalCaptureKeypress, onBlur, onClick, style, resize, maxLength} = p
     const {rowsMin, rowsMax, textType, padding, flexable = true, type} = p
-    const {autoFocus, allowKeyboardEvents, placeholder, spellCheck, disabled, value, className} = p
+    const {autoFocus, allowKeyboardEvents, placeholder, spellCheck, disabled, value, className, ref} = p
     const inputRef = React.useRef<NativeTextRef>(null)
     const isComposingIMERef = React.useRef(false)
     const mountedRef = React.useRef(true)
     const isDarkMode = useColorScheme() === 'dark'
 
-    const focus = React.useCallback(() => {
+    const focus = () => {
       inputRef.current?.focus()
-    }, [])
+    }
 
-    const onCompositionStart = React.useCallback(() => {
+    const onCompositionStart = () => {
       isComposingIMERef.current = true
-    }, [])
+    }
 
-    const onCompositionEnd = React.useCallback(() => {
+    const onCompositionEnd = () => {
       isComposingIMERef.current = false
-    }, [])
+    }
 
-    const onKeyDown = React.useCallback(
-      (e: React.KeyboardEvent) => {
-        if (isComposingIMERef.current) {
-          return
-        }
-        _onKeyDown?.(e)
-        if (e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
-          _onEnterKeyDown?.(e)
-        }
-      },
-      [_onKeyDown, _onEnterKeyDown]
-    )
+    const onKeyDown = (e: React.KeyboardEvent) => {
+      if (isComposingIMERef.current) {
+        return
+      }
+      _onKeyDown?.(e)
+      if (e.key === 'Enter' && !(e.shiftKey || e.ctrlKey || e.altKey)) {
+        _onEnterKeyDown?.(e)
+      }
+    }
 
-    const onKeyUp = React.useCallback(
-      (e: React.KeyboardEvent) => {
-        if (isComposingIMERef.current) {
-          return
-        }
-        _onKeyUp?.(e)
-      },
-      [_onKeyUp]
-    )
+    const onKeyUp = (e: React.KeyboardEvent) => {
+      if (isComposingIMERef.current) {
+        return
+      }
+      _onKeyUp?.(e)
+    }
 
     // This is controlled if a value prop is passed
     const isControlled = typeof p.value === 'string'
 
-    const setSelection = React.useCallback(
-      (s: Selection) => {
-        if (!isControlled) {
-          const errMsg =
-            'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
-          logger.error(errMsg)
-          throw new Error(errMsg)
-        }
-        const n = inputRef.current
-        if (n) {
-          n.selectionStart = s.start
-          n.selectionEnd = s.end
-        }
-      },
-      [isControlled]
-    )
+    const setSelection = (s: Selection) => {
+      if (!isControlled) {
+        const errMsg =
+          'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      const n = inputRef.current
+      if (n) {
+        n.selectionStart = s.start
+        n.selectionEnd = s.end
+      }
+    }
 
-    const onFocus = React.useCallback(() => {
+    const onFocus = () => {
       _onFocus?.()
       selectTextOnFocus &&
         // doesn't work within the same tick
@@ -111,57 +101,51 @@ const PlainInput = React.memo(
               start: 0,
             })
         )
-    }, [_onFocus, selectTextOnFocus, setSelection])
+    }
 
-    const onChange = React.useCallback(
-      ({target: {value = ''}}) => {
-        if (maxBytes) {
-          if (stringToUint8Array(value).byteLength > maxBytes) {
-            return
-          }
-        }
-
-        onChangeText?.(value)
-      },
-      [maxBytes, onChangeText]
-    )
-
-    const globalKeyDownHandler = React.useCallback(
-      (ev: KeyboardEvent) => {
-        const target = ev.target
-        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+    const onChange = ({target: {value = ''}}: {target: {value?: string}}) => {
+      if (maxBytes) {
+        if (stringToUint8Array(value).byteLength > maxBytes) {
           return
         }
+      }
 
-        const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-        const isValidSpecialKey = [
-          'Backspace',
-          'Delete',
-          'ArrowLeft',
-          'ArrowRight',
-          'ArrowUp',
-          'ArrowDown',
-          'Enter',
-        ].includes(ev.key)
-        if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-          focus()
-        }
-      },
-      [focus]
-    )
+      onChangeText?.(value)
+    }
 
     React.useEffect(() => {
       if (globalCaptureKeypress) {
+        const handler = (ev: KeyboardEvent) => {
+          const target = ev.target
+          if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+            return
+          }
+
+          const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+          const isValidSpecialKey = [
+            'Backspace',
+            'Delete',
+            'ArrowLeft',
+            'ArrowRight',
+            'ArrowUp',
+            'ArrowDown',
+            'Enter',
+          ].includes(ev.key)
+          if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+            inputRef.current?.focus()
+          }
+        }
+
         const body = document.body
-        body.addEventListener('keydown', globalKeyDownHandler)
-        body.addEventListener('keypress', globalKeyDownHandler)
+        body.addEventListener('keydown', handler)
+        body.addEventListener('keypress', handler)
         return () => {
-          body.removeEventListener('keydown', globalKeyDownHandler)
-          body.removeEventListener('keypress', globalKeyDownHandler)
+          body.removeEventListener('keydown', handler)
+          body.removeEventListener('keypress', handler)
         }
       }
       return () => {}
-    }, [globalCaptureKeypress, globalKeyDownHandler])
+    }, [globalCaptureKeypress])
 
     React.useEffect(() => {
       mountedRef.current = true
@@ -240,39 +224,36 @@ const PlainInput = React.memo(
 
     const inputProps = multiline ? getMultilineProps() : getSinglelineProps()
 
-    const transformText = React.useCallback(
-      (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
-        if (isControlled) {
-          const errMsg =
-            'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
-          logger.error(errMsg)
-          throw new Error(errMsg)
+    const transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
+      if (isControlled) {
+        const errMsg =
+          'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      const n = inputRef.current
+      if (n) {
+        const textInfo: TextInfo = {
+          selection: {
+            end: n.selectionEnd,
+            start: n.selectionStart,
+          },
+          text: n.value,
         }
-        const n = inputRef.current
-        if (n) {
-          const textInfo: TextInfo = {
-            selection: {
-              end: n.selectionEnd,
-              start: n.selectionStart,
-            },
-            text: n.value,
-          }
-          const newTextInfo = fn(textInfo)
-          checkTextInfo(newTextInfo)
-          n.value = newTextInfo.text
-          // if we change this immediately it can fail
-          setTimeout(() => {
-            n.selectionStart = newTextInfo.selection.start
-            n.selectionEnd = newTextInfo.selection.end
-          }, 1)
+        const newTextInfo = fn(textInfo)
+        checkTextInfo(newTextInfo)
+        n.value = newTextInfo.text
+        // if we change this immediately it can fail
+        setTimeout(() => {
+          n.selectionStart = newTextInfo.selection.start
+          n.selectionEnd = newTextInfo.selection.end
+        }, 1)
 
-          if (reflectChange) {
-            onChange({target: inputRef.current ?? {value: ''}})
-          }
+        if (reflectChange) {
+          onChange({target: inputRef.current ?? {value: ''}})
         }
-      },
-      [isControlled, onChange]
-    )
+      }
+    }
 
     React.useImperativeHandle(ref, () => {
       return {
@@ -316,8 +297,7 @@ const PlainInput = React.memo(
         )}
       </>
     )
-  })
-)
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   flexable: {

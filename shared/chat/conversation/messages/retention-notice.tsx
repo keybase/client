@@ -2,7 +2,6 @@ import type * as T from '@/constants/types'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
@@ -40,14 +39,14 @@ function makeRetentionNotice(
   return `Messages in this ${convType} ${explanation}`
 }
 
-const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() {
+function RetentionNoticeContainer() {
   const meta = Chat.useChatContext(s => s.meta)
   const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
   const canChange = Teams.useTeamsState(s => {
     return meta.teamType !== 'adhoc' ? Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onChange = React.useCallback(() => showInfoPanel(true, 'settings'), [showInfoPanel])
+  const onChange = () => showInfoPanel(true, 'settings')
   const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined
 
   const iconType =
@@ -76,7 +75,7 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() 
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

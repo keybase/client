@@ -14,7 +14,7 @@ type OwnProps = {
 }
 
 
-const ConversationFilterInput = React.memo(function ConversationFilterInput(ownProps: OwnProps) {
+function ConversationFilterInput(ownProps: OwnProps) {
   const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
@@ -22,58 +22,49 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
-  const onStartSearch = React.useCallback(() => {
+  const onStartSearch = () => {
     toggleInboxSearch(true)
-  }, [toggleInboxSearch])
-  const onStopSearch = React.useCallback(() => {
+  }
+  const onStopSearch = () => {
     toggleInboxSearch(false)
-  }, [toggleInboxSearch])
+  }
 
   const inputRef = React.useRef<Kb.SearchFilterRef>(null)
 
-  const onKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onStopSearch()
-      } else if (e.key === 'ArrowDown') {
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onStopSearch()
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      e.stopPropagation()
+      onSelectDown()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      e.stopPropagation()
+      onSelectUp()
+    }
+  }
+
+  const onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
+    if (!Kb.Styles.isMobile) {
+      if (e) {
         e.preventDefault()
         e.stopPropagation()
-        onSelectDown()
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        e.stopPropagation()
-        onSelectUp()
       }
-    },
-    [onStopSearch, onSelectDown, onSelectUp]
-  )
+      onEnsureSelection()
+      inputRef.current?.blur()
+    }
+  }
 
-  const onEnterKeyDown = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      if (!Kb.Styles.isMobile) {
-        if (e) {
-          e.preventDefault()
-          e.stopPropagation()
-        }
-        onEnsureSelection()
-        inputRef.current?.blur()
-      }
-    },
-    [onEnsureSelection]
-  )
+  const onChange = (q: string) => {
+    if (q !== filter) {
+      onSetFilter(q)
+    }
+  }
 
-  const onChange = React.useCallback(
-    (q: string) => {
-      if (q !== filter) {
-        onSetFilter(q)
-      }
-    },
-    [onSetFilter, filter]
-  )
-
-  const onHotKeys = React.useCallback(() => {
+  const onHotKeys = () => {
     appendNewChatBuilder()
-  }, [appendNewChatBuilder])
+  }
   Kb.useHotKey('mod+n', onHotKeys)
 
   React.useEffect(() => {
@@ -121,7 +112,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
       {showSearch && searchInput}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
