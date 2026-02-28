@@ -4,39 +4,25 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
 	m := NewMetaContextForTest(tc)
 	linkServer, err := ImportLinkFromServer(m, nil, data, uid)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	packed, err := linkServer.Pack()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	packedBytes, err := packed.Marshal()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-
+	require.NoError(tc.T, err)
 	unpacked := NewChainLink(tc.G, nil, linkServer.id)
-	if err := unpacked.Unpack(m, true, uid, packedBytes); err != nil {
-		tc.T.Fatal(err)
-	}
-
+	err = unpacked.unpackFromLocalStorage(m, uid, packedBytes)
+	require.NoError(tc.T, err)
 	repacked, err := unpacked.Pack()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	repackedBytes, err := repacked.Marshal()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if !FastByteArrayEq(packedBytes, repackedBytes) {
-		tc.T.Errorf("repacked bytes didn't equal packed bytes")
-	}
+	require.NoError(tc.T, err)
+	require.True(tc.T, FastByteArrayEq(packedBytes, repackedBytes))
 }
 
 func TestChainLinkImport(t *testing.T) {
@@ -81,7 +67,8 @@ const linkVer1 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
+      "fingerprint": "",
+      "si1" : "aFWjav1+kGe8j73ulzmDTJYSPlD2VQsRXUzX2Ch628qdnVzbg24ZuOgwPMKt8RENC9O6VCnPAhSnMfuYO86lAA=="
     }`
 
 const linkVer2 = `{
@@ -116,5 +103,6 @@ const linkVer2 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
+      "fingerprint": "",
+      "si2" : "k8RAg38rHEmvaUJHc3QGMqx8tZCDjxi2z1e7c+9brX1WWbqSHOLXDY+hRsnSkPNv7MfnrOK6hjzww/udG30iQYvEDpcCBsDAAwHCBw=="
     }`

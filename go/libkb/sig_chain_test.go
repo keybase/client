@@ -225,7 +225,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf, uid)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -394,7 +394,10 @@ func createKeyFamily(g *GlobalContext, bundles []string) (*KeyFamily, error) {
 		}
 	}
 	publicKeys := jsonw.NewDictionary()
-	publicKeys.SetKey("all_bundles", allKeys)
+	err := publicKeys.SetKey("all_bundles", allKeys)
+	if err != nil {
+		return nil, err
+	}
 	return ParseKeyFamily(g, publicKeys)
 }
 
@@ -414,14 +417,4 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 		}
 	}
 	return t
-}
-
-func enumerateCurrentSubchain(chain *SigChain) (seqnoList []keybase1.Seqno) {
-	for _, link := range chain.chainLinks {
-		if link.GetSeqno() < chain.currentSubchainStart {
-			continue
-		}
-		seqnoList = append(seqnoList, link.GetSeqno())
-	}
-	return
 }

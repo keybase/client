@@ -1,0 +1,32 @@
+[Unit]
+Description=Keybase Filesystem service
+# Note that the "Requires" directive will cause a unit to be restarted whenever its dependency is restarted.
+# Do not issue a hard dependency on service, because kbfs can reconnect to a restarted service.
+# Do not issue a hard dependency on redirector, because it's ok if it fails (e.g., if it is disabled).
+Wants=keybase.service keybase-redirector.service
+
+[Service]
+# "notify" means we promise to call SdNotify() at the end of startup.
+Type=notify
+
+# Backwards compatibility
+EnvironmentFile=-%t/keybase/keybase.kbfs.env
+
+EnvironmentFile=-%h/.config/keybase/keybase.autogen.env
+EnvironmentFile=-%h/.config/keybase/keybase.env
+
+# Forcibly unmount /keybase in case there's anything there. The "-" prefix
+# means that error codes from this command are ignored. Without this line,
+# `systemctl --user restart kbfs.service` will hit mount failures if there
+# are any running shells cd'd into a Keybase folder.
+ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
+
+ExecStart=/usr/bin/kbfsfuse -debug -log-to-file
+
+# This should have already occurred in the signal handler in kbfsfuse.
+ExecStop=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
+
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

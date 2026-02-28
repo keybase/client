@@ -69,7 +69,7 @@ if [ $? -eq 0 ]; then
     do
         if [ "$t" -gt "$TIMEOUT" ]; then
             echo "Timed out waiting for kbweb to start"
-            docker-compose down
+            docker compose down
             exit 2
         fi
         sleep 1

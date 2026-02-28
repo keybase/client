@@ -5,10 +5,14 @@ protocol saltpack {
   import idl "identify_common.avdl";
 
   enum AuthenticityType {
-    SIGNED_0, 
-    REPUDIABLE_1, 
+    SIGNED_0,
+    REPUDIABLE_1,
     ANONYMOUS_2
   }
+
+  // ----------------------------------------------------------------------------------
+  // CLI interface
+  // ----------------------------------------------------------------------------------
 
   record SaltpackEncryptOptions {
     array<string> recipients; // usernames or assertions
@@ -16,10 +20,11 @@ protocol saltpack {
     AuthenticityType authenticityType;
     boolean useEntityKeys;
     boolean useDeviceKeys;
-    boolean usePaperKeys;    
+    boolean usePaperKeys;
     boolean noSelfEncrypt;
     boolean binary;
     int saltpackVersion;
+    boolean noForcePoll; // forcepolling is on by default, but off for GUI interactions
 
     boolean useKBFSKeysOnlyForTesting; // to test messages which use old kbfs saltpack keys/pseudonyms
   }
@@ -41,7 +46,14 @@ protocol saltpack {
     bytes signature; // detached signature data (binary or armored), can be empty
   }
 
-  void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
+  record SaltpackEncryptResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+  }
+
+  SaltpackEncryptResult saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
 
   record SaltpackEncryptedMessageInfo {
     array<Device> devices;
@@ -53,4 +65,77 @@ protocol saltpack {
   SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
   void saltpackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
   void saltpackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
+
+  // ----------------------------------------------------------------------------------
+  // frontend interface
+  // ----------------------------------------------------------------------------------
+
+  record SaltpackFrontendEncryptOptions {
+    array<string> recipients;     // usernames or assertions
+    boolean signed;
+    boolean includeSelf;
+  }
+
+  record SaltpackEncryptStringResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+    string ciphertext;
+  }
+
+  record SaltpackEncryptFileResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+    string filename;
+  }
+
+  SaltpackEncryptStringResult saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
+  SaltpackEncryptFileResult saltpackEncryptStringToTextFile(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
+  // destinationDir (optional) If unset then the result will be put in the same directory as filename.
+  SaltpackEncryptFileResult saltpackEncryptFile(int sessionID, string filename, string destinationDir, SaltpackFrontendEncryptOptions opts);
+
+  record SaltpackPlaintextResult {
+    SaltpackEncryptedMessageInfo info;
+    string plaintext;
+    boolean signed;
+  }
+  SaltpackPlaintextResult saltpackDecryptString(int sessionID, string ciphertext);
+
+  record SaltpackFileResult {
+    SaltpackEncryptedMessageInfo info;
+    string decryptedFilename;
+    boolean signed;
+  }
+  // destinationDir (optional) If unset then the result will be put in the same directory as filename.
+  SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename, string destinationDir);
+
+  string saltpackSignString(int sessionID, string plaintext);
+  string saltpackSignStringToTextFile(int sessionID, string plaintext);
+  // destinationDir (optional) If unset then the result will be put in the same directory as filename.
+  string saltpackSignFile(int sessionID, string filename, string destinationDir);
+
+  string saltpackSaveCiphertextToFile(int sessionID, string ciphertext);
+  string saltpackSaveSignedMsgToFile(int sessionID, string signedMsg);
+
+  record SaltpackVerifyResult {
+    KID signingKID;
+    SaltpackSender sender;
+    string plaintext;
+    boolean verified;
+  }
+  SaltpackVerifyResult saltpackVerifyString(int sessionID, string signedMsg);
+
+  record SaltpackVerifyFileResult {
+    KID signingKID;
+    SaltpackSender sender;
+    string verifiedFilename;
+    boolean verified;
+  }
+  // destinationDir (optional) If unset then the result will be put in the same directory as filename.
+  SaltpackVerifyFileResult saltpackVerifyFile(int sessionID, string signedFilename, string destinationDir);
 }

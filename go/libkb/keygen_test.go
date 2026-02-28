@@ -71,7 +71,10 @@ func TestCreateIds(t *testing.T) {
 	// ok to give empty UIDs/Salts.
 	uid, _ := keybase1.UIDFromString("00000000000000000000000000000019")
 	var nilDeviceID keybase1.DeviceID
-	tc.G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nilDeviceID), true)
+	err := tc.G.Env.GetConfigWriter().SetUserConfig(NewUserConfig(uid, "foo", []byte{}, nilDeviceID), true)
+	if err != nil {
+		t.Errorf("Set user config err: %+v", err)
+	}
 
 	for _, test := range cidTests {
 		arg := &PGPGenArg{PrimaryBits: 1024, SubkeyBits: 1024, PGPUids: test.pgpUIDArg}
@@ -88,17 +91,17 @@ func TestCreateIds(t *testing.T) {
 			// this is an error test, no need to do anything else
 			continue
 		}
-		if len(arg.Ids) != len(test.idsOut) {
-			t.Errorf("%s: %d IDs, expected %d.", test.name, len(arg.Ids), len(test.idsOut))
+		if len(arg.IDs) != len(test.idsOut) {
+			t.Errorf("%s: %d IDs, expected %d.", test.name, len(arg.IDs), len(test.idsOut))
 			continue
 		}
-		for i, id := range arg.Ids {
+		for i, id := range arg.IDs {
 			if id != test.idsOut[i] {
 				t.Errorf("%s: id %d = %+v, expected %+v", test.name, i, id, test.idsOut[i])
 			}
 		}
 
-		if len(arg.Ids) == 0 {
+		if len(arg.IDs) == 0 {
 			continue
 		}
 

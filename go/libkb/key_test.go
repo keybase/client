@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+//nolint:gosec // G101: Test PGP key for key testing, not real credentials
 var gabrielSecret = `
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 Comment: GPGTools - http://gpgtools.org

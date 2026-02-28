@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"fmt"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -104,7 +103,7 @@ func (c *CmdSimpleFSRead) Run() error {
 
 func (c *CmdSimpleFSRead) output(data []byte) {
 	ui := c.G().UI.GetTerminalUI()
-	ui.UnescapedOutputWriter().Write(data)
+	_, _ = ui.UnescapedOutputWriter().Write(data)
 }
 
 // ParseArgv does nothing for this command.

@@ -74,6 +74,10 @@
         {
           "type": "boolean",
           "name": "breaksTracking"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
         }
       ]
     },
@@ -110,6 +114,28 @@
     },
     {
       "type": "record",
+      "name": "StellarAccount",
+      "fields": [
+        {
+          "type": "string",
+          "name": "accountID"
+        },
+        {
+          "type": "string",
+          "name": "federationAddress"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
+        },
+        {
+          "type": "boolean",
+          "name": "hidden"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RevokedProof",
       "fields": [
         {
@@ -119,6 +145,10 @@
         {
           "type": "TrackDiff",
           "name": "diff"
+        },
+        {
+          "type": "boolean",
+          "name": "snoozed"
         }
       ]
     },
@@ -330,11 +360,11 @@
       "fields": [
         {
           "type": "int",
-          "name": "following"
+          "name": "unverifiedNumFollowing"
         },
         {
           "type": "int",
-          "name": "followers"
+          "name": "unverifiedNumFollowers"
         },
         {
           "type": "UID",
@@ -354,6 +384,10 @@
         },
         {
           "type": "string",
+          "name": "bioDecorated"
+        },
+        {
+          "type": "string",
           "name": "website"
         },
         {
@@ -361,19 +395,27 @@
           "name": "twitter"
         },
         {
-          "type": "boolean",
-          "name": "youFollowThem"
-        },
-        {
-          "type": "boolean",
-          "name": "theyFollowYou"
-        },
-        {
           "type": {
             "type": "array",
             "items": "UserTeamShowcase"
           },
           "name": "teamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "registeredForAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "stellarHidden"
+        },
+        {
+          "type": "boolean",
+          "name": "blocked"
+        },
+        {
+          "type": "boolean",
+          "name": "hidFromFollowers"
         }
       ]
     },
@@ -588,6 +630,19 @@
         {
           "name": "c",
           "type": "Cryptocurrency"
+        }
+      ],
+      "response": null
+    },
+    "displayStellarAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "a",
+          "type": "StellarAccount"
         }
       ],
       "response": null

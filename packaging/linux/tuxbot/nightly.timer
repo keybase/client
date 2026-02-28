@@ -1,0 +1,9 @@
+[Unit]
+Description=make a nightly build on a timer
+
+[Timer]
+OnCalendar=Mon-Fri 12:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

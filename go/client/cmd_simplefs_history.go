@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,26 +12,34 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSHistory is the 'fs history' command.
 type CmdSimpleFSHistory struct {
 	libkb.Contextified
-	path keybase1.Path
+	path    keybase1.Path
+	deletes bool
 }
 
 // NewCmdSimpleFSHistory creates a new cli.Command.
 func NewCmdSimpleFSHistory(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:         "history",
 		ArgumentHelp: "[path-to-folder]",
 		Usage:        "output the edit history for a user or folder",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSHistory{
-				Contextified: libkb.NewContextified(g)}, "history", c)
+				Contextified: libkb.NewContextified(g),
+			}, "history", c)
 			cl.SetNoStandalone()
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "d, deletes",
+				Usage: "Show the recently-deleted files",
+			},
 		},
 	}
 }
@@ -64,12 +73,17 @@ func (c *CmdSimpleFSHistory) Run() error {
 func (c *CmdSimpleFSHistory) output(h keybase1.FSFolderEditHistory) {
 	ui := c.G().UI.GetTerminalUI()
 	for _, w := range h.History {
-		if len(w.Edits) == 0 {
+		files := w.Edits
+		if c.deletes {
+			files = w.Deletes
+		}
+
+		if len(files) == 0 {
 			continue
 		}
 
 		ui.Printf("\n%s (%s)\n", h.Folder.ToString(), w.WriterName)
-		for _, e := range w.Edits {
+		for _, e := range files {
 			ui.Printf("\t%s: %s\n",
 				keybase1.FromTime(e.ServerTime).Format(time.UnixDate),
 				e.Filename)
@@ -79,6 +93,8 @@ func (c *CmdSimpleFSHistory) output(h keybase1.FSFolderEditHistory) {
 
 // ParseArgv gets the optional path, if any.
 func (c *CmdSimpleFSHistory) ParseArgv(ctx *cli.Context) error {
+	c.deletes = ctx.Bool("deletes")
+
 	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("wrong number of arguments")
 	} else if len(ctx.Args()) == 1 {

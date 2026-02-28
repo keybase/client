@@ -1,8 +1,8 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,18 +11,17 @@ import (
 	docopt "github.com/docopt/docopt-go"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/kbcrypto"
-	"github.com/keybase/go-crypto/ed25519"
 )
 
-func fail(args ...interface{}) {
-	log.Print(fmt.Sprintln(args...))
+func failf(format string, args ...interface{}) {
+	log.Printf(format, args...)
 	os.Exit(1)
 }
 
 func decodeHexArg(arg string) []byte {
 	decoded, err := hex.DecodeString(arg)
 	if err != nil {
-		fail("'%s' is not valid hex: %s", arg, err)
+		failf("'%s' is not valid hex: %s", arg, err)
 	}
 	return decoded
 }
@@ -158,7 +157,7 @@ Options:
 	if arguments["--chunklen"] != nil {
 		parsed, err := strconv.Atoi(arguments["--chunklen"].(string))
 		if err != nil {
-			fail(err)
+			failf("error converting: %s", err)
 		}
 		chunklen = int64(parsed)
 	}
@@ -170,6 +169,6 @@ Options:
 		err = open(enckey, verifykey, signaturePrefix, nonce, chunklen)
 	}
 	if err != nil {
-		fail(err)
+		failf("crypto error: %s", err)
 	}
 }

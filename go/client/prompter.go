@@ -4,8 +4,9 @@
 package client
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 type Field struct {
@@ -56,7 +57,6 @@ func (f *Field) Clear() string {
 }
 
 func (p *Prompter) ReadField(f *Field) (err error) {
-
 	done := false
 	first := true
 
@@ -112,6 +112,10 @@ func (p *Prompter) ReadField(f *Field) (err error) {
 			}
 		}
 		if f.Checker != nil {
+			if f.Checker.Transform != nil {
+				val = f.Checker.Transform(val)
+			}
+
 			done = f.Checker.F(val)
 		} else {
 			done = true

@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -94,9 +93,9 @@ func (c *CmdSimpleFSCopy) Run() error {
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", src, dest, isDestDir)
 
 		if err == ErrTargetFileExists {
-			if c.interactive == true {
+			if c.interactive {
 				err = doOverwritePrompt(c.G(), dest.String())
-			} else if c.force == true {
+			} else if c.force {
 				err = nil
 			}
 		}

@@ -109,6 +109,11 @@
       "response": "boolean",
       "doc": "Checks the device name format."
     },
+    "dismissDeviceChangeNotifications": {
+      "request": [],
+      "response": null,
+      "doc": "Dismisses the notifications for a new or revoked device\n    assuming this is not that device."
+    },
     "checkDeviceNameForUser": {
       "request": [
         {

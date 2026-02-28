@@ -3,11 +3,13 @@
 
 package libkb
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestDiscardAndCloseBody(t *testing.T) {
 	err := DiscardAndCloseBody(nil)
-	if err == nil {
-		t.Fatal("Should have errored")
-	}
+	require.Error(t, err)
 }

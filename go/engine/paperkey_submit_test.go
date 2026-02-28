@@ -17,7 +17,7 @@ func TestPaperKeySubmit(t *testing.T) {
 
 	tc.G.SetService()
 	listener := &nlistener{}
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// signup and get the paper key
 	fu := NewFakeUserOrBust(t, "paper")
@@ -82,6 +82,6 @@ type nlistener struct {
 
 var _ libkb.NotifyListener = (*nlistener)(nil)
 
-func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
+func (n *nlistener) PaperKeyCached(_ keybase1.UID, encKID, _ keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }

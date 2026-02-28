@@ -1,11 +1,13 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +17,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 func NewCmdKbfsMount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

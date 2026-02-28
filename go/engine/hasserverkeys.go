@@ -45,22 +45,21 @@ func (e *HasServerKeys) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *HasServerKeys) Run(m libkb.MetaContext) error {
-	apiRes, err := m.G().API.Get(libkb.APIArg{
+	apiRes, err := m.G().API.Get(m, libkb.APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err
 	}
 	var spk libkb.ServerPrivateKeys
 	if err = apiRes.Body.UnmarshalAgain(&spk); err != nil {
-		m.CDebugf("error unmarshaling ServerPrivateKeys")
+		m.Debug("error unmarshaling ServerPrivateKeys")
 		return err
 	}
 	e.res.HasServerKeys = len(spk.PrivateKeys) > 0
-	m.CDebugf("HasServerKeys: %v", e.res.HasServerKeys)
+	m.Debug("HasServerKeys: %v", e.res.HasServerKeys)
 
 	return nil
 }

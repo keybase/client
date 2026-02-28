@@ -4,8 +4,7 @@
 package client
 
 import (
-	"golang.org/x/net/context"
-
+	"context"
 	"fmt"
 
 	humanize "github.com/dustin/go-humanize"
@@ -19,7 +18,6 @@ import (
 type CmdDecrypt struct {
 	libkb.Contextified
 	filter     UnixFilter
-	recipients []string
 	spui       *SaltpackUI
 	opts       keybase1.SaltpackDecryptOptions
 	senderfile *FileSink
@@ -82,7 +80,7 @@ func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltpackEncryptedMe
 		prnt("Decryption failed; try one of these devices instead:\n")
 		for _, d := range info.Devices {
 			t := keybase1.FromTime(d.CTime)
-			prnt("  * %s (%s); provisioned %s (%s)\n", ColorString(c.G(), "bold", d.Name), d.Type,
+			prnt("  * %s (%s); provisioned %s (%s)\n", ColorString(c.G(), "bold", "%s", d.Name), d.Type,
 				humanize.Time(t), t.Format("2006-01-02 15:04:05 MST"))
 		}
 		if info.NumAnonReceivers > 0 {

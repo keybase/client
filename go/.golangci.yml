@@ -1,0 +1,110 @@
+version: '2'
+
+run:
+  timeout: 15m
+  tests: true
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - prot.go
+      - cmd_wallet.*.go
+      - protocol
+      - third_party$
+      - builtin$
+      - kbfs/dokan # Windows-specific FUSE implementation, not maintained
+      - kbfs/kbfsdokan # Windows-specific FUSE implementation, not maintained
+      - kbfs/libdokan # Windows-specific FUSE implementation, not maintained
+  enable:
+    - gofmt
+    - gofumpt
+
+linters:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - prot.go
+      - cmd_wallet.*.go
+      - protocol
+      - third_party$
+      - builtin$
+      - examples$
+      - kbfs/dokan # Windows-specific FUSE implementation, not maintained
+      - kbfs/kbfsdokan # Windows-specific FUSE implementation, not maintained
+      - kbfs/libdokan # Windows-specific FUSE implementation, not maintained
+      - kbfs/test/engine_fs_test.go # Test framework - interface methods required even if unused
+      - kbfs/libkbfs/protected_context.go # Test hook - method overridden in tests
+  enable:
+    - gocritic
+    - unconvert
+    - revive
+    - govet
+    - ineffassign
+    - unused
+    - staticcheck
+    - misspell
+    - bodyclose
+    - errcheck
+    - gosec
+
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+        - elseif
+
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+
+    staticcheck:
+      checks:
+        - 'all'
+        - '-ST1000' # Disable package comment requirement - too many to fix
+        - '-ST1003' # Disable naming conventions (Db vs DB, etc.) - too many to fix
+        - '-ST1005' # Disable capitalized error string check (style preference)
+        - '-ST1016' # Disable inconsistent receiver names - too many to fix
+        - '-ST1020' # Disable comment format requirement - too many to fix
+
+    revive:
+      enable-all-rules: false
+      rules:
+        # Disabled rules
+        - name: unused-parameter
+          disabled: true
+        - name: error-strings
+          disabled: true
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: var-naming
+          disabled: true
+
+        # Enabled rules
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: errorf
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: var-declaration

@@ -1,8 +1,8 @@
 package storage
 
 import (
+	"context"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -10,13 +10,12 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 8
-const blockSize = 100
-
-var addBlockHookOnce sync.Once
+const (
+	blockIndexVersion = 8
+	blockSize         = 100
+)
 
 type blockEngine struct {
 	globals.Contextified
@@ -24,15 +23,9 @@ type blockEngine struct {
 }
 
 func newBlockEngine(g *globals.Context) *blockEngine {
-
-	// add a logout hook to clear the in-memory block cache, but only add it once:
-	addBlockHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(blockEngineMemCache)
-	})
-
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "BlockEngine", true),
 	}
 }
 
@@ -64,20 +57,20 @@ func (be *blockEngine) makeBlockKey(convID chat1.ConversationID, uid gregor1.UID
 }
 
 func (be *blockEngine) getBlockNumber(id chat1.MessageID) int {
-	return int(id) / blockSize
+	return int(id) / blockSize //nolint:gosec // G115: MessageID to block number calculation, safe to convert
 }
 
 func (be *blockEngine) getBlockPosition(id chat1.MessageID) int {
-	return int(id) % blockSize
+	return int(id) % blockSize //nolint:gosec // G115: MessageID to block position calculation, safe to convert
 }
 
 func (be *blockEngine) getMsgID(blockNum, blockPos int) chat1.MessageID {
-	return chat1.MessageID(blockNum*blockSize + blockPos)
+	return chat1.MessageID(blockNum*blockSize + blockPos) //nolint:gosec // G115: Block arithmetic to MessageID, safe to convert
 }
 
 func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
-	convID chat1.ConversationID, uid gregor1.UID) (bi blockIndex, err Error) {
-
+	convID chat1.ConversationID, uid gregor1.UID,
+) (bi blockIndex, err Error) {
 	be.Debug(ctx, "createBlockIndex: creating new block index: convID: %s uid: %s", convID, uid)
 
 	// Grab latest server version to tag local data with
@@ -139,12 +132,14 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 
 type bekey string
 
-var bebikey bekey = "bebi"
-var beskkey bekey = "besk"
+var (
+	bebikey bekey = "bebi"
+	beskkey bekey = "besk"
+)
 
 func (be *blockEngine) Init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
-	uid gregor1.UID) (context.Context, Error) {
-
+	uid gregor1.UID,
+) (context.Context, Error) {
 	ctx = context.WithValue(ctx, beskkey, key)
 
 	bi, err := be.readBlockIndex(ctx, convID, uid)
@@ -157,7 +152,8 @@ func (be *blockEngine) Init(ctx context.Context, key [32]byte, convID chat1.Conv
 }
 
 func (be *blockEngine) fetchBlockIndex(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID) (bi blockIndex, err Error) {
+	uid gregor1.UID,
+) (bi blockIndex, err Error) {
 	var ok bool
 	val := ctx.Value(bebikey)
 	if bi, ok = val.(blockIndex); !ok {
@@ -190,7 +186,6 @@ func (be *blockEngine) createBlockSingle(ctx context.Context, bi blockIndex, blo
 }
 
 func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID int) (block, Error) {
-
 	// Create all the blocks up to the one we want
 	var b block
 	for i := bi.MaxBlock + 1; i <= blockID; i++ {
@@ -327,7 +322,8 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) (
 }
 
 func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) Error {
+	msgs []chat1.MessageUnboxed,
+) Error {
 	msgIDs := make([]chat1.MessageID, len(msgs))
 	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	for index, msg := range msgs {
@@ -338,7 +334,8 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 }
 
 func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgIDs []chat1.MessageID, msgMap map[chat1.MessageID]chat1.MessageUnboxed) Error {
+	msgIDs []chat1.MessageID, msgMap map[chat1.MessageID]chat1.MessageUnboxed,
+) Error {
 	var err Error
 	var maxB block
 	var newBlock block
@@ -399,8 +396,8 @@ func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.Conv
 }
 
 func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
-
+	convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID,
+) (err Error) {
 	// Run all errors through resultCollector
 	defer func() {
 		if err != nil {
@@ -432,7 +429,9 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 		}
 
 		msg := b.Msgs[index]
-		if msg.GetMessageID() == 0 {
+		// If we have a versioning error but our client now understands the new
+		// version, don't return the error message
+		if msg.GetMessageID() == 0 || (msg.IsError() && msg.Error().ParseableVersion()) {
 			if res.PushPlaceholder(be.getMsgID(b.BlockID, index)) {
 				// If the result collector is happy to receive this blank entry, then don't complain
 				// and proceed as if this was a hit
@@ -440,11 +439,13 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 				be.Debug(ctx, "readMessages: adding placeholder: %d (blockid: %d pos: %d)",
 					lastAdded, b.BlockID, index)
 				continue
-			} else {
-				be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
-					b.BlockID, be.getMsgID(b.BlockID, index))
-				return MissError{}
 			}
+			be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
+				b.BlockID, be.getMsgID(b.BlockID, index))
+			return MissError{}
+		} else if msg.GetMessageID() <= minID {
+			// If we drop below the min ID, just bail out of here with no error
+			return nil
 		}
 		bMsgID := msg.GetMessageID()
 
@@ -463,13 +464,14 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 	// again. We check if lastAdded > 0 to avoid overflowing chat1.MessageID
 	// which is a uint type
 	if !res.Done() && b.BlockID > 0 && lastAdded > 0 {
-		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
+		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1, minID)
 	}
 	return nil
 }
 
 func (be *blockEngine) ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgIDs []chat1.MessageID) Error {
+	msgIDs []chat1.MessageID,
+) Error {
 	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	for _, msgID := range msgIDs {
 		msgMap[msgID] = chat1.MessageUnboxed{}

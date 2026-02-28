@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -27,10 +26,6 @@ type CmdSigsList struct {
 	types   map[string]bool
 
 	username string
-
-	user  *libkb.User
-	sigs  []libkb.TypedChainLink
-	ksigs []keybase1.Sig
 }
 
 func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
@@ -174,7 +169,7 @@ func (s *CmdSigsList) Run() error {
 		if err != nil {
 			return err
 		}
-		s.G().UI.GetTerminalUI().Output(json)
+		_ = s.G().UI.GetTerminalUI().Output(json)
 		return nil
 	}
 

@@ -3,16 +3,18 @@
 protocol config {
 
   import idl "common.avdl";
+  import idl "notify_ctl.avdl";
 
-  record GetCurrentStatusRes {
+  record CurrentStatus {
     boolean configured;
     boolean registered;
     boolean loggedIn;
     boolean sessionIsValid;
     union { null, User } user;
+    string deviceName;
   }
 
-  GetCurrentStatusRes getCurrentStatus(int sessionID);
+  CurrentStatus getCurrentStatus(int sessionID);
 
   record SessionStatus {
     @lint("ignore")
@@ -35,6 +37,12 @@ protocol config {
     string version;
   }
 
+  record ClientStatus {
+    ClientDetails details;
+    int connectionID;
+    NotificationChannels notificationChannels;
+  }
+
   record PlatformInfo {
     string os;
     string osVersion;
@@ -45,6 +53,12 @@ protocol config {
   record LoadDeviceErr {
     string where;
     string desc;
+  }
+
+  record DirSizeInfo {
+    int numFiles;
+    string name;
+    string humanSize;
   }
 
   record ExtendedStatus {
@@ -64,16 +78,94 @@ protocol config {
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
+    array<ConfiguredAccount> configuredAccounts;
     @lint("ignore")
-    array<ClientDetails> Clients;
+    array<ClientStatus> Clients;
     array<string> deviceEkNames;
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
                                                in the config file. */
+    array<string> localDbStats;
+    array<string> localChatDbStats;
+    array<string> localBlockCacheDbStats;
+    array<string> localSyncCacheDbStats;
+    array<DirSizeInfo> cacheDirSizeInfo;
+    map<int> uiRouterMapping;
   }
 
-  ExtendedStatus getExtendedStatus(int sessionID);
+  record KbClientStatus {
+    string version;
+  }
 
+  record KbServiceStatus {
+    string version;
+    boolean running;
+    string pid;
+    string log;
+    string ekLog;
+    string perfLog;
+  }
+
+  record KBFSStatus {
+    string version;
+    string installedVersion;
+    boolean running;
+    string pid;
+    string log;
+    string perfLog;
+    string mount;
+  }
+
+  record DesktopStatus {
+    string version;
+    boolean running;
+    string log;
+  }
+
+  record UpdaterStatus {
+    string log;
+  }
+
+  record StartStatus {
+    string log;
+  }
+
+  record GitStatus {
+    string log;
+    string perfLog;
+  }
+
+  record FullStatus {
+    string username;
+    string configPath;
+
+    CurrentStatus curStatus;
+    ExtendedStatus extStatus;
+
+    KbClientStatus client;
+    KbServiceStatus service;
+    KBFSStatus kbfs;
+    DesktopStatus desktop;
+    UpdaterStatus updater;
+    StartStatus start;
+    GitStatus git;
+  }
+
+  array<ClientStatus> getClientStatus(int sessionID);
+
+  // FullStatus encapsulates everything required for the status and log send
+  // commands
+  union { null, FullStatus } getFullStatus(int sessionID);
+
+  boolean isServiceRunning(int sessionID);
+
+  boolean isKBFSRunning(int sessionID);
+
+  array<InstrumentationStat> getNetworkStats(int sessionID, NetworkSource networkSrc);
+
+  @typedef("string")  record LogSendID {}
+  LogSendID logSend(int sessionID, string statusJSON, string feedback,
+    boolean sendLogs, boolean sendMaxBytes);
 
   record AllProvisionedUsernames {
     string defaultUsername;
@@ -113,6 +205,7 @@ protocol config {
     boolean isNull;
     union { null, boolean } b;
     union { null, int } i;
+    union { null, double } f; // f for "float", optimized for Go code usage.
     union { null, string } s;
     union { null, string } o;
   }
@@ -135,6 +228,10 @@ protocol config {
   void clearValue(string path);
   ConfigValue getValue(string path);
 
+  void guiSetValue(string path, ConfigValue value);
+  void guiClearValue(string path);
+  ConfigValue guiGetValue(string path);
+
   record OutOfDateInfo {
     string upgradeTo;
     string upgradeURI;
@@ -146,6 +243,21 @@ protocol config {
     Check whether the API server has told us we're out of date.
     */
   OutOfDateInfo checkAPIServerOutOfDateWarning();
+
+  enum UpdateInfoStatus {
+    UP_TO_DATE_0,
+    NEED_UPDATE_1,
+    CRITICALLY_OUT_OF_DATE_2
+  }
+  record UpdateInfo {
+    UpdateInfoStatus status;
+    string message;
+  }
+  UpdateInfo getUpdateInfo();
+
+  // Same as running `keybase update check` in CLI.
+  void startUpdateIfNeeded();
+
 
   /**
     Wait for client type to connect to service.
@@ -159,11 +271,61 @@ protocol config {
     string username;      // current logged in user's username
     DeviceID deviceID;      // current logged in user's device ID
     string deviceName;      // current logged in user's device name
-    array<string> following;    // who current logged in user is following
-    array<string> followers;    // who follows current logged in user
+    FullName fullname;        // current user's fullname
+    UserReacjis userReacjis;    // reacjis preferences for current logged in user
+    union { null, HttpSrvInfo } httpSrvInfo; // info about the service http server
   }
+
   BootstrapStatus getBootstrapStatus(int sessionID);
+  void requestFollowingAndUnverifiedFollowers(int sessionID);
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);
+
+  enum UpdateInfoStatus2 {
+    OK_0,
+    SUGGESTED_1,
+    CRITICAL_2
+  }
+
+  record UpdateDetails {
+    string message;
+  }
+
+  variant UpdateInfo2 switch (UpdateInfoStatus2 status) {
+    case OK: void;
+    case SUGGESTED: UpdateDetails;
+    case CRITICAL: UpdateDetails;
+  }
+
+  /**
+   getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
+   you are critically out of date.
+   */
+  UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
+
+  enum ProxyType {
+    No_Proxy_0,
+    HTTP_Connect_1,
+    Socks_2
+  }
+
+  record ProxyData {
+    string addressWithPort;
+    ProxyType proxyType;
+    boolean certPinning;
+  }
+
+  void setProxyData(ProxyData proxyData);
+
+  ProxyData getProxyData();
+
+  // Runtime Stats
+  void toggleRuntimeStats();
+
+  void appendGUILogs(string content);
+
+  string generateWebAuthToken();
+
+  void updateLastLoggedInAndServerConfig(string serverConfigPath);
 }

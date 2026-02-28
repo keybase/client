@@ -1,0 +1,152 @@
+@namespace("chat.1")
+
+protocol unfurl {
+  import idl "common.avdl";
+  import idl "../gregor1" as gregor1;
+
+  // NOTE if adding a new type here, also add the case to the
+  // `UnfurlRaw.GetURL` type since a URL is used as a key for caching
+  enum UnfurlType {
+    GENERIC_0,
+    YOUTUBE_1,
+    GIPHY_2,
+    MAPS_3 // only from scrape, gets converted to generic in packager
+  }
+
+  record UnfurlVideo {
+    string url;
+    string mimeType;
+    int height;
+    int width;
+  }
+
+  record UnfurlGenericRaw {
+    string title;
+    string url;
+    string siteName;
+    union { null, string } faviconUrl;
+    union { null, string } imageUrl;
+    union { null, UnfurlVideo } video;
+    union { null, int } publishTime;
+    union { null, string } description;
+  }
+
+  record UnfurlYoutubeRaw {
+      // TODO
+  }
+
+  record UnfurlGiphyRaw {
+    union { null, string } imageUrl;
+    union { null, UnfurlVideo } video;
+    union { null, string } faviconUrl;
+  }
+
+  record UnfurlMapsRaw {
+    string title;
+    string url;
+    string siteName;
+    string imageUrl;
+    union { null, string } historyImageUrl;
+    string description;
+    Coordinate coord;
+    gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean liveLocationDone;
+  }
+
+  variant UnfurlRaw switch (UnfurlType unfurlType) {
+    case GENERIC: UnfurlGenericRaw;
+    case YOUTUBE: UnfurlYoutubeRaw;
+    case GIPHY: UnfurlGiphyRaw;
+    case MAPS: UnfurlMapsRaw;
+  }
+
+  record UnfurlGenericMapInfo {
+    Coordinate coord;
+    gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean isLiveLocationDone;
+  }
+
+  record UnfurlGeneric {
+    string title;
+    string url;
+    string siteName;
+    union { null, Asset } favicon;
+    union { null, Asset } image;
+    union { null, int } publishTime;
+    union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
+  }
+
+  record UnfurlYoutube {
+      // TODO
+  }
+
+  record UnfurlGiphy {
+    union { null, Asset } favicon;
+    union { null, Asset } image;
+    union { null, Asset } video;
+  }
+
+  variant Unfurl switch (UnfurlType unfurlType) {
+    case GENERIC: UnfurlGeneric;
+    case YOUTUBE: UnfurlYoutube;
+    case GIPHY: UnfurlGiphy;
+  }
+
+  record UnfurlResult {
+    Unfurl unfurl;
+    string url;
+  }
+
+  record UnfurlImageDisplay {
+    string url;
+    int height;
+    int width;
+    boolean isVideo;
+  }
+
+  record UnfurlGenericDisplay {
+    string title;
+    string url;
+    string siteName;
+    union { null, UnfurlImageDisplay } favicon;
+    union { null, UnfurlImageDisplay } media;
+    union { null, int } publishTime;
+    union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
+  }
+
+  record UnfurlYoutubeDisplay {
+      // TODO
+  }
+
+  record UnfurlGiphyDisplay {
+    union { null, UnfurlImageDisplay } favicon;
+    union { null, UnfurlImageDisplay } image;
+    union { null, UnfurlImageDisplay } video;
+  }
+
+  variant UnfurlDisplay switch (UnfurlType unfurlType) {
+    case GENERIC: UnfurlGenericDisplay;
+    case YOUTUBE: UnfurlYoutubeDisplay;
+    case GIPHY: UnfurlGiphyDisplay;
+  }
+
+  enum UnfurlMode {
+    ALWAYS_0,
+    NEVER_1,
+    WHITELISTED_2
+  }
+
+  record UnfurlSettings {
+    UnfurlMode mode;
+    map<string, boolean> whitelist;
+  }
+
+  record UnfurlSettingsDisplay {
+    UnfurlMode mode;
+    array<string> whitelist;
+  }
+}

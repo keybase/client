@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -11,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
+	"github.com/stretchr/testify/require"
 )
 
 var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")
@@ -36,7 +37,8 @@ func TestConcurrentLogin(t *testing.T) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
 				Logout(tc)
-				u.Login(tc.G)
+				err := u.Login(tc.G)
+				require.NoError(t, err)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -50,7 +52,8 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					tc.G.ActiveDevice.NIST(context.Background())
+					_, err := tc.G.ActiveDevice.NIST(context.Background())
+					require.NoError(t, err)
 					tc.G.ActiveDevice.UID()
 					tc.G.ActiveDevice.Valid()
 				}
@@ -86,7 +89,8 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
 				Logout(tc)
-				u.Login(tc.G)
+				err := u.Login(tc.G)
+				require.NoError(t, err)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
 		}(i)
@@ -134,7 +138,8 @@ func TestConcurrentSignup(t *testing.T) {
 			defer lwg.Done()
 			for j := 0; j < 4; j++ {
 				Logout(tc)
-				u.Login(tc.G)
+				err := u.Login(tc.G)
+				require.NoError(t, err)
 				Logout(tc)
 			}
 			fmt.Printf("logout/login #%d done\n", index)
@@ -143,7 +148,8 @@ func TestConcurrentSignup(t *testing.T) {
 		mwg.Add(1)
 		go func(index int) {
 			defer mwg.Done()
-			CreateAndSignupFakeUserSafe(tc.G, "login")
+			_, err := CreateAndSignupFakeUserSafe(tc.G, "login")
+			require.NoError(t, err)
 			Logout(tc)
 			fmt.Printf("func caller %d done\n", index)
 		}(i)
@@ -169,9 +175,9 @@ func TestConcurrentGlobals(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go func(index int) {
+		go func(_ int) {
 			for j := 0; j < 10; j++ {
-				f := fns[rand.Intn(len(fns))]
+				f := fns[rand.Intn(len(fns))] //nolint:gosec // G404: Test code with randomized function calls, not security-critical
 				f(tc.G)
 			}
 			wg.Done()
@@ -186,8 +192,4 @@ func genv(g *libkb.GlobalContext) {
 	g.Env.GetCommandLine()
 	cf := libkb.NewJSONConfigFile(g, "")
 	g.Env.SetConfig(cf, cf)
-}
-
-func gkeyring() {
-
 }

@@ -9,7 +9,10 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"time"
 
+	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -31,12 +34,46 @@ func addFile(mpart *multipart.Writer, param, filename string) error {
 	return err
 }
 
+func addPartFromBytes(mpart *multipart.Writer, param, filename string, data []byte) error {
+	part, err := mpart.CreateFormFile(param, filename)
+	if err != nil {
+		return err
+	}
+	_, err = part.Write(data)
+	return err
+}
+
 func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamID, crop *keybase1.ImageCropRect) (err error) {
+	defer mctx.Trace(fmt.Sprintf("UploadImage(%s)", filename), &err)()
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
 
-	if err := addFile(mpart, "avatar", filename); err != nil {
-		mctx.CDebugf("addFile error: %s", err)
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	head := make([]byte, 512)
+	n, _ := io.ReadFull(file, head)
+	mimeType, err := attachments.DetectMIMEType(mctx.Ctx(), attachments.NewBufReadResetter(head[:n]), filename)
+	if err != nil {
+		return err
+	}
+
+	var toUpload []byte
+	if mimeType == "image/heif" {
+		log := utils.NewDebugLabeler(mctx.G(), "UploadImage", false)
+		toUpload, err = attachments.HEICToJPEG(mctx.Ctx(), log, filename)
+		if err != nil {
+			return err
+		}
+	}
+	if toUpload != nil {
+		err = addPartFromBytes(mpart, "avatar", "image.jpeg", toUpload)
+	} else {
+		err = addFile(mpart, "avatar", filename)
+	}
+	if err != nil {
 		return err
 	}
 
@@ -48,15 +85,30 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	}
 
 	if teamID != nil {
-		mpart.WriteField("team_id", string(*teamID))
+		err := mpart.WriteField("team_id", string(*teamID))
+		if err != nil {
+			return err
+		}
 	}
 
 	if crop != nil {
-		mctx.CDebugf("Adding crop fields: %+v", crop)
-		mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
-		mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
-		mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
-		mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		mctx.Debug("Adding crop fields: %+v", crop)
+		err := mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
+		if err != nil {
+			return err
+		}
+		err = mpart.WriteField("y1", fmt.Sprintf("%d", crop.Y1))
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := mpart.Close(); err != nil {
@@ -70,16 +122,18 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 		endpoint = "image/upload_user_avatar"
 	}
 
-	mctx.CDebugf("Running POST to %s", endpoint)
+	mctx.Debug("Running POST to %s", endpoint)
 
 	arg := libkb.APIArg{
-		Endpoint:    endpoint,
-		SessionType: libkb.APISessionTypeREQUIRED,
+		Endpoint:       endpoint,
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		InitialTimeout: 5 * time.Minute,
+		RetryCount:     1,
 	}
 
-	_, err = mctx.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	_, err = mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		mctx.CDebugf("post error: %s", err)
+		mctx.Debug("post error: %s", err)
 		return err
 	}
 

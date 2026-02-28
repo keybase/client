@@ -1,0 +1,1 @@
+export const headerNavigationOptions = (/*route*/) => ({})

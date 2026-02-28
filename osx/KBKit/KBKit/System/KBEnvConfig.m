@@ -201,6 +201,14 @@
   }
 }
 
+- (NSString *)volumesRedirectorMount {
+  switch(_runMode) {
+    case KBRunModeDevel: return @"/Volumes/KeybaseDevel";
+    case KBRunModeStaging: return @"/Volumes/KeybaseStaging";
+    case KBRunModeProd: return @"/Volumes/Keybase";
+  }
+}
+
 - (BOOL)redirectorDisabled {
   NSString *rootConfigPath = NSStringWithFormat(@"/etc/%@/config.json", [self appNameWithDot]);
   NSData *data = [NSData dataWithContentsOfFile:rootConfigPath];

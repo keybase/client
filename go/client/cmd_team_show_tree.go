@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type CmdTeamShowTree struct {
@@ -32,7 +32,7 @@ func (v *CmdTeamShowTree) Run() (err error) {
 	}
 
 	// Get the tree from the root.
-	treeRes, err := cli.TeamTree(context.TODO(), keybase1.TeamTreeArg{
+	treeRes, err := cli.TeamTreeUnverified(context.TODO(), keybase1.TeamTreeUnverifiedArg{
 		Name:      v.TeamName,
 		SessionID: v.SessionID,
 	})

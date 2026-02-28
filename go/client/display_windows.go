@@ -3,6 +3,9 @@
 
 package client
 
-var CHECK = "OK"
-var BADX = "BAD"
-var BTC = "BTC"
+var (
+	CHECK = "OK"
+	BADX  = "BAD"
+	BTC   = "BTC"
+	XLM   = "XLM"
+)

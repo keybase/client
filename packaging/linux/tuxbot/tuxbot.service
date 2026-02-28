@@ -1,0 +1,11 @@
+[Unit]
+Description=tuxbot
+
+[Service]
+WorkingDirectory=%h/go/src/github.com/keybase/client/packaging/linux/tuxbot/bot/
+EnvironmentFile=%h/tuxbot.env
+ExecStart=go run %h/go/src/github.com/keybase/client/packaging/linux/tuxbot/bot/tuxbot/
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

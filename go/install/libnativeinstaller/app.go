@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/utils"
 )
 
 // Log is the logging interface for this package
@@ -36,7 +36,7 @@ type Context interface {
 
 // AppBundleForPath returns path to app bundle
 func AppBundleForPath() (string, error) {
-	path, err := osext.Executable()
+	path, err := utils.BinPath()
 	if err != nil {
 		return "", err
 	}
@@ -70,9 +70,9 @@ func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) e
 	if err != nil {
 		return err
 	}
-	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
+	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), "--timeout=10"}
 	args = append(includeArgs, args...)
-	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
+	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...) //nolint:gosec // G204: Native installer binary from app bundle, args constructed internally
 	output, err := cmd.CombinedOutput()
 	log.Debug("Output (%s): %s", args, string(output))
 	return err

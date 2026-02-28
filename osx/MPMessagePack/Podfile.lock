@@ -1,0 +1,16 @@
+PODS:
+  - GHODictionary (1.1.0)
+
+DEPENDENCIES:
+  - GHODictionary
+
+SPEC REPOS:
+  trunk:
+    - GHODictionary
+
+SPEC CHECKSUMS:
+  GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
+
+PODFILE CHECKSUM: 8459eba91bfad33da4b0db429dd7ed5b16a2dfcb
+
+COCOAPODS: 1.8.4

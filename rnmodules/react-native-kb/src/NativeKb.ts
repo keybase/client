@@ -1,0 +1,59 @@
+import {TurboModuleRegistry, type TurboModule} from 'react-native'
+
+export interface Spec extends TurboModule {
+  install: () => boolean
+  addListener: (eventType: string) => void
+  removeListeners: (count: number) => void
+  getTypedConstants(): {
+    androidIsDeviceSecure: boolean
+    androidIsTestDevice: boolean
+    appVersionCode: string
+    appVersionName: string
+    darkModeSupported: boolean
+    fsCacheDir: string
+    fsDownloadDir: string
+    guiConfig: string
+    serverConfig: string
+    uses24HourClock: boolean
+    version: string
+  }
+  getDefaultCountryCode(): Promise<string>
+  logSend(
+    status: string,
+    feedback: string,
+    sendLogs: boolean,
+    sendMaxBytes: boolean,
+    traceDir: string,
+    cpuProfileDir: string
+  ): Promise<string>
+  iosGetHasShownPushPrompt(): Promise<boolean>
+  androidOpenSettings(): void
+  androidSetSecureFlagSetting(s: boolean): Promise<boolean>
+  androidGetSecureFlagSetting(): Promise<boolean>
+  androidShareText(text: string, mimeType: string): Promise<boolean>
+  androidShare(text: string, mimeType: string): Promise<boolean>
+  androidUnlink(path: string): Promise<void>
+  androidAddCompleteDownload(o: {
+    description: string
+    mime: string
+    path: string
+    showNotification: boolean
+    title: string
+  }): Promise<void>
+  androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
+  checkPushPermissions(): Promise<boolean>
+  requestPushPermissions(): Promise<boolean>
+  getRegistrationToken(): Promise<string>
+  setApplicationIconBadgeNumber(n: number): void
+  getInitialNotification(): Promise<object | null>
+  removeAllPendingNotificationRequests(): void
+  addNotificationRequest(config: {body: string; id: string}): Promise<void>
+  engineReset(): void
+  notifyJSReady(): void
+  shareListenersRegistered(): void
+  setEnablePasteImage(enabled: boolean): void
+  clearLocalLogs(): Promise<void>
+  //processVideo(path: string): Promise<string>
+}
+
+export default TurboModuleRegistry.getEnforcing<Spec>('Kb')

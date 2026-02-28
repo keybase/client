@@ -1,10 +1,10 @@
 package teams
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/davecgh/go-spew/spew"
@@ -28,7 +28,6 @@ type proofTerm struct {
 
 func (t *proofTerm) shortForm() string {
 	return fmt.Sprintf("%v@%v", t.sigMeta.SigChainLocation.Seqno, t.leafID)
-
 }
 
 type proofTermBookends struct {
@@ -110,7 +109,6 @@ func newProofSet(g *libkb.GlobalContext) *proofSetT {
 // proof set with the new proofs needed, but the original argument p will
 // be mutated.
 func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) {
-
 	var action string
 	defer func() {
 		if action != "discard-easy" && !ShouldSuppressLogging(ctx) {
@@ -156,7 +154,6 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 	}
 	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return
 }
 
 // Set the latest link map for the team
@@ -192,10 +189,7 @@ func (p *proofSetT) AllProofs() []proof {
 			return false
 		}
 		cs = ret[i].b.sigMeta.SigChainLocation.Seqno - ret[j].b.sigMeta.SigChainLocation.Seqno
-		if cs < 0 {
-			return true
-		}
-		return false
+		return cs < 0
 	})
 	return ret
 }
@@ -203,7 +197,7 @@ func (p *proofSetT) AllProofs() []proof {
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
 func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
-	return world.merkleLookupTripleAtHashMeta(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	return world.merkleLookupTripleInPast(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned)
 }
 
 // check a single proof. Call to the merkle API endpoint, and then ensure that the
@@ -284,7 +278,7 @@ func (p *proofSetT) checkRequired() bool {
 
 // check the entire proof set, failing if any one proof fails.
 func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel bool) (err error) {
-	defer p.G().CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
+	defer p.G().CTrace(ctx, "TeamLoader proofSet check", &err)()
 
 	if parallel {
 		return p.checkParallel(ctx, world)
@@ -311,7 +305,6 @@ func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel boo
 
 // check the entire proof set, failing if any one proof fails. (parallel version)
 func (p *proofSetT) checkParallel(ctx context.Context, world LoaderContext) (err error) {
-
 	var total int
 	for _, v := range p.proofs {
 		total += len(v)

@@ -1,0 +1,57 @@
+{
+  "protocol": "airdrop",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "AirdropDetails",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "BinaryKID",
+          "name": "kid"
+        },
+        {
+          "type": "VID",
+          "name": "vid"
+        },
+        {
+          "type": "string",
+          "name": "vers"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "reg1": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "kid",
+          "type": "BinaryKID"
+        }
+      ],
+      "response": "BinaryKID"
+    },
+    "reg2": {
+      "request": [
+        {
+          "name": "ctext",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

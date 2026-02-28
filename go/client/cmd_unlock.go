@@ -4,7 +4,8 @@
 package client
 
 import (
-	"io/ioutil"
+	"context"
+	"io"
 	"os"
 
 	"github.com/keybase/cli"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 func NewCmdUnlock(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -58,7 +58,7 @@ func (c *CmdUnlock) Run() error {
 		return err
 	}
 	if c.stdin {
-		stdinBytes, err := ioutil.ReadAll(os.Stdin)
+		stdinBytes, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return err
 		}

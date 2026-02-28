@@ -42,7 +42,7 @@ type whitelistRegistry struct {
 // binary.
 func (w *whitelistRegistry) writeJSON(path string, app AppManifest) error {
 	// Write the file
-	fp, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	fp, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}

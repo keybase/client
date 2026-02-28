@@ -31,3 +31,8 @@ typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus)
 - (instancetype)initWithName:(NSString *)name info:(NSString *)info image:(NSImage *)image;
 
 @end
+
+@interface KBFSUtils : NSObject
++(BOOL)checkAbsolutePath:(NSString *)path hasAbsolutePrefix:(NSString *)prefix;
++(BOOL)checkIfPathIsFishy:(NSString *)path;
+@end

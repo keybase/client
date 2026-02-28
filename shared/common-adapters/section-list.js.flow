@@ -1,7 +1,0 @@
-// @flow
-import * as React from 'react'
-import {SectionList} from 'react-native'
-
-export type Props = React.ElementProps<typeof SectionList>
-
-export default class extends SectionList {}

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type CmdTeamDelete struct {
@@ -55,8 +55,13 @@ func (c *CmdTeamDelete) Run() error {
 		return err
 	}
 
+	teamID, err := cli.GetTeamID(context.Background(), c.Team.String())
+	if err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamDeleteArg{
-		Name: c.Team.String(),
+		TeamID: teamID,
 	}
 
 	dui := c.G().UI.GetTerminalUI()

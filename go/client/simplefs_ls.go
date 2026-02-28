@@ -45,8 +45,9 @@ const (
 // Unfortunately, the Name() in FileInfo is only the basename, so the associated
 // path must be manually recorded as well.
 type FileInfoPath struct {
-	path string
-	info os.FileInfo
+	path          string
+	info          os.FileInfo
+	symlinkTarget string
 }
 
 // DirentFileInfo implements os.FileInfo for a Dirent
@@ -68,13 +69,13 @@ func (d DirentFileInfo) Size() int64 {
 func (d DirentFileInfo) Mode() os.FileMode {
 	switch d.Entry.DirentType {
 	case keybase1.DirentType_FILE:
-		return 0664
+		return 0o664
 	case keybase1.DirentType_DIR:
-		return os.ModeDir | 0664
+		return os.ModeDir | 0o664
 	case keybase1.DirentType_SYM:
-		return os.ModeSymlink | 0664
+		return os.ModeSymlink | 0o664
 	case keybase1.DirentType_EXEC:
-		return 0773
+		return 0o773
 	}
 	return 0
 }
@@ -86,10 +87,7 @@ func (d DirentFileInfo) ModTime() time.Time {
 
 // IsDir is an abbreviation for Mode().IsDir()
 func (d DirentFileInfo) IsDir() bool {
-	if d.Entry.DirentType == keybase1.DirentType_DIR {
-		return true
-	}
-	return false
+	return d.Entry.DirentType == keybase1.DirentType_DIR
 }
 
 // Sys - underlying data source (can return nil)
@@ -110,7 +108,7 @@ type Listing struct {
 	day          string
 	time         string
 	name         string
-	linkName     string
+	linkTarget   string
 	linkOrphan   bool
 	isSocket     bool
 	isPipe       bool
@@ -141,69 +139,70 @@ func getPartialColor(foreground bool, letter uint8) string {
 		partialBytes.WriteString("1;")
 	}
 
-	if letter == 'a' {
+	switch letter {
+	case 'a':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBlack))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBlack))
 		}
-	} else if letter == 'b' {
+	case 'b':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgRed))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgRed))
 		}
-	} else if letter == 'c' {
+	case 'c':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgGreen))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgGreen))
 		}
-	} else if letter == 'd' {
+	case 'd':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBrown))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBrown))
 		}
-	} else if letter == 'e' {
+	case 'e':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgBlue))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgBlue))
 		}
-	} else if letter == 'f' {
+	case 'f':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgMagenta))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgMagenta))
 		}
-	} else if letter == 'g' {
+	case 'g':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgCyan))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgCyan))
 		}
-	} else if letter == 'h' {
+	case 'h':
 		if foreground {
 			partialBytes.WriteString(strconv.Itoa(colorFgWhite))
 		} else if !foreground {
 			partialBytes.WriteString(strconv.Itoa(colorBgWhite))
 		}
-	} else if letter == 'A' {
+	case 'A':
 		partialBytes.WriteString(strconv.Itoa(colorFgBlack))
-	} else if letter == 'B' {
+	case 'B':
 		partialBytes.WriteString(strconv.Itoa(colorFgRed))
-	} else if letter == 'C' {
+	case 'C':
 		partialBytes.WriteString(strconv.Itoa(colorFgGreen))
-	} else if letter == 'D' {
+	case 'D':
 		partialBytes.WriteString(strconv.Itoa(colorFgBrown))
-	} else if letter == 'E' {
+	case 'E':
 		partialBytes.WriteString(strconv.Itoa(colorFgBlue))
-	} else if letter == 'F' {
+	case 'F':
 		partialBytes.WriteString(strconv.Itoa(colorFgMagenta))
-	} else if letter == 'G' {
+	case 'G':
 		partialBytes.WriteString(strconv.Itoa(colorFgCyan))
-	} else if letter == 'H' {
+	case 'H':
 		partialBytes.WriteString(strconv.Itoa(colorFgWhite))
 	}
 
@@ -229,39 +228,29 @@ func getColorFromBsdCode(code string) string {
 // global colorMap.
 func parseLsColors(lsColors string) {
 	for i := 0; i < len(lsColors); i += 2 {
-		if i == 0 {
-			colorMap["directory"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 2 {
-			colorMap["symlink"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 4 {
-			colorMap["socket"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 6 {
-			colorMap["pipe"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 8 {
-			colorMap["executable"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 10 {
-			colorMap["block"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 12 {
-			colorMap["character"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 14 {
-			colorMap["executable_suid"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 16 {
-			colorMap["executable_sgid"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 18 {
-			colorMap["directory_o+w_sticky"] =
-				getColorFromBsdCode(lsColors[i : i+2])
-		} else if i == 20 {
-			colorMap["directory_o+w"] =
-				getColorFromBsdCode(lsColors[i : i+2])
+		switch i {
+		case 0:
+			colorMap["directory"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 2:
+			colorMap["symlink"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 4:
+			colorMap["socket"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 6:
+			colorMap["pipe"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 8:
+			colorMap["executable"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 10:
+			colorMap["block"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 12:
+			colorMap["character"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 14:
+			colorMap["executable_suid"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 16:
+			colorMap["executable_sgid"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 18:
+			colorMap["directory_o+w_sticky"] = getColorFromBsdCode(lsColors[i : i+2])
+		case 20:
+			colorMap["directory_o+w"] = getColorFromBsdCode(lsColors[i : i+2])
 		}
 	}
 }
@@ -269,7 +258,6 @@ func parseLsColors(lsColors string) {
 // Write the given Listing's name to the output buffer, with the appropriate
 // formatting based on the current options.
 func (c *CmdSimpleFSList) writeListingName(outputBuffer *bytes.Buffer, l Listing) {
-
 	if c.options.color {
 		appliedColor := false
 
@@ -340,12 +328,12 @@ func (c *CmdSimpleFSList) writeListingName(outputBuffer *bytes.Buffer, l Listing
 
 	if l.permissions[0] == 'l' && c.options.long {
 		if l.linkOrphan {
-			outputBuffer.WriteString(fmt.Sprintf(" -> %s%s%s",
+			fmt.Fprintf(outputBuffer, " -> %s%s%s",
 				colorMap["linkOrphan_target"],
-				l.linkName,
-				colorMap["end"]))
+				l.linkTarget,
+				colorMap["end"])
 		} else {
-			outputBuffer.WriteString(fmt.Sprintf(" -> %s", l.linkName))
+			fmt.Fprintf(outputBuffer, " -> %s", l.linkTarget)
 		}
 	}
 }
@@ -361,30 +349,27 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 		currentListing.permissions = strings.Replace(
 			currentListing.permissions, "L", "l", 1)
 		// Note: don't follow KBFS symlinks for now
+		currentListing.linkTarget = fip.symlinkTarget
 	} else if currentListing.permissions[0] == 'D' {
 		currentListing.permissions = currentListing.permissions[1:]
 	} else if currentListing.permissions[0:2] == "ug" {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "ug", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "ug", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%ss%s",
 			currentListing.permissions[0:3],
 			currentListing.permissions[4:6],
 			currentListing.permissions[7:])
 	} else if currentListing.permissions[0] == 'u' {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "u", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "u", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%s",
 			currentListing.permissions[0:3],
 			currentListing.permissions[4:])
 	} else if currentListing.permissions[0] == 'g' {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "g", "-", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "g", "-", 1)
 		currentListing.permissions = fmt.Sprintf("%ss%s",
 			currentListing.permissions[0:6],
 			currentListing.permissions[7:])
 	} else if currentListing.permissions[0:2] == "dt" {
-		currentListing.permissions =
-			strings.Replace(currentListing.permissions, "dt", "d", 1)
+		currentListing.permissions = strings.Replace(currentListing.permissions, "dt", "d", 1)
 		currentListing.permissions = fmt.Sprintf("%st",
 			currentListing.permissions[0:len(currentListing.permissions)-1])
 	}
@@ -407,21 +392,22 @@ func (c *CmdSimpleFSList) createListing(dirname string, fip FileInfoPath) (Listi
 		}
 
 		var suffix string
-		if count == 0 {
+		switch count {
+		case 0:
 			suffix = "B"
-		} else if count == 1 {
+		case 1:
 			suffix = "K"
-		} else if count == 2 {
+		case 2:
 			suffix = "M"
-		} else if count == 3 {
+		case 3:
 			suffix = "G"
-		} else if count == 4 {
+		case 4:
 			suffix = "T"
-		} else if count == 5 {
+		case 5:
 			suffix = "P"
-		} else if count == 6 {
+		case 6:
 			suffix = "E"
-		} else {
+		default:
 			suffix = "?"
 		}
 
@@ -552,9 +538,7 @@ func sortListings(listings Listings, options ListOptions) {
 				break
 			}
 
-			tmp := listings[frontIndex]
-			listings[frontIndex] = listings[rearIndex]
-			listings[rearIndex] = tmp
+			listings[frontIndex], listings[rearIndex] = listings[rearIndex], listings[frontIndex]
 		}
 	}
 }
@@ -563,8 +547,8 @@ func sortListings(listings Listings, options ListOptions) {
 // the current program arguments and terminal width as necessary.
 func (c *CmdSimpleFSList) writeListingsToBuffer(outputBuffer *bytes.Buffer,
 	listings []Listing,
-	terminalWidth int) {
-
+	terminalWidth int,
+) {
 	if len(listings) == 0 {
 		return
 	}
@@ -770,39 +754,40 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 				iSplit := strings.Split(i, "=")
 				colorCode := fmt.Sprintf("\x1b[%sm", iSplit[1])
 
-				if iSplit[0] == "rs" {
+				switch iSplit[0] {
+				case "rs":
 					colorMap["end"] = colorCode
-				} else if iSplit[0] == "di" {
+				case "di":
 					colorMap["directory"] = colorCode
-				} else if iSplit[0] == "ln" {
+				case "ln":
 					colorMap["symlink"] = colorCode
-				} else if iSplit[0] == "mh" {
+				case "mh":
 					colorMap["multi_hardlink"] = colorCode
-				} else if iSplit[0] == "pi" {
+				case "pi":
 					colorMap["pipe"] = colorCode
-				} else if iSplit[0] == "so" {
+				case "so":
 					colorMap["socket"] = colorCode
-				} else if iSplit[0] == "bd" {
+				case "bd":
 					colorMap["block"] = colorCode
-				} else if iSplit[0] == "cd" {
+				case "cd":
 					colorMap["character"] = colorCode
-				} else if iSplit[0] == "or" {
+				case "or":
 					colorMap["linkOrphan"] = colorCode
-				} else if iSplit[0] == "mi" {
+				case "mi":
 					colorMap["linkOrphan_target"] = colorCode
-				} else if iSplit[0] == "su" {
+				case "su":
 					colorMap["executable_suid"] = colorCode
-				} else if iSplit[0] == "sg" {
+				case "sg":
 					colorMap["executable_sgid"] = colorCode
-				} else if iSplit[0] == "tw" {
+				case "tw":
 					colorMap["directory_o+w_sticky"] = colorCode
-				} else if iSplit[0] == "ow" {
+				case "ow":
 					colorMap["directory_o+w"] = colorCode
-				} else if iSplit[0] == "st" {
+				case "st":
 					colorMap["directory_sticky"] = colorCode
-				} else if iSplit[0] == "ex" {
+				case "ex":
 					colorMap["executable"] = colorCode
-				} else {
+				default:
 					colorMap[iSplit[0]] = colorCode
 				}
 
@@ -821,18 +806,23 @@ func (c *CmdSimpleFSList) ls(outputBuffer *bytes.Buffer, listResult keybase1.Sim
 		// separate the files from the directories
 		//
 		//	for _, f := range args_files {
-		//info, err := os.Stat(f)
+		// info, err := os.Stat(f)
 
 		var fListing Listing
 		var err error
 		if !c.G().Env.GetDisplayRawUntrustedOutput() && isatty.IsTerminal(os.Stdout.Fd()) {
 			fListing, err = c.createListing("",
-				FileInfoPath{path: terminalescaper.Clean(e.Name),
-					info: DirentFileInfo{e}})
+				FileInfoPath{
+					path:          terminalescaper.Clean(e.Name),
+					info:          DirentFileInfo{e},
+					symlinkTarget: e.SymlinkTarget,
+				})
 		} else {
-			fListing, err = c.createListing("",
-				FileInfoPath{path: e.Name,
-					info: DirentFileInfo{e}})
+			fListing, err = c.createListing("", FileInfoPath{
+				path:          e.Name,
+				info:          DirentFileInfo{e},
+				symlinkTarget: e.SymlinkTarget,
+			})
 		}
 		if err != nil {
 			return err

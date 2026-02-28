@@ -18,7 +18,7 @@ done
 rn_packager_pid="$(pgrep -P $npm_cmd_pid)"
 
 cleanup() {
-  pkill -P $rn_packager_pid
+  pkill -P "$rn_packager_pid"
 }
 
 trap 'cleanup' ERR

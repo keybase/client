@@ -48,7 +48,7 @@ func genTableForTest(t *testing.T) *Table {
 }
 
 func readable(in string) string {
-	return strings.Replace(strings.Replace(in, "\n", "⏎\n", -1), " ", "␣", -1)
+	return strings.ReplaceAll(strings.ReplaceAll(in, "\n", "⏎\n"), " ", "␣")
 }
 
 func TestTable(t *testing.T) {

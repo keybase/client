@@ -1,20 +1,5 @@
 #! /bin/bash
 
-# This script is adapted from the postinst used by Google Chrome's .deb
-# package. Most of what's there is either 1) Chrome-specific stuff like icons
-# and default apps or 2) unused function definitions that Chrome's build
-# automatically inlines. These few lines are all that we actually need.
-
-DEFAULTS_FILE="/etc/default/@@NAME@@"
-
-if [ ! -e "$DEFAULTS_FILE" ]; then
-  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
-  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
-fi
-
-# Run the cron job immediately to perform repository configuration.
-nohup sh /etc/cron.daily/@@NAME@@ > /dev/null 2>&1 &
-
 # Run shared Keybase post-install code. Currently this only exists in
 # prerelease packages.
 if [ -x /opt/keybase/post_install.sh ] ; then

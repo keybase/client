@@ -1,5 +1,3 @@
-// +build !production
-
 package client
 
 import (
@@ -10,12 +8,13 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// This is a devel-only cmd which can be used to see how long different
+// This is a hidden cmd which can be used to see how long different
 // g.CTraceTimed calls are taking.
 func NewCmdLogProfile(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "profile",
-		Usage: "Analyze timed traces from logs.",
+		Name:     "profile",
+		Usage:    "Analyze timed traces from logs.",
+		Unlisted: true,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdLogProfile{Contextified: libkb.NewContextified(g)}, "profile", c)
 		},

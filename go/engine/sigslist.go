@@ -1,7 +1,6 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-//
 package engine
 
 import (
@@ -135,7 +134,6 @@ func (e *SigsList) JSON() (string, error) {
 		return "", err
 	}
 	return string(j), nil
-
 }
 
 func (e *SigsList) processSigs() error {

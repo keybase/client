@@ -1,65 +1,84 @@
 package libkb
 
-func getUsernameIfProvisioned(m MetaContext, uc UserConfig) (ret NormalizedUsername, err error) {
-	m.CDebugf("getUsernameIfProvisioned(%+v)", uc)
-	did := uc.GetDeviceID()
-	if did.IsNil() {
-		m.CDebugf("- no valid username since nil deviceID")
-		return ret, nil
-	}
-	err = checkDeviceValidForUID(m.Ctx(), m.G().GetUPAKLoader(), uc.GetUID(), did)
-	switch err.(type) {
-	case nil:
-		m.CDebugf("- checks out")
-		return uc.GetUsername(), nil
-	case DeviceNotFoundError:
-		m.CDebugf("- user was likely reset (%s)", err)
-		return ret, nil
-	case KeyRevokedError:
-		m.CDebugf("- device was revoked (s)", err)
-		return ret, nil
-	case UserDeletedError:
-		m.CDebugf(" - user was deleted (%s)", err)
-		return ret, nil
-	case NotFoundError:
-		// This can happen in development if the dev db is nuked or a mobile
-		// device is connected to dev servers.
-		m.CDebugf(" - user wasn't found (%s)", err)
-		return ret, nil
-	default:
-		m.CDebugf("- unexpected error; propagating (%s)", err)
-		return ret, err
-	}
+import (
+	"time"
+
+	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
+)
+
+type deviceForUsersRet struct {
+	AppStatusEmbed
+	UserConfigs []deviceForUser `json:"user_configs"`
+}
+type deviceForUser struct {
+	UID      keybase1.UID      `json:"uid"`
+	DeviceID keybase1.DeviceID `json:"device_id"`
+	OK       bool              `json:"ok"`
+	Username string            `json:"username"`
 }
 
-// GetAllProvisionedUsernames looks into the current config.json file, and finds all usernames
-// that are currently provisioned on this device. That is, it filters out those that are on revoked
-// devices or have reset their accounts. It uses UPAK loading for verifying the current user/device
-// statuses, so should be fast if everything is cached recently.
-func GetAllProvisionedUsernames(m MetaContext) (current NormalizedUsername, all []NormalizedUsername, err error) {
+// GetAllProvisionedUsernames looks into the current config.json file, and
+// finds all usernames that are currently provisioned on this device. Then, it
+// asks the server to filter out revoked devices or reset users.
+func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, all []NormalizedUsername, err error) {
+	mctx = mctx.WithLogTag("GAPU")
+	defer mctx.Trace("GetAllProvisionedUsernames", &err)()
 
-	m = m.WithLogTag("GAPU")
-	defer m.CTrace("GetAllProvisionedUsernames", func() error { return err })()
-
-	currentUC, allUCs, err := m.G().Env.GetConfig().GetAllUserConfigs()
+	currentUC, otherUCs, err := mctx.G().Env.GetConfig().GetAllUserConfigs()
 	if err != nil {
 		return current, nil, err
 	}
 
+	var userConfigs []deviceForUser
 	if currentUC != nil {
-		current, err = getUsernameIfProvisioned(m, *currentUC)
-		if err != nil {
-			return current, nil, err
-		}
+		userConfigs = append(userConfigs, deviceForUser{UID: currentUC.GetUID(), DeviceID: currentUC.GetDeviceID()})
+	}
+	for _, uc := range otherUCs {
+		userConfigs = append(userConfigs, deviceForUser{UID: uc.GetUID(), DeviceID: uc.GetDeviceID()})
 	}
 
-	for _, u := range allUCs {
-		tmp, err := getUsernameIfProvisioned(m, u)
-		if err != nil {
-			return current, nil, err
+	if len(userConfigs) == 0 {
+		mctx.Debug("GAPU: no userConfigs to lookup")
+		return current, nil, nil
+	}
+
+	payload := make(JSONPayload)
+	payload["user_configs"] = userConfigs
+	arg := APIArg{
+		Endpoint:       "device/for_users",
+		JSONPayload:    payload,
+		SessionType:    APISessionTypeNONE,
+		InitialTimeout: 5 * time.Second,
+		RetryCount:     3,
+	}
+
+	resp := deviceForUsersRet{}
+	err = mctx.G().API.PostDecode(mctx, arg, &resp)
+	var configsForReturn []deviceForUser
+	if _, ok := err.(APINetError); ok {
+		// We got a network error but we can still return offline results.
+		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
+		// Put together a fake response from the offline data:
+		if currentUC != nil {
+			configsForReturn = append(configsForReturn, deviceForUser{Username: string(currentUC.Name), OK: true})
 		}
-		if !tmp.IsNil() {
-			all = append(all, tmp)
+		for _, uc := range otherUCs {
+			configsForReturn = append(configsForReturn, deviceForUser{Username: string(uc.Name), OK: true})
+		}
+	} else if err != nil {
+		return "", nil, err
+	} else {
+		configsForReturn = resp.UserConfigs
+	}
+
+	for _, userConfig := range configsForReturn {
+		if userConfig.OK {
+			nu := kbun.NewNormalizedUsername(userConfig.Username)
+			all = append(all, nu)
+			if currentUC != nil && nu == currentUC.GetUsername() {
+				current = nu
+			}
 		}
 	}
 

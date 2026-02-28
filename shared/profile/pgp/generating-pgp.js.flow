@@ -1,8 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  onCancel: () => void,
-}
-
-export default class GeneratingPgp extends Component<Props> {}

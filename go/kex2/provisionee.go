@@ -4,12 +4,12 @@
 package kex2
 
 import (
+	"context"
 	"io"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type provisionee struct {
@@ -26,6 +26,7 @@ type provisionee struct {
 // management that a provisionee needs to do as part of the protocol.
 type Provisionee interface {
 	GetLogFactory() rpc.LogFactory
+	GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 	HandleHello(ctx context.Context, a keybase1.HelloArg) (keybase1.HelloRes, error)
 	HandleHello2(ctx context.Context, a keybase1.Hello2Arg) (keybase1.Hello2Res, error)
 	HandleDidCounterSign(ctx context.Context, b []byte) error
@@ -102,7 +103,6 @@ func (p *provisionee) DidCounterSign2(ctx context.Context, arg keybase1.DidCount
 }
 
 func (p *provisionee) run() (err error) {
-
 	if err = p.setDeviceID(); err != nil {
 		return err
 	}
@@ -155,7 +155,8 @@ func (p *provisionee) startServer(s Secret) (err error) {
 		keybase1.Kex2ProvisioneeProtocol(p),
 	}
 	prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
-	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(),
+		p.arg.Provisionee.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 	srv := rpc.NewServer(p.xp, nil)
 	for _, prot := range prots {
 		if err = srv.Register(prot); err != nil {
@@ -169,7 +170,6 @@ func (p *provisionee) startServer(s Secret) (err error) {
 }
 
 func (p *provisionee) pickFirstConnection() (err error) {
-
 	select {
 	case <-p.start:
 	case sec := <-p.arg.SecretChannel:
@@ -182,7 +182,8 @@ func (p *provisionee) pickFirstConnection() (err error) {
 			return err
 		}
 		cli := keybase1.Kex2ProvisionerClient{
-			Cli: rpc.NewClient(p.xp, nil, nil)}
+			Cli: rpc.NewClient(p.xp, nil, nil),
+		}
 		if err = cli.KexStart(p.arg.Ctx); err != nil {
 			return err
 		}

@@ -146,6 +146,7 @@ type AssertionURL interface {
 	IsSocial() bool
 	IsRemote() bool
 	IsFingerprint() bool
+	IsEmail() bool
 	MatchProof(p Proof) bool
 	ToUID() keybase1.UID
 	ToTeamID() keybase1.TeamID
@@ -155,6 +156,7 @@ type AssertionURL interface {
 	GetValue() string
 	GetKey() string
 	ToLookup() (string, string, error)
+	IsServerTrust() bool
 }
 
 type AssertionURLBase struct {
@@ -187,18 +189,18 @@ func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 func (b AssertionURLBase) NeedsParens() bool { return false }
 func (b AssertionURLBase) HasOr() bool       { return false }
 
-func (a AssertionUID) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionTeamID) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
-func (a AssertionTeamName) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
-func (a AssertionKeybase) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
-func (a AssertionWeb) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionSocial) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
-func (a AssertionHTTP) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
-func (a AssertionHTTPS) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
-func (a AssertionDNS) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
-	return a.matchSet(a, ps)
-}
+func (a AssertionUID) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionTeamID) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
+func (a AssertionTeamName) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
+func (a AssertionKeybase) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionWeb) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionSocial) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
+func (a AssertionHTTP) MatchSet(ps ProofSet) bool        { return a.matchSet(a, ps) }
+func (a AssertionHTTPS) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
+func (a AssertionDNS) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionFingerprint) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionPhoneNumber) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionEmail) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
@@ -209,6 +211,7 @@ func (b AssertionURLBase) IsSocial() bool                      { return false }
 func (b AssertionURLBase) IsRemote() bool                      { return false }
 func (b AssertionURLBase) IsFingerprint() bool                 { return false }
 func (b AssertionURLBase) IsUID() bool                         { return false }
+func (b AssertionURLBase) IsEmail() bool                       { return b.Key == "email" }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID)           { return ret }
 func (b AssertionURLBase) IsTeamID() bool                      { return false }
 func (b AssertionURLBase) IsTeamName() bool                    { return false }
@@ -217,6 +220,7 @@ func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
 }
+func (b AssertionURLBase) IsServerTrust() bool { return false }
 
 func (b AssertionURLBase) ToSocialAssertionHelper() (sa keybase1.SocialAssertion, err error) {
 	return keybase1.SocialAssertion{
@@ -224,35 +228,62 @@ func (b AssertionURLBase) ToSocialAssertionHelper() (sa keybase1.SocialAssertion
 		Service: keybase1.SocialAssertionService(b.GetKey()),
 	}, nil
 }
+
 func (a AssertionUID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return sa, fmt.Errorf("cannot convert AssertionUID to social assertion")
 }
+
 func (a AssertionTeamID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return sa, fmt.Errorf("cannot convert AssertionTeamID to social assertion")
 }
+
 func (a AssertionTeamName) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return sa, fmt.Errorf("cannot convert AssertionTeamName to social assertion")
 }
+
 func (a AssertionKeybase) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return sa, fmt.Errorf("cannot convert AssertionKeybase to social assertion")
 }
+
 func (a AssertionWeb) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
 func (a AssertionSocial) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
 func (a AssertionHTTP) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
 func (a AssertionHTTPS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
 func (a AssertionDNS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
 func (a AssertionFingerprint) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
+}
+
+func (a AssertionPhoneNumber) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	// Phone number is not "social" like facebook or twitter, and there are no
+	// public prooofs, but it still conforms to keybase1.SocialAssertion type
+	// used in implicit team handling code.
+	return a.ToSocialAssertionHelper()
+}
+
+func (a AssertionEmail) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	// Email have no public proofs, but can still be converted to
+	// keybase1.SocialAssertion, used in implicit team handling code.
+	return a.ToSocialAssertionHelper()
+}
+
+func (a AssertionEmail) String() string {
+	return fmt.Sprintf("[%s]@email", a.Value)
 }
 
 func (a AssertionSocial) GetValue() string {
@@ -281,14 +312,22 @@ func (a AssertionHTTP) CollectUrls(v []AssertionURL) []AssertionURL        { ret
 func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL       { return append(v, a) }
 func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
 func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionPhoneNumber) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionPhoneNumber) IsServerTrust() bool                         { return true }
 
-type AssertionSocial struct{ AssertionURLBase }
-type AssertionWeb struct{ AssertionURLBase }
-type AssertionKeybase struct{ AssertionURLBase }
-type AssertionUID struct {
-	AssertionURLBase
-	uid keybase1.UID
-}
+func (a AssertionEmail) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionEmail) IsServerTrust() bool                         { return true }
+
+type (
+	AssertionSocial  struct{ AssertionURLBase }
+	AssertionWeb     struct{ AssertionURLBase }
+	AssertionKeybase struct{ AssertionURLBase }
+	AssertionUID     struct {
+		AssertionURLBase
+		uid keybase1.UID
+	}
+)
+
 type AssertionTeamID struct {
 	AssertionURLBase
 	tid keybase1.TeamID
@@ -298,10 +337,14 @@ type AssertionTeamName struct {
 	name keybase1.TeamName
 }
 
-type AssertionHTTP struct{ AssertionURLBase }
-type AssertionHTTPS struct{ AssertionURLBase }
-type AssertionDNS struct{ AssertionURLBase }
-type AssertionFingerprint struct{ AssertionURLBase }
+type (
+	AssertionHTTP        struct{ AssertionURLBase }
+	AssertionHTTPS       struct{ AssertionURLBase }
+	AssertionDNS         struct{ AssertionURLBase }
+	AssertionFingerprint struct{ AssertionURLBase }
+	AssertionPhoneNumber struct{ AssertionURLBase }
+	AssertionEmail       struct{ AssertionURLBase }
+)
 
 func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
@@ -309,18 +352,21 @@ func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, erro
 	}
 	return a, nil
 }
+
 func (a AssertionHTTPS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
+
 func (a AssertionDNS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
+
 func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
@@ -331,7 +377,7 @@ func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error
 func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if !CheckUsername.F(a.Value) {
-		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
+		return nil, NewAssertionCheckError("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
 	}
 	return a, nil
 }
@@ -339,21 +385,20 @@ func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, e
 func (a AssertionFingerprint) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if _, err := hex.DecodeString(a.Value); err != nil {
-		return nil, fmt.Errorf("bad hex string: '%s'", a.Value)
+		return nil, NewAssertionCheckError("bad hex string: '%s'", a.Value)
 	}
 	return a, nil
 }
 
 func (b *AssertionURLBase) checkAndNormalizeHost() error {
-
 	if len(b.Value) == 0 {
-		return fmt.Errorf("Bad assertion, no value given (key=%s)", b.Key)
+		return NewAssertionCheckError("Bad assertion, no value given (key=%s)", b.Key)
 	}
 
 	b.Value = strings.ToLower(b.Value)
 
 	if !IsValidHostname(b.Value) {
-		return fmt.Errorf("Invalid hostname: %s", b.Value)
+		return NewAssertionCheckError("Invalid hostname: %s", b.Value)
 	}
 
 	return nil
@@ -362,6 +407,7 @@ func (b *AssertionURLBase) checkAndNormalizeHost() error {
 func (b AssertionURLBase) String() string {
 	return fmt.Sprintf("%s@%s", b.Value, b.Key)
 }
+
 func (a AssertionKeybase) String() string {
 	return a.Value
 }
@@ -369,15 +415,19 @@ func (a AssertionKeybase) String() string {
 func (a AssertionWeb) ToLookup() (key, value string, err error) {
 	return "web", a.Value, nil
 }
+
 func (a AssertionHTTP) ToLookup() (key, value string, err error) {
 	return "http", a.Value, nil
 }
+
 func (a AssertionHTTPS) ToLookup() (key, value string, err error) {
 	return "https", a.Value, nil
 }
+
 func (a AssertionDNS) ToLookup() (key, value string, err error) {
 	return "dns", a.Value, nil
 }
+
 func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	cmp := len(a.Value) - PGPFingerprintHexLen
 	value = a.Value
@@ -393,31 +443,85 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
-var pairRE = regexp.MustCompile(`^[0-9a-zA-Z@:/_-]`)
+var (
+	assertionBracketNameRxx = regexp.MustCompile(`^\[[-_a-zA-Z0-9.@+]+\]$`)
+	assertionNameRxx        = regexp.MustCompile(`^[-_a-zA-Z0-9.]+$`)
+	assertionServiceRxx     = regexp.MustCompile(`^[a-zA-Z.-]+$`)
+)
 
 func parseToKVPair(s string) (key string, value string, err error) {
-
-	if !pairRE.MatchString(s) {
-		err = fmt.Errorf("Invalid key-value identity: %s", s)
-		return
-	}
-
-	colon := strings.IndexByte(s, byte(':'))
-	atsign := strings.IndexByte(s, byte('@'))
-	if colon >= 0 {
-		key = s[0:colon]
-		value = s[(colon + 1):]
-		if len(value) >= 2 && value[0:2] == "//" {
-			value = value[2:]
+	// matchNameAndService runs regexp against potential name and service
+	// strings extracted from assertion.
+	matchNameAndService := func(name, service string) bool {
+		var k, v string // temp variables for key and value
+		if !assertionServiceRxx.MatchString(service) {
+			return false
 		}
-	} else if atsign >= 0 {
-		value = s[0:atsign]
-		key = s[(atsign + 1):]
-	} else {
-		value = s
+
+		// Normalize service name at parser level.
+		k = strings.ToLower(service)
+
+		if name == "" {
+			// We are fine with matching just the service. "dns:" is a valid
+			// assertion at parser level (but is rejected later in the
+			// process).
+			key = k
+			return true
+		}
+
+		var hasBrackets bool
+		if assertionNameRxx.MatchString(name) {
+			v = name
+		} else if assertionBracketNameRxx.MatchString(name) {
+			v = name[1 : len(name)-1]
+			hasBrackets = true
+		} else {
+			return false
+		}
+
+		// Set err in outer scope if find invalid square bracket syntax.
+		// Still return `true` because it's a successful match.
+		if k == "email" && !hasBrackets {
+			err = fmt.Errorf("expected bracket syntax for email assertion")
+		} else if k != "email" && hasBrackets {
+			err = fmt.Errorf("unexpected bracket syntax for assertion: %s", k)
+		}
+
+		// Finally pass back temp variables to outer scope.
+		key = k
+		value = v
+		return true
 	}
-	key = strings.ToLower(key)
-	return
+
+	if atIndex := strings.LastIndex(s, "@"); atIndex != -1 {
+		name := s[:atIndex]
+		service := s[atIndex+1:]
+
+		if matchNameAndService(name, service) {
+			return key, value, err
+		}
+	}
+
+	if colIndex := strings.Index(s, ":"); colIndex != -1 {
+		service := s[:colIndex]
+		name := s[colIndex+1:]
+
+		// "dns://keybase.io" syntax.
+		name = strings.TrimPrefix(name, "//")
+
+		if matchNameAndService(name, service) {
+			return key, value, err
+		}
+	}
+
+	if assertionNameRxx.MatchString(s) {
+		key = ""
+		value = s
+		return key, value, nil
+	}
+
+	// We've exhausted our options, it's not a valid assertion we can parse.
+	return "", "", fmt.Errorf("Invalid key-value identity: %s", s)
 }
 
 func (a AssertionKeybase) IsKeybase() bool         { return true }
@@ -431,6 +535,8 @@ func (a AssertionTeamName) IsTeamName() bool       { return true }
 func (a AssertionHTTP) IsRemote() bool             { return true }
 func (a AssertionHTTPS) IsRemote() bool            { return true }
 func (a AssertionDNS) IsRemote() bool              { return true }
+func (a AssertionPhoneNumber) IsRemote() bool      { return true }
+func (a AssertionEmail) IsRemote() bool            { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -502,13 +608,34 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 	return a, err
 }
 
+func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	if !IsPossiblePhoneNumberAssertion(a.Value) {
+		return nil, NewAssertionCheckError("Invalid phone number: %s", a.Value)
+	}
+	return a, nil
+}
+
+func (a AssertionEmail) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	if strings.Count(a.Value, "@") != 1 {
+		return nil, NewAssertionCheckError("Invalid email address: %s", a.Value)
+	}
+	return a, nil
+}
+
 func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
 }
 
+func (a AssertionPhoneNumber) ToLookup() (key, value string, err error) {
+	return "phone", "+" + a.Value, nil
+}
+
+func (a AssertionEmail) ToLookup() (key, value string, err error) {
+	return "email", a.Value, nil
+}
+
 func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
 	key, val, err := parseToKVPair(s)
-
 	if err != nil {
 		return
 	}
@@ -516,7 +643,6 @@ func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret Asserti
 }
 
 func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
-
 	if len(key) == 0 {
 		if strict {
 			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
@@ -545,6 +671,10 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 		ret = AssertionDNS{base}
 	case PGPAssertionKey:
 		ret = AssertionFingerprint{base}
+	case "phone":
+		ret = AssertionPhoneNumber{base}
+	case "email":
+		ret = AssertionEmail{base}
 	default:
 		ret = AssertionSocial{base}
 	}
@@ -667,7 +797,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	if err != nil {
 		return "", "", fmt.Errorf("Could not parse part as SBS assertion")
 	}
-	return string(assertion.GetKey()), assertion.GetValue(), nil
+	return assertion.GetKey(), assertion.GetValue(), nil
 }
 
 func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictInfo) string {
@@ -762,7 +892,6 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 }
 
 func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bool) (ret keybase1.ImplicitTeamUserSet, err error) {
-
 	for _, part := range strings.Split(s, ",") {
 		typ, name, err := parseImplicitTeamPart(ctx, part)
 		if err != nil {

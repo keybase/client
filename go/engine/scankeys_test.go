@@ -4,10 +4,11 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestScanKeys(t *testing.T) {
@@ -44,7 +45,7 @@ func TestScanKeysSync(t *testing.T) {
 
 	// Now provision a full device.
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err, "provisioning worked")
 

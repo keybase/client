@@ -1,0 +1,182 @@
+.WrapperMessage {
+  &.highlighted {
+    &,
+    &:hover,
+    &.WrapperMessage-hoverColor,
+    &.WrapperMessage-hoverColor:hover {
+      animation: highlightAnimation 0.3s ease-in forwards running;
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .WrapperMessage.highlighted .separator-text,
+  .WrapperMessage.highlighted .separator-text span {
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+
+  .WrapperMessage.highlighted:hover .explodingTimeContainer {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .WrapperMessage.highlighted:hover .explodingTimeText {
+    color: rgba(0, 0, 0, 0.85) !important;
+  }
+
+  .WrapperMessage.highlighted:hover .explodingTimeIcon {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+@keyframes highlightAnimation {
+  from {
+    background-color: var(--color-transparent);
+    border-radius: 0px;
+    box-shadow: 0px 0px 0px 0px rgb(0 0 0 / 38%);
+  }
+  to {
+    background-color: var(--color-yellowOrYellowAlt);
+    border-radius: 4px;
+    box-shadow: 4px 4px 5px 1px rgb(0 0 0 / 38%);
+  }
+}
+
+.WrapperMessage-hoverBox {
+  padding: 3px 16px 3px 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  contain: style;
+  .WrapperMessage-buttons {
+    display: none;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+
+  .WrapperMessage-emojiButton {
+    transition: box-shadow 0.1s ease-out;
+  }
+
+  &:hover {
+    .WrapperMessage-emojiButton {
+      box-shadow: 0 1px 1px 0 var(--color-black_10);
+      &.noShadow,
+      &:active {
+        box-shadow: none;
+      }
+    }
+    .WrapperMessage-newEmojiButton {
+      visibility: visible;
+    }
+    .WrapperMessage-emojiRow {
+      box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08);
+    }
+    .sendingStatus {
+      visibility: hidden;
+    }
+  }
+
+  .WrapperMessage-newEmojiButton {
+    visibility: hidden;
+  }
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
+.WrapperMessage-decorated.active .WrapperMessage-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-left: 0;
+}
+.WrapperMessage-hoverColor {
+  &:hover {
+    background-color: var(--color-blueLighter2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .WrapperMessage-hoverColor:hover {
+    background-color: var(--color-blueLighter3);
+  }
+
+  .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
+    box-shadow: none;
+  }
+}
+
+.TextAndSiblings {
+  &.noOverflow {
+    overflow: hidden;
+  }
+  &.systemMessage {
+    padding-left: 0;
+  }
+}
+
+.WrapperMessage-decorated {
+  min-height: 26px;
+  &.active {
+    background-color: var(--color-blueLighter2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .WrapperMessage-decorated.active {
+    background-color: var(--color-blueLighter3);
+  }
+}
+
+.WrapperMessage-author {
+  padding-left: 0;
+  padding-top: 8px;
+}
+
+.ReplyBox {
+  &:hover {
+    background-color: white;
+    .text_BodySmall {
+      color: var(--color-blackOrBlack) !important;
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .ReplyBox:hover {
+    background-color: var(--color-blackOrBlack);
+  }
+
+  .ReplyBox:hover .text_BodySmall {
+    color: var(--color-whiteOrWhite) !important;
+  }
+}
+
+.react-button {
+  &.border {
+    &:hover {
+      backgroundcolor: var(--color-blueLighter2);
+      bordercolor: var(--color-blue);
+    }
+  }
+}
+
+.ashbox {
+  overflow: hidden;
+  transition: width 0s;
+  width: 0;
+
+  &.full-width {
+    overflow: visible;
+    transition: width 2000ms linear;
+    width: 100%;
+  }
+}
+
+.timer-icon-container {
+  &:hover,
+  &.expanded {
+    .timer-icon {
+      color: var(--color-black);
+    }
+  }
+}

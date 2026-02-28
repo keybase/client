@@ -1,0 +1,12 @@
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  transition: background-color 0.3s ease;
+}
+.modal-backdrop.has-modals {
+  background-color: var(--color-black_50OrBlack_60);
+}

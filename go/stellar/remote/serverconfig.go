@@ -21,14 +21,14 @@ func (b *configResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func FetchServerConfig(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.StellarServerDefinitions, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/config",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
+		SessionType: libkb.APISessionTypeNONE,
 	}
 
 	var res configResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
 	}
 

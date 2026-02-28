@@ -11,34 +11,40 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
-	"github.com/keybase/client/go/stellar/remote"
 )
 
 type Handler struct {
 	libkb.Contextified
-	remoter remote.Remoter
+	walletState *stellar.WalletState
 }
 
 var _ libkb.GregorInBandMessageHandler = (*Handler)(nil)
 
-func New(g *libkb.GlobalContext, remoter remote.Remoter) *Handler {
+func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 	return &Handler{
 		Contextified: libkb.NewContextified(g),
-		remoter:      remoter,
+		walletState:  walletState,
 	}
 }
 
 func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
-	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("WGR")
+	mctx := libkb.NewMetaContextBackground(h.G()).WithLogTag("WAIBM")
 	switch category {
-	case "stellar.autoclaim":
-		return true, h.autoClaim(mctx, cli, category, item)
-	case "stellar.payment_status":
-		return true, h.paymentStatus(mctx, cli, category, item)
-	case "stellar.payment_notification":
-		return true, h.paymentNotification(mctx, cli, category, item)
-	case "stellar.request_status":
-		return true, h.requestStatus(mctx, cli, category, item)
+	case stellar1.PushAutoClaim:
+		go h.autoClaim(mctx, cli, category, item)
+		return true, nil
+	case stellar1.PushPaymentStatus:
+		go h.paymentStatus(mctx, cli, category, item)
+		return true, nil
+	case stellar1.PushPaymentNotification:
+		go h.paymentNotification(mctx, cli, category, item)
+		return true, nil
+	case stellar1.PushRequestStatus:
+		go h.requestStatus(mctx, cli, category, item)
+		return true, nil
+	case stellar1.PushAccountChange:
+		go h.accountChange(mctx, cli, category, item)
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "stellar.") {
 			return false, fmt.Errorf("unknown handler category: %q", category)
@@ -60,71 +66,83 @@ func (h *Handler) Name() string {
 }
 
 // The server is telling the client to claim relay payments.
-func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
+	mctx.Debug("%v: %v received", h.Name(), category)
 	mctx.G().GetStellar().KickAutoClaimRunner(mctx, item.Metadata().MsgID())
-	return nil
 }
 
-func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
-	var msg stellar1.PaymentStatusMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
-		return err
+type accountChangeMsg struct {
+	AccountID string `json:"account_id"`
+	Reason    string `json:"reason"`
+}
+
+func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
+	mctx.Debug("%v: %v received", h.Name(), category)
+
+	if item.Body() == nil {
+		mctx.Debug("stellar handler for account_change: nil message body")
+		return
+	}
+	var msgBody accountChangeMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msgBody); err != nil {
+		mctx.Debug("stellar handler for account_change: json.Unmarshal error: %s", err)
+		return
 	}
 
-	paymentID := stellar1.PaymentID{TxID: msg.TxID}
-	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
-	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), paymentID)
+	if msgBody.AccountID != "" {
+		if err := h.walletState.Refresh(mctx, stellar1.AccountID(msgBody.AccountID), "accountChange gregor"); err != nil {
+			mctx.Debug("failed to Refresh wallet state: %s", err)
+		}
+		account, err := stellar.WalletAccount(mctx, h.walletState, stellar1.AccountID(msgBody.AccountID))
+		if err == nil {
+			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account)
+		} else {
+			mctx.Debug("failed to HandleWalletAccountDetailsUpdate: %s", err)
+		}
+	} else {
+		if err := h.walletState.RefreshAll(mctx, "accountChange gregor"); err != nil {
+			mctx.Debug("failed to RefreshAll wallet state: %s", err)
+		}
+		accounts, err := stellar.AllWalletAccounts(mctx, h.walletState)
+		if err == nil {
+			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts)
+		} else {
+			mctx.Debug("failed to HandleWalletAccountsUpdate: %s", err)
+		}
+	}
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+		mctx.Debug("failed to local dismiss account_change: %s", err)
+	}
+}
+
+// paymentStatus is an old IBM and shouldn't happen anymore
+func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
+
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_status: %s", err)
 	}
-
-	return nil
 }
 
-func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%s: %s received", h.Name(), category)
-	var msg stellar1.PaymentNotificationMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
-		return err
-	}
-
-	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
-	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), msg.PaymentID)
-
-	// Note: these messages are not getting dismissed except by their
-	// expiration time (7 days).  Once frontend starts handling them,
-	// and they perhaps contribute to badging, we should revisit the
-	// dismissal.
+// paymentNotification is an old IBM and shouldn't happen anymore
+func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
+	mctx.Debug("%s: %s received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_notification: %s", err)
 	}
-
-	return nil
 }
 
-func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
-	var msg stellar1.RequestStatusMsg
-	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
-		return err
-	}
-
-	h.G().NotifyRouter.HandleWalletRequestStatusNotification(mctx.Ctx(), msg.ReqID)
-	stellar.DefaultLoader(h.G()).UpdateRequest(mctx.Ctx(), msg.ReqID)
+// requestStatus is an old IBM and shouldn't happen anymore
+func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
 	}
-
-	return nil
 }

@@ -13,12 +13,12 @@ package s3
 
 import (
 	"bytes"
-	"crypto/md5"
+	"context"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -28,7 +28,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/libkb"
 )
 
 const debug = false
@@ -40,10 +40,15 @@ type Signer interface {
 // The S3 type encapsulates operations with an S3 region.
 type S3 struct {
 	Region
+	libkb.Contextified
 
 	// This is needed for payload construction.  It's
 	// ok for clients to know it.
 	AccessKey string
+
+	// This is needed for payload construction.  It's
+	// ok for clients to know it.
+	SessionToken string
 
 	// Signer signs payloads for s3 request authorization.
 	Signer Signer
@@ -79,9 +84,6 @@ type S3 struct {
 	// AttemptStrategy is the attempt strategy used for requests.
 	AttemptStrategy
 
-	// Reserve the right of using private data.
-	private byte
-
 	// client used for requests
 	client *http.Client
 }
@@ -99,7 +101,6 @@ type Owner struct {
 }
 
 // Fold options into an Options struct
-//
 type Options struct {
 	SSE              bool
 	Meta             map[string][]string
@@ -133,8 +134,7 @@ var DefaultAttemptStrategy = AttemptStrategy{
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region Region, client ...*http.Client) *S3 {
-
+func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.Client) *S3 {
 	var httpclient *http.Client
 
 	if len(client) > 0 {
@@ -146,6 +146,7 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -153,9 +154,13 @@ func (s3 *S3) SetAccessKey(key string) {
 	s3.AccessKey = key
 }
 
+func (s3 *S3) SetSessionToken(token string) {
+	s3.SessionToken = token
+}
+
 // Bucket returns a Bucket with the given name.
 func (s3 *S3) Bucket(name string) BucketInt {
-	if s3.Region.S3BucketEndpoint != "" || s3.Region.S3LowercaseBucket {
+	if s3.S3BucketEndpoint != "" || s3.S3LowercaseBucket {
 		name = strings.ToLower(name)
 	}
 	return &Bucket{s3, name}
@@ -171,8 +176,8 @@ var createBucketConfiguration = `<CreateBucketConfiguration xmlns="http://s3.ama
 // See http://goo.gl/bh9Kq for details.
 func (s3 *S3) locationConstraint() io.Reader {
 	constraint := ""
-	if s3.Region.S3LocationConstraint {
-		constraint = fmt.Sprintf(createBucketConfiguration, s3.Region.Name)
+	if s3.S3LocationConstraint {
+		constraint = fmt.Sprintf(createBucketConfiguration, s3.Name)
 	}
 	return strings.NewReader(constraint)
 }
@@ -188,6 +193,13 @@ const (
 	BucketOwnerFull   = ACL("bucket-owner-full-control")
 )
 
+func (b *Bucket) addTokenHeader(headers map[string][]string) {
+	if b.SessionToken == "" {
+		return
+	}
+	headers["x-amz-security-token"] = []string{b.SessionToken}
+}
+
 // PutBucket creates a new bucket.
 //
 // See http://goo.gl/ndjnR for details.
@@ -195,6 +207,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 	headers := map[string][]string{
 		"x-amz-acl": {string(perm)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "PUT",
 		bucket:  b.Name,
@@ -202,7 +215,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 		headers: headers,
 		payload: b.locationConstraint(),
 	}
-	return b.S3.query(ctx, req, nil)
+	return b.query(ctx, req, nil)
 }
 
 // DelBucket removes an existing S3 bucket. All objects in the bucket must
@@ -210,13 +223,17 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 //
 // See http://goo.gl/GoBrY for details.
 func (b *Bucket) DelBucket() (err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "DELETE",
-		bucket: b.Name,
-		path:   "/",
+		method:  "DELETE",
+		bucket:  b.Name,
+		path:    "/",
+		headers: headers,
 	}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(context.Background(), req, nil)
+	for attempt := b.Start(); attempt.Next(); {
+		err = b.query(context.Background(), req, nil)
 		if !shouldRetry(err) {
 			break
 		}
@@ -237,7 +254,7 @@ func (b *Bucket) Get(ctx context.Context, path string) (data []byte, err error) 
 	if err != nil {
 		return nil, err
 	}
-	data, err = ioutil.ReadAll(body)
+	data, err = io.ReadAll(body)
 	return data, err
 }
 
@@ -281,17 +298,18 @@ func (b *Bucket) GetResponse(ctx context.Context, path string) (resp *http.Respo
 // It is the caller's responsibility to call Close on rc when
 // finished reading
 func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, headers map[string][]string) (resp *http.Response, err error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		bucket:  b.Name,
 		path:    path,
 		headers: headers,
 	}
-	err = b.S3.prepare(req)
+	err = b.prepare(req)
 	if err != nil {
 		return nil, err
 	}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(ctx, req, nil)
+	for attempt := b.Start(); attempt.Next(); {
+		resp, err := b.run(ctx, req, nil) //nolint:bodyclose // caller's responsibility
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -305,17 +323,21 @@ func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, header
 
 // Exists checks whether or not an object exists on an S3 bucket using a HEAD request.
 func (b *Bucket) Exists(path string) (exists bool, err error) {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "HEAD",
-		bucket: b.Name,
-		path:   path,
+		method:  "HEAD",
+		bucket:  b.Name,
+		path:    path,
+		headers: headers,
 	}
-	err = b.S3.prepare(req)
+	err = b.prepare(req)
 	if err != nil {
 		return
 	}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(context.Background(), req, nil)
+	for attempt := b.Start(); attempt.Next(); {
+		resp, err := b.run(context.Background(), req, nil)
 
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
@@ -329,6 +351,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 			return false, err
 		}
 
+		defer func() { _ = libkb.DiscardAndCloseBody(resp) }()
 		if resp.StatusCode/100 == 2 {
 			exists = true
 		}
@@ -340,19 +363,20 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 // Head HEADs an object in the S3 bucket, returns the response with
 // no body see http://bit.ly/17K1ylI
 func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response, error) {
+	b.addTokenHeader(headers)
 	req := &request{
 		method:  "HEAD",
 		bucket:  b.Name,
 		path:    path,
 		headers: headers,
 	}
-	err := b.S3.prepare(req)
+	err := b.prepare(req)
 	if err != nil {
 		return nil, err
 	}
 
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(context.Background(), req, nil)
+	for attempt := b.Start(); attempt.Next(); {
+		resp, err := b.run(context.Background(), req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -378,6 +402,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 		"x-amz-acl":         {string(perm)},
 		"x-amz-copy-source": {source},
 	}
+	b.addTokenHeader(headers)
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -386,8 +411,8 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 		headers: headers,
 	}
 	result = &CopyObjectResult{}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(context.Background(), req, result)
+	for attempt := b.Start(); attempt.Next(); {
+		err = b.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -415,6 +440,8 @@ func (b *Bucket) PutReader(ctx context.Context, path string, r io.Reader, length
 		"Content-Type":   {contType},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
+
 	options.addHeaders(headers)
 	req := &request{
 		method:  "PUT",
@@ -423,7 +450,7 @@ func (b *Bucket) PutReader(ctx context.Context, path string, r io.Reader, length
 		headers: headers,
 		payload: r,
 	}
-	return b.S3.query(ctx, req, nil)
+	return b.query(ctx, req, nil)
 }
 
 /*
@@ -437,6 +464,7 @@ func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, 
 		"Content-Type":   {"application/text"},
 		"x-amz-acl":      {string(perm)},
 	}
+	b.addTokenHeader(headers)
 
 	// Override with custom headers
 	for key, value := range customHeaders {
@@ -450,7 +478,7 @@ func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, 
 		headers: headers,
 		payload: r,
 	}
-	return b.S3.query(ctx, req, nil)
+	return b.query(ctx, req, nil)
 }
 
 // addHeaders adds o's specified fields to headers
@@ -507,7 +535,6 @@ type WebsiteConfiguration struct {
 }
 
 func (b *Bucket) PutBucketWebsite(configuration WebsiteConfiguration) error {
-
 	doc, err := xml.Marshal(configuration)
 	if err != nil {
 		return err
@@ -522,6 +549,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(length, 10)},
 	}
+	b.addTokenHeader(headers)
 	req := &request{
 		path:    "/",
 		method:  "PUT",
@@ -531,19 +559,23 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 		params:  url.Values{subresource: {""}},
 	}
 
-	return b.S3.query(context.Background(), req, nil)
+	return b.query(context.Background(), req, nil)
 }
 
 // Del removes an object from the S3 bucket.
 //
 // See http://goo.gl/APeTt for details.
 func (b *Bucket) Del(ctx context.Context, path string) error {
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		method: "DELETE",
-		bucket: b.Name,
-		path:   path,
+		method:  "DELETE",
+		bucket:  b.Name,
+		path:    path,
+		headers: headers,
 	}
-	return b.S3.query(ctx, req, nil)
+	return b.query(ctx, req, nil)
 }
 
 type Delete struct {
@@ -566,7 +598,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 	}
 
 	buf := makeXMLBuffer(doc)
-	digest := md5.New()
+	digest := md5.New() //nolint:gosec // G401: MD5 required for S3 ETag (AWS API requirement)
 	size, err := digest.Write(buf.Bytes())
 	if err != nil {
 		return err
@@ -577,6 +609,8 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		"Content-MD5":    {base64.StdEncoding.EncodeToString(digest.Sum(nil))},
 		"Content-Type":   {"text/xml"},
 	}
+	b.addTokenHeader(headers)
+
 	req := &request{
 		path:    "/",
 		method:  "POST",
@@ -586,7 +620,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		payload: buf,
 	}
 
-	return b.S3.query(context.Background(), req, nil)
+	return b.query(context.Background(), req, nil)
 }
 
 // The ListResp type holds the results of a List bucket operation.
@@ -638,59 +672,63 @@ type Key struct {
 //
 // For example, given these keys in a bucket:
 //
-//     index.html
-//     index2.html
-//     photos/2006/January/sample.jpg
-//     photos/2006/February/sample2.jpg
-//     photos/2006/February/sample3.jpg
-//     photos/2006/February/sample4.jpg
+//	index.html
+//	index2.html
+//	photos/2006/January/sample.jpg
+//	photos/2006/February/sample2.jpg
+//	photos/2006/February/sample3.jpg
+//	photos/2006/February/sample4.jpg
 //
 // Listing this bucket with delimiter set to "/" would yield the
 // following result:
 //
-//     &ListResp{
-//         Name:      "sample-bucket",
-//         MaxKeys:   1000,
-//         Delimiter: "/",
-//         Contents:  []Key{
-//             {Key: "index.html", "index2.html"},
-//         },
-//         CommonPrefixes: []string{
-//             "photos/",
-//         },
-//     }
+//	&ListResp{
+//	    Name:      "sample-bucket",
+//	    MaxKeys:   1000,
+//	    Delimiter: "/",
+//	    Contents:  []Key{
+//	        {Key: "index.html", "index2.html"},
+//	    },
+//	    CommonPrefixes: []string{
+//	        "photos/",
+//	    },
+//	}
 //
 // Listing the same bucket with delimiter set to "/" and prefix set to
 // "photos/2006/" would yield the following result:
 //
-//     &ListResp{
-//         Name:      "sample-bucket",
-//         MaxKeys:   1000,
-//         Delimiter: "/",
-//         Prefix:    "photos/2006/",
-//         CommonPrefixes: []string{
-//             "photos/2006/February/",
-//             "photos/2006/January/",
-//         },
-//     }
+//	&ListResp{
+//	    Name:      "sample-bucket",
+//	    MaxKeys:   1000,
+//	    Delimiter: "/",
+//	    Prefix:    "photos/2006/",
+//	    CommonPrefixes: []string{
+//	        "photos/2006/February/",
+//	        "photos/2006/January/",
+//	    },
+//	}
 //
 // See http://goo.gl/YjQTc for details.
-func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, err error) {
+func (b *Bucket) List(prefix, delim, marker string, maxK int) (result *ListResp, err error) {
 	params := map[string][]string{
 		"prefix":    {prefix},
 		"delimiter": {delim},
 		"marker":    {marker},
 	}
-	if max != 0 {
-		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
+	if maxK != 0 {
+		params["max-keys"] = []string{strconv.FormatInt(int64(maxK), 10)}
 	}
+	headers := map[string][]string{}
+	b.addTokenHeader(headers)
+
 	req := &request{
-		bucket: b.Name,
-		params: params,
+		bucket:  b.Name,
+		params:  params,
+		headers: headers,
 	}
 	result = &ListResp{}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(context.Background(), req, result)
+	for attempt := b.Start(); attempt.Next(); {
+		err = b.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -728,7 +766,7 @@ type Version struct {
 	StorageClass string
 }
 
-func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker string, max int) (result *VersionsResp, err error) {
+func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker string, maxK int) (result *VersionsResp, err error) {
 	params := map[string][]string{
 		"versions":  {""},
 		"prefix":    {prefix},
@@ -742,16 +780,16 @@ func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker strin
 		params["key-marker"] = []string{keyMarker}
 	}
 
-	if max != 0 {
-		params["max-keys"] = []string{strconv.FormatInt(int64(max), 10)}
+	if maxK != 0 {
+		params["max-keys"] = []string{strconv.FormatInt(int64(maxK), 10)}
 	}
 	req := &request{
 		bucket: b.Name,
 		params: params,
 	}
 	result = &VersionsResp{}
-	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(context.Background(), req, result)
+	for attempt := b.Start(); attempt.Next(); {
+		err = b.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -794,7 +832,7 @@ func (b *Bucket) URL(path string) string {
 		bucket: b.Name,
 		path:   path,
 	}
-	err := b.S3.prepare(req)
+	err := b.prepare(req)
 	if err != nil {
 		panic(err)
 	}
@@ -814,7 +852,7 @@ func (b *Bucket) SignedURL(path string, expires time.Time) string {
 		path:   path,
 		params: url.Values{"Expires": {strconv.FormatInt(expires.Unix(), 10)}},
 	}
-	err := b.S3.prepare(req)
+	err := b.prepare(req)
 	if err != nil {
 		panic(err)
 	}
@@ -829,7 +867,6 @@ type request struct {
 	method   string
 	bucket   string
 	path     string
-	signpath string
 	params   url.Values
 	headers  http.Header
 	baseurl  string
@@ -864,7 +901,7 @@ func (s3 *S3) query(ctx context.Context, req *request, resp interface{}) error {
 
 // prepare sets up req to be delivered to S3.
 func (s3 *S3) prepare(req *request) error {
-	var signpath = req.path
+	signpath := req.path
 
 	if !req.prepared {
 		req.prepared = true
@@ -887,17 +924,17 @@ func (s3 *S3) prepare(req *request) error {
 		}
 		signpath = req.path
 		if req.bucket != "" {
-			req.baseurl = s3.Region.S3BucketEndpoint
+			req.baseurl = s3.S3BucketEndpoint
 			if req.baseurl == "" {
 				// Use the path method to address the bucket.
-				req.baseurl = s3.Region.S3Endpoint
+				req.baseurl = s3.S3Endpoint
 				req.path = "/" + req.bucket + req.path
 			} else {
 				// Just in case, prevent injection.
-				if strings.IndexAny(req.bucket, "/:@") >= 0 {
+				if strings.ContainsAny(req.bucket, "/:@") {
 					return fmt.Errorf("bad S3 bucket: %q", req.bucket)
 				}
-				req.baseurl = strings.Replace(req.baseurl, "${bucket}", req.bucket, -1)
+				req.baseurl = strings.ReplaceAll(req.baseurl, "${bucket}", req.bucket)
 			}
 			signpath = "/" + req.bucket + signpath
 		}
@@ -946,7 +983,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 		delete(req.headers, "Content-Length")
 	}
 	if req.payload != nil {
-		hreq.Body = ioutil.NopCloser(req.payload)
+		hreq.Body = io.NopCloser(req.payload)
 	}
 
 	if s3.client == nil {
@@ -961,7 +998,10 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					var deadline time.Time
 					if s3.RequestTimeout > 0 {
 						deadline = time.Now().Add(s3.RequestTimeout)
-						c.SetDeadline(deadline)
+						err := c.SetDeadline(deadline)
+						if err != nil {
+							return nil, err
+						}
 					}
 
 					if s3.ReadTimeout > 0 || s3.WriteTimeout > 0 {
@@ -974,6 +1014,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
+				Proxy: libkb.MakeProxy(s3.G().Env),
 			},
 		}
 	}
@@ -1017,18 +1058,22 @@ func (e *Error) Error() string {
 func buildError(r *http.Response) error {
 	if debug {
 		log.Printf("got error (status code %v)", r.StatusCode)
-		data, err := ioutil.ReadAll(r.Body)
+		data, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("\tread error: %v", err)
 		} else {
 			log.Printf("\tdata:\n%s\n\n", data)
 		}
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		r.Body = io.NopCloser(bytes.NewBuffer(data))
 	}
 
 	err := Error{}
+
 	// TODO return error if Unmarshal fails?
-	xml.NewDecoder(r.Body).Decode(&err)
+	decodeErr := xml.NewDecoder(r.Body).Decode(&err)
+	if decodeErr != nil {
+		log.Printf("\tdecodeErr error: %v", decodeErr)
+	}
 	r.Body.Close()
 	err.StatusCode = r.StatusCode
 	if err.Message == "" {
@@ -1072,7 +1117,7 @@ func shouldRetry(err error) bool {
 		}
 	// let's handle tls handshake timeout issues and similar temporary errors
 	case net.Error:
-		return e.Temporary()
+		return e.Temporary() //nolint
 	}
 
 	return false
@@ -1102,7 +1147,7 @@ func (c *ioTimeoutConn) deadline(timeout time.Duration) time.Time {
 
 func (c *ioTimeoutConn) Read(b []byte) (int, error) {
 	if c.readTimeout > 0 {
-		err := c.TCPConn.SetReadDeadline(c.deadline(c.readTimeout))
+		err := c.SetReadDeadline(c.deadline(c.readTimeout))
 		if err != nil {
 			return 0, err
 		}
@@ -1112,7 +1157,7 @@ func (c *ioTimeoutConn) Read(b []byte) (int, error) {
 
 func (c *ioTimeoutConn) Write(b []byte) (int, error) {
 	if c.writeTimeout > 0 {
-		err := c.TCPConn.SetWriteDeadline(c.deadline(c.writeTimeout))
+		err := c.SetWriteDeadline(c.deadline(c.writeTimeout))
 		if err != nil {
 			return 0, err
 		}

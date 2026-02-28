@@ -1,0 +1,33 @@
+.overlay-icon {
+  bottom: 1px;
+  color: var(--color-black_20);
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
+  &.hovered {
+    color: var(--color-black_20);
+    &.stroked {
+      -webkit-text-stroke: 2px var(--color-blueGreyDark);
+      color: var(--color-blueGreyDark);
+    }
+  }
+
+  &.selected {
+    color: var(--color-white);
+    &.stroked {
+      -webkit-text-stroke: 2px var(--color-blue);
+      color: var(--color-blue);
+    }
+  }
+
+  &.stroked {
+    -webkit-text-stroke: 2px var(--color-blueGrey);
+    color: var(--color-blueGrey);
+    right: -1px;
+  }
+}
+
+.scroll-ignore-pointer {
+  pointer-events: none;
+}

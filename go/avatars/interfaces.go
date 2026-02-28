@@ -1,43 +1,45 @@
 package avatars
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Source interface {
-	LoadUsers(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
-	LoadTeams(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+const (
+	// When changing staleThreshold here, serverside avatar
+	// `client_avatar_stale_threshold` should be adjusted to match.
+	staleThreshold = 24 * time.Hour
+)
 
-	ClearCacheForName(libkb.MetaContext, string, []keybase1.AvatarFormat) error
-	OnCacheCleared(libkb.MetaContext) // Called after leveldb data goes away after db nuke
-
-	StartBackgroundTasks(libkb.MetaContext)
-	StopBackgroundTasks(libkb.MetaContext)
-}
-
-func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
+func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) {
+	var s libkb.AvatarLoaderSource
 	typ := g.Env.GetAvatarSource()
 	switch typ {
 	case "simple":
 		s = NewSimpleSource()
 	case "url":
-		s = NewURLCachingSource(time.Hour /* staleThreshold */, 20000)
+		s = NewURLCachingSource(staleThreshold, 20000)
 	case "full":
 		maxSize := 10000
-		if g.GetAppType() == libkb.MobileAppType {
+		if g.IsMobileAppType() {
 			maxSize = 2000
 		}
-		// When changing staleThreshold here, serverside avatar change
-		// notification dismiss time should be adjusted as well.
-		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
+		s = NewFullCachingSource(g, staleThreshold, maxSize)
 	}
+	g.AddDbNukeHook(s, fmt.Sprintf("AvatarLoader[%s]", typ))
+	g.SetAvatarLoader(s)
+}
+
+func ServiceInit(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoaderSource) *Srv {
 	m := libkb.NewMetaContextBackground(g)
-	s.StartBackgroundTasks(m)
-	g.PushShutdownHook(func() error {
-		s.StopBackgroundTasks(m)
+	source.StartBackgroundTasks(m)
+	s := NewSrv(g, httpSrv, source) // start the http srv up
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+		source.StopBackgroundTasks(mctx)
 		return nil
 	})
 	return s

@@ -2,21 +2,23 @@ package attachments
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 const MB int64 = 1024 * 1024
@@ -38,7 +40,7 @@ func TestSignEncrypter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ct, err := ioutil.ReadAll(er)
+	ct, err := io.ReadAll(er)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +51,7 @@ func TestSignEncrypter(t *testing.T) {
 
 	d := NewSignDecrypter()
 	dr := d.Decrypt(bytes.NewReader(ct), e.EncryptKey(), e.VerifyKey())
-	ptOut, err := ioutil.ReadAll(dr)
+	ptOut, err := io.ReadAll(dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestSignEncrypter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ct2, err := ioutil.ReadAll(er2)
+	ct2, err := io.ReadAll(er2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,17 +86,13 @@ func TestSignEncrypter(t *testing.T) {
 	}
 
 	dr2 := d.Decrypt(bytes.NewReader(ct2), e.EncryptKey(), e.VerifyKey())
-	ptOut2, err := ioutil.ReadAll(dr2)
+	ptOut2, err := io.ReadAll(dr2)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if string(ptOut2) != pt {
 		t.Errorf("decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
 	}
-}
-
-func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *S3Store {
-	return NewStoreTesting(logger.NewTestLogger(t), kt)
 }
 
 func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
@@ -198,10 +196,14 @@ func makeUploadTask(t *testing.T, size int64) (plaintext []byte, task *UploadTas
 }
 
 func TestUploadAssetSmall(t *testing.T) {
-	s := makeTestStore(t, nil)
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	s := NewStoreTesting(g, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
-	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+	a, err := s.UploadAsset(ctx, task, io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,10 +221,14 @@ func TestUploadAssetSmall(t *testing.T) {
 }
 
 func TestUploadAssetLarge(t *testing.T) {
-	s := makeTestStore(t, nil)
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	s := NewStoreTesting(g, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
-	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+	a, err := s.UploadAsset(ctx, task, io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,14 +263,18 @@ func newDumbBuffer() *dumbBuffer {
 }
 
 func TestStreamAsset(t *testing.T) {
-	s := makeTestStore(t, nil)
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+
+	s := NewStoreTesting(g, nil)
 	ctx := context.Background()
 
 	testCase := func(mb, kb int64) {
 		total := mb*MB + kb
 		t.Logf("total: %d mb: %d kb: %d", total, mb, kb)
 		plaintext, task := makeUploadTask(t, total)
-		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+		a, err := s.UploadAsset(ctx, task, io.Discard)
 		require.NoError(t, err)
 
 		// basic
@@ -328,9 +338,10 @@ type uploader struct {
 	fullSigKey    []byte
 }
 
-func newUploader(t *testing.T, size int64) *uploader {
+func newUploader(t *testing.T, size int64, gc *libkb.GlobalContext) *uploader {
 	u := &uploader{t: t}
-	u.s = makeTestStore(t, u.keyTracker)
+	g := globals.NewContext(gc, &globals.ChatContext{})
+	u.s = NewStoreTesting(g, u.keyTracker)
 	u.plaintext, u.task = makeUploadTask(t, size)
 	return u
 }
@@ -342,11 +353,11 @@ func (u *uploader) keyTracker(e, s []byte) {
 
 func (u *uploader) UploadResume() chat1.Asset {
 	u.s.blockLimit = 0
-	a, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
+	a, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
-	if a.Size != int64(signencrypt.GetSealedSize(int64(len(u.plaintext)))) {
+	if a.Size != signencrypt.GetSealedSize(int64(len(u.plaintext))) {
 		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size,
 			signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
@@ -366,7 +377,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 func (u *uploader) UploadPartial(blocks int) {
 	u.s.blockLimit = blocks
 
-	_, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
+	_, err := u.s.UploadAsset(context.Background(), u.task, io.Discard)
 	if err == nil {
 		u.t.Fatal("expected incomplete upload to have error")
 	}
@@ -439,7 +450,10 @@ func (u *uploader) AssertNumAborts(n int) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset does not change between the attempts.
 func TestUploadAssetResumeOK(t *testing.T) {
-	u := newUploader(t, 12*MB)
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+
+	u := newUploader(t, 12*MB, tc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)
@@ -468,8 +482,11 @@ func TestUploadAssetResumeOK(t *testing.T) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset changes between the attempts.
 func TestUploadAssetResumeChange(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+
 	size := 12 * MB
-	u := newUploader(t, size)
+	u := newUploader(t, size, tc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)
@@ -498,7 +515,10 @@ func TestUploadAssetResumeChange(t *testing.T) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset changes after the plaintext hash is calculated in the resume attempt.
 func TestUploadAssetResumeRestart(t *testing.T) {
-	u := newUploader(t, 12*MB)
+	tc := externalstest.SetupTest(t, "chat_store", 1)
+	defer tc.Cleanup()
+
+	u := newUploader(t, 12*MB, tc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)

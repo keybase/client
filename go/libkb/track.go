@@ -80,14 +80,14 @@ func (ts TrackSet) LenEq(b TrackSet) bool {
 	return len(ts.ids) == len(b.ids)
 }
 
-//=====================================================================
+// =====================================================================
 
 type TrackInstructions struct {
 	Local  bool
 	Remote bool
 }
 
-//=====================================================================
+// =====================================================================
 
 type TrackSummary struct {
 	time     time.Time
@@ -99,7 +99,7 @@ func (s TrackSummary) IsRemote() bool      { return s.isRemote }
 func (s TrackSummary) GetCTime() time.Time { return s.time }
 func (s TrackSummary) Username() string    { return s.username }
 
-//=====================================================================
+// =====================================================================
 
 type TrackLookup struct {
 	Contextified
@@ -141,6 +141,14 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 	return ret
 }
 
+func (l TrackLookup) GetTrackedLinkSeqno() keybase1.Seqno {
+	ret, err := l.link.GetTrackedLinkSeqno()
+	if err != nil {
+		l.G().Log.Warning("Error in lookup of tracked link's seqno: %s", err)
+	}
+	return ret
+}
+
 func (l TrackLookup) GetTmpExpireTime() (ret time.Time) {
 	return l.link.GetTmpExpireTime()
 }
@@ -168,6 +176,7 @@ func (t TrackDiffUpgraded) IsSameAsTracked() bool {
 func (t TrackDiffUpgraded) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffUpgraded) ToDisplayString() string {
 	return "Upgraded from " + t.prev + " to " + t.curr
 }
@@ -176,6 +185,7 @@ func (t TrackDiffUpgraded) GetCurr() string { return t.curr }
 func (t TrackDiffUpgraded) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffUpgraded) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_UPGRADED
 }
@@ -185,16 +195,19 @@ type TrackDiffNone struct{}
 func (t TrackDiffNone) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffNone) IsSameAsTracked() bool {
 	return true
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return "tracked"
+	return "followed"
 }
+
 func (t TrackDiffNone) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffNone) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE
 }
@@ -214,6 +227,7 @@ type TrackDiffNew struct{}
 func (t TrackDiffNew) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffNew) IsSameAsTracked() bool {
 	return false
 }
@@ -225,9 +239,11 @@ type TrackDiffClash struct {
 func (t TrackDiffNew) ToDisplayString() string {
 	return "new"
 }
+
 func (t TrackDiffNew) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffNew) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NEW
 }
@@ -239,12 +255,15 @@ func (t TrackDiffClash) BreaksTracking() bool {
 func (t TrackDiffClash) ToDisplayString() string {
 	return "CHANGED from \"" + t.expected + "\""
 }
+
 func (t TrackDiffClash) IsSameAsTracked() bool {
 	return false
 }
+
 func (t TrackDiffClash) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffClash) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_CLASH
 }
@@ -256,15 +275,19 @@ type TrackDiffRevoked struct {
 func (t TrackDiffRevoked) BreaksTracking() bool {
 	return true
 }
+
 func (t TrackDiffRevoked) ToDisplayString() string {
 	return "Deleted proof: " + t.idc.ToIDString()
 }
+
 func (t TrackDiffRevoked) IsSameAsTracked() bool {
 	return false
 }
+
 func (t TrackDiffRevoked) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffRevoked) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_REVOKED
 }
@@ -276,15 +299,19 @@ type TrackDiffSnoozedRevoked struct {
 func (t TrackDiffSnoozedRevoked) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffSnoozedRevoked) ToDisplayString() string {
 	return "Deleted proof: " + t.idc.ToIDString() + " (snoozed)"
 }
+
 func (t TrackDiffSnoozedRevoked) IsSameAsTracked() bool {
 	return true
 }
+
 func (t TrackDiffSnoozedRevoked) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffSnoozedRevoked) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY
 }
@@ -296,15 +323,19 @@ type TrackDiffRemoteFail struct {
 func (t TrackDiffRemoteFail) BreaksTracking() bool {
 	return true
 }
+
 func (t TrackDiffRemoteFail) ToDisplayString() string {
 	return "remote failed"
 }
+
 func (t TrackDiffRemoteFail) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffRemoteFail) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_REMOTE_FAIL
 }
+
 func (t TrackDiffRemoteFail) IsSameAsTracked() bool {
 	return false
 }
@@ -316,15 +347,19 @@ type TrackDiffRemoteWorking struct {
 func (t TrackDiffRemoteWorking) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffRemoteWorking) ToDisplayString() string {
 	return "newly working"
 }
+
 func (t TrackDiffRemoteWorking) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffRemoteWorking) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_REMOTE_WORKING
 }
+
 func (t TrackDiffRemoteWorking) IsSameAsTracked() bool {
 	return false
 }
@@ -336,15 +371,19 @@ type TrackDiffRemoteChanged struct {
 func (t TrackDiffRemoteChanged) BreaksTracking() bool {
 	return false
 }
+
 func (t TrackDiffRemoteChanged) ToDisplayString() string {
 	return "changed"
 }
+
 func (t TrackDiffRemoteChanged) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
+
 func (t TrackDiffRemoteChanged) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_REMOTE_CHANGED
 }
+
 func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 	return false
 }
@@ -357,18 +396,25 @@ type TrackDiffNewEldest struct {
 func (t TrackDiffNewEldest) BreaksTracking() bool {
 	return true
 }
+
 func (t TrackDiffNewEldest) IsSameAsTracked() bool {
 	return false
 }
+
 func (t TrackDiffNewEldest) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NEW_ELDEST
 }
+
 func (t TrackDiffNewEldest) ToDisplayString() string {
 	if t.tracked.IsNil() {
 		return fmt.Sprintf("No key when followed; established new eldest key %s", t.observed)
 	}
+	if t.tracked.Equal(t.observed) {
+		return fmt.Sprintf("Account reset! Old key was %s; new key is the same", t.tracked)
+	}
 	return fmt.Sprintf("Account reset! Old key was %s; new key is %s", t.tracked, t.observed)
 }
+
 func (t TrackDiffNewEldest) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
@@ -390,7 +436,7 @@ func (l *TrackLookup) GetCTime() time.Time {
 	return l.link.GetCTime()
 }
 
-//=====================================================================
+// =====================================================================
 
 func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
 	key := fmt.Sprintf("%s-%s", tracker, trackee)
@@ -400,22 +446,22 @@ func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
 	return DbKey{Typ: DBLocalTrack, Key: key}
 }
 
-//=====================================================================
+// =====================================================================
 
 func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localExpires bool) (ret *TrackChainLink, err error) {
 	data, _, err := m.G().LocalDb.GetRaw(LocalTrackDBKey(tracker, trackee, localExpires))
 	if err != nil {
-		m.CDebugf("| DB lookup failed")
+		m.Debug("| DB lookup failed")
 		return nil, err
 	}
-	if data == nil || len(data) == 0 {
-		m.CDebugf("| No local track found")
+	if len(data) == 0 {
+		m.Debug("| No local track found")
 		return nil, nil
 	}
 
-	cl := &ChainLink{Contextified: NewContextified(m.G()), unsigned: true}
+	cl := &ChainLink{Contextified: NewContextified(m.G())}
 	if err = cl.UnpackLocal(data); err != nil {
-		m.CDebugf("| unpack local failed -> %s", err)
+		m.Debug("| unpack local failed -> %s", err)
 		return nil, err
 	}
 
@@ -424,11 +470,11 @@ func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localE
 	if localExpires {
 		linkETime = cl.GetCTime().Add(m.G().Env.GetLocalTrackMaxAge())
 
-		m.CDebugf("| local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), m.G().Clock().Now())
+		m.Debug("| local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), m.G().Clock().Now())
 
 		if linkETime.Before(m.G().Clock().Now()) {
-			m.CDebugf("| expired local track, deleting")
-			removeLocalTrack(m, tracker, trackee, true)
+			m.Debug("| expired local track, deleting")
+			_ = removeLocalTrack(m, tracker, trackee, true)
 			return nil, ErrTrackingExpired
 		}
 	}
@@ -452,12 +498,16 @@ func LocalTmpTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID) (re
 }
 
 func StoreLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, statement *jsonw.Wrapper) error {
-	m.CDebugf("| StoreLocalTrack, expiring = %v", expiringLocal)
-	return m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
+	m.Debug("| StoreLocalTrack, expiring = %v", expiringLocal)
+	err := m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
+	if err == nil {
+		m.G().IdentifyDispatch.NotifyTrackingSuccess(m, trackee)
+	}
+	return err
 }
 
 func removeLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool) error {
-	m.CDebugf("| RemoveLocalTrack, expiring = %v", expiringLocal)
+	m.Debug("| RemoveLocalTrack, expiring = %v", expiringLocal)
 	return m.G().LocalDb.Delete(LocalTrackDBKey(tracker, trackee, expiringLocal))
 }
 

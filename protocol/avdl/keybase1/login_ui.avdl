@@ -7,4 +7,65 @@ protocol loginUi {
   boolean promptRevokePaperKeys(int sessionID, Device device, int index);
   void displayPaperKeyPhrase(int sessionID, string phrase);
   void displayPrimaryPaperKey(int sessionID, string phrase);
+
+  enum ResetPromptType {
+    COMPLETE_0,         // reset completion if the countdown is done
+    ENTER_NO_DEVICES_1, // no devices available in provisioning, suggest entering
+    ENTER_FORGOT_PW_2,  // forgot the password, suggest entering the pipeline w/o pw
+    ENTER_RESET_PW_3    // forgot the password and no devices (web user)
+  }
+  record ResetPromptInfo {
+    boolean hasWallet;
+  }
+  variant ResetPrompt switch (ResetPromptType t) {
+    case COMPLETE: ResetPromptInfo;
+    default: void;
+  }
+
+  enum ResetPromptResponse {
+    NOTHING_0, // Don't reset but don't cancel the reset
+    CANCEL_RESET_1, // Cancel the reset
+    CONFIRM_RESET_2 // Reset the account
+  }
+  /**
+   Called during login / provisioning flows to ask the user whether they
+   would like to either enter the autoreset pipeline and perform the reset
+   of the account.
+   */
+  ResetPromptResponse promptResetAccount(int sessionID, ResetPrompt prompt);
+
+  /**
+   In some flows the user will get notified of the reset progress
+   */
+  void displayResetProgress(int sessionID, string text, Time endTime, boolean needVerify);
+
+  /**
+   During recovery the service might want to explain to the user how they can change
+   their password by using the "change password" functionality on other devices.
+   */
+  void explainDeviceRecovery(int sessionID, DeviceType kind, string name);
+
+  enum PassphraseRecoveryPromptType {
+    ENCRYPTED_PGP_KEYS_0 // explain to the user that they'll lose encrypted pgp keys
+  }
+  bool promptPassphraseRecovery(int sessionID, PassphraseRecoveryPromptType kind);
+
+  /**
+   Different from ProvisionUI's chooseDevice due to phrasing in the UI.
+  */
+  DeviceID chooseDeviceToRecoverWith(int sessionID, array<Device> devices);
+
+  enum ResetMessage {
+    ENTERED_VERIFIED_0,     // entered with a password
+    ENTERED_PASSWORDLESS_1, // entered without a password
+    REQUEST_VERIFIED_2,     // existing request has been verified
+    NOT_COMPLETED_3,        // in reset prompt, it was not completed
+    CANCELED_4,             // in reset prompt, it was canceled
+    COMPLETED_5,            // in reset prompt, it was completed
+    RESET_LINK_SENT_6       // there were no devices, reset link was sent to email
+  }
+  /**
+   Simply displays a message in the recovery flow.
+  */
+  void displayResetMessage(int sessionID, ResetMessage kind);
 }

@@ -1,7 +1,7 @@
 package client
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -33,7 +33,7 @@ func (s *CmdTestPassphrase) GetUsage() libkb.Usage {
 }
 
 func (s *CmdTestPassphrase) Run() (err error) {
-	defer libkb.Trace(s.G().Log, "CmdTestPassphrase.Run", func() error { return err })()
+	defer libkb.Trace(s.G().Log, "CmdTestPassphrase.Run", &err)()
 
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(s.G()),

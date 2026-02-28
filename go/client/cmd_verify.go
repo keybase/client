@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"errors"
-	"io/ioutil"
-
-	"golang.org/x/net/context"
+	"os"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -86,7 +85,7 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 	detachedFilename := ctx.String("detached")
 
 	if len(detachedFilename) > 0 {
-		data, err := ioutil.ReadFile(detachedFilename)
+		data, err := os.ReadFile(detachedFilename)
 		if err != nil {
 			return err
 		}

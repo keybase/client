@@ -1,0 +1,16 @@
+@namespace("keybase.1")
+
+protocol airdrop {
+
+  record AirdropDetails {
+    UID uid;
+    BinaryKID kid;
+    VID vid;
+    string vers;
+    Time time;
+  }
+
+  BinaryKID reg1(UID uid, BinaryKID kid);
+  void reg2(bytes ctext);
+
+}

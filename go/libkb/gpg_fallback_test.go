@@ -10,7 +10,7 @@ type TestGenericKey struct {
 	GenericKey
 }
 
-func (k *TestGenericKey) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
+func (k *TestGenericKey) SignToString(msg []byte) (sig string, id keybase1.SigIDBase, err error) {
 	sig = "TestSignature"
 	return
 }
@@ -19,6 +19,7 @@ func InitTestKey(k *PGPKeyBundle) {
 	k.GPGFallbackKey = &TestGenericKey{k}
 }
 
+//nolint:gosec // G101: Test PGP key for GPG fallback testing, not real credentials
 var gpgDummyKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
 Version: GnuPG v2
 

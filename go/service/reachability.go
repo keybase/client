@@ -4,9 +4,8 @@
 package service
 
 import (
+	"context"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,20 +27,20 @@ func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, reachabi
 }
 
 func (h *reachabilityHandler) ReachabilityChanged(_ context.Context, _ keybase1.Reachability) (err error) {
-	h.G().Trace("ReachabilityChanged", func() error { return err })()
+	h.G().Trace("ReachabilityChanged", &err)()
 	return nil
 }
 
 func (h *reachabilityHandler) StartReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("StartReachability", func() error { return err })()
+	h.G().Trace("StartReachability", &err)()
 	return keybase1.Reachability{
 		Reachable: keybase1.Reachable_UNKNOWN,
 	}, nil
 }
 
-func (h *reachabilityHandler) CheckReachability(_ context.Context) (res keybase1.Reachability, err error) {
-	h.G().Trace("CheckReachability", func() error { return err })()
-	return h.reachability.check(), nil
+func (h *reachabilityHandler) CheckReachability(ctx context.Context) (res keybase1.Reachability, err error) {
+	h.G().Trace("CheckReachability", &err)()
+	return h.reachability.check(ctx), nil
 }
 
 type reachability struct {
@@ -61,17 +60,18 @@ func newReachability(g *libkb.GlobalContext, gh *gregorHandler) *reachability {
 
 func (h *reachability) setReachability(r keybase1.Reachability) {
 	h.setMutex.Lock()
-	defer h.setMutex.Unlock()
+	changed := h.lastReachability.Reachable != r.Reachable
+	h.lastReachability = r
+	h.setMutex.Unlock()
 
-	if h.lastReachability.Reachable != r.Reachable {
+	if changed {
 		h.G().Log.Debug("Reachability changed: %#v", r)
 		h.G().NotifyRouter.HandleReachability(r)
 	}
-	h.lastReachability = r
 }
 
-func (h *reachability) check() (k keybase1.Reachability) {
-	reachable := h.gh.isReachable()
+func (h *reachability) check(ctx context.Context) (k keybase1.Reachability) {
+	reachable := h.gh.isReachable(ctx)
 	if reachable {
 		k.Reachable = keybase1.Reachable_YES
 	} else {
@@ -96,6 +96,6 @@ func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonito
 }
 
 func (h *reachability) CheckReachability(ctx context.Context) error {
-	h.check()
+	h.check(ctx)
 	return nil
 }

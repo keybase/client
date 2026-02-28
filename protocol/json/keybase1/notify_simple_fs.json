@@ -1,0 +1,18 @@
+{
+  "protocol": "NotifySimpleFS",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "simpleFSArchiveStatusChanged": {
+      "request": [
+        {
+          "name": "status",
+          "type": "SimpleFSArchiveStatus"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

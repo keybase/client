@@ -1,13 +1,13 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type CmdWalletCancelRequest struct {
@@ -38,7 +38,8 @@ func (c *CmdWalletCancelRequest) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdWalletCancelRequest) Run() error {
+func (c *CmdWalletCancelRequest) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

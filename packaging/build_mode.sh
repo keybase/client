@@ -6,7 +6,7 @@
 # allowed values. This helps us avoid duplicating the same switch statement in
 # all of our packaging scripts.
 
-set -e -u -o pipefail
+set -euox pipefail
 
 mode="${1:-}"  # ':-' is because this might not be defined
 if [[ "$mode" = "production" ||

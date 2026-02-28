@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -9,7 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
+	"github.com/stretchr/testify/require"
 )
 
 type auditLog struct {
@@ -34,59 +35,73 @@ func (a *auditLog) Debug(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Debug(s)
 	*a.lines = append(*a.lines, s)
 }
+
 func (a *auditLog) CDebugf(ctx context.Context, format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	a.l.CloneWithAddedDepth(1).CDebugf(ctx, s)
 	*a.lines = append(*a.lines, s)
 }
+
 func (a *auditLog) Info(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Info(format, args...)
 }
+
 func (a *auditLog) CInfof(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CInfof(ctx, format, args...)
 }
+
 func (a *auditLog) Notice(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Notice(format, args...)
 }
+
 func (a *auditLog) CNoticef(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CNoticef(ctx, format, args...)
 }
+
 func (a *auditLog) Warning(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Warning(format, args...)
 }
+
 func (a *auditLog) CWarningf(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CWarningf(ctx, format, args...)
 }
+
 func (a *auditLog) Error(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
+
 func (a *auditLog) Errorf(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
+
 func (a *auditLog) CErrorf(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CErrorf(ctx, format, args...)
 }
+
 func (a *auditLog) Critical(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Critical(format, args...)
 }
+
 func (a *auditLog) CCriticalf(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CCriticalf(ctx, format, args...)
 }
+
 func (a *auditLog) Fatalf(format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Fatalf(format, args...)
 }
+
 func (a *auditLog) CFatalf(ctx context.Context, format string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).CFatalf(ctx, format, args...)
 }
+
 func (a *auditLog) Profile(fmts string, args ...interface{}) {
 	a.l.CloneWithAddedDepth(1).Profile(fmts, args...)
 }
+
 func (a *auditLog) Configure(style string, debug bool, filename string) {
 	a.l.CloneWithAddedDepth(1).Configure(style, debug, filename)
 }
-func (a *auditLog) RotateLogFile() error {
-	return a.l.RotateLogFile()
-}
+
 func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
 	// Keep the same list of strings. This is important, because the tests here
 	// read the list at the end, and expect all the log lines to be there, even
@@ -96,6 +111,7 @@ func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
 		lines: a.lines,
 	}
 }
+
 func (a *auditLog) SetExternalHandler(handler logger.ExternalHandler) {
 	a.l.SetExternalHandler(handler)
 }
@@ -206,13 +222,13 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 	return nil
 }
 
-func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
+func checkAuditLogForBug3964Repair(t *testing.T, log []string, _ keybase1.DeviceID, _ *libkb.DeviceKey) {
 	log = limitToTrace(log, "bug3964Repairman#Run")
-	if len(log) == 0 {
-		t.Fatal("Didn't find a repairman run")
-	}
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "| Repairman wasn't short-circuited")
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "+ bug3964Repairman#saveRepairmanVisit")
+	require.NotZero(t, len(log))
 }
 
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
@@ -225,7 +241,7 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 		SecretUI:    user.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(dev.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
+	eng := NewLogin(dev.G, keybase1.DeviceTypeV2_DESKTOP, user.Username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(dev).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

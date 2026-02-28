@@ -4,6 +4,11 @@
     {
       "path": "passphrase_common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -58,6 +63,59 @@
           "name": "status"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamContactSettings",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled",
+          "jsonkey": "enabled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ContactSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "version",
+          "jsonkey": "version"
+        },
+        {
+          "type": "int",
+          "name": "allowFolloweeDegrees",
+          "jsonkey": "allow_followee_degrees"
+        },
+        {
+          "type": "boolean",
+          "name": "allowGoodTeams",
+          "jsonkey": "allow_good_teams"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled",
+          "jsonkey": "enabled"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamContactSettings"
+          },
+          "name": "teams",
+          "jsonkey": "teams"
+        }
+      ]
     }
   ],
   "messages": {
@@ -81,7 +139,7 @@
         }
       ],
       "response": null,
-      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then we'll\n    try to force a passphrase change."
+      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then\n    we'll try to force a passphrase change."
     },
     "passphrasePrompt": {
       "request": [
@@ -95,6 +153,20 @@
         }
       ],
       "response": "GetPassphraseRes"
+    },
+    "passphraseCheck": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        }
+      ],
+      "response": "boolean",
+      "doc": "* Check if user passphrase matches argument. Launches SecretUI prompt if\n   * passphrase argument is empty. Returns `true` if passphrase is correct,\n   * false if not, or an error if something else went wrong."
     },
     "emailChange": {
       "request": [
@@ -132,7 +204,7 @@
         }
       ],
       "response": null,
-      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
+      "doc": "resetAccount resets the user's account. It is used in the CLI.\n   passphrase is optional and will be prompted for if not supplied."
     },
     "getLockdownMode": {
       "request": [
@@ -152,6 +224,107 @@
         {
           "name": "enabled",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "recoverUsernameWithEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "recoverUsernameWithPhone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phone",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null
+    },
+    "enterResetPipeline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernameOrEmail",
+          "type": "string"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        },
+        {
+          "name": "interactive",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process.\n    TODO: change this to just username"
+    },
+    "cancelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Aborts the reset process"
+    },
+    "timeTravelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "type": "gregor1.DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "guessCurrentLocation": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "defaultCountry",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "userGetContactSettings": {
+      "request": [],
+      "response": "ContactSettings"
+    },
+    "userSetContactSettings": {
+      "request": [
+        {
+          "name": "settings",
+          "type": "ContactSettings"
         }
       ],
       "response": null

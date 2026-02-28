@@ -13,15 +13,16 @@ func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return linuxUpgradeInstructionsString()
+	default:
+		return "", nil
 	}
-	return "", nil
 }
 
 func PlatformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	switch runtime.GOOS {
 	case "linux":
 		linuxUpgradeInstructions(g)
-	case "darwin":
+	case "darwin", "ios":
 		darwinUpgradeInstructions(g, upgradeURI)
 	case "windows":
 		windowsUpgradeInstructions(g, upgradeURI)
@@ -55,7 +56,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 		start = "sudo yum upgrade " + packageName
 	} else if hasPackageManager("pacman") {
 		if len(PrereleaseBuild) > 0 {
-			start = "yaourt -S keybase-git"
+			start = "pacaur -S keybase-bin"
 		} else {
 			start = "sudo pacman -Syu"
 		}
@@ -69,9 +70,10 @@ func linuxUpgradeInstructionsString() (string, error) {
 
 func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	packageName := "keybase"
-	if DefaultRunMode == DevelRunMode {
+	switch DefaultRunMode {
+	case DevelRunMode:
 		packageName = "keybase/beta/kbdev"
-	} else if DefaultRunMode == StagingRunMode {
+	case StagingRunMode:
 		packageName = "keybase/beta/kbstage"
 	}
 
@@ -84,9 +86,9 @@ func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 }
 
 func windowsUpgradeInstructions(g *GlobalContext, upgradeURI string) {
-
 	g.Log.Warning("To upgrade, download the latest Keybase installer from " + upgradeURI)
 }
+
 func printUpgradeCommand(g *GlobalContext, command string) {
 	g.Log.Warning("To upgrade, run the following command:")
 	g.Log.Warning("    " + command)

@@ -5,11 +5,10 @@ package engine
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -47,7 +46,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 		}
 
 		eng := NewSaltpackSign(tc.G, sarg)
@@ -115,7 +114,7 @@ func TestSaltpackSignVerify(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Detached: true,
 			},
@@ -168,7 +167,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Binary: true,
 			},
@@ -211,7 +210,7 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 
 		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Source: io.NopCloser(bytes.NewBufferString(test.input)),
 			Opts: keybase1.SaltpackSignOptions{
 				Binary:   true,
 				Detached: true,
@@ -262,7 +261,7 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("this is from me")),
+		Source: io.NopCloser(bytes.NewBufferString("this is from me")),
 	}
 
 	eng := NewSaltpackSign(tc.G, sarg)
@@ -336,7 +335,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 
 	sarg := &SaltpackSignArg{
 		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("test input wooo")),
+		Source: io.NopCloser(bytes.NewBufferString("test input wooo")),
 	}
 
 	eng := NewSaltpackSign(tc.G, sarg)
@@ -396,11 +395,11 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error during verify")
 	}
-	verificationError, ok := err.(kbcrypto.VerificationError)
+	verificationError, ok := err.(libkb.VerificationError)
 	if !ok {
 		t.Fatal("expected VerificationError during verify")
 	}
-	badSenderError, ok := verificationError.Cause.(*FakeBadSenderError)
+	badSenderError, ok := verificationError.Cause.Err.(*FakeBadSenderError)
 	if !ok {
 		t.Fatal("expected FakeBadSenderError during verify")
 	}
@@ -408,8 +407,6 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	if badSenderError.senderType != keybase1.SaltpackSenderType_REVOKED {
 		t.Fatalf("expected keybase1.SaltpackSenderType_REVOKED, got %s", badSenderError.senderType.String())
 	}
-
-	//
 }
 
 func TestSaltpackSignForceVersion(t *testing.T) {
@@ -424,7 +421,7 @@ func TestSaltpackSignForceVersion(t *testing.T) {
 			var sink bytes.Buffer
 			sarg := &SaltpackSignArg{
 				Sink:   libkb.NopWriteCloser{W: &sink},
-				Source: ioutil.NopCloser(bytes.NewBufferString("some test input")),
+				Source: io.NopCloser(bytes.NewBufferString("some test input")),
 				Opts: keybase1.SaltpackSignOptions{
 					Binary:          true,
 					SaltpackVersion: versionFlag,

@@ -9,6 +9,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func ComputeSigIDFromSigBody(body []byte) keybase1.SigID {
-	return keybase1.SigIDFromBytes(sha256.Sum256(body))
+func ComputeSigIDFromSigBody(body []byte) keybase1.SigIDBase {
+	return keybase1.SigIDBaseFromBytes(sha256.Sum256(body))
 }

@@ -4,13 +4,17 @@ import (
 	"os"
 	"sync"
 
-	logging "github.com/keybase/go-logging"
-	isatty "github.com/mattn/go-isatty"
+	"github.com/keybase/go-logging"
+	"github.com/mattn/go-isatty"
 )
 
-var globalLock sync.Mutex
-var stderrIsTerminal = isatty.IsTerminal(os.Stderr.Fd())
-var currentLogFileWriter *logFileWriter
+var (
+	globalLock                sync.Mutex
+	stderrIsTerminal          = isatty.IsTerminal(os.Stderr.Fd())
+	currentLogFileWriter      *LogFileWriter
+	stdErrLoggingShutdown     chan<- struct{}
+	stdErrLoggingShutdownDone <-chan struct{}
+)
 
 func init() {
 	logBackend := logging.NewLogBackend(ErrorWriter(), "", 0)

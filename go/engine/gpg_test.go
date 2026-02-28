@@ -4,9 +4,8 @@
 package engine
 
 import (
+	"context"
 	"fmt"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -53,27 +52,32 @@ func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (
 	return false, nil
 }
 
-func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+func (g *gpgtestui) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
+	mctx := g.MetaContext(ctx)
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {
 		return "", err
 	}
 	cli := g.G().GetGpgClient()
-	if err := cli.Configure(); err != nil {
+	if err := cli.Configure(mctx); err != nil {
 		return "", err
 	}
-	return cli.Sign(*fp, arg.Msg)
+	return cli.Sign(mctx, *fp, arg.Msg)
 }
 
 func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }
 
+func (g *gpgtestui) MetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, g.G())
+}
+
 type gpgTestUIBadSign struct {
 	gpgtestui
 }
 
-func (g *gpgTestUIBadSign) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+func (g *gpgTestUIBadSign) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
 	return "", libkb.GpgError{M: "Artificial GPG failure for testing"}
 }
 
@@ -88,39 +92,4 @@ func (g *gpgPubOnlyTestUI) SelectKeyAndPushOption(_ context.Context, arg keybase
 	}
 	key := arg.Keys[0]
 	return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: false}, nil
-}
-
-// selects a key by email address
-type gpgSelectEmailUI struct {
-	*gpgtestui
-	Email string
-}
-
-func newGPGSelectEmailUI(g *libkb.GlobalContext, email string) *gpgSelectEmailUI {
-	return &gpgSelectEmailUI{
-		gpgtestui: &gpgtestui{Contextified: libkb.NewContextified(g)},
-		Email:     email,
-	}
-}
-
-func (g *gpgSelectEmailUI) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
-	for _, key := range arg.Keys {
-		for _, id := range key.Identities {
-			if id.Email == g.Email {
-				return key.KeyID, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("no keys found for email %q", g.Email)
-}
-
-func (g *gpgSelectEmailUI) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
-	for _, key := range arg.Keys {
-		for _, id := range key.Identities {
-			if id.Email == g.Email {
-				return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: false}, nil
-			}
-		}
-	}
-	return keybase1.SelectKeyRes{}, fmt.Errorf("no keys found for email %q", g.Email)
 }

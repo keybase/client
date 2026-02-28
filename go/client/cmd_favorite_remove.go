@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -16,7 +15,7 @@ import (
 
 type CmdFavoriteRemove struct {
 	libkb.Contextified
-	folder keybase1.Folder
+	folder keybase1.FolderHandle
 }
 
 func NewCmdFavoriteRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

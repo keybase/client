@@ -5,17 +5,17 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbhttp/manager"
+
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
@@ -37,41 +37,48 @@ type mockAttachmentRemoteStore struct {
 }
 
 func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader,
-	asset chat1.Asset, progress types.ProgressReporter) error {
+	asset chat1.Asset, progress types.ProgressReporter,
+) error {
 	if m.decryptCh != nil {
 		m.decryptCh <- struct{}{}
 	}
-	io.Copy(w, body)
-	return nil
+	_, err := io.Copy(w, body)
+	return err
 }
 
 func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer,
-	assets []chat1.Asset) error {
+	assets []chat1.Asset,
+) error {
 	return nil
 }
 
 func (m mockAttachmentRemoteStore) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer,
-	asset chat1.Asset) error {
+	asset chat1.Asset,
+) error {
 	return nil
 }
 
 func (m mockAttachmentRemoteStore) DownloadAsset(ctx context.Context, params chat1.S3Params,
-	asset chat1.Asset, w io.Writer, signer s3.Signer, progress types.ProgressReporter) error {
+	asset chat1.Asset, w io.Writer, signer s3.Signer, progress types.ProgressReporter,
+) error {
 	return errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) UploadAsset(ctx context.Context, task *attachments.UploadTask,
-	encryptedOut io.Writer) (chat1.Asset, error) {
+	encryptedOut io.Writer,
+) (chat1.Asset, error) {
 	return chat1.Asset{}, errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer) (io.ReadSeeker, error) {
+	signer s3.Signer,
+) (io.ReadSeeker, error) {
 	return nil, errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer) (io.ReadCloser, error) {
+	signer s3.Signer,
+) (io.ReadCloser, error) {
 	if m.assetReaderCh != nil {
 		m.assetReaderCh <- struct{}{}
 	}
@@ -86,7 +93,7 @@ func (m mockSigningRemote) Sign(payload []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (m mockSigningRemote) GetS3Params(ctx context.Context, convID chat1.ConversationID) (res chat1.S3Params, err error) {
+func (m mockSigningRemote) GetS3Params(ctx context.Context, arg chat1.GetS3ParamsArg) (res chat1.S3Params, err error) {
 	return res, nil
 }
 
@@ -115,21 +122,24 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
-		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
+		manager.NewSrv(tc.Context().ExternalG()), fetcher,
+		func() chat1.RemoteInterface { return mockSigningRemote{} })
 
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m0",
 		},
 	}))
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	require.NoError(t, err)
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m1",
 		},
 	}))
+	require.NoError(t, err)
 
 	tv, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid,
-		chat1.GetThreadReason_GENERAL,
+		chat1.GetThreadReason_GENERAL, nil,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
 		}, nil)
@@ -145,7 +155,8 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	readAsset := func(msg chat1.UIMessage, cacheHit bool) {
 		httpRes, err := http.Get(msg.Valid().AssetUrlInfo.FullUrl)
 		require.NoError(t, err)
-		body, err := ioutil.ReadAll(httpRes.Body)
+		defer httpRes.Body.Close()
+		body, err := io.ReadAll(httpRes.Body)
 		require.NoError(t, err)
 		require.Equal(t, "HI", string(body))
 		if cacheHit {
@@ -206,7 +217,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	}()
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
-	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil)
+	store := attachments.NewStoreTesting(tc.Context(), nil)
 	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)
@@ -216,9 +227,10 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		manager.NewSrv(tc.Context().ExternalG()),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri }, 1)
 	uploader.SetPreviewTempDir(fetcher.tempDir)
 	tc.ChatG.AttachmentUploader = uploader
 
@@ -250,11 +262,16 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+
 	t.Logf("found path: %s", path)
 
 	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 	t.Logf("found path: %s", path)
 
 	// Try with an attachment with no preview
@@ -279,7 +296,10 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	require.True(t, msgRes.Messages[0].IsValid())
 	body = msgRes.Messages[0].Valid().MessageBody
 	require.Nil(t, body.Attachment().Preview)
-	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	found, _, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.False(t, found)
+	// No preview is available, but the file is still on disk.
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 }

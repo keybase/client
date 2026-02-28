@@ -73,9 +73,9 @@ func PurgeResolverTeamID(ctx context.Context, g *libkb.GlobalContext, teamID key
 // Into "alice,bob#char (conflicted copy 2017-03-04 #1)"
 // The input can contain compound assertions, but if compound assertions are left unresolved, an error will be returned.
 func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
-	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {
-
-	defer g.CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), func() error { return err })()
+	name string, public bool,
+) (res keybase1.ImplicitTeamDisplayName, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), &err)()
 
 	split1 := strings.SplitN(name, " ", 2) // split1: [assertions, ?conflict]
 	assertions := split1[0]
@@ -84,7 +84,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		suffix = split1[1]
 	}
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(g, assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(libkb.NewMetaContext(ctx, g), assertions)
 	if err != nil {
 		return res, err
 	}
@@ -100,13 +100,10 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	var resolvedAssertions []libkb.ResolvedAssertion
-
-	err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions)
-	if err != nil {
+	if err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions); err != nil {
 		return res, err
 	}
-	err = ResolveImplicitTeamSetUntrusted(ctx, g, readerAssertions, &res.Readers, &resolvedAssertions)
-	if err != nil {
+	if err = ResolveImplicitTeamSetUntrusted(ctx, g, readerAssertions, &res.Readers, &resolvedAssertions); err != nil {
 		return res, err
 	}
 
@@ -128,27 +125,47 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	return res, err
 }
 
+// preventTeamCreationOnError checks if an error coming from resolver should
+// prevent us from creating a team. We don't want a team where we don't know if
+// SBS user is resolvable but we just were unable to get the answer.
+func shouldPreventTeamCreation(err error) bool {
+	if resErr, ok := err.(libkb.ResolutionError); ok {
+		switch resErr.Kind {
+		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
+			return true
+		}
+	}
+	return false
+}
+
 // Try to resolve implicit team members.
 // Modifies the arguments `resSet` and appends to `resolvedAssertions`.
 // For each assertion in `sourceAssertions`, try to resolve them.
-//   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
-//   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
+//
+//	If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
+//	If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
 func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
-	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
-
+	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion,
+) error {
 	m := libkb.NewMetaContext(ctx, g)
 
 	for _, expr := range sourceAssertions {
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
+			if shouldPreventTeamCreation(err) {
+				// but if we are not sure, better to bail out
+				return err
+			}
 			sa, err := expr.ToSocialAssertion()
 			if err != nil {
 				// Could not convert to a social assertion.
 				// This could be because it is a compound assertion, which we do not support when SBS.
 				// Or it could be because it's a team assertion or something weird like that.
-				return libkb.ResolutionError{Input: expr.String(), Msg: "unknown user assertion",
-					Kind: libkb.ResolutionErrorNotFound}
+				return libkb.ResolutionError{
+					Input: expr.String(), Msg: "unknown user assertion",
+					Kind: libkb.ResolutionErrorNotFound,
+				}
 			}
 			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
 		} else {
@@ -167,13 +184,17 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 
 // Verify using Identify that a UID matches an assertion.
 func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion libkb.ResolvedAssertion) (err error) {
-
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
-		func() error { return err })()
+		&err)()
 
 	if resolvedAssertion.ResolveResult.WasKBAssertion() {
 		// The resolver does not use server-trust for these sorts of assertions.
 		// So early out to avoid the performance cost of a full identify.
+		return nil
+	}
+
+	if resolvedAssertion.ResolveResult.IsServerTrust() {
+		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
 		return nil
 	}
 
@@ -194,8 +215,8 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		idRes, _ := eng.Result()
-		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+		idRes, _ := eng.Result(m)
+		m.Debug("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
 }
@@ -228,6 +249,7 @@ func deduplicateImplicitTeamDisplayName(name *keybase1.ImplicitTeamDisplayName) 
 			writers.UnresolvedUsers = append(writers.UnresolvedUsers, u)
 		}
 	}
+
 	for _, u := range name.Readers.KeybaseUsers {
 		if unseen(u) {
 			readers.KeybaseUsers = append(readers.KeybaseUsers, u)

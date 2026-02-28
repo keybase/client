@@ -52,7 +52,7 @@ func TestDeviceCloneStateSuccessfulUpdate(t *testing.T) {
 	defer tc.Cleanup()
 	_ = CreateAndSignupFakeUser(tc, "fu")
 	m := NewMetaContextForTest(tc)
-	//setup: perform an initial run
+	// setup: perform an initial run
 	d0, err := runAndGetDeviceCloneState(m)
 	require.NoError(tc.T, err)
 

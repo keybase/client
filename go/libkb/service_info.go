@@ -6,7 +6,6 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -49,7 +48,7 @@ func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 		return err
 	}
 
-	file := NewFile(path, []byte(out), 0644)
+	file := NewFile(path, out, 0o644)
 	return file.Save(log)
 }
 
@@ -62,7 +61,7 @@ func LoadServiceInfo(path string) (*ServiceInfo, error) {
 	if _, ferr := os.Stat(path); os.IsNotExist(ferr) {
 		return nil, nil
 	}
-	dat, err := ioutil.ReadFile(path)
+	dat, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +101,7 @@ func WaitForServiceInfoFile(path string, label string, pid string, timeout time.
 	}
 
 	log.Debug("Looking for service info file (timeout=%s)", timeout)
-	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*400, lookForServiceInfo)
+	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*100, lookForServiceInfo)
 
 	// If no service info was found, let's return an error
 	if serviceInfo == nil {
@@ -133,18 +132,15 @@ func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServi
 	defer ticker.Stop()
 	resultChan := make(chan serviceInfoResult, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				info, err := fn()
-				if err != nil {
-					resultChan <- serviceInfoResult{info: nil, err: err}
-					return
-				}
-				if info != nil {
-					resultChan <- serviceInfoResult{info: info, err: nil}
-					return
-				}
+		for range ticker.C {
+			info, err := fn()
+			if err != nil {
+				resultChan <- serviceInfoResult{info: nil, err: err}
+				return
+			}
+			if info != nil {
+				resultChan <- serviceInfoResult{info: info, err: nil}
+				return
 			}
 		}
 	}()

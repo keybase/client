@@ -113,6 +113,18 @@ func (b *StdinSource) Seek(offset int64, whence int) (int64, error) {
 	return 0, errors.New("StdinSource does not support Seek")
 }
 
+// isValidFile verifies the file in question is not actually a directory.
+func isValidFile(file *os.File) error {
+	finfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if mode := finfo.Mode(); mode.IsDir() {
+		return fmt.Errorf("A directory is not a valid file")
+	}
+	return nil
+}
+
 type FileSource struct {
 	name string
 	file *os.File
@@ -125,6 +137,9 @@ func NewFileSource(s string) *FileSource {
 func (s *FileSource) Open() error {
 	f, err := os.OpenFile(s.name, os.O_RDONLY, 0)
 	if err != nil {
+		return err
+	}
+	if err = isValidFile(f); err != nil {
 		return err
 	}
 	s.file = f
@@ -168,7 +183,6 @@ func (s *FileSource) Read(p []byte) (n int, err error) {
 // The alternative is to remove the Close() in Read(),
 // but leave that untouched so as not to break
 // anything that depends on that behavior.
-//
 func (s *FileSource) Seek(offset int64, whence int) (int64, error) {
 	if s.file == nil {
 		// the file could be nil because Read(...) closes
@@ -259,6 +273,10 @@ func (s *FileSink) lazyOpen() error {
 			return fmt.Errorf("Failed to open %s for writing: %s",
 				s.name, err)
 		}
+		if err := isValidFile(f); err != nil {
+			s.failed = true
+			return err
+		}
 		s.file = f
 		s.bufw = bufio.NewWriter(f)
 		s.opened = true
@@ -292,7 +310,6 @@ func (s *FileSink) HitError(e error) error {
 		err = os.Remove(s.name)
 	}
 	return err
-
 }
 
 type UnixFilter struct {
@@ -314,9 +331,11 @@ func initSink(g *libkb.GlobalContext, fn string) Sink {
 	return NewFileSink(g, fn)
 }
 
+var ErrDuplicateSource = errors.New("Can't handle both a passed message and an infile")
+
 func initSource(msg, infile string) (Source, error) {
 	if len(msg) > 0 && len(infile) > 0 {
-		return nil, fmt.Errorf("Can't handle both a passed message and an infile")
+		return nil, ErrDuplicateSource
 	}
 	if len(msg) > 0 {
 		return NewBufferSource(msg), nil
@@ -328,10 +347,13 @@ func initSource(msg, infile string) (Source, error) {
 }
 
 func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile string) (err error) {
+	if len(msg) > 0 && len(infile) > 0 {
+		return ErrDuplicateSource
+	}
 	u.msg = msg
 	u.infile = infile
 	u.outfile = outfile
-	return nil // Any errors will be raised when the filter is opened.
+	return nil
 }
 
 func (u *UnixFilter) FilterOpen(g *libkb.GlobalContext) (err error) {
@@ -346,14 +368,18 @@ func (u *UnixFilter) FilterOpen(g *libkb.GlobalContext) (err error) {
 	if err = u.source.Open(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (u *UnixFilter) Close(inerr error) error {
-	e1 := u.source.CloseWithError(inerr)
-	e2 := u.sink.Close()
-	e3 := u.sink.HitError(inerr)
+	var e1, e2, e3 error
+	if u.source != nil {
+		e1 = u.source.CloseWithError(inerr)
+	}
+	if u.sink != nil {
+		e2 = u.sink.Close()
+		e3 = u.sink.HitError(inerr)
+	}
 	return libkb.PickFirstError(e1, e2, e3)
 }
 

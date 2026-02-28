@@ -78,7 +78,7 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 
 	t.Logf("second device deprovisions itself")
 	{
-		eng := NewDeprovisionEngine(tcY.G, fu.Username, true /* doRevoke */)
+		eng := NewDeprovisionEngine(tcY.G, fu.Username, true /* doRevoke */, libkb.LogoutOptions{})
 		uis := libkb.UIs{
 			LogUI:    tcY.G.UI.GetLogUI(),
 			SecretUI: fu.NewSecretUI(),

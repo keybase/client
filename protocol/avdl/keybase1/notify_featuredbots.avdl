@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol NotifyFeaturedBots {
+  import idl "common.avdl";
+
+  void featuredBotsUpdate(array<FeaturedBot> bots, int limit, int offset) oneway;
+}

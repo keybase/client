@@ -2,14 +2,15 @@
 
 set -e -u -o pipefail # Fail on error
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+client_dir="$dir/../.."
+cd $client_dir/go
 
 arg=${1:-}
 
 if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
-  echo "Nothing to build, you need to specify 'ios' or 'android'"
-  exit 1
+	echo "Nothing to build, you need to specify 'ios' or 'android'"
+	exit 1
 fi
 
 # For CI, this is run like
@@ -20,137 +21,80 @@ fi
 
 # If KEYBASE_BUILD is set and non-empty (e.g., for CI), use it.
 if [[ -n ${KEYBASE_BUILD+x} && "$KEYBASE_BUILD" ]]; then
-    keybase_build="$KEYBASE_BUILD"
+	keybase_build="$KEYBASE_BUILD"
 else
-    ## TODO(mm) consolidate this with packaging/prerelease/
-    current_date=`date -u +%Y%m%d%H%M%S` # UTC
-    commit_short=`git log -1 --pretty=format:%h`
-    keybase_build="$current_date+$commit_short"
+	## TODO(mm) consolidate this with packaging/prerelease/
+	current_date=$(date -u +%Y%m%d%H%M%S) # UTC
+	commit_short=$(git log -1 --pretty=format:%h)
+	keybase_build="$current_date+$commit_short"
 fi
 
-local_client=${LOCAL_CLIENT:-"1"}
-local_kbfs=${LOCAL_KBFS:-}
-skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
-tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 check_ci=${CHECK_CI:-}
 
-IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
-GOPATH0=${GOPATH_ARRAY[0]}
-
-# Original sources
-client_dir="$GOPATH0/src/github.com/keybase/client"
-client_go_dir="$client_dir/go"
-kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
-
-# Our custom GOPATH for mobile build.
-GOPATH="$tmp_gopath"
-echo "Using temp GOPATH: $GOPATH"
+echo "Using GOPATH: $GOPATH"
+echo "Using go version: $(go version)"
 
 # gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
 # also want executables from our own GOPATH to override anything
 # already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
 PATH="$GOPATH/bin:$PATH"
 
-# if we don't set this gomobile init get confused
-GOMOBILE="$GOPATH/pkg/gomobile"
-# need to whitelist some flags we use
+# need to allowlist some flags we use
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
 
-# Clear source
-echo "Clearing $GOPATH/src"
-rm -rf "$GOPATH/src/"/*
-mkdir -p "$GOPATH/src/github.com/keybase"
-
-# Copy source
-go_client_dir="$tmp_gopath/src/github.com/keybase/client/go"
-go_kbfs_dir="$tmp_gopath/src/github.com/keybase/kbfs"
-
-if [ ! "$local_client" = "1" ]; then
-  echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
-  (cd "$GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client)
-  client_dir=$go_client_dir
-else
-  echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
-  mkdir -p "$go_client_dir"
-  cp -R "$client_go_dir"/* "$go_client_dir"
-fi
-
-if [ ! "$local_kbfs" = "1" ]; then
-  echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
-  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/kbfs)
-  kbfs_dir=$go_kbfs_dir
-else
-  # For testing local KBFS changes
-  echo "Getting KBFS (using local GOPATH)... To use git master, set LOCAL_KBFS=0"
-  mkdir -p "$go_kbfs_dir"
-  cp -R "$kbfs_dir"/* "$go_kbfs_dir"
-fi
-
 if [ "$check_ci" = "1" ]; then
-  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-  release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  release wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
+	(
+		cd "$client_dir/go/buildtools"
+		go install "github.com/keybase/client/go/release"
+	)
+	release wait-ci --repo="client" --commit="$(git rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
-# Move all vendoring up a directory to github.com/keybase/vendor
-echo "Re-vendoring..."
-mkdir -p "$GOPATH/src/github.com/keybase/vendor"
-# Remove client vendored in kbfs
-rm -rf "$go_kbfs_dir/vendor/github.com/keybase/client/go"
-# Vendoring client over kbfs (ignore time)
-rsync -pr --ignore-times "$go_kbfs_dir/vendor" "$GOPATH/src/github.com/keybase"
-rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase"
-# Remove their vendoring
-rm -rf "$go_kbfs_dir/vendor"
-rm -rf "$go_client_dir/vendor"
-
-vendor_path="$GOPATH/src/github.com/keybase/vendor"
-rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
-ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
 
-gomobileinit ()
-{
-  echo "Build gomobile..."
-  go install golang.org/x/mobile/cmd/{gomobile,gobind}
-  # iOS doesn't need gomobile init.
-  if [ "$arg" = "android" ]; then
-    echo "Doing gomobile init"
-    gomobile init -ndk $ANDROID_HOME/ndk-bundle
-  fi
+build_gomobile() {
+	echo "Build gomobile..."
+	(go install golang.org/x/mobile/cmd/{gomobile,gobind} && go tool gomobile init)
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dir=${DEST_DIR:-"$dir/ios"}
-  ios_dest="$ios_dir/keybase.framework"
-  echo "Building for iOS ($ios_dest)..."
-  set +e
-  OUTPUT="$(gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
-  set -e
-  if [[ $OUTPUT == *gomobile* ]]; then
-    echo "Running gomobile init cause: $OUTPUT"
-    gomobileinit
-    gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
-  else
-    echo $OUTPUT
-  fi
+	ios_dir=${DEST_DIR:-"$client_dir/shared/ios"}
+	ios_dest="$ios_dir/keybasego.xcframework"
+	# Keep in sync with IPHONEOS_DEPLOYMENT_TARGET
+	ios_version="15.1"
+	echo "Building for iOS ($ios_dest)..."
+	set +e
+	OUTPUT="$(go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+	set -e
+	if [[ $OUTPUT == *gomobile* ]]; then
+		build_gomobile
+		go tool gomobile bind -target=ios -iosversion="$ios_version" -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
+	else
+		echo $OUTPUT
+	fi
 elif [ "$arg" = "android" ]; then
-  android_dir=${DEST_DIR:-"$dir/android/keybaselib"}
-  android_dest="$android_dir/keybaselib.aar"
-  echo "Building for Android ($android_dest)..."
-  set +e
-  OUTPUT="$(gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
-  set -e
-  if [[ $OUTPUT == *gomobile* ]]; then
-    echo "Running gomobile init cause: $OUTPUT"
-    gomobileinit
-    gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
-  else
-    echo $OUTPUT
-  fi
+	android_dir=${DEST_DIR:-"$client_dir/shared/android/keybaselib"}
+	android_dest="$android_dir/keybaselib.aar"
+	android_api="23"
+	# support 16kb page sizes on this ndk
+	android_ldflags="$ldflags \"-extldflags=-Wl,-z,max-page-size=16384\""
+	echo "Building for Android ($android_dest)..."
+	set +e
+	OUTPUT="$(go tool gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package" 2>&1)"
+	set -e
+	if [[ $OUTPUT == *gomobile* ]]; then
+		build_gomobile
+		go tool gomobile bind -target=android -androidapi "$android_api" -tags="android $tags" -ldflags "$android_ldflags" -o "$android_dest" "$package"
+	else
+		echo $OUTPUT
+	fi
 else
-  # Shouldn't get here.
-  echo "Nothing to build, you need to specify 'ios' or 'android'"
-  exit 1
+	# Shouldn't get here.
+	echo "Nothing to build, you need to specify 'ios' or 'android'"
+	exit 1
 fi
+
+# tidy indirect reference to gomobile
+go mod tidy

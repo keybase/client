@@ -6,11 +6,12 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type HomeHandler struct {
@@ -34,6 +35,10 @@ func (h *HomeHandler) HomeGetScreen(ctx context.Context, arg keybase1.HomeGetScr
 
 func (h *HomeHandler) HomeSkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) error {
 	return h.home.SkipTodoType(ctx, typ)
+}
+
+func (h *HomeHandler) HomeDismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) error {
+	return h.home.DismissAnnouncement(ctx, id)
 }
 
 func (h *HomeHandler) HomeActionTaken(ctx context.Context) error {

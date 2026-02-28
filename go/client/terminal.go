@@ -40,7 +40,6 @@ func (t *Terminal) open() error {
 			return
 		}
 		t.engine = eng
-		return
 	})
 	return err
 }
@@ -86,9 +85,10 @@ func (t *Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err
 	}
 	prompt := p + " " + ch + " "
 	done := false
-	for !done && err == nil {
+	for !done {
 		var s string
 		if s, err = t.Prompt(prompt); err != nil {
+			return ret, err
 		} else if libkb.IsYes(s) {
 			ret = true
 			done = true
@@ -96,16 +96,17 @@ func (t *Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err
 			ret = false
 			done = true
 		} else if libkb.IsEmpty(s) {
-			if def == libkb.PromptDefaultNo {
+			switch def {
+			case libkb.PromptDefaultNo:
 				ret = false
 				done = true
-			} else if def == libkb.PromptDefaultYes {
+			case libkb.PromptDefaultYes:
 				ret = true
 				done = true
 			}
 		}
 	}
-	return
+	return ret, err
 }
 
 // GetSize tries to get the size for the current terminal.
@@ -118,7 +119,6 @@ func (t *Terminal) GetSize() (int, int) {
 }
 
 func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-
 	if err := t.open(); err != nil {
 		return nil, err
 	}

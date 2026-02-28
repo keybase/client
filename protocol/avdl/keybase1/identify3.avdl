@@ -1,0 +1,26 @@
+@namespace("keybase.1")
+
+protocol identify3 {
+
+  import idl "identify3_common.avdl";
+
+  // identify3 is called by React to start an ID3 session. It gets an immediate reply on the basis
+  // of the user being found and active, but the rest of the information streams in via the UI interface.
+  // It's keyed on the basis of the ID3GUIID token passed through, which is a 12-byte randomly generated
+  // hex string.
+  void identify3(
+    Identify3Assertion assertion, // username or bob@twitter etc
+    Identify3GUIID guiID,         // id used to tie these things together
+    boolean ignoreCache           // if true force ignore any local caching (aka i updated something and i want to look at my own profile and see changes immediately)
+  );
+
+  void identify3FollowUser(
+    Identify3GUIID guiID,          // id used to tie these things together
+    boolean follow
+  );
+
+  void identify3IgnoreUser(
+    Identify3GUIID guiID          // id used to tie these things together
+  );
+
+}

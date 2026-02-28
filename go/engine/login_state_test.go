@@ -4,13 +4,13 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 // TODO: These tests should really be in libkb/. However, any test
@@ -27,7 +27,7 @@ type GetPassphraseMock struct {
 	LastErr     error
 }
 
-func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, _ *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	if m.Called {
 		m.LastErr = errors.New("GetPassphrase unexpectedly called more than once")
 		return res, m.LastErr
@@ -70,9 +70,9 @@ func TestLoginAfterServiceRestart(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = SignupFakeUserStoreSecret(tc, "li")
+	fu := SignupFakeUserStoreSecret(tc, "li")
 
-	tc.SimulateServiceRestart()
+	simulateServiceRestart(t, tc, fu)
 	ok, _ := isLoggedIn(NewMetaContextForTest(tc))
 	require.True(t, ok, "we are logged in after a service restart")
 }
@@ -101,6 +101,8 @@ type GetUsernameMock struct {
 	LastErr  error
 }
 
+var _ libkb.LoginUI = (*GetUsernameMock)(nil)
+
 func (m *GetUsernameMock) GetEmailOrUsername(context.Context, int) (string, error) {
 	if m.Called {
 		m.LastErr = errors.New("GetEmailOrUsername unexpectedly called more than once")
@@ -122,10 +124,36 @@ func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1
 	return nil
 }
 
+func (m *GetUsernameMock) PromptResetAccount(_ context.Context,
+	arg keybase1.PromptResetAccountArg,
+) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
+}
+
+func (m *GetUsernameMock) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)
 	}
+}
+
+func (m *GetUsernameMock) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (m *GetUsernameMock) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
+}
+
+func (m *GetUsernameMock) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (m *GetUsernameMock) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 // Test that the login falls back to a passphrase login if pubkey
@@ -153,7 +181,8 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	// Clear out the username stored in G.Env.
-	tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
+	err = tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
+	require.NoError(t, err)
 
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
@@ -207,7 +236,6 @@ func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
 
 // Test that the login flow using the secret store works.
 func TestLoginWithStoredSecret(t *testing.T) {
-
 	tc := SetupEngineTest(t, "login with stored secret")
 	defer tc.Cleanup()
 
@@ -255,7 +283,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	ili, _ = isLoggedIn(mctx)
 	require.False(t, ili, "cannot finagle a login")
 
-	fu = CreateAndSignupFakeUser(tc, "lwss")
+	_ = CreateAndSignupFakeUser(tc, "lwss")
 	Logout(tc)
 
 	ili, _ = isLoggedIn(mctx)
@@ -286,7 +314,6 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 // Test that the login flow with passphrase but without saving the
 // secret works.
 func TestLoginWithPassphraseNoStore(t *testing.T) {
-
 	tc := SetupEngineTest(t, "login with passphrase (no store)")
 	defer tc.Cleanup()
 
@@ -308,7 +335,7 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 
 // Signup followed by logout clears the stored secret
 func TestSignupWithStoreThenLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "signup with store then login")
+	tc := SetupEngineTest(t, "signup with store then logout")
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(tc.T, "lssl")
@@ -320,6 +347,55 @@ func TestSignupWithStoreThenLogout(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	Logout(tc)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}
+
+type timeoutAPI struct {
+	*libkb.APIArgRecorder
+}
+
+var errFakeNetworkTimeout = errors.New("fake network timeout in test")
+
+func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+
+func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+
+func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	return nil, libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+
+// Signup followed by logout clears the stored secret
+func TestSignupWithStoreThenOfflineLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "signup with store then offline logout")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssol")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	// Hack: log out and back in so passphrase state is stored. With a real user, this would happen
+	// when the passphrase is set, but the passphrase is set by signup instead of manually in test.
+	Logout(tc)
+	err := fu.Login(tc.G)
+	require.NoError(t, err)
+
+	// Go offline
+	tc.G.API = &timeoutAPI{}
 
 	Logout(tc)
 

@@ -5,7 +5,7 @@ package kbhttp
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -25,13 +25,15 @@ func TestSrv(t *testing.T) {
 		require.NoError(t, err)
 		url := fmt.Sprintf("http://%s/test", addr)
 		t.Logf("url: %s", url)
-		resp, err := http.Get(url)
+		resp, err := http.Get(url) //nolint:gosec // G107: Test code making request to own test server
 		require.NoError(t, err)
-		out, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		out, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		require.Equal(t, "success", string(out))
-		srv.Stop()
+		<-srv.Stop()
 	}
-	test(NewRandomPortListenerSource())
+	test(NewAutoPortListenerSource())
 	test(NewPortRangeListenerSource(7000, 8000))
+	test(NewRandomPortRangeListenerSource(7000, 8000))
 }

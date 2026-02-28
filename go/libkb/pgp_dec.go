@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
@@ -24,6 +23,7 @@ type SignatureStatus struct {
 	Entity          *openpgp.Entity
 	SignatureTime   time.Time
 	RecipientKeyIDs []uint64
+	Warnings        HashSecurityWarnings
 }
 
 func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
@@ -34,8 +34,9 @@ func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, k
 	return PGPDecrypt(g, source, sink, opkr)
 }
 
+// PGPDecrypt only generates warnings about insecure _message_ signatures, not
+// _key_ signatures - that is handled by engine.PGPDecrypt.
 func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
-
 	var sc StreamClassification
 	var err error
 
@@ -89,6 +90,17 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 		status.KeyID = md.SignedByKeyId
 		if md.Signature != nil {
 			status.SignatureTime = md.Signature.CreationTime
+
+			if !IsHashSecure(md.Signature.Hash) {
+				status.Warnings = append(
+					status.Warnings,
+					NewHashSecurityWarning(
+						HashSecurityWarningSignatureHash,
+						md.Signature.Hash,
+						nil,
+					),
+				)
+			}
 		}
 		if md.SignedBy != nil {
 			status.Entity = md.SignedBy.Entity
@@ -108,7 +120,7 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
-	msg, err := ioutil.ReadAll(source)
+	msg, err := io.ReadAll(source)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +129,12 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return nil, fmt.Errorf("Unable to decode clearsigned message")
 	}
 
-	signer, err := openpgp.CheckDetachedSignature(kr, bytes.NewReader(b.Bytes), b.ArmoredSignature.Body)
+	sigBytes, err := io.ReadAll(b.ArmoredSignature.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	signer, err := openpgp.CheckDetachedSignature(kr, bytes.NewReader(b.Bytes), bytes.NewReader(sigBytes))
 	if err != nil {
 		return nil, fmt.Errorf("Check sig error: %s", err)
 	}
@@ -133,9 +150,26 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return &status, nil
 	}
 
+	// Reexamine the signature to figure out its hash
+	digestHash, signerKeyID, err := ExtractPGPSignatureHashMethod(kr, sigBytes)
+	if err != nil {
+		return nil, err
+	}
+	if !IsHashSecure(digestHash) {
+		status.Warnings = append(
+			status.Warnings,
+			NewHashSecurityWarning(
+				HashSecurityWarningSignatureHash,
+				digestHash,
+				nil,
+			),
+		)
+	}
+
 	status.IsSigned = true
 	status.Verified = true
 	status.Entity = signer
+	status.KeyID = signerKeyID
 
 	return &status, nil
 }

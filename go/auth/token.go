@@ -1,9 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-//
 // Code used to support authentication tokens for arbitrary purposes.
-//
 package auth
 
 import (
@@ -59,7 +57,8 @@ type Token struct {
 
 func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
 	server, challenge string, now int64, expireIn int,
-	clientName, clientVersion string) *Token {
+	clientName, clientVersion string,
+) *Token {
 	return &Token{
 		Body: TokenBody{
 			Auth: TokenAuth{
@@ -152,7 +151,7 @@ func VerifyToken(signature, server, challenge string, maxExpireIn int) (*Token, 
 func (t Token) TimeRemaining() int {
 	ctime := time.Unix(t.CreationTime, 0)
 	expires := ctime.Add(time.Duration(t.ExpireIn) * time.Second)
-	return int(math.Ceil(expires.Sub(time.Now()).Seconds()))
+	return int(math.Ceil(time.Until(expires).Seconds()))
 }
 
 func (t Token) Server() string {

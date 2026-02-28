@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euox pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get --allow-releaseinfo-change update

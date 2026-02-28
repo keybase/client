@@ -1,23 +1,25 @@
 package teams
 
 import (
+	"context"
 	"strings"
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTeamPlusApplicationKeysExim(t *testing.T) {
 	tc := SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
+	defer tc.Cleanup()
+
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer tc.Cleanup()
 
 	name := createTeam(tc)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
@@ -50,6 +52,7 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 func TestImplicitTeamLTPAK(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
+
 	u0, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
@@ -66,7 +69,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 		t.Logf("Created team public: %t, %s %s", public, createdTeam.ID, impTeamName)
 
 		for _, u := range []*kbtest.FakeUser{u1, u2, u0, nil} {
-			require.NoError(t, tc.G.Logout())
+			require.NoError(t, tc.Logout())
 			if u != nil {
 				require.NoError(t, u.Login(tc.G))
 				t.Logf("Testing as user %s", u.Username)
@@ -93,7 +96,38 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 			}
 		}
 
-		require.NoError(t, tc.G.Logout())
+		require.NoError(t, tc.Logout())
 		require.NoError(t, u2.Login(tc.G))
 	}
+}
+
+func TestChatBadConversationError(t *testing.T) {
+	e := libkb.ChatBadConversationError{Msg: "", ConvID: nil}
+	status := e.ToStatus()
+	require.Equal(t, len(status.Fields), 2)
+	msg := status.Fields[0]
+	require.Equal(t, msg.Key, "Msg")
+	require.Equal(t, msg.Value, "")
+	convID := status.Fields[1]
+	require.Equal(t, convID.Key, "ConvID")
+	require.Equal(t, convID.Value, "")
+	err := libkb.ImportStatusAsError(nil, &status)
+	e, ok := err.(libkb.ChatBadConversationError)
+	require.True(t, ok)
+	require.True(t, e.ConvID.IsNil())
+
+	cid, err := chat1.MakeConvID("0000c5f97ea8d159507946968bc68ed5d3422ea1450d28171e0d4c7a3541d613")
+	require.NoError(t, err)
+
+	e = libkb.ChatBadConversationError{Msg: "msg", ConvID: cid}
+	status = e.ToStatus()
+	require.Equal(t, len(status.Fields), 2)
+	msg = status.Fields[0]
+	require.Equal(t, msg.Key, "Msg")
+	require.Equal(t, msg.Value, "msg")
+	convID = status.Fields[1]
+	require.Equal(t, convID.Key, "ConvID")
+	require.Equal(t, convID.Value, cid.String())
+	err = libkb.ImportStatusAsError(nil, &status)
+	require.Equal(t, e, err)
 }

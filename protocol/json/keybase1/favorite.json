@@ -18,6 +18,79 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "FolderConflictType",
+      "symbols": [
+        "NONE_0",
+        "IN_CONFLICT_1",
+        "IN_CONFLICT_AND_STUCK_2",
+        "CLEARED_CONFLICT_3"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConflictStateType",
+      "symbols": [
+        "NormalView_1",
+        "ManualResolvingLocalView_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderNormalView",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "resolvingConflict"
+        },
+        {
+          "type": "boolean",
+          "name": "stuckInConflict"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Path"
+          },
+          "name": "localViews"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderConflictManualResolvingLocalView",
+      "fields": [
+        {
+          "type": "Path",
+          "name": "normalView"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ConflictState",
+      "switch": {
+        "type": "ConflictStateType",
+        "name": "conflictStateType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NormalView",
+            "def": false
+          },
+          "body": "FolderNormalView"
+        },
+        {
+          "label": {
+            "name": "ManualResolvingLocalView",
+            "def": false
+          },
+          "body": "FolderConflictManualResolvingLocalView"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "Folder",
       "fields": [
@@ -31,18 +104,71 @@
         },
         {
           "type": "boolean",
-          "name": "notificationsOn"
-        },
-        {
-          "type": "boolean",
           "name": "created"
         },
         {
           "type": "FolderType",
           "name": "folderType"
+        },
+        {
+          "type": [
+            null,
+            "TeamID"
+          ],
+          "name": "teamID",
+          "jsonkey": "team_id",
+          "mpackkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "resetMembers",
+          "jsonkey": "reset_members",
+          "mpackkey": "reset_members"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "mtime"
+        },
+        {
+          "type": [
+            null,
+            "ConflictState"
+          ],
+          "name": "conflictState"
+        },
+        {
+          "type": [
+            null,
+            "FolderSyncConfig"
+          ],
+          "name": "syncConfig"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."
+    },
+    {
+      "type": "record",
+      "name": "FolderHandle",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "FolderType",
+          "name": "folderType"
+        },
+        {
+          "type": "boolean",
+          "name": "created"
+        }
+      ]
     },
     {
       "type": "record",
@@ -81,7 +207,7 @@
         },
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         }
       ],
       "response": null,
@@ -95,7 +221,7 @@
         },
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         }
       ],
       "response": null,

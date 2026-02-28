@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type CmdWalletRequest struct {
@@ -62,7 +62,8 @@ func (c *CmdWalletRequest) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdWalletRequest) Run() error {
+func (c *CmdWalletRequest) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

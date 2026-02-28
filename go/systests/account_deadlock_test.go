@@ -6,6 +6,7 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -13,14 +14,13 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
-	context "golang.org/x/net/context"
 )
 
 func TestAccountDeadlock(t *testing.T) {
 	tc := setupTest(t, "deadlock")
-	tc2 := cloneContext(tc)
-
 	defer tc.Cleanup()
+	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -44,7 +44,7 @@ func TestAccountDeadlock(t *testing.T) {
 
 	currentStatusLoop(t, tc2.G, signupDoneCh)
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 

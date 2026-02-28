@@ -1,13 +1,13 @@
 package engine
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestExportAllIncarnationsAfterReset(t *testing.T) {
@@ -131,5 +131,4 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	require.Equal(t, len(upk1.Resets), 1)
 	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, upk1.Resets[0].Type, keybase1.ResetType_RESET)
-
 }

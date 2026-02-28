@@ -134,7 +134,8 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt message.
 
-	corruptMsg := append(msg, []byte("corruption")...)
+	corruptMsg := msg
+	corruptMsg = append(corruptMsg, []byte("corruption")...)
 	if keyPair.Public.Verify(corruptMsg, sig) {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
@@ -227,7 +228,6 @@ func TestNaclDecryptFromIced(t *testing.T) {
 
 // In V2, Nacl sigs are prefixed....
 func TestNaclPrefixedSigs(t *testing.T) {
-
 	keyPair, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
@@ -279,6 +279,29 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	}
 	if _, ok := err.(kbcrypto.BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
+	}
+}
+
+func TestNaclBadPrefix(t *testing.T) {
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("keyPair: Public: %+v, Private: %+v", keyPair.Public, keyPair.Private)
+
+	msg := []byte("test message")
+
+	sig, err := keyPair.Sign(append([]byte("AA\x00"), msg...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sig.Version = 2
+	sig.Prefix = kbcrypto.SignaturePrefix("AA")
+	sig.Payload = msg
+	_, err = sig.Verify()
+	if err == nil {
+		t.Fatal("expected a signature verification error")
 	}
 }
 

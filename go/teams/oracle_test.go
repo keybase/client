@@ -12,7 +12,8 @@ import (
 )
 
 func encryptWithTeamKey(t *testing.T, team *Team, data []byte, nonce [24]byte,
-	gen keybase1.PerTeamKeyGeneration) (ciphertext []byte, pubkey libkb.NaclDHKeyPublic) {
+	gen keybase1.PerTeamKeyGeneration,
+) (ciphertext []byte, pubkey libkb.NaclDHKeyPublic) {
 	kp, err := team.encryptionKeyAtGen(context.Background(), gen)
 	require.NoError(t, err)
 	ciphertext = box.Seal(nil, data, &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(kp.Private))
@@ -36,8 +37,8 @@ func TestTeamUnboxOracle(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, RotateKey(context.Background(), tc.G, team.ID))
-	require.NoError(t, RotateKey(context.Background(), tc.G, team.ID))
+	require.NoError(t, RotateKeyVisible(context.Background(), tc.G, team.ID))
+	require.NoError(t, RotateKeyVisible(context.Background(), tc.G, team.ID))
 
 	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{
 		Name:        teamname,
@@ -66,13 +67,6 @@ func TestTeamUnboxOracle(t *testing.T) {
 	require.NoError(t, err)
 	require.ElementsMatch(t, ret, clearText)
 
-	// MinGeneration too high should break it, as oracle will miss the
-	// key.
-	arg.MinGeneration = keybase1.PerTeamKeyGeneration(3)
-	ret, err = TryDecryptWithTeamKey(mctx, arg)
-	require.Error(t, err)
-	require.IsType(t, libkb.DecryptionError{}, err)
-
 	// Do same encryption scheme but with generation 1.
 	buf, pub = encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(1))
 	arg.EncryptedData = buf
@@ -90,7 +84,7 @@ func TestTeamOracleRepolling(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 	t.Logf("Created team %s", teamName)
 
-	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// Issue a team load as user 1 to get this version of the team to cache.
@@ -101,7 +95,7 @@ func TestTeamOracleRepolling(t *testing.T) {
 	require.NoError(t, err)
 
 	// Rotate team as user 0 and encrypt with key 2.
-	require.NoError(t, RotateKey(context.Background(), tcs[0].G, teamID))
+	require.NoError(t, RotateKeyVisible(context.Background(), tcs[0].G, teamID))
 	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
 		Name:        teamName.String(),
 		ForceRepoll: true,

@@ -11,7 +11,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-//==================================================================
+// ==================================================================
 
 // TODO (CORE-6576): Remove these aliases once everything outside of
 // this repo points to kbun.
@@ -21,13 +21,14 @@ func NewNormalizedUsername(s string) NormalizedUsername {
 	return kbun.NewNormalizedUsername(s)
 }
 
-//==================================================================
+// ==================================================================
 
 type UserConfig struct {
-	ID     string             `json:"id"`
-	Name   NormalizedUsername `json:"name"`
-	Salt   string             `json:"salt"`
-	Device *string            `json:"device"`
+	ID              string                    `json:"id"`
+	Name            NormalizedUsername        `json:"name"`
+	Salt            string                    `json:"salt"`
+	Device          *string                   `json:"device"`
+	PassphraseState *keybase1.PassphraseState `json:"passphrase_state,omitempty"`
 
 	importedID       keybase1.UID
 	importedSalt     []byte
@@ -36,14 +37,15 @@ type UserConfig struct {
 	isOneshot bool
 }
 
-//==================================================================
+// ==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
-func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
-func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
-func (u UserConfig) IsOneshot() bool                 { return u.isOneshot }
+func (u UserConfig) GetUID() keybase1.UID                          { return u.importedID }
+func (u UserConfig) GetUsername() NormalizedUsername               { return u.Name }
+func (u UserConfig) GetDeviceID() keybase1.DeviceID                { return u.importedDeviceID }
+func (u UserConfig) GetPassphraseState() *keybase1.PassphraseState { return u.PassphraseState }
+func (u UserConfig) IsOneshot() bool                               { return u.isOneshot }
 
-//==================================================================
+// ==================================================================
 
 func NewUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev keybase1.DeviceID) *UserConfig {
 	ret := &UserConfig{
@@ -68,7 +70,7 @@ func NewOneshotUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte,
 	return ret
 }
 
-//==================================================================
+// ==================================================================
 
 func (u *UserConfig) Import() (err error) {
 	var tmp keybase1.UID
@@ -87,7 +89,7 @@ func (u *UserConfig) Import() (err error) {
 	return
 }
 
-//==================================================================
+// ==================================================================
 
 func ImportUserConfigFromJSONWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err error) {
 	var tmp UserConfig
@@ -104,7 +106,7 @@ func ImportUserConfigFromJSONWrapper(jw *jsonw.Wrapper) (ret *UserConfig, err er
 	return
 }
 
-//==================================================================
+// ==================================================================
 
 func (u *UserConfig) SetDevice(d keybase1.DeviceID) {
 	u.importedDeviceID = d
@@ -114,7 +116,12 @@ func (u *UserConfig) SetDevice(d keybase1.DeviceID) {
 		s = &tmp
 	}
 	u.Device = s
-	return
 }
 
-//==================================================================
+// ==================================================================
+
+func (u *UserConfig) SetPassphraseState(passphraseState keybase1.PassphraseState) {
+	u.PassphraseState = &passphraseState
+}
+
+// ==================================================================

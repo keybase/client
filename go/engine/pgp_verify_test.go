@@ -4,7 +4,7 @@
 package engine
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -88,8 +88,8 @@ func sign(m libkb.MetaContext, tc libkb.TestContext, msg string, mode keybase1.S
 	sink := libkb.NewBufferCloser()
 	arg := &PGPSignArg{
 		Sink:   sink,
-		Source: ioutil.NopCloser(strings.NewReader(msg)),
-		Opts:   keybase1.PGPSignOptions{Mode: keybase1.SignMode(mode)},
+		Source: io.NopCloser(strings.NewReader(msg)),
+		Opts:   keybase1.PGPSignOptions{Mode: mode},
 	}
 	eng := NewPGPSignEngine(tc.G, arg)
 	if err := RunEngine2(m, eng); err != nil {

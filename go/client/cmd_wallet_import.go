@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletImport struct {
@@ -49,6 +49,7 @@ func (c *cmdWalletImport) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletImport) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	ctx := context.TODO()
 	secKey, accountID, err := c.promptSecretKey()
 	if err != nil {

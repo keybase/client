@@ -15,10 +15,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package libkb
 
 import (
-	"golang.org/x/sys/windows"
-
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa379593.aspx
@@ -57,9 +57,8 @@ const (
 )
 
 var (
-	advapi32                  = windows.MustLoadDLL("advapi32.dll")
-	procGetNamedSecurityInfoW = advapi32.MustFindProc("GetNamedSecurityInfoW")
-	procGetSecurityInfo       = advapi32.MustFindProc("GetSecurityInfo")
+	advapi32                  = windows.NewLazySystemDLL("advapi32.dll")
+	procGetNamedSecurityInfoW = advapi32.NewProc("GetNamedSecurityInfoW")
 )
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa446645.aspx

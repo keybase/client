@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -75,6 +74,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
+		NewPgpUIProtocol(c.G()),
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),

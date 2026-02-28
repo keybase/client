@@ -7,8 +7,8 @@ import (
 )
 
 func FilterFutureDismissals(msgs []gregor.InBandMessage,
-	allmsgs map[string]gregor.InBandMessage, cutoff time.Time) []gregor.InBandMessage {
-
+	allmsgs map[string]gregor.InBandMessage, cutoff time.Time,
+) []gregor.InBandMessage {
 	var res []gregor.InBandMessage
 	for _, m := range msgs {
 		update := m.ToStateUpdateMessage()

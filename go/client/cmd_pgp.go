@@ -28,6 +28,8 @@ func NewCmdPGP(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdPGPDrop(cl, g),
 			NewCmdPGPList(cl, g),
 			NewCmdPGPPurge(cl, g),
+			NewCmdPGPPushPrivate(cl, g),
+			NewCmdPGPPullPrivate(cl, g),
 		},
 	}
 }

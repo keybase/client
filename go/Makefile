@@ -1,4 +1,3 @@
-GO15VENDOREXPERIMENT=1
 COVERWEB=go tool cover -html=/tmp/count.out
 
 fmt:
@@ -6,30 +5,6 @@ fmt:
 
 vet:
 	go vet ./...
-
-lint:
-	( \
-		which golint >/dev/null 2>&1 \
-		|| ( \
-			echo "Missing golint" \
-			&& exit 1 \
-		) \
-	) \
-	&& ( \
-		golint ./... \
-		| grep -v ^vendor \
-		| grep -v ^protocol \
-		| grep -v comment \
-		| grep -v KeysById \
-		| grep -v "error should be the last type" \
-		| grep -v stutters \
-		| grep -v "error strings should not be capitalized" \
-		| grep -v prot.go \
-		| grep -v "redundant if ...; err != nil check, just return error instead" \
-		| grep -v "don't use ALL_CAPS in Go names; use CamelCase" \
-		&& exit 1 \
-		|| echo "Lint-free!" \
-	)
 
 # to run splint, first do this:  go get stathat.com/c/splint
 splint:
@@ -69,4 +44,18 @@ coverlibkb:
 coverclean:
 	rm /tmp/count.out
 
-.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean
+gen-deps:
+	./gen_deps.pl
+
+linux-clear-devel-secrets:
+	secret-tool clear service-base keybase-devel
+
+linux-clear-test-secrets:
+	secret-tool clear service-base keybase-devel-test
+
+GOLANGCI_RUN_OPT = --color auto
+
+golangci-lint:
+	golangci-lint run $(GOLANGCI_RUN_OPT) --timeout 30m0s ./...
+
+.PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean gen-deps golangci-lint

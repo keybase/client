@@ -4,12 +4,11 @@
 package engine
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"sync"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
@@ -26,7 +25,8 @@ func TestDeviceAddPUK(t *testing.T) {
 }
 
 func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret,
-	uid keybase1.UID) {
+	uid keybase1.UID,
+) {
 	defer wg.Done()
 	err := (func() error {
 		uis := libkb.UIs{
@@ -45,7 +45,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 		device := &libkb.Device{
 			ID:          deviceID,
 			Description: &dname,
-			Type:        libkb.DeviceTypeDesktop,
+			Type:        keybase1.DeviceTypeV2_DESKTOP,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
 		return RunEngine2(m, provisionee)
@@ -105,7 +105,6 @@ func TestDeviceAddPhraseV2(t *testing.T) {
 }
 
 func testDeviceAddPhrase(t *testing.T, typ libkb.Kex2SecretType) {
-
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()

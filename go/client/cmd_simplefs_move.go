@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -14,7 +13,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSMove is the 'fs list' command.
+// CmdSimpleFSMove is the 'fs mv' command.
 type CmdSimpleFSMove struct {
 	libkb.Contextified
 	src         []keybase1.Path
@@ -75,9 +74,9 @@ func (c *CmdSimpleFSMove) Run() error {
 		dest, err := makeDestPath(ctx, c.G(), cli, src, c.dest, isDestDir, destPathString)
 
 		if err == ErrTargetFileExists {
-			if c.interactive == true {
+			if c.interactive {
 				err = doOverwritePrompt(c.G(), dest.String())
-			} else if c.force == true {
+			} else if c.force {
 				err = nil
 			}
 		}

@@ -49,8 +49,8 @@ func (p Pager) decode(data []byte, res interface{}) error {
 }
 
 func (p Pager) GetPage(getcond func(bool) string, page *chat1.Pagination,
-	pivot interface{}) (string, bool, error) {
-
+	pivot interface{},
+) (string, bool, error) {
 	var dat []byte
 	var cond string
 	var prev bool

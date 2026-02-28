@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package libkb
@@ -34,7 +35,6 @@ func run(arg ...string) (int, error) {
 }
 
 func TestLockPIDFile_windows(t *testing.T) {
-
 	g := MakeThinGlobalContextForTesting(t)
 	lpFile := NewLockPIDFile(g, "TestLockPIDWin")
 	err := lpFile.Lock()

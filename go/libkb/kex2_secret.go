@@ -5,10 +5,11 @@ package libkb
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/keybase/client/go/kex2"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/scrypt"
-	"strings"
 )
 
 const kexPhraseVersion = "four"
@@ -29,7 +30,6 @@ const (
 )
 
 func NewKex2SecretFromTypeAndUID(typ Kex2SecretType, uid keybase1.UID) (*Kex2Secret, error) {
-
 	entropy := Kex2PhraseEntropy
 	if typ == Kex2SecretTypeV2 {
 		entropy = Kex2PhraseEntropy2
@@ -52,7 +52,6 @@ func NewKex2SecretFromTypeAndUID(typ Kex2SecretType, uid keybase1.UID) (*Kex2Sec
 }
 
 func NewKex2SecretFromUIDAndPhrase(uid keybase1.UID, phrase string) (*Kex2Secret, error) {
-
 	typ, err := kex2TypeFromPhrase(phrase)
 	if err != nil {
 		return nil, err
@@ -62,7 +61,6 @@ func NewKex2SecretFromUIDAndPhrase(uid keybase1.UID, phrase string) (*Kex2Secret
 }
 
 func kex2TypeFromPhrase(phrase string) (typ Kex2SecretType, err error) {
-
 	words := strings.Split(phrase, " ")
 	if len(words) == 8 {
 		return Kex2SecretTypeV1Desktop, nil
@@ -77,7 +75,6 @@ func kex2TypeFromPhrase(phrase string) (typ Kex2SecretType, err error) {
 }
 
 func newKex2SecretFromTypeUIDAndPhrase(typ Kex2SecretType, uid keybase1.UID, phrase string) (*Kex2Secret, error) {
-
 	var cost int
 	var salt []byte
 	switch typ {

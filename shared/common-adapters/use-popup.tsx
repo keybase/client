@@ -1,0 +1,46 @@
+import * as React from 'react'
+import type {MeasureRef} from './measure-ref'
+
+export type Popup2Parms = {
+  attachTo?: React.RefObject<MeasureRef | null>
+  showPopup: () => void
+  hidePopup: () => void
+}
+
+const tooQuick = 100
+
+export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
+  const [showingPopup, setShowingPopup] = React.useState(false)
+  const wasMakePopupRef = React.useRef<(p: Popup2Parms) => React.ReactElement | null>(makePopup)
+  const [popup, setPopup] = React.useState<React.ReactNode>(null)
+  const popupAnchor = React.useRef<MeasureRef>(null)
+  const attachTo = popupAnchor
+  const lastToggle = React.useRef(0)
+
+  const hidePopup = React.useCallback(() => {
+    const now = Date.now()
+    if (now - lastToggle.current < tooQuick) {
+      return
+    }
+    lastToggle.current = now
+    setShowingPopup(false)
+  }, [setShowingPopup])
+  const showPopup = React.useCallback(() => {
+    const now = Date.now()
+    if (now - lastToggle.current < tooQuick) {
+      return
+    }
+    lastToggle.current = now
+    setShowingPopup(true)
+  }, [setShowingPopup])
+  const togglePopup = showingPopup ? hidePopup : showPopup
+
+  React.useEffect(() => {
+    if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
+      wasMakePopupRef.current = makePopup
+      setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
+    }
+  }, [attachTo, hidePopup, makePopup, popup, setPopup, showPopup, showingPopup])
+
+  return {hidePopup, popup, popupAnchor, showPopup, showingPopup, togglePopup}
+}

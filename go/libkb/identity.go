@@ -55,7 +55,6 @@ func (i Identity) String() string {
 
 func (i Identity) ToPGPUserID() *packet.UserId {
 	return packet.NewUserId(i.Username, i.Comment, i.Email)
-
 }
 
 func KeybaseIdentity(g *GlobalContext, un NormalizedUsername) Identity {

@@ -12,21 +12,23 @@ import (
 )
 
 // OutputSignatureSuccess prints the details of a successful verification.
-func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprint, owner *libkb.User, signatureTime time.Time) error {
+func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprint, owner *libkb.User, signatureTime time.Time, warnings libkb.HashSecurityWarnings) error {
 	arg := keybase1.OutputSignatureSuccessArg{
 		Fingerprint: fingerprint.String(),
 		Username:    owner.GetName(),
-		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
+		SignedAt:    keybase1.ToTime(signatureTime),
+		Warnings:    warnings.Strings(),
 	}
 	return m.UIs().PgpUI.OutputSignatureSuccess(m.Ctx(), arg)
 }
 
-// OutputSignatureSuccessNonKeybase prints the details of successful signature verification
+// OutputSignatureNonKeybase prints the details of signature verification
 // when signing key is not known to keybase.
-func OutputSignatureSuccessNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time) error {
-	arg := keybase1.OutputSignatureSuccessNonKeybaseArg{
+func OutputSignatureNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time, warnings libkb.HashSecurityWarnings) error {
+	arg := keybase1.OutputSignatureNonKeybaseArg{
 		KeyID:    fmt.Sprintf("%X", keyID),
-		SignedAt: keybase1.TimeFromSeconds(signatureTime.Unix()),
+		SignedAt: keybase1.ToTime(signatureTime),
+		Warnings: warnings.Strings(),
 	}
-	return m.UIs().PgpUI.OutputSignatureSuccessNonKeybase(m.Ctx(), arg)
+	return m.UIs().PgpUI.OutputSignatureNonKeybase(m.Ctx(), arg)
 }

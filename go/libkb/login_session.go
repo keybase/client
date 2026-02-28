@@ -15,8 +15,10 @@ import (
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
 
-var ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
-var ErrLoginSessionCleared = errors.New("LoginSession already cleared")
+var (
+	ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
+	ErrLoginSessionCleared   = errors.New("LoginSession already cleared")
+)
 
 type LoginSession struct {
 	sessionFor      string // set by constructor
@@ -154,14 +156,13 @@ func (s *LoginSession) Load(m MetaContext) error {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}
 
-	res, err := m.G().API.Get(APIArg{
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
 			"pdpka_login":       B{Val: true},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return err
@@ -198,14 +199,13 @@ func (s *LoginSession) Load(m MetaContext) error {
 }
 
 func LookupSaltForUID(m MetaContext, uid keybase1.UID) (salt []byte, err error) {
-	defer m.CTrace(fmt.Sprintf("GetSaltForUID(%s)", uid), func() error { return err })()
-	res, err := m.G().API.Get(APIArg{
+	defer m.Trace(fmt.Sprintf("GetSaltForUID(%s)", uid), &err)()
+	res, err := m.G().API.Get(m, APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"uid": S{Val: uid.String()},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err

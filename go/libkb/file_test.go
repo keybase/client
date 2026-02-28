@@ -4,18 +4,19 @@
 package libkb
 
 import (
-	"github.com/keybase/client/go/logger"
 	"os"
 	"runtime"
 	"sync"
 	"testing"
+
+	"github.com/keybase/client/go/logger"
 )
 
 func TestFileSave(t *testing.T) {
 	filename := "file_test.tmp"
 	defer os.Remove(filename)
 
-	file := NewFile(filename, []byte("test data"), 0644)
+	file := NewFile(filename, []byte("test data"), 0o644)
 	t.Logf("Saving")
 	err := file.Save(logger.NewTestLogger(t))
 	if err != nil {
@@ -36,7 +37,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		wg.Add(1)
 		go func() {
-			file := NewFile(filename, []byte("test data"), 0644)
+			file := NewFile(filename, []byte("test data"), 0o644)
 			t.Logf("Saving")
 			err := file.Save(log)
 			if err != nil {
@@ -48,7 +49,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 	wg.Wait()
 
 	var wg2 sync.WaitGroup
-	file := NewFile(filename, []byte("test data"), 0644)
+	file := NewFile(filename, []byte("test data"), 0o644)
 	for i := 0; i < 20; i++ {
 		wg2.Add(1)
 		go func() {

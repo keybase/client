@@ -4,17 +4,17 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/saltpackkeystest"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/saltpack"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeSaltpackUI2 struct {
@@ -137,7 +137,6 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 				t.Fatal("receiver KID included in anonymous saltpack header")
 			}
 		}
-
 	}
 	run([]string{u1.Username, u2.Username})
 
@@ -388,12 +387,13 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.DecryptionError{}, err)
 	}
-	if _, ok = decErr.Cause.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause)
+	if _, ok = decErr.Cause.Err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("Expected err Cause of type %T, but got %T", libkb.NoDecryptionKeyError{}, decErr.Cause.Err)
 	}
 
 	Logout(tc)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 
 	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))

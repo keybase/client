@@ -17,12 +17,23 @@ protocol NotifyTeam {
     boolean misc;
   }
 
+  // These notifications either come from API server through gregor,
+  // or are spawned locally when a team change is being made.
+  enum TeamChangedSource {
+    SERVER_0,
+    LOCAL_1,
+    LOCAL_RENAME_2 // local notification sent when subteam rename is detected
+  }
+
   // All fields are unverified
   void teamChangedByID(
     TeamID teamID,
     Seqno latestSeqno,
     boolean implicitTeam,
-    TeamChangeSet changes
+    TeamChangeSet changes,
+    Seqno latestHiddenSeqno,
+    Seqno latestOffchainSeqno,
+    TeamChangedSource source
   ) oneway;
 
   // All fields are unverified
@@ -30,7 +41,10 @@ protocol NotifyTeam {
     string teamName,
     Seqno latestSeqno,
     boolean implicitTeam,
-    TeamChangeSet changes
+    TeamChangeSet changes,
+    Seqno latestHiddenSeqno,
+    Seqno latestOffchainSeqno,
+    TeamChangedSource source
   ) oneway;
 
   void teamDeleted(TeamID teamID) oneway;
@@ -41,5 +55,18 @@ protocol NotifyTeam {
 
   void newlyAddedToTeam(TeamID teamID) oneway;
 
-  void avatarUpdated(string name, array<AvatarFormat> formats) oneway;
+  void teamRoleMapChanged(UserTeamVersion newVersion) oneway;
+
+  enum AvatarUpdateType {
+    NONE_0,
+    USER_1,
+    TEAM_2
+  }
+  void avatarUpdated(string name, array<AvatarFormat> formats, AvatarUpdateType typ) oneway;
+
+  // Sent when any information on the top-level teams tab changes
+  void teamMetadataUpdate() oneway;
+
+  void teamTreeMembershipsPartial(TeamTreeMembership membership) oneway;
+  void teamTreeMembershipsDone(TeamTreeMembershipsDoneResult result) oneway;
 }

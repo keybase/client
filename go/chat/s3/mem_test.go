@@ -2,11 +2,12 @@ package s3
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"strings"
 	"testing"
 
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/libkb"
 )
 
 type ptsign struct{}
@@ -17,8 +18,11 @@ func (p *ptsign) Sign(payload []byte) ([]byte, error) {
 }
 
 func TestMemPut(t *testing.T) {
+	tc := libkb.SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
 	m := &Mem{}
-	c := m.New(&ptsign{}, Region{})
+	c := m.New(tc.G, &ptsign{}, Region{})
 	b := c.Bucket("bucket-1")
 	path := "abc/def"
 	content := "bucket content"

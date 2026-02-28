@@ -2,7 +2,6 @@ package avatars
 
 import (
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"os"
@@ -19,7 +18,7 @@ type uploadAvatarMockAPI struct {
 	Func func(map[string]string) error
 }
 
-func (a *uploadAvatarMockAPI) PostRaw(arg libkb.APIArg, contentType string, r io.Reader) (*libkb.APIRes, error) {
+func (a *uploadAvatarMockAPI) PostRaw(mctx libkb.MetaContext, arg libkb.APIArg, contentType string, r io.Reader) (*libkb.APIRes, error) {
 	_, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
 		return nil, err
@@ -36,7 +35,7 @@ func (a *uploadAvatarMockAPI) PostRaw(arg libkb.APIArg, contentType string, r io
 		if err != nil {
 			return nil, err
 		}
-		slurp, err := ioutil.ReadAll(p)
+		slurp, err := io.ReadAll(p)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +54,7 @@ func TestUploadAvatar(t *testing.T) {
 	require.NoError(t, err)
 
 	// Prepare test avatar file
-	tmpfile, err := ioutil.TempFile(os.TempDir(), "kbtest_avatar.png")
+	tmpfile, err := os.CreateTemp(os.TempDir(), "kbtest_avatar.png")
 	require.NoError(t, err)
 	tmpFileStr := "\x89PNGa somewhat goofy picture of a cat"
 	_, err = tmpfile.WriteString(tmpFileStr)
@@ -81,5 +80,6 @@ func TestUploadAvatar(t *testing.T) {
 	}
 
 	mctx := libkb.NewMetaContextBackground(tc.G)
-	UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	err = UploadImage(mctx, tmpfile.Name(), nil, &crop)
+	require.NoError(t, err)
 }

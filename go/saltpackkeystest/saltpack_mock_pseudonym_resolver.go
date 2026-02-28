@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
+//go:build !production
 // +build !production
 
 package saltpackkeystest
@@ -42,7 +43,6 @@ func (r *MockPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.S
 func (r *MockPseudonymResolver) AddPseudonym(pnym [32]byte, key *saltpack.SymmetricKey) {
 	r.T.Logf("MockPseudonymResolver: adding pnym %s, key %s", hex.EncodeToString(pnym[:]), hex.EncodeToString(key[:]))
 	r.pnymMap[pnym] = key
-	return
 }
 
 func NewMockPseudonymResolver(t *testing.T) saltpack.SymmetricKeyResolver {

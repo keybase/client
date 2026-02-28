@@ -1,49 +1,31 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package install
 
 import (
-	"errors"
-	"fmt"
 	"path/filepath"
 	"regexp"
 
-	"github.com/gonutz/w32"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sys/windows/registry"
 )
 
 func isDokanCurrent(log Log, path string) (bool, error) {
-	size := w32.GetFileVersionInfoSize(path)
-	if size <= 0 {
-		return false, errors.New("GetFileVersionInfoSize failed")
+	v, err := GetFileVersion(path)
+	if err != nil {
+		return false, err
 	}
+	// we're looking for 1.4.0.1000
+	result := v.Major > 1 || (v.Major == 1 && (v.Minor > 4 || (v.Minor == 4 && (v.Patch > 0 || (v.Patch == 0 && v.Build >= 1000)))))
 
-	info := make([]byte, size)
-	ok := w32.GetFileVersionInfo(path, info)
-	if !ok {
-		return false, errors.New("GetFileVersionInfo failed")
+	if !result {
+		log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", v.Major, v.Minor, v.Patch, v.Build, result)
 	}
-
-	fixed, ok := w32.VerQueryValueRoot(info)
-	if !ok {
-		return false, errors.New("VerQueryValueRoot failed")
-	}
-	version := fixed.FileVersion()
-
-	major := version & 0xFFFF000000000000 >> 48
-	minor := version & 0x0000FFFF00000000 >> 32
-	patch := version & 0x00000000FFFF0000 >> 16
-	build := version & 0x000000000000FFFF
-
-	// we're looking for 1.1.0.2000
-	result := major > 1 || (major == 1 && (minor > 1 || (minor == 1 && (patch > 0 || (patch == 0 && build >= 2000)))))
-	log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", major, minor, patch, build, result)
-
 	return result, nil
 }
 
@@ -56,31 +38,31 @@ func detectDokanDll(dokanPath string, log Log) bool {
 
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library"
 // and containing "Bundle"
-func findDokanUninstall(wow64 bool) (result string) {
+func findDokanUninstall(log Log, wow64 bool) (result string) {
 	dokanRegexp := regexp.MustCompile("^Dokan Library.*Bundle")
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
-	// Assume this is build 32 bit, so we need this flag to see 64 bit registry
+	// Assume this is build 64 bit, so we need this flag to see 32 bit WOW registry
 	//   https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129(v=vs.110).aspx
 	if wow64 {
-		access = access | registry.WOW64_64KEY
+		access = access | registry.WOW64_32KEY
 	}
 
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", access)
 	if err != nil {
-		fmt.Printf("Error %s opening uninstall subkeys\n", err.Error())
+		log.Info("Error %s opening uninstall subkeys\n", err.Error())
 		return
 	}
 	defer k.Close()
 
 	names, err := k.ReadSubKeyNames(-1)
 	if err != nil {
-		fmt.Printf("Error %s reading subkeys\n", err.Error())
+		log.Info("Error %s reading subkeys\n", err.Error())
 		return
 	}
 	for _, name := range names {
 		subKey, err := registry.OpenKey(k, name, registry.QUERY_VALUE)
 		if err != nil {
-			fmt.Printf("Error %s opening subkey %s\n", err.Error(), name)
+			log.Info("Error %s opening subkey %s\n", err.Error(), name)
 		}
 
 		displayName, _, err := subKey.GetStringValue("DisplayName")
@@ -92,13 +74,12 @@ func findDokanUninstall(wow64 bool) (result string) {
 			continue
 		}
 
-		fmt.Printf("Found %s  %s\n", displayName, name)
 		result, _, err := subKey.GetStringValue("UninstallString")
 		if err != nil {
 			result, _, err = subKey.GetStringValue("QuietUninstallString")
 		}
 		if err != nil {
-			fmt.Printf("Error %s opening subkey UninstallString", err.Error())
+			log.Info("Error %s opening subkey UninstallString", err.Error())
 		} else {
 			return result
 		}
@@ -127,15 +108,19 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	current, err := isDokanCurrent(log, dokanPath)
 	if err != nil {
 		log.Errorf(err.Error())
-	} else if !current {
+		return status
+	}
+	if !current {
 		status.InstallAction = keybase1.InstallAction_UPGRADE
-		uninstallString := findDokanUninstall(true)
-		if uninstallString == "" {
-			uninstallString = findDokanUninstall(false)
-		}
-		if uninstallString != "" {
-			status.Status.Fields = append(status.Status.Fields, keybase1.StringKVPair{Key: "uninstallString", Value: uninstallString})
-		}
+	}
+	uninstallString := findDokanUninstall(log, true)
+	if uninstallString == "" {
+		uninstallString = findDokanUninstall(log, false)
+	}
+	if uninstallString != "" {
+		status.Status.Fields = append(status.Status.Fields, keybase1.StringKVPair{Key: "uninstallString", Value: uninstallString})
+	} else {
+		log.Info("No Dokan uninstall string found\n")
 	}
 	return status
 }

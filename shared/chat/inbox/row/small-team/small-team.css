@@ -1,0 +1,24 @@
+.small-row {
+  background-color: var(--color-blueGrey);
+  .conversation-gear {
+    display: none;
+  }
+  .conversation-timestamp {
+    display: flex;
+  }
+
+  &:hover {
+    background-color: var(--color-blueGreyDark);
+
+    .conversation-gear {
+      display: flex;
+    }
+    .conversation-timestamp {
+      display: none;
+    }
+  }
+
+  &.selected {
+    background-color: var(--color-blue);
+  }
+}

@@ -60,8 +60,8 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon bool) (err error) {
-	defer m.CTrace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
+func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon, signed bool) (err error) {
+	defer m.Trace("SaltpackDecrypt#promptForDecrypt", &err)()
 
 	spsiArg := SaltpackSenderIdentifyArg{
 		isAnon:           isAnon,
@@ -82,6 +82,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybas
 	arg := keybase1.SaltpackPromptForDecryptArg{
 		Sender:     spsiEng.Result(),
 		SigningKID: publicKey,
+		Signed:     signed,
 	}
 	e.res.Sender = arg.Sender
 
@@ -130,18 +131,17 @@ func (t *nilPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 
 // Run starts the engine.
 func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackDecrypt::Run", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt::Run", &err)()
 
 	// We don't load this in the --paperkey case.
 	var me *libkb.User
 
-	var keyring *saltpackBasic.Keyring
-	keyring = saltpackBasic.NewKeyring()
+	keyring := saltpackBasic.NewKeyring()
 
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(m, nil)
+		keypair, _, err := getPaperKey(m, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -149,7 +149,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		addToKeyring(keyring, &encryptionNaclKeyPair)
 
 		// If a paper key is used, we do not have PUK or an active session, so we cannot talk to the server to resolve pseudonym.
-		m.CDebugf("substituting the default PseudonymResolver as a paper key is being used for decryption")
+		m.Debug("substituting the default PseudonymResolver as a paper key is being used for decryption")
 		e.pnymResolver = &nilPseudonymResolver{}
 	} else {
 		// This does require you to be logged in.
@@ -170,17 +170,17 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		m.CDebugf("adding device key for decryption: %v", key.GetKID())
+		m.Debug("adding device key for decryption: %v", key.GetKID())
 		addToKeyring(keyring, key)
 
-		perUserKeyring, err := m.G().GetPerUserKeyring()
+		perUserKeyring, err := m.G().GetPerUserKeyring(m.Ctx())
 		if err != nil {
 			return err
 		}
 		pukGen := perUserKeyring.CurrentGeneration()
 		for i := 1; i <= int(pukGen); i++ {
 			key, err = perUserKeyring.GetEncryptionKeyByGeneration(m, keybase1.PerUserKeyGeneration(i))
-			m.CDebugf("adding per user key at generation %v for decryption: %v", i, key.GetKID())
+			m.Debug("adding per user key at generation %v for decryption: %v", i, key.GetKID())
 			if err != nil {
 				return err
 			}
@@ -191,7 +191,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	// For DH mode.
 	hookMki := func(mki *saltpack.MessageKeyInfo) error {
 		kidToIdentify := libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey)
-		return e.promptForDecrypt(m, kidToIdentify, mki.SenderIsAnon)
+		return e.promptForDecrypt(m, kidToIdentify, mki.SenderIsAnon, false /* not signed */)
 	}
 
 	// For signcryption mode.
@@ -199,21 +199,24 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		kidToIdentify := libkb.SigningPublicKeyToKeybaseKID(senderSigningKey)
 		// See if the sender signing key is nil or all zeroes.
 		isAnon := false
+		signed := true
 		if senderSigningKey == nil || bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID()))) {
 			isAnon = true
+			signed = false
 		}
-		return e.promptForDecrypt(m, kidToIdentify, isAnon)
+		return e.promptForDecrypt(m, kidToIdentify, isAnon, signed)
 	}
 
-	m.CDebugf("| SaltpackDecrypt")
+	m.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
 	mki, err = libkb.SaltpackDecrypt(m, e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
-	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause == saltpack.ErrNoDecryptionKey {
-		m.CDebugf("switching cause of libkb.DecryptionError from saltpack.ErrNoDecryptionKey to more specific libkb.NoDecryptionKeyError")
+
+	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause.Err == saltpack.ErrNoDecryptionKey {
+		m.Debug("switching cause of libkb.DecryptionError from saltpack.ErrNoDecryptionKey to more specific libkb.NoDecryptionKeyError")
 		if e.arg.Opts.UsePaperKey {
-			return libkb.DecryptionError{Cause: libkb.NoDecryptionKeyError{Msg: "this message was not directly encrypted for the given paper key. In some cases, you might still be able to decrypt the message from a device provisioned with this key."}}
+			return libkb.DecryptionError{Cause: libkb.ErrorCause{Err: libkb.NoDecryptionKeyError{Msg: "this message was not directly encrypted for the given paper key. In some cases, you might still be able to decrypt the message from a device provisioned with this key."}, StatusCode: libkb.SCDecryptionKeyNotFound}}
 		}
-		err = libkb.DecryptionError{Cause: libkb.NoDecryptionKeyError{Msg: "no suitable key found"}}
+		err = libkb.DecryptionError{Cause: libkb.ErrorCause{Err: libkb.NoDecryptionKeyError{Msg: "no suitable key found"}, StatusCode: libkb.SCDecryptionKeyNotFound}}
 	}
 
 	// Since messages recipients are never public any more, this is only meaningful for messages generated by

@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -42,7 +41,6 @@ func NewCmdPaperProvisionRunner(g *libkb.GlobalContext) *CmdPaperProvision {
 }
 
 func (c *CmdPaperProvision) Run() (err error) {
-
 	client, err := GetPaperProvisionClient(c.G())
 	if err != nil {
 		return err

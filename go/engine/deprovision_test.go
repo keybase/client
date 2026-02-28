@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 func forceOpenDBs(tc libkb.TestContext) {
@@ -85,7 +86,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 
 	m := NewMetaContextForTest(tc)
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(m)
 		if err != nil {
 			tc.T.Fatal(err)
@@ -136,7 +137,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 		expectedNumKeys -= 2
 	}
 
-	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
+	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */, libkb.LogoutOptions{})
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -152,7 +153,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(m)
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)
@@ -216,7 +217,6 @@ func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 }
 
 func assertDeprovisionLoggedOut(tc libkb.TestContext) {
-
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
@@ -237,7 +237,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 
 	m := NewMetaContextForTest(tc)
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(m)
 		if err != nil {
 			tc.T.Fatal(err)
@@ -267,9 +267,11 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	// Unlike the first test, this time we log out before we run the
 	// deprovision. We should be able to do a deprovision with revocation
 	// disabled.
-	tc.G.Logout()
+	if err := m.LogoutKillSecrets(); err != nil {
+		tc.T.Fatal(err)
+	}
 
-	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */)
+	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */, libkb.LogoutOptions{})
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -284,7 +286,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(m)
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)
@@ -317,7 +319,6 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 }
 
 func assertCurrentDeviceRevoked(tc libkb.TestContext) {
-
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
@@ -337,7 +338,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.MetaContext(), fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 		if err != nil {
 			tc.T.Fatal(err)
@@ -371,7 +372,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 		tc.T.Fatal(err)
 	}
 
-	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
+	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */, libkb.LogoutOptions{})
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -386,7 +387,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	if tc.G.SecretStore() != nil {
-		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret(NewMetaContextForTest(tc))
 		if err == nil {
 			tc.T.Errorf("Unexpectedly got secret %v", secret)
@@ -440,4 +441,96 @@ func testDeprovisionLastDevice(t *testing.T, upgradePerUserKey bool) {
 		revokePaperKey: true,
 	})
 	assertNumDevicesAndKeys(tc, fu, 0, 0)
+}
+
+func TestConcurrentDeprovision(t *testing.T) {
+	tc := SetupEngineTest(t, "deprovision-concurrent")
+	defer tc.Cleanup()
+	if tc.G.SecretStore() == nil {
+		t.Fatal("Need a secret store for this test")
+	}
+
+	// Sign up a new user and have it store its secret in the
+	// secret store (if possible).
+	fu := NewFakeUserOrBust(tc.T, "dpr")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	arg.StoreSecret = tc.G.SecretStore() != nil
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	m := NewMetaContextForTest(tc)
+	if tc.G.SecretStore() != nil {
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
+		_, err := secretStore.RetrieveSecret(m)
+		if err != nil {
+			tc.T.Fatal(err)
+		}
+	}
+
+	forceOpenDBs(tc)
+	dbPath := tc.G.Env.GetDbFilename()
+	chatDBPath := tc.G.Env.GetChatDbFilename()
+	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
+	numKeys := getNumKeys(tc, *fu)
+	expectedNumKeys := numKeys
+
+	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, chatDBPath)
+	assertFileExists(tc.T, secretKeysPath)
+	if !isUserInConfigFile(tc, *fu) {
+		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+	}
+	if !isUserConfigInMemory(tc) {
+		tc.T.Fatal("user config is not in memory")
+	}
+
+	if !LoggedIn(tc) {
+		tc.T.Fatal("Unexpectedly logged out")
+	}
+
+	g := new(errgroup.Group)
+	for i := 0; i < 5; i++ {
+		g.Go(func() error {
+			e := NewDeprovisionEngine(tc.G, fu.Username, false, libkb.LogoutOptions{})
+			uis = libkb.UIs{
+				LogUI:    tc.G.UI.GetLogUI(),
+				SecretUI: fu.NewSecretUI(),
+			}
+			m = m.WithUIs(uis)
+			return RunEngine2(m, e)
+		})
+	}
+	require.NoError(t, g.Wait())
+
+	if tc.G.SecretStore() != nil {
+		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
+		secret, err := secretStore.RetrieveSecret(m)
+		if err == nil {
+			tc.T.Errorf("Unexpectedly got secret %v", secret)
+		}
+	}
+
+	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, chatDBPath)
+	assertFileDoesNotExist(tc.T, secretKeysPath)
+
+	if isUserInConfigFile(tc, *fu) {
+		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+	}
+	if isUserConfigInMemory(tc) {
+		tc.T.Fatal("user config is still in memory")
+	}
+
+	newKeys := getNumKeys(tc, *fu)
+	require.Equal(tc.T, expectedNumKeys, newKeys, "unexpected number of keys (failed to revoke device keys)")
 }

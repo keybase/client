@@ -1,0 +1,4 @@
+Host aur.archlinux.org
+    User aur
+    HostName aur.archlinux.org
+    IdentityFile ~/.ssh/aur_id_ed25519

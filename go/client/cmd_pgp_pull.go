@@ -4,12 +4,13 @@
 package client
 
 import (
+	"context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type CmdPGPPull struct {
@@ -43,18 +44,18 @@ func NewCmdPGPPull(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	return cli.Command{
 		Name:         "pull",
 		ArgumentHelp: "[<usernames...>]",
-		Usage:        "Download the latest PGP keys for people you track.",
+		Usage:        "Download the latest PGP keys for people you follow.",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPPull{Contextified: libkb.NewContextified(g)}, "pull", c)
 		},
 		Description: `"keybase pgp pull" pulls down all of the PGP keys for the people
-   you track. On success, it imports those keys into your local GnuPG keychain.
+   you follow. On success, it imports those keys into your local GnuPG keychain.
    For existing keys, this means the local GnuPG keyring will get an updated,
    merged copy, via GnuPG's default key merging strategy. For new keys, it
    will be a plain import.
 
-   If usernames (or user assertions) are supplied, only those tracked users
+   If usernames (or user assertions) are supplied, only those followed users
    are pulled. Without arguments, all tracked users are pulled.`,
 	}
 }

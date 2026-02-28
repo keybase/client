@@ -1,0 +1,9 @@
+[Unit]
+Description=clean up docker tags a few hours after nightly builds
+
+[Service]
+ExecStart=go run %h/go/src/github.com/keybase/keybase/deploy/flutebot/docker-cleanup/main.go
+EnvironmentFile=%h/tuxbot.env
+
+[Install]
+WantedBy=default.target

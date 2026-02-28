@@ -1,13 +1,13 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletSetPrimary struct {
@@ -37,7 +37,8 @@ func (c *cmdWalletSetPrimary) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletSetPrimary) Run() error {
+func (c *cmdWalletSetPrimary) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
@@ -47,12 +48,12 @@ func (c *cmdWalletSetPrimary) Run() error {
 		AccountID: stellar1.AccountID(c.accountID),
 	}
 
-	if err := cli.SetWalletAccountAsDefaultLocal(context.Background(), arg); err != nil {
+	if _, err := cli.SetWalletAccountAsDefaultLocal(context.Background(), arg); err != nil {
 		return err
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.PrintfUnescaped("Wallet account %s set to %s.\n", ColorString(c.G(), "yellow", c.accountID), ColorString(c.G(), "green", "primary"))
+	_, _ = ui.PrintfUnescaped("Wallet account %s set to %s.\n", ColorString(c.G(), "yellow", c.accountID), ColorString(c.G(), "green", "primary"))
 
 	return nil
 }

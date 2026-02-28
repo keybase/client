@@ -1,16 +1,15 @@
 #! /usr/bin/env bash
 
-# Builds the keybase binary and packages it into two ".deb" files, one for i386
-# and one for amd64. The argument to this script is the output directory of a
-# build_binaries.sh build. The package files are created there, in their
-# respective architecture folders.
+# Builds the keybase binary and packages it into a ".deb" file for amd64. The
+# argument to this script is the output directory of a build_binaries.sh build.
+# The package files are created there, in their respective architecture folders.
 #
 # Usage:
 #   ./package_binaries.sh <build_root>
 
 set -e -u -o pipefail
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then
@@ -32,7 +31,10 @@ elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
   # "psmisc" provides "killall", which is used in run_keybase and
   # post_install.sh.
-  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc"
+  # lsof used in post_install.sh
+  # systemd-container provides machinectl, which is used in post_install.sh
+  # 'libasound2, libnss3, libxss1, libxtst6' is required by the GUI (issue #9872 and #17365)
+  dependencies="Depends: libayatana-appindicator3-1, fuse, psmisc, lsof, procps, libasound2, libnss3, libxss1, libxtst6, libgtk-3-0"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
@@ -51,7 +53,13 @@ build_one_architecture() {
 
   # Copy the entire filesystem layout, binaries and all, into the debian build
   # folder. TODO: Something less wasteful of disk space?
-  cp -r "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+  # Preserve permissions of the chrome-sandbox setuid
+  cp -rp "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+
+  # Copy changelog directly in, since this is a binary package.
+  doc_dir="$dest/build/usr/share/doc/keybase"
+  mkdir -p "$doc_dir"
+  gzip -cn "$here/changelog" > "$doc_dir/changelog.Debian.gz"
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
@@ -73,21 +81,18 @@ build_one_architecture() {
     > "$postinst_file"
   chmod 755 "$postinst_file"
 
-  # distro-upgrade-handling cron job (sigh...see comments within)
-  cron_file="$dest/build/etc/cron.daily/$name"
-  mkdir -p "$(dirname "$cron_file")"
-  cat "$here/cron.template" \
-    | sed "s/@@NAME@@/$name/g" \
-    | sed "s|@@REPO_URL@@|$repo_url|g" \
-    | sed "s|@@REPO_SSL_URL@@|$repo_ssl_url|g" \
-    > "$cron_file"
-  chmod 755 "$cron_file"
+  # Copy keyring in
+  keyrings_dir="$dest/build/usr/share/keyrings"
+  mkdir -p "$keyrings_dir"
+  cp "$here/../../code_signing_key_pub.asc" "$keyrings_dir/keybase.asc"
+
+  # Create sources file for deb repository
+  sources_dir="$dest/build/etc/apt/sources.list.d"
+  mkdir -p "$sources_dir"
+  echo "deb [signed-by=/usr/share/keyrings/keybase.asc] $repo_url stable main" > "$sources_dir/keybase.list"
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
 export debian_arch=amd64
-build_one_architecture
-
-export debian_arch=i386
 build_one_architecture

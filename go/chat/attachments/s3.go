@@ -3,13 +3,14 @@ package attachments
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //nolint:gosec // G501: MD5 required for S3 ETag computation (AWS API requirement, not cryptographic use)
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"sync"
 
+	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -63,8 +64,10 @@ func (s *s3UploadPipeliner) Complete() {
 
 var s3UploadPipeline = &s3UploadPipeliner{}
 
-const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
-const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
+const (
+	minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
+	blockSize    = 5 * 1024 * 1024 // 5MB is the minimum Multi part size
+)
 
 // ErrAbortOnPartMismatch is returned when there is a mismatch between a current
 // part and a previous attempt part.  If ErrAbortOnPartMismatch is returned,
@@ -83,12 +86,13 @@ type PutS3Result struct {
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
 func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (res *PutS3Result, err error) {
-	defer a.Trace(ctx, func() error { return err }, "PutS3")()
+	defer a.Trace(ctx, &err, "PutS3")()
 	region := a.regionFromParams(task.S3Params)
-	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
+	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey, task.S3Params.Token).Bucket(
+		task.S3Params.Bucket)
 
 	multiPartUpload := size > minMultiSize
-	if multiPartUpload && a.env.GetAttachmentDisableMulti() {
+	if multiPartUpload && a.G().Env.GetAttachmentDisableMulti() {
 		a.Debug(ctx, "PutS3: multi part upload manually disabled, overriding for size: %v", size)
 		multiPartUpload = false
 	}
@@ -119,10 +123,11 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
-	b s3.BucketInt, progress types.ProgressReporter) (err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
+	b s3.BucketInt, progressReporter types.ProgressReporter,
+) (err error) {
+	defer a.Trace(ctx, &err, "putSingle(size=%d)", size)()
 
-	progWriter := newProgressWriter(progress, size)
+	progWriter := progress.NewProgressWriter(progressReporter, size)
 	tee := io.TeeReader(r, progWriter)
 
 	if err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl),
@@ -140,7 +145,7 @@ func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params
 // will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
 func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putMultiPipeline(size=%d)", size))()
+	defer a.Trace(ctx, &err, "putMultiPipeline(size=%d)", size)()
 
 	var multi s3.MultiInt
 	if previous != nil {
@@ -197,12 +202,15 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 		return nil
 	})
 	go func() {
-		eg.Wait()
+		err := eg.Wait()
+		if err != nil {
+			a.Debug(ctx, "putMultiPipeline: error waiting: %+v", err)
+		}
 		close(retCh)
 	}()
 
 	var parts []s3.Part
-	progWriter := newProgressWriter(task.Progress, size)
+	progWriter := progress.NewProgressWriter(task.Progress, size)
 	for p := range retCh {
 		parts = append(parts, p)
 		progWriter.Update(int(p.Size))
@@ -254,7 +262,7 @@ func (a *S3Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan j
 			block = block[:n]
 		}
 		if n > 0 {
-			md5sum := md5.Sum(block)
+			md5sum := md5.Sum(block) //nolint:gosec // G401: MD5 required for S3 ETag (AWS API requirement)
 			md5hex := hex.EncodeToString(md5sum[:])
 
 			if previous != nil {
@@ -299,7 +307,7 @@ func (a *S3Store) addJob(ctx context.Context, blockCh chan job, block []byte, pa
 // If this is a resumed upload, it checks the previous parts reported by S3 and will skip uploading
 // any that already exist.
 func (a *S3Store) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
-	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("uploadPart(%d)", b.index))()
+	defer a.Trace(ctx, &err, "uploadPart(%d)", b.index)()
 
 	// check to see if this part has already been uploaded.
 	// for job `b` to be here, it has already passed local stash verification.
@@ -391,8 +399,9 @@ func NewS3Signer(ri func() chat1.RemoteInterface) *S3Signer {
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (s *S3Signer) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
-		Payload: payload,
-		Version: 1,
+		Payload:   payload,
+		Version:   1,
+		TempCreds: true,
 	}
 	return s.ri().S3Sign(context.Background(), arg)
 }

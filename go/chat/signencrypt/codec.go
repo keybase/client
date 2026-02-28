@@ -125,26 +125,31 @@ package signencrypt
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/kbcrypto"
-	"github.com/keybase/go-crypto/ed25519"
+	"github.com/keybase/client/go/msgpack"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-type Nonce *[NonceSize]byte
-type SecretboxKey *[SecretboxKeySize]byte
-type SecretboxNonce *[SecretboxNonceSize]byte
-type SignKey *[ed25519.PrivateKeySize]byte
-type VerifyKey *[ed25519.PublicKeySize]byte
+type (
+	Nonce          *[NonceSize]byte
+	SecretboxKey   *[SecretboxKeySize]byte
+	SecretboxNonce *[SecretboxNonceSize]byte
+	SignKey        *[ed25519.PrivateKeySize]byte
+	VerifyKey      *[ed25519.PublicKeySize]byte
+)
 
-const NonceSize = 16
-const SecretboxKeySize = 32
-const SecretboxNonceSize = 24
-const DefaultPlaintextChunkLength int64 = 1 << 20
+const (
+	NonceSize                         = 16
+	SecretboxKeySize                  = 32
+	SecretboxNonceSize                = 24
+	DefaultPlaintextChunkLength int64 = 1 << 20
+)
 
 // ===================================
 // single packet encoding and decoding
@@ -188,7 +193,8 @@ func getPlaintextPacketLen(cipherChunkLen int64) int64 {
 func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce SecretboxNonce) []byte {
 	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signature := ed25519.Sign(signKey[:], signatureInput)
-	signedChunk := append(signature[:], plaintext...)
+	signedChunk := signature
+	signedChunk = append(signedChunk, plaintext...)
 	packet := secretbox.Seal(nil, signedChunk, nonce, encKey)
 	return packet
 }
@@ -404,8 +410,10 @@ func (s *encoderCodecShim) Finish() ([]byte, error) {
 	return s.Encoder.Finish(), nil
 }
 
-var _ codec = (*Decoder)(nil)
-var _ codec = (*encoderCodecShim)(nil)
+var (
+	_ codec = (*Decoder)(nil)
+	_ codec = (*encoderCodecShim)(nil)
+)
 
 type codecReadWrapper struct {
 	codec       codec
@@ -565,6 +573,63 @@ func OpenWhole(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signatur
 	return append(output, moreOutput...), nil
 }
 
+// include verification of associated data. see
+// https://en.wikipedia.org/wiki/Authenticated_encryption#Authenticated_encryption_with_associated_data_(AEAD)
+
+type AEADMessage struct {
+	Version       int               `codec:"v" json:"v"`
+	AssocDataHash [sha512.Size]byte `codec:"a" json:"a"`
+	Message       []byte            `codec:"m" json:"m"`
+}
+
+// SealWithAssociatedData is a wrapper around SealWhole which adds an associatedData object
+// (see AEAD ciphers) which must be message-packable into bytes. This exact object is required
+// to call OpenWithAssociatedData on the ciphertext.
+func SealWithAssociatedData(msg []byte, associatedData interface{}, encKey SecretboxKey, signKey SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
+	adEncoded, err := msgpack.Encode(associatedData)
+	if err != nil {
+		return ret, err
+	}
+	adHash := sha512.Sum512(adEncoded)
+	aeadMsg := AEADMessage{
+		Version:       1,
+		AssocDataHash: adHash,
+		Message:       msg,
+	}
+	clearBytes, err := msgpack.Encode(aeadMsg)
+	if err != nil {
+		return ret, err
+	}
+	return SealWhole(clearBytes, encKey, signKey, signaturePrefix, nonce), nil
+}
+
+func OpenWithAssociatedData(sealed []byte, associatedData interface{}, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce) (ret []byte, err error) {
+	clearBytes, err := OpenWhole(sealed, encKey, verifyKey, signaturePrefix, nonce)
+	if err != nil {
+		return ret, err
+	}
+	var aeadMessage AEADMessage
+	err = msgpack.Decode(&aeadMessage, clearBytes)
+	if err != nil {
+		return ret, err
+	}
+	if aeadMessage.Version != 1 {
+		return ret, NewError(BadSecretbox, "can only accept AEAD messages with version 1, but got %d", aeadMessage.Version)
+	}
+	actualADHash := aeadMessage.AssocDataHash
+	msg := aeadMessage.Message
+
+	adEncoded, err := msgpack.Encode(associatedData)
+	if err != nil {
+		return ret, err
+	}
+	adHash := sha512.Sum512(adEncoded)
+	if !bytes.Equal(adHash[:], actualADHash[:]) {
+		return ret, NewError(AssociatedDataMismatch, "fingerprint of associated data did not match")
+	}
+	return msg, nil
+}
+
 // ======
 // errors
 // ======
@@ -575,6 +640,7 @@ const (
 	BadSecretbox ErrorType = iota
 	ShortSignature
 	BadSignature
+	AssociatedDataMismatch
 )
 
 type Error struct {

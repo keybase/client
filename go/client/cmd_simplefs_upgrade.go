@@ -4,13 +4,13 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSUpgrade is the 'fs upgrade' command.
@@ -50,7 +50,6 @@ func (c *CmdSimpleFSUpgrade) Run() error {
 }
 
 func (c *CmdSimpleFSUpgrade) ParseArgv(ctx *cli.Context) error {
-
 	if len(ctx.Args()) == 0 {
 		return errors.New("must specify a TLF name")
 	}

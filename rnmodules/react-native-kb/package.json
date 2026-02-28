@@ -1,0 +1,59 @@
+{
+  "name": "react-native-kb",
+  "version": "0.1.1",
+  "description": "misc kb",
+  "main": "src/index",
+  "types": "src/index.tsx",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "android",
+    "ios",
+    "cpp",
+    "react-native-kb.podspec",
+    "!lib/typescript/example",
+    "!android/build",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "prepare": "bob build"
+  },
+  "keywords": [],
+  "repository": "https://github.com/keybase/client",
+  "author": "keybase (https://github.com/keybase/client)",
+  "homepage": "https://github.com/keybase/client",
+  "private": true,
+  "devDependencies": {
+    "react": "file:../../shared/node_modules/react",
+    "react-native": "file:../../shared/node_modules/react-native",
+    "@types/react": "file:../../shared/node_modules/@types/react",
+    "typescript": "file:../../shared/node_modules/typescript",
+    "react-native-builder-bob": "0.40.11"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "@welldone-software/why-did-you-render": "*",
+    "@types/react": "*"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "module",
+      "typescript"
+    ]
+  },
+  "codegenConfig": {
+    "name": "RNKbSpec",
+    "type": "all",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.reactnativekb"
+    }
+  }
+}

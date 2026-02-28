@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -63,7 +62,7 @@ func (c *CmdDismiss) Run() error {
 			return err
 		}
 		return cli.PGPStorageDismiss(context.TODO(), 0)
+	default:
+		return fmt.Errorf("unhandled notification name %q", c.name)
 	}
-
-	return fmt.Errorf("unhandled notification name %q", c.name)
 }

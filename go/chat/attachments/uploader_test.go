@@ -1,8 +1,11 @@
 package attachments
 
 import (
+	"context"
 	"errors"
 	"io"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -15,7 +18,6 @@ import (
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
 )
 
 type mockStore struct {
@@ -31,7 +33,7 @@ type mockRemote struct {
 	chat1.RemoteInterface
 }
 
-func (r mockRemote) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+func (r mockRemote) GetS3Params(context.Context, chat1.GetS3ParamsArg) (chat1.S3Params, error) {
 	return chat1.S3Params{}, nil
 }
 
@@ -51,13 +53,13 @@ func newMockActivityNotifier() *mockActivityNotifier {
 }
 
 func (a *mockActivityNotifier) AttachmentUploadStart(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, outboxID chat1.OutboxID) {
+	convID chat1.ConversationID, outboxID chat1.OutboxID,
+) {
 	a.startCh <- outboxID
 }
 
 func (a *mockActivityNotifier) AttachmentUploadProgress(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
-
 }
 
 type mockDeliverer struct {
@@ -81,6 +83,35 @@ func (m *mockDeliverer) Stop(context.Context) chan struct{} {
 	return ch
 }
 
+type mockInboxSource struct {
+	types.InboxSource
+}
+
+func (m mockInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
+	dataSource types.InboxSourceDataSourceTyp, rquery *chat1.GetInboxQuery,
+) (types.Inbox, error) {
+	return types.Inbox{
+		ConvsUnverified: []types.RemoteConversation{
+			{
+				Conv: chat1.Conversation{
+					Metadata: chat1.ConversationMetadata{
+						ConversationID: chat1.ConversationID([]byte{0, 1, 0}),
+						IdTriple: chat1.ConversationIDTriple{
+							TopicType: chat1.TopicType_CHAT,
+						},
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func (m mockInboxSource) Stop(context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
 func TestAttachmentUploader(t *testing.T) {
 	world := kbtest.NewChatMockWorld(t, "uploader", 1)
 	defer world.Cleanup()
@@ -94,23 +125,16 @@ func TestAttachmentUploader(t *testing.T) {
 	ri := mockRemote{}
 	deliverer := newMockDeliverer()
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
+	g.InboxSource = mockInboxSource{}
 	g.ActivityNotifier = notifier
 	g.MessageDeliverer = deliverer
 	getRi := func() chat1.RemoteInterface { return ri }
-	uploader := NewUploader(g, store, NewS3Signer(getRi), getRi)
+	cacheSize := 1
+	uploader := NewUploader(g, store, NewS3Signer(getRi), getRi, cacheSize)
 	convID := chat1.ConversationID([]byte{0, 1, 0})
-	outboxID, err := storage.NewOutboxID()
-	require.NoError(t, err)
-	filename := "../testdata/ship.jpg"
-
-	// Basic test to see if it works
-	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
-		return chat1.Asset{}, nil
-	}
 	md, err := libkb.RandBytes(10)
 	require.NoError(t, err)
-	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
-	require.NoError(t, err)
+
 	uploadStartCheck := func(shouldHappen bool, outboxID chat1.OutboxID) {
 		if shouldHappen {
 			select {
@@ -155,6 +179,65 @@ func TestAttachmentUploader(t *testing.T) {
 			require.Fail(t, "no upload")
 		}
 	}
+	// On non darwin we don't covert the heic.
+	successCheckNoHeicConvert := func(cb types.AttachmentUploaderResultCb) {
+		ch := cb.Wait()
+		select {
+		case res := <-ch:
+			require.Nil(t, res.Error)
+			require.Equal(t, md, res.Metadata)
+			require.Nil(t, res.Preview)
+			require.Equal(t, "image/heif", res.Object.MimeType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no upload")
+		}
+	}
+
+	successCheckEmpty := func(cb types.AttachmentUploaderResultCb) {
+		ch := cb.Wait()
+		select {
+		case res := <-ch:
+			require.Nil(t, res.Error)
+			require.Equal(t, md, res.Metadata)
+			require.Nil(t, res.Preview)
+			require.Equal(t, "", res.Object.MimeType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no upload")
+		}
+	}
+
+	// Basic test to see if it works
+	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
+		return chat1.Asset{}, nil
+	}
+
+	outboxID, err := storage.NewOutboxID()
+	require.NoError(t, err)
+	filename := "../testdata/empty.txt"
+	resChan, err := uploader.Register(context.TODO(), uid, convID, outboxID, "empty", filename, md, nil)
+	require.NoError(t, err)
+	deliverCheck(true)
+	uploadStartCheck(true, outboxID)
+	successCheckEmpty(resChan)
+
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
+	filename = "../testdata/mysql.heic"
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "mysql", filename, md, nil)
+	require.NoError(t, err)
+	deliverCheck(true)
+	uploadStartCheck(true, outboxID)
+	if runtime.GOOS == "darwin" {
+		successCheck(resChan)
+	} else {
+		successCheckNoHeicConvert(resChan)
+	}
+
+	outboxID, err = storage.NewOutboxID()
+	require.NoError(t, err)
+	filename = "../testdata/ship.jpg"
+	resChan, err = uploader.Register(context.TODO(), uid, convID, outboxID, "ship", filename, md, nil)
+	require.NoError(t, err)
 	deliverCheck(true)
 	uploadStartCheck(true, outboxID)
 	successCheck(resChan)
@@ -175,6 +258,22 @@ func TestAttachmentUploader(t *testing.T) {
 		require.Fail(t, "no upload")
 	}
 	deliverCheck(true)
+
+	// block until the upload is marked as done
+	for count := 0; count <= 5; count++ {
+		uploader.Lock()
+		upload, ok := uploader.uploads[outboxID.String()]
+		uploader.Unlock()
+		if !ok && upload == nil {
+			break
+		}
+		time.Sleep(time.Millisecond * 200)
+		if count == 5 {
+			require.Fail(t, "upload not marked as done")
+		}
+		t.Logf("upload not done, checking again")
+	}
+	t.Logf("upload done")
 
 	// Retry after fixing store
 	store.uploadFn = func(context.Context, *UploadTask) (chat1.Asset, error) {
@@ -240,8 +339,32 @@ func TestAttachmentUploader(t *testing.T) {
 	require.NoError(t, uploader.Cancel(context.TODO(), outboxID))
 	_, _, err = uploader.Status(context.TODO(), outboxID)
 	require.Error(t, err)
-	select {
-	case res := <-resChan.Wait():
-		require.NotNil(t, res.Error)
-	}
+	res := <-resChan.Wait()
+	require.NotNil(t, res.Error)
+
+	// verify uploadedPreviewsDir respects the cache size
+	baseDir := uploader.getBaseDir()
+	uploadedPreviews, err := filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
+	require.NoError(t, err)
+	require.Len(t, uploadedPreviews, 1)
+
+	// verify uploadedFullsDir is respects the cache size
+	uploadedFulls, err := filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
+	require.NoError(t, err)
+	require.Len(t, uploadedFulls, 1)
+	mctx := kbtest.NewMetaContextForTest(*tc)
+
+	// verify db nuke
+	_, err = g.LocalDb.Nuke()
+	require.NoError(t, err)
+	err = uploader.OnDbNuke(mctx)
+	require.NoError(t, err)
+
+	uploadedPreviews, err = filepath.Glob(filepath.Join(baseDir, uploadedPreviewsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedPreviews))
+
+	uploadedFulls, err = filepath.Glob(filepath.Join(baseDir, uploadedFullsDir, "*"))
+	require.NoError(t, err)
+	require.Zero(t, len(uploadedFulls))
 }

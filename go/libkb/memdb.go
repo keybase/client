@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -21,16 +22,26 @@ func NewMemDb(size int) *MemDb {
 	}
 }
 
-func (m *MemDb) Open() error      { return nil }
+func (m *MemDb) Open() error   { return nil }
+func (m *MemDb) Stats() string { return "" }
+func (m *MemDb) CompactionStats() (bool, bool, error) {
+	return false, false, nil
+}
 func (m *MemDb) ForceOpen() error { return nil }
 func (m *MemDb) Close() error {
 	m.lru.Purge()
 	return nil
 }
+
 func (m *MemDb) Nuke() (string, error) {
 	m.lru.Purge()
 	return "", nil
 }
+
+func (m *MemDb) Clean(force bool) error {
+	return nil
+}
+
 func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
 	return res, errors.New("not implemented")
 }
@@ -64,4 +75,8 @@ func (m *MemDb) Get(id DbKey) ([]byte, bool, error) {
 
 func (m *MemDb) Lookup(alias DbKey) ([]byte, bool, error) {
 	return m.Get(alias)
+}
+
+func (m *MemDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
+	return nil, fmt.Errorf("unimplemented on memdb")
 }

@@ -8,6 +8,19 @@
   ],
   "types": [],
   "messages": {
+    "outputPGPWarning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "warning",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "outputSignatureSuccess": {
       "request": [
         {
@@ -25,11 +38,18 @@
         {
           "name": "signedAt",
           "type": "Time"
+        },
+        {
+          "name": "warnings",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null
     },
-    "outputSignatureSuccessNonKeybase": {
+    "outputSignatureNonKeybase": {
       "request": [
         {
           "name": "sessionID",
@@ -42,6 +62,13 @@
         {
           "name": "signedAt",
           "type": "Time"
+        },
+        {
+          "name": "warnings",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null
@@ -68,6 +95,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "prompt",
+          "type": "boolean"
         }
       ],
       "response": "boolean"

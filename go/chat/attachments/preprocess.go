@@ -1,20 +1,22 @@
 package attachments
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
-	"golang.org/x/net/context"
 )
 
 type Dimension struct {
@@ -38,12 +40,20 @@ func (d *Dimension) Encode() string {
 }
 
 type Preprocess struct {
-	ContentType        string
+	// Detected content type of the input
+	ContentType string
+	// May differ from the caller's view if we convert the input
+	Filename string
+	// Only set if a conversion of the input bytes happens
+	SrcDat []byte
+
 	Preview            []byte
 	PreviewContentType string
 	BaseDim            *Dimension
 	BaseDurationMs     int
+	BaseIsAudio        bool
 	PreviewDim         *Dimension
+	PreviewAudioAmps   []float64
 	PreviewDurationMs  int
 }
 
@@ -56,6 +66,7 @@ func (p *Preprocess) BaseMetadata() chat1.AssetMetadata {
 			Width:      p.BaseDim.Width,
 			Height:     p.BaseDim.Height,
 			DurationMs: p.BaseDurationMs,
+			IsAudio:    p.BaseIsAudio,
 		})
 	}
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
@@ -76,8 +87,9 @@ func (p *Preprocess) PreviewMetadata() chat1.AssetMetadata {
 		})
 	}
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
-		Width:  p.PreviewDim.Width,
-		Height: p.PreviewDim.Height,
+		Width:     p.PreviewDim.Width,
+		Height:    p.PreviewDim.Height,
+		AudioAmps: p.PreviewAudioAmps,
 	})
 }
 
@@ -101,7 +113,7 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 	return res, nil
 }
 
-func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRes) (p Preprocess, err error) {
+func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview chat1.MakePreviewRes) (p Preprocess, err error) {
 	ltyp, err := callerPreview.Location.Ltyp()
 	if err != nil {
 		return p, err
@@ -117,16 +129,16 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 			return p, err
 		}
 		defer f.Close()
-		if p.Preview, err = ioutil.ReadAll(f); err != nil {
+		if p.Preview, err = io.ReadAll(f); err != nil {
 			return p, err
 		}
 	case chat1.PreviewLocationTyp_URL:
-		resp, err := http.Get(callerPreview.Location.Url())
+		resp, err := libkb.ProxyHTTPGet(g.ExternalG(), g.Env, callerPreview.Location.Url(), "PreviewLocation")
 		if err != nil {
 			return p, err
 		}
 		defer resp.Body.Close()
-		if p.Preview, err = ioutil.ReadAll(resp.Body); err != nil {
+		if p.Preview, err = io.ReadAll(resp.Body); err != nil {
 			return p, err
 		}
 	default:
@@ -147,14 +159,13 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 				Width:  callerPreview.Metadata.Image().Width,
 				Height: callerPreview.Metadata.Image().Height,
 			}
+			p.PreviewAudioAmps = callerPreview.Metadata.Image().AudioAmps
 		case chat1.AssetMetadataType_VIDEO:
 			p.PreviewDurationMs = callerPreview.Metadata.Video().DurationMs
 			p.PreviewDim = &Dimension{
 				Width:  callerPreview.Metadata.Video().Width,
 				Height: callerPreview.Metadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.PreviewDurationMs = callerPreview.Metadata.Audio().DurationMs
 		}
 	}
 	if callerPreview.BaseMetadata != nil {
@@ -170,31 +181,34 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 			}
 		case chat1.AssetMetadataType_VIDEO:
 			p.BaseDurationMs = callerPreview.BaseMetadata.Video().DurationMs
+			p.BaseIsAudio = callerPreview.BaseMetadata.Video().IsAudio
 			p.BaseDim = &Dimension{
 				Width:  callerPreview.BaseMetadata.Video().Width,
 				Height: callerPreview.BaseMetadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.BaseDurationMs = callerPreview.BaseMetadata.Audio().DurationMs
 		}
 	}
 	return p, nil
 }
 
-func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
+func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res string, err error) {
 	head := make([]byte, 512)
 	_, err = io.ReadFull(src, head)
-	if err != nil && err != io.ErrUnexpectedEOF {
+	switch err {
+	case nil:
+	case io.EOF, io.ErrUnexpectedEOF:
+		return "", nil
+	default:
 		return res, err
 	}
 
 	res = http.DetectContentType(head)
-	if _, err = src.Seek(0, 0); err != nil {
+	if err = src.Reset(); err != nil {
 		return res, err
 	}
 	// MIME type detection failed us, try using an extension map
 	if res == "application/octet-stream" {
-		ext := strings.ToLower(filepath.Ext(src.Name()))
+		ext := strings.ToLower(filepath.Ext(filename))
 		if typ, ok := mimeTypes[ext]; ok {
 			res = typ
 		}
@@ -202,27 +216,52 @@ func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
 	return res, nil
 }
 
-func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, filename string,
-	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
+func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src ReadResetter, filename string,
+	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes,
+) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
-		if p, err = processCallerPreview(ctx, *callerPreview); err != nil {
+		if p, err = processCallerPreview(ctx, g, *callerPreview); err != nil {
 			log.Debug(ctx, "preprocessAsset: failed to process caller preview, making fresh one: %s", err)
 		} else {
 			return p, nil
 		}
 	}
-	src, err := os.Open(filename)
+	defer func() {
+		err := src.Reset()
+		if err != nil {
+			log.Debug(ctx, "preprocessAsset: reset failed: %+v", err)
+		}
+	}()
+
+	p.Filename = filename
+	p.ContentType, err = DetectMIMEType(ctx, src, filename)
 	if err != nil {
 		return p, err
 	}
-	defer src.Close()
 
-	if p.ContentType, err = DetectMIMEType(ctx, src); err != nil {
-		return p, err
+	// Convert heif to jpeg when possible
+	if p.ContentType == "image/heif" {
+		shouldConvertHEIC, err := utils.GetGregorBool(ctx, g, utils.ConvertHEICGregorKey, true)
+		if err != nil {
+			return p, err
+		}
+		if shouldConvertHEIC {
+			dat, err := HEICToJPEG(ctx, log, filename)
+			if err != nil {
+				return p, err
+			}
+			if dat != nil {
+				p.Filename = strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpeg"
+				p.ContentType = "image/jpeg"
+				p.SrcDat = dat
+
+				src = NewBufReadResetter(dat)
+			}
+		}
 	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-	previewRes, err := Preview(ctx, g, log, src, p.ContentType, filename)
+	previewRes, err := Preview(ctx, log, src, p.ContentType, p.Filename, nvh)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err

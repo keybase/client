@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package libkb
@@ -35,7 +36,6 @@ func setupTest(t *testing.T, nm string) *TestContext {
 // open each other's named pipes.
 func TestWindowsNamedPipe(t *testing.T) {
 	tc := setupTest(t, "socket_windows_test")
-
 	defer tc.Cleanup()
 
 	listenSocket, err := NewSocket(tc.G)
@@ -84,7 +84,6 @@ func namedPipeClient(sendSocket Socket, t *testing.T) {
 }
 
 func TestWindowsPipeOwner(t *testing.T) {
-
 	if os.Getenv("JENKINS_URL") != "" {
 		t.Skip("Skipping pipeowner test - doesn't work on CI, works locally")
 	}

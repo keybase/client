@@ -1,0 +1,29 @@
+.cl-entry {
+  background-color: transparent;
+  &:hover {
+    background-color: var(--color-blueLighter2);
+    .cl-icon-container {
+      background: transparent;
+    }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .cl-entry:hover {
+    background-color: #140d03;
+  }
+}
+
+
+.cl-icon {
+  transform-origin: center center;
+  transition: 0.5s transform;
+  &:hover .cl-icon {
+    transform: translateX(25%);
+  }
+}
+
+.cl-icon-container {
+  transition: 0.5s background;
+  border-radius: 50%;
+}

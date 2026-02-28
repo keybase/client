@@ -3,14 +3,12 @@ package terminalescaper
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"testing"
 	"unicode"
 	"unsafe"
 )
 
 var tests = map[string]string{
-
 	// The vt100 escape character \033 (i.e. \x1b) is substituted with '^', even as part of escape sequence
 	"\x1b":          "^[",
 	"aaa\x1b[3Gbbb": "aaa^[[3Gbbb",
@@ -42,7 +40,7 @@ var tests = map[string]string{
 	// backspace, carriage return and other similar special characters (except for \n, \t) are stripped out
 	"aaa\b\bb":       "aaab",
 	"aaa\b\b\033[1K": "aaa^[[1K",
-	"bbb\raaa":       "bbbaaa", //carriage return
+	"bbb\raaa":       "bbbaaa", // carriage return
 
 	// Colors are acceptable, including multiple in the same string,
 	"foo\x1b[30mbar": "foo\x1b[30mbar",
@@ -148,6 +146,7 @@ func rot13(r rune) rune {
 	}
 	return r
 }
+
 func Test_replace(t *testing.T) {
 	// Run a couple of awful growth/shrinkage tests
 	a := tenRunes('a')
@@ -200,8 +199,8 @@ func Test_replace(t *testing.T) {
 	}
 	orig := "Input string that we expect not to be copied."
 	m = replace(identity, orig)
-	if (*reflect.StringHeader)(unsafe.Pointer(&orig)).Data !=
-		(*reflect.StringHeader)(unsafe.Pointer(&m)).Data {
+	if unsafe.StringData(orig) !=
+		unsafe.StringData(m) {
 		t.Error("unexpected copy during identity map")
 	}
 

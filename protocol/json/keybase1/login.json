@@ -16,8 +16,16 @@
           "name": "username"
         },
         {
+          "type": "FullName",
+          "name": "fullname"
+        },
+        {
           "type": "boolean",
           "name": "hasStoredSecret"
+        },
+        {
+          "type": "boolean",
+          "name": "isCurrent"
         }
       ]
     }
@@ -44,19 +52,32 @@
         },
         {
           "name": "deviceType",
-          "type": "string"
+          "type": "DeviceTypeV2"
         },
         {
-          "name": "usernameOrEmail",
+          "name": "username",
           "type": "string"
         },
         {
           "name": "clientType",
           "type": "ClientType"
+        },
+        {
+          "name": "doUserSwitch",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "paperKey",
+          "type": "string"
+        },
+        {
+          "name": "deviceName",
+          "type": "string"
         }
       ],
       "response": null,
-      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.\n    If the current device isn't provisioned, this function will\n    provision it.\n\n    Note that if usernameOrEmail is an email address, only provisioning\n    will be attempted.  If the device is already provisioned, login\n    via email address does not work."
+      "doc": "Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP\n    or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current\n    device isn't provisioned, this function will provision it."
     },
     "loginProvisionedDevice": {
       "request": [
@@ -74,19 +95,9 @@
         }
       ],
       "response": null,
-      "doc": "Login a user only if the user is on a provisioned device.  Username is optional.\n    If noPassphrasePrompt is set, then only a stored secret will be used to unlock\n    the device keys."
+      "doc": "Login a user only if the user is on a provisioned device. Username is optional.\n    If noPassphrasePrompt is set, then only a stored secret will be used to unlock\n    the device keys."
     },
     "loginWithPaperKey": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null,
-      "doc": "Login and unlock by\n  - trying unlocked device keys if available\n  - prompting for a paper key and using that"
-    },
-    "clearStoredSecret": {
       "request": [
         {
           "name": "sessionID",
@@ -98,13 +109,21 @@
         }
       ],
       "response": null,
-      "doc": "Removes any existing stored secret for the given username.\n    loginWithStoredSecret(_, username) will fail after this is called."
+      "doc": "Login and unlock by\n  - trying unlocked device keys if available\n  - prompting for a paper key and using that"
     },
     "logout": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        },
+        {
+          "name": "keepSecrets",
+          "type": "boolean"
         }
       ],
       "response": null
@@ -134,6 +153,20 @@
         }
       ],
       "response": null
+    },
+    "recoverPassphrase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Guide the user through possibilities of changing their passphrase.\n    Lets them change their passphrase using a paper key or enter the reset pipeline."
     },
     "paperKey": {
       "request": [
@@ -187,10 +220,17 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": null,
-      "doc": "accountDelete is for devel/testing to delete the current user's account."
+      "doc": "accountDelete deletes the current user's account."
     },
     "loginOneshot": {
       "request": [
@@ -209,6 +249,11 @@
       ],
       "response": null,
       "doc": "loginOneshot allows a service to have a \"onetime login\", without\n   provisioning a device. It bootstraps credentials with the given\n   paperkey"
+    },
+    "isOnline": {
+      "request": [],
+      "response": "bool",
+      "doc": "isOnline returns whether the device is able to open a connection to keybase.io.\n   Used for determining whether to offer proxy settings on the login screen."
     }
   },
   "namespace": "keybase.1"

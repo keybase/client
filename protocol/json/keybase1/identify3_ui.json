@@ -1,0 +1,265 @@
+{
+  "protocol": "identify3Ui",
+  "imports": [
+    {
+      "path": "identify3_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "Identify3RowState",
+      "symbols": [
+        "CHECKING_1",
+        "VALID_2",
+        "ERROR_3",
+        "WARNING_4",
+        "REVOKED_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Identify3RowColor",
+      "symbols": [
+        "BLUE_1",
+        "RED_2",
+        "BLACK_3",
+        "GREEN_4",
+        "GRAY_5",
+        "YELLOW_6",
+        "ORANGE_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Identify3ResultType",
+      "symbols": [
+        "OK_0",
+        "BROKEN_1",
+        "NEEDS_UPGRADE_2",
+        "CANCELED_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3RowMeta",
+      "fields": [
+        {
+          "type": "Identify3RowColor",
+          "name": "color"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3Row",
+      "fields": [
+        {
+          "type": "Identify3GUIID",
+          "name": "guiID"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": "int",
+          "name": "priority"
+        },
+        {
+          "type": "string",
+          "name": "siteURL",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconDarkmode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFull"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFullDarkmode"
+        },
+        {
+          "type": "string",
+          "name": "proofURL",
+          "lint": "ignore"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "Identify3RowState",
+          "name": "state"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        },
+        {
+          "type": "Identify3RowColor",
+          "name": "color"
+        },
+        {
+          "type": [
+            null,
+            "KID"
+          ],
+          "name": "kid"
+        },
+        {
+          "type": [
+            null,
+            "WotProof"
+          ],
+          "name": "wotProof"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identify3Summary",
+      "fields": [
+        {
+          "type": "Identify3GUIID",
+          "name": "guiID"
+        },
+        {
+          "type": "int",
+          "name": "numProofsToCheck"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "identify3ShowTracker": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "assertion",
+          "type": "Identify3Assertion"
+        },
+        {
+          "name": "reason",
+          "type": "IdentifyReason"
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "response": null
+    },
+    "identify3Summary": {
+      "request": [
+        {
+          "name": "summary",
+          "type": "Identify3Summary"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3UpdateRow": {
+      "request": [
+        {
+          "name": "row",
+          "type": "Identify3Row"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "identify3UserReset": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "identify3UpdateUserCard": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "card",
+          "type": "UserCard"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3TrackerTimedOut": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "identify3Result": {
+      "request": [
+        {
+          "name": "guiID",
+          "type": "Identify3GUIID"
+        },
+        {
+          "name": "result",
+          "type": "Identify3ResultType"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

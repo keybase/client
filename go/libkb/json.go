@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -30,6 +31,7 @@ type JSONFile struct {
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
+	setMutex sync.RWMutex
 
 	txMutex sync.Mutex
 	tx      *jsonFileTransaction
@@ -50,27 +52,37 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
+	found, err := f.LoadCheckFound()
+	if err != nil {
+		return err
+	}
+	if !found {
+		msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
+		if warnOnNotFound {
+			f.G().Log.Warning(msg)
+		} else {
+			f.G().Log.Debug(msg)
+		}
+	}
+	return nil
+}
+
+func (f *JSONFile) LoadCheckFound() (found bool, err error) {
 	f.G().Log.Debug("+ loading %q file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
-			if warnOnNotFound {
-				f.G().Log.Warning(msg)
-			} else {
-				f.G().Log.Debug(msg)
-			}
-			return nil
+			return false, nil
 		}
 
 		MobilePermissionDeniedCheck(f.G(), err, fmt.Sprintf("%s: %s", f.which, f.filename))
 
 		if os.IsPermission(err) {
 			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
-			return nil
+			return true, nil
 		}
 
-		return err
+		return true, err
 	}
 	f.exists = true
 	defer file.Close()
@@ -79,7 +91,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	fileTee := io.TeeReader(bufio.NewReader(file), &buf)
 	err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(fileTee))
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	decoder := json.NewDecoder(&buf)
@@ -87,12 +99,12 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
 		f.G().Log.Errorf("Error decoding %s file %s", f.which, f.filename)
-		return err
+		return true, err
 	}
 	f.jw = jsonw.NewWrapper(obj)
 
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
-	return nil
+	return true, nil
 }
 
 func (f *JSONFile) Nuke() error {
@@ -154,6 +166,19 @@ func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 	return ret, nil
 }
 
+func (f *JSONFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
+	err := f.jw.SetValueAtPath(p, w)
+	if err == nil {
+		err = f.Save()
+	}
+	return err
+}
+
+func (f *JSONFile) DeleteAtPath(p string) {
+	_ = f.jw.DeleteValueAtPath(p)
+	_ = f.Save()
+}
+
 func (f *JSONFile) Save() error {
 	tx, txCreated, err := f.getOrMakeTx()
 	if err != nil {
@@ -164,7 +189,7 @@ func (f *JSONFile) Save() error {
 		// still exists on exit
 		defer func() {
 			if tx != nil {
-				tx.Abort()
+				_ = tx.Abort()
 			}
 		}()
 	}
@@ -311,7 +336,10 @@ func (f *JSONFile) save() (err error) {
 func (f *jsonFileTransaction) Abort() error {
 	f.f.G().Log.Debug("+ Aborting %s rewrite %s", f.f.which, f.tmpname)
 	err := os.Remove(f.tmpname)
-	f.f.setTx(nil)
+	setErr := f.f.setTx(nil)
+	if err == nil {
+		err = setErr
+	}
 	f.f.G().Log.Debug("- Abort -> %s\n", ErrToOk(err))
 	return err
 }
@@ -346,9 +374,7 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	if err != nil {
 		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
 	}
-	f.f.setTx(nil)
-
-	return err
+	return f.f.setTx(nil)
 }
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)
@@ -374,15 +400,23 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
 }
 
+func getFloat(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetFloat()
+}
+
 func (f *JSONFile) GetFilename() string {
 	return f.filename
 }
 
 func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	return f.jw.AtPath(p).GetInterface()
 }
 
 func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getString)
 	if isSet {
 		ret = i.(string)
@@ -391,6 +425,8 @@ func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
 }
 
 func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getBool)
 	if isSet {
 		ret = i.(bool)
@@ -399,6 +435,8 @@ func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
 }
 
 func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getInt)
 	if isSet {
 		ret = i.(int)
@@ -406,7 +444,19 @@ func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	return ret, isSet
 }
 
+func (f *JSONFile) GetFloatAtPath(p string) (ret float64, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
+	v, isSet := f.getValueAtPath(p, getFloat)
+	if isSet {
+		ret = v.(float64)
+	}
+	return ret, isSet
+}
+
 func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	w := f.jw.AtPath(p)
 	isSet = w.IsNil() && w.Error() == nil
 	return isSet
@@ -425,22 +475,38 @@ func (f *JSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) e
 }
 
 func (f *JSONFile) SetStringAtPath(p string, v string) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getString, v)
 }
 
 func (f *JSONFile) SetBoolAtPath(p string, v bool) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getBool, v)
 }
 
 func (f *JSONFile) SetIntAtPath(p string, v int) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
+func (f *JSONFile) SetFloatAtPath(p string, v float64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
+	return f.setValueAtPath(p, getFloat, v)
+}
+
 func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JSONFile) SetNullAtPath(p string) (err error) {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
@@ -449,4 +515,9 @@ func (f *JSONFile) SetNullAtPath(p string) (err error) {
 		}
 	}
 	return err
+}
+
+func isJSONNoSuchKeyError(err error) bool {
+	_, isJSONError := err.(*jsonw.Error)
+	return err != nil && isJSONError && strings.Contains(err.Error(), "no such key")
 }

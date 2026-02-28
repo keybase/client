@@ -1,0 +1,474 @@
+import * as React from 'react'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import chunk from 'lodash/chunk'
+import {
+  getEmojiStr,
+  type EmojiData,
+  type RenderableEmoji,
+  RPCToEmojiData,
+  emojiDataToRenderableEmoji,
+  emojiData,
+} from '@/common-adapters/emoji'
+
+const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
+  chunk(emojis, emojisPerLine).map((c, idx) => ({
+    emojis: c,
+    key: c[0]?.short_name || String(idx),
+  }))
+
+// Remove those that have been obsolete and have a replacement. But it doens't
+// cover cases like :man-facepalming: vs :face_palm: even though they look
+// same.
+const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsoleted_by)
+
+const getEmojiSections = (emojisPerLine: number): Array<Section> =>
+  emojiData.categories.map(
+    c =>
+      ({
+        data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
+        key: c.category,
+        title: c.category,
+      }) as const
+  )
+
+const getFrequentSection = (
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
+  customEmojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
+  emojisPerLine: number
+): Section => {
+  const customEmojiIndex = getCustomEmojiIndex(customEmojiGroups)
+  const emojis = topReacjis.reduce<Array<EmojiData>>((arr, top) => {
+    const shortNameNoColons = top.name.replace(/:/g, '')
+    const emoji = emojiData.emojiNameMap[shortNameNoColons] || customEmojiIndex.get(shortNameNoColons)
+    if (emoji) {
+      arr.push(emoji)
+    }
+    return arr
+  }, [])
+  return {
+    data: chunkEmojis(emojis, emojisPerLine).slice(0, 4),
+    key: 'Frequently Used',
+    title: 'Frequently used',
+  }
+}
+
+const singleEmojiWidth = C.isMobile ? 32 : 26
+const emojiPadding = 5
+const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
+const maxEmojiSearchResults = 50
+const notFoundHeight = 224
+
+type Row = {emojis: Array<EmojiData>; key: string}
+type Item = Row
+
+type Section = Omit<Kb.SectionType<Item>, 'renderItem'> & {key: string; title: string}
+
+type Props = {
+  addEmoji: () => void
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>
+  filter?: string
+  hideFrequentEmoji: boolean
+  onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
+  onHover?: (emoji: EmojiData) => void
+  skinTone?: T.Chat.EmojiSkinTone
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
+  width: number
+  waitingForEmoji?: boolean
+}
+
+type Bookmark = {
+  coveredSectionKeys: ReadonlySet<string>
+  iconType: Kb.IconType
+  sectionIndex: number
+}
+
+const emojiGroupsToEmojiArrayArray = (
+  emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>
+): Array<{emojis: Array<EmojiData>; name: string}> =>
+  emojiGroups.map(emojiGroup => ({
+    emojis:
+      emojiGroup.emojis
+        ?.map(e => RPCToEmojiData(e, false))
+        .sort((a, b) => a.short_name.localeCompare(b.short_name)) || [],
+    name: emojiGroup.name,
+  }))
+
+const getCustomEmojiSections = (
+  emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>,
+  emojisPerLine: number
+): Array<Section> =>
+  emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
+    data: chunkEmojis(group.emojis, emojisPerLine),
+    key: group.name,
+    title: group.name,
+  }))
+
+const getCustomEmojiIndex = (emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
+  const mapper = new Map<string, EmojiData>()
+  emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
+    emojiGroup.emojis.forEach(emoji => {
+      mapper.set(emoji.short_name, emoji)
+    })
+  )
+  const keys = [...mapper.keys()]
+  // This is gonna be slow, but is probably fine until we have too many custom
+  // emojis. We should switch to a prefix tree and maybe move this to Go side
+  // at that point.
+  return {
+    filter: (filter: string): Array<EmojiData> =>
+      keys.reduce((result, key) => {
+        if (key.includes(filter)) {
+          const value = mapper.get(key)
+          if (value) {
+            result.push(value)
+          }
+        }
+        return result
+      }, new Array<EmojiData>()),
+    get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
+  }
+}
+const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
+
+const getResultFilter = (emojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
+  const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
+  return (filter: string): Array<EmojiData> => {
+    return [
+      ...customEmojiIndex.filter(filter),
+      ...removeObsolete(emojiData.emojiSearch(filter, maxEmojiSearchResults)),
+    ]
+  }
+}
+
+const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWidthWithPadding)
+
+const getSectionsAndBookmarks = (
+  width: number,
+  topReacjis: ReadonlyArray<T.RPCGen.UserReacji>,
+  hideTopReacjis: boolean,
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
+) => {
+  if (!width) {
+    return {bookmarks: [], sections: []}
+  }
+
+  const emojisPerLine = getEmojisPerLine(width)
+  const sections: Array<Section> = []
+  const bookmarks: Array<Bookmark> = []
+
+  if (topReacjis.length && !hideTopReacjis) {
+    const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
+    bookmarks.push({
+      coveredSectionKeys: new Set([frequentSection.key]),
+      iconType: 'iconfont-clock',
+      sectionIndex: sections.length,
+    })
+    sections.push(frequentSection)
+  }
+
+  getEmojiSections(emojisPerLine).forEach(section => {
+    const categoryIcon = emojiData.categoryIcons[section.title] as Kb.IconType | undefined
+    categoryIcon &&
+      bookmarks.push({
+        coveredSectionKeys: new Set([section.key]),
+        iconType: categoryIcon,
+        sectionIndex: sections.length,
+      })
+    sections.push(section)
+  })
+
+  if (customEmojiGroups?.length) {
+    const coveredSectionKeys = new Set<string>()
+    const sectionIndex = sections.length
+    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
+      coveredSectionKeys.add(section.key)
+      sections.push(section)
+    })
+    const bookmark = {
+      coveredSectionKeys,
+      iconType: 'iconfont-keybase',
+      sectionIndex,
+    } as Bookmark
+    bookmarks.push(bookmark)
+  }
+
+  sections.push({
+    data: [],
+    key: 'not-found',
+    title: 'not-found',
+  })
+
+  return {bookmarks, sections}
+}
+
+const EmojiRow = React.memo(function EmojiRow(p: {
+  row: Row
+  emojisPerLine: number
+  mapper: (e: Row['emojis'][number]) => React.ReactNode
+}) {
+  const {row, emojisPerLine, mapper} = p
+  return (
+    <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+      {row.emojis.map(mapper)}
+      {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+    </Kb.Box2>
+  )
+})
+
+const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
+  const [activeSectionKey, setActiveSectionKey] = React.useState('')
+  const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
+    const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
+    return (
+      <Kb.ClickableBox2
+        className="emoji-picker-emoji-box"
+        onClick={() => {
+          props.onChoose(
+            getEmojiStr(emoji, skinToneModifier),
+            emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
+          )
+        }}
+        onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
+        style={styles.emoji}
+        key={emoji.short_name}
+      >
+        <Kb.Emoji
+          emojiData={emoji}
+          skinToneModifier={skinToneModifier}
+          skinToneKey={skinTone}
+          showTooltip={false}
+          size={singleEmojiWidth}
+        />
+      </Kb.ClickableBox2>
+    )
+  }
+
+  const mapper = (e: Row['emojis'][number]) => getEmojiSingle(e, props.skinTone)
+  const getEmojiRow = (row: Row, emojisPerLine: number) =>
+    // This is possible when we have the cached sections, and we just got mounted
+    // and haven't received width yet.
+    row.emojis.length > emojisPerLine ? null : (
+      <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={mapper} />
+    )
+
+  const sectionListRef = React.useRef<Kb.SectionListRef<Item, Section>>(null)
+
+  const getBookmarkBar = (bookmarks: Array<Bookmark>) => {
+    const content = (
+      <Kb.Box2 key="bookmark" direction="horizontal" fullWidth={true} style={styles.bookmarkContainer}>
+        {bookmarks.map((bookmark, bookmarkIndex) => {
+          const isActive = activeSectionKey
+            ? bookmark.coveredSectionKeys.has(activeSectionKey)
+            : bookmarkIndex === 0
+          const secKey = bookmark.coveredSectionKeys.values().next().value ?? ''
+          return (
+            <Kb.Box
+              key={bookmark.sectionIndex}
+              className="emoji-picker-emoji-box"
+              style={isActive ? styles.activeBookmark : undefined}
+            >
+              <Kb.Icon
+                type={bookmark.iconType}
+                padding="tiny"
+                color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
+                onClick={() => {
+                  setActiveSectionKey(secKey)
+                  sectionListRef.current?.scrollToLocation({
+                    animated: true,
+                    itemIndex: 0,
+                    sectionIndex: bookmark.sectionIndex,
+                  })
+                }}
+              />
+            </Kb.Box>
+          )
+        })}
+      </Kb.Box2>
+    )
+    return Kb.Styles.isMobile ? (
+      <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
+        {content}
+      </Kb.ScrollView>
+    ) : (
+      content
+    )
+  }
+
+  const getSectionHeader = (title: string) => (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+      <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
+    </Kb.Box2>
+  )
+
+  const onSectionChange = C.useDebouncedCallback((section: Section) => setActiveSectionKey(section.key), 100)
+
+  const makeNotFound = () => (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.notFoundContainer}>
+      <Kb.Icon type="icon-empty-emoji-126-96" />
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodySmall" center={true}>
+          Still haven’t found what you’re
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          looking for?
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={props.addEmoji} />
+    </Kb.Box2>
+  )
+
+  const getEmojiWidthWithPadding = () => {
+    return emojiWidthWithPadding
+  }
+
+  const renderSectionHeader = ({section}: {section: Section}) => {
+    return section.key === 'not-found' ? makeNotFound() : getSectionHeader(section.title)
+  }
+
+  const {bookmarks, sections} = getSectionsAndBookmarks(
+    props.width,
+    props.topReacjis,
+    props.hideFrequentEmoji,
+    props.customEmojiGroups
+  )
+
+  const getSectionHeaderHeight = (sectionIndex: number) => {
+    return sections[sectionIndex]?.key === 'not-found' ? notFoundHeight : 32
+  }
+  const emojisPerLine = getEmojisPerLine(props.width)
+  const renderItem = (p: {item: Row}) => {
+    return getEmojiRow(p.item, emojisPerLine)
+  }
+  const getFilterResults = getResultFilter(props.customEmojiGroups)
+  // For filtered results, we have <= `maxEmojiSearchResults` emojis
+  // to render. Render them directly rather than going through chunkData
+  // pipeline for fast list of results. Go through chunkData only
+  // when the width changes to do that processing as infrequently as possible
+  if (props.filter) {
+    const results = getFilterResults(props.filter)
+    // NOTE: maxEmojiSearchResults = 50 currently. this never fills the screen
+    // (on iPhone 5S)
+    // so I'm not adding a ScrollView here. If we increase that later check
+    // if this can sometimes overflow the screen here & add a ScrollView
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        alignItems="flex-start"
+        style={{...Kb.Styles.globalStyles.flexGrow, overflow: 'hidden'}}
+      >
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+        >
+          {getSectionHeader('Search results')}
+          {results.map(e => getEmojiSingle(e, props.skinTone))}
+          {[...Array<unknown>(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+            makeEmojiPlaceholder(index)
+          )}
+          {makeNotFound()}
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+
+  // !this.state.sections means we haven't cached any sections yet
+  // i.e. we haven't rendered before. let sections be calculated first
+  return (
+    <>
+      {getBookmarkBar(bookmarks)}
+      <Kb.Box2
+        key="section-list-container"
+        direction="vertical"
+        fullWidth={true}
+        style={styles.sectionListContainer}
+      >
+        <Kb.SectionList
+          ref={sectionListRef}
+          getItemHeight={getEmojiWidthWithPadding}
+          getSectionHeaderHeight={getSectionHeaderHeight}
+          keyboardShouldPersistTaps="handled"
+          initialNumToRender={14}
+          sections={sections}
+          onSectionChange={onSectionChange}
+          stickySectionHeadersEnabled={true}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+        />
+      </Kb.Box2>
+    </>
+  )
+})
+
+export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
+  if (skinTone && emoji.skin_variations?.[skinTone]) {
+    const idx = emojiData.skinTones.indexOf(skinTone)
+    return `:skin-tone-${idx + 1}:`
+  }
+  return undefined
+}
+
+const makeEmojiPlaceholder = (index: number) => (
+  <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
+)
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      activeBookmark: {
+        backgroundColor: Kb.Styles.globalColors.blue_10,
+      },
+      bookmarkContainer: {
+        height: 44,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
+      },
+      bookmarkScrollView: {
+        flexShrink: 0,
+      },
+      emoji: {
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        borderRadius: 2,
+        height: emojiWidthWithPadding,
+        justifyContent: 'center',
+        width: emojiWidthWithPadding,
+      },
+      emojiPlaceholder: {
+        width: emojiWidthWithPadding,
+      },
+      emojiRowContainer: {
+        alignItems: 'center',
+        height: emojiWidthWithPadding,
+        justifyContent: 'center',
+      },
+      flexWrap: {
+        flexWrap: 'wrap',
+      },
+      notFoundContainer: {
+        height: notFoundHeight,
+        justifyContent: 'space-between',
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
+      },
+      sectionHeader: {
+        alignItems: 'center',
+        backgroundColor: Kb.Styles.globalColors.white,
+        height: 32,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+      },
+      sectionListContainer: {
+        flexGrow: 1,
+        flexShrink: 1,
+        overflow: 'hidden',
+      },
+    }) as const
+)
+
+export default EmojiPicker
+
+const emptyArray = new Array<T.RPCChat.EmojiGroup>()

@@ -27,32 +27,42 @@ type LogFileConfig struct {
 	// MaxKeepFiles is maximum number of log files for this service, older
 	// files are deleted.
 	MaxKeepFiles int
+	// RedirectStdErr indicates if the current stderr redirected to the given
+	// Path.
+	SkipRedirectStdErr bool
 }
 
 // SetLogFileConfig sets the log file config to be used globally.
-func SetLogFileConfig(lfc *LogFileConfig) error {
+func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	globalLock.Lock()
 	defer globalLock.Unlock()
 
 	first := true
-	var w = currentLogFileWriter
+	w := currentLogFileWriter
 	if w != nil {
 		first = false
 		w.lock.Lock()
 		defer w.lock.Unlock()
 		w.Close()
+		w.config = *lfc
 	} else {
-		w = &logFileWriter{}
-	}
-	w.config = *lfc
+		w = NewLogFileWriter(*lfc)
 
-	err := w.Open(time.Now())
-	if err != nil {
+		// Clean up the default logger, if it is in use
+		select {
+		case stdErrLoggingShutdown <- struct{}{}:
+		default:
+		}
+	}
+
+	if err := w.Open(time.Now()); err != nil {
 		return err
 	}
 
 	if first {
-		fileBackend := logging.NewLogBackend(w, "", 0)
+		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
+		w.stopFlushing = shutdown
+		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
@@ -61,15 +71,22 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	return nil
 }
 
-type logFileWriter struct {
+type LogFileWriter struct {
 	lock         sync.Mutex
 	config       LogFileConfig
 	file         *os.File
 	currentSize  int64
 	currentStart time.Time
+	stopFlushing chan<- struct{}
 }
 
-func (lfw *logFileWriter) Open(at time.Time) error {
+func NewLogFileWriter(config LogFileConfig) *LogFileWriter {
+	return &LogFileWriter{
+		config: config,
+	}
+}
+
+func (lfw *LogFileWriter) Open(at time.Time) error {
 	var err error
 	_, lfw.file, err = OpenLogFile(lfw.config.Path)
 	if err != nil {
@@ -82,11 +99,13 @@ func (lfw *logFileWriter) Open(at time.Time) error {
 		return err
 	}
 	lfw.currentSize = fi.Size()
-	tryRedirectStderrTo(lfw.file)
+	if !lfw.config.SkipRedirectStdErr {
+		_ = tryRedirectStderrTo(lfw.file)
+	}
 	return nil
 }
 
-func (lfw *logFileWriter) Close() error {
+func (lfw *LogFileWriter) Close() error {
 	if lfw == nil {
 		return nil
 	}
@@ -95,14 +114,20 @@ func (lfw *logFileWriter) Close() error {
 	if lfw.file == nil {
 		return nil
 	}
+	if lfw.stopFlushing != nil {
+		lfw.stopFlushing <- struct{}{}
+	}
+
 	return lfw.file.Close()
 }
 
-const zeroDuration time.Duration = 0
-const oldLogFileTimeRangeTimeLayout = "20060102T150405Z0700"
-const oldLogFileTimeRangeTimeLayoutLegacy = "20060102T150405"
+const (
+	zeroDuration                        time.Duration = 0
+	oldLogFileTimeRangeTimeLayout                     = "20060102T150405Z0700"
+	oldLogFileTimeRangeTimeLayoutLegacy               = "20060102T150405"
+)
 
-func (lfw *logFileWriter) Write(bs []byte) (int, error) {
+func (lfw *LogFileWriter) Write(bs []byte) (int, error) {
 	lfw.lock.Lock()
 	defer lfw.lock.Unlock()
 	n, err := lfw.file.Write(bs)
@@ -198,7 +223,8 @@ func (a logFilenamesByTime) Less(i, j int) bool {
 // format of log file names. TODO: simplify this when we don't care about old
 // format any more.
 func getLogFilenamesOrderByTime(
-	baseName string, fNames []string) (names []string, err error) {
+	baseName string, fNames []string,
+) (names []string, err error) {
 	re, err := regexp.Compile(`^` + regexp.QuoteMeta(baseName) +
 		`-(\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?)-\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?$`)
 	if err != nil {

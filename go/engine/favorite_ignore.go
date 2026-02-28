@@ -51,10 +51,9 @@ func (e *FavoriteIgnore) Run(m libkb.MetaContext) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteIgnore arg is nil")
 	}
-	_, err := m.G().API.Post(libkb.APIArg{
+	_, err := m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
 			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},

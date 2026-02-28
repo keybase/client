@@ -6,8 +6,48 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "HttpSrvInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "address"
+        },
+        {
+          "type": "string",
+          "name": "token"
+        }
+      ]
+    }
+  ],
   "messages": {
+    "HTTPSrvInfoUpdate": {
+      "request": [
+        {
+          "name": "info",
+          "type": "HttpSrvInfo"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
+    },
+    "handleKeybaseLink": {
+      "request": [
+        {
+          "name": "link",
+          "type": "string"
+        },
+        {
+          "name": "deferred",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "shutdown": {
       "request": [
         {

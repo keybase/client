@@ -4,13 +4,13 @@
 package kex2
 
 import (
+	"context"
 	"errors"
 	"net"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type LogContext interface {
@@ -18,11 +18,11 @@ type LogContext interface {
 }
 
 type baseDevice struct {
-	conn     net.Conn
-	xp       rpc.Transporter
-	deviceID DeviceID
+	conn     net.Conn        //nolint
+	xp       rpc.Transporter //nolint
+	deviceID DeviceID        //nolint
 	start    chan struct{}
-	canceled bool
+	canceled bool //nolint
 }
 
 // KexBaseArg are arguments common to both Provisioner and Provisionee

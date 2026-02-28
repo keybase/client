@@ -1,0 +1,27 @@
+@namespace("keybase.1")
+
+protocol inviteFriends {
+  import idl "common.avdl";
+
+  record InviteCounts {
+    int inviteCount; // Number of invites in the last 24 hours
+    double percentageChange; // vs the previous 24 hours
+    boolean showNumInvites;
+    boolean showFire; // Are keybase servers on fire?
+    string tooltipMarkdown; // Tooltip text
+  }
+
+  record EmailInvites {
+    union { null, string } commaSeparatedEmailsFromUser;
+    union { null, array<EmailAddress> } emailsFromContacts;
+  }
+
+  // returns the number of people invited
+  int invitePeople(EmailInvites emails, array<PhoneNumber> phones);
+
+  // gets and returns the most recent invite count, does not send a notification
+  InviteCounts getInviteCounts();
+
+  // request sending out a cached count, useful on mount
+  void requestInviteCounts();
+}

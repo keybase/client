@@ -9,13 +9,12 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(m MetaContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+func GetKeybasePassphrase(m MetaContext, ui SecretUI, arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error) {
 	resCh := make(chan keybase1.GetPassphraseRes)
 	errCh := make(chan error)
 	go func() {
-		arg := DefaultPassphrasePromptArg(m, username)
-		arg.RetryLabel = retryMsg
-		res, err := GetPassphraseUntilCheckWithChecker(m, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+		res, err := GetPassphraseUntilCheckWithChecker(m, arg,
+			newUIPrompter(ui), &CheckPassphraseSimple)
 		if err != nil {
 			errCh <- err
 			return
@@ -48,7 +47,7 @@ func GetSecret(m MetaContext, ui SecretUI, title, prompt, retryMsg string, allow
 	return res, nil
 }
 
-func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr error) (string, error) {
+func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr error, expectedPrefix *string) (string, error) {
 	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
@@ -62,7 +61,7 @@ func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr 
 	if lastErr != nil {
 		arg.RetryLabel = lastErr.Error()
 	}
-	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{})
+	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{expectedPrefix})
 	if err != nil {
 		return "", err
 	}
@@ -94,6 +93,37 @@ func GetPaperKeyForCryptoPassphrase(m MetaContext, ui SecretUI, reason string, d
 		return "", err
 	}
 	return res.Passphrase, nil
+}
+
+func GetNewKeybasePassphrase(mctx MetaContext, ui SecretUI, arg keybase1.GUIEntryArg, confirm string) (keybase1.GetPassphraseRes, error) {
+	initialPrompt := arg.Prompt
+
+	for i := 0; i < 10; i++ {
+		res, err := GetPassphraseUntilCheckWithChecker(mctx, arg,
+			newUIPrompter(ui), &CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, nil
+		}
+
+		// confirm the password
+		arg.RetryLabel = ""
+		arg.Prompt = confirm
+		confirm, err := GetPassphraseUntilCheckWithChecker(mctx, arg,
+			newUIPrompter(ui), &CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, nil
+		}
+
+		if res.Passphrase == confirm.Passphrase {
+			return res, nil
+		}
+
+		// setup the prompt, label for new first attempt
+		arg.Prompt = initialPrompt
+		arg.RetryLabel = "Passphrase mismatch"
+	}
+
+	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
 type PassphrasePrompter interface {
@@ -131,6 +161,14 @@ func GetPassphraseUntilCheck(m MetaContext, arg keybase1.GUIEntryArg, prompter P
 		if checker == nil {
 			return res, nil
 		}
+
+		s := res.Passphrase
+		t, err := checker.Automutate(m, s)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+		res = keybase1.GetPassphraseRes{Passphrase: t, StoreSecret: res.StoreSecret}
+
 		err = checker.Check(m, res.Passphrase)
 		if err == nil {
 			return res, nil
@@ -153,16 +191,15 @@ func DefaultPassphraseArg(m MetaContext) keybase1.GUIEntryArg {
 			},
 		},
 	}
-
 	return arg
 }
 
-func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntryArg {
-	arg := DefaultPassphraseArg(m)
-	arg.WindowTitle = "Keybase passphrase"
+func DefaultPassphrasePromptArg(mctx MetaContext, username string) keybase1.GUIEntryArg {
+	arg := DefaultPassphraseArg(mctx)
+	arg.WindowTitle = "Keybase password"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
-	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase password for %s (%d+ characters)", username, MinPassphraseLength)
 	return arg
 }
 
@@ -171,12 +208,17 @@ func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntr
 // hint otherwise.
 type PassphraseChecker interface {
 	Check(MetaContext, string) error
+	Automutate(MetaContext, string) (string, error)
 }
 
 // CheckerWrapper wraps a Checker type to make it conform to the
 // PassphraseChecker interface.
 type CheckerWrapper struct {
 	checker Checker
+}
+
+func (w *CheckerWrapper) Automutate(m MetaContext, s string) (string, error) {
+	return s, nil
 }
 
 // Check s using checker, respond with checker.Hint if check
@@ -189,7 +231,20 @@ func (w *CheckerWrapper) Check(m MetaContext, s string) error {
 }
 
 // PaperChecker implements PassphraseChecker for paper keys.
-type PaperChecker struct{}
+type PaperChecker struct {
+	expectedPrefix *string
+}
+
+func (p *PaperChecker) Automutate(m MetaContext, s string) (string, error) {
+	phrase := NewPaperKeyPhrase(s)
+	if phrase.NumWords() == PaperKeyNoPrefixLen {
+		if p.expectedPrefix == nil {
+			return "", errors.New("No prefix given but expectedPrefix is nil; must give the entire paper key.")
+		}
+		return fmt.Sprintf("%s %s", *p.expectedPrefix, s), nil
+	}
+	return s, nil
+}
 
 // Check a paper key format.  Will return a detailed error message
 // specific to the problems found in s.
@@ -198,38 +253,42 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 
 	// check for empty
 	if len(phrase.String()) == 0 {
-		m.CDebugf("paper phrase is empty")
-		return PassphraseError{Msg: "Empty paper key. Please try again."}
+		m.Debug("paper phrase is empty")
+		return NewPaperKeyError("paper key was empty", true)
 	}
 
 	// check for at least PaperKeyWordCountMin words
 	if phrase.NumWords() < PaperKeyWordCountMin {
-		return PassphraseError{Msg: "Your paper key should have more words than this. Please double check."}
+		return NewPaperKeyError(fmt.Sprintf("your paper key should have at least %d words", PaperKeyWordCountMin), true)
 	}
 
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
-		m.CDebugf("paper phrase has invalid word(s) in it")
-		var perr PassphraseError
-		if len(invalids) > 1 {
-			perr.Msg = fmt.Sprintf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
-		} else {
-			perr.Msg = fmt.Sprintf("Please try again. This word is invalid: %s", invalids[0])
+		m.Debug("paper phrase has invalid word(s) in it")
+		var err error
+		var w []string
+		for _, i := range invalids {
+			w = append(w, fmt.Sprintf("%q", i))
 		}
-		return perr
+		if len(invalids) > 1 {
+			err = NewPaperKeyError(fmt.Sprintf("the words %s are invalid", strings.Join(w, ", ")), true)
+		} else {
+			err = NewPaperKeyError(fmt.Sprintf("the word %s is invalid", w[0]), true)
+		}
+		return err
 	}
 
 	// check version
 	version, err := phrase.Version()
 	if err != nil {
-		m.CDebugf("error getting paper key version: %s", err)
+		m.Debug("error getting paper key version: %s", err)
 		// despite the error, just tell the user the paper key is wrong:
-		return PassphraseError{Msg: "Wrong paper key. Please try again."}
+		return NewPaperKeyError("key didn't match any known keys for this account", true)
 	}
 	if version != PaperKeyVersion {
-		m.CDebugf("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
-		return PassphraseError{Msg: "Wrong paper key. Please try again."}
+		m.Debug("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
+		return NewPaperKeyError("key didn't match any known keys for this account", true)
 	}
 
 	return nil

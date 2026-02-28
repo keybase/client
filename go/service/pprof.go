@@ -4,10 +4,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
 	"time"
@@ -16,7 +18,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type PprofHandler struct {
@@ -50,12 +51,13 @@ type timedProfiler interface {
 // timedProfiler and associated parameters.
 func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 	profiler timedProfiler, outputFile string,
-	durationSeconds keybase1.DurationSec) (err error) {
+	durationSeconds keybase1.DurationSec,
+) (err error) {
 	if !filepath.IsAbs(outputFile) {
 		return fmt.Errorf("%q is not an absolute path", outputFile)
 	}
 
-	close := func(c io.Closer) {
+	closer := func(c io.Closer) {
 		err := c.Close()
 		if err != nil {
 			log.Warning("Failed to close %s: %s", outputFile, err)
@@ -77,7 +79,7 @@ func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 
 	err = profiler.Start(f)
 	if err != nil {
-		close(f)
+		closer(f)
 		return err
 	}
 
@@ -86,7 +88,7 @@ func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 	go func() {
 		time.Sleep(durationSecToDuration(durationSeconds))
 		profiler.Stop()
-		close(f)
+		closer(f)
 		delayedLog.Info("%s profile to %s done", name, outputFile)
 	}()
 
@@ -95,7 +97,8 @@ func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
 
 func doTimedProfileInDir(log libkb.LogUI, delayedLog logger.Logger,
 	profiler timedProfiler, dir string,
-	durationSeconds keybase1.DurationSec) (err error) {
+	durationSeconds keybase1.DurationSec,
+) (err error) {
 	name := profiler.Name()
 	maxFileCount := profiler.MaxFileCount()
 	files, err := profiler.GetSortedFiles(dir)
@@ -145,6 +148,16 @@ func (cpuProfiler) Stop() {
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
 	logui := c.getLogUI(arg.SessionID)
 	return doTimedProfile(logui, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
+}
+
+func (c *PprofHandler) HeapProfile(ctx context.Context, arg keybase1.HeapProfileArg) (err error) {
+	runtime.GC()
+	f, err := os.Create(arg.ProfileFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return pprof.WriteHeapProfile(f)
 }
 
 func (c *PprofHandler) logDir(logDirForMobile string) string {

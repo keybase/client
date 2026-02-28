@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -11,10 +12,9 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
-func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]libkb.DeviceWithDeviceNumber, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	require.NoError(tc.T, err)
@@ -22,7 +22,7 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 
-	activeDevices := []*libkb.Device{}
+	activeDevices := []libkb.DeviceWithDeviceNumber{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
 			activeDevices = append(activeDevices, device)
@@ -33,6 +33,17 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 
 func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
 	revokeEngine := NewRevokeKeyEngine(tc.G, kid)
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, revokeEngine)
+	return err
+}
+
+func doRevokeSig(tc libkb.TestContext, u *FakeUser, sig keybase1.SigID) error {
+	revokeEngine := NewRevokeSigsEngine(tc.G, []string{sig.String()})
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -87,9 +98,9 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var thisDevice *libkb.Device
+	var thisDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
-		if device.Type != libkb.DeviceTypePaper {
+		if device.Type != keybase1.DeviceTypeV2_PAPER {
 			thisDevice = device
 		}
 	}
@@ -141,6 +152,24 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	} else {
 		checkPerUserKeyring(t, tc.G, 0)
 	}
+
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
+	user, err := libkb.LoadUser(arg)
+	require.NoError(t, err)
+
+	var nextSeqno int
+	var postedSeqno int
+	if upgradePerUserKey {
+		nextSeqno = 7
+		postedSeqno = 4
+	} else {
+		nextSeqno = 5
+		postedSeqno = 3
+	}
+	nextExpected, err := user.GetExpectedNextHighSkip(libkb.NewMetaContextForTest(tc))
+	require.NoError(t, err)
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(nextSeqno))
+	assertPostedHighSkipSeqno(t, tc, user.GetName(), postedSeqno)
 }
 
 func TestRevokerPaperDeviceTwice(t *testing.T) {
@@ -192,7 +221,7 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 }
 
 func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	// Weakly check. If the keyring was not initialized, don't worry about it.
 	if pukring.HasAnyKeys() == (expectedCurrentGeneration > 0) {
@@ -202,7 +231,7 @@ func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGe
 
 	// double check that the per-user-keyring is correct
 	g.ClearPerUserKeyring()
-	pukring, err = g.GetPerUserKeyring()
+	pukring, err = g.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	require.NoError(t, pukring.Sync(libkb.NewMetaContextTODO(g)))
 	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
@@ -283,7 +312,7 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -341,7 +370,7 @@ func TestSignAfterRevoke(t *testing.T) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -352,12 +381,9 @@ func TestSignAfterRevoke(t *testing.T) {
 
 	// Still logged in on tc1, a revoked device.
 
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
 	// Test signing with (revoked) device key on tc1, which works...
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -373,10 +399,11 @@ func TestSignAfterRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	AssertLoggedOut(tc1)
+	err = AssertLoggedOut(tc1)
+	require.NoError(t, err)
 
 	// And now this should fail.
-	ret, err = SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err = SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err == nil {
@@ -392,22 +419,20 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "rev")
+	CreateAndSignupFakeUser(tc, "rev")
 
-	AssertLoggedIn(tc)
+	err := AssertLoggedIn(tc)
+	require.NoError(t, err)
 
 	if err := NewMetaContextForTest(tc).LogoutAndDeprovisionIfRevoked(); err != nil {
 		t.Fatal(err)
 	}
 
-	AssertLoggedIn(tc)
-
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
+	err = AssertLoggedIn(tc)
+	require.NoError(t, err)
 
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -423,9 +448,9 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t := tc.T
 	t.Logf("revoke a paper key")
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
-	var revokeDevice *libkb.Device
+	var revokeDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
 			revokeDevice = device
 		}
 	}
@@ -433,7 +458,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t.Logf("revoke %s", revokeDevice.ID)
 	err := doRevokeDevice(tc, fu, revokeDevice.ID, false, false)
 	require.NoError(t, err)
-	return revokeDevice
+	return revokeDevice.Device
 }
 
 func TestRevokeLastDevice(t *testing.T) {
@@ -489,7 +514,7 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

@@ -1,29 +1,48 @@
 @namespace("stellar.1")
 protocol common {
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("string") record AccountID {}
   @typedef("string") record SecretKey {}
   @typedef("string") record TransactionID {}
+  @typedef("string") record PaymentID {}
   @typedef("string") record KeybaseTransactionID {}
   @typedef("long")   record TimeMs {} // ms since epoch
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
-
-  record PaymentID {
-    TransactionID txID;
-  }
+  @typedef("string") record AssetCode {}
 
   record Asset {
-    string type; // 'native' | 'alphanum4' | 'alphanum12'
+    string type; // 'native' | 'credit_alphanum4' | 'credit_alphanum12'
     string code;
     string issuer;
+    string verifiedDomain; // 'stronghold.co' or empty if XLM or unverified
+    string issuerName;     // 'Stronghold' or empty if it didn't exist, XLM, or unverified
+    string desc; // 'Worthwhile token' or empty
+    string infoUrl; // 'https://...' or empty
+    string infoUrlText; // 'Exchange' for an exchange, 'View details' for anything else
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
+    string withdrawType; // bank_account, crypto, cash, etc. that the anchor supports
+    string transferServer; // sep6/24 transfer server
+    string authEndpoint; // sep6/24 auth endpoint
+    boolean depositReqAuth; // deposit requires sep10 authentication
+    boolean withdrawReqAuth; // withdraw requires sep10 authentication
+    boolean useSep24; // anchor uses sep24 instead of sep6
+  }
+
+  record AssetListResult {
+    array<Asset> assets;
+    int totalCount;
   }
 
   record Balance {
     Asset asset;
     string amount;
     string limit;
+    boolean isAuthorized;
   }
 
   record AccountReserve {
@@ -41,7 +60,8 @@ protocol common {
 
   enum RequestStatus {
     OK_0,
-    CANCELED_1
+    CANCELED_1,
+    DONE_2
   }
 
   enum PaymentStrategy {
@@ -56,6 +76,7 @@ protocol common {
   }
 
   record PaymentResult {
+    AccountID senderAccountID;
     KeybaseTransactionID keybaseID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
@@ -136,5 +157,31 @@ protocol common {
     string horizonCursor;
     string directCursor;
     string relayCursor;
+  }
+
+  enum AccountMode {
+    NONE_0,
+    USER_1,  // Each of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices have access to the keys
+  }
+
+  // Record describing trustline input argument for trustline operations - when
+  // changing trustlines, caller only needs to supply issuer account ID and asset
+  // code.
+  record Trustline {
+    AssetCode assetCode;
+    AccountID issuer;
+  }
+
+  record PaymentPath {
+    string sourceAmount;
+    string sourceAmountMax;
+    Asset sourceAsset;
+    array<Asset> path;
+    string destinationAmount;
+    Asset destinationAsset;
+    // Populated only if source account balance isn't sufficient to make this
+    // balance. If populated it will be the source account balance.
+    string sourceInsufficientBalance;
   }
 }

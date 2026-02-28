@@ -31,10 +31,7 @@ func (p *Paragraph) Buffer(b []byte) {
 	p.data = append(p.data, b...)
 }
 
-var (
-	nl = []byte{'\n'}
-	sp = []byte{' '}
-)
+var nl = []byte{'\n'}
 
 // makePad makes a whitespace pad that is l bytes long.
 func makePad(l int) []byte {
@@ -67,7 +64,7 @@ func spacify(s string) string {
 func (p Paragraph) Output(out io.Writer) {
 	s := []byte(spacify(string(p.data)))
 	if len(s) == 0 {
-		out.Write(nl)
+		_, _ = out.Write(nl)
 		return
 	}
 	indent := p.indent * INDENT
@@ -78,14 +75,14 @@ func (p Paragraph) Output(out io.Writer) {
 	pad := makePad(len(p.prefix))
 
 	for i, line := range lines {
-		out.Write(gutter)
+		_, _ = out.Write(gutter)
 		if i == 0 {
-			out.Write([]byte(p.prefix))
+			_, _ = out.Write([]byte(p.prefix))
 		} else {
-			out.Write(pad)
+			_, _ = out.Write(pad)
 		}
-		out.Write(line)
-		out.Write(nl)
+		_, _ = out.Write(line)
+		_, _ = out.Write(nl)
 	}
 }
 
@@ -170,9 +167,10 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	case atom.Em:
 		cp = &CpItalic
 	default:
-		if node.Data == "url" {
+		switch node.Data {
+		case "url":
 			cp = &CpUnderline
-		} else if node.Data == "color" {
+		case "color":
 			if c := GetNodeAttrVal(node, "name"); c != nil {
 				cp = GetColorCode(*c)
 			}
@@ -224,7 +222,7 @@ func Render(g *libkb.GlobalContext, w io.Writer, m *libkb.Markup) {
 func RenderText(g *libkb.GlobalContext, w io.Writer, txt keybase1.Text) {
 	w = getWriter(g, w)
 	if !txt.Markup {
-		w.Write([]byte(txt.Data))
+		_, _ = w.Write([]byte(txt.Data))
 	} else {
 		Render(g, w, libkb.NewMarkup(txt.Data))
 	}

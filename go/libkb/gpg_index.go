@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
-//=============================================================================
+// =============================================================================
 
 type BucketDict struct {
 	d map[string][]*GpgPrimaryKey
@@ -52,7 +52,7 @@ func (bd BucketDict) Get0Or1(k string) (ret *GpgPrimaryKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 func Uniquify(inp []string) []string {
 	m := make(map[string]bool)
@@ -66,7 +66,7 @@ func Uniquify(inp []string) []string {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgBaseKey struct {
 	Type        string
@@ -80,7 +80,7 @@ type GpgBaseKey struct {
 }
 
 func (k GpgBaseKey) AlgoString() string {
-	switch packet.PublicKeyAlgorithm(k.Algo) {
+	switch packet.PublicKeyAlgorithm(k.Algo) { //nolint:gosec // G115: GPG algorithm IDs are small enum values (1-3), safe to convert
 	case packet.PubKeyAlgoDSA:
 		return "D"
 	case packet.PubKeyAlgoRSA:
@@ -97,12 +97,12 @@ func (k GpgBaseKey) ExpirationString() string {
 		return "never"
 	}
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Expires), 0).Format(layout)
+	return time.Unix(k.Expires, 0).Format(layout)
 }
 
 func (k GpgBaseKey) CreatedString() string {
 	layout := "2006-01-02"
-	return time.Unix(int64(k.Created), 0).Format(layout)
+	return time.Unix(k.Created, 0).Format(layout)
 }
 
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
@@ -148,7 +148,7 @@ func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgFingerprinter interface {
 	SetFingerprint(pgp *PGPFingerprint)
@@ -162,7 +162,7 @@ type GpgPrimaryKey struct {
 	top        GpgFingerprinter
 }
 
-func (k *GpgPrimaryKey) IsValid() bool {
+func (k *GpgPrimaryKey) IsValid(mctx MetaContext) bool {
 	if k == nil {
 		return false
 	}
@@ -170,17 +170,17 @@ func (k *GpgPrimaryKey) IsValid() bool {
 		return false
 	} else if k.Expires == 0 {
 		return true
-	} else {
-		expired := time.Now().After(time.Unix(int64(k.Expires), 0))
-		if expired {
-			var fp string
-			if k.fingerprint != nil {
-				fp = " (" + k.fingerprint.ToQuads() + ")"
-			}
-			k.G().Log.Warning("Skipping expired primary key%s", fp)
-		}
-		return !expired
 	}
+	expiresAt := time.Unix(k.Expires, 0)
+	expired := time.Now().After(expiresAt)
+	if expired {
+		var fp string
+		if k.fingerprint != nil {
+			fp = " (" + k.fingerprint.ToQuads() + ")"
+		}
+		mctx.Warning("Skipping expired primary key%s, expiration: %s", fp, expiresAt)
+	}
+	return !expired
 }
 
 func (k *GpgPrimaryKey) ToRow(i int) []string {
@@ -222,14 +222,14 @@ func ParseGpgPrimaryKey(g *GlobalContext, l *GpgIndexLine) (key *GpgPrimaryKey, 
 func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 	var id *Identity
 	if f := l.At(9); len(f) == 0 {
+		return nil
 	} else if id, err = ParseIdentity(f); err != nil {
+		err = ErrorToGpgIndexError(l.lineno, err)
+		return err
 	} else if l.At(1) != "r" { // is not revoked
 		k.identities = append(k.identities, id)
 	}
-	if err != nil {
-		err = ErrorToGpgIndexError(l.lineno, err)
-	}
-	return
+	return nil
 }
 
 func (k *GpgPrimaryKey) AddFingerprint(l *GpgIndexLine) (err error) {
@@ -312,7 +312,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 	return err
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgSubKey struct {
 	GpgBaseKey
@@ -324,7 +324,7 @@ func ParseGpgSubKey(l *GpgIndexLine) (sk *GpgSubKey, err error) {
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexElement interface {
 	ToKey() *GpgPrimaryKey
@@ -338,9 +338,11 @@ type GpgKeyIndex struct {
 func (ki *GpgKeyIndex) Len() int {
 	return len(ki.Keys)
 }
+
 func (ki *GpgKeyIndex) Swap(i, j int) {
 	ki.Keys[i], ki.Keys[j] = ki.Keys[j], ki.Keys[i]
 }
+
 func (ki *GpgKeyIndex) Less(i, j int) bool {
 	a, b := ki.Keys[i], ki.Keys[j]
 	if len(a.identities) > len(b.identities) {
@@ -398,8 +400,8 @@ func (ki *GpgKeyIndex) IndexKey(k *GpgPrimaryKey) {
 	}
 }
 
-func (ki *GpgKeyIndex) PushElement(e GpgIndexElement) {
-	if key := e.ToKey(); key.IsValid() {
+func (ki *GpgKeyIndex) PushElement(mctx MetaContext, e GpgIndexElement) {
+	if key := e.ToKey(); key.IsValid(mctx) {
 		ki.IndexKey(key)
 	}
 }
@@ -414,7 +416,7 @@ func (ki *GpgKeyIndex) AllFingerprints() []PGPFingerprint {
 	return ret
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexLine struct {
 	v      []string
@@ -439,7 +441,7 @@ func (g GpgIndexLine) IsNewKey() bool {
 	return len(g.v) > 0 && (g.v[0] == "sec" || g.v[0] == "pub")
 }
 
-//=============================================================================
+// =============================================================================
 
 type GpgIndexParser struct {
 	Contextified
@@ -466,7 +468,7 @@ func (p *GpgIndexParser) Warn(w Warning) {
 func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 	var line *GpgIndexLine
 	line, err = p.GetLine()
-	if err != nil || line == nil {
+	if err != nil || line == nil { //nolint
 	} else if line.IsNewKey() {
 		ret, err = p.ParseKey(line)
 	}
@@ -478,11 +480,11 @@ func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err erro
 	ret, err = ParseGpgPrimaryKey(p.G(), l)
 	done := false
 	for !done && err == nil && !p.isEOF() {
-		if line, err = p.GetLine(); line == nil || err != nil {
+		if line, err = p.GetLine(); line == nil || err != nil { //nolint
 		} else if line.IsNewKey() {
 			p.PutbackLine(line)
 			done = true
-		} else if e2 := ret.AddLine(line); e2 == nil {
+		} else if e2 := ret.AddLine(line); e2 == nil { // nolint
 		} else {
 			p.warnings.Push(ErrorToWarning(e2))
 		}
@@ -520,31 +522,31 @@ func (p *GpgIndexParser) PutbackLine(line *GpgIndexLine) {
 
 func (p GpgIndexParser) isEOF() bool { return p.eof }
 
-func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
+func (p *GpgIndexParser) Parse(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, err error) {
 	p.src = bufio.NewReader(stream)
 	ki = NewGpgKeyIndex()
 	for err == nil && !p.isEOF() {
 		var el GpgIndexElement
 		if el, err = p.ParseElement(); err == nil && el != nil {
-			ki.PushElement(el)
+			ki.PushElement(mctx, el)
 		}
 	}
 	ki.Sort()
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
-func ParseGpgIndexStream(g *GlobalContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
-	eng := NewGpgIndexParser(g)
-	ki, err = eng.Parse(stream)
+func ParseGpgIndexStream(mctx MetaContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
+	eng := NewGpgIndexParser(mctx.G())
+	ki, err = eng.Parse(mctx, stream)
 	w = eng.warnings
 	return
 }
 
-//=============================================================================
+// =============================================================================
 
-func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
+func (g *GpgCLI) Index(mctx MetaContext, secret bool, query string) (ki *GpgKeyIndex, w Warnings, err error) {
 	var k string
 	if secret {
 		k = "-K"
@@ -559,16 +561,16 @@ func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, 
 		Arguments: args,
 		Stdout:    true,
 	}
-	res := g.Run2(garg)
+	res := g.Run2(mctx, garg)
 	if res.Err != nil {
 		err = res.Err
 		return
 	}
-	if ki, w, err = ParseGpgIndexStream(g.G(), res.Stdout); err != nil {
+	if ki, w, err = ParseGpgIndexStream(mctx, res.Stdout); err != nil {
 		return
 	}
 	err = res.Wait()
 	return
 }
 
-//=============================================================================
+// =============================================================================

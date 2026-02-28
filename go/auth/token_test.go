@@ -178,7 +178,8 @@ func TestTokenChallengeInvalid(t *testing.T) {
 }
 
 func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsername,
-	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string) error {
+	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string,
+) error {
 	if token.UID() != uid {
 		return fmt.Errorf("UID mismatch, expected: %s, got %s",
 			uid, token.UID())

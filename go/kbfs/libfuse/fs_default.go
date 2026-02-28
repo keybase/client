@@ -1,0 +1,25 @@
+// Copyright 2016 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
+//go:build !darwin && !windows
+// +build !darwin,!windows
+
+package libfuse
+
+import (
+	"context"
+
+	"bazil.org/fuse"
+	"bazil.org/fuse/fs"
+)
+
+var platformRootDirs []fuse.Dirent
+
+func shouldAppendPlatformRootDirs(parmas PlatformParams) bool { // nolint
+	return false
+}
+
+func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+	return nil, nil
+}

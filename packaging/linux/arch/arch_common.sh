@@ -31,20 +31,15 @@ setup_arch_build() {
     # https://aur.archlinux.org/packages/keybase-bin.
     debver="$(cat "$build_root/VERSION" | sed s/+/./)"
 
-    deb_i386="$(ls "$build_root"/deb/i386/*.deb)"
-    sum_i386="$(sha256sum "$deb_i386" | awk '{print $1}')"
-
     deb_amd64="$(ls "$build_root"/deb/amd64/*.deb)"
     sum_amd64="$(sha256sum "$deb_amd64" | awk '{print $1}')"
 
     if [ "$src_prefix" = "." ]; then
-        cp $deb_i386 $keybase_bin_repo/keybase_${debver}_i386.deb
-        cp $deb_amd64 $keybase_bin_repo/keybase_${debver}_amd64.deb
+        cp "$deb_amd64" "$keybase_bin_repo/keybase_${debver}_amd64.deb"
     fi
 
     cat "$here/PKGBUILD.bin.in" \
         | sed "s/@@PKGVER@@/$pkgver/g" \
-        | sed "s/@@SUM_i686@@/$sum_i386/g" \
         | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
         | sed "s|@@SRC_PREFIX@@|$src_prefix|g" \
               > "$keybase_bin_repo/PKGBUILD"
@@ -52,7 +47,6 @@ setup_arch_build() {
     cat "$here/DOT_SRCINFO.bin.in" \
         | sed "s/@@PKGVER@@/$pkgver/g" \
         | sed "s/@@DEBVER@@/$debver/g" \
-        | sed "s/@@SUM_i686@@/$sum_i386/g" \
         | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
         | sed "s|@@SRC_PREFIX@@|$src_prefix|g" \
               > "$keybase_bin_repo/.SRCINFO"

@@ -1,11 +1,11 @@
 package service
 
 import (
+	"context"
 	"net"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // connTransport implements rpc.ConnectionTransport
@@ -28,11 +28,13 @@ func newConnTransport(g *libkb.GlobalContext, host string) *connTransport {
 
 func (t *connTransport) Dial(context.Context) (rpc.Transporter, error) {
 	var err error
-	t.conn, err = net.Dial("tcp", t.host)
+	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
 		return nil, err
 	}
-	t.stagedTransport = rpc.NewTransport(t.conn, libkb.NewRPCLogFactory(t.G()), libkb.MakeWrapError(t.G()), rpc.DefaultMaxFrameLength)
+	t.stagedTransport = rpc.NewTransport(t.conn, libkb.NewRPCLogFactory(t.G()),
+		t.G().RemoteNetworkInstrumenterStorage,
+		libkb.MakeWrapError(t.G()), rpc.DefaultMaxFrameLength)
 	return t.stagedTransport, nil
 }
 
@@ -41,14 +43,28 @@ func (t *connTransport) IsConnected() bool {
 }
 
 func (t *connTransport) Finalize() {
+	if t.transport != nil {
+		t.transport.Close()
+	}
 	t.transport = t.stagedTransport
 	t.stagedTransport = nil
 }
 
 func (t *connTransport) Close() {
-	t.conn.Close()
+	if t.conn != nil {
+		t.conn.Close()
+	}
+	if t.transport != nil {
+		t.transport.Close()
+	}
+	t.transport = nil
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
+	t.stagedTransport = nil
 }
 
 func (t *connTransport) Reset() {
 	t.transport = nil
+	t.stagedTransport = nil
 }

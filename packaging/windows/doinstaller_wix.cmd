@@ -8,6 +8,12 @@ echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
 if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 set SIGNTOOL=signtool
+set CONFIGURATION=Release
+if "%~1"=="debug" (
+  set SIGNTOOL=echo
+  set CONFIGURATION=Debug
+  if NOT DEFINED KEYBASE_WINBUILD set KEYBASE_WINBUILD=0
+)
 set CERTISSUER=DigiCert
 
 ::
@@ -32,7 +38,7 @@ echo KEYBASE_VERSION %KEYBASE_VERSION%
 popd
 
 :: prompter
-pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+pushd %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter
 msbuild WpfPrompter.sln /t:Clean
 msbuild WpfPrompter.sln /p:Configuration=Release /t:Build
 IF %ERRORLEVEL% NEQ 0 (
@@ -41,55 +47,61 @@ IF %ERRORLEVEL% NEQ 0 (
 popd
 
 call:dosignexe %PathName%
-call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
-call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
-
-if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.bat
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+:: runquiet utility
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
 
 :: Double check that keybase is codesigned
-signtool verify /pa %PathName%
+%SIGNTOOL% verify /pa %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that kbfs is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that git-remote-keybase is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that updater is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that Keybase.exe gui is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that browser extension is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
 :: Double check that the prompter exe is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that the runquiet exe is codesigned
+%SIGNTOOL% verify /pa %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -98,14 +110,17 @@ set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
-msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x64 /t:Build
+msbuild WIX_Installers.sln  /p:Configuration=%CONFIGURATION% /p:Platform=x64 /t:Build
 popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
+IF "%CONFIGURATION%"=="Debug" (
+  EXIT /B 0
+)
 
 :: Here we rely on the previous steps checking out and building release.exe
-set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
+set ReleaseBin=%GOPATH%\src\github.com\keybase\client\go\release\release.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
@@ -114,7 +129,7 @@ move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\Keyb
 for /f %%i in ('dir /od /b *.msi') do set KEYBASE_INSTALLER_NAME=%%i
 
 :: Double check that the installer is codesigned
-signtool verify /pa %KEYBASE_INSTALLER_NAME%
+%SIGNTOOL% verify /pa %KEYBASE_INSTALLER_NAME%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -178,13 +193,29 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 %~1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
+echo "Signing %DevCert%"
+IF %DevCert% NEQ 1 (
+
+  %SIGNTOOL% sign /i digicert /a /tr http://timestamp.digicert.com %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  %SIGNTOOL% sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+
+) ELSE (
+
+  %SIGNTOOL% sign /a /tr http://timestamp.digicert.com %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  %SIGNTOOL% sign /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+  IF %ERRORLEVEL% NEQ 0 (
+    EXIT /B 1
+  )
+  
 )
 
 goto:eof

@@ -37,7 +37,6 @@ func (s *Base64Finder) findAll() {
 }
 
 func (s *Base64Finder) search(searchFor []byte, url bool) bool {
-
 	var encoding *base64.Encoding
 
 	if url {

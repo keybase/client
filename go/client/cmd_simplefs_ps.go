@@ -4,8 +4,7 @@
 package client
 
 import (
-	"golang.org/x/net/context"
-
+	"context"
 	"encoding/hex"
 
 	"github.com/keybase/cli"
@@ -17,7 +16,6 @@ import (
 // CmdSimpleFSPs is the 'fs ps' command.
 type CmdSimpleFSPs struct {
 	libkb.Contextified
-	path    keybase1.Path
 	recurse bool
 }
 
@@ -53,7 +51,7 @@ func getPathString(path keybase1.Path) string {
 		return ""
 	}
 	if pathType == keybase1.PathType_KBFS {
-		return path.Kbfs()
+		return path.Kbfs().Path
 	}
 	return path.Local()
 }
@@ -78,8 +76,8 @@ func outputOp(ui libkb.TerminalUI, o keybase1.OpDescription) {
 		write := o.Write()
 		ui.Printf("%s\t%s\t%s\t%d\n", hex.EncodeToString(write.OpID[:]), op.String(), getPathString(write.Path), write.Offset)
 	case keybase1.AsyncOps_COPY:
-		copy := o.Copy()
-		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(copy.OpID[:]), op.String(), getPathString(copy.Src), getPathString(copy.Dest))
+		copyOp := o.Copy()
+		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(copyOp.OpID[:]), op.String(), getPathString(copyOp.Src), getPathString(copyOp.Dest))
 	case keybase1.AsyncOps_MOVE:
 		move := o.Move()
 		ui.Printf("%s\t%s\t%s\t%s\n", hex.EncodeToString(move.OpID[:]), op.String(), getPathString(move.Src), getPathString(move.Dest))
@@ -98,7 +96,6 @@ func (c *CmdSimpleFSPs) output(ops []keybase1.OpDescription) {
 
 // ParseArgv gets the optional -r switch
 func (c *CmdSimpleFSPs) ParseArgv(ctx *cli.Context) error {
-
 	c.recurse = ctx.Bool("recurse")
 
 	return nil

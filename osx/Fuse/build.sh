@@ -5,39 +5,44 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+rm -rf osxfuse macfuse
+
 version=${VERSION:?"Need to set VERSION for Fuse"}
+if [ "$version" = "5.0.6" ]; then
+  tar -xjf ~/Downloads/macfuse-5.0.6-src-mike.tgz
+  #mv macfuse-5.0.6-src-mike macfuse
+else
+  echo "Unsupported VERSION"
+  exit 1
+fi
 
-# Checkout
-rm -rf osxfuse
-git clone --recursive -b osxfuse-$version git://github.com/osxfuse/osxfuse.git osxfuse
-
-# Patch osxfuse to turn it into kbfuse
+# Patch macfuse to turn it into kbfuse
 ./patch.sh
 
 # Compile
 rm -rf /tmp/kbfuse*
-cd osxfuse
+cd macfuse
 # If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
-# build for 10.11, and have osxfuse builder symlink other versions.
-./build.sh -v 5 -t fsbundle -- -s 10.11 -d 10.11 --kext=10.11 --kext="10.12->10.11" --kext="10.13->10.11" --kext="10.14->10.11"
+# use 12.3 SDK (-s) and set deployment target 12.3 (-d). Build for macOS 12 kernel, and support up to Darwin 23 (macOS 14).
+./build.sh -v 5 -t filesystembundle -- -s 26.0 -d 12.3 --kext="12,26.0,25" --kext="26->12" --kext="15->12" --kext="14->12" --kext="13->12" --code-sign-identity="Developer ID Application: Keybase, Inc."
 
 cd $dir
 rm -rf kbfuse.bundle
-ditto /tmp/kbfuse/fsbundle/kbfuse.fs kbfuse.bundle
+ditto ~/Desktop/kbfuse-5.0.6/filesystembundle/Products/kbfuse.fs kbfuse.bundle
 
-# Backup the fsbundle directory in case we need debug symbols later
-cd /tmp/kbfuse/fsbundle
+# Backup the filesystembundle directory in case we need debug symbols later
+cd ~/Desktop/kbfuse-5.0.6/filesystembundle
 tar zcvpf $dir/fsbundle.tgz  .
 
 # Sign the kext
 cd $dir
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Extensions/10.11/kbfuse.kext
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/mount_kbfuse
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/load_kbfuse
-codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle
+codesign --force --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Extensions/12/kbfuse.kext
+codesign --force --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/mount_kbfuse
+codesign --force --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/load_kbfuse
+codesign --force --verbose --force --deep --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle
 
 # Verify
-codesign --verbose --verify kbfuse.bundle/Contents/Extensions/10.11/kbfuse.kext
+codesign --verbose --verify kbfuse.bundle/Contents/Extensions/12/kbfuse.kext
 codesign --verbose --verify kbfuse.bundle/Contents/Resources/mount_kbfuse
 codesign --verbose --verify kbfuse.bundle/Contents/Resources/load_kbfuse
 codesign --verbose --verify kbfuse.bundle

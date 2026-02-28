@@ -4,13 +4,13 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletRename struct {
@@ -47,11 +47,12 @@ func (c *cmdWalletRename) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletRename) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
 	}
-	err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = cli.ChangeWalletAccountNameLocal(context.TODO(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: c.AccountID,
 		NewName:   c.Name,
 	})

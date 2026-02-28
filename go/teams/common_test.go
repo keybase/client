@@ -1,9 +1,8 @@
 package teams
 
 import (
+	"context"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
@@ -22,7 +21,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 		isProduction := func() bool {
 			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 	ServiceInit(tc.G)
 	return tc

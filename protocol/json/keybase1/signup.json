@@ -25,6 +25,10 @@
           "type": "boolean",
           "name": "writeOk",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "paperKey"
         }
       ]
     }
@@ -87,6 +91,22 @@
         },
         {
           "name": "genPaper",
+          "type": "boolean"
+        },
+        {
+          "name": "randomPw",
+          "type": "boolean"
+        },
+        {
+          "name": "verifyEmail",
+          "type": "boolean"
+        },
+        {
+          "name": "botToken",
+          "type": "BotToken"
+        },
+        {
+          "name": "skipGPG",
           "type": "boolean"
         }
       ],

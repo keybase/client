@@ -2,12 +2,9 @@
 
 ### Pre-requisites
 
+* cocoapods (`sudo gem install cocoapods -v 1.8.4`)
 * appdmg (`npm install -g appdmg`)
 * xcpretty (`gem install xcpretty`)
-* Xcode 8.3.3 from https://developer.apple.com/download/more
-  * Install it in `/Applications`, and rename it "XCode8" if you already have a
-    Different Xcode version installed.
-  * On macOS 10.14, using latest Xcode works.
 * Xcode command line tools
 
 ### Build the Installer
@@ -15,21 +12,20 @@
 You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
 and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist). If you updated KBFuse, bump those versions too.
 
-Prepare your Xcode environment:
-
-```
-sudo xcode-select -s /Applications/Xcode8.app/Contents/Developer
-```
-
 Install the developer certificate chain by cloning the
-`keybase://team/keybase.builds/meta` repo, and installing
-`credentials/kbfuse-signing-cert/keybase-cert.p12` (there's a password
-file in the same directory).
+`keybase://team/keybase.keymasters/apple-dev` repo, and installing the
+cert with `open keybase-cert.p12` (there's a cert.pw file in the same
+directory).
+
+Depending on your local xcode settings, you might also need to install
+the old developer cert, located in `keybase-dev-cert.p12`.  This won't
+be used to sign the final product, but it might be need for some of
+the interim steps, if your xcode setup pre-dates the new certificate.
 
 Open Xcode 8, go to "Xcode -> Preferences...", go to the "Accounts"
 tab, and click the + to "Add Apple ID...". Enter the gmail address
-and Apple password found in the `credentials/apple-dev.txt` file in
-the above-mentioned `meta` repo. After adding the account, you might need to
+and Apple password found in the `apple.txt` file in
+the above-mentioned `apple-dev` repo. After adding the account, you might need to
 click "Download Manual Profiles" (I did, but not sure if it was actually
 helpful), and open the Keybaes project, and let it update signing related
 stuff. For me it showed a green check mark followed by "Signing update

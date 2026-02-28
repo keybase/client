@@ -5,10 +5,11 @@ package client
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/pinentry"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"io"
 )
 
 type SecretEntry struct {
@@ -28,7 +29,6 @@ func NewSecretEntry(g *libkb.GlobalContext, t *Terminal, tty string) *SecretEntr
 }
 
 func (se *SecretEntry) Init() (err error) {
-
 	se.G().Log.Debug("+ SecretEntry.Init()")
 
 	if se.initRes != nil {
@@ -63,7 +63,6 @@ func (se *SecretEntry) Init() (err error) {
 }
 
 func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg, w io.Writer) (res *keybase1.SecretEntryRes, err error) {
-
 	if err = se.Init(); err != nil {
 		return
 	}

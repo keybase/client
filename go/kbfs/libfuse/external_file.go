@@ -1,0 +1,43 @@
+// Copyright 2016 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+//
+//go:build !windows
+// +build !windows
+
+package libfuse
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"sync"
+	"time"
+
+	"github.com/keybase/client/go/kbfs/ioutil"
+)
+
+func newExternalFile(path string) (*SpecialReadFile, error) { // nolint
+	if path == "" {
+		return nil, fmt.Errorf("No path for external file")
+	}
+
+	var once sync.Once
+	var data []byte
+	var err error
+	var fileTime time.Time
+	return &SpecialReadFile{
+		read: func(context.Context) ([]byte, time.Time, error) {
+			once.Do(func() {
+				var info os.FileInfo
+				info, err = ioutil.Stat(path)
+				if err != nil {
+					return
+				}
+				fileTime = info.ModTime()
+				data, err = os.ReadFile(path) //nolint:gosec // G304: External file path is controlled by ExternalFile creator
+			})
+			return data, fileTime, err
+		},
+	}, nil
+}

@@ -26,18 +26,18 @@ type ServerPrivateKey struct {
 type ServerPrivateKeyMap map[string]ServerPrivateKey
 
 type DeviceKey struct {
-	Type          string               `json:"type"`
-	CTime         int64                `json:"ctime"`
-	MTime         int64                `json:"mtime"`
-	Description   string               `json:"name"`
-	Status        int                  `json:"status"`
-	LksServerHalf string               `json:"lks_server_half"`
-	PPGen         PassphraseGeneration `json:"passphrase_generation"`
-	LastUsedTime  int64                `json:"last_used_time"`
+	Type          keybase1.DeviceTypeV2 `json:"type"`
+	CTime         int64                 `json:"ctime"`
+	MTime         int64                 `json:"mtime"`
+	Description   string                `json:"name"`
+	Status        int                   `json:"status"`
+	LksServerHalf string                `json:"lks_server_half"`
+	PPGen         PassphraseGeneration  `json:"passphrase_generation"`
+	LastUsedTime  int64                 `json:"last_used_time"`
 }
 
 func (d DeviceKey) Display() string {
-	if d.Type == DeviceTypePaper {
+	if d.Type == keybase1.DeviceTypeV2_PAPER {
 		// XXX not sure if we need to support our existing paper keys, but without this
 		// someone is surely going to complain:
 		if strings.HasPrefix(d.Description, "Paper Key") {
@@ -65,17 +65,17 @@ type SecretSyncer struct {
 	keys  *ServerPrivateKeys
 }
 
-type DeviceTypeSet map[string]bool
+type DeviceTypeSet map[keybase1.DeviceTypeV2]bool
 
 var DefaultDeviceTypes = DeviceTypeSet{
-	DeviceTypeDesktop: true,
-	DeviceTypeMobile:  true,
+	keybase1.DeviceTypeV2_DESKTOP: true,
+	keybase1.DeviceTypeV2_MOBILE:  true,
 }
 
 var AllDeviceTypes = DeviceTypeSet{
-	DeviceTypeDesktop: true,
-	DeviceTypeMobile:  true,
-	DeviceTypePaper:   true,
+	keybase1.DeviceTypeV2_DESKTOP: true,
+	keybase1.DeviceTypeV2_MOBILE:  true,
+	keybase1.DeviceTypeV2_PAPER:   true,
 }
 
 func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
@@ -90,20 +90,20 @@ func (ss *SecretSyncer) Clear() error {
 	return nil
 }
 
-func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err error) {
+func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
 	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))
-	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	m.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if err != nil {
 		return err
 	}
 	if !found {
-		m.CDebugf("| Loaded empty record set")
+		m.Debug("| Loaded empty record set")
 		return nil
 	}
 	if ss.cachedSyncedSecretsOutOfDate(&tmp) {
-		m.CDebugf("| Synced secrets out of date")
+		m.Debug("| Synced secrets out of date")
 		return nil
 	}
 
@@ -113,7 +113,7 @@ func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	// private key fell back to gpg instead of using a synced key.
 	//
 
-	m.CDebugf("| Loaded version %d", tmp.Version)
+	m.Debug("| Loaded version %d", tmp.Version)
 	ss.keys = &tmp
 
 	return nil
@@ -123,18 +123,17 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	hargs := HTTPArgs{}
 
 	if ss.keys != nil && !forceReload {
-		m.CDebugf("| adding version %d to fetch_private call", ss.keys.Version)
+		m.Debug("| adding version %d to fetch_private call", ss.keys.Version)
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *APIRes
-	res, err = ss.G().API.Get(APIArg{
+	res, err = ss.G().API.Get(m, APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
 		SessionType: APISessionTypeREQUIRED,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
-		MetaContext: m,
 	})
-	m.CDebugf("| syncFromServer -> %s", ErrToOk(err))
+	m.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -144,13 +143,13 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		return
 	}
 
-	m.CDebugf("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
+	m.Debug("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
 	if forceReload || ss.keys == nil || obj.Version > ss.keys.Version {
-		m.CDebugf("| upgrade to version -> %d", obj.Version)
+		m.Debug("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true
 	} else {
-		m.CDebugf("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
+		m.Debug("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
 	}
 
 	return
@@ -171,21 +170,40 @@ func (ss *SecretSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
 	return
 }
 
-// FindActiveKey examines the synced keys, looking for one that's currently active.
+// FindActiveKey examines the synced keys, looking for one that's currently
+// active. The key will be chosen at random due to non-deterministic order of
+// FindActiveKeys output.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	keys, err := ss.FindActiveKeys(ckf)
+	if err != nil {
+		return nil, err
+	}
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	ss.G().Log.Debug("NOTE: calling SecretSyncer.FindActiveKey: returning first secret key from randomly ordered map", err)
+	return keys[0], nil
+}
+
+// FindActiveKey examines the synced keys, and returns keys that are currently
+// active.
+func (ss *SecretSyncer) FindActiveKeys(ckf *ComputedKeyFamily) (ret []*SKB, err error) {
 	ss.Lock()
 	defer ss.Unlock()
 
 	if ss.keys == nil {
-		return nil, nil
+		return ret, nil
 	}
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ = key.FindActiveKey(ss.G(), ckf); ret != nil {
-			return
+		keyRet, err := key.FindActiveKey(ss.G(), ckf)
+		if err != nil {
+			ss.G().Log.Debug("SecretSyncer.FindActiveKeys: error from key.FindActiveKey, skipping key: %s", err)
+		} else {
+			ret = append(ret, keyRet)
 		}
 	}
-	return
+	return ret, nil
 }
 
 // AllActiveKeys returns all the active synced PGP keys.
@@ -256,19 +274,6 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 		return nil, fmt.Errorf("no keys")
 	}
 	return ss.keys.Devices, nil
-}
-
-func (ss *SecretSyncer) dumpDevices() {
-	ss.Lock()
-	defer ss.Unlock()
-	ss.G().Log.Warning("dumpDevices:")
-	if ss.keys == nil {
-		ss.G().Log.Warning("dumpDevices -- ss.keys == nil")
-		return
-	}
-	for devid, dev := range ss.keys.Devices {
-		ss.G().Log.Warning("%s -> desc: %q, type: %q, ppgen: %d", devid, dev.Description, dev.Type, dev.PPGen)
-	}
 }
 
 // IsDeviceNameTaken returns true if a desktop or mobile device is

@@ -57,6 +57,20 @@ DEPENDENCIES:
   - Tikppa
   - YOLayout
 
+SPEC REPOS:
+  trunk:
+    - AFNetworking
+    - CocoaLumberjack
+    - GHKeychain
+    - GHKit
+    - GHODictionary
+    - Mantle
+    - MDPSplitView
+    - MPMessagePack
+    - ObjectiveSugar
+    - Tikppa
+    - YOLayout
+
 EXTERNAL SOURCES:
   Slash:
     :git: https://github.com/chrisdevereux/Slash
@@ -67,7 +81,7 @@ CHECKOUT OPTIONS:
     :git: https://github.com/chrisdevereux/Slash
 
 SPEC CHECKSUMS:
-  AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
+  AFNetworking: a926f9357e3bc39d2c49c547e8e8dc90b36259b6
   CocoaLumberjack: 8311463ddf9ee86a06ef92a071dd656c89244500
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
@@ -80,6 +94,6 @@ SPEC CHECKSUMS:
   Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
   YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
-PODFILE CHECKSUM: 63b8f4d71cbba2bc6adfb7e369a31a74bbbf7f8b
+PODFILE CHECKSUM: 4f18b3e179e2048f397fee4d98e1ff92fcd2f489
 
-COCOAPODS: 1.4.0
+COCOAPODS: 1.15.2

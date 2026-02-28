@@ -9,6 +9,7 @@ cd "$dir"
 
 version=${VERSION:-}
 token=${GITHUB_TOKEN:-}
+arch=${ARCH:-"amd64"}
 
 if [ "$version" = "" ]; then
   echo "Specify VERSION to build"
@@ -21,13 +22,14 @@ if [ "$token" = "" ]; then
 fi
 
 build_dir="/tmp/build_keybase"
-client_dir="$GOPATH/src/github.com/keybase/client"
+client_dir="$dir../../client"
 tag="v$version"
 tgz="keybase-$version.tgz"
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+(cd "$client_dir/go" && go install "github.com/keybase/client/go/release")
 release_bin="$GOPATH/bin/release"
+echo "$(go version)"
 
 build() {
   rm -rf "$build_dir"
@@ -49,7 +51,7 @@ build() {
   mv "client-$version" "$go_dir/src/github.com/keybase/client"
 
   echo "Building keybase"
-  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase
+  (cd "$client_dir"/go GOPATH="$go_dir" && GOARCH="$arch" go build -a -tags "production" -o keybase github.com/keybase/client/go/keybase)
 
   echo "Packaging"
   rm -rf "$tgz"
@@ -58,12 +60,11 @@ build() {
 
 create_release() {
   echo "Checking for existing release: $version"
-  api_url=`$release_bin url --user=keybase --repo=client --version=$version`
+  api_url=$($release_bin url --user=keybase --repo=client --version="$version")
   if [ ! "$api_url" = "" ]; then
     echo "Release already exists, skipping"
   else
     cd "$build_dir"
-    platform=`$release_bin platform`
     echo "Creating release"
     "$release_bin" create --version="$version" --repo="client"
   fi
@@ -71,7 +72,10 @@ create_release() {
 
 upload_release() {
   cd "$build_dir"
-  platform=`$release_bin platform`
+  platform=$($release_bin platform)
+  if [ "$platform" = "darwin" ] && [ "$arch" = "arm64" ]; then
+    platform="$platform-$arch"
+  fi
   echo "Uploading release"
   "$release_bin" upload --src="$tgz" --dest="keybase-$version-$platform.tgz" --version="$version" --repo="client"
 }

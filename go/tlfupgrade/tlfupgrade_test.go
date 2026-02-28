@@ -18,7 +18,7 @@ type testAPIServer struct {
 	responseFn func() getUpgradeRes
 }
 
-func (t *testAPIServer) GetDecode(arg libkb.APIArg, resp libkb.APIResponseWrapper) error {
+func (t *testAPIServer) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, resp libkb.APIResponseWrapper) error {
 	*(resp.(*getUpgradeRes)) = t.responseFn()
 	return nil
 }
@@ -50,7 +50,8 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 		return getUpgradeRes{
 			GetTLFForUpgradeRes: NewGetTLFForUpgradeResWithTlfavailable(GetTLFForUpgradeAvailableRes{
 				TlfID: refTLFID,
-			})}
+			}),
+		}
 	}
 	api.responseFn = f
 	clock := clockwork.NewFakeClock()
@@ -67,8 +68,7 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 		}
 	}
 	attempt(1)
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
-	attempt(2)
-	u.Shutdown()
+	mctx := libkb.NewMetaContextForTest(tc)
+	err = u.Shutdown(mctx)
+	require.NoError(t, err)
 }

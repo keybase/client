@@ -1,0 +1,212 @@
+{
+  "protocol": "phoneNumbers",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "UserPhoneNumber",
+      "fields": [
+        {
+          "type": "PhoneNumber",
+          "name": "phoneNumber",
+          "jsonkey": "phone_number"
+        },
+        {
+          "type": "boolean",
+          "name": "verified",
+          "jsonkey": "verified"
+        },
+        {
+          "type": "boolean",
+          "name": "superseded",
+          "jsonkey": "superseded"
+        },
+        {
+          "type": "IdentityVisibility",
+          "name": "visibility",
+          "jsonkey": "visibility"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime",
+          "jsonkey": "ctime"
+        }
+      ],
+      "doc": "Phone number support for TOFU chats."
+    },
+    {
+      "type": "record",
+      "name": "PhoneNumberLookupResult",
+      "fields": [
+        {
+          "type": "RawPhoneNumber",
+          "name": "phoneNumber",
+          "jsonkey": "phone_number"
+        },
+        {
+          "type": "PhoneNumber",
+          "name": "coercedPhoneNumber",
+          "jsonkey": "coerced_phone_number"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err",
+          "jsonkey": "err"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "uid",
+          "jsonkey": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PhoneNumberChangedMsg",
+      "fields": [
+        {
+          "type": "PhoneNumber",
+          "name": "phoneNumber",
+          "jsonkey": "phone"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "addPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "editPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "oldPhoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "verifyPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "code",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "resendVerificationForPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null
+    },
+    "getPhoneNumbers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserPhoneNumber"
+      }
+    },
+    "deletePhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityAllPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

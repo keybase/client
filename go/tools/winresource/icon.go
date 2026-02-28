@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package main
@@ -42,7 +43,7 @@ THE SOFTWARE.
 const (
 	rtIcon      = coff.RT_ICON
 	rtGroupIcon = coff.RT_GROUP_ICON
-	rtManifest  = coff.RT_MANIFEST
+	_           = coff.RT_MANIFEST // rtManifest
 )
 
 // on storing icons, see: http://blogs.msdn.com/b/oldnewthing/archive/2012/07/20/10331787.aspx
@@ -65,7 +66,7 @@ func addIcon(coff *coff.Coff, fname string, newID <-chan uint16) error {
 	if err != nil {
 		return err
 	}
-	//defer f.Close() don't defer, files will be closed by OS when app closes
+	// defer f.Close() don't defer, files will be closed by OS when app closes
 
 	icons, err := ico.DecodeHeaders(f)
 	if err != nil {

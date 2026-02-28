@@ -4,11 +4,10 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"text/tabwriter"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -56,7 +55,7 @@ func NewCmdAccountLockdown(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
    blocked for website sessions, including (but not limited to):
        - account delete or reset,
        - posting signatures,
-       - changing password or e-mail address,
+       - changing password or email address,
        - changing profile information or profile picture.
 
    These actions are still possible using the Keybase client.`,
@@ -108,9 +107,9 @@ func (c *CmdAccountLockdown) Run() error {
 
 		if res.Status == *c.SetLockdownMode {
 			if res.Status {
-				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
+				_, _ = tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", enabledGreen())
 			} else {
-				tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
+				_, _ = tui.PrintfUnescaped("Lockdown mode is already %s. Nothing to do.\n", disabledYellow())
 			}
 			return nil
 		}
@@ -149,9 +148,9 @@ func (c *CmdAccountLockdown) Run() error {
 	}
 	tui.Printf("Lockdown mode is: ")
 	if res.Status {
-		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
+		_, _ = tui.PrintfUnescaped("%s\n", enabledGreen())
 	} else {
-		tui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
+		_, _ = tui.PrintfUnescaped("%s\n", disabledYellow())
 	}
 
 	if c.History {

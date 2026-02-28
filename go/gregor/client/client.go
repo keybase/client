@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type LocalStorageEngine interface {
@@ -41,6 +42,7 @@ type Client struct {
 	incomingClient func() gregor1.IncomingInterface
 	outboxSendCh   chan struct{}
 	stopCh         chan struct{}
+	eg             errgroup.Group
 	createSm       func() gregor.StateMachine
 
 	// testing events
@@ -48,7 +50,8 @@ type Client struct {
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.StateMachine,
-	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger, clock clockwork.Clock) *Client {
+	storage LocalStorageEngine, incomingClient func() gregor1.IncomingInterface, log logger.Logger, clock clockwork.Clock,
+) *Client {
 	c := &Client{
 		User:           user,
 		Device:         device,
@@ -61,7 +64,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		incomingClient: incomingClient,
 		createSm:       createSm,
 	}
-	go c.outboxSendLoop()
+	c.eg.Go(c.outboxSendLoop)
 	return c
 }
 
@@ -159,8 +162,17 @@ func (c *Client) Restore(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) Stop() {
+func (c *Client) Stop() chan struct{} {
+	ch := make(chan struct{})
 	close(c.stopCh)
+	go func() {
+		err := c.eg.Wait()
+		if err != nil {
+			c.Log.CDebugf(context.TODO(), "Error waiting during Stop: %+v", err)
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 type ErrHashMismatch struct{}
@@ -170,9 +182,10 @@ func (e ErrHashMismatch) Error() string {
 }
 
 func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface, t *time.Time,
-	syncResult *gregor1.SyncResult) (msgs []gregor.InBandMessage, err error) {
-
-	ctx, _ = context.WithTimeout(ctx, time.Second)
+	syncResult *gregor1.SyncResult,
+) (msgs []gregor.InBandMessage, err error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.User.Bytes()),
 		Deviceid: gregor1.DeviceID(c.Device.Bytes()),
@@ -198,7 +211,10 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 		c.Log.CDebugf(ctx, "Sync(): consuming msgid: %s", ibm.Metadata().MsgID())
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
-		c.Sm.ConsumeMessage(ctx, m)
+		_, err := c.Sm.ConsumeMessage(ctx, m)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Check to make sure the server state is legit
@@ -226,7 +242,6 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 }
 
 func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, state *gregor.State) ([]gregor.InBandMessage, error) {
-
 	var msgs []gregor.InBandMessage
 	var err error
 
@@ -243,7 +258,9 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
 		return msgs, err
 	}
-	c.Sm.Clear()
+	if err = c.Sm.Clear(); err != nil {
+		return msgs, err
+	}
 	if err = c.Sm.InitState(*state); err != nil {
 		return msgs, err
 	}
@@ -252,7 +269,8 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 }
 
 func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
-	syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+	syncRes *chat1.SyncAllNotificationRes,
+) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
 			c.Log.CDebugf(ctx, "Sync(): sync success!")
@@ -382,7 +400,7 @@ func (c *Client) localDismissalMap(ctx context.Context) (map[string]bool, error)
 	if err != nil {
 		return nil, err
 	}
-	ldmap := make(map[string]bool)
+	ldmap := make(map[string]bool, len(lds))
 	for _, ld := range lds {
 		ldmap[ld.String()] = true
 	}
@@ -400,12 +418,10 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 		c.Log.CDebugf(ctx, "filterLocalDismissals: failed to get state items: %s", err)
 		return state
 	}
-	var filteredItems []gregor.Item
+	filteredItems := make([]gregor.Item, 0, len(items))
 	for _, it := range items {
 		if !ldmap[it.Metadata().MsgID().String()] {
 			filteredItems = append(filteredItems, it)
-		} else {
-			c.Log.CDebugf(ctx, "filterLocalDismissals: filtered state item: %s", it.Metadata().MsgID())
 		}
 	}
 	filteredState, err := c.Sm.ObjFactory().MakeState(filteredItems)
@@ -426,7 +442,10 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 	}
 	c.Log.CDebugf(ctx, "applyOutboxMessages: applying %d outbox messages", len(msgs))
 	sm := c.createSm()
-	sm.InitState(state)
+	err = sm.InitState(state)
+	if err != nil {
+		c.Log.CDebugf(ctx, "error initing state machine: %+v", err)
+	}
 	for _, m := range msgs {
 		if _, err := sm.ConsumeMessage(ctx, m); err != nil {
 			c.Log.CDebugf(ctx, "applyOutboxMessages: failed to consume message: %s", err)
@@ -442,7 +461,8 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 }
 
 func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
-	applyLocalState bool) (gregor.State, error) {
+	applyLocalState bool,
+) (gregor.State, error) {
 	st, err := c.Sm.State(ctx, c.User, c.Device, t)
 	if err != nil {
 		return st, err
@@ -455,9 +475,7 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 }
 
 func (c *Client) outboxSend() {
-	c.Log.Debug("outboxSend: running")
 	ctx := context.Background()
-	var newOutbox []gregor.Message
 	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		c.Log.Debug("outboxSend: failed to get outbox messages: %s", err)
@@ -475,34 +493,34 @@ func (c *Client) outboxSend() {
 	for index = 0; index < len(msgs); index++ {
 		m := msgs[index]
 		// Look for a message that we already have in our state and skip
-		if ibm := m.ToInBandMessage(); ibm != nil {
+		ibm := m.ToInBandMessage()
+		if ibm != nil {
 			if _, ok := st.GetItem(ibm.Metadata().MsgID()); ok {
 				c.Log.Debug("outboxSend: skipping message already in state: %s", ibm.Metadata().MsgID())
 				continue
 			}
+		} else {
+			c.Log.Debug("outboxSend: not an inband message, skipping")
+			continue
 		}
 		if err := c.incomingClient().ConsumeMessage(ctx, m.(gregor1.Message)); err != nil {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break
 		}
+		err := c.Sm.RemoveFromOutbox(ctx, c.User, ibm.Metadata().MsgID())
+		if err != nil {
+			c.Log.Debug("outboxSend: error removing from outbox: %+v", err)
+		}
 		if c.TestingEvents != nil {
 			c.TestingEvents.OutboxSend <- m.(gregor1.Message)
 		}
 	}
-	for i := index; i < len(msgs); i++ {
-		newOutbox = append(newOutbox, msgs[i])
-	}
-	c.Log.Debug("outboxSend: adding back: %d outbox items", len(newOutbox))
-	if err := c.Sm.InitOutbox(ctx, c.User, newOutbox); err != nil {
-		c.Log.Debug("outboxSend: failed to init outbox with new items: %s", err)
-	}
 	if err := c.Save(ctx); err != nil {
 		c.Log.Debug("outboxSend: failed to save state: %s", err)
 	}
-
 }
 
-func (c *Client) outboxSendLoop() {
+func (c *Client) outboxSendLoop() error {
 	deadline := c.clock.Now().Add(time.Minute)
 	for {
 		var now time.Time
@@ -512,7 +530,7 @@ func (c *Client) outboxSendLoop() {
 		case <-c.outboxSendCh:
 			c.outboxSend()
 		case <-c.stopCh:
-			return
+			return nil
 		}
 		deadline = now.Add(time.Minute)
 	}

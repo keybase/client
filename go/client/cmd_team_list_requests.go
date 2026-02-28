@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"text/tabwriter"
@@ -9,11 +11,11 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 type CmdTeamListRequests struct {
 	libkb.Contextified
+	json bool
 	team string
 }
 
@@ -26,6 +28,10 @@ func newCmdTeamListRequests(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			cl.ChooseCommand(cmd, "list-requests", c)
 		},
 		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "j, json",
+				Usage: "Output requests as JSON",
+			},
 			cli.StringFlag{
 				Name:  "t, team",
 				Usage: "List request for specific team",
@@ -39,6 +45,7 @@ func NewCmdTeamListRequestsRunner(g *libkb.GlobalContext) *CmdTeamListRequests {
 }
 
 func (c *CmdTeamListRequests) ParseArgv(ctx *cli.Context) error {
+	c.json = ctx.Bool("json")
 	c.team = ctx.String("team")
 	return nil
 }
@@ -57,6 +64,24 @@ func (c *CmdTeamListRequests) Run() error {
 		return err
 	}
 
+	if c.json {
+		return c.outputJSON(reqs)
+	}
+
+	return c.outputTerminal(reqs)
+}
+
+func (c *CmdTeamListRequests) outputJSON(reqs []keybase1.TeamJoinRequest) error {
+	b, err := json.MarshalIndent(reqs, "", "    ")
+	if err != nil {
+		return err
+	}
+	dui := c.G().UI.GetDumbOutputUI()
+	_, err = dui.Printf(string(b) + "\n")
+	return err
+}
+
+func (c *CmdTeamListRequests) outputTerminal(reqs []keybase1.TeamJoinRequest) error {
 	dui := c.G().UI.GetTerminalUI()
 	if len(reqs) == 0 {
 		dui.Printf("No requests at this time.\n")

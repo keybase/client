@@ -1,19 +1,19 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build !production
 // +build !production
 
 // this command is only for testing purposes
 package client
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -145,7 +145,7 @@ func (c *CmdStress) simulate(username, passphrase string) {
 		c.trackSomeone,
 	}
 	for i := 0; i < 10; i++ {
-		f := funcs[libkb.RandIntn(len(funcs))]
+		f := funcs[libkb.RandIntn(len(funcs))] //nolint:gosec // G602: RandIntn returns value in [0, n) via modulo, array access is safe
 		f()
 	}
 
@@ -198,7 +198,6 @@ func (c *CmdStress) trackSomeone() {
 	_, err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
 		c.G().Log.Warning("follow %s error: %s", username, err)
-
 	}
 	if libkb.RandIntn(2) == 0 {
 		return
@@ -216,7 +215,7 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
+	_, err = ucli.ListTrackersUnverified(context.TODO(), keybase1.ListTrackersUnverifiedArg{})
 	if err != nil {
 		c.G().Log.Warning("list followers error: %s", err)
 	}
@@ -279,7 +278,7 @@ func (c *CmdStress) logout() {
 		c.G().Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
-	err = cli.Logout(context.TODO(), 0)
+	err = cli.Logout(context.TODO(), keybase1.LogoutArg{})
 	if err != nil {
 		c.G().Log.Warning("Logout error: %s", err)
 		return
@@ -293,15 +292,19 @@ func (c *CmdStress) gpgUIProtocol() rpc.Protocol {
 func (c *CmdStress) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	return "", nil
 }
+
 func (c *CmdStress) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
 	return
 }
+
 func (c *CmdStress) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
+
 func (c *CmdStress) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
+
 func (c *CmdStress) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
@@ -313,9 +316,11 @@ func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 func (c *CmdStress) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	return
 }
+
 func (c *CmdStress) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	return "", nil
 }
+
 func (c *CmdStress) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }

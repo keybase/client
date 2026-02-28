@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupJoinEngine struct {
@@ -41,32 +40,45 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 }
 
 type SignupJoinEngineRunArg struct {
-	Username   string
-	Email      string
-	InviteCode string
-	PWHash     []byte
-	PWSalt     []byte
-	PDPKA5KID  keybase1.KID
-	SkipMail   bool
+	Username    string
+	Email       string
+	InviteCode  string
+	PWHash      []byte
+	PWSalt      []byte
+	RandomPW    bool
+	PDPKA5KID   keybase1.KID
+	SkipMail    bool
+	VerifyEmail bool
+	BotToken    keybase1.BotToken
 }
 
 func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.APIRes
 	var ppGenTmp int
-	res, err = m.G().API.Post(libkb.APIArg{
-		Endpoint:   "signup",
-		NetContext: m.Ctx(),
-		Args: libkb.HTTPArgs{
-			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
-			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
-			"username":      libkb.S{Val: arg.Username},
-			"email":         libkb.S{Val: arg.Email},
-			"invitation_id": libkb.S{Val: arg.InviteCode},
-			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
-			"skip_mail":     libkb.B{Val: arg.SkipMail},
-			"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
-			"platform":      libkb.S{Val: libkb.GetPlatformString()},
-		}})
+	postArgs := libkb.HTTPArgs{
+		"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
+		"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
+		"random_pw":     libkb.B{Val: arg.RandomPW},
+		"username":      libkb.S{Val: arg.Username},
+		"invitation_id": libkb.S{Val: arg.InviteCode},
+		"pwh_version":   libkb.I{Val: int(libkb.ClientTriplesecVersion)},
+		"skip_mail":     libkb.B{Val: arg.SkipMail},
+		"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
+		"platform":      libkb.S{Val: libkb.GetPlatformString()},
+		"verify_email":  libkb.B{Val: arg.VerifyEmail},
+	}
+	if len(arg.Email) > 0 {
+		postArgs["email"] = libkb.S{Val: arg.Email}
+	} else {
+		postArgs["no_email"] = libkb.B{Val: true}
+	}
+	if arg.BotToken.Exists() {
+		postArgs["bot_token"] = libkb.S{Val: arg.BotToken.String()}
+	}
+	res, err = m.G().API.Post(m, libkb.APIArg{
+		Endpoint: "signup",
+		Args:     postArgs,
+	})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)
 		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uv.Uid, &err)
@@ -102,7 +114,7 @@ func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) 
 		return
 	}
 	res.PostOk = true
-	if res.Err = s.WriteOut(m, arg.PWSalt); res.Err != nil {
+	if res.Err = s.WriteOut(m, arg); res.Err != nil {
 		return
 	}
 	res.WriteOk = true
@@ -111,18 +123,22 @@ func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) 
 	return
 }
 
-func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
+func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, arg SignupJoinEngineRunArg) error {
 	lctx := m.LoginContext()
-	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
+	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), arg.PWSalt); err != nil {
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
 	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uv, nilDeviceID); err != nil {
 		return err
 	}
+	if arg.BotToken.Exists() {
+		m.Debug("SignupJoinEngine#WriteOut: not saving config since in bot mode")
+		return nil
+	}
 	// Switching to a new user is an operation on the GlobalContext, and will atomically
 	// update the config file and alter the current ActiveDevice. So farm out to over there.
-	return m.SwitchUserNewConfig(s.uv.Uid, s.username, salt, nilDeviceID)
+	return m.SwitchUserNewConfig(s.uv.Uid, s.username, arg.PWSalt, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(m libkb.MetaContext, arg libkb.InviteRequestArg) error {

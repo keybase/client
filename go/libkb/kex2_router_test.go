@@ -4,11 +4,10 @@
 package libkb
 
 import (
+	"crypto/rand"
 	"sync"
 	"testing"
 	"time"
-
-	"crypto/rand"
 
 	"github.com/keybase/client/go/kex2"
 )
@@ -46,6 +45,8 @@ func (k *ktester) get(mr kex2.MessageRouter, low kex2.Seqno, poll time.Duration)
 
 func TestKex2Router(t *testing.T) {
 	tc := SetupTest(t, "kex2 router", 1)
+	defer tc.Cleanup()
+
 	mr := NewKexRouter(NewMetaContextTODO(tc.G))
 	kt := newKtester()
 

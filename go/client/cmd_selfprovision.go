@@ -1,9 +1,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -37,7 +36,6 @@ func NewCmdSelfProvisionRunner(g *libkb.GlobalContext) *CmdSelfProvision {
 }
 
 func (c *CmdSelfProvision) Run() (err error) {
-
 	client, err := GetSelfProvisionClient(c.G())
 	if err != nil {
 		return err

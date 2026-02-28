@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -38,17 +37,18 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		return err
 	}
 
-	createIfNotExists := true
-	if c.clearHeadline || c.deleteHistory != nil {
-		createIfNotExists = false
-	}
+	createIfNotExists := !c.clearHeadline && c.deleteHistory == nil
 	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: createIfNotExists,
 		MustNotExist:      c.mustNotExist,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
-	if err != nil {
+	switch err.(type) {
+	case nil:
+	case libkb.ResolutionError:
+		return fmt.Errorf("could not resolve `%s` into Keybase user(s) or a team", c.resolvingRequest.TlfName)
+	default:
 		return err
 	}
 	conversationInfo := conversation.Info
@@ -110,7 +110,6 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		if err != nil {
 			return err
 		}
-		confirmed = true
 	}
 
 	arg.Msg = msg

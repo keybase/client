@@ -14,7 +14,6 @@ echo "Building in: $build_dir"
 
 # Assemble the local GOPATH.
 export GOPATH="$build_dir"
-export GO15VENDOREXPERIMENT=1
 mkdir -p "$GOPATH/src/github.com/keybase"
 
 # Link in the client repo.

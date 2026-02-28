@@ -4,11 +4,12 @@
 package service
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // SigsHandler is the RPC handler for the sigs interface.
@@ -42,7 +43,6 @@ func (h *SigsHandler) SigListJSON(ctx context.Context, arg keybase1.SigListJSONA
 }
 
 func (h *SigsHandler) run(ctx context.Context, args keybase1.SigListArgs) (*engine.SigsList, error) {
-
 	ea := engine.SigsListArgs{
 		Username: args.Username,
 		Filterx:  args.Filterx,

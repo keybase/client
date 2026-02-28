@@ -6,13 +6,14 @@
 package teams
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time,
-	application keybase1.TeamApplication, includeKBFSKeys bool) (ret keybase1.TeamPlusApplicationKeys, err error) {
+	application keybase1.TeamApplication, includeKBFSKeys bool,
+) (ret keybase1.TeamPlusApplicationKeys, err error) {
 	loadKeys := true
 	if t.IsPublic() {
 		// If it's a public team, only try to load application keys if
@@ -39,23 +40,25 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		return ret, err
 	}
 
-	var writers []keybase1.UserVersion
-	var onlyReaders []keybase1.UserVersion
+	var writers, onlyReaders, onlyRestrictedBots []keybase1.UserVersion
 
 	writers = append(writers, members.Writers...)
 	writers = append(writers, members.Admins...)
 	writers = append(writers, members.Owners...)
 	onlyReaders = append(onlyReaders, members.Readers...)
+	onlyReaders = append(onlyReaders, members.Bots...)
+	onlyRestrictedBots = append(onlyRestrictedBots, members.RestrictedBots...)
 
 	ret = keybase1.TeamPlusApplicationKeys{
-		Id:              t.chain().GetID(),
-		Name:            t.Name().String(),
-		Implicit:        t.IsImplicit(),
-		Public:          t.IsPublic(),
-		Application:     application,
-		Writers:         writers,
-		OnlyReaders:     onlyReaders,
-		ApplicationKeys: applicationKeys,
+		Id:                 t.chain().GetID(),
+		Name:               t.Name().String(),
+		Implicit:           t.IsImplicit(),
+		Public:             t.IsPublic(),
+		Application:        application,
+		Writers:            writers,
+		OnlyReaders:        onlyReaders,
+		OnlyRestrictedBots: onlyRestrictedBots,
+		ApplicationKeys:    applicationKeys,
 	}
 
 	return ret, nil

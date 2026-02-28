@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"context"
+	"time"
+
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -62,19 +63,19 @@ type userKeyAPI struct {
 }
 
 func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error,
+) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)
 	}()
 	var ukr userKeyRes
-	err = u.api.GetDecode(libkb.APIArg{
+	err = u.api.GetDecodeCtx(ctx, libkb.APIArg{
 		Endpoint: "user/keys",
 		Args: libkb.HTTPArgs{
 			"uid":          libkb.S{Val: uid.String()},
 			"load_deleted": libkb.B{Val: true},
 		},
-		NetContext: ctx,
 	}, &ukr)
 	if err != nil {
 		return "", nil, nil, false, err
@@ -86,7 +87,7 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {
 	defer func() {
 		if err != nil {
-			u.log.Debug("- poll -> %v", err)
+			u.log.Error("- poll -> %v", err)
 		}
 	}()
 
@@ -97,12 +98,10 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		"instance_id":     libkb.S{Val: u.instanceID},
 		"wait_for_msec":   libkb.I{Val: int(pollWait / time.Millisecond)},
 	}
-	err = u.api.GetDecode(libkb.APIArg{
-		Endpoint:   "pubsub/poll",
-		Args:       args,
-		NetContext: ctx,
+	err = u.api.GetDecodeCtx(ctx, libkb.APIArg{
+		Endpoint: "pubsub/poll",
+		Args:     args,
 	}, &psb)
-
 	// If there was an error (say if the API server was down), then don't busy
 	// loop, wait the pollWait amount of time before exiting.
 	if err != nil {
@@ -110,7 +109,7 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 		select {
 		case <-time.After(pollWait):
 		case <-ctx.Done():
-			u.log.Debug("Wait short-circuited due to context cancelation")
+			u.log.Debug("Wait short-circuited due to context cancellation")
 		}
 		return uids, err
 	}

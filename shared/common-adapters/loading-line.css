@@ -1,0 +1,9 @@
+@keyframes llfadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.loading-line {
+  animation: llfadeIn 1s infinite alternate;
+}

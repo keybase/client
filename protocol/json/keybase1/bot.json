@@ -1,0 +1,58 @@
+{
+  "protocol": "bot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "BotToken",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "BotTokenInfo",
+      "fields": [
+        {
+          "type": "BotToken",
+          "name": "token",
+          "mppackkey": "bot_token",
+          "jsonkey": "bot_token"
+        },
+        {
+          "type": "Time",
+          "name": "ctime",
+          "mppackkey": "ctime",
+          "jsonkey": "ctime"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "botTokenList": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "BotTokenInfo"
+      }
+    },
+    "botTokenCreate": {
+      "request": [],
+      "response": "BotToken"
+    },
+    "botTokenDelete": {
+      "request": [
+        {
+          "name": "token",
+          "type": "BotToken"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

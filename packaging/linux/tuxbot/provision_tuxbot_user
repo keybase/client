@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euox pipefail
+
+KBCLID="$HOME/go/src/github.com/keybase/client"
+TUXBOTD="$KBCLID/packaging/linux/tuxbot"
+
+# clone in gopath for bot
+mkdir -p "$HOME/go/src/github.com/keybase"
+git clone https://github.com/keybase/client.git "$HOME/go/src/github.com/keybase/client"
+(
+    # install deps
+    cd "$TUXBOTD/bot"
+    git checkout master
+    go mod tidy
+)
+systemctl --user link "$TUXBOTD/tuxbot.service"
+systemctl --user link "$TUXBOTD/nightly.service"
+systemctl --user link "$TUXBOTD/nightly.timer"
+systemctl --user link "$TUXBOTD/docker-cleanup.service"
+systemctl --user link "$TUXBOTD/docker-cleanup.timer"
+systemctl --user daemon-reload
+systemctl --user enable "$TUXBOTD/nightly.timer"
+systemctl --user enable "$TUXBOTD/docker-cleanup.timer"
+
+keybase config set -b enable_bot_lite_mode true
+keybase config set kbfs.mode constrained
+systemctl --user enable --now keybase.service kbfs.service
+
+# clone for the build
+git clone https://github.com/keybase/client.git "$HOME/client"

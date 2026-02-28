@@ -12,7 +12,7 @@ import (
 const stderrHandle = int32(-12)
 
 func tryRedirectStderrTo(f *os.File) (err error) {
-	var handle = stderrHandle
+	handle := stderrHandle
 	res, _, e1 := syscall.Syscall(procSetStdHandle.Addr(), 2, uintptr(handle), f.Fd(), 0)
 	if res != 0 {
 		err = error(e1)
@@ -20,6 +20,4 @@ func tryRedirectStderrTo(f *os.File) (err error) {
 	return
 }
 
-var (
-	procSetStdHandle = kernel32DLL.NewProc("SetStdHandle")
-)
+var procSetStdHandle = kernel32DLL.NewProc("SetStdHandle")

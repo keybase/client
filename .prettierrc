@@ -1,4 +1,5 @@
 {
+  "arrowParens": "avoid",
   "bracketSpacing": false,
   "printWidth": 110,
   "semi": false,
@@ -22,6 +23,18 @@
       "files": "*.json",
       "options": {
         "printWidth": 100
+      }
+    },
+    {
+      "files": "*.mm",
+      "options": {
+        "printWidth": 200
+      }
+    },
+    {
+      "files": "*.m",
+      "options": {
+        "printWidth": 200
       }
     }
   ]

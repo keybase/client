@@ -1,0 +1,113 @@
+package unfurl
+
+import (
+	"context"
+	"errors"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/gocolly/colly/v2"
+	"github.com/keybase/client/go/protocol/chat1"
+)
+
+var giphyFavicon = "https://giphy.com/static/img/icons/apple-touch-icon-180px.png"
+
+func (s *Scraper) scrapeGiphyWithMetadata(ctx context.Context, sourceURL string) (res chat1.UnfurlRaw, err error) {
+	defer s.Trace(ctx, &err, "scrapeGiphyWithMetadata")()
+	url, err := url.Parse(sourceURL)
+	if err != nil {
+		return res, err
+	}
+	if url.Fragment == "" {
+		return res, errors.New("no fragment")
+	}
+	toks := strings.Split(url.Fragment, "&")
+	if len(toks) != 3 {
+		return res, errors.New("not enough params")
+	}
+	var rawgiphy chat1.UnfurlGiphyRaw
+	var video chat1.UnfurlVideo
+	var height, width int64
+	isVideo := false
+	for _, tok := range toks {
+		vals := strings.Split(tok, "=")
+		if len(vals) != 2 {
+			return res, errors.New("invalid val")
+		}
+		switch vals[0] {
+		case "height":
+			if height, err = strconv.ParseInt(vals[1], 0, 0); err != nil {
+				return res, err
+			}
+		case "width":
+			if width, err = strconv.ParseInt(vals[1], 0, 0); err != nil {
+				return res, err
+			}
+		case "isvideo":
+			if isVideo, err = strconv.ParseBool(vals[1]); err != nil {
+				return res, err
+			}
+		}
+	}
+	rawgiphy.FaviconUrl = &giphyFavicon
+	if isVideo {
+		video.Height = int(height)
+		video.Width = int(width)
+		video.Url = sourceURL
+		video.MimeType = "video/mp4"
+		rawgiphy.Video = &video
+	} else {
+		rawgiphy.ImageUrl = &sourceURL
+	}
+	return chat1.NewUnfurlRawWithGiphy(rawgiphy), nil
+}
+
+func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.UnfurlRaw, err error) {
+	defer s.Trace(ctx, &err, "scrapeGiphy")()
+	if res, err = s.scrapeGiphyWithMetadata(ctx, sourceURL); err == nil {
+		s.Debug(ctx, "scrapeGiphy: successfully scraped with metadata")
+		return res, nil
+	}
+
+	c := s.makeCollector()
+	var rawgiphy chat1.UnfurlGiphyRaw
+	var video chat1.UnfurlVideo
+	video.MimeType = "video/mp4"
+	generic := new(scoredGenericRaw)
+	if err = s.addGenericScraperToCollector(ctx, c, generic, sourceURL, "giphy.com"); err != nil {
+		return res, err
+	}
+
+	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
+		attr := strings.ToLower(e.Attr("property"))
+		switch attr {
+		case "og:video", "og:video:url", "og:video:secure_url":
+			video.Url = e.Attr("content")
+		case "og:video:width":
+			if width, err := strconv.Atoi(e.Attr("content")); err == nil {
+				video.Width = width
+			}
+		case "og:video:height":
+			if height, err := strconv.Atoi(e.Attr("content")); err == nil {
+				video.Height = height
+			}
+		default:
+			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
+		}
+	})
+	if err := c.Visit(sourceURL); err != nil {
+		return res, err
+	}
+	if generic.ImageUrl == nil {
+		// If we couldn't find an image, then just return the generic
+		s.Debug(ctx, "scrapeGiphy: failed to find an image, just returning generic unfurl")
+		return s.exportGenericResult(generic)
+	}
+	if len(video.Url) > 0 && video.Height > 0 && video.Width > 0 {
+		rawgiphy.Video = &video
+	}
+	rawgiphy.ImageUrl = generic.ImageUrl
+	rawgiphy.FaviconUrl = generic.FaviconUrl
+	return chat1.NewUnfurlRawWithGiphy(rawgiphy), nil
+}

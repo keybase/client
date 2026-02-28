@@ -4,11 +4,10 @@
 package kex2
 
 import (
+	"context"
 	"net"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -28,6 +27,7 @@ type Provisioner interface {
 	CounterSign(keybase1.HelloRes) ([]byte, error)
 	CounterSign2(keybase1.Hello2Res) (keybase1.DidCounterSign2Arg, error)
 	GetLogFactory() rpc.LogFactory
+	GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 }
 
 // ProvisionerArg provides the details that a provisioner needs in order
@@ -88,7 +88,7 @@ func (p *provisioner) run() (err error) {
 }
 
 func (k KexBaseArg) getDeviceID() (ret DeviceID, err error) {
-	err = k.DeviceID.ToBytes([]byte(ret[:]))
+	err = k.DeviceID.ToBytes(ret[:])
 	return ret, err
 }
 
@@ -98,7 +98,6 @@ func (p *provisioner) setDeviceID() (err error) {
 }
 
 func (p *provisioner) pickFirstConnection() (err error) {
-
 	// This connection is auto-closed at the end of this function, so if
 	// you don't want it to close, then set it to nil.  See the first
 	// case in the select below.
@@ -119,7 +118,8 @@ func (p *provisioner) pickFirstConnection() (err error) {
 			return err
 		}
 		prot := keybase1.Kex2ProvisionerProtocol(p)
-		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(),
+			p.arg.Provisioner.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 		srv := rpc.NewServer(xp, nil)
 		if err = srv.Register(prot); err != nil {
 			return err
@@ -141,7 +141,8 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
-		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(),
+			p.arg.Provisioner.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 	case <-p.arg.Ctx.Done():
 		err = ErrCanceled
 	case <-time.After(p.arg.Timeout):

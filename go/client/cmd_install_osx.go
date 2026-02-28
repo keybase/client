@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin
 // +build darwin
 
 package client
@@ -127,9 +128,10 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 		return keybase1.InstallResult{Status: err.Status(), Fatal: true}
 	}
 
-	if v.installer == "auto" {
+	switch v.installer {
+	case "auto":
 		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.timeout, v.G().Log)
-	} else if v.installer == "" {
+	case "":
 		return install.Install(v.G(), v.binPath, v.sourcePath, v.components, v.force, v.timeout, v.G().Log)
 	}
 

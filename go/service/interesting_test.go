@@ -50,5 +50,4 @@ func TestInterestingPeople(t *testing.T) {
 	require.Equal(t, maxUsers+1, len(res))
 	require.Equal(t, users[0].GetUID(), res[0])
 	require.Equal(t, users[len(users)-1].GetUID(), res[len(res)-1])
-
 }

@@ -4,6 +4,7 @@
 package systests
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/client"
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 type trackingUI struct {
@@ -23,57 +23,72 @@ func (n *trackingUI) GetIdentifyTrackUI() libkb.IdentifyUI {
 	return &identifyUI{}
 }
 
-type identifyUI struct {
-}
+type identifyUI struct{}
 
-func (*identifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (*identifyUI) Confirm(libkb.MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{
 		IdentityConfirmed: true,
 		RemoteConfirmed:   true,
 	}, nil
 }
-func (*identifyUI) Start(string, keybase1.IdentifyReason, bool) error {
-	return nil
-}
-func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
-	return nil
-}
-func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
-	return nil
-}
-func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
-	return nil
-}
-func (*identifyUI) DisplayKey(keybase1.IdentifyKey) error {
-	return nil
-}
-func (*identifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
-	return nil
-}
-func (*identifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
-	return nil
-}
-func (*identifyUI) DisplayTrackStatement(string) error {
-	return nil
-}
-func (*identifyUI) DisplayUserCard(keybase1.UserCard) error {
-	return nil
-}
-func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error {
-	return nil
-}
-func (*identifyUI) SetStrict(b bool) {}
-func (*identifyUI) Cancel() error {
-	return nil
-}
-func (*identifyUI) Finish() error {
-	return nil
-}
-func (*identifyUI) Dismiss(string, keybase1.DismissReason) error {
+
+func (*identifyUI) Start(libkb.MetaContext, string, keybase1.IdentifyReason, bool) error {
 	return nil
 }
 
-func (*identifyUI) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+func (*identifyUI) FinishWebProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
+}
+
+func (*identifyUI) FinishSocialProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
+}
+
+func (*identifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
+	return nil
+}
+
+func (*identifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
+	return nil
+}
+
+func (*identifyUI) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error {
+	return nil
+}
+
+func (*identifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
+	return nil
+}
+
+func (*identifyUI) LaunchNetworkChecks(libkb.MetaContext, *keybase1.Identity, *keybase1.User) error {
+	return nil
+}
+
+func (*identifyUI) DisplayTrackStatement(libkb.MetaContext, string) error {
+	return nil
+}
+
+func (*identifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
+	return nil
+}
+
+func (*identifyUI) ReportTrackToken(libkb.MetaContext, keybase1.TrackToken) error {
+	return nil
+}
+func (*identifyUI) SetStrict(b bool) {}
+func (*identifyUI) Cancel(libkb.MetaContext) error {
+	return nil
+}
+
+func (*identifyUI) Finish(libkb.MetaContext) error {
+	return nil
+}
+
+func (*identifyUI) Dismiss(libkb.MetaContext, string, keybase1.DismissReason) error {
+	return nil
+}
+
+func (*identifyUI) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
 
@@ -94,15 +109,24 @@ func (h *trackingNotifyHandler) TrackingChanged(_ context.Context, arg keybase1.
 	return nil
 }
 
+func (h *trackingNotifyHandler) TrackingInfo(context.Context, keybase1.TrackingInfoArg) error {
+	return nil
+}
+
+func (h *trackingNotifyHandler) NotifyUserBlocked(context.Context, keybase1.UserBlockedSummary) error {
+	return nil
+}
+
 func TestTrackingNotifications(t *testing.T) {
 	tc := setupTest(t, "signup")
+	defer tc.Cleanup()
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 	tc5 := cloneContext(tc)
+	defer tc5.Cleanup()
 
 	// Hack the various portions of the service that aren't
 	// properly contextified.
-
-	defer tc.Cleanup()
 
 	stopCh := make(chan error)
 	svc := service.NewService(tc.G, false)
@@ -192,7 +216,7 @@ func TestTrackingNotifications(t *testing.T) {
 		case arg := <-nh.trackingCh:
 			tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
 			tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
-			if "t_alice" == arg.Username {
+			if arg.Username == "t_alice" {
 				if !tAliceUID.Equal(arg.Uid) {
 					t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
 				}
@@ -206,7 +230,7 @@ func TestTrackingNotifications(t *testing.T) {
 		}
 	}
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
@@ -246,10 +270,7 @@ func TestV2Compressed(t *testing.T) {
 
 		cli2, err := client.GetUserClient(aliceG)
 		require.NoError(t, err)
-		_, err = cli2.ListTrackers2(ctx, keybase1.ListTrackers2Arg{
-			Assertion: username,
-			Reverse:   false,
-		})
+		_, err = cli2.ListTrackersUnverified(ctx, keybase1.ListTrackersUnverifiedArg{Assertion: username})
 		require.NoError(t, err)
 	}
 

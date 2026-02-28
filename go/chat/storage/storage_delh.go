@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -8,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
 )
 
 type delhTracker struct {
@@ -24,12 +24,12 @@ type delhTrackerEntry struct {
 	MinDeletableMessage chat1.MessageID `codec:"em"`
 }
 
-const delhTrackerDiskVersion = 2
+const delhTrackerDiskVersion = 3
 
 func newDelhTracker(g *globals.Context) *delhTracker {
 	return &delhTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DelhTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "DelhTracker", false),
 	}
 }
 
@@ -41,8 +41,8 @@ func (t *delhTracker) makeDbKey(convID chat1.ConversationID, uid gregor1.UID) li
 }
 
 func (t *delhTracker) getEntry(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (delhTrackerEntry, Error) {
-
+	convID chat1.ConversationID, uid gregor1.UID,
+) (delhTrackerEntry, Error) {
 	var blank delhTrackerEntry
 	var res delhTrackerEntry
 
@@ -69,8 +69,8 @@ func (t *delhTracker) getEntry(ctx context.Context,
 }
 
 func (t *delhTracker) setEntry(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, entry delhTrackerEntry) Error {
-
+	convID chat1.ConversationID, uid gregor1.UID, entry delhTrackerEntry,
+) Error {
 	entry.StorageVersion = delhTrackerDiskVersion
 	data, err := encode(entry)
 	if err != nil {
@@ -87,8 +87,8 @@ func (t *delhTracker) setEntry(ctx context.Context,
 }
 
 func (t *delhTracker) setMaxDeleteHistoryUpto(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID) Error {
-
+	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID,
+) Error {
 	// No need to use transaction here since the Storage class takes lock.
 
 	entry, err := t.getEntry(ctx, convID, uid)
@@ -103,8 +103,8 @@ func (t *delhTracker) setMaxDeleteHistoryUpto(ctx context.Context,
 }
 
 func (t *delhTracker) setMinDeletableMessage(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID) Error {
-
+	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID,
+) Error {
 	entry, err := t.getEntry(ctx, convID, uid)
 	switch err.(type) {
 	case nil:
@@ -118,8 +118,8 @@ func (t *delhTracker) setMinDeletableMessage(ctx context.Context,
 
 // Set both values to msgid
 func (t *delhTracker) setDeletedUpto(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID) Error {
-
+	convID chat1.ConversationID, uid gregor1.UID, msgid chat1.MessageID,
+) Error {
 	entry, err := t.getEntry(ctx, convID, uid)
 	switch err.(type) {
 	case nil:

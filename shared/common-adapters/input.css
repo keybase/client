@@ -1,0 +1,14 @@
+@media (prefers-color-scheme: dark) {
+  input,
+  textarea {
+    background-color: var(--color-white);
+  }
+}
+
+
+input,
+textarea {
+  &::-webkit-input-placeholder {
+    color: var(--color-black_40);
+  }
+}

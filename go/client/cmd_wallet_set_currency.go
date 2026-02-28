@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletSetCurrency struct {
@@ -55,7 +55,8 @@ func (c *cmdWalletSetCurrency) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletSetCurrency) Run() error {
+func (c *cmdWalletSetCurrency) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

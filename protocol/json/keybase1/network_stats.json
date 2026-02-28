@@ -1,0 +1,82 @@
+{
+  "protocol": "NetworkStats",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "NetworkSource",
+      "symbols": [
+        "LOCAL_0",
+        "REMOTE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InstrumentationStat",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tag",
+          "mpackkey": "t"
+        },
+        {
+          "type": "int",
+          "name": "numCalls",
+          "mpackkey": "n"
+        },
+        {
+          "type": "Time",
+          "name": "ctime",
+          "mpackkey": "c"
+        },
+        {
+          "type": "Time",
+          "name": "mtime",
+          "mpackkey": "m"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "avgDur",
+          "mpackkey": "ad"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "maxDur",
+          "mpackkey": "xd"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "minDur",
+          "mpackkey": "nd"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "totalDur",
+          "mpackkey": "td"
+        },
+        {
+          "type": "int64",
+          "name": "avgSize",
+          "mpackkey": "as"
+        },
+        {
+          "type": "int64",
+          "name": "maxSize",
+          "mpackkey": "xs"
+        },
+        {
+          "type": "int64",
+          "name": "minSize",
+          "mpackkey": "ns"
+        },
+        {
+          "type": "int64",
+          "name": "totalSize",
+          "mpackkey": "ts"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

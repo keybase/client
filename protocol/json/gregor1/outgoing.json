@@ -13,5 +13,6 @@
       "response": null
     }
   },
-  "namespace": "gregor.1"
+  "namespace": "gregor.1",
+  "compression_type": "gzip"
 }

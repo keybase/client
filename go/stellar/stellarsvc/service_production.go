@@ -1,6 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 //
+//go:build production
 // +build production
 
 package stellarsvc
@@ -13,7 +14,7 @@ import (
 )
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:        "WalletDumpLocal",
 		Err:            &err,
 		AllowLoggedOut: true,

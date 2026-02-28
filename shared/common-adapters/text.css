@@ -1,387 +1,326 @@
 /* Used by text on desktop to speed up perf */
 
-.text_HeaderBig {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.75);
+.text_HeaderBig,
+.text_HeaderBigExtrabold,
+.text_Header,
+.text_HeaderItalic,
+.text_HeaderExtrabold,
+.text_HeaderLink,
+.text_BodyBig,
+.text_BodyBigExtrabold,
+.text_BodyBigLink,
+.text_Body,
+.text_BodyItalic,
+.text_BodySemibold,
+.text_BodyBold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodyExtrabold,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold,
+.text_Terminal,
+.text_TerminalComment,
+.text_TerminalEmpty,
+.text_TerminalInline {
+  color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_HeaderBig,
+  .text_HeaderBigExtrabold,
+  .text_Header,
+  .text_HeaderItalic,
+  .text_HeaderExtrabold,
+  .text_BodyBig,
+  .text_BodyBigExtrabold,
+  .text_BodyExtrabold,
+  .text_BodySemiboldItalic,
+  .text_BodyBold,
+  .text_BodySemibold,
+  .text_BodyItalic,
+  .text_Body {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold {
+  color: var(--color-black_50OrWhite_40);
+}
+
+.text_HeaderLink,
+.text_BodyBigLink,
+.text_BodySemiboldLink,
+.text_BodyPrimaryLink,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSemiboldPrimaryLink {
+  color: var(--color-blueDark);
+}
+
+.text_HeaderItalic,
+.text_BodyItalic,
+.text_BodySemiboldItalic,
+.text_BodySmallItalic,
+.text_BodySmallSemiboldItalic,
+.text_BodyTinySemiboldItalic {
+  font-style: italic;
+}
+
+.text_HeaderLink,
+.text_BodyBigLink,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodyTinyLink {
+  cursor: pointer;
+}
+
+:is(.text_HeaderBig, .text_HeaderBigExtrabold) {
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.text_Body,
+.text_BodyItalic,
+.text_BodyPrimaryLink,
+.text_BodySecondaryLink,
+.text_BodySmall,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet,
+.text_BodyTiny,
+.text_BodyTinyLink {
+  font-weight: 400;
+}
+
+.text_BodyBig,
+.text_BodyBigLink,
+.text_BodySemibold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic,
+.text_BodySmallSemibold {
+  font-weight: 600;
+}
+
+.text_HeaderBig,
+.text_Header,
+.text_HeaderItalic,
+.text_HeaderLink,
+.text_BodyBold,
+.text_BodySmallBold,
+.text_BodyTinyBold {
   font-weight: 700;
 }
 
-.text_HeaderBigExtrabold {
-  font-size: 24px;
-  line-height: 28px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+.text_HeaderBigExtrabold,
+.text_HeaderExtrabold,
+.text_BodyExtrabold,
+.text_BodySmallExtrabold,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodyTinyExtrabold {
   font-weight: 800;
 }
 
-.text_Header {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
+  font-size: 18px;
+  line-height: 22px;
 }
 
-.text_HeaderItalic {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
+@media (prefers-color-scheme: dark) {
+  .text_HeaderLink {
+    color: var(--color-blueDarker2_75);
+  }
 }
 
-.text_HeaderExtrabold {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 800;
+:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
+  font-size: 15px;
+  line-height: 19px;
 }
 
-.text_HeaderLink {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgb(76, 142, 255);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodyBig {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodyBigExtrabold {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 800;
-}
-
-.text_BodyBigLink {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgb(76, 142, 255);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_Body {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodyItalic {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  font-style: italic;
-}
-
-.text_BodySemibold {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodySemiboldItalic {
-  font-size: 13px;
-  font-style: italic;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodySemiboldLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgb(76, 142, 255);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodyExtrabold {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 800;
-}
-
-.text_BodyPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgb(76, 142, 255);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
+.text_Body,
+.text_BodyItalic,
+.text_BodySemibold,
+.text_BodyBold,
+.text_BodySemiboldItalic,
+.text_BodySemiboldLink,
+.text_BodyExtrabold,
+.text_BodyPrimaryLink,
 .text_BodySecondaryLink {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.text_BodySmall,
+.text_BodySmallBold,
+.text_BodySmallItalic,
+.text_BodySmallPrimaryLink,
+.text_BodySmallExtrabold,
+.text_BodySmallSemiboldItalic,
+.text_BodySmallSemiboldPrimaryLink,
+.text_BodySmallSemiboldSecondaryLink,
+.text_BodySmallSecondaryLink,
+.text_BodySmallExtraboldSecondaryLink,
+.text_BodySmallError,
+.text_BodySmallSuccess,
+.text_BodySmallWallet {
   font-size: 13px;
   line-height: 17px;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodySmall {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodySmallItalic {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  font-style: italic;
-}
-
-.text_BodySmallPrimaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: #4c8eff;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodySmallExtrabold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 800;
-}
-
-.text_BodySmallSemiboldItalic {
-  font-size: 12px;
-  font-style: italic;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodySmallSemiboldPrimaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgb(76, 142, 255);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodySmallSemiboldSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgb(0, 0, 0, 0.6);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.text_BodySmallSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodySmallExtraboldSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 800;
 }
 
 .text_BodySmallError {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgb(255, 77, 97);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
+  color: var(--color-redDark);
 }
-
 .text_BodySmallSuccess {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgb(52, 173, 141);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
+  color: var(--color-greenDark);
 }
-
 .text_BodySmallWallet {
+  color: var(--color-purpleDark);
+}
+
+.text_BodyTiny,
+.text_BodyTinyLink,
+.text_BodyTinyBold,
+.text_BodyTinyExtrabold,
+.text_BodyTinySemibold,
+.text_BodyTinySemiboldItalic {
   font-size: 12px;
   line-height: 16px;
-  color: rgb(132, 92, 219);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodyTiny {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.text_BodyTinyBold {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-}
-
-.text_BodyTinySemibold {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
 }
 
 .text_BodySmallSemibold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-size: 13px;
+  line-height: 17px;
+}
+
+:is(.text_Terminal, .text_TerminalComment, .text_TerminalEmpty, .text_TerminalInline) {
+  font-size: 13px;
+  line-height: 20px;
+  font-family: Source Code Pro;
 }
 
 .text_Terminal {
-  font-size: 13px;
-  line-height: 20px;
   color: #a8ccff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_Terminal {
+    color: #4c8eff;
+  }
 }
 
 .text_TerminalComment {
-  font-size: 13px;
-  line-height: 20px;
-  color: rgba(168, 204, 255, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
+  color: var(--color-blueLighter_40);
 }
 
 .text_TerminalEmpty {
-  font-size: 13px;
-  line-height: 20px;
-  color: rgba(168, 204, 255, 0.4);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
+  color: var(--color-blueLighter_40);
   height: 20px;
 }
 
 .text_TerminalInline {
-  font-size: 13px;
   line-height: 16px;
   color: #2645a3;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Source Code Pro;
-  background-color: #ebf2fc;
+  background-color: var(--color-blueLighter2);
   border-radius: 2px;
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
+}
+
+@media (prefers-color-scheme: dark) {
+  .text_TerminalInline {
+    color: #f00;
+  }
+}
+
+.text_center {
+  display: inline-block;
+  text-align: center;
+}
+
+:is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  /* in chrome this will complain about main thread hit scroll scroll issues and clip works but*/
+  /* not clear its worth trying it */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.lineClamp1 {
+  -webkit-line-clamp: 1;
+}
+
+.lineClamp2 {
+  -webkit-line-clamp: 2;
+}
+
+.lineClamp3 {
+  -webkit-line-clamp: 3;
+}
+
+.lineClamp4 {
+  -webkit-line-clamp: 4;
+}
+
+.lineClamp5 {
+  -webkit-line-clamp: 5;
+}
+
+.noLineHeight {
+  line-height: unset !important;
+}
+
+.virtualText::before {
+  content: attr(data-virtual-text);
 }

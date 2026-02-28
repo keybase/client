@@ -1,17 +1,19 @@
 package s3
 
 import (
+	"context"
 	"io"
 
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/libkb"
 )
 
 type Root interface {
-	New(signer Signer, region Region) Connection
+	New(g *libkb.GlobalContext, signer Signer, region Region) Connection
 }
 
 type Connection interface {
 	SetAccessKey(key string)
+	SetSessionToken(token string)
 	Bucket(name string) BucketInt
 }
 

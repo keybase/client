@@ -15,6 +15,10 @@ func testLexer(t *testing.T, name string, s string, expected []Token) {
 	i := 0
 	for {
 		tok := lexer.Get()
+		if i >= len(expected) {
+			t.Errorf("%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
+			break
+		}
 		if !tok.Eq(expected[i]) {
 			t.Errorf("%s, token %d: [T%v: '%v'] != [T%v: '%v']",
 				name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
@@ -63,10 +67,109 @@ func TestLexer3(t *testing.T) {
 	expected := []Token{
 		{URL, []byte("aa")},
 		{AND, []byte("&&")},
-		{ERROR, []byte("")},
+		{ERROR, []byte("|bb")},
 		{EOF, []byte{}},
 	}
 	testLexer(t, "test3", s, expected)
+}
+
+func TestLexerSquareBrackets(t *testing.T) {
+	s := "michal,[michal@zapu.net]@email"
+	expected := []Token{
+		{URL, []byte("michal")},
+		{OR, []byte(",")},
+		{URL, []byte("[michal@zapu.net]@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets", s, expected)
+}
+
+func TestLexerEmailInvalidParentheses(t *testing.T) {
+	// Rejected proposal for round brackets, but make sure
+	// there is expected way in which it is parsed.
+
+	s := "michal,(michal@zapu.net)@email"
+	expected := []Token{
+		{URL, []byte("michal")},
+		{OR, []byte(",")},
+		{LPAREN, []byte("(")},
+		{URL, []byte("michal@zapu.net")},
+		{RPAREN, []byte(")")},
+		{URL, []byte("@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "round brackets", s, expected)
+
+	s = "twitter://alice&&(alice@keybasers.de)@email"
+	expected = []Token{
+		{URL, []byte("twitter://alice")},
+		{AND, []byte("&&")},
+		{LPAREN, []byte("(")},
+		{URL, []byte("alice@keybasers.de")},
+		{RPAREN, []byte(")")},
+		{URL, []byte("@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "round brackets", s, expected)
+}
+
+func TestLexerEmailPlusSign(t *testing.T) {
+	s := "twitter://alice&&[a.li.c+e@keybasers.de]@email"
+	expected := []Token{
+		{URL, []byte("twitter://alice")},
+		{AND, []byte("&&")},
+		{URL, []byte("[a.li.c+e@keybasers.de]@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 1", s, expected)
+
+	s = "alice@twitter||email:[a.li.c+e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("alice@twitter")},
+		{OR, []byte("||")},
+		{URL, []byte("email:[a.li.c+e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 2", s, expected)
+
+	s = "alice@twitter||email://[a.li.c+e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("alice@twitter")},
+		{OR, []byte("||")},
+		{URL, []byte("email://[a.li.c+e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 3", s, expected)
+
+	// This is not a valid email, but not caught at the lexer stage,
+	// it's still supposed to generate URL token.
+	s = "twitter:ae,email:[a,e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("twitter:ae")},
+		{OR, []byte(",")},
+		{URL, []byte("email:[a,e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 4", s, expected)
+
+	// Same here:
+	s = "email:[],email://[]"
+	expected = []Token{
+		{URL, []byte("email:[]")},
+		{OR, []byte(",")},
+		{URL, []byte("email://[]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 5", s, expected)
+
+	// Weirdness
+	s = "[michal]@[keybase]"
+	expected = []Token{
+		{URL, []byte("[michal]@")},
+		{ERROR, []byte("[keybase]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 6", s, expected)
 }
 
 func TestParser1(t *testing.T) {
@@ -101,8 +204,8 @@ type Pair struct {
 
 func TestParserFail1(t *testing.T) {
 	bads := []Pair{
-		{"aa ||", "Unexpected EOF"},
-		{"aa &&", "Unexpected EOF"},
+		{"aa ||", "Unexpected EOF parsing assertion"},
+		{"aa &&", "Unexpected EOF parsing assertion"},
 		{"(aa", "Unbalanced parentheses"},
 		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
 		{"&& aa", "Unexpected token: &&"},
@@ -112,7 +215,7 @@ func TestParserFail1(t *testing.T) {
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
-		{"aa && |bb", "Unexpected ERROR: ()"},
+		{"aa && |bb", "Syntax error when parsing: |bb"},
 	}
 
 	for _, bad := range bads {

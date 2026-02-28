@@ -1,5 +1,6 @@
-FROM debian
-MAINTAINER Keybase <admin@keybase.io>
+# When updating the version, remember to bump keybase_packaging_v# in docker_build.sh.
+FROM debian:bullseye
+LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
@@ -8,26 +9,26 @@ MAINTAINER Keybase <admin@keybase.io>
 #   - The deploy scripts use 'git' to commit and push.
 #   - 'curl' and 'wget' are for downloading Go and Node
 #   - 'build-essential' pulls in gcc etc., which Go requires.
-#   - python and pip for recent versions of s3cmd
-#   - libc6-dev-i386 for the i386 cgo part of the build
 #   - gnupg1 to avoid a password issue in key import
+#   - unzip because electron6 packager requires it
 RUN apt-get update
-RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
-  build-essential curl python python-pip libc6-dev-i386 gnupg1
+RUN apt-get install -y fakeroot reprepro rpm createrepo-c git wget \
+  build-essential curl s3cmd gnupg2 unzip rsync gcc-x86-64-linux-gnu ca-certificates
 
-# Install s3cmd. See this issue for why we need a version newer than what's in
-# the Debian repos: https://github.com/s3tools/s3cmd/issues/437
-RUN pip install s3cmd
+RUN wget -q https://go.dev/dl/go1.25.5.linux-arm64.tar.gz && \
+  tar -C /usr/local -xzf go1.25.5.linux-arm64.tar.gz && \
+  rm go1.25.5.linux-arm64.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV PATH="${GOPATH}/bin:${PATH}"
 
 # Install nodejs and yarn. (Note that this depends on curl above.)
-RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+ENV NODE_MAJOR=24
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update
 RUN apt-get install -y nodejs yarn
-
-# Install Go directly from Google, because the Debian repos tend to be behind.
-RUN wget "https://storage.googleapis.com/golang/go1.10.4.linux-amd64.tar.gz" -O /root/go.tar
-RUN tar -C /usr/local -xzf /root/go.tar
-RUN rm /root/go.tar
-ENV PATH "$PATH:/usr/local/go/bin"

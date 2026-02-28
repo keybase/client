@@ -27,6 +27,8 @@ func (ob outputBuffer) Close() error {
 // non-recipients can't decode it.
 func TestSaltpackEncDec(t *testing.T) {
 	tc := SetupTest(t, "TestSaltpackEncDec", 1)
+	defer tc.Cleanup()
+
 	m := NewMetaContextForTest(tc)
 
 	senderKP, err := GenerateNaclDHKeyPair()
@@ -114,6 +116,6 @@ func TestSaltpackEncDec(t *testing.T) {
 			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
 		// An unauthorized receiver trying to decrypt should receive an error
 		decError := err.(DecryptionError)
-		require.Equal(t, decError.Cause, saltpack.ErrNoDecryptionKey)
+		require.Equal(t, decError.Cause.Err, saltpack.ErrNoDecryptionKey)
 	}
 }

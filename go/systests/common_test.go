@@ -4,18 +4,31 @@
 package systests
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	_ "net/http/pprof" //nolint:gosec // G108: pprof endpoint only exposed for debugging tests via KEYBASE_SYSTESTS_DEBUG env var
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
+
+func TestMain(m *testing.M) {
+	if os.Getenv("KEYBASE_SYSTESTS_DEBUG") != "" {
+		go func() {
+			_ = http.ListenAndServe("localhost:8080", nil) //nolint:gosec // G114: Debug server for tests only, timeouts not critical
+		}()
+	}
+	os.Exit(m.Run())
+}
 
 func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
 	tc := externalstest.SetupTest(t, nm, 2)
@@ -45,9 +58,11 @@ type dumbUI struct{}
 func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
+
 func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
+
 func (d dumbUI) PrintfUnescaped(format string, args ...interface{}) (int, error) {
 	return 0, nil
 }
@@ -117,18 +132,23 @@ type nullProvisionUI struct {
 func (n nullProvisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (ret keybase1.ProvisionMethod, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (ret keybase1.GPGMethod, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) SwitchToGPGSignOK(context.Context, keybase1.SwitchToGPGSignOKArg) (bool, error) {
 	return false, nil
 }
+
 func (n nullProvisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg) (ret keybase1.DeviceID, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (ret keybase1.DeviceType, err error) {
 	return ret, nil
 }
+
 func (n nullProvisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (ret keybase1.SecretResponse, err error) {
 	return ret, nil
 }
@@ -136,9 +156,11 @@ func (n nullProvisionUI) DisplaySecretExchanged(context.Context, int) error { re
 func (n nullProvisionUI) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (string, error) {
 	return n.deviceName, nil
 }
+
 func (n nullProvisionUI) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
 	return nil
 }
+
 func (n nullProvisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
 }
@@ -155,7 +177,7 @@ func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.D
 	activeDevices := []*libkb.Device{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
-			activeDevices = append(activeDevices, device)
+			activeDevices = append(activeDevices, device.Device)
 		}
 	}
 	return activeDevices, append(sibkeys, subkeys...)
@@ -180,7 +202,7 @@ func pollFor(t *testing.T, label string, totalTime time.Duration, g *libkb.Globa
 		if since > totalTime {
 			// Game over
 			msg := fmt.Sprintf("pollFor '%s' timed out after %v attempts over %v", label, i, since)
-			t.Logf(msg)
+			t.Logf("%s", msg)
 			require.Fail(t, msg)
 			require.FailNow(t, msg)
 			return

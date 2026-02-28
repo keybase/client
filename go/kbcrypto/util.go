@@ -6,6 +6,12 @@ package kbcrypto
 import (
 	"bytes"
 	"crypto/hmac"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
+
+const (
+	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
 )
 
 func FastByteArrayEq(a, b []byte) bool {

@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletExport struct {
@@ -47,6 +47,7 @@ func (c *cmdWalletExport) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletExport) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}

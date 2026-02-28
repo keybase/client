@@ -4,9 +4,8 @@
 package client
 
 import (
+	"context"
 	"errors"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -68,7 +67,7 @@ func (c *CmdSimpleFSRecover) Run() error {
 	}
 
 	for _, src := range srcPaths {
-		dest := keybase1.NewPathWithKbfs(src.KbfsArchived().Path)
+		dest := keybase1.NewPathWithKbfsPath(src.KbfsArchived().Path)
 		c.G().Log.Debug("SimpleFSRecover %s -> %s", src, dest)
 
 		// Don't spawn new jobs if we've been cancelled.  TODO: This

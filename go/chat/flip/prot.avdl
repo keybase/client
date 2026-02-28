@@ -1,0 +1,105 @@
+
+@namespace("flip")
+
+protocol flip {
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
+
+  // Time in milliseconds since the epoch
+  @typedef("long")
+  record Time {}
+
+  record Start {
+    Time startTime;
+    // How long the commitment window lasts
+    long commitmentWindowMsec;
+    // How long the reveal window lasts
+    long revealWindowMsec;
+    // How much slack to give before warning
+    long slackMsec;
+    // How long followers should wait for a commitment complete
+    long commitmentCompleteWindowMsec;
+    // Whether a shuffle, coin flip, etc.
+    FlipParameters params;
+  }
+
+  record UserDevice {
+    gregor1.DeviceID d;
+    gregor1.UID u;
+  }
+
+  record GameMetadata {
+    UserDevice initiator;
+    chat1.ConversationID conversationID;
+    chat1.FlipGameID gameID;
+  }
+
+  record CommitmentComplete {
+    array<UserDeviceCommitment> players;
+  }
+
+  enum FlipType {
+    BOOL_1,
+    INT_2,
+    BIG_3,
+    SHUFFLE_4
+  }
+
+  variant FlipParameters switch (FlipType t) {
+    case BOOL: void;
+    case INT: long;
+    case BIG: bytes;
+    case SHUFFLE: long;
+  }
+
+  enum MessageType {
+    START_1,
+    COMMITMENT_2,
+    COMMITMENT_COMPLETE_3,
+    REVEAL_4,
+    END_5
+  }
+
+  enum Stage {
+    ROUND1_1,
+    ROUND2_2
+  }
+
+  fixed Secret(32);
+  fixed Commitment(32);
+
+  record UserDeviceCommitment {
+    UserDevice ud;
+    Commitment c;
+  }
+
+  fixed Hash(32);
+
+  record Reveal {
+    Secret secret;
+    Hash cch; // Hash of commitment complete (sent in prior round).
+  }
+
+  variant GameMessageBody switch (MessageType t) {
+    case START: Start;
+    case COMMITMENT: Commitment;
+    case COMMITMENT_COMPLETE: CommitmentComplete;
+    case REVEAL: Reveal;
+    case END: void;
+  }
+
+  enum Version {
+     V1_1
+  }
+
+  variant GameMessage switch (Version v) {
+    case V1: GameMessageV1;
+    default: void;
+  }
+
+  record GameMessageV1 {
+    GameMetadata md;
+    GameMessageBody body;
+  }
+
+}

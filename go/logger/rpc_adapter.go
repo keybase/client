@@ -4,8 +4,9 @@
 package logger
 
 import (
+	"context"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // RPCLoggerAdapter is used to turn a logger complying to the rpc.LogOutput interface
@@ -84,18 +85,12 @@ func (l RPCLoggerAdapter) Profile(format string, args ...interface{}) {
 	l.log.Profile(format, args)
 }
 
-func (l RPCLoggerAdapter) Configure(style string, debug bool, filename string) {
-
+func (l RPCLoggerAdapter) Configure(_ string, _ bool, _ string) {
 }
 
-func (l RPCLoggerAdapter) RotateLogFile() error {
-	return nil
-}
-
-func (l RPCLoggerAdapter) CloneWithAddedDepth(depth int) Logger {
+func (l RPCLoggerAdapter) CloneWithAddedDepth(_ int) Logger {
 	return l
 }
 
-func (l RPCLoggerAdapter) SetExternalHandler(handler ExternalHandler) {
-
+func (l RPCLoggerAdapter) SetExternalHandler(_ ExternalHandler) {
 }

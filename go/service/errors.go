@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -29,4 +30,17 @@ type NotConnectedError struct{}
 
 func (e NotConnectedError) Error() string {
 	return "Not connected"
+}
+
+type UserWasLoggedOutError struct{}
+
+func (e UserWasLoggedOutError) Error() string {
+	return "User was logged out because the device is no longer valid"
+}
+
+func (e UserWasLoggedOutError) ToStatus() (s keybase1.Status) {
+	s.Code = libkb.SCNoSession
+	s.Name = "NO_SESSION"
+	s.Desc = e.Error()
+	return
 }

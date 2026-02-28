@@ -58,7 +58,7 @@ func (r *namedRegsStore) Set(key string, val string) libkb.ProofError {
 	return nil
 }
 
-// Mark a register as unuseable
+// Mark a register as unusable
 func (r *namedRegsStore) Ban(key string) libkb.ProofError {
 	err := r.validateKey(key)
 	if err != nil {

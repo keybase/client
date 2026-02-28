@@ -4,14 +4,14 @@
 package client
 
 import (
+	"context"
 	"fmt"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -49,6 +49,11 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	user, err := GetUserClient(v.G())
+	if err != nil {
+		return err
+	}
+
 	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
@@ -61,9 +66,16 @@ func (v *CmdPGPGen) Run() (err error) {
 	} else if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
-	v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
+
+	passphraseState, err := user.LoadPassphraseState(context.TODO(), 0)
 	if err != nil {
 		return err
+	}
+	if passphraseState == keybase1.PassphraseState_KNOWN {
+		v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
+		if err != nil {
+			return err
+		}
 	}
 	if v.arg.DoExport {
 		v.arg.ExportEncrypted, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenEncryptSecret, "When exporting to the GnuPG keychain, encrypt private keys with a passphrase?", libkb.PromptDefaultYes)
@@ -111,7 +123,7 @@ func (v *CmdPGPGen) propmptPGPIDs() (err error) {
 	if err != nil {
 		return
 	}
-	v.arg.Gen.Ids = append(v.arg.Gen.Ids, id)
+	v.arg.Gen.IDs = append(v.arg.Gen.IDs, id)
 
 	emailsSeen := make(map[string]struct{})
 
@@ -134,7 +146,7 @@ func (v *CmdPGPGen) propmptPGPIDs() (err error) {
 		}
 
 		emailsSeen[idAdditional.Email] = struct{}{}
-		v.arg.Gen.Ids = append(v.arg.Gen.Ids, idAdditional)
+		v.arg.Gen.IDs = append(v.arg.Gen.IDs, idAdditional)
 	}
 
 	return

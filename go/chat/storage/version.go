@@ -1,13 +1,12 @@
 package storage
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	context "golang.org/x/net/context"
 )
 
 type ServerVersions struct {
@@ -20,14 +19,14 @@ type ServerVersions struct {
 func NewServerVersions(g *globals.Context) *ServerVersions {
 	return &ServerVersions{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ServerVersions", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "ServerVersions", false),
 	}
 }
 
 func (s *ServerVersions) makeKey() libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
-		Key: fmt.Sprintf("versions"),
+		Key: "versions",
 	}
 }
 
@@ -66,14 +65,15 @@ func (s *ServerVersions) Fetch(ctx context.Context) (chat1.ServerCacheVers, erro
 }
 
 func (s *ServerVersions) matchLocked(ctx context.Context, vers int,
-	versFunc func(chat1.ServerCacheVers) int) (int, error) {
+	versFunc func(chat1.ServerCacheVers) int,
+) (int, error) {
 	srvVers, err := s.fetchLocked(ctx)
 	if err != nil {
 		return 0, err
 	}
 	retVers := versFunc(srvVers)
 	if retVers != vers {
-		return retVers, NewVersionMismatchError(chat1.InboxVers(vers), chat1.InboxVers(retVers))
+		return retVers, NewVersionMismatchError(chat1.InboxVers(vers), chat1.InboxVers(retVers)) //nolint:gosec // G115: Version numbers are positive counters, safe to convert
 	}
 	return retVers, nil
 }

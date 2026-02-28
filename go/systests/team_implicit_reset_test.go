@@ -1,11 +1,11 @@
 package systests
 
 import (
+	"context"
 	"strings"
 	"testing"
 
-	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/ephemeral"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	teams "github.com/keybase/client/go/teams"
@@ -180,7 +180,7 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "team looked up after resets")
 }
 
-func TestImplicitResetAndSBSBringback(t *testing.T) {
+func TestImplicitTeamResetAndSBSBringback(t *testing.T) {
 	// 1. ann and bob (both PUKful) make imp team
 	// 2. bob resets
 	// 3. bob doesn't get a PUK
@@ -195,6 +195,12 @@ func TestImplicitResetAndSBSBringback(t *testing.T) {
 
 	bob := tt.addUser("bob")
 	t.Logf("Signed up bob (%s)", bob.username)
+	ekLibIface := bob.tc.G.GetEKLib()
+	ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+	require.True(t, ok)
+	mctx := bob.MetaContext()
+	err := ekLib.Shutdown(mctx)
+	require.NoError(t, err)
 
 	// (1)
 	displayName := strings.Join([]string{ann.username, bob.username}, ",")
@@ -205,6 +211,16 @@ func TestImplicitResetAndSBSBringback(t *testing.T) {
 	bob.kickTeamRekeyd()
 	bob.reset()                  // (2)
 	bob.loginAfterResetPukless() // (3)
+
+	// Disable background EK generation after login to prevent it from racing
+	// with the explicit perUserKeyUpgrade() call below.
+	t.Logf("Disabling background EK generation after login for bob")
+	ekLibIface = bob.tc.G.GetEKLib()
+	ekLib, ok = ekLibIface.(*ephemeral.EKLib)
+	require.True(t, ok)
+	mctx = bob.MetaContext()
+	err = ekLib.Shutdown(mctx)
+	require.NoError(t, err)
 
 	ann.reAddUserAfterReset(iteam, bob) // (4)
 
@@ -227,7 +243,7 @@ func TestImplicitResetAndSBSBringback(t *testing.T) {
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
 
-func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
+func testImplicitResetParameterized(t *testing.T, startPUK, getPUKAfter bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -249,6 +265,7 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
 
 	ann.kickTeamRekeyd()
+	bob.kickTeamRekeyd()
 	bob.reset()
 	if getPUKAfter {
 		// Bob resets and gets a PUK afterwards
@@ -256,6 +273,16 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	} else {
 		// Bob resets and does not get a PUK.
 		bob.loginAfterResetPukless()
+
+		// Disable background EK generation after login to prevent it from racing
+		// with the explicit perUserKeyUpgrade() call below.
+		t.Logf("Disabling background EK generation after login for bob")
+		ekLibIface := bob.tc.G.GetEKLib()
+		ekLib, ok := ekLibIface.(*ephemeral.EKLib)
+		require.True(t, ok)
+		mctx := bob.MetaContext()
+		err = ekLib.Shutdown(mctx)
+		require.NoError(t, err)
 	}
 
 	iteam2, err := ann.lookupImplicitTeam(false /* create */, displayName, false /* isPublic */)
@@ -264,7 +291,7 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 
 	if startPUK {
 		// Wait for rotation after bob resets.
-		ann.waitForRotateByID(iteam2, keybase1.Seqno(2))
+		ann.waitForAnyRotateByID(iteam2, keybase1.Seqno(1), keybase1.Seqno(1))
 	}
 	ann.reAddUserAfterReset(iteam, bob)
 
@@ -288,9 +315,6 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 
 		// Wait for SBS
 		expectedSeqno := keybase1.Seqno(3)
-		if startPUK {
-			expectedSeqno = keybase1.Seqno(4) // rotateKey link if crypto user resets.
-		}
 		ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam}, expectedSeqno)
 	}
 
@@ -307,15 +331,15 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	require.NoError(t, err)
 }
 
-func TestImplicitResetNoPUKtoNoPUK(t *testing.T) {
-	testImplicitResetParametrized(t, false /* startPUK */, false /* getPUKAfter */)
+func TestImplicitTeamResetNoPUKtoNoPUK(t *testing.T) {
+	testImplicitResetParameterized(t, false /* startPUK */, false /* getPUKAfter */)
 }
 
-func TestImplicitResetNoPUKtoPUK(t *testing.T) {
-	testImplicitResetParametrized(t, false /* startPUK */, true /* getPUKAfter */)
+func TestImplicitTeamResetNoPUKtoPUK(t *testing.T) {
+	testImplicitResetParameterized(t, false /* startPUK */, true /* getPUKAfter */)
 }
 
-func TestImplicitResetPUKtoNoPUK(t *testing.T) {
+func TestImplicitTeamResetPUKtoNoPUK(t *testing.T) {
 	// We are lucky this case even works, it breaks the rules a little
 	// bit: there is no way to post removeMember+addInvite in one
 	// link, so when PUKful bob resets and ann re-adds him as PUKless,
@@ -323,10 +347,10 @@ func TestImplicitResetPUKtoNoPUK(t *testing.T) {
 	// people in the team at the time:
 	//   ann, PUKful bob, PUKless (invited) bob.
 
-	testImplicitResetParametrized(t, true /* startPUK */, false /* getPUKAfter */)
+	testImplicitResetParameterized(t, true /* startPUK */, false /* getPUKAfter */)
 }
 
-func TestImplicitResetNoPukEncore(t *testing.T) {
+func TestImplicitTeamResetNoPukEncore(t *testing.T) {
 	// 1. ann and bob (both PUKful) make imp team
 	// 2. bob resets
 	// 3. bob doesn't get a PUK
@@ -371,7 +395,7 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
 
-func TestImplicitResetBadReadds(t *testing.T) {
+func TestImplicitTeamResetBadReadds(t *testing.T) {
 	// Check if we can't ruin implicit team state by bad re-adds.
 	tt := newTeamTester(t)
 	defer tt.cleanup()

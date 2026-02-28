@@ -4,10 +4,11 @@
 package client
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chatrender"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -16,7 +17,7 @@ import (
 
 type CmdChatRead struct {
 	libkb.Contextified
-	fetcher        chatCLIConversationFetcher
+	fetcher        chatCLIConvFetcher
 	showDeviceName bool
 }
 
@@ -33,6 +34,7 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "<conversation>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatReadRunner(g), "read", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getMessageFetcherFlags(),
 	}
@@ -43,7 +45,7 @@ func (c *CmdChatRead) Fetch() (conversations chat1.ConversationLocal, messages [
 }
 
 func (c *CmdChatRead) SetTeamChatForTest(n string) {
-	c.fetcher = chatCLIConversationFetcher{
+	c.fetcher = chatCLIConvFetcher{
 		query: chat1.GetConversationForCLILocalQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			Limit: chat1.UnreadFirstNumLimit{
@@ -78,15 +80,15 @@ func (c *CmdChatRead) Run() error {
 	}
 
 	if convLocal.Error != nil {
-		ui.Printf("proccessing conversation error: %s\n", convLocal.Error.Message)
+		ui.Printf("processing conversation error: %s\n", convLocal.Error.Message)
 		return nil
 	}
 
 	ui.Printf("\n")
-	if err = (conversationView{
-		conversation: convLocal,
-		messages:     messages,
-	}).show(c.G(), c.showDeviceName); err != nil {
+	if err = (chatrender.ConversationView{
+		Conversation: convLocal,
+		Messages:     messages,
+	}).Show(c.G(), c.showDeviceName); err != nil {
 		return err
 	}
 	ui.Printf("\n")

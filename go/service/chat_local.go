@@ -27,9 +27,9 @@ func newChatLocalHandler(xp rpc.Transporter, g *globals.Context, gh *gregorHandl
 }
 
 func (h *chatLocalHandler) GetChatUI(sessionID int) libkb.ChatUI {
-	return h.BaseHandler.getChatUI(sessionID)
+	return h.getChatUI(sessionID)
 }
 
 func (h *chatLocalHandler) GetStreamUICli() *keybase1.StreamUiClient {
-	return h.BaseHandler.getStreamUICli()
+	return h.getStreamUICli()
 }

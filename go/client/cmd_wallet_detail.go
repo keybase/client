@@ -4,12 +4,12 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type cmdWalletDetail struct {
@@ -44,6 +44,7 @@ func (c *cmdWalletDetail) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletDetail) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func (c *cmdWalletDetail) Run() (err error) {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	printPayment(c.G(), detail, true, dui)
+	printPayment(c.G(), detail, true /* verbose */, true /* details */, dui)
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func makeCryptKey(t *testing.T, gen int) keybase1.CryptKey {
@@ -49,7 +49,8 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	checkCryptKeys := func(tlfID keybase1.TLFID, cryptKeys []keybase1.CryptKey,
-		appType keybase1.TeamApplication) {
+		appType keybase1.TeamApplication,
+	) {
 		team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 			ID:          team.ID,
 			ForceRepoll: true,
@@ -69,7 +70,8 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT))
 	checkCryptKeys(tlfID, chatCryptKeys, keybase1.TeamApplication_CHAT)
 
-	kbfsCryptKeys := append(chatCryptKeys, makeCryptKey(t, 4))
+	kbfsCryptKeys := chatCryptKeys
+	kbfsCryptKeys = append(kbfsCryptKeys, makeCryptKey(t, 4))
 	require.NoError(t, team.AssociateWithTLFKeyset(ctx, tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS))
 	checkCryptKeys(tlfID, kbfsCryptKeys, keybase1.TeamApplication_KBFS)
 }
@@ -100,7 +102,6 @@ func (u *unpinnedTLFAPIFaker) getUnpinnedTLF(_ libkb.MetaContext) (res *unpinned
 }
 
 func TestTLFPinLoop(t *testing.T) {
-
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -120,13 +121,13 @@ func TestTLFPinLoop(t *testing.T) {
 
 	pinner := &backgroundTLFPinner{
 		timer:          timer,
-		getUnpinnedTLF: func(m libkb.MetaContext) (*unpinnedTLF, error) { return faker.getUnpinnedTLF(m) },
+		getUnpinnedTLF: faker.getUnpinnedTLF,
 		exitCh:         exitCh,
 	}
 
 	m := libkb.NewMetaContextForTest(*tcs[0])
 
-	go pinner.run(m)
+	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.NoError(t, err)
 	require.Equal(t, timer.waits, 1)
@@ -142,8 +143,7 @@ func TestTLFPinLoop(t *testing.T) {
 type logoutTimer struct{}
 
 func (t *logoutTimer) StartupWait(m libkb.MetaContext) (err error) {
-	m.G().Logout()
-	return nil
+	return m.LogoutKillSecrets()
 }
 
 func (t *logoutTimer) LoopWait(m libkb.MetaContext, _ error) (err error) {
@@ -151,7 +151,6 @@ func (t *logoutTimer) LoopWait(m libkb.MetaContext, _ error) (err error) {
 }
 
 func TestTLFPinLoopLogout(t *testing.T) {
-
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -161,13 +160,13 @@ func TestTLFPinLoopLogout(t *testing.T) {
 
 	pinner := &backgroundTLFPinner{
 		timer:          timer,
-		getUnpinnedTLF: func(m libkb.MetaContext) (*unpinnedTLF, error) { return faker.getUnpinnedTLF(m) },
+		getUnpinnedTLF: faker.getUnpinnedTLF,
 		exitCh:         exitCh,
 	}
 
 	m := libkb.NewMetaContextForTest(*tcs[0])
 
-	go pinner.run(m)
+	go func() { _ = pinner.run(m) }()
 	err := <-exitCh
 	require.Error(t, err)
 	require.IsType(t, libkb.LoginRequiredError{}, err)

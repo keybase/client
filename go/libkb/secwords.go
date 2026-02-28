@@ -24,9 +24,9 @@ func secWordCount(entropy int) int {
 // secWordListN returns n random words from secwords.
 func secWordListN(n int) ([]string, error) {
 	var res []string
-	max := big.NewInt(int64(len(secwords)))
+	maxI := big.NewInt(int64(len(secwords)))
 	for i := 0; i < n; i++ {
-		x, err := rand.Int(rand.Reader, max)
+		x, err := rand.Int(rand.Reader, maxI)
 		if err != nil {
 			return []string{}, err
 		}
@@ -36,7 +36,6 @@ func secWordListN(n int) ([]string, error) {
 }
 
 func validPhrase(p string, entropies []int) error {
-
 	lens := make(map[int]bool)
 	for _, e := range entropies {
 		lens[secWordCount(e)] = true
@@ -52,20 +51,26 @@ func validPhrase(p string, entropies []int) error {
 		return fmt.Errorf("phrase had %d words, expected %v", len(words), entropies)
 	}
 	for _, w := range words {
-		if !validWord(w) {
+		if !ValidSecWord(w) {
 			return fmt.Errorf("word %q is not a valid word", w)
 		}
 	}
 	return nil
 }
 
-func validWord(w string) bool {
+func ValidSecWord(w string) bool {
 	return secwordSet[w]
 }
 
+// SecWord returns the n'th word from the BIP-0039 list, mod the size
+// of the list.
+func SecWord(n int) string {
+	return secwords[n%len(secwords)]
+}
+
 // Wordlist from BIP0039:
-//  https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 //
+//	https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 var secwords = []string{
 	"abandon",
 	"ability",

@@ -1,0 +1,132 @@
+# Cursor Rules for Keybase Client Repository
+
+## Downloading CI Test Failure Logs (citigo logs)
+
+When test failures occur, you'll see suggested commands like:
+
+```
+curl -s -o - https://ci-fail-logs.s3.amazonaws.com/citogo-PR_28719-4-kbfs_libdokan-TestStatRoot-puco3td7mech4ilrcdhabhsklm25vgk2.gz | zcat -d | less
+```
+
+### ⚠️ COMMON PITFALLS TO AVOID:
+
+1. **DO NOT run curl commands in the sandbox** - Use `required_permissions: ["all"]` to bypass SSL certificate access restrictions
+2. **DO NOT stream logs to stdout/less** - Save them locally first to avoid repeated downloads
+3. **DO NOT use `-k` flag** - Use proper permissions instead to maintain SSL security
+
+### ✅ CORRECT WORKFLOW:
+
+#### Step 1: Extract the Log Information
+
+When you see a test failure with a fetch command, identify:
+
+- The full URL (e.g., `https://ci-fail-logs.s3.amazonaws.com/citogo-PR_28719-4-...`)
+- The test name (e.g., `TestStatRoot`)
+
+#### Step 2: Download and Save Locally
+
+Use `run_terminal_cmd` with **all permissions** to bypass sandbox SSL certificate restrictions:
+
+```bash
+# Download the .gz file locally first
+curl -s -o /path/to/repo/test-failure-TestName.gz https://ci-fail-logs.s3.amazonaws.com/citigo-...
+```
+
+**Important**:
+
+- **ALWAYS use `required_permissions: ["all"]`** - The sandbox blocks access to `/etc/ssl/cert.pem`, causing SSL verification to fail
+- This allows curl to properly verify SSL certificates without using `-k` (insecure mode)
+- Save files to the repository root with descriptive names
+- Keep the .gz extension for the downloaded file
+- For multiple logs, chain commands with `&&` to download all at once
+
+#### Step 3: Decompress Locally
+
+Once downloaded, decompress without network access:
+
+```bash
+# Decompress the file
+gunzip -c test-failure-TestName.gz > test-failure-TestName.log
+```
+
+Or in one step if the file is already downloaded:
+
+```bash
+zcat test-failure-TestName.gz > test-failure-TestName.log
+```
+
+#### Step 4: Read the Decompressed Log
+
+Use the `read_file` tool to read the decompressed `.log` file directly.
+
+### EXAMPLE COMPLETE WORKFLOW:
+
+```
+User reports: "TestStatRoot failed, logs at: curl -s -o - https://ci-fail-logs.s3.amazonaws.com/citogo-PR_28719-4-kbfs_libdokan-TestStatRoot-puco3td7mech4ilrcdhabhsklm25vgk2.gz | zcat -d | less"
+
+Step 1: Download bypassing sandbox (required for SSL cert access)
+run_terminal_cmd(
+  command: "curl -s -o TestStatRoot-failure.gz https://ci-fail-logs.s3.amazonaws.com/citogo-PR_28719-4-kbfs_libdokan-TestStatRoot-puco3td7mech4ilrcdhabhsklm25vgk2.gz",
+  required_permissions: ["all"]
+)
+
+Step 2: Decompress locally (no special permissions needed)
+run_terminal_cmd(
+  command: "gunzip -c TestStatRoot-failure.gz > TestStatRoot-failure.log"
+)
+
+Step 3: Read the log file
+read_file(target_file: "TestStatRoot-failure.log")
+```
+
+### EXAMPLE: Multiple Logs at Once
+
+```
+For multiple test failures, download all logs in one command:
+
+run_terminal_cmd(
+  command: "cd /path/to/repo && curl -s -o Test1.gz URL1 && curl -s -o Test2.gz URL2 && curl -s -o Test3.gz URL3",
+  required_permissions: ["all"]
+)
+
+Then decompress all at once:
+run_terminal_cmd(
+  command: "cd /path/to/repo && gunzip -c Test1.gz > Test1.log && gunzip -c Test2.gz > Test2.log && gunzip -c Test3.gz > Test3.log"
+)
+```
+
+### TROUBLESHOOTING:
+
+**If you get certificate errors (exit code 77):**
+
+- Root cause: Sandbox blocks access to `/etc/ssl/cert.pem` (system CA certificates)
+- Solution: Use `required_permissions: ["all"]` to bypass sandbox restrictions
+- This allows curl to access system SSL certificates for proper verification
+- Alternative (not recommended): Use `-k` flag to skip certificate verification entirely
+
+**If sandbox errors occur:**
+
+- Ensure you're using `required_permissions: ["all"]` for curl commands
+- The sandbox allows network access with `["network"]` but still blocks system cert access
+
+**If the file is corrupted:**
+
+- Re-download with verbose output: `curl -v -o file.gz https://...`
+- Check file size: `ls -lh file.gz`
+
+### FILE NAMING CONVENTION:
+
+Use descriptive names that include the test name:
+
+- ✅ `TestStatRoot-failure.log`
+- ✅ `test-fail-PR28719-TestStatRoot.gz`
+- ❌ `test-fail.gz` (too generic)
+- ❌ `temp.log` (not descriptive)
+
+### CLEANUP:
+
+After analyzing logs, consider cleaning up large log files:
+
+```bash
+rm *.gz *.log
+```

@@ -1,0 +1,12 @@
+@namespace("keybase.1")
+protocol runtime {
+    enum RuntimeGroup {
+        UNKNOWN_0,
+        // Linux or BSD
+        LINUXLIKE_1,
+        // Mac
+        DARWINLIKE_2,
+        // Windows
+        WINDOWSLIKE_3
+    }
+}

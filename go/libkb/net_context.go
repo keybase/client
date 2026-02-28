@@ -1,11 +1,11 @@
 package libkb
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/logger"
-	"golang.org/x/net/context"
 )
 
 type withLogTagKey string
@@ -56,6 +56,18 @@ func LogTagsToString(ctx context.Context) string {
 		}
 	}
 	return strings.Join(out, ",")
+}
+
+func LogTagsFromString(tags string) map[string]string {
+	tagMap := make(map[string]string)
+	for _, tag := range strings.Split(tags, ",") {
+		parsedTag := strings.Split(tag, "=")
+		if len(parsedTag) != 2 {
+			continue
+		}
+		tagMap[parsedTag[0]] = parsedTag[1]
+	}
+	return tagMap
 }
 
 func CopyTagsToBackground(ctx context.Context) context.Context {

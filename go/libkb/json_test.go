@@ -30,7 +30,7 @@ func TestJsonTransaction(t *testing.T) {
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
-				tx.Abort()
+				_ = tx.Abort()
 			}
 			wg.Done()
 		}()
@@ -40,7 +40,7 @@ func TestJsonTransaction(t *testing.T) {
 		go func() {
 			tx, err := tc.G.Env.GetConfigWriter().BeginTransaction()
 			if err == nil {
-				tx.Commit()
+				_ = tx.Commit()
 			}
 			wg.Done()
 		}()
@@ -51,7 +51,7 @@ func TestJsonTransaction(t *testing.T) {
 func buildNewJSONFile(m MetaContext) (JSONTestReader, JSONTestWriter, *JSONTestFile) {
 	path := filepath.Join(m.G().Env.GetConfigDir(), "test-json-file")
 	jsonFile := JSONTestFile{NewJSONFile(m.G(), path, "test file from buildNewJSONFile")}
-	jsonFile.Load(false)
+	_ = jsonFile.Load(false)
 	return &jsonFile, &jsonFile, &jsonFile
 }
 
@@ -60,16 +60,16 @@ func TestJsonSetAndGetString(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "america.montana.bozeman"
 	value := "The American Computer Museum"
 	firstRead, isRet := reader.GetStringAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, "")
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetStringAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetStringAtPath(path)
@@ -82,16 +82,16 @@ func TestJsonSetAndGetInt(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "candy.skittles.count"
 	value := 12
 	firstRead, isRet := reader.GetIntAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, 0)
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetIntAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetIntAtPath(path)
@@ -104,16 +104,16 @@ func TestJsonSetAndGetBool(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
+	// verify that the path is empty first
 	path := "colors.orange.appetizing"
 	value := true
 	firstRead, isRet := reader.GetBoolAtPath(path)
 	require.False(tc.T, isRet)
 	require.Equal(tc.T, firstRead, false)
 
-	//set, get, inspect
+	// set, get, inspect
 	err := writer.SetBoolAtPath(path, value)
 	require.NoError(tc.T, err)
 	secondRead, isRet := reader.GetBoolAtPath(path)
@@ -126,16 +126,16 @@ func TestJsonSetAndGetNull(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
-	//verify that the path is empty first
-	//and that GetNull knows the path wasn't set
+	// verify that the path is empty first
+	// and that GetNull knows the path wasn't set
 	path := "worldcup.victories.croatia"
 	value := 2018
 	isRet := reader.GetNullAtPath(path)
 	require.False(tc.T, isRet)
 
-	//set, get, inspect
+	// set, get, inspect
 	_ = writer.SetIntAtPath(path, value)
 	secondRead, _ := reader.GetIntAtPath(path)
 	require.Equal(tc.T, secondRead, value)
@@ -190,7 +190,7 @@ func TestJsonNonExistingFileRollback(t *testing.T) {
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)
 	reader, writer, rawFile := buildNewJSONFile(m)
-	defer rawFile.Nuke()
+	defer func() { _ = rawFile.Nuke() }()
 
 	tx, err := rawFile.BeginTransaction()
 	require.NoError(t, err)

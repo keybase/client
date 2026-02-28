@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"crypto"
-	"crypto/rsa"
 	"fmt"
 	"strings"
 
@@ -13,12 +12,13 @@ import (
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/keybase/go-crypto/openpgp/s2k"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 type PGPGenArg struct {
 	PrimaryBits     int
 	SubkeyBits      int
-	Ids             Identities
+	IDs             Identities
 	Config          *packet.Config
 	PGPUids         []string
 	PrimaryLifetime int
@@ -27,7 +27,7 @@ type PGPGenArg struct {
 
 func ui32p(i int) *uint32 {
 	if i >= 0 {
-		tmp := uint32(i)
+		tmp := uint32(i) //nolint:gosec // G115: Negative values checked above, lifetime values are bounded
 		return &tmp
 	}
 	return nil
@@ -39,18 +39,19 @@ func ui32p(i int) *uint32 {
 // If config is nil, sensible defaults will be used.
 //
 // Modification of: https://code.google.com/p/go/source/browse/openpgp/keys.go?repo=crypto&r=8fec09c61d5d66f460d227fd1df3473d7e015bc6#456
-//  From golang.com/x/crypto/openpgp/keys.go
+//
+//	From golang.com/x/crypto/openpgp/keys.go
 func GeneratePGPKeyBundle(g *GlobalContext, arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	currentTime := arg.Config.Now()
 
-	if len(arg.Ids) == 0 {
+	if len(arg.IDs) == 0 {
 		return nil, errors.InvalidArgumentError("No Ids in PGPArg")
 	}
 	uids, err := arg.PGPUserIDs()
 	if err != nil {
 		return nil, err
 	}
-	for i, id := range arg.Ids {
+	for i, id := range arg.IDs {
 		extra := ""
 		if i == 0 {
 			extra = "[primary]"
@@ -138,30 +139,30 @@ func GeneratePGPKeyBundle(g *GlobalContext, arg PGPGenArg, logUI LogUI) (*PGPKey
 // It uses PGPUids to determine the set of Ids.  It does not set the
 // default keybase.io uid.  AddDefaultUid() does that.
 func (a *PGPGenArg) CreatePGPIDs() error {
-	if len(a.Ids) > 0 {
+	if len(a.IDs) > 0 {
 		return nil
 	}
 	for _, id := range a.PGPUids {
 		if !strings.Contains(id, "<") && CheckEmail.F(id) {
-			a.Ids = append(a.Ids, Identity{Email: id})
+			a.IDs = append(a.IDs, Identity{Email: id})
 			continue
 		}
 		parsed, err := ParseIdentity(id)
 		if err != nil {
 			return err
 		}
-		a.Ids = append(a.Ids, *parsed)
+		a.IDs = append(a.IDs, *parsed)
 	}
 	return nil
 }
 
 // Just for testing
 func (a *PGPGenArg) AddDefaultUID(g *GlobalContext) {
-	a.Ids = append(a.Ids, KeybaseIdentity(g, ""))
+	a.IDs = append(a.IDs, KeybaseIdentity(g, ""))
 }
 
 // Just for testing
-func (a *PGPGenArg) MakeAllIds(g *GlobalContext) error {
+func (a *PGPGenArg) MakeAllIDs(g *GlobalContext) error {
 	if err := a.CreatePGPIDs(); err != nil {
 		return err
 	}
@@ -170,8 +171,8 @@ func (a *PGPGenArg) MakeAllIds(g *GlobalContext) error {
 }
 
 func (a *PGPGenArg) PGPUserIDs() ([]*packet.UserId, error) {
-	uids := make([]*packet.UserId, len(a.Ids))
-	for i, id := range a.Ids {
+	uids := make([]*packet.UserId, len(a.IDs))
+	for i, id := range a.IDs {
 		uids[i] = id.ToPGPUserID()
 		if uids[i] == nil {
 			return nil, fmt.Errorf("Id[%d] failed to convert to PGPUserId (%+v)", i, id)

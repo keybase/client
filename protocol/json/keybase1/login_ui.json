@@ -6,7 +6,80 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ResetPromptType",
+      "symbols": [
+        "COMPLETE_0",
+        "ENTER_NO_DEVICES_1",
+        "ENTER_FORGOT_PW_2",
+        "ENTER_RESET_PW_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetPromptInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hasWallet"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ResetPrompt",
+      "switch": {
+        "type": "ResetPromptType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "COMPLETE",
+            "def": false
+          },
+          "body": "ResetPromptInfo"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ResetPromptResponse",
+      "symbols": [
+        "NOTHING_0",
+        "CANCEL_RESET_1",
+        "CONFIRM_RESET_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PassphraseRecoveryPromptType",
+      "symbols": [
+        "ENCRYPTED_PGP_KEYS_0"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ResetMessage",
+      "symbols": [
+        "ENTERED_VERIFIED_0",
+        "ENTERED_PASSWORDLESS_1",
+        "REQUEST_VERIFIED_2",
+        "NOT_COMPLETED_3",
+        "CANCELED_4",
+        "COMPLETED_5",
+        "RESET_LINK_SENT_6"
+      ]
+    }
+  ],
   "messages": {
     "getEmailOrUsername": {
       "request": [
@@ -59,6 +132,104 @@
         }
       ],
       "response": null
+    },
+    "promptResetAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prompt",
+          "type": "ResetPrompt"
+        }
+      ],
+      "response": "ResetPromptResponse",
+      "doc": "Called during login / provisioning flows to ask the user whether they\n   would like to either enter the autoreset pipeline and perform the reset\n   of the account."
+    },
+    "displayResetProgress": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "text",
+          "type": "string"
+        },
+        {
+          "name": "endTime",
+          "type": "Time"
+        },
+        {
+          "name": "needVerify",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "In some flows the user will get notified of the reset progress"
+    },
+    "explainDeviceRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "DeviceType"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "During recovery the service might want to explain to the user how they can change\n   their password by using the \"change password\" functionality on other devices."
+    },
+    "promptPassphraseRecovery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "PassphraseRecoveryPromptType"
+        }
+      ],
+      "response": "bool"
+    },
+    "chooseDeviceToRecoverWith": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "devices",
+          "type": {
+            "type": "array",
+            "items": "Device"
+          }
+        }
+      ],
+      "response": "DeviceID",
+      "doc": "Different from ProvisionUI's chooseDevice due to phrasing in the UI."
+    },
+    "displayResetMessage": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "kind",
+          "type": "ResetMessage"
+        }
+      ],
+      "response": null,
+      "doc": "Simply displays a message in the recovery flow."
     }
   },
   "namespace": "keybase.1"

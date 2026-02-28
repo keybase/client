@@ -24,7 +24,7 @@ func TablifyWithTabWriter(w *tabwriter.Writer, headings []string, rowfunc func()
 
 	if headings != nil {
 		dorow(headings)
-		seps := make([]string, len(headings), len(headings))
+		seps := make([]string, len(headings))
 		for i, h := range headings {
 			seps[i] = strings.Repeat("=", len(h)+1)
 		}

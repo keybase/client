@@ -26,7 +26,6 @@ func combineSignatures(toSignatures []*packet.Signature, fromSignatures []*packe
 
 // MergeKey adds the identities, revocations, and subkeys of another PGPKeyBundle to this key
 func (to *PGPKeyBundle) MergeKey(from *PGPKeyBundle) {
-
 	// First, merge identities, adding any signatures found in matching identities
 	for name, fromIdentity := range from.Identities {
 		if toIdentity, ok := to.Identities[name]; ok {

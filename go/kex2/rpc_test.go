@@ -4,6 +4,7 @@
 package kex2
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -14,7 +15,6 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -40,14 +40,13 @@ func newMockProvisioner(t *testing.T) *mockProvisioner {
 	}
 }
 
-type nullLogOutput struct {
-}
+type nullLogOutput struct{}
 
-func (n *nullLogOutput) Error(s string, args ...interface{})   {}
-func (n *nullLogOutput) Warning(s string, args ...interface{}) {}
-func (n *nullLogOutput) Info(s string, args ...interface{})    {}
-func (n *nullLogOutput) Debug(s string, args ...interface{})   {}
-func (n *nullLogOutput) Profile(s string, args ...interface{}) {}
+func (n *nullLogOutput) Error(_ string, _ ...interface{})   {}
+func (n *nullLogOutput) Warning(_ string, _ ...interface{}) {}
+func (n *nullLogOutput) Info(_ string, _ ...interface{})    {}
+func (n *nullLogOutput) Debug(_ string, _ ...interface{})   {}
+func (n *nullLogOutput) Profile(_ string, _ ...interface{}) {}
 
 var _ rpc.LogOutput = (*nullLogOutput)(nil)
 
@@ -74,12 +73,16 @@ func genKeybase1DeviceID(t *testing.T) keybase1.DeviceID {
 	return keybase1.DeviceID(hex.EncodeToString(did))
 }
 
-func newMockProvisionee(t *testing.T, behavior int) *mockProvisionee {
+func newMockProvisionee(_ *testing.T, behavior int) *mockProvisionee {
 	return &mockProvisionee{behavior}
 }
 
 func (mp *mockProvisioner) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
+}
+
+func (mp *mockProvisioner) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
 }
 
 func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, err error) {
@@ -96,6 +99,7 @@ func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg, err error) {
 	res.Uid = mp.uid
 	return res, err
 }
+
 func (mp *mockProvisioner) GetHello2Arg() (res keybase1.Hello2Arg, err error) {
 	res.Uid = mp.uid
 	return res, err
@@ -105,9 +109,15 @@ func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
-var ErrHandleHello = errors.New("handle hello failure")
-var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
-var testTimeout = time.Duration(500) * time.Millisecond
+func (mp *mockProvisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
+}
+
+var (
+	ErrHandleHello          = errors.New("handle hello failure")
+	ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
+	testTimeout             = time.Duration(500) * time.Millisecond
+)
 
 func (mp *mockProvisionee) HandleHello2(ctx context.Context, arg2 keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	arg1 := keybase1.HelloArg{
@@ -145,7 +155,6 @@ func (mp *mockProvisionee) HandleDidCounterSign2(ctx context.Context, arg keybas
 }
 
 func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [2]error) {
-
 	timeout := testTimeout
 	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
 
@@ -156,13 +165,17 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 	secretCh := make(chan Secret)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           ctx,
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
@@ -179,7 +192,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.Background(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s2,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -272,7 +285,6 @@ func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
 }
 
 func TestFullProtocolY(t *testing.T) {
-
 	timeout := time.Duration(60) * time.Second
 	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
 
@@ -281,13 +293,15 @@ func TestFullProtocolY(t *testing.T) {
 	ch := make(chan error, 3)
 
 	secretCh := make(chan Secret)
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s1,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -304,7 +318,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
@@ -325,5 +339,4 @@ func TestFullProtocolY(t *testing.T) {
 			t.Fatalf("Unexpected error (receive %d): %v", i, e)
 		}
 	}
-
 }

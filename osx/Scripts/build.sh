@@ -15,7 +15,7 @@ mkdir -p $build_dest
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
-code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+code_sign_identity="90524F7BEAEACD94C7B473787F4949582F904104" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 echo "Plist: $plist"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
@@ -37,7 +37,7 @@ app_path="$build_dest/$app_name.app"
 rm -rf $archive_path
 
 echo "Archiving..."
-set -o pipefail && xcodebuild archive -scheme "$scheme" -workspace "$dir/../Keybase.xcworkspace" -configuration "$xcode_configuration" -archivePath "$archive_path" | xcpretty -c
+set -o pipefail && xcodebuild archive -scheme "$scheme" -workspace "$dir/../Keybase.xcworkspace" -configuration "$xcode_configuration" -archivePath "$archive_path" -destination 'platform=macOS' | xcpretty -c 
 
 # echo "Copying to archive"
 # archive_hold_path="/Users/gabe/Library/Developer/Xcode/Archives/$archive_dir_day/$app_name $archive_postfix.xcarchive"
@@ -69,16 +69,16 @@ xCode has trouble signing with Developer IDs properly so we need to re-sign.
 NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
 the (old) March 12th version of the certificate from your Keychain.
 
-Re-signing using identitiy:
+Re-signing using identity:
 
 $code_sign_identity
 
 "
 
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
-codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
+codesign --verbose -o library --force --timestamp --options runtime --preserve-metadata=identifier,entitlements --sign "$code_sign_identity" "$helper"
 
-codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+codesign --verbose -o library --force  --deep --timestamp --options runtime --sign  "$code_sign_identity"  $app_name.app
 echo " "
 
 echo "Checking app..."

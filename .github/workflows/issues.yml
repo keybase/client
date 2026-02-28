@@ -1,0 +1,29 @@
+name: Close Issues
+on:
+  issues:
+    types: [opened]
+permissions:
+  issues: write
+jobs:
+  close_issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check issue body and close if necessary
+      uses: actions/github-script@v7.0.1
+      with:
+        script: |
+          const issueBody = context.payload.issue.body || '';
+          const regex = /345567/;
+          
+          if (!regex.test(issueBody)) {
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+            console.log(`Issue #${context.issue.number} closed because it did not match the regex.`);
+          } else {
+            console.log(`Issue #${context.issue.number} remains open because it matches the regex.`);
+          }

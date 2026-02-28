@@ -17,7 +17,7 @@ func newBug3964Repairman(g *GlobalContext) *bug3964Repairman {
 }
 
 func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, serverHalfSet *LKSecServerHalfSet, err error) {
-	defer m.CTrace("bug3964Repairman#attemptRepair", func() error { return err })()
+	defer m.Trace("bug3964Repairman#attemptRepair", &err)()
 	var oldKeyring, newKeyring *SKBKeyringFile
 	lctx := m.LoginContext()
 	oldKeyring, err = lctx.Keyring(m)
@@ -32,7 +32,7 @@ func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm Device
 		return false, nil, nil
 	}
 	if err = newKeyring.Save(); err != nil {
-		m.CDebugf("Error saving new keyring: %s", err)
+		m.Debug("Error saving new keyring: %s", err)
 		return false, nil, err
 	}
 	lctx.ClearKeyring()
@@ -40,7 +40,7 @@ func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm Device
 }
 
 func (b *bug3964Repairman) loadLKSecServerDetails(m MetaContext, lksec *LKSec) (ret DeviceKeyMap, err error) {
-	defer m.CTrace("bug3964Repairman#loadLKSecServerDetails", func() error { return err })()
+	defer m.Trace("bug3964Repairman#loadLKSecServerDetails", &err)()
 	ret, err = lksec.LoadServerDetails(m)
 	if err != nil {
 		return nil, err
@@ -53,23 +53,23 @@ func (b *bug3964Repairman) updateSecretStore(m MetaContext, nun NormalizedUserna
 	fs := lksec.FullSecret()
 	ss := b.G().SecretStore()
 	if fs.IsNil() {
-		m.CWarningf("Got unexpected nil full secret")
+		m.Warning("Got unexpected nil full secret")
 		return ss.ClearSecret(m, nun)
 	}
 	return ss.StoreSecret(m, nun, fs)
 }
 
 func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error) {
-	defer b.G().Trace("bug3964Repairman#saveRepairmanVisit", func() error { return err })()
+	defer b.G().Trace("bug3964Repairman#saveRepairmanVisit", &err)()
 	return b.G().Env.GetConfigWriter().SetBug3964RepairTime(nun, time.Now())
 }
 
 func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServerHalfSet, ppgen PassphraseGeneration, nun NormalizedUsername) (err error) {
-	defer m.G().CTrace(m.Ctx(), "bug3964Repairman#postToServer", func() error { return err })()
+	defer m.G().CTrace(m.Ctx(), "bug3964Repairman#postToServer", &err)()
 	if serverHalfSet == nil {
 		return errors.New("internal error --- had nil server half set")
 	}
-	_, err = m.G().API.Post(APIArg{
+	_, err = m.G().API.Post(m, APIArg{
 		Endpoint:    "user/bug_3964_repair",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -77,13 +77,12 @@ func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServe
 			"ppgen":             I{Val: int(ppgen)},
 			"lks_server_halves": S{Val: serverHalfSet.EncodeToHexList()},
 		},
-		MetaContext: m,
 	})
 	return err
 }
 
 func (b *bug3964Repairman) computeShortCircuit(nun NormalizedUsername) (ss bool, err error) {
-	defer b.G().Trace("bug3964Repairman#computeShortCircuit", func() error { return err })()
+	defer b.G().Trace("bug3964Repairman#computeShortCircuit", &err)()
 	repairTime, tmpErr := b.G().Env.GetConfig().GetBug3964RepairTime(nun)
 
 	// Ignore any decoding errors
@@ -106,7 +105,7 @@ func (b *bug3964Repairman) computeShortCircuit(nun NormalizedUsername) (ss bool,
 }
 
 func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen PassphraseGeneration) (err error) {
-	defer m.CTrace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
+	defer m.Trace("bug3964Repairman#fixLKSClientHalf", &err)()
 	var me *User
 	var encKey GenericKey
 	var ctext string
@@ -126,7 +125,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen P
 		return err
 	}
 
-	_, err = b.G().API.Post(APIArg{
+	_, err = b.G().API.Post(m, APIArg{
 		Endpoint:    "device/update_lks_client_half",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -134,7 +133,6 @@ func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen P
 			"kid":             S{Val: kid.String()},
 			"lks_client_half": S{Val: ctext},
 		},
-		MetaContext: m,
 	})
 
 	return err
@@ -142,7 +140,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen P
 
 // Run the engine
 func (b *bug3964Repairman) Run(m MetaContext) (err error) {
-	defer m.G().CTrace(m.Ctx(), "bug3964Repairman#Run", func() error { return err })()
+	defer m.G().CTrace(m.Ctx(), "bug3964Repairman#Run", &err)()
 	lctx := m.LoginContext()
 	pps := lctx.PassphraseStreamCache().PassphraseStream()
 
@@ -196,8 +194,7 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 	m.G().Log.CDebugf(m.Ctx(), "| SKB keyring repair completed; edits=%v", ran)
 
 	if !ran {
-		b.saveRepairmanVisit(nun)
-		return nil
+		return b.saveRepairmanVisit(nun)
 	}
 
 	if err := b.fixLKSClientHalf(m, lksec, pps.Generation()); err != nil {
@@ -207,7 +204,10 @@ func (b *bug3964Repairman) Run(m MetaContext) (err error) {
 	if ussErr := b.updateSecretStore(m, nun, lksec); ussErr != nil {
 		m.G().Log.CWarningf(m.Ctx(), "Error in secret store manipulation: %s", ussErr)
 	} else {
-		b.saveRepairmanVisit(nun)
+		err := b.saveRepairmanVisit(nun)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = b.postToServer(m, serverHalfSet, pps.Generation(), nun)

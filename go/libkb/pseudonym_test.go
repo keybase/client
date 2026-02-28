@@ -13,12 +13,14 @@ import (
 )
 
 func testPseudonymName(name, idStr string, keyGen KeyGen,
-	keyStr, expectedPseudonymStr string) string {
+	keyStr, expectedPseudonymStr string,
+) string {
 	return fmt.Sprintf("%s,%s,%d,%s,%s", name, idStr, keyGen, keyStr, expectedPseudonymStr)
 }
 
 func testMakePseudonym(t *testing.T, name, idStr string, keyGen KeyGen,
-	keyStr, expectedPseudonymStr string) {
+	keyStr, expectedPseudonymStr string,
+) {
 	idBytes, err := hex.DecodeString(idStr)
 	require.NoError(t, err)
 	var id tlfID

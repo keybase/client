@@ -17,7 +17,7 @@ import (
 
 // SimpleSign signs the given data stream, outputs an armored string which is
 // the attached signature of the input data
-func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID, err error) {
+func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigIDBase, err error) {
 	var outb bytes.Buffer
 	var in io.WriteCloser
 	var h HashSummer
@@ -35,7 +35,7 @@ func SimpleSign(payload []byte, key PGPKeyBundle) (out string, id keybase1.SigID
 		return
 	}
 	out = outb.String()
-	if id, err = keybase1.SigIDFromSlice(h()); err != nil {
+	if id, err = keybase1.SigIDBaseFromSlice(h()); err != nil {
 		return
 	}
 	return
@@ -62,7 +62,6 @@ func (h HashingWriteCloser) Close() error {
 type HashSummer func() []byte
 
 func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openpgp.FileHints, config *packet.Config) (in io.WriteCloser, h HashSummer, err error) {
-
 	var aout io.WriteCloser
 
 	aout, err = armor.Encode(out, "PGP MESSAGE", PGPArmorHeaders)
@@ -74,12 +73,12 @@ func ArmoredAttachedSign(out io.WriteCloser, signed openpgp.Entity, hints *openp
 	in, err = openpgp.AttachedSign(hwc, signed, hints, config)
 	h = func() []byte { return hwc.hasher.Sum(nil) }
 
-	return
+	return in, h, err
 }
 
 func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
-	in io.WriteCloser, err error) {
-
+	in io.WriteCloser, err error,
+) {
 	if armored {
 		in, _, err = ArmoredAttachedSign(out, *key.Entity, nil, nil)
 	} else {
@@ -88,13 +87,13 @@ func AttachedSignWrapper(out io.WriteCloser, key PGPKeyBundle, armored bool) (
 	return
 }
 
-// NopWriteCloser is like an ioutil.NopCloser, but for an io.Writer.
+// NopWriteCloser is like an io.NopCloser, but for an io.Writer.
 // TODO: we have two of these in OpenPGP packages alone. This probably needs
 // to be promoted somewhere more common.
 //
 // From here:
-//     https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
 //
+//	https://code.google.com/p/go/source/browse/openpgp/write.go?repo=crypto&r=1e7a3e301825bf9cb32e0535f3761d62d2d369d1#364
 type NopWriteCloser struct {
 	W io.Writer
 }

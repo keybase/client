@@ -4,10 +4,9 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -36,7 +35,8 @@ func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 
 func (c *CmdSimpleFSGetStatus) printOpProgress(
 	ui libkb.TerminalUI, progress keybase1.OpProgress,
-	files, written, first bool) (wroteFirst bool) {
+	files, written, first bool,
+) (wroteFirst bool) {
 	var n, d int64
 	var label string
 	if files {

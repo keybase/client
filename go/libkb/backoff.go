@@ -37,5 +37,5 @@ func jitter(millis int) int {
 		return 0
 	}
 
-	return millis/2 + rand.Intn(millis)
+	return millis/2 + rand.Intn(millis) //nolint:gosec // G404: Backoff jitter randomness, not security-critical
 }

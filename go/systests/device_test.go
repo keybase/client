@@ -1,13 +1,14 @@
 package systests
 
 import (
+	"context"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
-	"strings"
-	"testing"
 )
 
 func TestRevokeDevices(t *testing.T) {
@@ -34,14 +35,14 @@ func TestRevokeDevices(t *testing.T) {
 
 	// Add a new TLF (private/tester#alice) that's fully keyed
 	dev1.keyNewTLF(set.uid,
-		[]tlfUser{tlfUser{set.uid, []keybase1.KID{dev1.KID(), dev2.KID(), set.backupKeys[0].KID}}},
+		[]tlfUser{{set.uid, []keybase1.KID{dev1.KID(), dev2.KID(), set.backupKeys[0].KID}}},
 		[]tlfUser{alice},
 	)
 
 	// Add a new TLF (private/tester#mike) that isn't keyed for the current
 	// device
 	tlf2 := dev1.keyNewTLF(set.uid,
-		[]tlfUser{tlfUser{set.uid, []keybase1.KID{dev2.KID(), set.backupKeys[0].KID}}},
+		[]tlfUser{{set.uid, []keybase1.KID{dev2.KID(), set.backupKeys[0].KID}}},
 		[]tlfUser{mike},
 	)
 
@@ -52,7 +53,6 @@ func TestRevokeDevices(t *testing.T) {
 		ActingDevice: dev1.deviceID,
 		TargetDevice: dev2.deviceID,
 	})
-
 	if err != nil {
 		t.Fatalf("Bad answer from RPC: %s", err)
 	}
@@ -95,7 +95,7 @@ func TestRevokeDevices(t *testing.T) {
 			t.Fatalf("With accept=%v, got unexpected error: %v", accept, err)
 		}
 
-		if strings.Index(prompt, expectedName) < 0 {
+		if !strings.Contains(prompt, expectedName) {
 			t.Fatalf("didn't find expected TLF name %q", expectedName)
 		}
 	}

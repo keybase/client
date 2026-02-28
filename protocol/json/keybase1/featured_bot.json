@@ -1,0 +1,147 @@
+{
+  "protocol": "featuredBot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "FeaturedBot",
+      "fields": [
+        {
+          "type": "string",
+          "name": "botAlias"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "extendedDescription"
+        },
+        {
+          "type": "string",
+          "name": "extendedDescriptionRaw"
+        },
+        {
+          "type": "string",
+          "name": "botUsername"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "ownerTeam"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "ownerUser"
+        },
+        {
+          "type": "int",
+          "name": "rank"
+        },
+        {
+          "type": "boolean",
+          "name": "isPromoted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FeaturedBotsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FeaturedBot"
+          },
+          "name": "bots"
+        },
+        {
+          "type": "boolean",
+          "name": "isLastPage"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FeaturedBot"
+          },
+          "name": "bots"
+        },
+        {
+          "type": "boolean",
+          "name": "isLastPage"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "featuredBots": {
+      "request": [
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        },
+        {
+          "name": "skipCache",
+          "type": "boolean"
+        }
+      ],
+      "response": "FeaturedBotsRes"
+    },
+    "search": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        }
+      ],
+      "response": "SearchRes"
+    },
+    "searchLocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "skipCache",
+          "type": "boolean"
+        }
+      ],
+      "response": "SearchRes"
+    }
+  },
+  "namespace": "keybase.1"
+}

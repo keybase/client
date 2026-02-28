@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"text/tabwriter"
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 func NewGPGUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
@@ -92,15 +92,15 @@ func (g GPGUI) GetTTY(_ context.Context) (string, error) {
 	return g.tty, nil
 }
 
-func (g GPGUI) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+func (g GPGUI) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {
 		return "", err
 	}
 	cli := g.G().GetGpgClient()
-	if err := cli.Configure(); err != nil {
+	if err := cli.Configure(g.MetaContext(ctx)); err != nil {
 		return "", err
 	}
 	cli.SetTTY(g.tty)
-	return cli.Sign(*fp, arg.Msg)
+	return cli.Sign(g.MetaContext(ctx), *fp, arg.Msg)
 }

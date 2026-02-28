@@ -4,11 +4,14 @@
 package service
 
 import (
+	"context"
+	"fmt"
+	"sort"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 // ProveHandler is the service side of proving ownership of social media accounts
@@ -35,26 +38,41 @@ func (p *proveUI) PromptOverwrite(ctx context.Context, arg keybase1.PromptOverwr
 	arg.SessionID = p.sessionID
 	return p.cli.PromptOverwrite(ctx, arg)
 }
+
 func (p *proveUI) PromptUsername(ctx context.Context, arg keybase1.PromptUsernameArg) (un string, err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.PromptUsername(ctx, arg)
 }
+
 func (p *proveUI) OutputPrechecks(ctx context.Context, arg keybase1.OutputPrechecksArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.OutputPrechecks(ctx, arg)
 }
+
 func (p *proveUI) PreProofWarning(ctx context.Context, arg keybase1.PreProofWarningArg) (ok bool, err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.PreProofWarning(ctx, arg)
 }
+
 func (p *proveUI) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) (err error) {
 	arg.SessionID = p.sessionID
 	return p.cli.OutputInstructions(ctx, arg)
 }
+
 func (p *proveUI) OkToCheck(ctx context.Context, arg keybase1.OkToCheckArg) (bool, error) {
 	arg.SessionID = p.sessionID
 	return p.cli.OkToCheck(ctx, arg)
 }
+
+func (p *proveUI) Checking(ctx context.Context, arg keybase1.CheckingArg) error {
+	arg.SessionID = p.sessionID
+	return p.cli.Checking(ctx, arg)
+}
+
+func (p *proveUI) ContinueChecking(ctx context.Context, _ int) (bool, error) {
+	return p.cli.ContinueChecking(ctx, p.sessionID)
+}
+
 func (p *proveUI) DisplayRecheckWarning(ctx context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	arg.SessionID = p.sessionID
 	return p.cli.DisplayRecheckWarning(ctx, arg)
@@ -66,6 +84,8 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 
 // Prove handles the `keybase.1.startProof` RPC.
 func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTrace(ctx, fmt.Sprintf("StartProof: Service: %v, Username: %v", arg.Service, arg.Username), &err)()
 	eng := engine.NewProve(ph.G(), &arg)
 	uis := libkb.UIs{
 		ProveUI:   ph.getProveUI(arg.SessionID),
@@ -81,8 +101,20 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 	return res, err
 }
 
+func (ph *ProveHandler) ValidateUsername(ctx context.Context, arg keybase1.ValidateUsernameArg) error {
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	serviceType := mctx.G().GetProofServices().GetServiceType(ctx, arg.Service)
+	if serviceType == nil {
+		return libkb.BadServiceError{Service: arg.Service}
+	}
+	_, err := serviceType.NormalizeRemoteName(mctx, arg.Remotename)
+	return err
+}
+
 // Prove handles the `keybase.1.checkProof` RPC.
 func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTrace(ctx, fmt.Sprintf("CheckProof: SigID: %v", arg.SigID), &err)()
 	eng := engine.NewProveCheck(ph.G(), arg.SigID)
 	m := libkb.NewMetaContext(ctx, ph.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
@@ -97,7 +129,37 @@ func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofA
 	}, nil
 }
 
-// Prove handles the `keybase.1.listProofServices` RPC.
+var choiceProofServices = map[string]int{
+	"twitter":         1,
+	"github":          2,
+	"reddit":          3,
+	"hackernews":      4,
+	"facebook":        5,
+	"web":             6,
+	"https":           7,
+	"http":            8,
+	"dns":             9,
+	"rooter":          10,
+	"mastodon.social": 11,
+}
+
+func (ph *ProveHandler) ListSomeProofServices(ctx context.Context) (res []string, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTrace(ctx, "ListSomeProofServices", &err)()
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	var services []string
+	for _, service := range ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx) {
+		if _, found := choiceProofServices[service]; found {
+			services = append(services, service)
+		}
+	}
+	sort.SliceStable(services, func(i, j int) bool { return choiceProofServices[services[i]] < choiceProofServices[services[j]] })
+	return services, nil
+}
+
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
-	return ph.G().GetProofServices().ListProofCheckers(), nil
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTrace(ctx, "ListProofServices", &err)()
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx), nil
 }

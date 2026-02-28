@@ -9,20 +9,22 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdTeamEditMember struct {
 	libkb.Contextified
-	Team     string
-	Username string
-	Role     keybase1.TeamRole
+	Team        string
+	Username    string
+	Role        keybase1.TeamRole
+	BotSettings *keybase1.TeamBotSettings
 }
 
 func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "edit-member",
-		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
+		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader|bot|restrictedbot>",
 		Usage:        "Change a user's role on a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
@@ -35,10 +37,13 @@ func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			},
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (owner, admin, writer, reader)",
+				Usage: "team role (owner, admin, writer, reader, bot, restrictedbot)",
 			},
 		},
 	}
+
+	cmd.Flags = append(cmd.Flags, botSettingsFlags...)
+	return cmd
 }
 
 func NewCmdTeamEditMemberRunner(g *libkb.GlobalContext) *CmdTeamEditMember {
@@ -57,6 +62,10 @@ func (c *CmdTeamEditMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
+	if c.Role.IsRestrictedBot() {
+		c.BotSettings = ParseBotSettings(ctx)
+	}
+
 	return nil
 }
 
@@ -66,10 +75,16 @@ func (c *CmdTeamEditMember) Run() error {
 		return err
 	}
 
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamEditMemberArg{
-		Name:     c.Team,
-		Username: c.Username,
-		Role:     c.Role,
+		Name:        c.Team,
+		Username:    c.Username,
+		Role:        c.Role,
+		BotSettings: c.BotSettings,
 	}
 
 	if err = cli.TeamEditMember(context.Background(), arg); err != nil {

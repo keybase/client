@@ -1,13 +1,10 @@
 package s3
 
 import (
-	"encoding/base64"
 	"log"
 	"sort"
 	"strings"
 )
-
-var b64 = base64.StdEncoding
 
 // ----------------------------------------------------------------------------
 // S3 signing (http://goo.gl/G1LrK)

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-FILES=`find $1 -type f -name '*.go' | grep -Ev "^./vendor/"`
+FILES=`find $1 -type f -name '*.go'`
 
 for f in $FILES
 do

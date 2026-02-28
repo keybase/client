@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of

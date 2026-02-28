@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build windows
 // +build windows
 
 package pinentry
@@ -34,7 +35,6 @@ func canExec(s string) error {
 }
 
 func FindPinentry(log logger.Logger) (string, error) {
-
 	//		// If you install GPG you'll wind up with this pinentry
 	//		C:\Program Files (x86)\GNU\GnuPG\pinentry-gtk-2.exe
 	//		C:\Program Files (x86)\GNU\GnuPG\pinentry-qt4.exe

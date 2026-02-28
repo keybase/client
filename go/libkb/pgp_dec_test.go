@@ -32,7 +32,7 @@ func TestPGPDecryptBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dec := string(out.Bytes())
+	dec := out.String()
 	if dec != msg {
 		t.Errorf("decoded: %q, expected %q", dec, msg)
 	}

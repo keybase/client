@@ -1,0 +1,69 @@
+{
+  "protocol": "NotifySaltpack",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "SaltpackOperationType",
+      "symbols": [
+        "ENCRYPT_0",
+        "DECRYPT_1",
+        "SIGN_2",
+        "VERIFY_3"
+      ]
+    }
+  ],
+  "messages": {
+    "saltpackOperationStart": {
+      "request": [
+        {
+          "name": "opType",
+          "type": "SaltpackOperationType"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "saltpackOperationProgress": {
+      "request": [
+        {
+          "name": "opType",
+          "type": "SaltpackOperationType"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "bytesComplete",
+          "type": "long"
+        },
+        {
+          "name": "bytesTotal",
+          "type": "long"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "saltpackOperationDone": {
+      "request": [
+        {
+          "name": "opType",
+          "type": "SaltpackOperationType"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

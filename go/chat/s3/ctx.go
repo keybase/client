@@ -1,6 +1,6 @@
 package s3
 
-import "golang.org/x/net/context"
+import "context"
 
 // ctxkey is for getting values out of context.Context
 type ctxkey int

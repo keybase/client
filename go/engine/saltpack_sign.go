@@ -74,15 +74,14 @@ func (e *SaltpackSign) Run(m libkb.MetaContext) error {
 }
 
 func (e *SaltpackSign) loadKey(m libkb.MetaContext) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
+	loggedIn, uid, err := isLoggedInWithUIDAndError(m)
 	if err != nil {
 		return err
 	}
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
+	if !loggedIn {
+		return libkb.NewLoginRequiredError("login required for signing")
 	}
-	key, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "signing a message/file"))
+	key, err := m.G().ActiveDevice.SigningKeyWithUID(uid)
 	if err != nil {
 		return err
 	}

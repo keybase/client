@@ -25,9 +25,9 @@
 	<key>KBFuseVersion</key>
 	<string>3.0.9</string>
 	<key>KBHelperBuild</key>
-	<string>1.0.20</string>
+	<string>1.0.21</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.20</string>
+	<string>1.0.21</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>

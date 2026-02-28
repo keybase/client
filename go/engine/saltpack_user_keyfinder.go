@@ -17,19 +17,23 @@ type SaltpackUserKeyfinder struct {
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
+	UsingSBS                      bool
+	SBSAssertion                  string
 }
 
-var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
-var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
+var (
+	_ libkb.Engine2                                   = (*SaltpackUserKeyfinder)(nil)
+	_ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
+)
 
 // NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
-func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	return NewSaltpackUserKeyfinder(Arg)
+func NewSaltpackUserKeyfinderAsInterface(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+	return NewSaltpackUserKeyfinder(arg)
 }
 
-func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
+func NewSaltpackUserKeyfinder(arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
 	return &SaltpackUserKeyfinder{
-		Arg: Arg,
+		Arg:                           arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}
@@ -71,11 +75,15 @@ func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymme
 	return []libkb.SaltpackReceiverSymmetricKey{}
 }
 
+func (e *SaltpackUserKeyfinder) UsedUnresolvedSBSAssertion() (bool, string) {
+	return e.UsingSBS, e.SBSAssertion
+}
+
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackUserKeyfinder#Run", func() error { return err })()
+	defer m.Trace("SaltpackUserKeyfinder#Run", &err)()
 
 	if len(e.Arg.TeamRecipients) != 0 {
-		m.CDebugf("tried to use SaltpackUserKeyfinder for a team. This should never happen")
+		m.Debug("tried to use SaltpackUserKeyfinder for a team. This should never happen")
 		return fmt.Errorf("cannot find keys for teams")
 	}
 
@@ -98,7 +106,7 @@ func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
 	if !m.ActiveDevice().Valid() {
 		return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
 	}
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(!e.Arg.NoForcePoll)
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return err
@@ -130,7 +138,6 @@ func (e *SaltpackUserKeyfinder) identifyAndAddRecipients(m libkb.MetaContext) er
 }
 
 func (e *SaltpackUserKeyfinder) IdentifyUser(m libkb.MetaContext, user string) (upk *keybase1.UserPlusKeysV2, err error) {
-
 	Arg := keybase1.Identify2Arg{
 		UserAssertion: user,
 		Reason: keybase1.IdentifyReason{
@@ -144,7 +151,7 @@ func (e *SaltpackUserKeyfinder) IdentifyUser(m libkb.MetaContext, user string) (
 		return nil, err
 	}
 
-	engRes, err := eng.Result()
+	engRes, err := eng.Result(m)
 	if err != nil {
 		return nil, err
 	}
@@ -167,14 +174,14 @@ func (e *SaltpackUserKeyfinder) AddUserRecipient(m libkb.MetaContext, upk *keyba
 	err2 := e.AddPUK(m, upk)
 
 	// If we managed to add at least one key for upk, we are happy.
-	if (!(e.Arg.UseDeviceKeys || e.Arg.UsePaperKeys) || err != nil) && (!e.Arg.UseEntityKeys || err2 != nil) {
+	if ((!e.Arg.UseDeviceKeys && !e.Arg.UsePaperKeys) || err != nil) && (!e.Arg.UseEntityKeys || err2 != nil) {
 		return libkb.PickFirstError(err, err2)
 	}
 	return nil
 }
 
 func (e *SaltpackUserKeyfinder) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
-	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == keybase1.DeviceTypeV2_PAPER
 }
 
 // AddPUK returns no error if it adds at least one key (or no paper keys and device keys were requested), otherwise it returns a libkb.NoNaClEncryptionKeyError
@@ -201,7 +208,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasPaperKey = true
 			if e.Arg.UsePaperKeys {
 				keys = append(keys, KID)
-				m.CDebugf("adding user %v's paper key", upk.Username)
+				m.Debug("adding user %v's paper key", upk.Username)
 			}
 		}
 
@@ -209,7 +216,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 			hasDeviceKey = true
 			if e.Arg.UseDeviceKeys {
 				keys = append(keys, KID)
-				m.CDebugf("adding user %v's device key", upk.Username)
+				m.Debug("adding user %v's device key", upk.Username)
 			}
 		}
 	}
@@ -217,7 +224,7 @@ func (e *SaltpackUserKeyfinder) AddDeviceAndPaperKeys(m libkb.MetaContext, upk *
 	e.RecipientDeviceAndPaperKeyMap[upk.Uid] = keys
 
 	if len(keys) == 0 {
-		m.CDebugf("did not add any device or paper keys for %v", upk.Username)
+		m.Debug("did not add any device or paper keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -256,7 +263,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 			}
 		}
 
-		m.CDebugf("did not add any per user keys for %v", upk.Username)
+		m.Debug("did not add any per user keys for %v", upk.Username)
 		return libkb.NoNaClEncryptionKeyError{
 			Username:     upk.Username,
 			HasPGPKey:    len(upk.PGPKeys) > 0,
@@ -279,7 +286,7 @@ func (e *SaltpackUserKeyfinder) AddPUK(m libkb.MetaContext, upk *keybase1.UserPl
 		panic("This should never happen, user has a PUK with a nil KID")
 	}
 
-	m.CDebugf("adding user %v's latest per user key", upk.Username)
+	m.Debug("adding user %v's latest per user key", upk.Username)
 	e.RecipientEntityKeyMap[upk.Uid.AsUserOrTeam()] = []keybase1.KID{lk}
 
 	return nil

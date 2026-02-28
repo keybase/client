@@ -28,6 +28,24 @@
           "name": "misc"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamChangedSource",
+      "symbols": [
+        "SERVER_0",
+        "LOCAL_1",
+        "LOCAL_RENAME_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AvatarUpdateType",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "TEAM_2"
+      ]
     }
   ],
   "messages": {
@@ -48,6 +66,18 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "source",
+          "type": "TeamChangedSource"
         }
       ],
       "response": null,
@@ -70,6 +100,18 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "source",
+          "type": "TeamChangedSource"
         }
       ],
       "response": null,
@@ -115,6 +157,16 @@
       "response": null,
       "oneway": true
     },
+    "teamRoleMapChanged": {
+      "request": [
+        {
+          "name": "newVersion",
+          "type": "UserTeamVersion"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "avatarUpdated": {
       "request": [
         {
@@ -127,6 +179,35 @@
             "type": "array",
             "items": "AvatarFormat"
           }
+        },
+        {
+          "name": "typ",
+          "type": "AvatarUpdateType"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamMetadataUpdate": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    },
+    "teamTreeMembershipsPartial": {
+      "request": [
+        {
+          "name": "membership",
+          "type": "TeamTreeMembership"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamTreeMembershipsDone": {
+      "request": [
+        {
+          "name": "result",
+          "type": "TeamTreeMembershipsDoneResult"
         }
       ],
       "response": null,

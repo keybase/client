@@ -17,7 +17,7 @@ import (
 
 const PerUserKeySeedSize = 32
 
-// A secretbox containg a seed encrypted for its successor generation
+// A secretbox containing a seed encrypted for its successor generation
 type PerUserKeyPrev string
 
 type PerUserKeySeed [PerUserKeySeedSize]byte
@@ -170,8 +170,10 @@ type perUserKeyFull struct {
 	encKey *NaclDHKeyPair
 }
 
-type perUserKeyMap map[keybase1.PerUserKeyGeneration]perUserKeyFull
-type perUserKeySeqGenMap map[keybase1.Seqno]keybase1.PerUserKeyGeneration
+type (
+	perUserKeyMap       map[keybase1.PerUserKeyGeneration]perUserKeyFull
+	perUserKeySeqGenMap map[keybase1.Seqno]keybase1.PerUserKeyGeneration
+)
 
 // PerUserKeyring holds on to all versions of the per user key.
 // Generation=0 should be nil, but all others should be present.
@@ -204,7 +206,8 @@ func (s *PerUserKeyring) GetUID() keybase1.UID {
 // PrepareBoxForNewDevice encrypts the latest shared key seed for a new device.
 // The returned box should be pushed to the server.
 func (s *PerUserKeyring) PrepareBoxForNewDevice(m MetaContext, receiverKey NaclDHKeyPair,
-	senderKey NaclDHKeyPair) (box keybase1.PerUserKeyBox, err error) {
+	senderKey NaclDHKeyPair,
+) (box keybase1.PerUserKeyBox, err error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -225,7 +228,8 @@ func (s *PerUserKeyring) PrepareBoxForNewDevice(m MetaContext, receiverKey NaclD
 // Used when creating a new seed.
 func (s *PerUserKeyring) PrepareBoxesForDevices(m MetaContext, contents PerUserKeySeed,
 	generation keybase1.PerUserKeyGeneration, receiverKeys []NaclDHKeyPair,
-	senderKey GenericKey) (boxes []keybase1.PerUserKeyBox, err error) {
+	senderKey GenericKey,
+) (boxes []keybase1.PerUserKeyBox, err error) {
 	// Do not lock self because we do not use self.
 
 	if contents.IsBlank() {
@@ -251,7 +255,8 @@ func (s *PerUserKeyring) PrepareBoxesForDevices(m MetaContext, contents PerUserK
 // Asserts that the current generation is n-1.
 // The `generation` parameter is n.
 func (s *PerUserKeyring) PreparePrev(m MetaContext, newSeed PerUserKeySeed,
-	newGeneration keybase1.PerUserKeyGeneration) (PerUserKeyPrev, error) {
+	newGeneration keybase1.PerUserKeyGeneration,
+) (PerUserKeyPrev, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -279,10 +284,11 @@ func (s *PerUserKeyring) PreparePrev(m MetaContext, newSeed PerUserKeySeed,
 
 // AddKey registers a full key locally.
 func (s *PerUserKeyring) AddKey(m MetaContext, generation keybase1.PerUserKeyGeneration,
-	seqno keybase1.Seqno, seed PerUserKeySeed) error {
+	seqno keybase1.Seqno, seed PerUserKeySeed,
+) error {
 	s.Lock()
 	defer s.Unlock()
-	m.CDebugf("PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
+	m.Debug("PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
 
 	if seed.IsBlank() {
 		return errors.New("attempt to add blank per-user-key")
@@ -376,6 +382,18 @@ func (s *PerUserKeyring) GetEncryptionKeyByGeneration(m MetaContext, gen keybase
 	return s.getEncryptionKeyByGenerationLocked(m, gen)
 }
 
+func (s *PerUserKeyring) GetEncryptionKeyByGenerationOrSync(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
+	if key, err := s.GetEncryptionKeyByGeneration(m, gen); err == nil {
+		return key, nil
+	}
+
+	// Generation was not available, try to sync.
+	if err := s.Sync(m); err != nil {
+		return nil, err
+	}
+	return s.GetEncryptionKeyByGeneration(m, gen)
+}
+
 func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	if gen < 1 {
 		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation: %v", gen)
@@ -461,9 +479,9 @@ func (s *PerUserKeyring) SyncAsProvisioningKey(m MetaContext, upak *keybase1.Use
 
 // `m.LoginContext` and `upak` are optional
 func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
-	defer m.CTrace("PerUserKeyring#sync", func() error { return err })()
+	defer m.Trace("PerUserKeyring#sync", &err)()
 
-	m.CDebugf("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
+	m.Debug("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
 
 	s.Lock()
 	defer s.Unlock()
@@ -474,7 +492,7 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 	}
 
 	if upak == nil {
-		upak, err = s.getUPAK(m, upak)
+		upak, err = s.getUPAK(m, upak, false)
 		if err != nil {
 			return err
 		}
@@ -484,17 +502,18 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 	newKeys, err := s.importLocked(m, box, prevs, decryptionKey, checker)
 	if err != nil {
 		return err
-
 	}
-	s.mergeLocked(newKeys, checker.seqgen)
-	return nil
+	return s.mergeLocked(newKeys, checker.seqgen)
 }
 
-func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {
+func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys,
+	forceReload bool,
+) (*keybase1.UserPlusAllKeys, error) {
 	if upak != nil {
 		return upak, nil
 	}
-	upakArg := NewLoadUserArgWithMetaContext(m).WithUID(s.uid)
+	upakArg := NewLoadUserArgWithMetaContext(m).WithUID(s.uid).WithForcePoll(
+		forceReload)
 	upak, _, err := m.G().GetUPAKLoader().Load(upakArg)
 	return upak, err
 }
@@ -529,12 +548,12 @@ func (m byGeneration) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m byGeneration) Less(i, j int) bool { return m[i].Generation < m[j].Generation }
 
 func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
-	deviceID keybase1.DeviceID) (box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp, err error) {
-
-	defer m.CTrace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
+	deviceID keybase1.DeviceID,
+) (box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp, err error) {
+	defer m.Trace("PerUserKeyring#fetchBoxesLocked", &err)()
 
 	var resp perUserKeySyncResp
-	err = m.G().API.GetDecode(APIArg{
+	err = m.G().API.GetDecode(m, APIArg{
 		Endpoint: "key/fetch_per_user_key_secrets",
 		Args: HTTPArgs{
 			"generation": I{int(s.currentGenerationLocked())},
@@ -542,12 +561,11 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 		},
 		SessionType: APISessionTypeREQUIRED,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
-		MetaContext: m,
 	}, &resp)
 	if err != nil {
 		return nil, nil, err
 	}
-	m.CDebugf("| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
+	m.Debug("| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
 
 	return resp.Box, resp.Prevs, nil
 }
@@ -624,9 +642,9 @@ func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keyba
 
 func (s *PerUserKeyring) importLocked(m MetaContext,
 	box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp,
-	decryptionKey GenericKey, checker *perUserKeyChecker) (ret perUserKeyMap, err error) {
-
-	defer m.CTrace("PerUserKeyring#importLocked", func() error { return err })()
+	decryptionKey GenericKey, checker *perUserKeyChecker,
+) (ret perUserKeyMap, err error) {
+	defer m.Trace("PerUserKeyring#importLocked", &err)()
 
 	if box == nil && len(prevs) == 0 {
 		// No new stuff, this keyring is up to date.
@@ -637,6 +655,14 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 		return nil, errors.New("per-user-key import nil box")
 	}
 
+	if box.Generation > checker.latestGeneration {
+		// Let's get a new UPAK in case that's just out of date.
+		upak, err := s.getUPAK(m, nil, true)
+		if err != nil {
+			return nil, err
+		}
+		checker = newPerUserKeyChecker(upak)
+	}
 	if box.Generation != checker.latestGeneration {
 		return nil, fmt.Errorf("sync (%v) and checker (%v) disagree on generation", box.Generation, checker.latestGeneration)
 	}
@@ -648,7 +674,7 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 		debugPrevGenList = append(debugPrevGenList, fmt.Sprintf("%d", prev.Generation))
 	}
 	if len(debugPrevGenList) > 0 {
-		m.CDebugf("PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
+		m.Debug("PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
 	}
 
 	ret = make(perUserKeyMap)
@@ -695,7 +721,8 @@ func (k *importedPerUserKey) lower() perUserKeyFull {
 
 // Decrypt, expand, and check a per-user-key from a Box.
 func importPerUserKeyBox(box *keybase1.PerUserKeyBox, decryptionKey GenericKey,
-	wantedGeneration keybase1.PerUserKeyGeneration, checker *perUserKeyChecker) (*importedPerUserKey, error) {
+	wantedGeneration keybase1.PerUserKeyGeneration, checker *perUserKeyChecker,
+) (*importedPerUserKey, error) {
 	if box == nil {
 		return nil, NewPerUserKeyImportError("per-user-key box nil")
 	}
@@ -732,8 +759,8 @@ func importPerUserKeyBox(box *keybase1.PerUserKeyBox, decryptionKey GenericKey,
 
 // Decrypt, expand, and check a per-user-key from a SecretBox.
 func importPerUserKeyPrev(generation keybase1.PerUserKeyGeneration, prev perUserKeyPrevResp, decryptionKey NaclSecretBoxKey,
-	wantedGeneration keybase1.PerUserKeyGeneration, checker *perUserKeyChecker) (*importedPerUserKey, error) {
-
+	wantedGeneration keybase1.PerUserKeyGeneration, checker *perUserKeyChecker,
+) (*importedPerUserKey, error) {
 	if generation != prev.Generation {
 		return nil, fmt.Errorf("import per-user-key mismatched generation: %v != %v",
 			generation, prev.Generation)

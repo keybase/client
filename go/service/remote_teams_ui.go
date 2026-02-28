@@ -1,7 +1,7 @@
 package service
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -29,4 +29,9 @@ func (r *RemoteTeamsUI) ConfirmRootTeamDelete(ctx context.Context, arg keybase1.
 func (r *RemoteTeamsUI) ConfirmSubteamDelete(ctx context.Context, arg keybase1.ConfirmSubteamDeleteArg) (bool, error) {
 	arg.SessionID = r.sessionID
 	return r.cli.ConfirmSubteamDelete(ctx, arg)
+}
+
+func (r *RemoteTeamsUI) ConfirmInviteLinkAccept(ctx context.Context, arg keybase1.ConfirmInviteLinkAcceptArg) (bool, error) {
+	arg.SessionID = r.sessionID
+	return r.cli.ConfirmInviteLinkAccept(ctx, arg)
 }

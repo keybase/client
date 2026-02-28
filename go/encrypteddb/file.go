@@ -1,11 +1,10 @@
 package encrypteddb
 
 import (
-	"io/ioutil"
+	"context"
 	"os"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
 )
 
 type EncryptedFile struct {
@@ -24,22 +23,22 @@ func NewFile(g *libkb.GlobalContext, path string, getSecretBoxKey KeyFn) *Encryp
 }
 
 func (f *EncryptedFile) Get(ctx context.Context, res interface{}) error {
-	enc, err := ioutil.ReadFile(f.path)
+	enc, err := os.ReadFile(f.path)
 	if err != nil {
 		return err
 	}
-	if err = decodeBox(ctx, enc, f.getSecretBoxKey, res); err != nil {
+	if err = DecodeBox(ctx, enc, f.getSecretBoxKey, res); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (f *EncryptedFile) Put(ctx context.Context, data interface{}) error {
-	b, err := encodeBox(ctx, data, f.getSecretBoxKey)
+	b, err := EncodeBox(ctx, data, f.getSecretBoxKey)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(f.path, b, 0644)
+	return os.WriteFile(f.path, b, 0o600)
 }
 
 func (f *EncryptedFile) Remove(ctx context.Context) error {

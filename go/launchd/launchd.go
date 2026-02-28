@@ -1,6 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin
 // +build darwin
 
 package launchd
@@ -9,7 +10,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -103,7 +103,7 @@ func (s Service) Start(wait time.Duration) error {
 	}
 
 	if wait > 0 {
-		status, waitErr := s.WaitForStatus(wait, 500*time.Millisecond)
+		status, waitErr := s.WaitForStatus(wait, 100*time.Millisecond)
 		if waitErr != nil {
 			return waitErr
 		}
@@ -144,13 +144,13 @@ func exitStatus(err error) int {
 // If false, nil is returned it means there was nothing to stop.
 func (s Service) Stop(wait time.Duration) (bool, error) {
 	// We stop by removing the job. This works for non-demand and demand jobs.
-	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput()
+	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput() //nolint:gosec // G204: launchctl with service label from config
 	s.log.Debug("Output (launchctl remove): %s", string(output))
 	if err != nil {
 		exitStatus := exitStatus(err)
 		// Exit status 3 on remove means there was no job to remove
 		if exitStatus == 3 {
-			s.log.Debug("Nothing to stop (%s)", s.label)
+			s.log.Info("Nothing to stop (%s)", s.label)
 			return false, nil
 		}
 		return false, fmt.Errorf("Error removing via launchctl: %s", err)
@@ -195,18 +195,15 @@ func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*S
 	defer ticker.Stop()
 	resultChan := make(chan serviceStatusResult, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				status, err := fn()
-				if err != nil {
-					resultChan <- serviceStatusResult{status: nil, err: err}
-					return
-				}
-				if status != nil && status.HasRun() {
-					resultChan <- serviceStatusResult{status: status, err: nil}
-					return
-				}
+		for range ticker.C {
+			status, err := fn()
+			if err != nil {
+				resultChan <- serviceStatusResult{status: nil, err: err}
+				return
+			}
+			if status != nil && status.HasRun() {
+				resultChan <- serviceStatusResult{status: status, err: nil}
+				return
 			}
 		}
 	}()
@@ -230,18 +227,15 @@ func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error
 	defer ticker.Stop()
 	errChan := make(chan error, 1)
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				status, err := fn()
-				if err != nil {
-					errChan <- err
-					return
-				}
-				if status == nil || !status.IsRunning() {
-					errChan <- nil
-					return
-				}
+		for range ticker.C {
+			status, err := fn()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			if status == nil || !status.IsRunning() {
+				errChan <- nil
+				return
 			}
 		}
 	}()
@@ -339,7 +333,7 @@ func (s Service) savePlist(p Plist) error {
 	plist := p.plistXML()
 
 	s.log.Info("Saving %s", plistDest)
-	file := libkb.NewFile(plistDest, []byte(plist), 0644)
+	file := libkb.NewFile(plistDest, []byte(plist), 0o644)
 	return file.Save(s.log)
 }
 
@@ -376,7 +370,7 @@ func ListServices(filters []string) (services []Service, err error) {
 	if _, derr := os.Stat(launchAgentDir); os.IsNotExist(derr) {
 		return
 	}
-	files, err := ioutil.ReadDir(launchAgentDir)
+	files, err := os.ReadDir(launchAgentDir)
 	if err != nil {
 		return
 	}
@@ -592,7 +586,7 @@ func (p Plist) Check(path string) (bool, error) {
 		return false, nil
 	}
 
-	buf, err := ioutil.ReadFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return false, err
 	}
@@ -614,7 +608,7 @@ func (p Plist) Env() []string {
 }
 
 func (p Plist) FallbackCommand() *exec.Cmd {
-	cmd := exec.Command(p.binPath, p.args...)
+	cmd := exec.Command(p.binPath, p.args...) //nolint:gosec // G204: Binary path and args from plist config for launchd fallback
 	cmd.Env = append(os.Environ(), p.Env()...)
 	return cmd
 }
@@ -706,5 +700,5 @@ func otherWritable(path string) bool {
 	if err != nil {
 		return false
 	}
-	return (fi.Mode() & 0002) != 0
+	return (fi.Mode() & 0o002) != 0
 }

@@ -1,9 +1,8 @@
 package teams
 
 import (
+	"context"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -21,17 +20,18 @@ func TestShowcaseTeam(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
-	name := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	name := namex.String()
 	t.Logf("Created team %q", name)
 
 	isShowcased := true
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, teamID, &isShowcased, nil, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	showcase, err := GetTeamShowcase(context.TODO(), tc.G, name)
+	showcase, err := GetTeamShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, true, showcase.IsShowcased)
 	require.NotNil(t, showcase.SetByUID)
@@ -39,11 +39,11 @@ func TestShowcaseTeam(t *testing.T) {
 	require.Nil(t, nil, showcase.Description)
 
 	description := "Hello world"
-	err = SetTeamShowcase(context.TODO(), tc.G, name, nil, &description, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, teamID, nil, &description, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
+	showcase, err = GetTeamShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, true, showcase.IsShowcased)
 	require.NotNil(t, showcase.SetByUID)
@@ -52,11 +52,11 @@ func TestShowcaseTeam(t *testing.T) {
 	require.Equal(t, "Hello world", *showcase.Description)
 
 	isShowcased = false
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, teamID, &isShowcased, nil, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
+	showcase, err = GetTeamShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 
 	require.Equal(t, false, showcase.IsShowcased)
@@ -65,7 +65,7 @@ func TestShowcaseTeam(t *testing.T) {
 	require.NotNil(t, showcase.Description)
 	require.Equal(t, "Hello world", *showcase.Description)
 
-	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
+	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, showcase, tmShowcase.TeamShowcase)
 	require.Equal(t, false, tmShowcase.IsMemberShowcased)
@@ -80,33 +80,33 @@ func TestShowcaseMember(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
-	name := createTeam(tc)
+	name, id := createTeam2(tc)
 	t.Logf("Created team %q", name)
 
-	var defaultTeamShowcase = keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil, AnyMemberShowcase: true}
+	defaultTeamShowcase := keybase1.TeamShowcase{IsShowcased: false, Description: nil, SetByUID: nil, AnyMemberShowcase: true}
 
-	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
+	tmShowcase, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, id)
 	require.NoError(t, err)
 	require.Equal(t, false, tmShowcase.IsMemberShowcased)
 	require.Equal(t, defaultTeamShowcase, tmShowcase.TeamShowcase)
 
-	err = SetTeamMemberShowcase(context.TODO(), tc.G, name, true)
+	err = SetTeamMemberShowcase(context.TODO(), tc.G, id, true)
 	require.NoError(t, err)
 
-	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
+	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, id)
 	require.NoError(t, err)
 	require.Equal(t, true, tmShowcase.IsMemberShowcased)
 	require.Equal(t, defaultTeamShowcase, tmShowcase.TeamShowcase)
 
 	isShowcased := true
 	description := "Hello Team!"
-	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, &description, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, id, &isShowcased, &description, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, name)
+	tmShowcase, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, id)
 	require.NoError(t, err)
 	require.Equal(t, true, tmShowcase.IsMemberShowcased)
 
@@ -127,35 +127,37 @@ func TestShowcasePermissions(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
-	team := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	team := namex.String()
 	t.Logf("Created team %q", team)
 
 	isShowcased := true
 	description := "This team is showcased"
 	anyMemberShowcase := false
-	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, &description, &anyMemberShowcase)
+	err = SetTeamShowcase(context.TODO(), tc.G, teamID, &isShowcased, &description, &anyMemberShowcase)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
+	err = SetTeamMemberShowcase(context.TODO(), tc.G, teamID, true)
 	require.NoError(t, err)
 
-	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
-	tc.G.Logout()
+	err = tc.Logout()
+	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 
 	// Set- functions should check membership and not issue request
 	// when user is not an admin or higher.
 	isShowcased = false
-	err = SetTeamShowcase(context.TODO(), tc.G, team, &isShowcased, nil, nil)
+	err = SetTeamShowcase(context.TODO(), tc.G, teamID, &isShowcased, nil, nil)
 	require.Error(t, err)
 
 	// AppStatusErrors means we bounced off server instead of being
@@ -165,20 +167,20 @@ func TestShowcasePermissions(t *testing.T) {
 
 	// But we expect to hit server error here: because server checks
 	// anyMemberShowcase, not us.
-	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
+	err = SetTeamMemberShowcase(context.TODO(), tc.G, teamID, true)
 	require.Error(t, err)
 	_, ok = err.(libkb.AppStatusError)
 	require.True(t, ok)
 
 	// Get- functions should still work.
-	ret, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, team)
+	ret, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.False(t, ret.IsMemberShowcased) // false by default
 	require.NotNil(t, ret.TeamShowcase.Description)
 	require.Equal(t, description, *ret.TeamShowcase.Description)
 	require.True(t, ret.TeamShowcase.IsShowcased)
 
-	ret2, err := GetTeamShowcase(context.TODO(), tc.G, team)
+	ret2, err := GetTeamShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, ret.TeamShowcase, ret2)
 }
@@ -193,26 +195,27 @@ func TestShowcaseAnyMember(t *testing.T) {
 	_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
-	team := createTeam(tc)
+	team, teamID := createTeam2(tc)
 	t.Logf("Created team %q", team)
 
-	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(context.TODO(), tc.G, team.String(), user.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
-	tc.G.Logout()
+	err = tc.Logout()
+	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 
 	t.Logf("Logged in as %q (reader)", user.Username)
 
-	ret, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, team)
+	ret, err := GetTeamAndMemberShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.False(t, ret.IsMemberShowcased) // false by default
 
-	err = SetTeamMemberShowcase(context.TODO(), tc.G, team, true)
+	err = SetTeamMemberShowcase(context.TODO(), tc.G, teamID, true)
 	require.NoError(t, err)
 
-	ret, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, team)
+	ret, err = GetTeamAndMemberShowcase(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.True(t, ret.IsMemberShowcased) // membership is true and we are a reader
 }

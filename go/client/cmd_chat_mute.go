@@ -25,6 +25,7 @@ func newCmdChatMute(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatMute{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "mute", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: append(getConversationResolverFlags(), mustGetChatFlags("unmute")...),
 	}

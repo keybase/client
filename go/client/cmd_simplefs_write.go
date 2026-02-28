@@ -5,11 +5,10 @@ package client
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -54,7 +53,6 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSWrite) Run() error {
-
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
@@ -69,7 +67,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 
 	// if we're appending, we'll need the size
 	if c.flags&keybase1.OpenFlags_APPEND != 0 {
-		e, err := cli.SimpleFSStat(context.TODO(), c.path)
+		e, err := cli.SimpleFSStat(context.TODO(), keybase1.SimpleFSStatArg{Path: c.path})
 		if err != nil {
 			return err
 		}
@@ -90,13 +88,13 @@ func (c *CmdSimpleFSWrite) Run() error {
 	r := bufio.NewReader(os.Stdin)
 
 	for {
-		n, err := r.Read(buf[:cap(buf)])
+		n, bufErr := r.Read(buf[:cap(buf)])
 		buf = buf[:n]
 		if n == 0 {
-			if err == nil {
+			if bufErr == nil {
 				continue
 			}
-			if err == io.EOF {
+			if bufErr == io.EOF {
 				break
 			}
 		}
@@ -104,7 +102,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 		err2 := cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
 			OpID:    opid,
 			Offset:  c.offset,
-			Content: buf[:],
+			Content: buf,
 		})
 		if err2 != nil {
 			err = err2
@@ -112,9 +110,11 @@ func (c *CmdSimpleFSWrite) Run() error {
 		}
 		c.offset += int64(n)
 
-		if err != nil {
-			if err == io.EOF {
+		if bufErr != nil {
+			if bufErr == io.EOF {
 				err = nil
+			} else {
+				err = bufErr
 			}
 			break
 		}

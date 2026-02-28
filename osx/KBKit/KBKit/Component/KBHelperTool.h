@@ -19,5 +19,6 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 + (MPXPCClient *)helper;
+- (BOOL)exists;
 
 @end

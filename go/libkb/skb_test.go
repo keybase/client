@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"
@@ -29,7 +30,7 @@ func TestDecode0(t *testing.T) {
 	require.NoError(t, err)
 	var h codec.MsgpackHandle
 	var foo Foo
-	err = MsgpackDecodeAll(bytes, &h, &foo)
+	err = msgpack.DecodeAll(bytes, &h, &foo)
 	require.NoError(t, err)
 	require.Equal(t, 10, foo.Bar)
 }
@@ -90,7 +91,8 @@ func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (Met
 	salt, err := RandBytes(triplesec.SaltLen)
 	require.NoError(t, err)
 	m = m.WithNewProvisionalLoginContext()
-	m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	err = m.LoginContext().CreateLoginSessionWithSalt(email, salt)
+	require.NoError(t, err)
 
 	return m, skb
 }
@@ -101,7 +103,7 @@ func testPromptAndUnlock(t *testing.T, m MetaContext, skb *SKB) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	ss := NewSecretStore(m.G(), "testusername")
+	ss := NewSecretStore(m, "testusername")
 	require.NotNil(t, ss)
 	key, err := skb.PromptAndUnlock(m, parg, ss, nil)
 	require.NoError(t, err)
@@ -147,8 +149,10 @@ func TestCorruptSecretStore(t *testing.T) {
 
 	var skb *SKB
 	m, skb = makeTestSKB(t, m, lks, tc.G)
-	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
-	tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	fs, err := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
+	require.NoError(t, err)
+	err = tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	require.NoError(t, err)
 	testPromptAndUnlock(t, m, skb)
 
 	// The corrupt secret value should be overwritten by the new
@@ -191,7 +195,7 @@ func TestPromptCancelCache(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	m := NewMetaContextForTest(tc)
 	var skb *SKB
-	m, skb = makeTestSKB(t, m, lks, tc.G)
+	_, skb = makeTestSKB(t, m, lks, tc.G)
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)
@@ -222,7 +226,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(NewMetaContextTODO(tc.G), parg, NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(m, parg, NewSecretStore(m, "testusername"), nil)
 	require.NoError(t, err)
 	require.NotNil(t, key)
 }
@@ -233,7 +237,8 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
+	mctx := NewMetaContextTODO(skb.G())
+	key, err := skb.PromptAndUnlock(mctx, parg, NewSecretStore(mctx, "testusername"), nil)
 	require.Error(t, err)
 	require.Nil(t, key)
 	return err

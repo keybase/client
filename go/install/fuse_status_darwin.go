@@ -1,13 +1,14 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+//go:build darwin && !ios
 // +build darwin,!ios
 
 package install
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -135,20 +136,15 @@ func loadPlist(plistPath string, log Log) ([]byte, error) {
 	}
 	log.Debug("Loading plist: %s", plistPath)
 	plistFile, err := os.Open(plistPath)
-	defer plistFile.Close()
+	defer func() {
+		if err := plistFile.Close(); err != nil {
+			log.Debug("unable to close file: %s", err)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(plistFile)
-}
-
-func fuseBundleVersion(appPath string, log Log) (string, error) {
-	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
-	plistData, err := loadPlist(plistPath, log)
-	if err != nil {
-		return "", err
-	}
-	return findStringInPlist("KBFuseVersion", plistData, log), nil
+	return io.ReadAll(plistFile)
 }
 
 func fuseInstallVersion(log Log) (string, error) {

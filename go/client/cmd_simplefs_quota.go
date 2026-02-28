@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // CmdSimpleFSQuota is the 'fs quota' command.
@@ -21,14 +21,16 @@ type CmdSimpleFSQuota struct {
 	bytes    bool
 	archived bool
 	json     bool
+	teamName keybase1.TeamName
 }
 
 // NewCmdSimpleFSQuota creates a new cli.Command.
 func NewCmdSimpleFSQuota(
-	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cl *libcmdline.CommandLine, g *libkb.GlobalContext,
+) cli.Command {
 	return cli.Command{
 		Name:  "quota",
-		Usage: "show quota usage for logged-in user",
+		Usage: "show quota usage for logged-in user or a team",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(
 				&CmdSimpleFSQuota{Contextified: libkb.NewContextified(g)},
@@ -52,6 +54,10 @@ func NewCmdSimpleFSQuota(
 				Name:  "json",
 				Usage: "show output in json format",
 			},
+			cli.StringFlag{
+				Name:  "team",
+				Usage: "print quota usage for a team, instead of the logged-in user",
+			},
 		},
 	}
 }
@@ -63,7 +69,12 @@ func (c *CmdSimpleFSQuota) Run() error {
 		return err
 	}
 
-	usage, err := cli.SimpleFSGetUserQuotaUsage(context.TODO())
+	var usage keybase1.SimpleFSQuotaUsage
+	if c.teamName.Depth() == 0 {
+		usage, err = cli.SimpleFSGetUserQuotaUsage(context.TODO())
+	} else {
+		usage, err = cli.SimpleFSGetTeamQuotaUsage(context.TODO(), c.teamName)
+	}
 	if err != nil {
 		return err
 	}
@@ -71,14 +82,14 @@ func (c *CmdSimpleFSQuota) Run() error {
 	return c.output(usage)
 }
 
-func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
+func humanizeBytes(n int64, bytesOnly bool) string {
 	const kb = 1024
 	const kbf = float64(kb)
 	const mb = kb * 1024
 	const mbf = float64(mb)
 	const gb = mb * 1024
 	const gbf = float64(gb)
-	if c.bytes || n < kb {
+	if bytesOnly || n < kb {
 		return fmt.Sprintf("%d bytes", n)
 	} else if n < mb {
 		return fmt.Sprintf("%.2f KB", float64(n)/kbf)
@@ -86,6 +97,10 @@ func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
 		return fmt.Sprintf("%.2f MB", float64(n)/mbf)
 	}
 	return fmt.Sprintf("%.2f GB", float64(n)/gbf)
+}
+
+func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
+	return humanizeBytes(n, c.bytes)
 }
 
 type simpleFSQuotaStruct struct {
@@ -96,12 +111,10 @@ type simpleFSQuotaStruct struct {
 
 func (c *CmdSimpleFSQuota) output(usage keybase1.SimpleFSQuotaUsage) error {
 	ui := c.G().UI.GetTerminalUI()
-	usageBytes, archiveBytes, limitBytes :=
-		usage.UsageBytes, usage.ArchiveBytes, usage.LimitBytes
+	usageBytes, archiveBytes, limitBytes := usage.UsageBytes, usage.ArchiveBytes, usage.LimitBytes
 
 	if c.git {
-		usageBytes, archiveBytes, limitBytes =
-			usage.GitUsageBytes, usage.GitArchiveBytes, usage.GitLimitBytes
+		usageBytes, archiveBytes, limitBytes = usage.GitUsageBytes, usage.GitArchiveBytes, usage.GitLimitBytes
 	}
 
 	if c.json {
@@ -134,6 +147,15 @@ func (c *CmdSimpleFSQuota) ParseArgv(ctx *cli.Context) error {
 	c.bytes = ctx.Bool("bytes")
 	c.archived = ctx.Bool("archived")
 	c.json = ctx.Bool("json")
+
+	if len(ctx.String("team")) > 0 {
+		teamName, err := keybase1.TeamNameFromString(ctx.String("team"))
+		if err != nil {
+			return err
+		}
+		c.teamName = teamName
+	}
+
 	return nil
 }
 
