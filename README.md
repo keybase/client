@@ -4,9 +4,9 @@ Hi, and welcome to the Keybase client repo. All our client apps (macOS,
 Windows, Linux, iOS, and Android) are being actively developed in this
 repository. Please, dig around.
 
-### Warnings
+### Warnings 
 
-We'd love you to read our source code.
+We'd love you to read our source code. 
 
 But - some of the things in this repo are explorations, and the app you build
 from source just _might not do what it says it's doing_. So, if you just want
