@@ -173,15 +173,15 @@ const AddMembersConfirm = () => {
 const alreadyInTeamLimit = 20
 
 const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
-  const invitedStr = React.useMemo(() => {
+  const invitedStr = (() => {
     if (assertions.length > alreadyInTeamLimit) {
       const left = assertions.length - alreadyInTeamLimit
       const spliced = assertions.slice(0, alreadyInTeamLimit)
       return spliced.map(x => assertionToDisplay(x)).join(', ') + `... (and ${left} more)`
     }
     return assertions.map(x => assertionToDisplay(x)).join(', ')
-  }, [assertions])
-  const noun = React.useMemo(() => {
+  })()
+  const noun = (() => {
     // If all assertions are emails or phone numbers, use "emails" or "phone
     // numbers" noun. Otherwise, use "people".
     const types = new Set<string>()
@@ -204,7 +204,7 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
       }
     }
     return 'people'
-  }, [assertions])
+  })()
   return (
     <Kb.Text type="BodySmallSuccess" selectable={true}>
       Some {noun} were already invited to the team and are not shown here: {invitedStr}
@@ -220,8 +220,7 @@ const AddMoreMembers = () => {
     }))
   )
   const teamID = useTeamsState(s => s.addMembersWizard.teamID)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
       const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
@@ -241,9 +240,7 @@ const AddMoreMembers = () => {
           ]}
         />
       )
-    },
-    [appendNewTeamBuilder, nav, teamID]
-  )
+    }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
@@ -438,18 +435,12 @@ const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
     }))
   )
   const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
-  const onAdd = React.useCallback(
-    (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
+  const onAdd = (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
       addMembersWizardSetDefaultChannels(toAdd)
-    },
-    [addMembersWizardSetDefaultChannels]
-  )
-  const onRemove = React.useCallback(
-    (toRemove: T.Teams.ChannelNameID) => {
+    }
+  const onRemove = (toRemove: T.Teams.ChannelNameID) => {
       addMembersWizardSetDefaultChannels(undefined, toRemove)
-    },
-    [addMembersWizardSetDefaultChannels]
-  )
+    }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>

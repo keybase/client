@@ -70,8 +70,7 @@ const MoreNetworksButton = (props: {
   onChangeService: (service: T.TB.ServiceIdWithContact) => void
 }) => {
   const {services, onChangeService} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -86,9 +85,7 @@ const MoreNetworksButton = (props: {
           visible={true}
         />
       )
-    },
-    [services, onChangeService]
-  )
+    }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -136,15 +133,12 @@ export const ServiceTabBar = (props: Props) => {
     T.TB.ServiceIdWithContact | undefined
   >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
-  const onChangeService = React.useCallback(
-    (service: T.TB.ServiceIdWithContact) => {
+  const onChangeService = (service: T.TB.ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
       propsOnChangeService(service)
-    },
-    [services, lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
-  )
+    }
   const lockedServices = services.slice(0, nLocked)
   let frontServices = new Array<T.TB.ServiceIdWithContact>()
   if (services.indexOf(props.selectedService) < nLocked) {

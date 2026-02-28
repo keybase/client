@@ -59,20 +59,14 @@ export type InviteByContactProps = {
 
 export const InviteByContact = (props: InviteByContactProps) => {
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const controlRolePicker = React.useCallback(
-    (open: boolean) => {
+  const controlRolePicker = (open: boolean) => {
       setRolePickerOpen(open)
-    },
-    [setRolePickerOpen]
-  )
+    }
 
   const [filterValue, setFilterValue] = React.useState('')
-  const onFilterChange = React.useCallback(
-    (newValue: string) => {
+  const onFilterChange = (newValue: string) => {
       setFilterValue(newValue)
-    },
-    [setFilterValue]
-  )
+    }
 
   let {listItems} = props
   // Remember if we have any data before appying filtering.

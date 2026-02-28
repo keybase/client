@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '@/styles'
 import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName} from '../markdown/emoji-gen'
@@ -16,7 +15,7 @@ const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
 // have Emoji_Presentation. iOS and desktop handle it fine.
 const emojiVariantSuffix = isAndroid ? '' : '\ufe0f'
 
-const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
+function EmojiWrapper(props: Props) {
   const {emojiName, size} = props
   return (
     <Text
@@ -27,6 +26,6 @@ const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
       {emojiIndexByName[emojiName] ? emojiIndexByName[emojiName] + emojiVariantSuffix : emojiName}
     </Text>
   )
-})
+}
 
 export default EmojiWrapper

@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
@@ -32,9 +31,9 @@ const ReplyPreview = () => {
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
   const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
-  }, [setReplyTo])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>

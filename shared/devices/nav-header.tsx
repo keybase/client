@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import type * as DevicesType from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 
 export const HeaderTitle = () => {
   const Devices = require('@/stores/devices') as typeof DevicesType
@@ -19,7 +18,7 @@ export const HeaderTitle = () => {
 
 export const HeaderRightActions = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onAdd = React.useCallback(() => navigateAppend('deviceAdd'), [navigateAppend])
+  const onAdd = () => navigateAppend('deviceAdd')
   return (
     <Kb.Button
       small={true}

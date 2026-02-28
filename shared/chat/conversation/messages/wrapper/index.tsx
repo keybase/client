@@ -53,9 +53,9 @@ const typeMap = {
   systemText: SystemText,
   systemUsersAddedToConversation: SystemUsersAddedToConv,
   text: Text,
-} satisfies Partial<Record<T.Chat.RenderMessageType, React.NamedExoticComponent<Props>>> as unknown as Record<
+} satisfies Partial<Record<T.Chat.RenderMessageType, React.ComponentType<Props>>> as unknown as Record<
   T.Chat.RenderMessageType,
-  React.NamedExoticComponent<Props> | undefined
+  React.ComponentType<Props> | undefined
 >
 
 export const getMessageRender = (type: T.Chat.RenderMessageType) => {

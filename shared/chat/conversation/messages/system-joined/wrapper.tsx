@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemJoinedType from './container'
 
-const SystemJoined = React.memo(function SystemJoined(p: Props) {
+function SystemJoined(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemJoined = React.memo(function SystemJoined(p: Props) {
       <SystemJoined message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemJoined

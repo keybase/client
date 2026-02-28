@@ -1,11 +1,10 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemSBSResolvedType from './container'
 import type SystemJoinedType from '../system-joined/container'
 import {useCurrentUserState} from '@/stores/current-user'
 
-const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
+function WrapperSystemInvite(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -30,6 +29,6 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
       {child}
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperSystemInvite

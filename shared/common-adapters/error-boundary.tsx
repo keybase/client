@@ -91,23 +91,20 @@ const EB = (p: Props) => {
   const {children, fallbackStyle, closeOnClick} = p
   const [componentStack, setComponentStack] = React.useState('')
 
-  const onError = React.useCallback((_error: Error, info: React.ErrorInfo) => {
+  const onError = (_error: Error, info: React.ErrorInfo) => {
     setComponentStack(info.componentStack ?? '')
-  }, [])
+  }
 
-  const fallbackRender = React.useCallback(
-    (fp: {error: Error; resetErrorBoundary: (...args: unknown[]) => void}) => {
-      const allInfo: AllErrorInfo = {
-        componentStack,
-        message: fp.error.message,
-        name: fp.error.name,
-        stack: fp.error.stack || '',
-      }
-      logger.error('Got boundary error:', allInfo)
-      return <Fallback info={allInfo} closeOnClick={closeOnClick} style={fallbackStyle} />
-    },
-    [componentStack, fallbackStyle, closeOnClick]
-  )
+  const fallbackRender = (fp: {error: Error; resetErrorBoundary: (...args: unknown[]) => void}) => {
+    const allInfo: AllErrorInfo = {
+      componentStack,
+      message: fp.error.message,
+      name: fp.error.name,
+      stack: fp.error.stack || '',
+    }
+    logger.error('Got boundary error:', allInfo)
+    return <Fallback info={allInfo} closeOnClick={closeOnClick} style={fallbackStyle} />
+  }
 
   return (
     <ErrorBoundary fallbackRender={fallbackRender} onError={onError}>

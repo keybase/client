@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props as ButtonProps} from '@/common-adapters/button'
 import openURL from '@/util/open-url'
@@ -13,29 +12,26 @@ type InfoIconProps = {
 export const InfoIcon = (props: InfoIconProps) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onDocumentation = () => openURL('https://book.keybase.io/docs')
-      const onFeedback = () => {
-        navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
-      }
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onDocumentation = () => openURL('https://book.keybase.io/docs')
+    const onFeedback = () => {
+      navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
+    }
 
-      return (
-        <Kb.FloatingMenu
-          items={[
-            {onClick: onFeedback, title: 'Send feedback'},
-            {onClick: onDocumentation, title: 'Documentation'},
-          ]}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [navigateAppend, loggedIn]
-  )
+    return (
+      <Kb.FloatingMenu
+        items={[
+          {onClick: onFeedback, title: 'Send feedback'},
+          {onClick: onDocumentation, title: 'Documentation'},
+        ]}
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

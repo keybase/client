@@ -207,7 +207,7 @@ type FriendRowProps = {
   itemWidth: number
 }
 
-const FriendRow = React.memo(function FriendRow(p: FriendRowProps) {
+function FriendRow(p: FriendRowProps) {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
       {p.usernames.map(u => (
@@ -215,7 +215,7 @@ const FriendRow = React.memo(function FriendRow(p: FriendRowProps) {
       ))}
     </Kb.Box2>
   )
-})
+}
 
 export type BioTeamProofsProps = {
   onAddIdentity?: () => void

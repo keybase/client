@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
@@ -15,12 +14,12 @@ const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
   const {botUsername} = props
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const removeBotMember = Chat.useChatContext(s => s.dispatch.removeBotMember)
-  const onClose = React.useCallback(() => {
+  const onClose = () => {
     clearModals()
-  }, [clearModals])
-  const onRemove = React.useCallback(() => {
+  }
+  const onRemove = () => {
     removeBotMember(botUsername)
-  }, [removeBotMember, botUsername])
+  }
   return (
     <Kb.ConfirmModal
       prompt={`Are you sure you want to uninstall ${botUsername}?`}

@@ -206,8 +206,16 @@ export const Settings = (p: Props) => {
     }
   }, [allowOpenTrigger])
 
-  const getSavePayload = React.useCallback(() => {
-    return {
+  const lastSave = React.useRef({
+    ignoreAccessRequests: newIgnoreAccessRequests,
+    openTeam: newOpenTeam,
+    openTeamRole: newOpenTeamRole,
+    publicityAnyMember: newPublicityAnyMember,
+    publicityMember: newPublicityMember,
+    publicityTeam: newPublicityTeam,
+  })
+  React.useEffect(() => {
+    const next = {
       ignoreAccessRequests: newIgnoreAccessRequests,
       openTeam: newOpenTeam,
       openTeamRole: newOpenTeamRole,
@@ -215,23 +223,11 @@ export const Settings = (p: Props) => {
       publicityMember: newPublicityMember,
       publicityTeam: newPublicityTeam,
     }
-  }, [
-    newIgnoreAccessRequests,
-    newOpenTeam,
-    newOpenTeamRole,
-    newPublicityAnyMember,
-    newPublicityMember,
-    newPublicityTeam,
-  ])
-
-  const lastSave = React.useRef(getSavePayload())
-  React.useEffect(() => {
-    const next = getSavePayload()
     if (!isEqual(next, lastSave.current)) {
       lastSave.current = next
       savePublicity(next)
     }
-  }, [savePublicity, getSavePayload])
+  }, [savePublicity, newIgnoreAccessRequests, newOpenTeam, newOpenTeamRole, newPublicityAnyMember, newPublicityMember, newPublicityTeam])
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outerBox}>
@@ -372,31 +368,22 @@ const Container = (ownProps: OwnProps) => {
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
   const clearError = resetErrorInSettings
-  const loadWelcomeMessage = React.useCallback(() => {
+  const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
-  }, [_loadWelcomeMessage, teamID])
+  }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _savePublicity = React.useCallback(
-    (settings: T.Teams.PublicitySettings) => {
+  const _savePublicity = (settings: T.Teams.PublicitySettings) => {
       setPublicity(teamID, settings)
-    },
-    [setPublicity, teamID]
-  )
-  const showOpenTeamWarning = React.useCallback(
-    (isOpenTeam: boolean, teamname: string) => {
+    }
+  const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
       navigateAppend({props: {isOpenTeam, teamname}, selected: 'openTeamWarning'})
-    },
-    [navigateAppend]
-  )
+    }
   const allowOpenTrigger = useSettingsTabState(s => s.allowOpenTrigger)
 
-  const savePublicity = React.useCallback(
-    (settings: T.Teams.PublicitySettings) => {
+  const savePublicity = (settings: T.Teams.PublicitySettings) => {
       _savePublicity(settings)
       clearError()
-    },
-    [_savePublicity, clearError]
-  )
+    }
 
   // reset if incoming props change on us
   const [key, setKey] = React.useState(0)

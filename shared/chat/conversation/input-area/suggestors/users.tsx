@@ -4,7 +4,6 @@ import {useTeamsState} from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {useUsersState} from '@/stores/users'
 
 export const transformer = (
@@ -165,19 +164,15 @@ const useDataUsers = () => {
 
 const useDataTeams = () => {
   const inboxLayout = Chat.useChatState(s => s.inboxLayout)
-  const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
-  const allChannels = React.useMemo(
-    () =>
-      inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
-        if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
-          if (t.channel.channelname.length) {
-            arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
-          }
-        }
-        return arr
-      }, []) ?? [],
-    [inboxLayout]
-  )
+  const teams = getTeams(inboxLayout)
+  const allChannels = inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
+    if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
+      if (t.channel.channelname.length) {
+        arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+      }
+    }
+    return arr
+  }, []) ?? []
   return {allChannels, teams}
 }
 

@@ -10,12 +10,12 @@ const useTeamsSubscribeMobile = () => {
   const getTeams = useTeamsState(s => s.dispatch.getTeams)
   const unsubscribeTeamList = useTeamsState(s => s.dispatch.unsubscribeTeamList)
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       getTeams(true)
       return () => {
         unsubscribeTeamList()
       }
-    }, [getTeams, unsubscribeTeamList])
+    }
   )
 }
 const useTeamsSubscribeDesktop = () => {
@@ -41,10 +41,10 @@ const useTeamDetailsSubscribeMobile = (teamID: T.Teams.TeamID) => {
   const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
   const unsubscribeTeamDetails = useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       loadTeam(teamID, true)
       return () => unsubscribeTeamDetails(teamID)
-    }, [loadTeam, unsubscribeTeamDetails, teamID])
+    }
   )
 }
 const useTeamDetailsSubscribeDesktop = (teamID: T.Teams.TeamID) => {

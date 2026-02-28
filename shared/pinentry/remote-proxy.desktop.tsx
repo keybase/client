@@ -1,7 +1,6 @@
 // Manages remote pinentry windows
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {useColorScheme} from 'react-native'
@@ -25,8 +24,6 @@ const Pinentry = (p: ProxyProps) => {
   return null
 }
 
-const PinentryMemo = React.memo(Pinentry)
-
 const PinentryProxy = () => {
   const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = usePinentryState(
     C.useShallow(s => {
@@ -46,7 +43,7 @@ const PinentryProxy = () => {
   const darkMode = useColorScheme() === 'dark'
   if (show) {
     return (
-      <PinentryMemo
+      <Pinentry
         cancelLabel={cancelLabel}
         darkMode={darkMode}
         prompt={prompt}

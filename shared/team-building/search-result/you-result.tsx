@@ -1,10 +1,10 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
+import type * as React from 'react'
 import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
-const YouResult = React.memo(function YouResult(props: ResultProps) {
+const YouResult = function YouResult(props: ResultProps) {
   const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
@@ -34,7 +34,7 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
   }
 
   return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   rowContainer: {

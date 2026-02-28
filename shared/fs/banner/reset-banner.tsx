@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
@@ -15,31 +14,22 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
-  const _onOpenWithoutResetUsers = React.useCallback(
-    (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
-      const pathElems = T.FS.getPathElements(currPath)
-      if (pathElems.length < 3) return
-      const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
-      const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      FS.navToPath(filteredPath)
-    },
-    []
-  )
-  const _onReAddToTeam = React.useCallback(
-    (id: T.RPCGen.TeamID, username: string) => {
-      letResetUserBackIn(id, username)
-    },
-    [letResetUserBackIn]
-  )
+  const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
+    const pathElems = T.FS.getPathElements(currPath)
+    if (pathElems.length < 3) return
+    const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
+    const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
+    FS.navToPath(filteredPath)
+  }
+  const _onReAddToTeam = (id: T.RPCGen.TeamID, username: string) => {
+    letResetUserBackIn(id, username)
+  }
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onViewProfile = React.useCallback(
-    (username: string) => () => {
-      C.isMobile ? showUserProfile(username) : showUser(username, true)
-    },
-    [showUser, showUserProfile]
-  )
+  const onViewProfile = (username: string) => () => {
+    C.isMobile ? showUserProfile(username) : showUser(username, true)
+  }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(
       path,

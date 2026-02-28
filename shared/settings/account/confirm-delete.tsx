@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -19,10 +18,10 @@ const DeleteModal = (props: OwnProps) => {
   const itemSearchable = props.searchable
   const lastEmail = props.lastEmail ?? false
 
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onCancel = () => nav.safeNavigateUp()
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
-  const onConfirm = React.useCallback(() => {
+  const onConfirm = () => {
     if (itemType === 'phone') {
       editPhone(itemAddress, true)
     } else {
@@ -30,7 +29,7 @@ const DeleteModal = (props: OwnProps) => {
     }
 
     nav.safeNavigateUp()
-  }, [editEmail, editPhone, itemAddress, itemType, nav])
+  }
 
   const icon =
     itemType === 'email'

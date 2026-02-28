@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
@@ -25,7 +25,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
   const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
   const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
 
-  const menuItems = React.useMemo(() => {
+  const menuItems = (() => {
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
@@ -73,46 +73,30 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
       : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
     menuItems.push(deleteItem)
     return menuItems
-  }, [
-    moreThanOneEmail,
-    onDelete,
-    onMakePrimary,
-    onToggleSearchable,
-    onVerify,
-    primary,
-    searchable,
-    type,
-    verified,
-  ])
+  })()
 
-  const header = React.useMemo(
-    () => (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-        <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
-        {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
-      </Kb.Box2>
-    ),
-    [address, primary]
+  const header = (
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+      <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
+      {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+    </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeText="Cancel"
-          visible={true}
-          position="bottom right"
-          header={Kb.Styles.isMobile ? header : undefined}
-          onHidden={hidePopup}
-          items={menuItems}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [menuItems, header]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeText="Cancel"
+        visible={true}
+        position="bottom right"
+        header={Kb.Styles.isMobile ? header : undefined}
+        onHidden={hidePopup}
+        items={menuItems}
+        closeOnSelect={true}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 

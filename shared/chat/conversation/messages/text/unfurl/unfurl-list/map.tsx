@@ -9,7 +9,7 @@ import {formatDurationForLocation} from '@/util/timestamp'
 import {getUnfurlInfo} from './use-state'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
-const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
+function UnfurlMap(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -94,7 +94,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
       )}
     </Kb.Box2>
   )
-})
+}
 
 type AgeProps = {
   time: number

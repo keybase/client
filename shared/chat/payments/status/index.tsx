@@ -185,7 +185,7 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
+function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
   const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
@@ -210,6 +210,6 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
     text,
   }
   return <PaymentStatus {...props} />
-})
+}
 
 export default PaymentStatusContainer

@@ -35,17 +35,14 @@ const CodePageContainer = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
 
-  const _onSubmitTextCode = React.useCallback(
-    (code: string) => {
-      !waiting && submitTextCode?.(code)
-    },
-    [submitTextCode, waiting]
-  )
+  const _onSubmitTextCode = (code: string) => {
+    !waiting && submitTextCode?.(code)
+  }
 
   const [code, setCode] = React.useState('')
   const [troubleshooting, setTroubleshooting] = React.useState(false)
 
-  const defaultTab = React.useMemo(() => {
+  const defaultTab = (() => {
     const getTabOrOpposite = (tabToShowToNew: Tab) => {
       if (!currentDeviceAlreadyProvisioned) return tabToShowToNew
       switch (tabToShowToNew) {
@@ -64,7 +61,7 @@ const CodePageContainer = () => {
       case 'desktop':
         return otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
-  }, [currentDeviceAlreadyProvisioned, otherDevice.type])
+  })()
 
   const [tab, setTab] = React.useState<Tab>(defaultTab)
 
@@ -347,13 +344,10 @@ const EnterText = (props: {
 }) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(
-    (e?: React.KeyboardEvent) => {
-      e?.preventDefault()
-      code && onSubmitTextCode(code)
-    },
-    [code, onSubmitTextCode]
-  )
+  const onSubmit = (e?: React.KeyboardEvent) => {
+    e?.preventDefault()
+    code && onSubmitTextCode(code)
+  }
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
       <Kb.PlainInput

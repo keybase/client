@@ -10,7 +10,7 @@ type Props = {
   editID: T.FS.EditID
 }
 
-const Editing = React.memo(function Editing({editID}: Props) {
+function Editing({editID}: Props) {
   const {discardEdit, commitEdit, edit, setEditName} = useFSState(
     C.useShallow(s => ({
       commitEdit: s.dispatch.commitEdit,
@@ -86,7 +86,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

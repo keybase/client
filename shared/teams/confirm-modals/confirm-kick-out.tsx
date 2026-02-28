@@ -29,7 +29,7 @@ const ConfirmKickOut = (props: Props) => {
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
   const nav = useSafeNavigation()
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onCancel = () => nav.safeNavigateUp()
 
   const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
   const removeMember = useTeamsState(s => s.dispatch.removeMember)

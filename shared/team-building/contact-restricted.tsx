@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -9,7 +8,7 @@ type Props = {
 
 export const ContactRestricted = (props: Props) => {
   const nav = useSafeNavigation()
-  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onBack = () => nav.safeNavigateUp()
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []

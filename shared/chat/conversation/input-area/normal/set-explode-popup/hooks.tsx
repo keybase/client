@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {Props} from '.'
 
@@ -34,17 +33,14 @@ export default (p: Props) => {
   const {setExplodingMode, onHidden, visible, attachTo, onAfterSelect} = p
   const _meta = Chat.useChatContext(s => s.meta)
   const selected = Chat.useChatContext(s => s.explodingMode)
-  const onSelect = React.useCallback(
-    (seconds: number) => {
-      setTimeout(() => {
-        setExplodingMode(seconds)
-        onAfterSelect?.(seconds)
-      }, 0)
-    },
-    [setExplodingMode, onAfterSelect]
-  )
+  const onSelect = (seconds: number) => {
+    setTimeout(() => {
+      setExplodingMode(seconds)
+      onAfterSelect?.(seconds)
+    }, 0)
+  }
 
-  const items = React.useMemo(() => makeItems(_meta), [_meta])
+  const items = makeItems(_meta)
   return {
     attachTo,
     items,

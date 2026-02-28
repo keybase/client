@@ -293,10 +293,10 @@ const Container = (op: OwnProps) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const userInitiatedHide = React.useCallback(() => {
+  const userInitiatedHide = () => {
     hide()
     downloadID && dismissDownload(downloadID)
-  }, [downloadID, hide, dismissDownload])
+  }
 
   return (
     <Kb.FloatingMenu

@@ -69,11 +69,15 @@ function LeftTabNavigator({
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
-            return i === state.index ? (
-              <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key]?.render()}
-              </Kb.Box2>
-            ) : null
+            const selected = i === state.index
+            const desc = descriptors[route.key]
+            return (
+              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                  {desc?.render()}
+                </Kb.Box2>
+              </React.Activity>
+            )
           })}
         </Kb.BoxGrow>
       </Kb.Box2>

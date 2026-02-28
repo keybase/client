@@ -203,7 +203,7 @@ const getSectionsAndBookmarks = (
   return {bookmarks, sections}
 }
 
-const EmojiRow = React.memo(function EmojiRow(p: {
+function EmojiRow(p: {
   row: Row
   emojisPerLine: number
   mapper: (e: Row['emojis'][number]) => React.ReactNode
@@ -215,9 +215,9 @@ const EmojiRow = React.memo(function EmojiRow(p: {
       {[...Array<unknown>(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
   )
-})
+}
 
-const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
+function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
@@ -406,7 +406,7 @@ const EmojiPicker = React.memo(function EmojiPicker(props: Props) {
       </Kb.Box2>
     </>
   )
-})
+}
 
 export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {

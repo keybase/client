@@ -24,8 +24,8 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-const WaitingButton = React.forwardRef<MeasureRef, Props>(function WaitingButton(props, ref) {
-  const {onlyDisable, waitingKey, ...buttonProps} = props
+function WaitingButton(props: Props & {ref?: React.Ref<MeasureRef>}) {
+  const {onlyDisable, waitingKey, ref, ...buttonProps} = props
   const storeWaiting = C.Waiting.useAnyWaiting(waitingKey)
 
   const [localWaiting, setLocalWaiting] = React.useState(false)
@@ -48,6 +48,6 @@ const WaitingButton = React.forwardRef<MeasureRef, Props>(function WaitingButton
       waiting={onlyDisable ? false : waiting}
     />
   )
-})
+}
 
 export default WaitingButton

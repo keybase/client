@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
@@ -44,7 +43,7 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 
 const emptySet = new Set<string>()
 
-const Typing = React.memo(function Typing() {
+const Typing = function Typing() {
   const names = Chat.useChatContext(
     C.useShallow(s => {
       const names = s.typing
@@ -69,7 +68,7 @@ const Typing = React.memo(function Typing() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 export const mobileTypingContainerHeight = 18
 const styles = Kb.Styles.styleSheetCreate(

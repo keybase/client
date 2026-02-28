@@ -21,8 +21,8 @@ type Props = {
 const SelectableBigTeamChannel = (props: Props) => {
   const [isHovered, setIsHovered] = React.useState(false)
 
-  const _onMouseLeave = React.useCallback(() => setIsHovered(false), [])
-  const _onMouseOver = React.useCallback(() => setIsHovered(true), [])
+  const _onMouseLeave = () => setIsHovered(false)
+  const _onMouseOver = () => setIsHovered(true)
   const _getSearchHits = () => {
     if (!props.numSearchHits) {
       return ''

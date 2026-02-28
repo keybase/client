@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -17,7 +16,7 @@ export type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
+function ReactButtonContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const {onLongPress, style, emoji, className} = p
   const me = useCurrentUserState(s => s.username)
@@ -36,16 +35,16 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   )
 
   const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     toggleMessageReaction(ordinal, emoji || '')
-  }, [toggleMessageReaction, emoji, ordinal])
+  }
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onOpenEmojiPicker = React.useCallback(() => {
+  const onOpenEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
       selected: 'chatChooseEmoji',
     }))
-  }, [navigateAppend, ordinal])
+  }
 
   const text = decorated.length ? decorated : emoji
   return emoji ? (
@@ -104,7 +103,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
 const markdownOverride: StyleOverride = Kb.Styles.isMobile
   ? {

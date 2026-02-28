@@ -140,9 +140,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
 export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<typeof useMessageData>) => {
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return messageShowsPopup(type) && shouldShowPopup
-  }, [shouldShowPopup, type])
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
     shouldShow,
@@ -156,9 +156,9 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const data = useMessageData(ordinal)
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return messageShowsPopup(type) && shouldShowPopup
-  }, [shouldShowPopup, type])
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
     shouldShow,
@@ -234,7 +234,7 @@ const NormalWrapper = ({
   )
 }
 
-const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
+function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
@@ -305,7 +305,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
       />
     </LongPressable>
   )
-})
+}
 
 // Author
 enum EditCancelRetryType {
@@ -315,7 +315,7 @@ enum EditCancelRetryType {
   EDIT_CANCEL,
   RETRY_CANCEL,
 }
-const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
+function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = useOrdinal()
   const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = Chat.useChatContext(
@@ -339,15 +339,15 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       }
     })
   )
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     messageDelete(ordinal)
-  }, [messageDelete, ordinal])
-  const onEdit = React.useCallback(() => {
+  }
+  const onEdit = () => {
     setEditing(ordinal)
-  }, [setEditing, ordinal])
-  const onRetry = React.useCallback(() => {
+  }
+  const onRetry = () => {
     outboxID && messageRetry(outboxID)
-  }, [messageRetry, outboxID])
+  }
 
   const cancel =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
@@ -390,7 +390,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       {cancel}
     </Kb.Text>
   )
-})
+}
 
 type BProps = {
   showPopup: () => void
@@ -402,7 +402,7 @@ type BProps = {
   ecrType: EditCancelRetryType
 }
 // reactions
-const BottomSide = React.memo(function BottomSide(p: BProps) {
+function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
@@ -429,7 +429,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       {desktopReactionsPopup}
     </>
   )
-})
+}
 
 // Exploding, ... , sending, tombstone
 type RProps = {
@@ -442,7 +442,7 @@ type RProps = {
   shouldShowPopup: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
 }
-const RightSide = React.memo(function RightSide(p: RProps) {
+function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
@@ -514,9 +514,9 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       {sendIndicator}
     </>
   )
-})
+}
 
-export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
+export function WrapperMessage(p: WMProps) {
   const {ordinal, bottomChildren, children, messageData: mdataProp} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
@@ -556,10 +556,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     you,
   }
 
-  const messageContext = React.useMemo(
-    () => ({canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}),
-    [ordinal, showCenteredHighlight, canFixOverdraw]
-  )
+  const messageContext = {canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}
 
   return (
     <MessageContext.Provider value={messageContext}>
@@ -569,7 +566,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
       </Kb.Styles.CanFixOverdrawContext.Provider>
     </MessageContext.Provider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

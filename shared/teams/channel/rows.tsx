@@ -3,7 +3,6 @@ import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
@@ -55,10 +54,10 @@ const ChannelMemberRow = (props: Props) => {
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const crown = React.useMemo(() => {
+  const crown = (() => {
     const type = crownIcon(roleType)
     return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
-  }, [active, roleType])
+  })()
   const fullNameLabel =
     fullname && active ? (
       <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
@@ -83,15 +82,15 @@ const ChannelMemberRow = (props: Props) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const onChat = React.useCallback(() => {
+  const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
-  }, [username, previewConversation])
+  }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onEditMember = React.useCallback(() => {
+  const onEditMember = () => {
     yourOperations.manageMembers &&
       username &&
       navigateAppend({props: {teamID, username}, selected: 'teamMember'})
-  }, [yourOperations.manageMembers, username, navigateAppend, teamID])
+  }
   const checkCircle = (
     <Kb.CheckCircle
       checked={memberSelected}
@@ -129,8 +128,7 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
@@ -209,24 +207,7 @@ const ChannelMemberRow = (props: Props) => {
           visible={true}
         />
       )
-    },
-    [
-      navigateAppend,
-      setUserBlocks,
-      fullname,
-      roleLabel,
-      teamID,
-      yourOperations,
-      username,
-      isYou,
-      onChat,
-      onEditMember,
-      props.isGeneral,
-      conversationIDKey,
-      crown,
-      showUserProfile,
-    ]
-  )
+    }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 

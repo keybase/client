@@ -84,7 +84,7 @@ type RS = {
   onClick: () => void
 }
 
-const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
+function ReplyStructure(p: RS) {
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
@@ -122,9 +122,9 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
-const Reply = React.memo(function Reply() {
+function Reply() {
   const ordinal = useOrdinal()
   const replyTo = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
@@ -148,7 +148,7 @@ const Reply = React.memo(function Reply() {
       <ReplyStructure isDeleted={isDeleted} showImage={showImage} showEdited={showEdited} onClick={onClick} />
     </ReplyToContext.Provider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

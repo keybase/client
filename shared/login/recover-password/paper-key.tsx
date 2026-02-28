@@ -14,11 +14,11 @@ const PaperKey = () => {
   }
   const props = {error, onBack}
   const [paperKey, setPaperKey] = React.useState('')
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (paperKey) {
       submitPaperKey?.(paperKey)
     }
-  }, [paperKey, submitPaperKey])
+  }
 
   return (
     <SignupScreen

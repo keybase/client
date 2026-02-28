@@ -239,22 +239,19 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props
 
-  const handleDown = React.useCallback((e: MouseEvent) => {
-    downRef.current = {x: e.clientX, y: e.clientY}
-  }, [])
+  React.useEffect(() => {
+    const handleDown = (e: MouseEvent) => {
+      downRef.current = {x: e.clientX, y: e.clientY}
+    }
 
-  const handleClick = React.useCallback(
-    (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
         !propagateOutsideClicks && e.stopPropagation()
         onClosePopup()
       }
-    },
-    [onClosePopup, propagateOutsideClicks, popupNode]
-  )
+    }
 
-  const handleUp = React.useCallback(
-    (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent) => {
       if (!downRef.current) {
         return
       }
@@ -265,11 +262,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       if (Math.abs(x - clientX) < 5 && Math.abs(y - clientY) < 5) {
         handleClick(e)
       }
-    },
-    [handleClick]
-  )
+    }
 
-  React.useEffect(() => {
     const node = document.body
     node.addEventListener('mousedown', handleDown, {capture: true})
     node.addEventListener('mouseup', handleUp, {capture: true})
@@ -277,7 +271,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       node.removeEventListener('mousedown', handleDown, {capture: true})
       node.removeEventListener('mouseup', handleUp, {capture: true})
     }
-  }, [handleDown, handleUp])
+  }, [onClosePopup, popupNode, propagateOutsideClicks])
 
   React.useEffect(() => {
     if (targetRect && popupNode) {

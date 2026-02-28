@@ -39,7 +39,7 @@ const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
-const UserBubbleCollection = React.memo(function UserBubbleCollection(p: {
+const UserBubbleCollection = function UserBubbleCollection(p: {
   teamSoFar: Props['teamSoFar']
   onRemove: Props['onRemove']
 }) {
@@ -57,7 +57,7 @@ const UserBubbleCollection = React.memo(function UserBubbleCollection(p: {
       ))}
     </>
   )
-})
+}
 
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.

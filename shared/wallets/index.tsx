@@ -12,14 +12,14 @@ const Row = (p: {account: Wallets.Account}) => {
   const [err, setErr] = React.useState('')
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onRemove = React.useCallback(() => {
+  const onRemove = () => {
     navigateAppend({props: {accountID}, selected: 'removeAccount'})
-  }, [navigateAppend, accountID])
-  const onCopied = React.useCallback(() => {
+  }
+  const onCopied = () => {
     setSK('')
     setErr('')
-  }, [])
-  const onReveal = React.useCallback(() => {
+  }
+  const onReveal = () => {
     setErr('')
     setSK('')
     getSecretKey(
@@ -31,7 +31,7 @@ const Row = (p: {account: Wallets.Account}) => {
         setErr(e.desc)
       }
     )
-  }, [getSecretKey, accountID])
+  }
 
   return (
     <Kb.Box2
@@ -117,7 +117,7 @@ const Container = () => {
   const load = useWalletsState(s => s.dispatch.load)
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       load()
       checkDisclaimer(
         [undefined, Wallets.loadAccountsWaitingKey],
@@ -129,17 +129,15 @@ const Container = () => {
         }
       )
       return () => {}
-    }, [load, checkDisclaimer])
+    }
   )
 
   const accountMap = useWalletsState(s => s.accountMap)
-  const accounts = React.useMemo(() => {
-    return [...accountMap.values()].sort((a, b) => {
-      if (a.isDefault) return -1
-      if (b.isDefault) return 1
-      return a.name < b.name ? -1 : 1
-    })
-  }, [accountMap])
+  const accounts = [...accountMap.values()].sort((a, b) => {
+    if (a.isDefault) return -1
+    if (b.isDefault) return 1
+    return a.name < b.name ? -1 : 1
+  })
 
   const loading = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
 

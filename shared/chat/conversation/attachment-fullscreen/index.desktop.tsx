@@ -30,7 +30,7 @@ const Arrow = (props: ArrowProps) => {
   )
 }
 
-const Fullscreen = React.memo(function Fullscreen(p: Props) {
+const Fullscreen = function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
@@ -38,45 +38,36 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {fullWidth, fullHeight} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
-  const onIsZoomed = React.useCallback((zoomed: boolean) => {
+  const onIsZoomed = (zoomed: boolean) => {
     setIsZoomed(zoomed)
-  }, [])
+  }
 
-  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
+  const preload = (path: string, onLoad: () => void, onError: () => void) => {
     const img = new Image()
     img.src = path
     img.onload = onLoad
     img.onerror = onError
-  }, [])
+  }
 
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
 
-  const forceDims = React.useMemo(() => {
-    return fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
-  }, [fullHeight, fullWidth])
+  const forceDims = fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
-  const onHotKey = React.useCallback(
-    (cmd: string) => {
-      cmd === 'left' && onPreviousAttachment()
-      cmd === 'right' && onNextAttachment()
-    },
-    [onPreviousAttachment, onNextAttachment]
-  )
+  const onHotKey = (cmd: string) => {
+    cmd === 'left' && onPreviousAttachment()
+    cmd === 'right' && onNextAttachment()
+  }
   Kb.useHotKey(['left', 'right'], onHotKey)
   const isDownloadError = !!message.transferErrMsg
 
   const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
 
-  const titleOverride = React.useMemo(
-    () =>
-      ({
-        paragraph: Kb.Styles.platformStyles({
-          isElectron: {whiteSpace: 'nowrap'},
-        }),
-      }) as StyleOverride,
-    []
-  )
+  const titleOverride = {
+    paragraph: Kb.Styles.platformStyles({
+      isElectron: {whiteSpace: 'nowrap'},
+    }),
+  } as StyleOverride
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
@@ -158,7 +149,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       </Kb.Box2>
     </Kb.PopupDialog>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import * as RowSizes from './sizes'
 import type {ChatInboxRowItem} from '../rowitem'
 
@@ -15,7 +14,7 @@ type Props = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
+function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   const smallTeamBadgeCount = Chat.useChatState(s => s.smallTeamBadgeCount)
   const totalSmallTeams = Chat.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
@@ -66,7 +65,7 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

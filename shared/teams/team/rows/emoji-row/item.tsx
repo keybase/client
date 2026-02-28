@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {RPCToEmojiData} from '@/common-adapters/emoji'
@@ -35,9 +34,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
-  const doRemove = React.useMemo(
-    () =>
-      canRemove
+  const doRemove = canRemove
         ? () => {
             removeRpc(
               [
@@ -52,11 +49,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               }
             )
           }
-        : undefined,
-    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
-  )
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+        : undefined
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <EmojiMenu
@@ -68,9 +62,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
           isAlias={emoji.isAlias}
         />
       )
-    },
-    [doAddAlias, doRemove, emoji.isAlias]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

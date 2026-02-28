@@ -91,56 +91,49 @@ type ProvidersProps = {
   filter: string
 } & Props
 
-const Providers = React.memo(function Providers({filter, providerClicked, providers}: ProvidersProps) {
-  const _itemHeight = React.useMemo(
-    () =>
-      ({
-        height: Kb.Styles.isMobile ? 56 : 48,
-        type: 'fixed',
-      }) as const,
-    []
+function Providers({filter, providerClicked, providers}: ProvidersProps) {
+  const _itemHeight = {
+    height: Kb.Styles.isMobile ? 56 : 48,
+    type: 'fixed',
+  } as const
+
+  const _renderItem = (_: unknown, provider: IdentityProvider) => (
+    <React.Fragment key={provider.name}>
+      <Kb.Divider />
+      <Kb.ClickableBox
+        className="hover_background_color_blueLighter2"
+        onClick={() => providerClicked(provider.key)}
+        style={styles.containerBox}
+      >
+        <SiteIcon set={provider.icon} style={styles.icon} full={true} />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
+            {provider.name}
+          </Kb.Text>
+          {(provider.new || !!provider.desc) && (
+            <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+              {provider.new && (
+                <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
+              )}
+              <Kb.Text type="BodySmall" style={styles.description}>
+                {provider.desc}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+        <Kb.Icon
+          type="iconfont-arrow-right"
+          color={Kb.Styles.globalColors.black_50}
+          fontSize={Kb.Styles.isMobile ? 20 : 16}
+          style={styles.iconArrow}
+        />
+      </Kb.ClickableBox>
+    </React.Fragment>
   )
 
-  const _renderItem = React.useCallback(
-    (_: unknown, provider: IdentityProvider) => (
-      <React.Fragment key={provider.name}>
-        <Kb.Divider />
-        <Kb.ClickableBox
-          className="hover_background_color_blueLighter2"
-          onClick={() => providerClicked(provider.key)}
-          style={styles.containerBox}
-        >
-          <SiteIcon set={provider.icon} style={styles.icon} full={true} />
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold" style={styles.title}>
-              {provider.name}
-            </Kb.Text>
-            {(provider.new || !!provider.desc) && (
-              <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-                {provider.new && (
-                  <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
-                )}
-                <Kb.Text type="BodySmall" style={styles.description}>
-                  {provider.desc}
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-          </Kb.Box2>
-          <Kb.Icon
-            type="iconfont-arrow-right"
-            color={Kb.Styles.globalColors.black_50}
-            fontSize={Kb.Styles.isMobile ? 20 : 16}
-            style={styles.iconArrow}
-          />
-        </Kb.ClickableBox>
-      </React.Fragment>
-    ),
-    [providerClicked]
-  )
+  const filterRegexp = makeInsertMatcher(filter)
 
-  const filterRegexp = React.useMemo(() => makeInsertMatcher(filter), [filter])
-
-  const items = React.useMemo(() => {
+  const items = (() => {
     const exact: Array<IdentityProvider> = []
     const inexact: Array<IdentityProvider> = []
     providers.forEach(p => {
@@ -151,14 +144,14 @@ const Providers = React.memo(function Providers({filter, providerClicked, provid
       }
     })
     return [...exact, ...inexact]
-  }, [filter, filterRegexp, providers])
+  })()
 
   return (
     <Kb.BoxGrow2>
       <Kb.List items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
     </Kb.BoxGrow2>
   )
-})
+}
 
 const normalizeForFiltering = (input: string) => input.toLowerCase().replace(/[.\s]/g, '')
 

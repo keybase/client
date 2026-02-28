@@ -16,27 +16,21 @@ const Image = (p: Props) => {
   // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const [lastSrc, setLastSrc] = React.useState(src)
-  const _onLoad = React.useCallback(
-    (e: ImageLoadEventData) => {
-      setLoading(false)
-      onLoad?.(e)
-    },
-    [onLoad]
-  )
+  const _onLoad = (e: ImageLoadEventData) => {
+    setLoading(false)
+    onLoad?.(e)
+  }
 
   if (lastSrc !== src) {
     setLastSrc(src)
     setLoading(true)
   }
 
-  const _onError = React.useCallback(
-    (e: ImageErrorEventData) => {
-      setLoading(false)
-      console.log('Image load error', e.error)
-      onError?.()
-    },
-    [setLoading, onError]
-  )
+  const _onError = (e: ImageErrorEventData) => {
+    setLoading(false)
+    console.log('Image load error', e.error)
+    onError?.()
+  }
 
   return (
     <>

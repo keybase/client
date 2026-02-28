@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
@@ -52,9 +51,9 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
 const Troubleshooting = (props: Props) => {
   const onBack = props.onCancel
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
-  const onWayBack = React.useCallback(() => {
+  const onWayBack = () => {
     navUpToScreen('login')
-  }, [navUpToScreen])
+  }
 
   const device = useProvisionState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % Devices.numBackgrounds) + 1

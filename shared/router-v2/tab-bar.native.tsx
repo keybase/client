@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as Tabs from '@/constants/tabs'
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Shared from './router.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
@@ -19,7 +18,7 @@ const tabToData = new Map<C.Tabs.Tab, {icon: Kb.IconType; label: string}>([
   [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
 ] as const)
 
-export const TabBarIcon = React.memo(function TabBarIconImpl(props: {
+export function TabBarIcon(props: {
   isFocused: boolean
   routeName: Tabs.Tab
 }) {
@@ -52,13 +51,13 @@ export const TabBarIcon = React.memo(function TabBarIconImpl(props: {
       {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
     </View>
   ) : null
-})
+}
 
 type TabIconProps = {routeName: Tabs.Tab; focused: boolean}
-export const TabBarIconWrapper = React.memo(function TabBarIconWrapper(p: TabIconProps) {
+export function TabBarIconWrapper(p: TabIconProps) {
   return <TabBarIcon isFocused={p.focused} routeName={p.routeName} />
-})
-export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabIconProps) {
+}
+export function TabBarLabelWrapper(p: TabIconProps) {
   const data = tabToData.get(p.routeName)
   const isDarkMode = useColorScheme() === 'dark'
   return (
@@ -78,7 +77,7 @@ export const TabBarLabelWrapper = React.memo(function TabBarLabelWrapper(p: TabI
       {data?.label}
     </Kb.Text>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

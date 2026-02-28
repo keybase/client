@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import * as React from 'react'
+import type * as React from 'react'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
@@ -49,13 +49,13 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type UnfurlRenderType = 'generic' | 'map' | 'giphy'
 
-const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: number}>>([
+const renderTypeToClass = new Map<UnfurlRenderType, React.ComponentType<{idx: number}>>([
   ['generic', UnfurlGeneric],
   ['map', UnfurlMap],
   ['giphy', UnfurlGiphy],
 ])
 
-const UnfurlListContainer = React.memo(function UnfurlListContainer() {
+function UnfurlListContainer() {
   const ordinal = useOrdinal()
   const unfurlTypes: Array<UnfurlRenderType | 'none'> = Chat.useChatContext(
     C.useShallow(s =>
@@ -80,5 +80,5 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
       })}
     </Kb.Box2>
   )
-})
+}
 export default UnfurlListContainer

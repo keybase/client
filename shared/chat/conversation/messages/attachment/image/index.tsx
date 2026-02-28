@@ -15,66 +15,62 @@ type Props = {
   showPopup: () => void
 }
 
-const Image = React.memo(function Image(p: Props) {
+function Image(p: Props) {
   const {showPopup} = p
   const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
     useAttachmentState()
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(false)
 
-  const filename = React.useMemo(() => {
-    return Kb.Styles.isMobile || !fileName ? null : (
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
-        <Kb.Text type="BodySmall">{fileName}</Kb.Text>
-        {collapseIcon}
-      </Kb.Box2>
-    )
-  }, [collapseIcon, fileName])
+  const filename = Kb.Styles.isMobile || !fileName ? null : (
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
+      <Kb.Text type="BodySmall">{fileName}</Kb.Text>
+      {collapseIcon}
+    </Kb.Box2>
+  )
 
   const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
 
-  const content = React.useMemo(() => {
-    return (
-      <>
-        {filename}
+  const content = (
+    <>
+      {filename}
+      <Kb.Box2
+        direction="horizontal"
+        alignSelf="flex-start"
+        gap={Kb.Styles.isMobile ? undefined : 'small'}
+        alignItems="center"
+      >
         <Kb.Box2
-          direction="horizontal"
+          direction="vertical"
+        relative={true}
+          style={styles.contentContainer}
           alignSelf="flex-start"
-          gap={Kb.Styles.isMobile ? undefined : 'small'}
-          alignItems="center"
+          alignItems="flex-start"
+          gap="xxtiny"
         >
-          <Kb.Box2
-            direction="vertical"
-          relative={true}
-            style={styles.contentContainer}
-            alignSelf="flex-start"
-            alignItems="flex-start"
-            gap="xxtiny"
+          <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
+          <Kb.ClickableBox
+            onClick={openFullscreen}
+            onLongPress={showPopup}
+            style={styles.imageContainer}
+            ref={toastTargetRef}
           >
-            <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
-            <Kb.ClickableBox
-              onClick={openFullscreen}
-              onLongPress={showPopup}
-              style={styles.imageContainer}
-              ref={toastTargetRef}
-            >
-              <ImageImpl />
-            </Kb.ClickableBox>
-            {showTitle ? <Title /> : null}
-            <Transferring transferState={transferState} ratio={transferProgress} />
-          </Kb.Box2>
-          <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
+            <ImageImpl />
+          </Kb.ClickableBox>
+          {showTitle ? <Title /> : null}
+          <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
-      </>
-    )
-  }, [filename, openFullscreen, showPopup, showTitle, transferState, transferProgress])
+        <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
+      </Kb.Box2>
+    </>
+  )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
       {isCollapsed ? <Collapsed /> : content}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => {
   return {

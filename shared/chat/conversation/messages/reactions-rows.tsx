@@ -27,7 +27,7 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
-const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
+function ReactionsRowContainer() {
   const ordinal = useOrdinal()
   const reactions = Chat.useChatContext(
     C.useDeep(s => {
@@ -37,9 +37,7 @@ const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
     })
   )
 
-  const emojis = React.useMemo(() => {
-    return getOrderedReactions(reactions)
-  }, [reactions])
+  const emojis = getOrderedReactions(reactions)
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
@@ -53,7 +51,7 @@ const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 export type Props = {
   activeEmoji: string
@@ -71,20 +69,20 @@ const newBtnClassName = 'WrapperMessage-newEmojiButton'
 type IProps = {
   emoji: string
 }
-const RowItem = React.memo(function RowItem(p: IProps) {
+function RowItem(p: IProps) {
   const ordinal = useOrdinal()
   const {emoji} = p
 
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
-  const showPopup = React.useCallback(() => {
+  const showPopup = () => {
     Kb.Styles.isMobile && Keyboard.dismiss()
     setShowingPopup(true)
-  }, [])
-  const hidePopup = React.useCallback(() => {
+  }
+  const hidePopup = () => {
     setShowingPopup(false)
-  }, [])
+  }
 
   const popup = showingPopup ? (
     <ReactionTooltip
@@ -107,7 +105,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
       {popup}
     </Kb.Box2Measure>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

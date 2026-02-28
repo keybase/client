@@ -22,8 +22,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
-  const onChange = React.useCallback(
-    (_text: string) => {
+  const onChange = (_text: string) => {
       // Remove leading or trailing whitespace
       const text = _text.trim()
       setEmailString(text)
@@ -32,20 +31,18 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
       if (valid) {
         search(text, 'email')
       }
-    },
-    [search]
-  )
+    }
 
   const addUsersToTeamSoFar = TB.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!user || !canSubmit) {
       return
     }
     addUsersToTeamSoFar([user])
     // Clear input
     onChange('')
-  }, [addUsersToTeamSoFar, canSubmit, user, onChange])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>

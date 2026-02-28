@@ -121,13 +121,11 @@ const Connected = (ownProps: OwnProps) => {
     }
   })
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (!inboxHasLoaded) {
-        inboxRefresh('componentNeverLoaded')
-      }
-    }, [inboxHasLoaded, inboxRefresh])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    if (!inboxHasLoaded) {
+      inboxRefresh('componentNeverLoaded')
+    }
+  })
 
   // Compute rows
   const bigTeams = inboxLayout?.bigTeams || noBigTeams

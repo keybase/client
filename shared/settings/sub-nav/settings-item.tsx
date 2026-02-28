@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type SettingsItemProps = {
@@ -15,11 +15,11 @@ type SettingsItemProps = {
   selected: boolean
 }
 
-const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) {
+function SettingsItem(props: SettingsItemProps) {
   const {onClick: _onClick, type, selected} = props
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     _onClick(type)
-  }, [_onClick, type])
+  }
   return (
     <Kb.ClickableBox
       onClick={onClick}
@@ -55,7 +55,7 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
       )}
     </Kb.ClickableBox>
   )
-})
+}
 export default SettingsItem
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

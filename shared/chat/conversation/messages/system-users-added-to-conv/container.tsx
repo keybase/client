@@ -1,5 +1,5 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -7,7 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
-const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
+function UsersAddedToConversationContainer(p: OwnProps) {
   const {usernames} = p.message
   const channelname = Chat.useChatContext(s => s.meta.channelname)
   const you = useCurrentUserState(s => s.username)
@@ -37,7 +37,7 @@ const UsersAddedToConversationContainer = React.memo(function UsersAddedToConver
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 const maxUsernamesToShow = 1
 export const getAddedUsernames = (usernames?: ReadonlyArray<string>) => {

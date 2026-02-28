@@ -49,28 +49,25 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = useSafeSubmit(navigateUp, hasError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
+  const onForgotUsername = () => navigateAppend('forgotUsername')
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const _onGoToSignup = requestAutoInvite
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
-  const _onSubmit = React.useCallback(
-    (username: string) => {
-      !waiting && _setUsername?.(username)
-    },
-    [_setUsername, waiting]
-  )
+  const _onSubmit = (username: string) => {
+    !waiting && _setUsername?.(username)
+  }
   const [username, setUsername] = React.useState(op.username ?? _username)
   React.useEffect(() => {
     if (op.username && op.username !== _username) {
       _setUsername?.(op.username)
     }
   }, [op.username, _username, _setUsername])
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     _onSubmit(username)
-  }, [_onSubmit, username])
-  const onGoToSignup = React.useCallback(() => {
+  }
+  const onGoToSignup = () => {
     _onGoToSignup(username)
-  }, [_onGoToSignup, username])
+  }
 
   return (
     <SignupScreen

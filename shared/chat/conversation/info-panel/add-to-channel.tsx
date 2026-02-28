@@ -23,11 +23,9 @@ const AddToChannel = (props: Props) => {
   const {channelname} = Teams.useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
-  const allMembers = React.useMemo(() => {
-    return [...teamDetails.members.values()]
-      .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
-      .sort((a, b) => a.username.localeCompare(b.username))
-  }, [teamDetails.members])
+  const allMembers = [...teamDetails.members.values()]
+    .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+    .sort((a, b) => a.username.localeCompare(b.username))
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
   )

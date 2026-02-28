@@ -14,12 +14,9 @@ const SetPublicName = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
   const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
-  const ponSubmit = React.useCallback(
-    (name: string) => {
-      !waiting && psetDeviceName?.(name)
-    },
-    [waiting, psetDeviceName]
-  )
+  const ponSubmit = (name: string) => {
+    !waiting && psetDeviceName?.(name)
+  }
   const deviceNumbers = devices
     .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))
     .map(d => d.deviceNumberOfType)
@@ -37,9 +34,9 @@ const SetPublicName = () => {
     !Provision.goodDeviceRE.test(cleanDeviceName) ||
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     ponSubmit(Provision.cleanDeviceName(cleanDeviceName))
-  }, [cleanDeviceName, ponSubmit])
+  }
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
     setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))

@@ -37,9 +37,9 @@ const Container = () => {
   }
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = React.useCallback(() => {
+  const onSignOut = () => {
     navigateAppend(settingsLogOutTab)
-  }, [navigateAppend])
+  }
 
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {

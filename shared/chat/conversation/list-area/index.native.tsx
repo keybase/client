@@ -38,9 +38,9 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const scrollToBottom = React.useCallback(() => {
+  const scrollToBottom = C.useEvent(() => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
-  }, [listRef])
+  })
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
@@ -70,9 +70,9 @@ const useScrolling = (p: {
     }, 100)
   })
 
-  const onEndReached = React.useCallback(() => {
+  const onEndReached = () => {
     loadOlderMessages(numOrdinals)
-  }, [loadOlderMessages, numOrdinals])
+  }
 
   return {
     onEndReached,
@@ -85,7 +85,7 @@ const useScrolling = (p: {
 // when new messages come in and its very easy to get this to cause an unstoppable loop of
 // quick janking up and down
 const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
-const ConversationList = React.memo(function ConversationList() {
+const ConversationList = function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
       {usingFlashList ? 'FLASH' : 'old'}
@@ -104,30 +104,25 @@ const ConversationList = React.memo(function ConversationList() {
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
-  const messageOrdinals = React.useMemo(() => {
-    return [...(_messageOrdinals ?? [])].reverse()
-  }, [_messageOrdinals])
+  const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-  const keyExtractor = React.useCallback((ordinal: ItemType) => {
+  const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
-  }, [])
+  }
 
-  const renderItem = React.useCallback(
-    (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
-      const index: number = info?.index ?? 0
-      const ordinal = messageOrdinals[index]
-      if (!ordinal) {
-        return null
-      }
-      const type = messageTypeMap.get(ordinal) ?? 'text'
-      const Clazz = getMessageRender(type)
-      if (!Clazz) return null
-      return <Clazz ordinal={ordinal} />
-    },
-    [messageOrdinals, messageTypeMap]
-  )
+  const renderItem = (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
+    const index: number = info?.index ?? 0
+    const ordinal = messageOrdinals[index]
+    if (!ordinal) {
+      return null
+    }
+    const type = messageTypeMap.get(ordinal) ?? 'text'
+    const Clazz = getMessageRender(type)
+    if (!Clazz) return null
+    return <Clazz ordinal={ordinal} />
+  }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
   React.useEffect(() => {
@@ -136,9 +131,9 @@ const ConversationList = React.memo(function ConversationList() {
       setLastED(extraData)
     }
   }, [extraData, lastED])
-  const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
+  const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
-  }, [])
+  }
 
   const numOrdinals = messageOrdinals.length
 
@@ -210,13 +205,13 @@ const ConversationList = React.memo(function ConversationList() {
   // and call you can get effectively memoized. In order to allow the item to re-render if they're still in this state
   // we make this callback mutate, so they have a chance to rerender and recall it
   // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
-  const forceListRedraw = React.useCallback(() => {
+  const forceListRedraw = () => {
     extraData // just to silence eslint
     // wrap in timeout so we don't get max update depths sometimes
     setTimeout(() => {
       setExtraData(d => d + 1)
     }, 100)
-  }, [extraData])
+  }
 
   // useChatDebugDump(
   //   'listArea',
@@ -308,7 +303,7 @@ const ConversationList = React.memo(function ConversationList() {
       </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>
   )
-})
+}
 
 const minTimeDelta = 1000
 const minDistanceFromEnd = 10

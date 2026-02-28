@@ -157,12 +157,12 @@ const Container = (ownProps: OwnProps) => {
   const policy = ownProps.policy
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       openModal()
       return () => {
         closeModal()
       }
-    }, [openModal, closeModal])
+    }
   )
 
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)

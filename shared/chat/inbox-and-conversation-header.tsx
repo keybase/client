@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
@@ -65,11 +64,9 @@ const Header2 = () => {
   const {id: conversationIDKey, openFolder: onOpenFolder, toggleThreadSearch, participants} = data
 
   // length ===1 means just you so show yourself
-  const withoutSelf = React.useMemo(() => {
-    return participants && participants.length > 1
-      ? participants.filter(part => part !== username)
-      : participants
-  }, [participants, username])
+  const withoutSelf = participants && participants.length > 1
+    ? participants.filter(part => part !== username)
+    : participants
 
   const canEditDesc = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname).editChannelDescription)
   const otherInfo = useUsersState(s => s.infoMap.get(first))
@@ -77,35 +74,31 @@ const Header2 = () => {
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
 
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     toggleThreadSearch()
-  }, [toggleThreadSearch])
-  const unMuteConversation = React.useCallback(() => {
+  }
+  const unMuteConversation = () => {
     mute(false)
-  }, [mute])
+  }
 
-  const onToggleInfoPanel = React.useCallback(() => {
+  const onToggleInfoPanel = () => {
     showInfoPanel(!infoPanelShowing, undefined)
-  }, [showInfoPanel, infoPanelShowing])
+  }
 
   const showActions = Chat.isValidConversationIDKey(conversationIDKey)
 
-  const descStyleOverride = React.useMemo(
-    () =>
-      ({
-        del: styles.markdownOverride,
-        em: styles.markdownOverride,
-        fence: styles.markdownOverride,
-        inlineCode: styles.markdownOverride,
-        kbfsPath: styles.markdownOverride,
-        link: styles.markdownOverride,
-        mailto: styles.markdownOverride,
-        paragraph: styles.markdownOverride,
-        preview: styles.markdownOverride,
-        strong: styles.markdownOverride,
-      }) as StyleOverride,
-    []
-  )
+  const descStyleOverride = {
+    del: styles.markdownOverride,
+    em: styles.markdownOverride,
+    fence: styles.markdownOverride,
+    inlineCode: styles.markdownOverride,
+    kbfsPath: styles.markdownOverride,
+    link: styles.markdownOverride,
+    mailto: styles.markdownOverride,
+    paragraph: styles.markdownOverride,
+    preview: styles.markdownOverride,
+    strong: styles.markdownOverride,
+  } as StyleOverride
 
   let description = !!desc && (
     <Kb.Markdown

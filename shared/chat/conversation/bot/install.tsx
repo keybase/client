@@ -68,7 +68,7 @@ const InstallBotPopup = (props: Props) => {
 
   const botPublicCommands = Chat.useChatState(s => s.botPublicCommands.get(botUsername))
   const meta = Chat.useChatContext(s => s.meta)
-  const commands = React.useMemo(() => {
+  const commands = (() => {
     const {botCommands} = meta
     const commands = (
       botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
@@ -79,7 +79,7 @@ const InstallBotPopup = (props: Props) => {
       .map(c => c.name)
     const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
     return commands.length > 0 ? convCommands : botPublicCommands
-  }, [meta, botPublicCommands, botUsername])
+  })()
 
   const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))

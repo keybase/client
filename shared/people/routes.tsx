@@ -8,7 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = React.useCallback(() => navigateAppend('accountSwitcher'), [navigateAppend])
+  const onClick = () => navigateAppend('accountSwitcher')
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 

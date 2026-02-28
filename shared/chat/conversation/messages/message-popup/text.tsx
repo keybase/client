@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
@@ -29,7 +29,7 @@ const PopText = (ownProps: OwnProps) => {
   })
   const you = useCurrentUserState(s => s.username)
   const {conversationIDKey, author} = message
-  const text = React.useMemo(() => {
+  const text = (() => {
     switch (message.type) {
       case 'text':
         return message.text.stringValue()
@@ -60,7 +60,7 @@ const PopText = (ownProps: OwnProps) => {
       default:
         return undefined
     }
-  }, [message])
+  })()
 
   const yourMessage = author === you
   const {isTeam, messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
@@ -76,13 +76,13 @@ const PopText = (ownProps: OwnProps) => {
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
-  const onCopy = React.useCallback(() => {
+  const onCopy = () => {
     text && copyToClipboard(text)
-  }, [copyToClipboard, text])
+  }
 
-  const _onReplyPrivately = React.useCallback(() => {
+  const _onReplyPrivately = () => {
     messageReplyPrivately(ordinal)
-  }, [messageReplyPrivately, ordinal])
+  }
   const onReplyPrivately = !yourMessage && canReplyPrivately ? _onReplyPrivately : undefined
   const mapUnfurl = Chat.getMapUnfurl(message)
   // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
@@ -90,7 +90,7 @@ const PopText = (ownProps: OwnProps) => {
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
   const blockModalSingle = !isTeam && numPart === 2
 
-  const _onUserReport = React.useCallback(() => {
+  const _onUserReport = () => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -101,10 +101,10 @@ const PopText = (ownProps: OwnProps) => {
       },
       selected: 'chatBlockingModal',
     })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
+  }
   const onUserReport = C.isIOS && author && !yourMessage ? () => _onUserReport : undefined
 
-  const _onUserFlag = React.useCallback(() => {
+  const _onUserFlag = () => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -116,10 +116,10 @@ const PopText = (ownProps: OwnProps) => {
       },
       selected: 'chatBlockingModal',
     })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
+  }
   const onUserFlag = C.isIOS && author && !yourMessage ? _onUserFlag : undefined
 
-  const _onUserBlock = React.useCallback(() => {
+  const _onUserBlock = () => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -129,10 +129,10 @@ const PopText = (ownProps: OwnProps) => {
       },
       selected: 'chatBlockingModal',
     })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
+  }
   const onUserBlock = author && !yourMessage ? _onUserBlock : undefined
 
-  const _onUserFilter = React.useCallback(() => {
+  const _onUserFilter = () => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -143,7 +143,7 @@ const PopText = (ownProps: OwnProps) => {
       },
       selected: 'chatBlockingModal',
     })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
+  }
   const onUserFilter = C.isIOS && author && !yourMessage ? () => _onUserFilter : undefined
 
   const i = useItems(ordinal, onHidden)
@@ -227,7 +227,7 @@ const PopText = (ownProps: OwnProps) => {
     ...itemFlag,
   ]
   const header = useHeader(ordinal, onHidden)
-  const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
+  const snapPoints = [8 * 40 + 25]
 
   return (
     <Kb.FloatingMenu

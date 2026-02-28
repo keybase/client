@@ -6,7 +6,7 @@ import capitalize from 'lodash/capitalize'
 import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
-const Upload = React.memo(function Upload(props: UploadProps) {
+const Upload = (props: UploadProps) => {
   const {smallMode, showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow} = props
   const [drawState, setDrawState] = React.useState<DrawState>(showing ? 'showing' : 'hidden')
 
@@ -81,7 +81,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
       )}
     </>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

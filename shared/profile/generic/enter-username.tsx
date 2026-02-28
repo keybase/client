@@ -36,9 +36,6 @@ const ConnectedEnterUsername = () => {
   }
   const onChangeUsername = updateUsername
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onContinue = React.useCallback(() => {
-    navigateAppend('profileGenericProofResult')
-  }, [navigateAppend])
   const _onSubmit = () => submitUsername?.()
   const onSubmit = _platformURL ? () => _platformURL && openURL(_platformURL) : _onSubmit
   const onCancel = onBack
@@ -47,12 +44,12 @@ const ConnectedEnterUsername = () => {
 
   React.useEffect(() => {
     if (!waiting) {
-      onContinue()
+      navigateAppend('profileGenericProofResult')
     }
     if (error) {
       setWaitingButtonKey(s => s + 1)
     }
-  }, [waiting, error, onContinue])
+  }, [waiting, error, navigateAppend])
 
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
@@ -153,16 +150,13 @@ const EnterUsernameInput = (props: InputProps) => {
   const [username, setUsername] = React.useState(props.username)
   const {onChangeUsername: _onChangeUsername} = props
 
-  const onChangeUsername = React.useCallback(
-    (username: string) => {
-      _onChangeUsername(username)
-      setUsername(username)
-    },
-    [_onChangeUsername]
-  )
+  const onChangeUsername = (username: string) => {
+    _onChangeUsername(username)
+    setUsername(username)
+  }
 
-  const onFocus = React.useCallback(() => setFocus(true), [])
-  const onBlur = React.useCallback(() => setFocus(false), [])
+  const onFocus = () => setFocus(true)
+  const onBlur = () => setFocus(false)
 
   // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
   const usernamePlaceholder = props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'

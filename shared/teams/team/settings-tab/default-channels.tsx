@@ -17,7 +17,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | undefined>()
 
-  const reloadDefaultChannels = React.useCallback(() => {
+  const reloadDefaultChannels = () => {
     setWaiting(true)
     getDefaultChannelsRPC(
       [{teamID}],
@@ -33,7 +33,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         setWaiting(false)
       }
     )
-  }, [teamID, getDefaultChannelsRPC])
+  }
 
   // Initialize
   React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])

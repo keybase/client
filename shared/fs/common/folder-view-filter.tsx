@@ -1,7 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -20,13 +19,9 @@ const FolderViewFilter = (props: Props) => {
       return {pathItem, setFolderViewFilter}
     })
   )
-  const onUpdate = React.useMemo(
-    () =>
-      debounce((newFilter: string) => {
-        setFolderViewFilter(newFilter)
-      }),
-    [setFolderViewFilter]
-  )
+  const onUpdate = debounce((newFilter: string) => {
+    setFolderViewFilter(newFilter)
+  })
 
   return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter

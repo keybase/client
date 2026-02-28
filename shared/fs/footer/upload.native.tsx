@@ -21,32 +21,42 @@ const Upload = (props: UploadProps) => {
   })
   const mountedRef = React.useRef(false)
 
-  const startAnimationLoop = React.useCallback(() => {
-    const loop = NativeAnimated.loop(
-      NativeAnimated.timing(backgroundTop, {
-        duration: 2000,
-        easing: NativeEasing.linear,
-        toValue: -80,
+  React.useEffect(() => {
+    mountedRef.current = true
+    const stopAnimation = (animation: keyof typeof animationsRef.current) => {
+      const a = animationsRef.current[animation]
+      if (!a) return
+      a.stop()
+      animationsRef.current[animation] = undefined
+    }
+    const stopAllAnimations = () => {
+      stopAnimation('out')
+      stopAnimation('loop')
+      stopAnimation('in')
+    }
+    const startAnimationLoop = () => {
+      const loop = NativeAnimated.loop(
+        NativeAnimated.timing(backgroundTop, {
+          duration: 2000,
+          easing: NativeEasing.linear,
+          toValue: -80,
+          useNativeDriver: false,
+        })
+      )
+      animationsRef.current.loop = loop
+      loop.start()
+    }
+    const startAnimationIn = () => {
+      const ain = NativeAnimated.timing(uploadTop, {
+        duration: 300,
+        easing,
+        toValue: 0,
         useNativeDriver: false,
       })
-    )
-    animationsRef.current.loop = loop
-    loop.start()
-  }, [backgroundTop])
-
-  const startAnimationIn = React.useCallback(() => {
-    const ain = NativeAnimated.timing(uploadTop, {
-      duration: 300,
-      easing,
-      toValue: 0,
-      useNativeDriver: false,
-    })
-    animationsRef.current.in = ain
-    ain.start()
-  }, [uploadTop])
-
-  const startAnimationOut = React.useCallback(
-    (cbIfFinish: () => void) => {
+      animationsRef.current.in = ain
+      ain.start()
+    }
+    const startAnimationOut = (cbIfFinish: () => void) => {
       const out = NativeAnimated.timing(uploadTop, {
         duration: 300,
         easing,
@@ -55,56 +65,31 @@ const Upload = (props: UploadProps) => {
       })
       animationsRef.current.out = out
       out.start(({finished}) => finished && cbIfFinish())
-    },
-    [uploadTop]
-  )
-
-  const stopAnimation = React.useCallback((animation: keyof typeof animationsRef.current) => {
-    const a = animationsRef.current[animation]
-    if (!a) return
-    a.stop()
-    animationsRef.current[animation] = undefined
-  }, [])
-
-  const stopAllAnimations = React.useCallback(() => {
-    stopAnimation('out')
-    stopAnimation('loop')
-    stopAnimation('in')
-  }, [stopAnimation])
-
-  const enter = React.useCallback(() => {
-    stopAllAnimations()
-    setShowing(true)
-    startAnimationIn()
-    startAnimationLoop()
-  }, [startAnimationIn, startAnimationLoop, stopAllAnimations])
-
-  const exit = React.useCallback(() => {
-    stopAnimation('in')
-    startAnimationOut(() => {
-      stopAnimation('loop')
-      if (mountedRef.current) setShowing(false)
-    })
-  }, [startAnimationOut, stopAnimation])
-
-  React.useEffect(() => {
-    mountedRef.current = true
-    if (_showing) {
-      enter()
     }
-    return () => {
+    const enter = () => {
       stopAllAnimations()
-      mountedRef.current = false
+      setShowing(true)
+      startAnimationIn()
+      startAnimationLoop()
     }
-  }, [enter, _showing, stopAllAnimations])
+    const exit = () => {
+      stopAnimation('in')
+      startAnimationOut(() => {
+        stopAnimation('loop')
+        if (mountedRef.current) setShowing(false)
+      })
+    }
 
-  React.useEffect(() => {
     if (_showing) {
       enter()
     } else {
       exit()
     }
-  }, [enter, exit, _showing])
+    return () => {
+      stopAllAnimations()
+      mountedRef.current = false
+    }
+  }, [_showing, backgroundTop, uploadTop])
 
   const isDarkMode = useColorScheme() === 'dark'
   return (

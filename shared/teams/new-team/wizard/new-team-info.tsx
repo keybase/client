@@ -48,17 +48,10 @@ const NewTeamInfo = () => {
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
   const checkTeam = C.useDebouncedCallback(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100)
-  type TeamNameParams = Parameters<typeof checkTeam>
-  const checkTeamNameTaken = React.useCallback(
-    (teamNames: TeamNameParams[0], cb: TeamNameParams[1], eb: TeamNameParams[2]) => {
-      checkTeam(teamNames, cb, eb)
-    },
-    [checkTeam]
-  )
 
   React.useEffect(() => {
     if (name.length >= minLength) {
-      checkTeamNameTaken(
+      checkTeam(
         [{teamName: {parts: teamname.split('.')}}],
         ({exists, status}) => {
           setTeamNameTaken(exists)
@@ -70,7 +63,7 @@ const NewTeamInfo = () => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus, minLength])
+  }, [teamname, name.length, checkTeam, minLength])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(

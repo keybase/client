@@ -146,27 +146,30 @@ export const Box2Div = () => {
   throw new Error('Wrong platform')
 }
 
-export const Box2View = React.forwardRef<View, Box2Props>(function Box2View(p, ref) {
-  const props = useBox2Shared(p)
+export const Box2View = (p: Box2Props & {ref?: React.Ref<View>}) => {
+  const {ref, ...rest} = p
+  const props = useBox2Shared(rest)
   return <View {...props} ref={ref} />
-})
+}
 
-export const Box2Animated = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
-  const props = useBox2Shared(p)
+export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
+  const {ref, ...rest} = p
+  const props = useBox2Shared(rest)
   return <Reanimated.View {...props} ref={ref} />
-})
+}
 
-export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
-  React.useImperativeHandle(_ref, () => {
+export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
+  const {ref, ...rest} = p
+  React.useImperativeHandle(ref, () => {
     // we don't use this in mobile for now, and likely never
     return {
       divRef: {current: null},
     }
   }, [])
 
-  const props = useBox2Shared(p)
+  const props = useBox2Shared(rest)
   return <View {...props} />
-})
+}
 
 const common = {
   alignItems: 'stretch',

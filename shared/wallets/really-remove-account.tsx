@@ -43,11 +43,11 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
     )
   }, [getSecretKey, accountID])
 
-  const onCopy = React.useCallback(() => {
+  const onCopy = () => {
     setShowToast(true)
     setShowToastFalseLater()
     copyToClipboard(sk)
-  }, [copyToClipboard, setShowToastFalseLater, sk])
+  }
   return (
     <WalletPopup
       onExit={onCancel}

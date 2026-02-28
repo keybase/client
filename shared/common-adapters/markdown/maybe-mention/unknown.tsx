@@ -54,13 +54,13 @@ const UnknownMention = (props: Props) => {
   const [showPopup, setShowPopup] = React.useState(false)
   const mentionRef = React.useRef<MeasureRef | null>(null)
 
-  const handleMouseOver = React.useCallback(() => setShowPopup(true), [])
-  const handleMouseLeave = React.useCallback(() => setShowPopup(false), [])
+  const handleMouseOver = () => setShowPopup(true)
+  const handleMouseLeave = () => setShowPopup(false)
 
-  const onResolve = React.useCallback(() => {
+  const onResolve = () => {
     _onResolve()
     handleMouseLeave()
-  }, [_onResolve, handleMouseLeave])
+  }
 
   let text = `@${props.name}`
   if (props.channel.length > 0) {

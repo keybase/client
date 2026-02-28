@@ -18,7 +18,7 @@ type PopupProps = Props & {
 }
 
 const useOpenInFilesTab = (path: T.FS.Path) => {
-  return React.useCallback(() => FS.navToPath(path), [path])
+  return () => FS.navToPath(path)
 }
 
 const KbfsPathPopup = (props: PopupProps) => {

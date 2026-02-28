@@ -1,6 +1,5 @@
 import * as Chat from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -13,12 +12,12 @@ const AddPeople = (p: Props) => {
   const teamID = Chat.useChatContext(s => s.meta.teamID)
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onAddPeople = React.useCallback(() => {
+  const onAddPeople = () => {
     startAddMembersWizard(teamID)
-  }, [startAddMembersWizard, teamID])
-  const onAddToChannel = React.useCallback(() => {
+  }
+  const onAddToChannel = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
-  }, [navigateAppend, teamID])
+  }
 
   let directAction: undefined | (() => void)
   let directLabel: string | undefined
@@ -32,29 +31,26 @@ const AddPeople = (p: Props) => {
     directLabel = 'Add members to channel'
   }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      if (!isGeneralChannel) {
-        // general channel & small teams don't need a menu
-        const items: Kb.MenuItems = [
-          {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
-          {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
-        ]
-        return (
-          <Kb.FloatingMenu
-            attachTo={attachTo}
-            visible={true}
-            items={items}
-            onHidden={hidePopup}
-            position="bottom left"
-            closeOnSelect={true}
-          />
-        )
-      } else return null
-    },
-    [isGeneralChannel, onAddPeople, onAddToChannel]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    if (!isGeneralChannel) {
+      // general channel & small teams don't need a menu
+      const items: Kb.MenuItems = [
+        {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
+        {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          items={items}
+          onHidden={hidePopup}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      )
+    } else return null
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

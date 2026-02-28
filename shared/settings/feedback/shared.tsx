@@ -11,7 +11,7 @@ export const getExtraChatLogsForLogSend = () => {
 
 export const useSendFeedback = () => {
   const [error, setError] = React.useState('')
-  const sendFeedback = React.useCallback((feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
+  const sendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
     const f = async () => {
       // We don't want test devices (pre-launch reports) to send us log sends.
       if (androidIsTestDevice) {
@@ -44,7 +44,7 @@ export const useSendFeedback = () => {
       }
     }
     C.ignorePromise(f())
-  }, [])
+  }
 
   return {error, sendFeedback}
 }

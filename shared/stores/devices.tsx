@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Z from '@/util/zustand'
 import * as S from '@/constants/strings'
 import {ignorePromise, updateImmerMap} from '@/constants/utils'
@@ -123,15 +122,12 @@ export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
 
 export const useNextDeviceIconNumber = () => {
   const dm = useDevicesState(s => s.deviceMap)
-  const next = React.useMemo(() => {
-    // Find the max device number and add one (+ one more since these are 1-indexed)
-    const result = {backup: 1, desktop: 1, mobile: 1}
-    dm.forEach(device => {
-      if (device.deviceNumberOfType >= result[device.type]) {
-        result[device.type] = device.deviceNumberOfType + 1
-      }
-    })
-    return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
-  }, [dm])
-  return next
+  // Find the max device number and add one (+ one more since these are 1-indexed)
+  const result = {backup: 1, desktop: 1, mobile: 1}
+  dm.forEach(device => {
+    if (device.deviceNumberOfType >= result[device.type]) {
+      result[device.type] = device.deviceNumberOfType + 1
+    }
+  })
+  return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 }

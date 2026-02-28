@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Crypto from '@/stores/crypto'
-import * as React from 'react'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
@@ -15,7 +14,7 @@ type OwnProps = {showPopup: () => void}
 
 const missingMessage = Chat.makeMessageAttachment({})
 
-const FileContainer = React.memo(function FileContainer(p: OwnProps) {
+function FileContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -49,22 +48,19 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const saltpackOpenFile = Crypto.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSaltpackFileOpen = React.useCallback(
-    (path: string, operation: T.Crypto.Operations) => {
-      switchTab(C.Tabs.cryptoTab)
-      saltpackOpenFile(operation, path)
-    },
-    [switchTab, saltpackOpenFile]
-  )
+  const onSaltpackFileOpen = (path: string, operation: T.Crypto.Operations) => {
+    switchTab(C.Tabs.cryptoTab)
+    saltpackOpenFile(operation, path)
+  }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = React.useCallback(() => {
+  const _onShowInFinder = () => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
-  }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
+  }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDownload = React.useCallback(() => {
+  const onDownload = () => {
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
@@ -84,16 +80,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
         attachmentDownload(ordinal)
       }
     }
-  }, [
-    ordinal,
-    conversationIDKey,
-    navigateAppend,
-    attachmentDownload,
-    messageAttachmentNativeShare,
-    downloadPath,
-    transferState,
-    fileType,
-  ])
+  }
 
   const arrowColor = C.isMobile
     ? ''
@@ -214,7 +201,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

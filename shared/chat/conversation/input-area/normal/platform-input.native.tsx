@@ -51,21 +51,21 @@ type ButtonsProps = Pick<
   setShowAudioSend: (s: boolean) => void
 }
 
-const Buttons = React.memo(function Buttons(p: ButtonsProps) {
+const Buttons = function Buttons(p: ButtonsProps) {
   const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
 
-  const openFilePicker = React.useCallback(() => {
+  const openFilePicker = () => {
     ourShowMenu('filepickerpopup')
-  }, [ourShowMenu])
-  const openMoreMenu = React.useCallback(() => {
+  }
+  const openMoreMenu = () => {
     ourShowMenu('moremenu')
-  }, [ourShowMenu])
+  }
 
-  const insertMentionMarker = React.useCallback(() => {
+  const insertMentionMarker = () => {
     insertText('@')
-  }, [insertText])
+  }
 
   const pickKey = 'chatInput'
   const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
@@ -82,12 +82,12 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
   }, [emojiStr, insertText, lastEmoji, updatePickerMap])
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const openEmojiPicker = React.useCallback(() => {
+  const openEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, pickKey},
       selected: 'chatChooseEmoji',
     }))
-  }, [navigateAppend])
+  }
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -138,16 +138,16 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const AnimatedExpand = (() => {
   'use no memo'
   if (skipAnimations) {
-    return React.memo(function AnimatedExpand() {
+    return function AnimatedExpand() {
       return null
-    })
+    }
   } else {
-    return React.memo(function AnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
+    return function AnimatedExpand(p: {expandInput: () => void; expanded: boolean}) {
       'use no memo'
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
@@ -189,7 +189,7 @@ const AnimatedExpand = (() => {
           </Animated.View>
         </Kb.ClickableBox>
       )
-    })
+    }
   }
 })()
 
@@ -203,43 +203,40 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const filePickerError = useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const launchNativeImagePicker = React.useCallback(
-    (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-      const f = async () => {
-        const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-          if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
-            return
-          }
-          const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-          navigateAppend(conversationIDKey => ({
-            props: {conversationIDKey, pathAndOutboxIDs},
-            selected: 'chatAttachmentGetTitles',
-          }))
+  const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+    const f = async () => {
+      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+        if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
+          return
         }
-
-        switch (location) {
-          case 'camera':
-            try {
-              const res = await launchCameraAsync(mediaType)
-              handleSelection(res)
-            } catch (error) {
-              filePickerError(new Error(String(error)))
-            }
-            break
-          case 'library':
-            try {
-              const res = await launchImageLibraryAsync(mediaType, true, true)
-              handleSelection(res)
-            } catch (error) {
-              filePickerError(new Error(String(error)))
-            }
-            break
-        }
+        const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
+        navigateAppend(conversationIDKey => ({
+          props: {conversationIDKey, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        }))
       }
-      C.ignorePromise(f())
-    },
-    [navigateAppend, conversationIDKey, filePickerError]
-  )
+
+      switch (location) {
+        case 'camera':
+          try {
+            const res = await launchCameraAsync(mediaType)
+            handleSelection(res)
+          } catch (error) {
+            filePickerError(new Error(String(error)))
+          }
+          break
+        case 'library':
+          try {
+            const res = await launchImageLibraryAsync(mediaType, true, true)
+            handleSelection(res)
+          } catch (error) {
+            filePickerError(new Error(String(error)))
+          }
+          break
+      }
+    }
+    C.ignorePromise(f())
+  }
 
   return (
     <FilePickerPopup
@@ -256,12 +253,8 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<InputRef | null>(null)
-  const suggestionListStyle = React.useMemo(() => {
-    return Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
-  }, [height])
-  const suggestionSpinnerStyle = React.useMemo(() => {
-    return Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
-  }, [height])
+  const suggestionListStyle = Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
+  const suggestionSpinnerStyle = Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   const {
     popup: suggestorPopup,
     onChangeText,
@@ -284,40 +277,33 @@ const PlatformInput = (p: Props) => {
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
-  const toggleExpandInput = React.useCallback(() => {
+  const toggleExpandInput = C.useEvent(() => {
     const nextState = !expanded
     setExpanded(nextState)
-  }, [expanded, setExpanded])
+  })
 
-  const reallySend = React.useCallback(() => {
-    const text = lastText.current
-    if (text) {
-      onSubmit(text)
-      if (expanded) {
-        toggleExpandInput()
-      }
-    }
-  }, [expanded, onSubmit, toggleExpandInput])
+  const insertText = (toInsert: string) => {
+    const i = inputRef.current
+    i?.transformText(({selection, text}) => {
+      return standardTransformer(
+        toInsert,
+        {position: {end: selection?.end || null, start: selection?.start || null}, text},
+        true
+      )
+    }, true)
+  }
 
-  const onQueueSubmit = React.useCallback(() => {
+  const onQueueSubmit = C.useEvent(() => {
     setTimeout(() => {
-      reallySend()
+      const text = lastText.current
+      if (text) {
+        onSubmit(text)
+        if (expanded) {
+          toggleExpandInput()
+        }
+      }
     }, 60)
-  }, [reallySend])
-
-  const insertText = React.useCallback(
-    (toInsert: string) => {
-      const i = inputRef.current
-      i?.transformText(({selection, text}) => {
-        return standardTransformer(
-          toInsert,
-          {position: {end: selection?.end || null, start: selection?.start || null}, text},
-          true
-        )
-      }, true)
-    },
-    [inputRef]
-  )
+  })
 
   React.useEffect(() => {
     // Enter should send a message like on desktop, when a hardware keyboard's
@@ -328,92 +314,85 @@ const PlatformInput = (p: Props) => {
         case 'enter':
           onQueueSubmit()
           break
-        case 'shift-enter':
-          insertText('\n')
+        case 'shift-enter': {
+          const i = inputRef.current
+          i?.transformText(({selection, text}) => {
+            return standardTransformer(
+              '\n',
+              {position: {end: selection?.end || null, start: selection?.start || null}, text},
+              true
+            )
+          }, true)
+        }
       }
     }
     onHWKeyPressed(cb)
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [onQueueSubmit, insertText])
+  }, [onQueueSubmit])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      switch (whichMenu.current) {
-        case 'filepickerpopup':
-          return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
-        case 'moremenu':
-          return <MoreMenuPopup onHidden={hidePopup} visible={true} />
-        default:
-          return (
-            <SetExplodingMessagePicker
-              attachTo={attachTo}
-              onHidden={hidePopup}
-              visible={true}
-              setExplodingMode={setExplodingMode}
-            />
-          )
-      }
-    },
-    [setExplodingMode]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    switch (whichMenu.current) {
+      case 'filepickerpopup':
+        return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
+      case 'moremenu':
+        return <MoreMenuPopup onHidden={hidePopup} visible={true} />
+      default:
+        return (
+          <SetExplodingMessagePicker
+            attachTo={attachTo}
+            onHidden={hidePopup}
+            visible={true}
+            setExplodingMode={setExplodingMode}
+          />
+        )
+    }
+  }
 
   const {popup: popupMenu, showPopup} = Kb.usePopup2(makePopup)
 
-  const ourShowMenu = React.useCallback(
-    (menu: MenuType) => {
-      // Hide the keyboard on mobile when showing the menu.
-      Keyboard.dismiss()
-      whichMenu.current = menu
-      showPopup()
-    },
-    [whichMenu, showPopup]
-  )
+  const ourShowMenu = (menu: MenuType) => {
+    // Hide the keyboard on mobile when showing the menu.
+    Keyboard.dismiss()
+    whichMenu.current = menu
+    showPopup()
+  }
 
-  const openExplodingMenu = React.useCallback(() => {
+  const openExplodingMenu = () => {
     ourShowMenu('exploding')
-  }, [ourShowMenu])
+  }
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onPasteImage = React.useCallback(
-    (uri: Array<string>) => {
-      try {
-        const pathAndOutboxIDs = uri.map(path => ({path}))
-        navigateAppend(conversationIDKey => ({
-          props: {conversationIDKey, pathAndOutboxIDs},
-          selected: 'chatAttachmentGetTitles',
-        }))
-      } catch (e) {
-        logger.info('onPasteImage error', e)
-      }
-    },
-    [navigateAppend]
-  )
+  const onPasteImage = (uri: Array<string>) => {
+    try {
+      const pathAndOutboxIDs = uri.map(path => ({path}))
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
+    } catch (e) {
+      logger.info('onPasteImage error', e)
+    }
+  }
 
-  const onLayout = React.useCallback((p: LayoutEvent) => {
+  const onLayout = (p: LayoutEvent) => {
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
     setHeight(height)
-  }, [])
+  }
 
-  const onAnimatedInputRef = React.useCallback(
-    (ref: InputRef | null) => {
-      setInputRef(ref)
-      inputRef.current = ref
-    },
-    [setInputRef, inputRef]
-  )
-  const aiOnChangeText = React.useCallback(
-    (text: string) => {
-      setHasText(!!text)
-      lastText.current = text
-      onChangeText(text)
-    },
-    [setHasText, onChangeText]
-  )
+  const onAnimatedInputRef = (ref: InputRef | null) => {
+    setInputRef(ref)
+    inputRef.current = ref
+  }
+  const aiOnChangeText = (text: string) => {
+    setHasText(!!text)
+    lastText.current = text
+    onChangeText(text)
+  }
 
   const lastEditRef = React.useRef(isEditing)
   React.useEffect(() => {
@@ -425,12 +404,9 @@ const PlatformInput = (p: Props) => {
     }
   }, [isEditing])
 
-  const _onSelectionChange = React.useCallback(
-    (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-      onSelectionChange(e.nativeEvent.selection)
-    },
-    [onSelectionChange]
-  )
+  const _onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    onSelectionChange(e.nativeEvent.selection)
+  }
 
   return (
     <>
@@ -489,44 +465,41 @@ const PlatformInput = (p: Props) => {
   )
 }
 
+type AnimatedInputProps = Omit<InputProps, 'ref'> & {expanded: boolean; ref?: React.Ref<InputRef>}
 const AnimatedInput = (() => {
   if (skipAnimations) {
-    return React.memo(
-      React.forwardRef<InputRef, InputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
-        const {expanded, ...rest} = p
-        return (
-          <Animated.View style={[p.style, rest.style]}>
-            <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
-          </Animated.View>
-        )
-      })
-    )
+    return function AnimatedInput(p: AnimatedInputProps) {
+      const {expanded, ref, ...rest} = p
+      return (
+        <Animated.View style={[p.style, rest.style]}>
+          <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+        </Animated.View>
+      )
+    }
   } else {
-    return React.memo(
-      React.forwardRef<InputRef, InputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
-        'use no memo'
-        const maxInputArea = React.useContext(MaxInputAreaContext)
-        const {expanded, ...rest} = p
-        const lastExpandedRef = React.useRef(expanded)
-        const offset = useSharedValue(expanded ? 1 : 0)
-        const maxHeight = maxInputArea - inputAreaHeight - 15
-        const as = useAnimatedStyle(() => ({
-          maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
-          minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
-        }))
-        React.useEffect(() => {
-          if (expanded !== lastExpandedRef.current) {
-            lastExpandedRef.current = expanded
-            offset.set(expanded ? 1 : 0)
-          }
-        }, [expanded, offset])
-        return (
-          <Animated.View style={[p.style, as]}>
-            <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
-          </Animated.View>
-        )
-      })
-    )
+    return function AnimatedInput(p: AnimatedInputProps) {
+      'use no memo'
+      const maxInputArea = React.useContext(MaxInputAreaContext)
+      const {expanded, ref, ...rest} = p
+      const lastExpandedRef = React.useRef(expanded)
+      const offset = useSharedValue(expanded ? 1 : 0)
+      const maxHeight = maxInputArea - inputAreaHeight - 15
+      const as = useAnimatedStyle(() => ({
+        maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
+        minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
+      }))
+      React.useEffect(() => {
+        if (expanded !== lastExpandedRef.current) {
+          lastExpandedRef.current = expanded
+          offset.set(expanded ? 1 : 0)
+        }
+      }, [expanded, offset])
+      return (
+        <Animated.View style={[p.style, as]}>
+          <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+        </Animated.View>
+      )
+    }
   }
 })()
 

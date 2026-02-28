@@ -48,7 +48,7 @@ const FullscreenVideo = (p: {
   )
 }
 
-const Fullscreen = React.memo(function Fullscreen(p: Props) {
+const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
@@ -56,11 +56,11 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const [loaded, setLoaded] = React.useState(false)
   const {ordinal} = message
   const [showHeader, setShowHeader] = React.useState(_showHeader)
-  const toggleHeader = React.useCallback(() => {
+  const toggleHeader = () => {
     setShowHeader(s => !s)
-  }, [])
+  }
 
-  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
+  const preload = (path: string, onLoad: () => void, onError: () => void) => {
     const f = async () => {
       try {
         await Image.prefetch(path)
@@ -72,27 +72,22 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     f()
       .then(() => {})
       .catch(() => {})
-  }, [])
+  }
 
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
-  const srcDims = React.useMemo(() => {
-    return imgSrc === path
-      ? {height: data.fullHeight, width: data.fullWidth}
-      : {height: data.previewWidth, width: data.previewHeight}
-  }, [data.fullHeight, data.fullWidth, data.previewHeight, data.previewWidth, imgSrc, path])
+  const srcDims = imgSrc === path
+    ? {height: data.fullHeight, width: data.fullWidth}
+    : {height: data.previewWidth, width: data.previewHeight}
 
   const {showPopup, popup} = useMessagePopup({ordinal})
 
-  const onSwipe = React.useCallback(
-    (left: boolean) => {
-      if (left) {
-        onNextAttachment()
-      } else {
-        onPreviousAttachment()
-      }
-    },
-    [onNextAttachment, onPreviousAttachment]
-  )
+  const onSwipe = (left: boolean) => {
+    if (left) {
+      onNextAttachment()
+    } else {
+      onPreviousAttachment()
+    }
+  }
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
@@ -101,7 +96,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const needDiff = windowWidth / 3
   const initialTouch = React.useRef(-1)
   const maxTouchesRef = React.useRef(0)
-  const onTouchStart = React.useCallback((e: GestureResponderEvent) => {
+  const onTouchStart = (e: GestureResponderEvent) => {
     // we get calls when the touches increase
     maxTouchesRef.current = Math.max(maxTouchesRef.current, e.nativeEvent.touches.length)
     if (e.nativeEvent.touches.length === 1) {
@@ -109,25 +104,22 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     } else {
       initialTouch.current = -1
     }
-  }, [])
-  const onTouchEnd = React.useCallback(
-    (e: GestureResponderEvent) => {
-      const maxTouches = maxTouchesRef.current
-      maxTouchesRef.current = 0
-      const diff = e.nativeEvent.pageX - initialTouch.current
-      initialTouch.current = -1
-      // we only do swipes on single touch
-      if (maxTouches !== 1) {
-        return
-      }
-      if (diff > needDiff) {
-        onSwipe(false)
-      } else if (diff < -needDiff) {
-        onSwipe(true)
-      }
-    },
-    [onSwipe, needDiff]
-  )
+  }
+  const onTouchEnd = (e: GestureResponderEvent) => {
+    const maxTouches = maxTouchesRef.current
+    maxTouchesRef.current = 0
+    const diff = e.nativeEvent.pageX - initialTouch.current
+    initialTouch.current = -1
+    // we only do swipes on single touch
+    if (maxTouches !== 1) {
+      return
+    }
+    if (diff > needDiff) {
+      onSwipe(false)
+    } else if (diff < -needDiff) {
+      onSwipe(true)
+    }
+  }
 
   if (path) {
     if (isVideo) {
@@ -210,7 +202,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       {popup}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

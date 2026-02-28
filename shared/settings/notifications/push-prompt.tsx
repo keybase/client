@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {usePushState} from '@/stores/push'
 
@@ -7,14 +6,14 @@ const PushPrompt = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onNoPermissions = React.useCallback(() => {
+  const onNoPermissions = () => {
     rejectPermissions()
     clearModals()
-  }, [rejectPermissions, clearModals])
-  const onRequestPermissions = React.useCallback(() => {
+  }
+  const onRequestPermissions = () => {
     requestPermissions()
     clearModals()
-  }, [requestPermissions, clearModals])
+  }
   return (
     <Kb.Modal
       header={{

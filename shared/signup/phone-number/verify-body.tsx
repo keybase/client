@@ -15,11 +15,11 @@ const VerifyBody = (props: BodyProps) => {
   const enableResend = Kb.useTimeout(() => setResendDisabled(false), 4000)
   React.useEffect(() => enableResend(), [enableResend])
   const {onResend: _onResend} = props
-  const onResend = React.useCallback(() => {
+  const onResend = () => {
     _onResend()
     setResendDisabled(true)
     enableResend()
-  }, [_onResend, enableResend])
+  }
 
   return (
     <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>

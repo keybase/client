@@ -18,7 +18,7 @@ export const useIsMounted = () => {
       mounted.current = false
     }
   }, [])
-  const isMounted = React.useCallback(() => mounted.current, [])
+  const isMounted = () => mounted.current
   return isMounted
 }
 
@@ -65,10 +65,6 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
   React.useLayoutEffect(() => {
     ref.current = fn
   })
-  return React.useMemo(
-    () =>
-      (...args: Arr): R =>
-        ref.current(...args),
-    []
-  )
+  return (...args: Arr): R =>
+    ref.current(...args)
 }

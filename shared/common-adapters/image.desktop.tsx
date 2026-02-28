@@ -9,13 +9,10 @@ const Image = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError} = p
   const [loading, setLoading] = React.useState(true)
   const isMounted = C.useIsMounted()
-  const _onLoad = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      isMounted() && setLoading(false)
-      onLoad?.(e)
-    },
-    [isMounted, onLoad]
-  )
+  const _onLoad = (e: React.BaseSyntheticEvent) => {
+    isMounted() && setLoading(false)
+    onLoad?.(e)
+  }
   const style = {
     ...p.style,
     ...(showLoadingStateUntilLoaded && loading ? styles.absolute : {}),

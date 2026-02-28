@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -49,17 +48,13 @@ export const TeamMemberRow = (props: Props) => {
   const {roleType, fullName, username, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
-  const crown = React.useMemo(
-    () =>
-      active && showCrown[roleType] ? (
+  const crown = active && showCrown[roleType] ? (
         <Kb.Icon
           type={('iconfont-crown-' + roleType) as Kb.IconType}
           style={styles.crownIcon}
           fontSize={10}
         />
-      ) : null,
-    [active, roleType]
-  )
+      ) : null
 
   const fullNameLabel =
     fullName && active ? (
@@ -91,19 +86,13 @@ export const TeamMemberRow = (props: Props) => {
 
   const setMemberSelected = Teams.useTeamsState(s => s.dispatch.setMemberSelected)
 
-  const onSelect = React.useCallback(
-    (selected: boolean) => {
+  const onSelect = (selected: boolean) => {
       setMemberSelected(teamID, props.username, selected)
-    },
-    [setMemberSelected, teamID, props.username]
-  )
+    }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
   const pOnClick = props.onClick
-  const onClick = React.useMemo(
-    () => (anySelected ? () => onSelect(!selected) : canEnterMemberPage ? pOnClick : undefined),
-    [anySelected, pOnClick, canEnterMemberPage, onSelect, selected]
-  )
+  const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? pOnClick : undefined
 
   const checkCircle = (
     <Kb.CheckCircle
@@ -146,8 +135,7 @@ export const TeamMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const menuHeader = (
         <MenuHeader
@@ -212,23 +200,7 @@ export const TeamMemberRow = (props: Props) => {
           visible={true}
         />
       )
-    },
-    [
-      crown,
-      fullName,
-      roleLabel,
-      nav,
-      teamID,
-      username,
-      youCanManageMembers,
-      isYou,
-      onBlock,
-      onChat,
-      onOpenProfile,
-      onRemoveFromTeam,
-      onClick,
-    ]
-  )
+    }
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (

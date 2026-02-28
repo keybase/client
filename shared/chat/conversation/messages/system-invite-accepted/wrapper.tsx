@@ -1,9 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemInviteAcceptedType from './container'
 
-const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
+function WrapperSystemInvite(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
       <SystemInviteAccepted key="systemInviteAccepted" message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperSystemInvite

@@ -68,7 +68,7 @@ type ContactRowProps = {
   onSelect: Props['onSelect']
   selected: boolean
 }
-const ContactRow = React.memo(function ContactRow({
+const ContactRow = function ContactRow({
   item,
   disabled,
   index,
@@ -102,15 +102,12 @@ const ContactRow = React.memo(function ContactRow({
     />
   )
   return listItem
-})
+}
 
 const ContactsList = (props: Props) => {
   const contactInfo = useContacts()
 
-  const sections = React.useMemo(
-    () => filterAndSectionContacts(contactInfo.contacts, props.search),
-    [contactInfo.contacts, props.search]
-  )
+  const sections = filterAndSectionContacts(contactInfo.contacts, props.search)
   const renderSectionHeader = ({section}: {section: Section}) => <Kb.SectionDivider label={section.title} />
 
   // need to box this callback or every row will rerender when the selection changes
@@ -119,12 +116,9 @@ const ContactsList = (props: Props) => {
   React.useEffect(() => {
     onSelectRef.current = onSelect
   }, [onSelect])
-  const onSelectForRows = React.useCallback<Props['onSelect']>(
-    (...args) => {
+  const onSelectForRows: Props['onSelect'] = (...args) => {
       onSelectRef.current(...args)
-    },
-    [onSelectRef]
-  )
+    }
 
   return (
     <Kb.SectionList

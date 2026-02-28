@@ -38,7 +38,7 @@ const appTabsInnerOptions = {
 
 const TabStackNavigator = createNativeStackNavigator<RootParamList>()
 const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
-const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
+function TabStack(p: {route: {name: string}}) {
   const tab = p.route.name as DesktopTabs
   return (
     <TabStackNavigator.Navigator
@@ -48,9 +48,9 @@ const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
       {tabScreens}
     </TabStackNavigator.Navigator>
   )
-})
+}
 
-const AppTabsInner = React.memo(function AppTabsInner() {
+function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {Tabs.desktopTabs.map(tab => (
@@ -58,7 +58,7 @@ const AppTabsInner = React.memo(function AppTabsInner() {
       ))}
     </Tab.Navigator>
   )
-})
+}
 
 const AppTabs = () => <AppTabsInner />
 
@@ -69,13 +69,13 @@ const loggedOutOptions: NativeStackNavigationOptions = {
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
 }
-const LoggedOut = React.memo(function LoggedOut() {
+function LoggedOut() {
   return (
     <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutOptions}>
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
-})
+}
 
 const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
@@ -120,7 +120,7 @@ const useConnectNavToState = () => {
 createLinkingConfig(handleAppLink)
 
 const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
-const ElectronApp = React.memo(function ElectronApp() {
+function ElectronApp() {
   useConnectNavToState()
   const loggedInUser = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
@@ -131,21 +131,21 @@ const ElectronApp = React.memo(function ElectronApp() {
     return loaded
   })
 
-  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+  const onUnhandledAction = (a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }, [])
+  }
 
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = React.useCallback(() => {
+  const onStateChange = () => {
     const ns = C.Router2.getRootState()
     setNavState(ns)
-  }, [setNavState])
+  }
 
-  const navRef = React.useCallback((ref: typeof C.Router2.navigationRef.current) => {
+  const navRef = (ref: typeof C.Router2.navigationRef.current) => {
     if (ref) {
       C.Router2.navigationRef.current = ref
     }
-  }, [])
+  }
 
   return (
     <NavigationContainer
@@ -171,6 +171,6 @@ const ElectronApp = React.memo(function ElectronApp() {
       </RootStack.Navigator>
     </NavigationContainer>
   )
-})
+}
 
 export default ElectronApp

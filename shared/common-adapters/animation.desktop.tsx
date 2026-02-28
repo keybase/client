@@ -5,7 +5,7 @@ import type {Props, AnimationType} from './animation'
 
 const defaultDimension = 16
 
-const Animation = React.memo(function Animation(props: Props) {
+function Animation(props: Props) {
   const {style, width, height, animationType} = props
   const elementRef = React.useRef<HTMLDivElement>(null)
   const lottieInstance = React.useRef<null | ReturnType<typeof lottie.loadAnimation>>(null)
@@ -39,6 +39,6 @@ const Animation = React.memo(function Animation(props: Props) {
       />
     </Box2>
   )
-})
+}
 
 export default Animation

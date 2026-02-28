@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Banner from './banner'
@@ -72,8 +72,7 @@ const sortOrderToTitle = {
 }
 const SortHeader = () => {
   const onChangeSort = useTeamsState(s => s.dispatch.setTeamListSort)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -97,9 +96,7 @@ const SortHeader = () => {
           position="bottom left"
         />
       )
-    },
-    [onChangeSort]
-  )
+    }
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   const sortOrder = useTeamsState(s => s.teamListSort)
@@ -139,12 +136,10 @@ const getRowHeight = (item: Row | undefined): number => {
   }
 }
 
-const Teams = React.memo(function Teams(p: Props) {
+const Teams = function Teams(p: Props) {
   const {deletedTeams, teams, onReadMore, onCreateTeam, onHideChatBanner, onJoinTeam} = p
 
-  const items = React.useMemo(
-    (): ReadonlyArray<Row> =>
-      [
+  const items = [
         {key: '_buttons', type: '_buttons'},
         {key: '_sortHeader', type: '_sortHeader'},
         ...deletedTeams.map(
@@ -152,12 +147,9 @@ const Teams = React.memo(function Teams(p: Props) {
         ),
         ...teams.map(team => ({key: team.id, team, type: 'team'}) as const),
         {key: '_footer', type: '_footer'},
-      ] as const,
-    [deletedTeams, teams]
-  )
+      ] as const
 
-  const itemHeight = React.useMemo(
-    () => ({
+  const itemHeight = {
       getItemLayout: (index: number, item?: Row) => {
         const length = getRowHeight(item)
         let offset = 0
@@ -167,12 +159,9 @@ const Teams = React.memo(function Teams(p: Props) {
         return {index, length, offset}
       },
       type: 'variable' as const,
-    }),
-    [items]
-  )
+    }
 
-  const renderItem = React.useCallback(
-    (index: number, item: Row) => {
+  const renderItem = (index: number, item: Row) => {
       switch (item.type) {
         case '_banner':
           return <Banner onReadMore={onReadMore} onHideChatBanner={onHideChatBanner} />
@@ -200,9 +189,7 @@ const Teams = React.memo(function Teams(p: Props) {
           return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
         }
       }
-    },
-    [onCreateTeam, onHideChatBanner, onJoinTeam, onReadMore, teams]
-  )
+    }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -211,7 +198,7 @@ const Teams = React.memo(function Teams(p: Props) {
       </Kb.BoxGrow>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

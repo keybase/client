@@ -20,9 +20,9 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
 
   const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const timerCB = React.useCallback(() => {
+  const timerCB = () => {
     savedCallback.current()
-  }, [])
+  }
 
   React.useEffect(() => {
     return () => {
@@ -30,9 +30,9 @@ export const useTimeout = (func: () => void, timing: number): (() => void) => {
     }
   }, [])
 
-  return React.useCallback(() => {
+  return () => {
     timeoutIDRef.current = setTimeout(timerCB, timing)
-  }, [timerCB, timing])
+  }
 }
 
 // https://overreacted.io/making-setinterval-declarative-with-react-hooks/

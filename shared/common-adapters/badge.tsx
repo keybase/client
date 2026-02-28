@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {Box2} from './box'
 import Text from './text'
 import * as Styles from '@/styles'
@@ -20,7 +19,7 @@ export type Badge2Props = {
   border?: boolean
 }
 
-const Badge = React.memo(function Badge(p: Badge2Props) {
+function Badge(p: Badge2Props) {
   const {border, containerStyle, className, badgeNumberStyle, badgeNumber, badgeStyle} = p
   const fontSize = p.fontSize ?? (Styles.isMobile ? 12 : 10)
   const height = p.height ?? (Styles.isMobile ? 20 : 16)
@@ -113,7 +112,7 @@ const Badge = React.memo(function Badge(p: Badge2Props) {
       </Kb.Box2>
     )
   }
-})
+}
 export default Badge
 
 const styles = Styles.styleSheetCreate(() => ({

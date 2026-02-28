@@ -177,16 +177,13 @@ const ProfileCard = ({
   ])
 
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _changeFollow = React.useCallback(
-    (follow: boolean) => changeFollow(userDetails.guiID, follow),
-    [changeFollow, userDetails]
-  )
+  const _changeFollow = (follow: boolean) => changeFollow(userDetails.guiID, follow)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const openProfile = React.useCallback(() => {
+  const openProfile = () => {
     showUserProfile(username)
     onHide?.()
-  }, [showUserProfile, onHide, username])
+  }
 
   const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
     default: typeof FollowButtonType
@@ -257,19 +254,16 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
-  const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
+  const onLayoutChange = () => setRemeasureHint(Date.now())
   const you = useCurrentUserState(s => s.username)
   const isSelf = you === username
-  const onShow = C.useDebouncedCallback(
-    React.useCallback(() => {
-      setShowing(true)
-    }, []),
-    200
-  )
-  const onHide = React.useCallback(() => {
+  const onShow = C.useDebouncedCallback(() => {
+    setShowing(true)
+  }, 200)
+  const onHide = () => {
     onShow.cancel()
     setShowing(false)
-  }, [onShow])
+  }
 
   if (isSelf) {
     return children()

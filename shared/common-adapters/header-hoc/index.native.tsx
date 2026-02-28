@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
@@ -241,12 +241,12 @@ const styles = Styles.styleSheetCreate(
 )
 
 const noop = () => {}
-const HeaderLeftBlankImpl = React.memo(function HeaderLeftBlankImpl() {
+function HeaderLeftBlankImpl() {
   return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
-})
+}
 export const HeaderLeftBlank = () => <HeaderLeftBlankImpl />
 
-export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
+export function HeaderLeftArrow(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress?: () => void
@@ -261,9 +261,9 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
-})
+}
 
-export const HeaderLeftArrowCanGoBack = React.memo(function HeaderLeftArrowCanGoBack(hp: {
+export function HeaderLeftArrowCanGoBack(hp: {
   canGoBack?: boolean
   tintColor?: string
   onPress?: () => void
@@ -271,9 +271,9 @@ export const HeaderLeftArrowCanGoBack = React.memo(function HeaderLeftArrowCanGo
 }) {
   const canGoBack = useNavigation().canGoBack()
   return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
-})
+}
 
-export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
+export function HeaderLeftCancel(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress: () => void
@@ -288,9 +288,9 @@ export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
-})
+}
 
-export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
+export function HeaderLeftCancel2(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   tintColor: string
@@ -304,4 +304,4 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
       onLeftAction={nav.goBack}
     />
   ) : null
-})
+}

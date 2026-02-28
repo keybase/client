@@ -71,23 +71,20 @@ type DropdownProps = {
 
 const Dropdown = (p: DropdownProps) => {
   const {items, minWriterRole, saving} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          items={items}
-          onHidden={hidePopup}
-          position="top center"
-          positionFallbacks={positionFallbacks}
-        />
-      )
-    },
-    [items]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        visible={true}
+        items={items}
+        onHidden={hidePopup}
+        position="top center"
+        positionFallbacks={positionFallbacks}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
@@ -96,7 +96,7 @@ const Broken = () => {
   return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = React.memo(function BannerContainer() {
+const BannerContainer = function BannerContainer() {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
   const dismissed = Chat.useChatContext(s => s.dismissedInviteBanners)
@@ -129,7 +129,7 @@ const BannerContainer = React.memo(function BannerContainer() {
     case 'none':
       return null
   }
-})
+}
 
 export default BannerContainer
 

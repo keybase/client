@@ -34,12 +34,10 @@ const Intro = () => {
   const [showing, setShowing] = React.useState(true)
   Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setShowing(true)
-      return () => setShowing(false)
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setShowing(true)
+    return () => setShowing(false)
+  })
 
   return (
     <Kb.Box2

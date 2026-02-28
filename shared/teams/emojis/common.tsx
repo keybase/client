@@ -13,7 +13,8 @@ type AliasInputProps = {
 }
 
 export type AliasRef = {focus: () => void}
-export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function AliasInput(props, ref) {
+export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>}) {
+  const {ref, error, disabled, small, onChangeAlias, onEnterKeyDown, onRemove} = props
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
 
   React.useImperativeHandle(ref, () => ({
@@ -27,30 +28,27 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function A
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
         <Kb.NewInput
           ref={inputRef}
-          error={!!props.error}
-          disabled={props.disabled}
+          error={!!error}
+          disabled={disabled}
           textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
-          containerStyle={Kb.Styles.collapseStyles([
-            styles.aliasInput,
-            !props.small && styles.aliasInputLarge,
-          ])}
-          onChangeText={props.onChangeAlias}
-          onEnterKeyDown={props.onEnterKeyDown}
+          containerStyle={Kb.Styles.collapseStyles([styles.aliasInput, !small && styles.aliasInputLarge])}
+          onChangeText={onChangeAlias}
+          onEnterKeyDown={onEnterKeyDown}
         />
-        {props.onRemove && (
-          <Kb.ClickableBox onClick={props.onRemove} style={styles.removeBox}>
+        {onRemove && (
+          <Kb.ClickableBox onClick={onRemove} style={styles.removeBox}>
             <Kb.Icon type="iconfont-remove" />
           </Kb.ClickableBox>
         )}
       </Kb.Box2>
-      {!!props.error && (
+      {!!error && (
         <Kb.Text type="BodySmallError" lineClamp={1}>
-          {props.error}
+          {error}
         </Kb.Text>
       )}
     </Kb.Box2>
   )
-})
+}
 
 type ModalProps = {
   backButtonOnClick?: () => void

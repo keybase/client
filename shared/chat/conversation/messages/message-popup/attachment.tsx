@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
@@ -54,41 +54,41 @@ const PopAttach = (ownProps: OwnProps) => {
     })
   )
 
-  const onJump = React.useCallback(() => {
+  const onJump = () => {
     loadMessagesCentered(id, 'always')
     showInfoPanel(false, 'attachments')
     clearModals()
-  }, [id, loadMessagesCentered, showInfoPanel, clearModals])
+  }
 
   const onAllMedia = () => {
     clearModals()
     showInfoPanel(true, 'attachments')
   }
-  const _onDownload = React.useCallback(() => {
+  const _onDownload = () => {
     attachmentDownload(ordinal)
-  }, [attachmentDownload, ordinal])
+  }
   const onDownload = !C.isMobile && !message.downloadPath ? _onDownload : undefined
 
-  const _onSaveAttachment = React.useCallback(() => {
+  const _onSaveAttachment = () => {
     messageAttachmentNativeSave(ordinal)
-  }, [messageAttachmentNativeSave, ordinal])
+  }
 
   const onSaveAttachment =
     C.isMobile && (attachmentType === 'image' || Chat.isImageViewable(message))
       ? _onSaveAttachment
       : undefined
 
-  const _onShareAttachment = React.useCallback(() => {
+  const _onShareAttachment = () => {
     messageAttachmentNativeShare(ordinal)
-  }, [messageAttachmentNativeShare, ordinal])
+  }
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = React.useCallback(() => {
+  const _onShowInFinder = () => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
-  }, [downloadPath, openLocalPathInSystemFileManagerDesktop])
+  }
   const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
 
   const i = useItems(ordinal, onHidden)
@@ -140,7 +140,7 @@ const PopAttach = (ownProps: OwnProps) => {
   ]
 
   const header = useHeader(ordinal, onHidden)
-  const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
+  const snapPoints = [8 * 40 + 25]
 
   return (
     <Kb.FloatingMenu

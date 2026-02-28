@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
@@ -9,7 +8,7 @@ import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
 
-const CoinFlipContainer = React.memo(function CoinFlipContainer() {
+function CoinFlipContainer() {
   const ordinal = useOrdinal()
   const {isSendError, text, flipGameID, sendMessage} = Chat.useChatContext(
     C.useShallow(s => {
@@ -22,9 +21,9 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     })
   )
   const status = Chat.useChatState(s => s.flipStatusMap.get(flipGameID))
-  const onFlipAgain = React.useCallback(() => {
+  const onFlipAgain = () => {
     text && sendMessage(text.stringValue())
-  }, [sendMessage, text])
+  }
   const phase = status?.phase
   const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined
@@ -40,20 +39,17 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     }, 0) ?? 0
   const revealSummary = `${revealed} / ${numParticipants}`
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <CoinFlipParticipants
-          attachTo={attachTo}
-          onHidden={hidePopup}
-          participants={participants}
-          visible={true}
-        />
-      )
-    },
-    [participants]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <CoinFlipParticipants
+        attachTo={attachTo}
+        onHidden={hidePopup}
+        participants={participants}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
@@ -151,7 +147,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

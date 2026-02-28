@@ -21,25 +21,19 @@ const PeopleReloadable = () => {
   const loadPeople = usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
 
-  const getData = React.useCallback(
-    (markViewed = true, force = false) => {
-      const now = Date.now()
-      if (force || !lastRefreshRef.current || lastRefreshRef.current + waitToRefresh < now) {
-        lastRefreshRef.current = now
-        loadPeople(markViewed, 10)
-      }
-    },
-    [loadPeople]
-  )
+  const getData = (markViewed = true, force = false) => {
+    const now = Date.now()
+    if (force || !lastRefreshRef.current || lastRefreshRef.current + waitToRefresh < now) {
+      lastRefreshRef.current = now
+      loadPeople(markViewed, 10)
+    }
+  }
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
-  const onClickUser = React.useCallback((username: string) => showUserProfile(username), [showUserProfile])
+  const onClickUser = (username: string) => showUserProfile(username)
 
-  const onReload = React.useCallback(
-    (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length),
-    [getData, followSuggestions.length]
-  )
+  const onReload = (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length)
 
   return (
     <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={getPeopleDataWaitingKey}>

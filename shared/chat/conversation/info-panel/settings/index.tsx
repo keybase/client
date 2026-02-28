@@ -3,7 +3,6 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
@@ -40,14 +39,14 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onShowClearConversationDialog = React.useCallback(() => {
+  const onShowClearConversationDialog = () => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
-  }, [navigateAppend])
+  }
 
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = React.useCallback(() => hideConversation(true), [hideConversation])
-  const onUnhideConv = React.useCallback(() => hideConversation(false), [hideConversation])
-  const onShowBlockConversationDialog = React.useCallback(() => {
+  const onHideConv = () => hideConversation(true)
+  const onUnhideConv = () => hideConversation(false)
+  const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
       navigateAppend(conversationIDKey => ({
         props: {
@@ -61,12 +60,12 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     } else {
       onHideConv()
     }
-  }, [membersForBlock, onHideConv, teamname, navigateAppend])
+  }
 
   const leaveConversation = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveConversation = React.useCallback(() => {
+  const onLeaveConversation = () => {
     leaveConversation()
-  }, [leaveConversation])
+  }
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({

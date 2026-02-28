@@ -41,6 +41,6 @@ export type Props2 = {
   style?: Styles.StylesCrossPlatform
 }
 
-export declare const ClickableBox: ReturnType<typeof React.forwardRef<MeasureRef, Props>>
-export declare const ClickableBox2: ReturnType<typeof React.forwardRef<MeasureRef, Props2>>
+export declare function ClickableBox(props: Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
+export declare function ClickableBox2(props: Props2 & {ref?: React.Ref<MeasureRef>}): React.ReactNode
 export default ClickableBox

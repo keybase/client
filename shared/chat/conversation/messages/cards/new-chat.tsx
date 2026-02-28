@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import openUrl from '@/util/open-url'
 
@@ -16,7 +15,7 @@ type InnerProps = {
   text: string
 }
 
-const NewCard = React.memo(function NewCard(outerProps: Props) {
+function NewCard(outerProps: Props) {
   const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
   const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
   const props: InnerProps = outerProps.self
@@ -75,7 +74,7 @@ const NewCard = React.memo(function NewCard(outerProps: Props) {
       />
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -78,7 +78,7 @@ const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
   return false
 }
 
-const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
+function MenubarRemoteProxy() {
   const username = useCurrentUserState(s => s.username)
   const configState = useConfigState(
     C.useShallow(s => {
@@ -123,10 +123,7 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
 
-  const remoteTlfUpdates = React.useMemo(
-    () => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)),
-    [tlfUpdates, uploads]
-  )
+  const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
 
   const [conversationsToSend, setConversationsToSend] = React.useState<ReadonlyArray<Conversation>>([])
   React.useEffect(() => {
@@ -188,16 +185,16 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   const daemonHandshakeState = useDaemonState(s => s.handshakeState)
   const followingSet = useFollowerState(s => s.following)
-  const following = React.useMemo(() => [...followingSet], [followingSet])
+  const following = [...followingSet]
 
   // Convert navBadges Map to plain object
-  const navBadges: {[tab: string]: number} = React.useMemo(() => {
+  const navBadges: {[tab: string]: number} = (() => {
     const obj: {[tab: string]: number} = {}
     for (const [k, v] of navBadgesMap) {
       obj[k] = v
     }
     return obj
-  }, [navBadgesMap])
+  })()
 
   const p: Props & WidgetProps = {
     ...upDown,
@@ -222,6 +219,6 @@ const MenubarRemoteProxy = React.memo(function MenubarRemoteProxy() {
   }
 
   return <Widget {...p} />
-})
+}
 
 export default MenubarRemoteProxy

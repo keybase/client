@@ -11,14 +11,10 @@ export const useChannelParticipants = (
 ) => {
   const participants = Chat.useConvoState(conversationIDKey, s => s.participants.all)
   const teamMembers = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.members)
-  return React.useMemo(
-    () =>
-      participants.filter(username => {
+  return participants.filter(username => {
         const maybeMember = teamMembers?.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
-      }),
-    [participants, teamMembers]
-  )
+      })
 }
 
 export const useAllChannelMetas = (
@@ -38,8 +34,7 @@ export const useAllChannelMetas = (
 
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  const reloadChannels = React.useCallback(
-    async () =>
+  const reloadChannels = C.useEvent(async () =>
       new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
         getConversations(
@@ -75,8 +70,7 @@ export const useAllChannelMetas = (
             reject(error)
           }
         )
-      }),
-    [setLoadingChannels, teamID, teamname, getConversations]
+      })
   )
 
   React.useEffect(() => {

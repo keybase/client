@@ -93,7 +93,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
+function FlameFront(props: {height: number; stop: boolean}) {
   const isDarkMode = useColorScheme() === 'dark'
   if (props.stop) {
     return null
@@ -112,7 +112,7 @@ const FlameFront = React.memo(function FlameFront(props: {height: number; stop: 
       {children}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

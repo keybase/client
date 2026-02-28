@@ -295,7 +295,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
-  const doGetUserEmoji = React.useCallback(() => {
+  const doGetUserEmoji = C.useEvent(() => {
     if (!convID || convID === Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
@@ -319,7 +319,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       },
       _ => setCustomEmoji([])
     )
-  }, [convID, getUserEmoji, shouldActuallyLoad])
+  })
 
   const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)

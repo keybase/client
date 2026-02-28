@@ -1,5 +1,4 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -8,14 +7,12 @@ import {formatTimeForChat} from '@/util/timestamp'
 
 type OwnProps = {message: T.Chat.MessageSystemJoined}
 
-const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
+function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, leavers, timestamp} = message
   const meta = Chat.useChatContext(s => s.meta)
   const {channelname, teamType, teamname} = meta
-  const joiners2 = React.useMemo(() => {
-    return !joiners?.length && !leavers?.length ? [author] : joiners
-  }, [joiners, leavers, author])
+  const joiners2 = !joiners?.length && !leavers?.length ? [author] : joiners
   const isBigTeam = teamType === 'big'
   const multiProps = {channelname, isBigTeam, teamname, timestamp}
   return (
@@ -24,7 +21,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
       {leavers?.length ? <MultiUserJoinedNotice {...multiProps} who={leavers} join={false} /> : null}
     </Kb.Box2>
   )
-})
+}
 
 const MultiUserJoinedNotice = (p: {
   who: ReadonlyArray<string>

@@ -74,18 +74,20 @@ export const Box2 = (p: Box2Props) => {
   return <div {...props} />
 }
 
-export const Box2Div = React.forwardRef<HTMLDivElement, Box2Props>(function Box2Animated(p, ref) {
-  const props = getProps(p)
+export const Box2Div = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
+  const {ref, ...rest} = p
+  const props = getProps(rest)
   return <div {...props} ref={ref} />
-})
+}
 export const Box2Animated = Box2Div
 
 export const Box2View = () => {
   throw new Error('Wrong platform')
 }
 
-export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, ref) {
-  const props = getProps(p)
+export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
+  const {ref, ...rest} = p
+  const props = getProps(rest)
   const divRef = React.useRef<HTMLDivElement>(null)
   React.useImperativeHandle(ref, () => {
     return {
@@ -97,5 +99,5 @@ export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2
   }, [])
 
   return <div ref={divRef} {...props} />
-})
+}
 

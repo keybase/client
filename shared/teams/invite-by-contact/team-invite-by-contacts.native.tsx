@@ -57,22 +57,18 @@ const TeamInviteByContact = (props: Props) => {
 
   const loadingInvites = Teams.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
   const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
-  const onBack = React.useCallback(() => {
+  const onBack = () => {
     nav.safeNavigateUp()
     resetErrorInEmailInvite()
-  }, [resetErrorInEmailInvite, nav])
+  }
 
-  const onRoleChange = React.useCallback(
-    (role: T.Teams.TeamRoleType) => {
+  const onRoleChange = (role: T.Teams.TeamRoleType) => {
       setSelectedRole(role)
-    },
-    [setSelectedRole]
-  )
+    }
   const inviteToTeamByEmail = Teams.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
   const inviteToTeamByPhone = Teams.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
 
-  const onInviteContact = React.useCallback(
-    (contact: Contact) => {
+  const onInviteContact = (contact: Contact) => {
       resetErrorInEmailInvite()
       switch (contact.type) {
         case 'email':
@@ -89,18 +85,13 @@ const TeamInviteByContact = (props: Props) => {
           )
           break
       }
-    },
-    [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
-  )
+    }
 
   const removePendingInvite = Teams.useTeamsState(s => s.dispatch.removePendingInvite)
-  const onCancelInvite = React.useCallback(
-    (inviteID: string) => {
+  const onCancelInvite = (inviteID: string) => {
       resetErrorInEmailInvite()
       removePendingInvite(teamID, inviteID)
-    },
-    [resetErrorInEmailInvite, removePendingInvite, teamID]
-  )
+    }
 
   // ----
 

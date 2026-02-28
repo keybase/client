@@ -57,28 +57,16 @@ const Container = (ownProps: OwnProps) => {
   const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
-  const _onSubmit = React.useCallback(
-    (titles: Array<string>, spoiler: boolean) => {
-      tlfName || noDragDrop
-        ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
-        : attachFromDragAndDrop(pathAndOutboxIDs, titles)
-      clearModals()
+  const _onSubmit = (titles: Array<string>, spoiler: boolean) => {
+    tlfName || noDragDrop
+      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
+      : attachFromDragAndDrop(pathAndOutboxIDs, titles)
+    clearModals()
 
-      if (selectConversationWithReason) {
-        navigateToThread(selectConversationWithReason)
-      }
-    },
-    [
-      attachFromDragAndDrop,
-      attachmentsUpload,
-      clearModals,
-      navigateToThread,
-      noDragDrop,
-      pathAndOutboxIDs,
-      selectConversationWithReason,
-      tlfName,
-    ]
-  )
+    if (selectConversationWithReason) {
+      navigateToThread(selectConversationWithReason)
+    }
+  }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)
     const info: Info = {
@@ -96,40 +84,31 @@ const Container = (ownProps: OwnProps) => {
   const [spoiler, setSpoiler] = React.useState(false)
   setSpoiler // TODO commented out
 
-  const onNext = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      e?.preventDefault()
+  const onNext = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault()
 
-      const {info} = pathAndInfos[index] ?? {}
-      if (!info) return
+    const {info} = pathAndInfos[index] ?? {}
+    if (!info) return
 
-      const nextIndex = index + 1
+    const nextIndex = index + 1
 
-      // done
-      if (nextIndex === pathAndInfos.length) {
-        _onSubmit(titles, spoiler)
-      } else {
-        // go to next
-        setIndex(s => s + 1)
-      }
-    },
-    [index, pathAndInfos, titles, spoiler, setIndex, _onSubmit]
-  )
-
-  const onSubmit = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      e?.preventDefault()
+    // done
+    if (nextIndex === pathAndInfos.length) {
       _onSubmit(titles, spoiler)
-    },
-    [_onSubmit, titles, spoiler]
-  )
+    } else {
+      // go to next
+      setIndex(s => s + 1)
+    }
+  }
 
-  const updateTitle = React.useCallback(
-    (title: string) => {
-      setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
-    },
-    [index, titles]
-  )
+  const onSubmit = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault()
+    _onSubmit(titles, spoiler)
+  }
+
+  const updateTitle = (title: string) => {
+    setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
+  }
 
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
 

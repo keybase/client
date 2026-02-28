@@ -25,23 +25,20 @@ type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
   setExplodingMode: (mode: number) => void
 }
-const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonProps) {
+const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   const {explodingModeSeconds, focusInput, setExplodingMode} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <SetExplodingMessagePopup
-          attachTo={attachTo}
-          onAfterSelect={focusInput}
-          onHidden={hidePopup}
-          visible={true}
-          setExplodingMode={setExplodingMode}
-        />
-      )
-    },
-    [focusInput, setExplodingMode]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <SetExplodingMessagePopup
+        attachTo={attachTo}
+        onAfterSelect={focusInput}
+        onHidden={hidePopup}
+        visible={true}
+        setExplodingMode={setExplodingMode}
+      />
+    )
+  }
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
@@ -78,38 +75,32 @@ const ExplodingButton = React.memo(function ExplodingButton(p: ExplodingButtonPr
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
 type EmojiButtonProps = {inputRef: InputRefType}
-const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
+const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
   const {inputRef} = p
-  const insertEmoji = React.useCallback(
-    (emojiColons: string) => {
-      inputRef.current?.transformText(({text, selection}) => {
-        const newText =
-          text.slice(0, selection?.start || 0) + emojiColons + text.slice(selection?.end || 0) + ' '
-        const pos = (selection?.start || 0) + emojiColons.length + 1
-        return {
-          selection: {end: pos, start: pos},
-          text: newText,
-        }
-      }, true)
-      inputRef.current?.focus()
-    },
-    [inputRef]
-  )
+  const insertEmoji = (emojiColons: string) => {
+    inputRef.current?.transformText(({text, selection}) => {
+      const newText =
+        text.slice(0, selection?.start || 0) + emojiColons + text.slice(selection?.end || 0) + ' '
+      const pos = (selection?.start || 0) + emojiColons.length + 1
+      return {
+        selection: {end: pos, start: pos},
+        text: newText,
+      }
+    }, true)
+    inputRef.current?.focus()
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
-          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
-        </Kb.Overlay>
-      )
-    },
-    [insertEmoji]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.Overlay attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
+        <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
+      </Kb.Overlay>
+    )
+  }
 
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
@@ -131,9 +122,9 @@ const EmojiButton = React.memo(function EmojiButton(p: EmojiButtonProps) {
       {popup}
     </>
   )
-})
+}
 
-const GiphyButton = React.memo(function GiphyButton() {
+const GiphyButton = function GiphyButton() {
   const toggleGiphyPrefill = Chat.useChatContext(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
@@ -142,19 +133,19 @@ const GiphyButton = React.memo(function GiphyButton() {
       <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
     </Kb.Box2>
   )
-})
+}
 
 const fileListToPaths = (f: FileList): Array<string> => {
   return Array.from(f).map(f => getPathForFile?.(f) ?? '')
 }
 
-const FileButton = React.memo(function FileButton(p: {
+const FileButton = function FileButton(p: {
   setHtmlInputRef: (i: HTMLInputElement | null) => void
 }) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const pickFile = React.useCallback(() => {
+  const pickFile = () => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
       path && arr.push({path})
@@ -170,19 +161,16 @@ const FileButton = React.memo(function FileButton(p: {
     if (htmlInputRef.current) {
       htmlInputRef.current.value = ''
     }
-  }, [htmlInputRef, navigateAppend])
+  }
 
-  const filePickerOpen = React.useCallback(() => {
+  const filePickerOpen = () => {
     htmlInputRef.current?.click()
-  }, [htmlInputRef])
+  }
 
-  const setRef = React.useCallback(
-    (e: HTMLInputElement | null) => {
-      htmlInputRef.current = e
-      setHtmlInputRef(e)
-    },
-    [setHtmlInputRef]
-  )
+  const setRef = (e: HTMLInputElement | null) => {
+    htmlInputRef.current = e
+    setHtmlInputRef(e)
+  }
 
   return (
     <Kb.Box2 direction="vertical" style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
@@ -190,7 +178,7 @@ const FileButton = React.memo(function FileButton(p: {
       <input type="file" style={styles.hidden} ref={setRef} onChange={pickFile} multiple={true} />
     </Kb.Box2>
   )
-})
+}
 
 const Footer = () => {
   return (
@@ -216,96 +204,74 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const lastText = React.useRef('')
   const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
-  const onCancelReply = React.useCallback(() => {
+  const onCancelReply = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
-  }, [setReplyTo])
+  }
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
   // (_globalKeyDownPressHandler).
-  const commonOnKeyDown = React.useCallback(
-    (e: React.KeyboardEvent | KeyboardEvent) => {
-      const text = lastText.current
-      if (e.key === 'ArrowUp' && !isEditing && !text) {
-        e.preventDefault()
-        onEditLastMessage()
-        return true
-      } else if (e.key === 'Escape' && isEditing) {
-        onCancelEditing()
-        return true
-      } else if (e.key === 'Escape' && showReplyPreview) {
-        onCancelReply()
-        return true
-      } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
-        htmlInputRef.current?.click()
-        return true
-      } else if (e.key === 'PageDown') {
-        scrollDown()
-        return true
-      } else if (e.key === 'PageUp') {
-        scrollUp()
-        return true
-      }
+  const commonOnKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
+    const text = lastText.current
+    if (e.key === 'ArrowUp' && !isEditing && !text) {
+      e.preventDefault()
+      onEditLastMessage()
+      return true
+    } else if (e.key === 'Escape' && isEditing) {
+      onCancelEditing()
+      return true
+    } else if (e.key === 'Escape' && showReplyPreview) {
+      onCancelReply()
+      return true
+    } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
+      htmlInputRef.current?.click()
+      return true
+    } else if (e.key === 'PageDown') {
+      scrollDown()
+      return true
+    } else if (e.key === 'PageUp') {
+      scrollUp()
+      return true
+    }
 
-      return false
-    },
-    [
-      isEditing,
-      showReplyPreview,
-      htmlInputRef,
-      lastText,
-      onEditLastMessage,
-      onCancelEditing,
-      onCancelReply,
-      scrollDown,
-      scrollUp,
-    ]
-  )
+    return false
+  }
 
-  const globalKeyDownPressHandler = React.useCallback(
-    (ev: KeyboardEvent) => {
-      const target = ev.target
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return
-      }
+  const globalKeyDownPressHandler = (ev: KeyboardEvent) => {
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
 
-      if (commonOnKeyDown(ev)) {
-        return
-      }
+    if (commonOnKeyDown(ev)) {
+      return
+    }
 
-      const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-      const isValidSpecialKey = [
-        'Backspace',
-        'Delete',
-        'ArrowLeft',
-        'ArrowRight',
-        'ArrowUp',
-        'ArrowDown',
-        'Enter',
-        'Escape',
-      ].includes(ev.key)
-      if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-        focusInput()
-      }
-    },
-    [focusInput, commonOnKeyDown]
-  )
+    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+    const isValidSpecialKey = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Enter',
+      'Escape',
+    ].includes(ev.key)
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+      focusInput()
+    }
+  }
 
-  const inputKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      commonOnKeyDown(e)
-      onKeyDown?.(e)
-    },
-    [commonOnKeyDown, onKeyDown]
-  )
+  const inputKeyDown = (e: React.KeyboardEvent) => {
+    commonOnKeyDown(e)
+    onKeyDown?.(e)
+  }
 
-  const onChangeTextInner = React.useCallback(
-    (text: string) => {
-      lastText.current = text
-      onChangeText(text)
-    },
-    [onChangeText, lastText]
-  )
+  const onChangeTextInner = (text: string) => {
+    lastText.current = text
+    onChangeText(text)
+  }
 
   return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
@@ -330,7 +296,7 @@ const SideButtons = (p: SideButtonsProps) => {
   )
 }
 
-const PlatformInput = React.memo(function PlatformInput(p: Props) {
+const PlatformInput = function PlatformInput(p: Props) {
   // uncomment for f1 debugging
   // const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   // React.useEffect(() => {
@@ -352,24 +318,21 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
   const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
-  const setHtmlInputRef = React.useCallback((i: HTMLInputElement | null) => {
+  const setHtmlInputRef = (i: HTMLInputElement | null) => {
     htmlInputRef.current = i
-  }, [])
+  }
   const inputRef = React.useRef<InputRef | null>(null)
 
   React.useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
-  const checkEnterOnKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
-        e.preventDefault()
-        inputRef.current && onSubmit(inputRef.current.value)
-      }
-    },
-    [onSubmit]
-  )
+  const checkEnterOnKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
+      e.preventDefault()
+      inputRef.current && onSubmit(inputRef.current.value)
+    }
+  }
 
   const {
     popup,
@@ -386,13 +349,13 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     suggestionSpinnerStyle: styles.suggestionSpinnerStyle,
   })
 
-  const focusInput = React.useCallback(() => {
+  const focusInput = () => {
     inputRef.current?.focus()
-  }, [inputRef])
+  }
   const setEditing = Chat.useChatContext(s => s.dispatch.setEditing)
-  const onEditLastMessage = React.useCallback(() => {
+  const onEditLastMessage = () => {
     setEditing('last')
-  }, [setEditing])
+  }
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     focusInput,
@@ -405,15 +368,12 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     showReplyPreview,
   })
 
-  const setRefs = React.useCallback(
-    (ref: null | InputRef) => {
-      // from normal/index
-      setInputRef(ref)
-      // from suggestors/index
-      inputRef.current = ref
-    },
-    [inputRef, setInputRef]
-  )
+  const setRefs = (ref: null | InputRef) => {
+    // from normal/index
+    setInputRef(ref)
+    // from suggestors/index
+    inputRef.current = ref
+  }
 
   return (
     <>
@@ -467,7 +427,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
       </KeyEventHandler>
     </>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
