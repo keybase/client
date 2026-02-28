@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -61,36 +60,36 @@ function SwipeConvActions(p: Props) {
   const {children} = p
 
   const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const onMarkConversationAsUnread = C.useEvent(() => {
+  const onMarkConversationAsUnread = () => {
     setMarkAsUnread()
-  })
+  }
 
   const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const onMuteConversation = C.useEvent(() => {
+  const onMuteConversation = () => {
     mute(!isMuted)
-  })
+  }
 
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConversation = C.useEvent(() => {
+  const onHideConversation = () => {
     hideConversation(true)
-  })
+  }
 
   const isMuted = Chat.useChatContext(s => s.meta.isMuted)
 
-  const onMarkAsUnread = C.useEvent(() => {
+  const onMarkAsUnread = () => {
     onMarkConversationAsUnread()
     closeOpenedRow()
-  })
+  }
 
-  const onMute = C.useEvent(() => {
+  const onMute = () => {
     onMuteConversation()
     closeOpenedRow()
-  })
+  }
 
-  const onHide = C.useEvent(() => {
+  const onHide = () => {
     onHideConversation()
     closeOpenedRow()
-  })
+  }
 
   const onSwipeableOpenStartDrag = () => {
     setOpenedRow(conversationIDKey)

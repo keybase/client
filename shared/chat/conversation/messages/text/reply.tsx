@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -132,10 +131,10 @@ function Reply() {
   })
 
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
-  const onClick = C.useEvent(() => {
+  const onClick = () => {
     const id = replyTo?.id ?? 0
     id && replyJump(id)
-  })
+  }
 
   if (!replyTo?.id) return null
 

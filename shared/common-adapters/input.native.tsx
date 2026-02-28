@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -37,10 +36,10 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
       inputRef.current = ti
     }
 
-    const onChangeText = C.useEvent((s: string) => {
+    const onChangeText = (s: string) => {
       setValue(s)
       _onChangeText?.(s)
-    })
+    }
     const onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       setSelection(e.nativeEvent.selection)
       _onSelectionChange?.(e)
@@ -54,7 +53,7 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
         },
         clear: () => {
           setValue('')
-          onChangeText('')
+          _onChangeText?.('')
           setAutoFocus(true)
         },
         focus: () => {
@@ -69,14 +68,15 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
           if (!reflectChange) {
             return
           }
-          onChangeText(ti.text)
+          setValue(ti.text)
+          _onChangeText?.(ti.text)
           setSelection(ti.selection)
         },
         get value() {
           return value
         },
       }
-    }, [onChangeText, selection, value])
+    }, [selection, value, _onChangeText])
 
     const style = (() => {
       let textStyle = getTextStyle(textType, isDarkMode)

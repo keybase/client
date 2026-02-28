@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -40,19 +39,16 @@ const Dropdown = (props: Props) => {
   const [value, setValue] = React.useState(_value || pickItemValue)
   const showingPick = !value
 
-  const selected = C.useEvent((v: string) => {
-    if (v === _value) return
-    if (v === otherItemValue) {
-      onOther()
-    } else {
-      onClick(v)
-    }
-  })
-
   const showModal = (show: boolean) => {
     setModalVisible(show)
     if (!show) {
-      selected(value)
+      if (value !== _value) {
+        if (value === otherItemValue) {
+          onOther()
+        } else {
+          onClick(value)
+        }
+      }
     }
   }
 
@@ -82,9 +78,14 @@ const Dropdown = (props: Props) => {
   // on android we immediately choose, on ios you have to close the modal to choose
   React.useEffect(() => {
     if (Kb.Styles.isAndroid) {
-      selected(value)
+      if (value === _value) return
+      if (value === otherItemValue) {
+        onOther()
+      } else {
+        onClick(value)
+      }
     }
-  }, [value, selected])
+  }, [value, _value, onOther, onClick])
 
   const picker = (
     <Picker style={styles.picker} selectedValue={value} onValueChange={setValue} itemStyle={styles.item}>

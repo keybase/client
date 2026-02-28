@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -38,14 +37,20 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const scrollToBottom = C.useEvent(() => {
+  const scrollToBottom = () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
-  })
+  }
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
-    setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
-  }, [setScrollRef, scrollToBottom])
+    setScrollRef({
+      scrollDown: noop,
+      scrollToBottom: () => {
+        listRef.current?.scrollToOffset({animated: false, offset: 0})
+      },
+      scrollUp: noop,
+    })
+  }, [setScrollRef, listRef])
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -55,7 +60,7 @@ const useScrolling = (p: {
     }
   }, [centeredOrdinal])
 
-  const scrollToCentered = C.useEvent(() => {
+  const scrollToCentered = () => {
     setTimeout(() => {
       const list = listRef.current
       if (!list) {
@@ -68,7 +73,7 @@ const useScrolling = (p: {
       lastScrollToCentered.current = centeredOrdinal
       list.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
     }, 100)
-  })
+  }
 
   const onEndReached = () => {
     loadOlderMessages(numOrdinals)
@@ -137,7 +142,7 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = C.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
+  const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }
@@ -145,7 +150,7 @@ const ConversationList = function ConversationList() {
       return 'sent'
     }
     return recycleTypeRef.current.get(ordinal) ?? messageTypeMap.get(ordinal) ?? 'text'
-  })
+  }
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
@@ -212,53 +217,6 @@ const ConversationList = function ConversationList() {
       setExtraData(d => d + 1)
     }, 100)
   }
-
-  // useChatDebugDump(
-  //   'listArea',
-  //   C.useEvent(() => {
-  //     if (!listRef.current) return ''
-  //     const {props, state} = listRef.current as {
-  //       props: {extraData?: {}; data?: [number]}
-  //       state?: object
-  //     }
-  //     const {extraData, data} = props
-  //
-  //     // const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as unknown)) as {
-  //     //   _layouts?: [unknown]
-  //     //   _renderWindowSize: unknown
-  //     //   _totalHeight: unknown
-  //     //   _totalWidth: unknown
-  //     // }
-  //     // const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-  //     // const mm = window.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)
-  //     // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
-  //
-  //     console.log(listRef.current)
-  //
-  //     const items = data?.map((ordinal: number, idx: number) => {
-  //       const layout = _layouts?.[idx]
-  //       // const m = mm.get(ordinal) ?? ({} as any)
-  //       return {
-  //         idx,
-  //         layout,
-  //         ordinal,
-  //         // rid: m.id,
-  //         // rtype: m.type,
-  //       }
-  //     })
-  //
-  //     const details = {
-  //       // children,
-  //       _renderWindowSize,
-  //       _totalHeight,
-  //       _totalWidth,
-  //       data,
-  //       extraData,
-  //       items,
-  //     }
-  //     return JSON.stringify(details)
-  //   })
-  // )
 
   const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
   // const onLayout = useDebugLayout()

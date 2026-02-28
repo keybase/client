@@ -14,10 +14,6 @@ const ConnectedEnterEmail = () => {
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _navToPushPrompt = C.useEvent(() => {
-    navigateAppend('settingsPushPrompt', true)
-  })
-
   const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
     setJustSignedUpEmail(C.noEmail)
@@ -27,15 +23,15 @@ const ConnectedEnterEmail = () => {
   const addEmail = useSettingsEmailState(s => s.dispatch.addEmail)
   const onSkip = () => {
     _onSkip()
-    _showPushPrompt ? _navToPushPrompt() : clearModals()
+    _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
   }
   const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
   React.useEffect(() => {
     if (addedEmail === addEmailInProgress) {
       _onSuccess(addEmailInProgress)
-      _showPushPrompt ? _navToPushPrompt() : clearModals()
+      _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
     }
-  }, [addedEmail, addEmailInProgress, _onSuccess, _showPushPrompt, _navToPushPrompt, clearModals])
+  }, [addedEmail, addEmailInProgress, _onSuccess, _showPushPrompt, clearModals, navigateAppend])
 
   const onCreate = (email: string, searchable: boolean) => {
     addEmail(email, searchable)
