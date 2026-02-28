@@ -57,10 +57,6 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./screenprotector')),
   },
   [Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [Settings.settingsWhatsNewTab]: {
-    getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
-    screen: React.lazy(async () => import('../whats-new/container')),
-  },
   dbNukeConfirm: {
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),

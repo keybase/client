@@ -69,7 +69,6 @@ import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
-import {useWhatsNewState} from '@/stores/whats-new'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
@@ -554,11 +553,6 @@ export const initSharedSubscriptions = () => {
       if (updates.length > 0) {
         storeRegistry.getState('users').dispatch.updates(updates)
       }
-    }
-
-    if (s.gregorPushState !== old.gregorPushState) {
-      const lastSeenItem = s.gregorPushState.find(i => i.item.category === 'whatsNewLastSeenVersion')
-      useWhatsNewState.getState().dispatch.updateLastSeen(lastSeenItem)
     }
 
     if (s.active !== old.active) {

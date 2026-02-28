@@ -3,9 +3,7 @@ import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {keybaseFM} from '@/stores/whats-new'
 import SettingsItem from './sub-nav/settings-item'
-import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as Settings from '@/stores/settings'
@@ -104,14 +102,6 @@ function SettingsNav() {
             navigateAppend(Settings.settingsWalletsTab)
           },
           text: 'Wallet',
-        },
-        {
-          iconComponent: WhatsNewIcon,
-          onClick: () => {
-            navigateAppend(Settings.settingsWhatsNewTab)
-          },
-          subText: `What's new?`,
-          text: keybaseFM,
         },
       ],
       title: '',
