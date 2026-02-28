@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
@@ -44,12 +43,6 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
     // This is controlled if a value prop is passed
     const controlled = typeof value === 'string'
 
-    // Needed to support wrapping with e.g. a ClickableBox. See
-    // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-    const setNativeProps = (nativeProps: object) => {
-      inputRef.current?.setNativeProps(nativeProps)
-    }
-
     // Validate that this selection makes sense with current value
     const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
       let {start, end} = selection
@@ -57,12 +50,6 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
       start = Math.min(start || 0, end)
       return {end, start}
     }
-
-    const _setSelection = C.useEvent((selection: Selection) => {
-      const newSelection = _sanityCheckSelection(selection, lastNativeTextRef.current || '')
-      setNativeProps({selection: newSelection})
-      lastNativeSelectionRef.current = selection
-    })
 
     const _onChangeText = (t: string) => {
       if (maxBytes) {
@@ -76,41 +63,6 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
       // call if it hasn't been called already
       afterTransformRef.current?.()
     }
-
-    const transformText = C.useEvent((fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
-      if (controlled) {
-        const errMsg =
-          'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
-        logger.error(errMsg)
-        throw new Error(errMsg)
-      }
-      const currentTextInfo = {
-        selection: lastNativeSelectionRef.current || {end: 0, start: 0},
-        text: lastNativeTextRef.current || '',
-      }
-      const newTextInfo = fn(currentTextInfo)
-      const newCheckedSelection = _sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
-      checkTextInfo(newTextInfo)
-
-      // this is a very hacky workaround for internal bugs in RN TextInput
-      // write a stub with different content
-
-      afterTransformRef.current = () => {
-        afterTransformRef.current = undefined
-        setNativeProps({text: newTextInfo.text})
-        setTimeout(() => {
-          setNativeProps({selection: newCheckedSelection})
-        }, 20)
-        if (reflectChange) {
-          _onChangeText(newTextInfo.text)
-        }
-      }
-
-      // call if it hasn't been called already
-      setTimeout(() => {
-        afterTransformRef.current?.()
-      }, 20)
-    })
 
     React.useImperativeHandle(ref, () => {
       return {
@@ -140,14 +92,54 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
             logger.error(errMsg)
             throw new Error(errMsg)
           }
-          _setSelection(s)
+          const newSelection = _sanityCheckSelection(s, lastNativeTextRef.current || '')
+          inputRef.current?.setNativeProps({selection: newSelection})
+          lastNativeSelectionRef.current = s
         },
-        transformText,
+        transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
+          if (controlled) {
+            const errMsg =
+              'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
+            logger.error(errMsg)
+            throw new Error(errMsg)
+          }
+          const currentTextInfo = {
+            selection: lastNativeSelectionRef.current || {end: 0, start: 0},
+            text: lastNativeTextRef.current || '',
+          }
+          const newTextInfo = fn(currentTextInfo)
+          const newCheckedSelection = _sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
+          checkTextInfo(newTextInfo)
+
+          // this is a very hacky workaround for internal bugs in RN TextInput
+          // write a stub with different content
+
+          afterTransformRef.current = () => {
+            afterTransformRef.current = undefined
+            inputRef.current?.setNativeProps({text: newTextInfo.text})
+            setTimeout(() => {
+              inputRef.current?.setNativeProps({selection: newCheckedSelection})
+            }, 20)
+            if (reflectChange) {
+              const t = newTextInfo.text
+              if (maxBytes && stringToUint8Array(t).byteLength > maxBytes) {
+                return
+              }
+              lastNativeTextRef.current = t
+              onChangeText?.(t)
+            }
+          }
+
+          // call if it hasn't been called already
+          setTimeout(() => {
+            afterTransformRef.current?.()
+          }, 20)
+        },
         value: () => {
           return lastNativeTextRef.current ?? ''
         },
       }
-    }, [dummyInput, onFocus, _setSelection, controlled, transformText])
+    }, [dummyInput, onFocus, controlled, maxBytes, onChangeText])
 
     const _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       const {start, end} = event.nativeEvent.selection

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import type {MeasureRef} from './measure-ref'
 
@@ -10,6 +9,19 @@ export type Popup2Parms = {
 
 const tooQuick = 100
 
+const tryTogglePopup = (
+  lastToggle: React.RefObject<number>,
+  setShowingPopup: (v: boolean) => void,
+  show: boolean
+) => {
+  const now = Date.now()
+  if (now - lastToggle.current < tooQuick) {
+    return
+  }
+  lastToggle.current = now
+  setShowingPopup(show)
+}
+
 export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | null) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
   const wasMakePopupRef = React.useRef<(p: Popup2Parms) => React.ReactElement | null>(makePopup)
@@ -18,30 +30,20 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const attachTo = popupAnchor
   const lastToggle = React.useRef(0)
 
-  const hidePopup = C.useEvent(() => {
-    const now = Date.now()
-    if (now - lastToggle.current < tooQuick) {
-      return
-    }
-    lastToggle.current = now
-    setShowingPopup(false)
-  })
-  const showPopup = C.useEvent(() => {
-    const now = Date.now()
-    if (now - lastToggle.current < tooQuick) {
-      return
-    }
-    lastToggle.current = now
-    setShowingPopup(true)
-  })
+  const hidePopup = () => tryTogglePopup(lastToggle, setShowingPopup, false)
+  const showPopup = () => tryTogglePopup(lastToggle, setShowingPopup, true)
   const togglePopup = showingPopup ? hidePopup : showPopup
 
   React.useEffect(() => {
     if (makePopup !== wasMakePopupRef.current || showingPopup !== !!popup) {
       wasMakePopupRef.current = makePopup
-      setPopup(showingPopup ? makePopup({attachTo, hidePopup, showPopup}) : null)
+      setPopup(showingPopup ? makePopup({
+        attachTo,
+        hidePopup: () => tryTogglePopup(lastToggle, setShowingPopup, false),
+        showPopup: () => tryTogglePopup(lastToggle, setShowingPopup, true),
+      }) : null)
     }
-  }, [attachTo, hidePopup, makePopup, popup, setPopup, showPopup, showingPopup])
+  }, [attachTo, makePopup, popup, setPopup, showingPopup])
 
   return {hidePopup, popup, popupAnchor, showPopup, showingPopup, togglePopup}
 }

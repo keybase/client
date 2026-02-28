@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -21,11 +20,11 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
     const inputSingleRef = React.useRef<HTMLInputElement>(null)
     const inputMultiRef = React.useRef<HTMLTextAreaElement>(null)
 
-    const onChange = C.useEvent((e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
+    const onChange = (e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
       const s = e.target.value
       setValue(s)
       _onChangeText?.(s)
-    })
+    }
     const onSelect = (e: {currentTarget: HTMLInputElement | HTMLTextAreaElement}) => {
       selectionRef.current = {
         end: e.currentTarget.selectionEnd || 0,
@@ -42,7 +41,8 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
         clear: () => {
           if (i) {
             i.value = ''
-            onChange({target: i})
+            setValue('')
+            _onChangeText?.('')
           }
         },
         focus: () => {
@@ -75,14 +75,16 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
             if (reflectChange) {
               setTimeout(() => {
                 if (!i) return
-                onChange({target: i})
+                const s = i.value
+                setValue(s)
+                _onChangeText?.(s)
               }, 100)
             }
           }, 0)
         },
         value,
       }
-    }, [value, multiline, onChange])
+    }, [value, multiline, _onChangeText])
 
     const rows = multiline ? rowsMin || Math.min(2, rowsMax || 2) : 0
     const style = (() => {

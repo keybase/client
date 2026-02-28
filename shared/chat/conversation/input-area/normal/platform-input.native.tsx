@@ -277,10 +277,10 @@ const PlatformInput = (p: Props) => {
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
-  const toggleExpandInput = C.useEvent(() => {
+  const toggleExpandInput = () => {
     const nextState = !expanded
     setExpanded(nextState)
-  })
+  }
 
   const insertText = (toInsert: string) => {
     const i = inputRef.current
@@ -293,7 +293,7 @@ const PlatformInput = (p: Props) => {
     }, true)
   }
 
-  const onQueueSubmit = C.useEvent(() => {
+  const onQueueSubmit = () => {
     setTimeout(() => {
       const text = lastText.current
       if (text) {
@@ -303,6 +303,11 @@ const PlatformInput = (p: Props) => {
         }
       }
     }, 60)
+  }
+
+  const onQueueSubmitRef = React.useRef(onQueueSubmit)
+  React.useEffect(() => {
+    onQueueSubmitRef.current = onQueueSubmit
   })
 
   React.useEffect(() => {
@@ -312,7 +317,7 @@ const PlatformInput = (p: Props) => {
     const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          onQueueSubmit()
+          onQueueSubmitRef.current()
           break
         case 'shift-enter': {
           const i = inputRef.current
@@ -330,7 +335,7 @@ const PlatformInput = (p: Props) => {
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [onQueueSubmit])
+  }, [])
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p

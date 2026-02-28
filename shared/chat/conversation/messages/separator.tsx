@@ -241,13 +241,6 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
     })
   )
 
-  // useChatDebugDump(
-  //   `CHATDEBUGSep${ordinal}:`,
-  //   C.useEvent(() => {
-  //     return JSON.stringify(TEMP.current, null, 2)
-  //   })
-  // )
-
   return ret
 }
 
