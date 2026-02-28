@@ -13,7 +13,7 @@ import {PlatformPressable} from '@react-navigation/elements'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens, routeMapToScreenElements} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createComponentForStaticNavigation} from '@react-navigation/core'
 import {makeLayout} from './screen-layout.native'
@@ -22,10 +22,8 @@ import {useRootKey} from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import type {RootParamList} from '@/router-v2/route-params'
 import {useColorScheme} from 'react-native'
 import {useDaemonState} from '@/stores/daemon'
-import {colors, darkColors} from '@/styles/colors'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -45,7 +43,6 @@ const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
-const TabStackNavigator = createNativeStackNavigator<RootParamList>()
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
   animation: 'simple_push',
@@ -61,46 +58,18 @@ const makeOptions = (rd: RouteDef) => {
   }
 }
 
-const tabScreens = routeMapToScreenElements(tabRoutes, TabStackNavigator.Screen, makeLayout, makeOptions, false, false)
-// Workaround: react-native-screens doesn't support DynamicColorIOS for native stack headers.
-// Remove when https://github.com/software-mansion/react-native-screens/issues/3570 is fixed.
-const dynamicColorWorkaround = true
+const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, makeOptions, false, false)
 
-const useIOSHeaderOptions = () => {
-  const isDark = useColorScheme() === 'dark'
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!dynamicColorWorkaround || !Kb.Styles.isIOS) return tabStackOptions
-  const titleColor = isDark ? (darkColors.black as string) : (colors.black as string)
-  return {
-    ...tabStackOptions,
-    headerStyle: {
-      backgroundColor: isDark ? (darkColors.white as string) : (colors.white as string),
-      borderBottomColor: isDark ? (darkColors.black_10 as string) : (colors.black_10 as string),
-      borderBottomWidth: Kb.Styles.hairlineWidth,
-      height: 44,
-    },
-    headerTintColor: isDark ? (darkColors.black_50 as string) : (colors.black_50 as string),
-    headerTitle: (hp: {children: React.ReactNode}) => (
-      <Kb.Text type="BodyBig" style={{color: titleColor}} lineClamp={1} center={true}>
-        {hp.children}
-      </Kb.Text>
-    ),
-  }
+const tabComponents: Record<string, React.ComponentType> = {}
+for (const tab of tabs) {
+  const nav = createNativeStackNavigator({
+    initialRouteName: tabRoots[tab],
+    screenOptions: tabStackOptions as any,
+    screens: tabScreensConfig as any,
+  })
+  tabComponents[tab] = createComponentForStaticNavigation(nav, `TabStack_${tab}`)
 }
 
-function TabStack(p: {route: {name: Tabs.Tab}}) {
-  const options = useIOSHeaderOptions()
-  return (
-    <TabStackNavigator.Navigator
-      initialRouteName={tabRoots[p.route.name] || undefined}
-      screenOptions={options}
-    >
-      {tabScreens}
-    </TabStackNavigator.Navigator>
-  )
-}
-
-// so we have a stack per tab
 const tabScreenOptions = ({route}: {route: {name: string}}) => {
   let routeName: string | undefined
   try {
@@ -119,7 +88,7 @@ const tabStacks = tabs.map(tab => (
         C.useRouterState.getState().dispatch.defer.tabLongPress?.(tab)
       },
     }}
-    component={TabStack}
+    component={tabComponents[tab]!}
     options={tabScreenOptions}
   />
 ))
@@ -168,9 +137,6 @@ const LoggedOutNav = createNativeStackNavigator({
 })
 const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
 
-const RootStack = createNativeStackNavigator<
-  RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
->()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }
@@ -181,11 +147,40 @@ const makeModalOptions = (rd: RouteDef) => {
     return {...opt, animationEnabled: true}
   }
 }
-const modalScreens = routeMapToScreenElements(modalRoutes, RootStack.Screen, makeLayout, makeModalOptions, true, false)
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',
 } as const
+
+const useIsLoggedIn = () => useConfigState(s => s.loggedIn)
+const useIsLoggedOut = () => !useConfigState(s => s.loggedIn)
+
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, makeModalOptions, true, false)
+
+const RootNav = createNativeStackNavigator({
+  groups: {
+    loggedIn: {
+      if: useIsLoggedIn,
+      screens: {
+        loggedIn: {screen: AppTabs},
+      },
+    },
+    loggedOut: {
+      if: useIsLoggedOut,
+      screens: {
+        loggedOut: {screen: LoggedOut},
+      },
+    },
+    modals: {
+      if: useIsLoggedIn,
+      screenOptions: modalScreenOptions,
+      screens: modalScreensConfig,
+    },
+  },
+  screenOptions: rootStackScreenOptions as any,
+} as any)
+const RootComponent = createComponentForStaticNavigation(RootNav as any, 'Root')
+
 // Create once, stable across renders. handleAppLink is used as fallback for
 // URL patterns not yet handled by the linking config.
 const linkingConfig = createLinkingConfig(handleAppLink)
@@ -248,16 +243,7 @@ function RNApp() {
         ref={navRef}
         theme={Shared.theme}
       >
-        <RootStack.Navigator key="root" screenOptions={rootStackScreenOptions}>
-          {loggedIn ? (
-            <>
-              <RootStack.Screen name="loggedIn" component={AppTabs} />
-              <RootStack.Group screenOptions={modalScreenOptions}>{modalScreens}</RootStack.Group>
-            </>
-          ) : (
-            <RootStack.Screen name="loggedOut" component={LoggedOut} />
-          )}
-        </RootStack.Navigator>
+        <RootComponent />
       </NavigationContainer>
     </Kb.Box2>
   )

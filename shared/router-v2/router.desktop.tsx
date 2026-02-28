@@ -14,10 +14,8 @@ import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens, routeMapToScreenElements} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {registerDebugClear} from '@/util/debug'
-import type {RootParamList} from '@/router-v2/route-params'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import {makeLayout} from './screen-layout.desktop'
@@ -82,7 +80,6 @@ const LoggedOutNav = createNativeStackNavigator({
 })
 const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
 
-const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
@@ -124,17 +121,67 @@ const useConnectNavToState = () => {
 // Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
 createLinkingConfig(handleAppLink)
 
-const modalScreens = routeMapToScreenElements(modalRoutes, RootStack.Screen, makeLayout, makeOptions, true, false)
-function ElectronApp() {
-  useConnectNavToState()
-  const loggedInUser = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
+const useIsLoading = () => {
+  const everLoadedRef = React.useRef(false)
+  return !useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
+}
+
+const useIsLoggedIn = () => {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
     everLoadedRef.current = loaded
     return loaded
   })
+  const loggedIn = useConfigState(s => s.loggedIn)
+  return loggedInLoaded && loggedIn
+}
+
+const useIsLoggedOut = () => {
+  const everLoadedRef = React.useRef(false)
+  const loggedInLoaded = useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
+  const loggedIn = useConfigState(s => s.loggedIn)
+  return loggedInLoaded && !loggedIn
+}
+
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, makeOptions, true, false)
+
+const RootNav = createNativeStackNavigator({
+  groups: {
+    loggedIn: {
+      if: useIsLoggedIn,
+      screens: {
+        loggedIn: {screen: AppTabs},
+        ...modalScreensConfig,
+      },
+    },
+    loggedOut: {
+      if: useIsLoggedOut,
+      screens: {
+        loggedOut: {screen: LoggedOut},
+      },
+    },
+  },
+  screenOptions: rootScreenOptions as any,
+  screens: {
+    loading: {
+      if: useIsLoading,
+      screen: Shared.SimpleLoading,
+    },
+  },
+} as any)
+const RootComponent = createComponentForStaticNavigation(RootNav as any, 'Root')
+
+function ElectronApp() {
+  useConnectNavToState()
 
   const onUnhandledAction = (a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
@@ -160,20 +207,7 @@ function ElectronApp() {
       ref={navRef}
       theme={Shared.theme}
     >
-      <RootStack.Navigator key="root" screenOptions={rootScreenOptions}>
-        {!loggedInLoaded && (
-          <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
-        )}
-        {loggedInLoaded && loggedIn && (
-          <React.Fragment key={`${loggedInUser}loggedIn`}>
-            <RootStack.Screen key={`${loggedInUser}loggedIn`} name="loggedIn" component={AppTabs} />
-            {modalScreens}
-          </React.Fragment>
-        )}
-        {loggedInLoaded && !loggedIn && (
-          <RootStack.Screen key="loggedOut" name="loggedOut" component={LoggedOut} />
-        )}
-      </RootStack.Navigator>
+      <RootComponent />
     </NavigationContainer>
   )
 }
