@@ -76,7 +76,7 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  const onEventReload = C.useEvent(onReload)
+  const onEventReload = React.useEffectEvent(onReload)
 
   C.Router2.useSafeFocusEffect(() => {
     reloadOnMount && onEventReload()

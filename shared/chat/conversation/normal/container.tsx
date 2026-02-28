@@ -11,7 +11,7 @@ const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
   const id = Chat.useChatContext(s => s.id)
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
-  const loadOrangeLine = C.useEvent(() => {
+  const loadOrangeLine = React.useEffectEvent(() => {
     const f = async () => {
       const store = Chat.getConvoState(id)
       const convID = store.getConvID()
@@ -29,7 +29,7 @@ const useOrangeLine = () => {
   // initial load
   React.useEffect(() => {
     loadOrangeLine()
-  }, [loadOrangeLine])
+  }, [])
 
   const {markedAsUnread, maxVisibleMsgID} = Chat.useChatContext(
     C.useShallow(s => {
@@ -46,7 +46,7 @@ const useOrangeLine = () => {
       lastMarkedAsUnreadRef.current = markedAsUnread
       setOrangeLine(T.Chat.numberToOrdinal(markedAsUnread))
     }
-  }, [loadOrangeLine, markedAsUnread])
+  }, [markedAsUnread])
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
@@ -55,7 +55,7 @@ const useOrangeLine = () => {
     if (!active) {
       loadOrangeLine()
     }
-  }, [maxVisibleMsgID, loadOrangeLine, active])
+  }, [maxVisibleMsgID, active])
 
   // mobile backgrounded us
   const mobileAppState = useConfigState(s => s.mobileAppState)
