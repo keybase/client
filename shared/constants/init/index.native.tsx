@@ -23,6 +23,7 @@ import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
 import {getTab, getVisiblePath, logState, switchTab} from '@/constants/router'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
   androidAddCompleteDownload,
@@ -532,6 +533,7 @@ export const initPlatformListener = () => {
   useFSState.setState(s => {
     s.dispatch.defer.pickAndUploadMobile = wrapErrors(
       (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
+        if (type === T.FS.MobilePickType.File) return
         const f = async () => {
           try {
             const result = await launchImageLibraryAsync(type, true, true)
@@ -546,6 +548,21 @@ export const initPlatformListener = () => {
         ignorePromise(f())
       }
     )
+
+    s.dispatch.defer.pickDocumentsMobile = wrapErrors((parentPath: T.FS.Path) => {
+      const f = async () => {
+        try {
+          const result = await pickDocumentsAsync(true)
+          if (result.canceled) return
+          result.assets.map(r =>
+            useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
+          )
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
+    })
 
     s.dispatch.defer.finishedDownloadWithIntentMobile = wrapErrors(
       (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {

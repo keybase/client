@@ -14,6 +14,7 @@ import type {Props} from './platform-input'
 import {Keyboard, type NativeSyntheticEvent, type TextInputSelectionChangeEventData} from 'react-native'
 import {formatDurationShort} from '@/util/timestamp'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {MaxInputAreaContext} from './max-input-area-context'
@@ -203,7 +204,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const filePickerError = useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+  const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: string) => {
     const f = async () => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
         if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
@@ -219,7 +220,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
       switch (location) {
         case 'camera':
           try {
-            const res = await launchCameraAsync(mediaType)
+            const res = await launchCameraAsync(mediaType as 'photo' | 'video' | 'mixed')
             handleSelection(res)
           } catch (error) {
             filePickerError(new Error(String(error)))
@@ -227,8 +228,22 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           break
         case 'library':
           try {
-            const res = await launchImageLibraryAsync(mediaType, true, true)
+            const res = await launchImageLibraryAsync(mediaType as 'photo' | 'video' | 'mixed', true, true)
             handleSelection(res)
+          } catch (error) {
+            filePickerError(new Error(String(error)))
+          }
+          break
+        case 'file':
+          try {
+            const res = await pickDocumentsAsync(true)
+            if (!res.canceled && res.assets.length > 0) {
+              const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
+              navigateAppend(conversationIDKey => ({
+                props: {conversationIDKey, pathAndOutboxIDs},
+                selected: 'chatAttachmentGetTitles',
+              }))
+            }
           } catch (error) {
             filePickerError(new Error(String(error)))
           }

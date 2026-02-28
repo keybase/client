@@ -393,6 +393,7 @@ export interface State extends Store {
       openFilesFromWidgetDesktop?: (path: T.FS.Path) => void
       openAndUploadDesktop?: (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => void
       pickAndUploadMobile?: (type: T.FS.MobilePickType, parentPath: T.FS.Path) => void
+      pickDocumentsMobile?: (parentPath: T.FS.Path) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: T.FS.Path) => void
       openSecurityPreferencesDesktop?: () => void
@@ -705,6 +706,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       openPathInSystemFileManagerDesktop: undefined,
       openSecurityPreferencesDesktop: undefined,
       pickAndUploadMobile: undefined,
+      pickDocumentsMobile: undefined,
       refreshDriverStatusDesktop: undefined,
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
