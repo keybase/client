@@ -1,8 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
-import {keybaseFM} from '@/stores/whats-new'
 import * as Settings from '@/stores/settings'
 import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
@@ -50,14 +48,6 @@ const LeftNav = (props: Props) => {
               selected={props.selected === Settings.settingsDevicesTab}
               onClick={props.onClick}
               badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
-            />
-
-            <SettingsItem
-              text={keybaseFM}
-              iconComponent={WhatsNewIcon}
-              type={Settings.settingsWhatsNewTab}
-              selected={props.selected === Settings.settingsWhatsNewTab}
-              onClick={props.onClick}
             />
             <Kb.SectionDivider label="Settings" />
           </>

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
-import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
@@ -206,7 +205,6 @@ function DesktopHeader(p: Props) {
                 p.style?.backgroundColor !== Kb.Styles.globalColors.white
               }
             />
-            {loggedIn && <WhatsNewIconWithPopup attachToRef={popupAnchor} />}
             {!title && rightActions}
             {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
           </Kb.Box2>
