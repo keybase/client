@@ -7,15 +7,17 @@ import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
-import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import {StatusBar, View} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens, routeMapToScreenElements} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {createComponentForStaticNavigation} from '@react-navigation/core'
+import {makeLayout} from './screen-layout.native'
+import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import {useRootKey} from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import {createLinkingConfig} from './linking'
@@ -51,7 +53,15 @@ const tabStackOptions = {
   orientation: 'portrait',
 } as const
 
-const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
+const makeOptions = (rd: RouteDef) => {
+  return ({route, navigation}: GetOptionsParams) => {
+    const no = rd.getOptions
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt}
+  }
+}
+
+const tabScreens = routeMapToScreenElements(tabRoutes, TabStackNavigator.Screen, makeLayout, makeOptions, false, false)
 // Workaround: react-native-screens doesn't support DynamicColorIOS for native stack headers.
 // Remove when https://github.com/software-mansion/react-native-screens/issues/3570 is fixed.
 const dynamicColorWorkaround = true
@@ -146,20 +156,17 @@ function AppTabs() {
   )
 }
 
-const LoggedOutStack = createNativeStackNavigator<RootParamList>()
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
   headerShown: false,
 }
-function LoggedOut() {
-  return (
-    // TODO show header and use nav headers
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutScreenOptions}>
-      {LoggedOutScreens}
-    </LoggedOutStack.Navigator>
-  )
-}
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, makeOptions, false, true)
+const LoggedOutNav = createNativeStackNavigator({
+  initialRouteName: 'login',
+  screenOptions: loggedOutScreenOptions as any,
+  screens: loggedOutScreensConfig as any,
+})
+const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
 
 const RootStack = createNativeStackNavigator<
   RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
@@ -167,7 +174,14 @@ const RootStack = createNativeStackNavigator<
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 }
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
+const makeModalOptions = (rd: RouteDef) => {
+  return ({route, navigation}: GetOptionsParams) => {
+    const no = rd.getOptions
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt, animationEnabled: true}
+  }
+}
+const modalScreens = routeMapToScreenElements(modalRoutes, RootStack.Screen, makeLayout, makeModalOptions, true, false)
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',

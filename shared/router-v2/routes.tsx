@@ -11,9 +11,11 @@ import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} fr
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
+import type * as React from 'react'
 import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
-import type {RouteMap} from '@/constants/types/router'
+import type {GetOptions, RouteDef, RouteMap} from '@/constants/types/router'
+import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test
@@ -89,3 +91,48 @@ export const modalRoutes = _modalRoutes.reduce<RouteMap>((obj, modal) => {
 }, {})
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
+
+type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => any
+type MakeOptionsFn = (rd: RouteDef) => any
+
+export function routeMapToStaticScreens(
+  rs: RouteMap,
+  makeLayoutFn: MakeLayoutFn,
+  makeOptionsFn: MakeOptionsFn,
+  isModal: boolean,
+  isLoggedOut: boolean
+) {
+  const result: Record<string, {screen: any; layout: any; options: any}> = {}
+  for (const [name, rd] of Object.entries(rs)) {
+    if (!rd) continue
+    result[name] = {
+      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions),
+      options: makeOptionsFn(rd),
+      screen: rd.screen,
+    }
+  }
+  return result
+}
+
+export function routeMapToScreenElements(
+  rs: RouteMap,
+  Screen: React.ComponentType<any>,
+  makeLayoutFn: MakeLayoutFn,
+  makeOptionsFn: MakeOptionsFn,
+  isModal: boolean,
+  isLoggedOut: boolean
+) {
+  return (Object.keys(rs) as Array<keyof KBRootParamList>).flatMap(name => {
+    const rd = rs[name as string]
+    if (!rd) return []
+    return [
+      <Screen
+        key={String(name)}
+        name={name}
+        component={rd.screen}
+        layout={makeLayoutFn(isModal, isLoggedOut, rd.getOptions)}
+        options={makeOptionsFn(rd)}
+      />,
+    ]
+  })
+}

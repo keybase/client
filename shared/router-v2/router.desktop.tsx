@@ -5,25 +5,26 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
+import {createComponentForStaticNavigation} from '@react-navigation/core'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens, routeMapToScreenElements} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import type {RootParamList} from '@/router-v2/route-params'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
+import {makeLayout} from './screen-layout.desktop'
+import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
-type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
 const appTabsInnerOptions = {
   ...Common.defaultNavigationOptions,
@@ -36,25 +37,31 @@ const appTabsInnerOptions = {
   tabBarStyle: Common.tabBarStyle,
 }
 
-const TabStackNavigator = createNativeStackNavigator<RootParamList>()
-const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
-function TabStack(p: {route: {name: string}}) {
-  const tab = p.route.name as DesktopTabs
-  return (
-    <TabStackNavigator.Navigator
-      initialRouteName={tabRoots[tab]}
-      screenOptions={Common.defaultNavigationOptions}
-    >
-      {tabScreens}
-    </TabStackNavigator.Navigator>
-  )
+const makeOptions = (rd: RouteDef) => {
+  return ({route, navigation}: GetOptionsParams) => {
+    const no = rd.getOptions
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt}
+  }
+}
+
+const tabScreensConfig = routeMapToStaticScreens(routes, makeLayout, makeOptions, false, false)
+
+const tabComponents: Record<string, React.ComponentType> = {}
+for (const tab of Tabs.desktopTabs) {
+  const nav = createNativeStackNavigator({
+    initialRouteName: tabRoots[tab],
+    screenOptions: Common.defaultNavigationOptions as any,
+    screens: tabScreensConfig as any,
+  })
+  tabComponents[tab] = createComponentForStaticNavigation(nav, `TabStack_${tab}`)
 }
 
 function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {Tabs.desktopTabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} component={TabStack} />
+        <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
       ))}
     </Tab.Navigator>
   )
@@ -62,20 +69,18 @@ function AppTabsInner() {
 
 const AppTabs = () => <AppTabsInner />
 
-const LoggedOutStack = createNativeStackNavigator<RootParamList>()
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, makeOptions, false, true)
 const loggedOutOptions: NativeStackNavigationOptions = {
   header: ({navigation}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
 }
-function LoggedOut() {
-  return (
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutOptions}>
-      {LoggedOutScreens}
-    </LoggedOutStack.Navigator>
-  )
-}
+const LoggedOutNav = createNativeStackNavigator({
+  initialRouteName: 'login',
+  screenOptions: loggedOutOptions as any,
+  screens: loggedOutScreensConfig as any,
+})
+const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
 
 const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
@@ -119,7 +124,7 @@ const useConnectNavToState = () => {
 // Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
 createLinkingConfig(handleAppLink)
 
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
+const modalScreens = routeMapToScreenElements(modalRoutes, RootStack.Screen, makeLayout, makeOptions, true, false)
 function ElectronApp() {
   useConnectNavToState()
   const loggedInUser = useCurrentUserState(s => s.username)
