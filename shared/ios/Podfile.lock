@@ -46,6 +46,8 @@ PODS:
     - ExpoModulesCore
   - ExpoContacts (55.0.8):
     - ExpoModulesCore
+  - ExpoDocumentPicker (55.0.5):
+    - ExpoModulesCore
   - ExpoDomWebView (55.0.3):
     - ExpoModulesCore
   - ExpoFileSystem (55.0.10):
@@ -3201,6 +3203,7 @@ DEPENDENCIES:
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoContacts (from `../node_modules/expo-contacts/ios`)
+  - ExpoDocumentPicker (from `../node_modules/expo-document-picker/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -3343,6 +3346,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-clipboard/ios"
   ExpoContacts:
     :path: "../node_modules/expo-contacts/ios"
+  ExpoDocumentPicker:
+    :path: "../node_modules/expo-document-picker/ios"
   ExpoDomWebView:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
@@ -3569,6 +3574,7 @@ SPEC CHECKSUMS:
   ExpoCamera: bf0ce92035d27e22103bc7cad38e348c6ce2ffd3
   ExpoClipboard: 6bb321d2991652e6736d400f1d7c073aa02c41a0
   ExpoContacts: 72022ddd3f0f0e00b873d25898d703a7f656b0d1
+  ExpoDocumentPicker: 195197bdeb63d7100c79557dfc5f776706bb394c
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
   ExpoFileSystem: e1a42d7f69f7faae33f4d7d01708f7861f7bd757
   ExpoFont: 1aa465cf9f8ac6b670405becba8b15473581b2dd

@@ -92,6 +92,7 @@
     "expo-camera": "55.0.9",
     "expo-clipboard": "55.0.8",
     "expo-contacts": "55.0.8",
+    "expo-document-picker": "55.0.5",
     "expo-file-system": "55.0.10",
     "expo-haptics": "55.0.8",
     "expo-image": "55.0.5",

@@ -5707,6 +5707,11 @@ expo-contacts@55.0.8:
   resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-55.0.8.tgz#fa7e5742cd1af093320154660a994aef89acc814"
   integrity sha512-n7TIfpYn9fiGwNu18qQ/B8Np1k9TQ8Hqk2/TWl3TccqyJCcTJSMeDAp4lU59jRV5K9LAiUslMKRo6vsXOH5Z3g==
 
+expo-document-picker@55.0.5:
+  version "55.0.5"
+  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-55.0.5.tgz#06fa08313808b7c010f8edd46062a9bdbafe6f17"
+  integrity sha512-WIdbeIpbHo8udJUCpFHSjVE1mOdbpQDS9Dq/YHLkoLseLgxOg5XmVgGwIvMddtnDQ8iyjFiwF7yQCzTF3vW1Gw==
+
 expo-file-system@55.0.10, expo-file-system@~55.0.10:
   version "55.0.10"
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-55.0.10.tgz#fae0a424f404a456522193346cf07e9e51e2df26"
