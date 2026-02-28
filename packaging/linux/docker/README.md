@@ -3,7 +3,7 @@
 ## Supported tags and respective `Dockerfile` links
 
 - [the "standard" image](https://github.com/keybase/client/blob/master/packaging/linux/docker/standard/Dockerfile)
-- [the "slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/slim/Dockerfile)
+- [the "slim" variant] (https://github.com/keybase/client/blob/master/packaging/linux/docker/slim/Dockerfile) 
 - [the "alpine" image](https://github.com/keybase/client/blob/master/packaging/linux/docker/alpine/Dockerfile)
 - [the "alpine-slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/alpine-slim/Dockerfile)
 - [the "node" variant (standard image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node/Dockerfile)
