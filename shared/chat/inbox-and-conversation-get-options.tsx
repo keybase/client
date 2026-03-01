@@ -20,7 +20,7 @@ export default Kb.Styles.isTablet
       headerBackgroundContainerStyle: {},
       headerLeft: undefined,
       headerLeftContainerStyle: {maxWidth: 0},
-      headerRight: null,
+      headerRight: undefined,
       headerRightContainerStyle: {maxWidth: 0},
       headerStyle: {},
       headerTitle: () => <TabletHeader />,
