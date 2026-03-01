@@ -108,7 +108,7 @@ export const newRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },
   webLinks: C.makeScreen(WebLinks, {
-    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+    getOptions: ({route}) => ({
       header: undefined,
       title: route.params.title,
     }),

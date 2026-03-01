@@ -1,7 +1,13 @@
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+// import type {StaticParamList} from '@react-navigation/core'
 import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
+// tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
+// but tsgo reports "TS2315: Type 'StaticParamList' is not generic" (works fine with regular tsc).
+// Once tsgo fixes re-exported generic type aliases, replace _ExtractParams:
+//   type _SyntheticConfig = {readonly config: {readonly screens: _AllScreens}}
+//   export type RootParamList = StaticParamList<_SyntheticConfig> & Tabs & {...}
 type _ExtractParams<T> = {
   [K in keyof T]: T[K] extends {screen: infer U}
     ? U extends (args: infer V) => any

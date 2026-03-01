@@ -9,12 +9,18 @@ import {
   createNavigationContainerRef,
   type NavigationState,
 } from '@react-navigation/core'
+import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
-import {shallowEqual, type ViewPropsToPageProps} from './utils'
+import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
+
+type InferComponentProps<T> =
+  T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
+  : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined> ? P
+  : undefined
 
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
@@ -148,11 +154,11 @@ export const useSafeFocusEffect = (fn: () => void) => {
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
-  options?: {getOptions?: GetOptionsRet | ((props: ViewPropsToPageProps<COM>) => GetOptionsRet)}
+  options?: {getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)}
 ) {
   return {
     ...options,
-    screen: function Screen(p: ViewPropsToPageProps<COM>) {
+    screen: function Screen(p: StaticScreenProps<InferComponentProps<COM>>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
     },

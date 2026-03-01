@@ -15,7 +15,8 @@ import type {GetOptionsRet} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
-import {ignorePromise, timeoutPromise, type ViewPropsToPageProps} from '@/constants/utils'
+import type {StaticScreenProps} from '@react-navigation/core'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isMobile, isPhone} from '@/constants/platform'
 import {
   navigateAppend,
@@ -2023,17 +2024,22 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   }
 })
 
+type InferComponentProps<T> =
+  T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
+  : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined> ? P
+  : undefined
+
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?: GetOptionsRet | ((props: ChatProviderProps<ViewPropsToPageProps<COM>>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
 ) {
   return {
     ...options,
-    screen: function Screen(p: ChatProviderProps<ViewPropsToPageProps<COM>>) {
+    screen: function Screen(p: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) {
       const Comp = Component as any
       return options?.skipProvider ? (
         <Comp {...p.route.params} />
