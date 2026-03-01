@@ -72,7 +72,7 @@ const Connected = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
-    navigateAppend({props: {path}, selected: 'barePreview'})
+    navigateAppend({name: 'barePreview', params: {path}})
   }
   const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {

@@ -19,7 +19,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     finishManualConflictResolution(path)
   }
   const onGoToSamePathInDifferentTlf = (tlfPath: T.FS.Path) => {
-    navigateAppend({props: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+    navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
   }
   const onHelp = () => {
     openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')

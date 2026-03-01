@@ -216,8 +216,8 @@ const useData = (contactKey: string) => {
     email: {
       _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
         navigateAppend({
-          props: {address, lastEmail, searchable, type: 'email'},
-          selected: 'settingsDeleteAddress',
+          name: 'settingsDeleteAddress',
+          params: {address, lastEmail, searchable, type: 'email'},
         }),
       onMakePrimary: () => {
         editEmail({email: contactKey, makePrimary: true})
@@ -228,7 +228,7 @@ const useData = (contactKey: string) => {
     },
     phone: {
       _onDelete: (address: string, searchable: boolean) =>
-        navigateAppend({props: {address, searchable, type: 'phone'}, selected: 'settingsDeleteAddress'}),
+        navigateAppend({name: 'settingsDeleteAddress', params: {address, searchable, type: 'phone'}}),
       _onToggleSearchable: (setSearchable: boolean) => {
         editPhone(contactKey, undefined, setSearchable)
       },

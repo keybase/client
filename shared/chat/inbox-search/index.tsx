@@ -57,7 +57,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onInstallBot = (username: string) => {
-    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
+    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
   }
   const onSelectConversation = (
     conversationIDKey: T.Chat.ConversationIDKey,

@@ -37,16 +37,16 @@ function ConnectedRow(ownProps: OwnProps) {
   const onArchiveGitRepo = () => {
     gitURL &&
       navigateAppend({
-        props: {gitURL, type: 'git' as const},
-        selected: 'archiveModal',
+        name: 'archiveModal',
+        params: {gitURL, type: 'git' as const},
       })
   }
 
   const _onOpenChannelSelection = () => {
     teamID &&
       navigateAppend({
-        props: {repoID, selected: channelName || 'general', teamID},
-        selected: 'gitSelectChannel',
+        name: 'gitSelectChannel',
+        params: {repoID, selected: channelName || 'general', teamID},
       })
   }
 

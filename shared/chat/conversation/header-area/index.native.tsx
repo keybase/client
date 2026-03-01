@@ -168,7 +168,7 @@ const ChannelHeader = () => {
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
-    navigateAppend({props: {teamID}, selected: 'team'})
+    navigateAppend({name: 'team', params: {teamID}})
   }
   const maxWidthStyle = useMaxWidthStyle()
 

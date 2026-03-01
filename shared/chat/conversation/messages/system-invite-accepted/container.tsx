@@ -15,7 +15,7 @@ function SystemInviteAcceptedContainer(p: OwnProps) {
   const you = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'team'})
+    navigateAppend({name: 'team', params: {teamID}})
   }
 
   if (you === message.invitee) {

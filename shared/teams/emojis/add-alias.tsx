@@ -147,14 +147,14 @@ const ChooseEmoji = Kb.Styles.isMobile
       const conversationIDKey = Chat.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
-          props: {
+          name: 'chatChooseEmoji',
+          params: {
             conversationIDKey,
             hideFrequentEmoji: true,
             onlyTeamCustomEmoji: true,
             pickKey,
             small: true,
           },
-          selected: 'chatChooseEmoji',
         })
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }

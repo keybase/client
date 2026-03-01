@@ -151,7 +151,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
                     s.endTime = params.endTime * 1000
                   })
                 }
-                navigateAppend({props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'}, true)
+                navigateAppend({name: 'resetWaiting', params: {pipelineStarted: !params.needVerify}}, true)
               },
             },
             params: {

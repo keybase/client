@@ -89,7 +89,7 @@ const ChannelMemberRow = (props: Props) => {
   const onEditMember = () => {
     yourOperations.manageMembers &&
       username &&
-      navigateAppend({props: {teamID, username}, selected: 'teamMember'})
+      navigateAppend({name: 'teamMember', params: {teamID, username}})
   }
   const checkCircle = (
     <Kb.CheckCircle
@@ -133,8 +133,8 @@ const ChannelMemberRow = (props: Props) => {
       const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
         navigateAppend({
-          props: {conversationIDKey, members: [username], teamID},
-          selected: 'teamReallyRemoveChannelMember',
+          name: 'teamReallyRemoveChannelMember',
+          params: {conversationIDKey, members: [username], teamID},
         })
       const onBlock = () => {
         username &&
@@ -154,7 +154,7 @@ const ChannelMemberRow = (props: Props) => {
               {
                 icon: 'iconfont-chat',
                 onClick: () =>
-                  navigateAppend({props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}),
+                  navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: [username]}}),
                 title: 'Add to channels...',
               },
               {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},

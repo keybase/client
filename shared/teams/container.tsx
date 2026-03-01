@@ -97,7 +97,7 @@ const Connected = () => {
   const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
 
   const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
-  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>

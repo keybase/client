@@ -21,7 +21,7 @@ const TeamRow = function TeamRow(props: Props) {
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   const activity = <Activity level={activityLevel} />
 

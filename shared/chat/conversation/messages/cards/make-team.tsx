@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 const MakeTeam = () => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onShowNewTeamDialog = () =>
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}))
+    navigateAppend(conversationIDKey => ({name: 'chatShowNewTeamDialog', params: {conversationIDKey}}))
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>

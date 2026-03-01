@@ -108,7 +108,7 @@ export const newRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },
   webLinks: C.makeScreen(WebLinks, {
-    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+    getOptions: ({route}) => ({
       header: undefined,
       title: route.params.title,
     }),
@@ -126,5 +126,3 @@ export const newModalRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
   },
 }
-
-export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

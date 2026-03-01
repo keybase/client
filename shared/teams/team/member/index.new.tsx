@@ -294,7 +294,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
-  const openTeam = () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'})
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -398,8 +398,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   const nav = useSafeNavigation()
   const onAddToChannels = () =>
     nav.safeNavigateAppend({
-      props: {teamID: props.node.teamID, usernames: [props.username]},
-      selected: 'teamAddToChannels',
+      name: 'teamAddToChannels',
+      params: {teamID: props.node.teamID, usernames: [props.username]},
     })
   const onKickOutWaitingKey = C.waitingKeyTeamsRemoveMember(props.node.teamID, props.username)
   const onKickOut = () => {
@@ -409,7 +409,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     }
   }
 
-  const openTeam = () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'})
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
 
   const {expanded, setExpanded} = props
 
@@ -623,7 +623,7 @@ export const TeamMemberHeader = (props: Props) => {
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   const member = teamDetails?.members.get(username)
   if (!member) {
@@ -696,7 +696,7 @@ const BlockDropdown = (props: {username: string}) => {
   const nav = useSafeNavigation()
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
+      const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}

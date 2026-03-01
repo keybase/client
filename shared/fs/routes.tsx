@@ -8,7 +8,7 @@ const FsRoot = React.lazy(async () => import('.'))
 
 export const newRoutes = {
   fsRoot: C.makeScreen(FsRoot, {
-    getOptions: (ownProps?: C.ViewPropsToPageProps<typeof FsRoot>) => {
+    getOptions: (ownProps?) => {
       // strange edge case where the root can actually have no params
       // eslint-disable-next-line
       const path = ownProps?.route.params?.path ?? FS.defaultPath
@@ -39,5 +39,3 @@ export const newModalRoutes = {
     ),
   },
 }
-
-export type RootParamListFS = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

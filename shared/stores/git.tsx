@@ -158,7 +158,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
+            navigateAppend({name: 'gitRoot', params: {expanded: info.id}})
             break
           }
         }

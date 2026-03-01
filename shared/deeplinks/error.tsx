@@ -47,6 +47,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-type OwnProps = C.ViewPropsToPageProps<typeof LinkError>
+import type {StaticScreenProps} from '@react-navigation/core'
+type OwnProps = StaticScreenProps<{error?: string}>
 const Screen = (p: OwnProps) => <LinkError {...p.route.params} />
 export default Screen

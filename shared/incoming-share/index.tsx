@@ -166,11 +166,11 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)
     navigateAppend({
-      props: {
+      name: 'destinationPicker',
+      params: {
         // headerRightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
         index: 0,
       },
-      selected: 'destinationPicker',
     })
   }
   return isChatOnly(incomingShareItems)
@@ -226,7 +226,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
       const meta = Chat.getConvoState(selectedConversationIDKey!).meta
       const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
-        props: {
+        name: 'chatAttachmentGetTitles',
+        params: {
           conversationIDKey: selectedConversationIDKey,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
@@ -234,7 +235,6 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
           selectConversationWithReason: 'extension' as const,
           tlfName,
         },
-        selected: 'chatAttachmentGetTitles',
       })
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
@@ -267,8 +267,8 @@ const IncomingShareError = () => {
   const erroredSendFeedback = () => {
     clearModals()
     navigateAppend({
-      props: {feedback: `iOS share failure`},
-      selected: settingsFeedbackTab,
+      name: settingsFeedbackTab,
+      params: {feedback: `iOS share failure`},
     })
   }
   const onCancel = () => clearModals()

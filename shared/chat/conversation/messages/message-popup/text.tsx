@@ -92,21 +92,22 @@ const PopText = (ownProps: OwnProps) => {
 
   const _onUserReport = () => {
     navigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         context: blockModalSingle ? 'message-popup-single' : 'message-popup',
         conversationIDKey,
         reportsUserByDefault: true,
         username: author,
       },
-      selected: 'chatBlockingModal',
     })
   }
   const onUserReport = C.isIOS && author && !yourMessage ? () => _onUserReport : undefined
 
   const _onUserFlag = () => {
     navigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         context: blockModalSingle ? 'message-popup-single' : 'message-popup',
         conversationIDKey,
@@ -114,34 +115,33 @@ const PopText = (ownProps: OwnProps) => {
         reportsUserByDefault: true,
         username: author,
       },
-      selected: 'chatBlockingModal',
     })
   }
   const onUserFlag = C.isIOS && author && !yourMessage ? _onUserFlag : undefined
 
   const _onUserBlock = () => {
     navigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         context: blockModalSingle ? 'message-popup-single' : 'message-popup',
         conversationIDKey,
         username: author,
       },
-      selected: 'chatBlockingModal',
     })
   }
   const onUserBlock = author && !yourMessage ? _onUserBlock : undefined
 
   const _onUserFilter = () => {
     navigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         context: blockModalSingle ? 'message-popup-single' : 'message-popup',
         conversationIDKey,
         filterUserByDefault: true,
         username: author,
       },
-      selected: 'chatBlockingModal',
     })
   }
   const onUserFilter = C.isIOS && author && !yourMessage ? () => _onUserFilter : undefined

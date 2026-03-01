@@ -27,5 +27,3 @@ export const newModalRoutes = {
   accountSwitcher: {screen: React.lazy(async () => import('../router-v2/account-switcher'))},
   peopleTeamBuilder,
 }
-
-export type RootParamListPeople = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

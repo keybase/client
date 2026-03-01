@@ -26,7 +26,7 @@ const Container = (ownProps: OwnProps) => {
   const state = d.state
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
+  const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
   const _onBrowsePublicFolder = (username: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
@@ -34,10 +34,10 @@ const Container = (ownProps: OwnProps) => {
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
   const _onFollow = changeFollow
   const _onInstallBot = (username: string) => {
-    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
+    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
   }
   const _onManageBlocking = (username: string) =>
-    navigateAppend({props: {username}, selected: 'chatBlockingModal'})
+    navigateAppend({name: 'chatBlockingModal', params: {username}})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
   const showUser = useTrackerState(s => s.dispatch.showUser)

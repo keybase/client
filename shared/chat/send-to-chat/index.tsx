@@ -61,7 +61,8 @@ export const MobileSendToChat = (props: Props) => {
     text && dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
-        props: {
+        name: 'chatAttachmentGetTitles',
+        params: {
           conversationIDKey,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
@@ -70,7 +71,6 @@ export const MobileSendToChat = (props: Props) => {
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,
         },
-        selected: 'chatAttachmentGetTitles',
       })
     } else {
       clearModals()

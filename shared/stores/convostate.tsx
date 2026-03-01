@@ -1332,16 +1332,16 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
         const pathAndOutboxIDs = [{outboxID, path}]
         navigateAppend({
-          props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
-          selected: 'chatAttachmentGetTitles',
+          name: 'chatAttachmentGetTitles',
+          params: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
         })
       }
       ignorePromise(f())
     },
     attachmentPreviewSelect: ordinal => {
       navigateAppend({
-        props: {conversationIDKey: get().id, ordinal},
-        selected: 'chatAttachmentFullscreen',
+        name: 'chatAttachmentFullscreen',
+        params: {conversationIDKey: get().id, ordinal},
       })
     },
     attachmentUploadCanceled: outboxIDs => {
@@ -2041,7 +2041,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         // kinda hacky, on download we need to download and showing
         if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
           navigateAppend({
-            props: {
+            name: 'chatPDF',
+            params: {
               conversationIDKey: get().id,
               ordinal,
               // Prepend the 'file://' prefix here. Otherwise when webview
@@ -2049,7 +2050,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
               // with the new address and we'd call stoploading().
               url: 'file://' + filePath,
             },
-            selected: 'chatPDF',
           })
           return
         }
@@ -2313,7 +2313,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             clearModals()
           }
 
-          navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
+          navigateAppend({name: Common.threadRouteName, params: {conversationIDKey}}, replace)
         }
       }
       updateNav()
@@ -3006,8 +3006,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
           if (show) {
             navigateAppend({
-              props: {conversationIDKey, tab},
-              selected: 'chatInfoPanel',
+              name: 'chatInfoPanel',
+              params: {conversationIDKey, tab},
             })
           } else {
             navigateUp()

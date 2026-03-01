@@ -16,7 +16,7 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
-    navigateAppend({props: {accountID}, selected: 'reallyRemoveAccount'}, true)
+    navigateAppend({name: 'reallyRemoveAccount', params: {accountID}}, true)
   }
 
   const buttons = [

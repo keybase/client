@@ -105,19 +105,19 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onBlockConv = () => {
     navigateAppend(conversationIDKey => ({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: participants.length === 1,
         conversationIDKey,
         others: participants,
         team: teamname,
       },
-      selected: 'chatBlockingModal',
     }))
   }
 
   const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveTeam = () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'}))
+  const onLeaveTeam = () => teamID && navigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
@@ -140,7 +140,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
   const onViewTeam = () => {
     clearModals()
-    navigateAppend(() => ({props: {teamID}, selected: 'team'}))
+    navigateAppend(() => ({name: 'team', params: {teamID}}))
   }
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => {
@@ -269,13 +269,13 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
       _navigateAppend({
-        props: {conversationIDKey, type: 'chatID' as const},
-        selected: 'archiveModal',
+        name: 'archiveModal',
+        params: {conversationIDKey, type: 'chatID' as const},
       })
     } else if (teamname) {
       _navigateAppend({
-        props: {teamname, type: 'chatTeam' as const},
-        selected: 'archiveModal',
+        name: 'archiveModal',
+        params: {teamname, type: 'chatTeam' as const},
       })
     }
   }

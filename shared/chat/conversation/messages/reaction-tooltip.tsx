@@ -44,8 +44,8 @@ const ReactionTooltip = (p: OwnProps) => {
   const onAddReaction = () => {
     onHidden()
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-      selected: 'chatChooseEmoji',
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
     }))
   }
 

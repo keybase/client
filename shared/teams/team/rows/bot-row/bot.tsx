@@ -190,18 +190,18 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
-    navigateAppend({props: ownProps, selected: 'teamMember'})
+    navigateAppend({name: 'teamMember', params: ownProps})
   }
   const onEdit = () => {
     navigateAppend({
-      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
     })
   }
   const onRemove = () => {
     navigateAppend({
-      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
-      selected: 'chatConfirmRemoveBot',
+      name: 'chatConfirmRemoveBot',
+      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
     })
   }
   const props = {

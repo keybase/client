@@ -136,8 +136,8 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatConfirmRemoveBot',
+      name: 'chatConfirmRemoveBot',
+      params: {botUsername, conversationIDKey},
     })
   }
   const onFeedback = () => {

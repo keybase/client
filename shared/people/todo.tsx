@@ -148,7 +148,7 @@ const ChatConnector = (props: TodoOwnProps) => {
 
 const PaperKeyConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onConfirm = () => navigateAppend({props: {highlight: ['paper key']}, selected: 'deviceAdd'})
+  const onConfirm = () => navigateAppend({name: 'deviceAdd', params: {highlight: ['paper key']}})
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -186,7 +186,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
     } else {
       switchTab(C.Tabs.gitTab)
     }
-    navigateAppend({props: {isTeam}, selected: 'gitNewRepo'})
+    navigateAppend({name: 'gitNewRepo', params: {isTeam}})
   }
   const onDismiss = useOnSkipTodo('gitRepo')
   const buttons: Array<TaskButton> = [

@@ -421,7 +421,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
               'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
               'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                 cancelOnCallback(undefined, response)
-                navigateAppend({props: {username}, selected: 'username'})
+                navigateAppend({name: 'username', params: {username}})
               },
               'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,

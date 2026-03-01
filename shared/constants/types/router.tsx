@@ -1,6 +1,6 @@
 import type * as Styles from '@/styles'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import type {NativeStackNavigationProp, NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import type {RouteProp} from '@react-navigation/native'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
@@ -20,29 +20,35 @@ export type ScreenComponentProps = {
   navigation: NativeStackNavigationProp<KBRootParamList>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
+
+// Properties consumed by our layout functions (not React Navigation)
+export type LayoutOptions = {
+  safeAreaStyle?: Styles.StylesCrossPlatform
+  modal2Style?: Styles.StylesCrossPlatform
+  modal2AvoidTabs?: boolean
+  modal2?: boolean
+  modal2ClearCover?: boolean
+  modal2NoClose?: boolean
+  modal2Type?: ModalType
+  headerBottomStyle?: Styles.StylesCrossPlatform
+  headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
+}
+
+// NativeStackNavigationOptions is the source of truth. We extend it with:
+// - LayoutOptions: custom properties consumed by our layout wrappers (stripped before passing to RN)
+// - headerStyle override: RN types this narrowly as {backgroundColor?: string} but our custom
+//   header supports full style objects
+// - Header container styles: @react-navigation/elements HeaderOptions that work at runtime
+//   through our custom header but aren't exposed in NativeStackNavigationOptions
 export type GetOptionsRet =
-  | {
-      safeAreaStyle?: Styles.StylesCrossPlatform
-      modal2Style?: Styles.StylesCrossPlatform
-      modal2AvoidTabs?: boolean
-      modal2?: boolean
-      modal2ClearCover?: boolean
-      modal2NoClose?: boolean
-      modal2Type?: ModalType
-      headerBottomStyle?: Styles.StylesCrossPlatform
-      header?: () => React.ReactNode
-      headerLeft?: null | ((p: HeaderBackButtonProps) => React.ReactNode)
-      headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
-      headerShown?: boolean
-      headerStyle?: Styles.StylesCrossPlatform
-      headerTitle?: string | (() => React.ReactNode)
-      headerShadowVisible?: boolean
-      headerTransparent?: boolean
-      gesturesEnabled?: boolean
-      title?: string
-      orientation?: 'all' | 'portrait'
-      presentation?: 'modal' | 'transparentModal' | 'card'
-    }
+  | (Omit<NativeStackNavigationOptions, 'headerStyle'> &
+      LayoutOptions & {
+        headerStyle?: Styles.StylesCrossPlatform
+        headerBackgroundContainerStyle?: Styles.StylesCrossPlatform
+        headerLeftContainerStyle?: Styles.StylesCrossPlatform
+        headerRightContainerStyle?: Styles.StylesCrossPlatform
+        headerTitleContainerStyle?: Styles.StylesCrossPlatform
+      })
   | undefined
 
 export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)

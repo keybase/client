@@ -19,7 +19,7 @@ export const useOpen = (props: Props) => {
   const nav = useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {
-    return () => nav.safeNavigateAppend({props: {path: props.path}, selected: 'fsRoot'})
+    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
   }
 
   const isFolder =

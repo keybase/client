@@ -91,13 +91,13 @@ const Container = (ownProps: OwnProps) => {
 
   const _onRevoke = () => {
     navigateAppend({
-      props: {
+      name: 'profileRevoke',
+      params: {
         icon: siteIconFull,
         platform: type as T.More.PlatformsExpandedType,
         platformHandle: value,
         proofId: sigID,
       },
-      selected: 'profileRevoke',
     })
   }
 

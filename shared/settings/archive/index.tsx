@@ -341,13 +341,13 @@ const Archive = () => {
   })
 
   const archiveChat = () => {
-    navigateAppend({props: {type: 'chatAll'}, selected: 'archiveModal'})
+    navigateAppend({name: 'archiveModal', params: {type: 'chatAll'}})
   }
   const archiveFS = () => {
-    navigateAppend({props: {type: 'fsAll'}, selected: 'archiveModal'})
+    navigateAppend({name: 'archiveModal', params: {type: 'fsAll'}})
   }
   const archiveGit = () => {
-    navigateAppend({props: {type: 'gitAll'}, selected: 'archiveModal'})
+    navigateAppend({name: 'archiveModal', params: {type: 'gitAll'}})
   }
 
   const chatJobs = [...chatJobMap.keys()]

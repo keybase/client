@@ -51,13 +51,13 @@ const useCommon = (ownProps: OwnProps) => {
     threadSearch(text)
   }
 
-  const selectResult = (index: number) => {
+  const selectResult = C.useEvent((index: number) => {
     const message = _hits[index] || Chat.makeMessageText()
     if (message.id > 0) {
       loadMessagesCentered(message.id, 'always')
     }
     setSelectedIndex(index)
-  }
+  })
 
   const onUp = () => {
     if (selectedIndex >= numHits - 1) {
@@ -99,18 +99,14 @@ const useCommon = (ownProps: OwnProps) => {
 
   const hasHits = numHits > 0
   const hadHitsRef = React.useRef(false)
-  const selectResultRef = React.useRef(selectResult)
-  React.useEffect(() => {
-    selectResultRef.current = selectResult
-  })
   React.useEffect(() => {
     if (hasHits && !hadHitsRef.current) {
       hadHitsRef.current = true
-      selectResultRef.current(0)
+      selectResult(0)
     } else if (!hasHits) {
       hadHitsRef.current = false
     }
-  }, [hasHits])
+  }, [hasHits, selectResult])
 
   return {
     conversationIDKey,

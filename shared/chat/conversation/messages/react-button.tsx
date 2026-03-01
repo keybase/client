@@ -41,8 +41,8 @@ function ReactButtonContainer(p: OwnProps) {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onOpenEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-      selected: 'chatChooseEmoji',
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
     }))
   }
 

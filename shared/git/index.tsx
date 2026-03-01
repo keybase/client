@@ -33,7 +33,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = (id: string) => {
     setError(undefined)
-    navigateAppend({props: {id}, selected: 'gitDeleteRepo'})
+    navigateAppend({name: 'gitDeleteRepo', params: {id}})
   }
 
   C.Router2.useSafeFocusEffect(() => {
@@ -52,11 +52,11 @@ const Container = (ownProps: OwnProps) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const onNewPersonalRepo = () => {
       setError(undefined)
-      navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: false}})
     }
     const onNewTeamRepo = () => {
       setError(undefined)
-      navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: true}})
     }
     const {attachTo, hidePopup} = p
     const menuItems = [

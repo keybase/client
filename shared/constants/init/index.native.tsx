@@ -398,7 +398,7 @@ export const initPlatformListener = () => {
           if (!result.canceled && first) {
             useRouterState
               .getState()
-              .dispatch.navigateAppend({props: {image: first}, selected: 'profileEditAvatar'})
+              .dispatch.navigateAppend({name: 'profileEditAvatar', params: {image: first}})
           }
         } catch (error) {
           useConfigState.getState().dispatch.filePickerError(new Error(String(error)))

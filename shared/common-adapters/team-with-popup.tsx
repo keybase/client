@@ -120,7 +120,7 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onViewTeam = (teamID: T.Teams.TeamID) => {
     clearModals()
-    navigateAppend({props: {teamID}, selected: 'team'})
+    navigateAppend({name: 'team', params: {teamID}})
   }
 
   const props = {

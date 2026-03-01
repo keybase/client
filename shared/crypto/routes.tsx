@@ -82,5 +82,3 @@ export const newModalRoutes = {
   },
   cryptoTeamBuilder,
 }
-
-export type RootParamListCrypto = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

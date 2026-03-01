@@ -110,8 +110,8 @@ const WrapperMobile = (props: Props) => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const addEmoji = () =>
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, teamID: T.Teams.noTeamID},
-      selected: 'teamAddEmoji',
+      name: 'teamAddEmoji',
+      params: {conversationIDKey, teamID: T.Teams.noTeamID},
     }))
   const canManageEmoji = useCanManageEmoji()
 
@@ -179,8 +179,8 @@ export const EmojiPickerDesktop = (props: Props) => {
   const addEmoji = () => {
     onDidPick?.()
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, teamID: T.Teams.noTeamID},
-      selected: 'teamAddEmoji',
+      name: 'teamAddEmoji',
+      params: {conversationIDKey, teamID: T.Teams.noTeamID},
     }))
   }
 

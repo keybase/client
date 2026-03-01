@@ -18,7 +18,7 @@ function Container(ownProps: OwnProps) {
   const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = () => {
-    navigateAppend({props: {deviceID}, selected: 'devicePage'})
+    navigateAppend({name: 'devicePage', params: {deviceID}})
   }
 
   const isNew = React.useContext(NewContext).has(deviceID)

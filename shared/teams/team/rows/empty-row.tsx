@@ -36,8 +36,8 @@ const useSecondaryAction = (props: Props) => {
       case 'members':
         if (conversationIDKey) {
           nav.safeNavigateAppend({
-            props: {conversationIDKey: conversationIDKey, teamID},
-            selected: 'chatAddToChannel',
+            name: 'chatAddToChannel',
+            params: {conversationIDKey: conversationIDKey, teamID},
           })
         } else {
           startAddMembersWizard(teamID)
@@ -47,10 +47,10 @@ const useSecondaryAction = (props: Props) => {
         launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
+        nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
         break
       case 'channelsEmpty':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'teamCreateChannels'})
+        nav.safeNavigateAppend({name: 'teamCreateChannels', params: {teamID}})
         break
     }
   }
