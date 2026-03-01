@@ -18,7 +18,7 @@ function TabletHeader() {
 export default Kb.Styles.isTablet
   ? {
       headerBackgroundContainerStyle: {},
-      headerLeft: null,
+      headerLeft: undefined,
       headerLeftContainerStyle: {maxWidth: 0},
       headerRight: null,
       headerRightContainerStyle: {maxWidth: 0},

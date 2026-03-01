@@ -31,7 +31,7 @@ export const newRoutes = {
   },
   recoverPasswordError: {
     getOptions: {
-      gesturesEnabled: false,
+      gestureEnabled: false,
       headerLeft: undefined, // no back button
       headerRightActions,
     },
@@ -54,7 +54,7 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
   },
   resetConfirm: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./reset/confirm')),
   },
   resetEnterPassword: {screen: React.lazy(async () => import('./reset/password-enter'))},
@@ -68,11 +68,11 @@ export const newModalRoutes = {
     screen: React.lazy(async () => import('../settings/proxy')),
   },
   recoverPasswordErrorModal: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
   recoverPasswordSetPassword: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./recover-password/password')),
   },
 }

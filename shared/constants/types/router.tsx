@@ -20,29 +20,34 @@ export type ScreenComponentProps = {
   navigation: NativeStackNavigationProp<KBRootParamList>
 }
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
+
+// Properties consumed by our layout functions (not React Navigation)
+export type LayoutOptions = {
+  safeAreaStyle?: Styles.StylesCrossPlatform
+  modal2Style?: Styles.StylesCrossPlatform
+  modal2AvoidTabs?: boolean
+  modal2?: boolean
+  modal2ClearCover?: boolean
+  modal2NoClose?: boolean
+  modal2Type?: ModalType
+  headerBottomStyle?: Styles.StylesCrossPlatform
+  headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
+}
+
 export type GetOptionsRet =
-  | {
-      safeAreaStyle?: Styles.StylesCrossPlatform
-      modal2Style?: Styles.StylesCrossPlatform
-      modal2AvoidTabs?: boolean
-      modal2?: boolean
-      modal2ClearCover?: boolean
-      modal2NoClose?: boolean
-      modal2Type?: ModalType
-      headerBottomStyle?: Styles.StylesCrossPlatform
+  | (LayoutOptions & {
       header?: () => React.ReactNode
-      headerLeft?: null | ((p: HeaderBackButtonProps) => React.ReactNode)
-      headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
+      headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
       headerShown?: boolean
       headerStyle?: Styles.StylesCrossPlatform
       headerTitle?: string | (() => React.ReactNode)
       headerShadowVisible?: boolean
       headerTransparent?: boolean
-      gesturesEnabled?: boolean
+      gestureEnabled?: boolean
       title?: string
       orientation?: 'all' | 'portrait'
       presentation?: 'modal' | 'transparentModal' | 'card'
-    }
+    })
   | undefined
 
 export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)

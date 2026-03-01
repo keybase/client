@@ -45,7 +45,7 @@ export const newModalRoutes = {
   teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
   teamAddToTeamConfirm: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./add-members-wizard/confirm')),
   },
   teamAddToTeamContacts: {screen: React.lazy(async () => import('./add-members-wizard/add-contacts'))},

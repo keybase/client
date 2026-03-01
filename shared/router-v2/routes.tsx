@@ -13,10 +13,8 @@ import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, LayoutOptions, RouteDef, RouteMap} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import {createComponentForStaticNavigation} from '@react-navigation/core'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
 // We have normal routes, modal routes, and logged out routes.
@@ -114,34 +112,61 @@ type LayoutFn = (props: {
   navigation: GetOptionsParams['navigation']
 }) => React.ReactNode
 type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => LayoutFn
-type OptionsFn = (params: GetOptionsParams) => GetOptionsRet
-type MakeOptionsFn = (rd: RouteDef) => OptionsFn
+type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
 
-type StaticScreenConfig = {
-  if?: () => boolean
-  layout: LayoutFn
-  options: OptionsFn
-  screen: React.ComponentType<any>
+// Keys to strip from getOptions before passing to React Navigation
+const layoutOptionKeys: ReadonlySet<string> = new Set<keyof LayoutOptions>([
+  'safeAreaStyle',
+  'modal2Style',
+  'modal2AvoidTabs',
+  'modal2',
+  'modal2ClearCover',
+  'modal2NoClose',
+  'modal2Type',
+  'headerBottomStyle',
+  'headerRightActions',
+])
+
+function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
+  if (!opts) return {}
+  const result: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(opts)) {
+    if (!layoutOptionKeys.has(k)) result[k] = v
+  }
+  // Safe cast: remaining keys are standard NativeStackNavigationOptions properties.
+  // headerStyle type is wider than RN declares but works at runtime.
+  return result as NativeStackNavigationOptions
 }
-export type StaticScreensConfig = Record<string, StaticScreenConfig>
 
-export function routeMapToStaticScreens<T extends RouteMap>(
-  rs: T,
+export function routeMapToStaticScreens(
+  rs: RouteMap,
   makeLayoutFn: MakeLayoutFn,
-  makeOptionsFn: MakeOptionsFn,
   isModal: boolean,
   isLoggedOut: boolean
-): {[K in keyof T & string]: StaticScreenConfig} {
-  const result: Record<string, StaticScreenConfig> = {}
+) {
+  const result: Record<
+    string,
+    {
+      layout: (props: any) => React.ReactElement
+      options: (p: {route: any; navigation: any}) => NativeStackNavigationOptions
+      screen: React.ComponentType<any>
+    }
+  > = {}
   for (const [name, rd] of Object.entries(rs)) {
     if (!rd) continue
     result[name] = {
-      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions),
-      options: makeOptionsFn(rd),
+      // Layout functions return JSX (ReactElement) and accept any route/navigation.
+      // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
+      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions) as (props: any) => React.ReactElement,
+      options: ({route, navigation}: {route: any; navigation: any}) => {
+        const go = rd.getOptions
+        const opts = typeof go === 'function' ? go({navigation, route}) : go
+        return toNavOptions(opts)
+      },
       screen: rd.screen,
     }
   }
-  return result as {[K in keyof T & string]: StaticScreenConfig}
+  return result
 }
 
 export function routeMapToScreenElements(
@@ -165,30 +190,4 @@ export function routeMapToScreenElements(
       />,
     ]
   })
-}
-
-// Creates a static stack navigator component from a config object.
-// Encapsulates the `as any` boundary needed because our RouteMap has dynamic
-// string keys while React Navigation's static API infers ParamList from
-// literal screen names.
-export function createStaticStackComponent(
-  config: {
-    groups?: Record<
-      string,
-      {
-        if?: () => boolean
-        screenOptions?: NativeStackNavigationOptions
-        screens: StaticScreensConfig | Record<string, {screen: React.ComponentType}>
-      }
-    >
-    initialRouteName?: string
-    screenOptions?: NativeStackNavigationOptions
-    screens?: StaticScreensConfig | Record<string, {screen: React.ComponentType}>
-  },
-  displayName: string
-): React.ComponentType {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  const nav = createNativeStackNavigator(config as any)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return createComponentForStaticNavigation(nav as any, displayName)
 }

@@ -55,7 +55,7 @@ export const newModalRoutes = {
   profileFinished: {screen: React.lazy(async () => import('./pgp/finished'))},
   profileGenerate: {screen: React.lazy(async () => import('./pgp/generate'))},
   profileGenericEnterUsername: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./generic/enter-username')),
   },
   profileGenericProofResult: {screen: React.lazy(async () => import('./generic/result'))},
