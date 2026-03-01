@@ -13,9 +13,7 @@ import {PlatformPressable} from '@react-navigation/elements'
 import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import {createComponentForStaticNavigation} from '@react-navigation/core'
+import {createStaticStackComponent, modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {makeLayout} from './screen-layout.native'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import {useRootKey} from './hooks.native'
@@ -62,12 +60,14 @@ const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, makeOpti
 
 const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of tabs) {
-  const nav = createNativeStackNavigator({
-    initialRouteName: tabRoots[tab],
-    screenOptions: tabStackOptions as any,
-    screens: tabScreensConfig as any,
-  })
-  tabComponents[tab] = createComponentForStaticNavigation(nav, `TabStack_${tab}`)
+  tabComponents[tab] = createStaticStackComponent(
+    {
+      initialRouteName: tabRoots[tab],
+      screenOptions: tabStackOptions,
+      screens: tabScreensConfig,
+    },
+    `TabStack_${tab}`
+  )
 }
 
 const tabScreenOptions = ({route}: {route: {name: string}}) => {
@@ -130,12 +130,14 @@ const loggedOutScreenOptions = {
   headerShown: false,
 }
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, makeOptions, false, true)
-const LoggedOutNav = createNativeStackNavigator({
-  initialRouteName: 'login',
-  screenOptions: loggedOutScreenOptions as any,
-  screens: loggedOutScreensConfig as any,
-})
-const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
+const LoggedOut = createStaticStackComponent(
+  {
+    initialRouteName: 'login',
+    screenOptions: loggedOutScreenOptions,
+    screens: loggedOutScreensConfig,
+  },
+  'LoggedOut'
+)
 
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
@@ -157,29 +159,31 @@ const useIsLoggedOut = () => !useConfigState(s => s.loggedIn)
 
 const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, makeModalOptions, true, false)
 
-const RootNav = createNativeStackNavigator({
-  groups: {
-    loggedIn: {
-      if: useIsLoggedIn,
-      screens: {
-        loggedIn: {screen: AppTabs},
+const RootComponent = createStaticStackComponent(
+  {
+    groups: {
+      loggedIn: {
+        if: useIsLoggedIn,
+        screens: {
+          loggedIn: {screen: AppTabs},
+        },
+      },
+      loggedOut: {
+        if: useIsLoggedOut,
+        screens: {
+          loggedOut: {screen: LoggedOut},
+        },
+      },
+      modals: {
+        if: useIsLoggedIn,
+        screenOptions: modalScreenOptions,
+        screens: modalScreensConfig,
       },
     },
-    loggedOut: {
-      if: useIsLoggedOut,
-      screens: {
-        loggedOut: {screen: LoggedOut},
-      },
-    },
-    modals: {
-      if: useIsLoggedIn,
-      screenOptions: modalScreenOptions,
-      screens: modalScreensConfig,
-    },
+    screenOptions: rootStackScreenOptions,
   },
-  screenOptions: rootStackScreenOptions as any,
-} as any)
-const RootComponent = createComponentForStaticNavigation(RootNav as any, 'Root')
+  'Root'
+)
 
 // Create once, stable across renders. handleAppLink is used as fallback for
 // URL patterns not yet handled by the linking config.

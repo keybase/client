@@ -9,12 +9,10 @@ import logger from '@/logger'
 import Header from './header/index.desktop'
 import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
-import {createComponentForStaticNavigation} from '@react-navigation/core'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
+import {createStaticStackComponent, modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import {useDaemonState} from '@/stores/daemon'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
@@ -47,12 +45,14 @@ const tabScreensConfig = routeMapToStaticScreens(routes, makeLayout, makeOptions
 
 const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of Tabs.desktopTabs) {
-  const nav = createNativeStackNavigator({
-    initialRouteName: tabRoots[tab],
-    screenOptions: Common.defaultNavigationOptions as any,
-    screens: tabScreensConfig as any,
-  })
-  tabComponents[tab] = createComponentForStaticNavigation(nav, `TabStack_${tab}`)
+  tabComponents[tab] = createStaticStackComponent(
+    {
+      initialRouteName: tabRoots[tab],
+      screenOptions: Common.defaultNavigationOptions,
+      screens: tabScreensConfig,
+    },
+    `TabStack_${tab}`
+  )
 }
 
 function AppTabsInner() {
@@ -73,12 +73,14 @@ const loggedOutOptions: NativeStackNavigationOptions = {
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
 }
-const LoggedOutNav = createNativeStackNavigator({
-  initialRouteName: 'login',
-  screenOptions: loggedOutOptions as any,
-  screens: loggedOutScreensConfig as any,
-})
-const LoggedOut = createComponentForStaticNavigation(LoggedOutNav, 'LoggedOut')
+const LoggedOut = createStaticStackComponent(
+  {
+    initialRouteName: 'login',
+    screenOptions: loggedOutOptions,
+    screens: loggedOutScreensConfig,
+  },
+  'LoggedOut'
+)
 
 const documentTitle = {
   formatter: () => {
@@ -154,31 +156,33 @@ const useIsLoggedOut = () => {
 
 const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, makeOptions, true, false)
 
-const RootNav = createNativeStackNavigator({
-  groups: {
-    loggedIn: {
-      if: useIsLoggedIn,
-      screens: {
-        loggedIn: {screen: AppTabs},
-        ...modalScreensConfig,
+const RootComponent = createStaticStackComponent(
+  {
+    groups: {
+      loggedIn: {
+        if: useIsLoggedIn,
+        screens: {
+          loggedIn: {screen: AppTabs},
+          ...modalScreensConfig,
+        },
+      },
+      loggedOut: {
+        if: useIsLoggedOut,
+        screens: {
+          loggedOut: {screen: LoggedOut},
+        },
       },
     },
-    loggedOut: {
-      if: useIsLoggedOut,
-      screens: {
-        loggedOut: {screen: LoggedOut},
+    screenOptions: rootScreenOptions,
+    screens: {
+      loading: {
+        if: useIsLoading,
+        screen: Shared.SimpleLoading,
       },
     },
   },
-  screenOptions: rootScreenOptions as any,
-  screens: {
-    loading: {
-      if: useIsLoading,
-      screen: Shared.SimpleLoading,
-    },
-  },
-} as any)
-const RootComponent = createComponentForStaticNavigation(RootNav as any, 'Root')
+  'Root'
+)
 
 function ElectronApp() {
   useConnectNavToState()

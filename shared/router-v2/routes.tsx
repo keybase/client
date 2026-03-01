@@ -12,42 +12,46 @@ import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from
 import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import type * as React from 'react'
-import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
-import type {GetOptions, RouteDef, RouteMap} from '@/constants/types/router'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {createComponentForStaticNavigation} from '@react-navigation/core'
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test
 // of whether we're on a loggedIn route: loggedOut routes have no selected tab.
-export const routes: RouteMap = {}
+export const routes = {
+  ...deviceNewRoutes,
+  ...chatNewRoutes,
+  ...cryptoNewRoutes,
+  ...peopleNewRoutes,
+  ...profileNewRoutes,
+  ...fsNewRoutes,
+  ...settingsNewRoutes,
+  ...teamsNewRoutes,
+  ...gitNewRoutes,
+} satisfies RouteMap
 
-type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
-
-const _newRoutes = [
-  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
-  {route: chatNewRoutes, tab: Tabs.chatTab},
-  {route: cryptoNewRoutes, tab: Tabs.cryptoTab},
-  {route: peopleNewRoutes, tab: Tabs.peopleTab},
-  {route: profileNewRoutes, tab: Tabs.peopleTab},
-  {route: fsNewRoutes, tab: Tabs.fsTab},
-  {route: settingsNewRoutes, tab: Tabs.settingsTab},
-  {route: teamsNewRoutes, tab: Tabs.teamsTab},
-  {route: gitNewRoutes, tab: Tabs.gitTab},
-] satisfies ReadonlyArray<RoutePlusTab>
-
-const seenNames = new Set()
-_newRoutes.forEach(({route}) => {
-  const routeMap = route as RouteMap
-  Object.keys(routeMap).forEach(name => {
-    // Just sanity check dupes
-    if (seenNames.has(name)) {
-      throw new Error('New route with dupe name, disallowed! ' + name)
-    }
-    seenNames.add(name)
-    routes[name] = routeMap[name]
-  })
-})
+if (__DEV__) {
+  const allRouteKeys = [
+    ...Object.keys(deviceNewRoutes),
+    ...Object.keys(chatNewRoutes),
+    ...Object.keys(cryptoNewRoutes),
+    ...Object.keys(peopleNewRoutes),
+    ...Object.keys(profileNewRoutes),
+    ...Object.keys(fsNewRoutes),
+    ...Object.keys(settingsNewRoutes),
+    ...Object.keys(teamsNewRoutes),
+    ...Object.keys(gitNewRoutes),
+  ]
+  const seen = new Set<string>()
+  for (const k of allRouteKeys) {
+    if (seen.has(k)) throw new Error('Duplicate route name: ' + k)
+    seen.add(k)
+  }
+}
 
 export const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
@@ -63,46 +67,72 @@ export const tabRoots = {
   [Tabs.searchTab]: '',
 } as const
 
-const _modalRoutes = [
-  chatNewModalRoutes,
-  cryptoNewModalRoutes,
-  deviceNewModalRoutes,
-  fsNewModalRoutes,
-  gitNewModalRoutes,
-  loginNewModalRoutes,
-  peopleNewModalRoutes,
-  profileNewModalRoutes,
-  settingsNewModalRoutes,
-  signupNewModalRoutes,
-  teamsNewModalRoutes,
-  walletsNewModalRoutes,
-  incomingShareNewModalRoutes,
-] satisfies ReadonlyArray<RouteMap>
+export const modalRoutes = {
+  ...chatNewModalRoutes,
+  ...cryptoNewModalRoutes,
+  ...deviceNewModalRoutes,
+  ...fsNewModalRoutes,
+  ...gitNewModalRoutes,
+  ...loginNewModalRoutes,
+  ...peopleNewModalRoutes,
+  ...profileNewModalRoutes,
+  ...settingsNewModalRoutes,
+  ...signupNewModalRoutes,
+  ...teamsNewModalRoutes,
+  ...walletsNewModalRoutes,
+  ...incomingShareNewModalRoutes,
+} satisfies RouteMap
 
-export const modalRoutes = _modalRoutes.reduce<RouteMap>((obj, modal) => {
-  const modalMap = modal as RouteMap
-  for (const name of Object.keys(modalMap)) {
-    if (obj[name]) {
-      throw new Error('New modal route with dupe name, disallowed! ' + name)
-    }
-    obj[name] = modalMap[name]
+if (__DEV__) {
+  const allModalKeys = [
+    ...Object.keys(chatNewModalRoutes),
+    ...Object.keys(cryptoNewModalRoutes),
+    ...Object.keys(deviceNewModalRoutes),
+    ...Object.keys(fsNewModalRoutes),
+    ...Object.keys(gitNewModalRoutes),
+    ...Object.keys(loginNewModalRoutes),
+    ...Object.keys(peopleNewModalRoutes),
+    ...Object.keys(profileNewModalRoutes),
+    ...Object.keys(settingsNewModalRoutes),
+    ...Object.keys(signupNewModalRoutes),
+    ...Object.keys(teamsNewModalRoutes),
+    ...Object.keys(walletsNewModalRoutes),
+    ...Object.keys(incomingShareNewModalRoutes),
+  ]
+  const seen = new Set<string>()
+  for (const k of allModalKeys) {
+    if (seen.has(k)) throw new Error('Duplicate modal route name: ' + k)
+    seen.add(k)
   }
-  return obj
-}, {})
+}
 
-export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
+export const loggedOutRoutes = {..._loggedOutRoutes, ...signupNewRoutes} satisfies RouteMap
 
-type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => any
-type MakeOptionsFn = (rd: RouteDef) => any
+type LayoutFn = (props: {
+  children: React.ReactNode
+  route: GetOptionsParams['route']
+  navigation: GetOptionsParams['navigation']
+}) => React.ReactNode
+type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => LayoutFn
+type OptionsFn = (params: GetOptionsParams) => GetOptionsRet
+type MakeOptionsFn = (rd: RouteDef) => OptionsFn
 
-export function routeMapToStaticScreens(
-  rs: RouteMap,
+type StaticScreenConfig = {
+  if?: () => boolean
+  layout: LayoutFn
+  options: OptionsFn
+  screen: React.ComponentType<any>
+}
+export type StaticScreensConfig = Record<string, StaticScreenConfig>
+
+export function routeMapToStaticScreens<T extends RouteMap>(
+  rs: T,
   makeLayoutFn: MakeLayoutFn,
   makeOptionsFn: MakeOptionsFn,
   isModal: boolean,
   isLoggedOut: boolean
-) {
-  const result: Record<string, {screen: any; layout: any; options: any}> = {}
+): {[K in keyof T & string]: StaticScreenConfig} {
+  const result: Record<string, StaticScreenConfig> = {}
   for (const [name, rd] of Object.entries(rs)) {
     if (!rd) continue
     result[name] = {
@@ -111,7 +141,7 @@ export function routeMapToStaticScreens(
       screen: rd.screen,
     }
   }
-  return result
+  return result as {[K in keyof T & string]: StaticScreenConfig}
 }
 
 export function routeMapToScreenElements(
@@ -135,4 +165,30 @@ export function routeMapToScreenElements(
       />,
     ]
   })
+}
+
+// Creates a static stack navigator component from a config object.
+// Encapsulates the `as any` boundary needed because our RouteMap has dynamic
+// string keys while React Navigation's static API infers ParamList from
+// literal screen names.
+export function createStaticStackComponent(
+  config: {
+    groups?: Record<
+      string,
+      {
+        if?: () => boolean
+        screenOptions?: NativeStackNavigationOptions
+        screens: StaticScreensConfig | Record<string, {screen: React.ComponentType}>
+      }
+    >
+    initialRouteName?: string
+    screenOptions?: NativeStackNavigationOptions
+    screens?: StaticScreensConfig | Record<string, {screen: React.ComponentType}>
+  },
+  displayName: string
+): React.ComponentType {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  const nav = createNativeStackNavigator(config as any)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return createComponentForStaticNavigation(nav as any, displayName)
 }
