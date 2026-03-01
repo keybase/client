@@ -310,9 +310,6 @@ const User = (props: {username: string}) => {
   )
   const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
 
-  // useCallback is required here (not just React Compiler memoization) to prevent
-  // "Maximum update depth exceeded" — SectionList's sticky header re-fires refs
-  // when renderSectionHeader identity changes, causing a setState loop.
   const changeTab = React.useCallback(
     (tab: Tab) => {
       setSelectedTab(tab)
