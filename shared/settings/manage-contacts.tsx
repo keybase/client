@@ -85,8 +85,8 @@ const ManageContactsBanner = () => {
   }
   const onSendFeedback = () => {
     navigateAppend({
-      props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: settingsFeedbackTab,
+      name: settingsFeedbackTab,
+      params: {feedback: `Contact import failed\n${error}\n\n`},
     })
   }
 

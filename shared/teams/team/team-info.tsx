@@ -45,8 +45,8 @@ const TeamInfo = (props: Props) => {
   }
   const onEditAvatar = () =>
     nav.safeNavigateAppend({
-      props: {sendChatNotification: true, showBack: true, teamID},
-      selected: 'profileEditAvatar',
+      name: 'profileEditAvatar',
+      params: {sendChatNotification: true, showBack: true, teamID},
     })
   return (
     <Kb.Modal

@@ -15,13 +15,13 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const canManageEmoji = useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
     nav.safeNavigateAppend({
-      props: {conversationIDKey: convID, teamID},
-      selected: 'teamAddEmoji',
+      name: 'teamAddEmoji',
+      params: {conversationIDKey: convID, teamID},
     })
   const onAddAlias = () =>
     nav.safeNavigateAppend({
-      props: {conversationIDKey: convID},
-      selected: 'teamAddEmojiAlias',
+      name: 'teamAddEmojiAlias',
+      params: {conversationIDKey: convID},
     })
   // clear filter on unmount
   return !canManageEmoji ? null : (

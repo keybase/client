@@ -239,12 +239,12 @@ const BotTab = (props: Props) => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const onBotAdd = () => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
+    navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
   }
   const onBotSelect = (username: string) => {
     navigateAppend(conversationIDKey => ({
-      props: {botUsername: username, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: username, conversationIDKey},
     }))
   }
   const loadNextBotPage = useBotsState(s => s.dispatch.loadNextBotPage)

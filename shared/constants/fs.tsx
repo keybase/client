@@ -17,7 +17,7 @@ export const navToPath = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: T.FS.Path
 ) => {
-  navigateAppend({props: {path}, selected: 'fsRoot'})
+  navigateAppend({name: 'fsRoot', params: {path}})
 }
 
 // Path Constants

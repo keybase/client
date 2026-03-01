@@ -36,11 +36,11 @@ export const HeaderRightActions = () => {
     const {attachTo, hidePopup} = p
     const onAddPersonal = () => {
       setError(undefined)
-      navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: false}})
     }
     const onAddTeam = () => {
       setError(undefined)
-      navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: true}})
     }
 
     return (

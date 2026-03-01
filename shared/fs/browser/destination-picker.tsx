@@ -72,12 +72,12 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     _onCopyHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
       clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
+      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
     },
     _onMoveHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'move')
       clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
+      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
     },
     _onNewFolder: (destinationParentPath: T.FS.Path) => {
       newFolderRow(destinationParentPath)

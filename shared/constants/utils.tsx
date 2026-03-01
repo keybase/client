@@ -11,16 +11,6 @@ export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<vo
   })
 }
 
-export type PagesToParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : undefined
-      : undefined
-    : undefined
-}
-
 export type ViewPropsToPageProps<T> =
   T extends React.LazyExoticComponent<infer C>
     ? C extends React.ComponentType<infer P>

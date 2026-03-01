@@ -72,7 +72,7 @@ const WarningLink = (props: WarningLinkProps) => {
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
         title={display}
         onClick={() =>
-          navigateAppend({props: {display, punycode, url}, selected: 'chatConfirmNavigateExternal'})
+          navigateAppend({name: 'chatConfirmNavigateExternal', params: {display, punycode, url}})
         }
       >
         {display}

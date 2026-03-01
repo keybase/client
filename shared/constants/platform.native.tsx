@@ -1,7 +1,7 @@
 import {Dimensions, Platform} from 'react-native'
 import Constants from 'expo-constants'
 import * as ScreenCapture from 'expo-screen-capture'
-import * as T from '@/constants/types'
+import * as RPCGen from '@/constants/types/rpc-gen'
 import {
   androidIsDeviceSecure,
   fsCacheDir,
@@ -16,7 +16,7 @@ const screenProtectorConfigKey = 'ui.screenprotector'
 export const getSecureFlagSetting = async (): Promise<boolean> => {
   if (!isAndroid) return false
   try {
-    const value = await T.RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
+    const value = await RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
     // Default to secure (true) if not explicitly set
     if (!value.isNull && value.b === false) return false
     return true
@@ -33,7 +33,7 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
     } else {
       await ScreenCapture.allowScreenCaptureAsync('screenprotector')
     }
-    await T.RPCGen.configGuiSetValueRpcPromise({
+    await RPCGen.configGuiSetValueRpcPromise({
       path: screenProtectorConfigKey,
       value: {b: secure, isNull: false},
     })

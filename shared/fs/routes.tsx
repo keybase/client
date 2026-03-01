@@ -39,5 +39,3 @@ export const newModalRoutes = {
     ),
   },
 }
-
-export type RootParamListFS = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

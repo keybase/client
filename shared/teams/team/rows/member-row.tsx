@@ -158,8 +158,8 @@ export const TeamMemberRow = (props: Props) => {
                 icon: 'iconfont-chat',
                 onClick: () =>
                   nav.safeNavigateAppend({
-                    props: {teamID, usernames: [username]},
-                    selected: 'teamAddToChannels',
+                    name: 'teamAddToChannels',
+                    params: {teamID, usernames: [username]},
                   }),
                 title: 'Add to channels...',
               },
@@ -313,7 +313,7 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
-    navigateAppend({props: {teamID, username}, selected: 'teamMember'})
+    navigateAppend({name: 'teamMember', params: {teamID, username}})
   }
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {

@@ -28,14 +28,14 @@ function SystemAddedToTeamContainer(p: OwnProps) {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onViewBot = () => {
     navigateAppend(conversationIDKey => ({
-      props: {botUsername: addee, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: addee, conversationIDKey},
     }))
   }
 
   const onViewTeam = () => {
     if (teamID) {
-      navigateAppend(() => ({props: {teamID}, selected: 'team'}))
+      navigateAppend(() => ({name: 'team', params: {teamID}}))
     } else {
       showInfoPanel(true, 'settings')
     }

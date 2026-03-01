@@ -66,8 +66,8 @@ function FileContainer(p: OwnProps) {
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
         navigateAppend({
-          props: {conversationIDKey, ordinal},
-          selected: 'chatPDF',
+          name: 'chatPDF',
+          params: {conversationIDKey, ordinal},
         })
       } else {
         switch (transferState) {

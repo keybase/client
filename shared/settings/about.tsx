@@ -10,8 +10,8 @@ const About = () => {
   const onShowPrivacyPolicy = () => {
     if (C.isMobile) {
       navigateAppend({
-        props: {title: 'Privacy Policy', url: privacyPolicy},
-        selected: 'webLinks',
+        name: 'webLinks',
+        params: {title: 'Privacy Policy', url: privacyPolicy},
       })
     } else {
       openUrl(privacyPolicy)
@@ -19,7 +19,7 @@ const About = () => {
   }
   const onShowTerms = () => {
     if (C.isMobile) {
-      navigateAppend({props: {title: 'Terms', url: terms}, selected: 'webLinks'})
+      navigateAppend({name: 'webLinks', params: {title: 'Terms', url: terms}})
     } else {
       openUrl(terms)
     }

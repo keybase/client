@@ -92,10 +92,10 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const onLeaveTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
+    navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   }
   const onOpenFolder = (teamname: string) => {
     FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))

@@ -24,7 +24,7 @@ function SystemCreateTeamContainer(p: OwnProps) {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = () => {
     if (teamID) {
-      navigateAppend({props: {teamID}, selected: 'team'})
+      navigateAppend({name: 'team', params: {teamID}})
     } else {
       showInfoPanel(true, 'settings')
     }

@@ -21,7 +21,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
   const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
+  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
   const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)

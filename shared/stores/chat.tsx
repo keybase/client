@@ -1625,11 +1625,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           if (!first) {
             if (p.reason === 'appLink') {
               navigateAppend({
-                props: {
+                name: 'keybaseLinkError',
+                params: {
                   error:
                     "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
                 },
-                selected: 'keybaseLinkError',
               })
               return
             } else {
@@ -1655,11 +1655,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             reason === 'appLink'
           ) {
             navigateAppend({
-              props: {
+              name: 'keybaseLinkError',
+              params: {
                 error:
                   "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
               },
-              selected: 'keybaseLinkError',
             })
             return
           } else {

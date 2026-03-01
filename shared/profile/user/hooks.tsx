@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
@@ -126,93 +127,92 @@ const useUserData = (username: string) => {
     }
   })()
 
-  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
-  const _onEditAvatar = editAvatar
-  // const _onIKnowThem = (username: string, guiID: string) => {
-  //   dispatch(
-  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
-  //   )
-  // }
-  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
-    if (state !== 'valid' && !isYou) {
-      // Might be a Keybase user or not, launch non-user profile fetch.
-      loadNonUserProfile(username)
-    }
-    if (state !== 'notAUserYet') {
-      showUser(username, false, true)
-
-      if (isYou) {
-        getProofSuggestions()
-      }
-    }
-  }
+  const onEditAvatar = useProfileState(s => s.dispatch.editAvatar)
   const {navigateAppend, navigateUp} = C.useRouterState(
     C.useShallow(s => ({
       navigateAppend: s.dispatch.navigateAppend,
       navigateUp: s.dispatch.navigateUp,
     }))
   )
-  const onAddIdentity = () => {
+
+  const onReload = React.useCallback(() => {
+    if (d.state !== 'valid' && !userIsYou) {
+      loadNonUserProfile(username)
+    }
+    if (d.state !== 'notAUserYet') {
+      showUser(username, false, true)
+      if (userIsYou) {
+        getProofSuggestions()
+      }
+    }
+  }, [d.state, userIsYou, username, loadNonUserProfile, showUser, getProofSuggestions])
+
+  const onAddIdentity = React.useCallback(() => {
     navigateAppend('profileProofsList')
-  }
-  const onBack = () => {
+  }, [navigateAppend])
+
+  const onBack = React.useCallback(() => {
     navigateUp()
-  }
+  }, [navigateUp])
 
-  let allowOnAddIdentity = false
-  if (stateProps.userIsYou && stateProps._suggestionKeys?.some(s => s.belowFold)) {
-    allowOnAddIdentity = true
-  }
+  const allowOnAddIdentity = stateProps.userIsYou && !!stateProps._suggestionKeys?.some(s => s.belowFold)
 
-  let assertionKeys =
-    notAUser && !!stateProps.service
-      ? [stateProps.username]
-      : stateProps._assertions
-        ? [...stateProps._assertions.entries()].sort((a, b) => a[1].priority - b[1].priority).map(e => e[0])
-        : undefined
+  // Memoize Set→Array conversions so downstream useMemo/useCallback deps stay stable
+  const followers = React.useMemo(
+    () => (stateProps.followers ? [...stateProps.followers] : undefined),
+    [stateProps.followers]
+  )
+  const following = React.useMemo(
+    () => (stateProps.following ? [...stateProps.following] : undefined),
+    [stateProps.following]
+  )
 
-  // For 'phone' or 'email' profiles do not display placeholder assertions.
   const service = stateProps.service
   const impTofu = notAUser && (service === 'phone' || service === 'email')
-  if (impTofu) {
-    assertionKeys = []
-  }
+  const assertions = stateProps._assertions
+  const assertionKeys = React.useMemo(() => {
+    if (notAUser && !!service) return [username]
+    if (impTofu) return []
+    if (assertions) {
+      return [...assertions.entries()]
+        .sort((a, b) => a[1].priority - b[1].priority)
+        .map(e => e[0])
+    }
+    return undefined
+  }, [notAUser, service, username, impTofu, assertions])
+
+  const rawSuggestionKeys = stateProps._suggestionKeys
+  const suggestionKeys = React.useMemo(
+    () => rawSuggestionKeys?.filter(s => !s.belowFold).map(s => s.assertionKey),
+    [rawSuggestionKeys]
+  )
 
   return {
     assertionKeys,
     backgroundColorType: stateProps.backgroundColorType,
     blocked: stateProps.blocked,
     followThem: stateProps.followThem,
-    followers: stateProps.followers ? [...stateProps.followers] : undefined,
+    followers,
     followersCount: stateProps.followersCount,
-    following: stateProps.following ? [...stateProps.following] : undefined,
+    following,
     followingCount: stateProps.followingCount,
     fullName: stateProps.fullName,
     hidFromFollowers: stateProps.hidFromFollowers,
     name: stateProps.name,
     notAUser,
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
-    onBack: onBack,
-    onEditAvatar: stateProps.userIsYou ? _onEditAvatar : undefined,
-    // onIKnowThem:
-    //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
-    //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
-    //     : undefined,
-    onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
+    onBack,
+    onEditAvatar: stateProps.userIsYou ? onEditAvatar : undefined,
+    onReload,
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,
     service: stateProps.service,
     serviceIcon: stateProps.serviceIcon,
     state: stateProps.state,
-    suggestionKeys: stateProps._suggestionKeys
-      ? stateProps._suggestionKeys.filter(s => !s.belowFold).map(s => s.assertionKey)
-      : undefined,
+    suggestionKeys,
     title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
-    // vouchDisableButton: stateProps.vouchDisableButton,
-    // vouchShowButton: stateProps.vouchShowButton,
-    // webOfTrustEntries: stateProps.webOfTrustEntries,
   }
 }
 

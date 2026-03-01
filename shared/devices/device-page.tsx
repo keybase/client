@@ -97,7 +97,7 @@ const DevicePage = (ownProps: OwnProps) => {
   const canRevoke = Devices.useActiveDeviceCounts() > 1
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = () => {
-    navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})
+    navigateAppend({name: 'deviceRevoke', params: {deviceID: id}})
   }
 
   const metaOne = device?.currentDevice ? (

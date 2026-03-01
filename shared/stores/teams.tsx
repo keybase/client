@@ -1233,8 +1233,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             const usernames = res.notAdded.map(elem => elem.username)
             getTBStore('teams').dispatch.finishedTeamBuilding()
             navigateAppend({
-              props: {source: 'teamAddSomeFailed', usernames},
-              selected: 'contactRestricted',
+              name: 'contactRestricted',
+              params: {source: 'teamAddSomeFailed', usernames},
             })
             return
           }
@@ -1257,8 +1257,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             const usernames = users?.[0]?.split(',') ?? []
             getTBStore('teams').dispatch.finishedTeamBuilding()
             navigateAppend({
-              props: {source: 'teamAddAllFailed', usernames},
-              selected: 'contactRestricted',
+              name: 'contactRestricted',
+              params: {source: 'teamAddAllFailed', usernames},
             })
             return
           }
@@ -1512,9 +1512,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             })
           } else {
             clearModals()
-            navigateAppend({props: {teamID}, selected: 'team'})
+            navigateAppend({name: 'team', params: {teamID}})
             if (isMobile) {
-              navigateAppend({props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'})
+              navigateAppend({name: 'profileEditAvatar', params: {createdTeam: true, teamID}})
             }
           }
         } catch (error) {
@@ -1693,7 +1693,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             s.newTeamWizard = T.castDraft(newTeamWizardEmptyState)
             s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
           })
-          navigateAppend({props: {teamID}, selected: 'team'})
+          navigateAppend({name: 'team', params: {teamID}})
           clearModals()
         } catch (error) {
           set(s => {
@@ -2189,7 +2189,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       })
     },
     manageChatChannels: teamID => {
-      navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
+      navigateAppend({name: 'teamAddToChannels', params: {teamID}})
     },
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
@@ -2826,8 +2826,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.newTeamWizard.addYourself = p.addYourself
       })
       navigateAppend({
-        props: {createdTeam: true, teamID: T.Teams.newTeamWizardTeamID, wizard: true},
-        selected: 'profileEditAvatar',
+        name: 'profileEditAvatar',
+        params: {createdTeam: true, teamID: T.Teams.newTeamWizardTeamID, wizard: true},
       })
     },
     setTeamWizardSubteamMembers: members => {
@@ -2895,9 +2895,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           logger.info(`team="${teamname}" cannot be loaded:`, err)
           // navigate to team page for team we're not in
           logger.info(`showing external team page, join=${join}`)
-          navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
+          navigateAppend({name: 'teamExternalTeam', params: {teamname}})
           if (join) {
-            navigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
+            navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
           }
           return
         }
@@ -2919,11 +2919,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             return
           }
         }
-        navigateAppend({props: {initialTab, teamID}, selected: 'team'})
+        navigateAppend({name: 'team', params: {initialTab, teamID}})
         if (addMembers) {
           navigateAppend({
-            props: {namespace: 'teams', teamID, title: ''},
-            selected: 'teamsTeamBuilder',
+            name: 'teamsTeamBuilder',
+            params: {namespace: 'teams', teamID, title: ''},
           })
         }
       }

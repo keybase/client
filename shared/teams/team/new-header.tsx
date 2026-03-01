@@ -300,13 +300,13 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
-        nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})
+        nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamEditTeamInfo'})
+    ? () => nav.safeNavigateAppend({name: 'teamEditTeamInfo', params: {teamID}})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
+    ? () => nav.safeNavigateAppend({name: 'teamRename', params: {teamname: meta.teamname}})
     : undefined
   return {
     onAddSelf,

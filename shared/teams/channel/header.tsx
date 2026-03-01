@@ -44,10 +44,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     teamID,
   }
   const nav = useSafeNavigation()
-  const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
+  const onEditChannel = () => nav.safeNavigateAppend({name: 'teamEditChannel', params: editChannelProps})
   const onAddMembers = () =>
-    nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
-  const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+    nav.safeNavigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
+  const onNavToTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
   const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 

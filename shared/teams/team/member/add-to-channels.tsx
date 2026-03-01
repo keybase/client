@@ -269,7 +269,7 @@ const HeaderRow = function HeaderRow(p: {
 }) {
   const {mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
-  const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
+  const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
   const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   return (
@@ -317,13 +317,13 @@ const SelfChannelActions = function SelfChannelActions(p: {
 
   const onEditChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamEditChannel',
+      params: {
         channelname: meta.channelname,
         conversationIDKey: meta.conversationIDKey,
         description: meta.description,
         teamID: meta.teamID,
       },
-      selected: 'teamEditChannel',
     })
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -331,15 +331,15 @@ const SelfChannelActions = function SelfChannelActions(p: {
   const onChannelSettings = () => {
     clearModals()
     navigateAppend({
-      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-      selected: 'teamChannel',
+      name: 'teamChannel',
+      params: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
     })
   }
   const onDelete = () => {
     // TODO: consider not using the confirm modal
     nav.safeNavigateAppend({
-      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-      selected: 'teamDeleteChannel',
+      name: 'teamDeleteChannel',
+      params: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
     })
   }
 

@@ -124,7 +124,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = () => {
     navigateUp()
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const _onLeave = (permanent: boolean) => {

@@ -142,8 +142,8 @@ export const AdhocHeader = () => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey},
-      selected: 'chatShowNewTeamDialog',
+      name: 'chatShowNewTeamDialog',
+      params: {conversationIDKey},
     }))
   }
   return (

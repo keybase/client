@@ -85,8 +85,8 @@ const Buttons = function Buttons(p: ButtonsProps) {
   const navigateAppend = Chat.useChatNavigateAppend()
   const openEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, pickKey},
-      selected: 'chatChooseEmoji',
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, pickKey},
     }))
   }
 
@@ -212,8 +212,8 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
         navigateAppend(conversationIDKey => ({
-          props: {conversationIDKey, pathAndOutboxIDs},
-          selected: 'chatAttachmentGetTitles',
+          name: 'chatAttachmentGetTitles',
+          params: {conversationIDKey, pathAndOutboxIDs},
         }))
       }
 
@@ -240,8 +240,8 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
             if (!res.canceled && res.assets.length > 0) {
               const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
               navigateAppend(conversationIDKey => ({
-                props: {conversationIDKey, pathAndOutboxIDs},
-                selected: 'chatAttachmentGetTitles',
+                name: 'chatAttachmentGetTitles',
+                params: {conversationIDKey, pathAndOutboxIDs},
               }))
             }
           } catch (error) {
@@ -389,8 +389,8 @@ const PlatformInput = (p: Props) => {
     try {
       const pathAndOutboxIDs = uri.map(path => ({path}))
       navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
+        name: 'chatAttachmentGetTitles',
+        params: {conversationIDKey, pathAndOutboxIDs},
       }))
     } catch (e) {
       logger.info('onPasteImage error', e)

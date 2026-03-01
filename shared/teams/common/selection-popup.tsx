@@ -218,9 +218,9 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
 
   // Members tab functions
   const onAddToChannel = () =>
-    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
+    navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: members}})
   const onRemoveFromTeam = () =>
-    navigateAppend({props: {members: members, teamID}, selected: 'teamReallyRemoveMember'})
+    navigateAppend({name: 'teamReallyRemoveMember', params: {members: members, teamID}})
 
   return (
     <ActionsWrapper>
@@ -305,7 +305,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   // Channels tab functions
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
+  const onDelete = () => navigateAppend({name: 'teamDeleteChannel', params: {teamID}})
 
   return (
     <ActionsWrapper>
@@ -331,11 +331,11 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
 
   // Members tab functions
   const onAddToChannel = () =>
-    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
+    navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: members}})
   const onRemoveFromChannel = () =>
     navigateAppend({
-      props: {conversationIDKey, members: [...members], teamID},
-      selected: 'teamReallyRemoveChannelMember',
+      name: 'teamReallyRemoveChannelMember',
+      params: {conversationIDKey, members: [...members], teamID},
     })
 
   return (

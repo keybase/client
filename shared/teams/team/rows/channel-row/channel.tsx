@@ -32,32 +32,32 @@ const ChannelRow = (props: ChannelRowProps) => {
 
   const onEditChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamEditChannel',
+      params: {
         channelname: channel.channelname,
         conversationIDKey: channel.conversationIDKey,
         description: channel.description,
         teamID,
       },
-      selected: 'teamEditChannel',
     })
   }
   const onNavToChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamChannel',
+      params: {
         conversationIDKey: channel.conversationIDKey,
         teamID,
       },
-      selected: 'teamChannel',
     })
   }
   const onNavToSettings = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamChannel',
+      params: {
         ...props,
         conversationIDKey: channel.conversationIDKey,
         selectedTab: 'settings' as const,
       },
-      selected: 'teamChannel',
     })
   }
 

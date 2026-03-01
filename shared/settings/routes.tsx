@@ -126,5 +126,3 @@ export const newModalRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
   },
 }
-
-export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

@@ -83,7 +83,7 @@ const handleKeybaseLink = (link: string) => {
       try {
         const decoded = decodeURIComponent(link)
         switchTab(Tabs.fsTab)
-        navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
+        navigateAppend({name: 'fsRoot', params: {path: `/keybase/${decoded}`}})
         return
       } catch {
         logger.warn("Couldn't decode KBFS URI")
@@ -92,7 +92,7 @@ const handleKeybaseLink = (link: string) => {
     case 'team':
       try {
         const decoded = decodeURIComponent(link)
-        navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
+        navigateAppend({name: 'fsRoot', params: {path: `/keybase/${decoded}`}})
         return
       } catch {
         logger.warn("Couldn't decode KBFS URI")
@@ -103,7 +103,7 @@ const handleKeybaseLink = (link: string) => {
         if (parts[1]!.includes('#')) {
           const teamChat = parts[1]!.split('#')
           if (teamChat.length !== 2) {
-            navigateAppend({props: {error}, selected: 'keybaseLinkError'})
+            navigateAppend({name: 'keybaseLinkError', params: {error}})
             return
           }
           const [teamname, channelname] = teamChat
@@ -155,5 +155,5 @@ const handleKeybaseLink = (link: string) => {
     default:
       break
   }
-  navigateAppend({props: {error}, selected: 'keybaseLinkError'})
+  navigateAppend({name: 'keybaseLinkError', params: {error}})
 }

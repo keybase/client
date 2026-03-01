@@ -38,5 +38,3 @@ export const newModalRoutes = {
     screen: React.lazy(async () => import('./paper-key')),
   },
 }
-
-export type RootParamListDevices = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

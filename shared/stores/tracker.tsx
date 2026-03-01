@@ -304,10 +304,10 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
               // to get here is with an invalid link or deeplink.
               navigateUp()
               navigateAppend({
-                props: {
+                name: 'keybaseLinkError',
+                params: {
                   error: `You followed a profile link for a user (${assertion}) that does not exist.`,
                 },
-                selected: 'keybaseLinkError',
               })
             }
             // hooked into reloadable

@@ -76,5 +76,3 @@ export const newModalRoutes = {
     screen: React.lazy(async () => import('./recover-password/password')),
   },
 }
-
-export type RootParamListLogin = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

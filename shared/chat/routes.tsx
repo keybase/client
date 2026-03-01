@@ -98,5 +98,3 @@ export const newModalRoutes = {
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup'))
   ),
 }
-
-export type RootParamListChat = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

@@ -55,7 +55,8 @@ function UnfurlMap(p: {idx: number}) {
   const {height, width, imageURL, youAreAuthor, time, id} = data
   const onViewMap = () => {
     navigateAppend({
-      props: {
+      name: 'chatUnfurlMapPopup',
+      params: {
         author,
         conversationIDKey: id,
         coord,
@@ -63,7 +64,6 @@ function UnfurlMap(p: {idx: number}) {
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
         url,
       },
-      selected: 'chatUnfurlMapPopup',
     })
   }
 

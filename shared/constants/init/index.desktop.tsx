@@ -414,7 +414,7 @@ export const initPlatformListener = () => {
     s.dispatch.editAvatar = () => {
       useRouterState
         .getState()
-        .dispatch.navigateAppend({props: {image: undefined}, selected: 'profileEditAvatar'})
+        .dispatch.navigateAppend({name: 'profileEditAvatar', params: {image: undefined}})
     }
   })
 

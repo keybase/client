@@ -79,5 +79,3 @@ export const newModalRoutes = {
   teamWizardSubteamMembers: {screen: React.lazy(async () => import('./new-team/wizard/add-subteam-members'))},
   teamsTeamBuilder,
 }
-
-export type RootParamListTeams = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

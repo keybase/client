@@ -310,10 +310,16 @@ const User = (props: {username: string}) => {
   )
   const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
 
-  const changeTab = (tab: Tab) => {
-    setSelectedTab(tab)
-    usernameSelectedTab.set(p.username, tab)
-  }
+  // useCallback is required here (not just React Compiler memoization) to prevent
+  // "Maximum update depth exceeded" — SectionList's sticky header re-fires refs
+  // when renderSectionHeader identity changes, causing a setState loop.
+  const changeTab = React.useCallback(
+    (tab: Tab) => {
+      setSelectedTab(tab)
+      usernameSelectedTab.set(username, tab)
+    },
+    [username]
+  )
 
   // desktop only
   const wrapperRef = React.useRef<Kb.MeasureRef | null>(null)
@@ -335,93 +341,103 @@ const User = (props: {username: string}) => {
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
-  const friends = selectedTab === 'following' ? p.following : p.followers
   const {itemsInARow, itemWidth} = widthToDimensions(width)
-  const chunks: Array<Item> = width
-    ? chunk(friends, itemsInARow).map(c => {
-        return {
-          itemWidth,
-          type: 'friend',
-          usernames: c,
-        } as const
-      })
-    : []
-  if (chunks.length === 0) {
-    if (p.following && p.followers) {
-      chunks.push({
-        text:
-          selectedTab === 'following'
-            ? `${p.userIsYou ? 'You are' : `${p.username} is`} not following anyone.`
-            : `${p.userIsYou ? 'You have' : `${p.username} has`} no followers.`,
-        type: 'noFriends',
-      })
-    } else {
-      chunks.push({text: 'Loading...', type: 'loading'})
+  const chunks: Array<Item> = React.useMemo(() => {
+    const friends = selectedTab === 'following' ? p.following : p.followers
+    const result: Array<Item> = width
+      ? chunk(friends, itemsInARow).map(c => {
+          return {
+            itemWidth,
+            type: 'friend',
+            usernames: c,
+          } as const
+        })
+      : []
+    if (result.length === 0) {
+      if (p.following && p.followers) {
+        result.push({
+          text:
+            selectedTab === 'following'
+              ? `${p.userIsYou ? 'You are' : `${p.username} is`} not following anyone.`
+              : `${p.userIsYou ? 'You have' : `${p.username} has`} no followers.`,
+          type: 'noFriends',
+        })
+      } else {
+        result.push({text: 'Loading...', type: 'loading'})
+      }
     }
-  }
+    return result
+  }, [selectedTab, p.following, p.followers, width, itemsInARow, itemWidth, p.userIsYou, p.username])
 
   const containerStyle = {
     paddingTop: (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) + insetTop,
   }
 
-  const renderSectionHeader = ({section}: {section: Section}) => {
-    if (section.data[0]?.type === 'bioTeamProofs') return null
-    if (p.notAUser) return null
-
-    const loadingFollowing = p.following === undefined
-    const loadingFollowers = p.followers === undefined
-    return (
-      <Tabs
-        key="tabs"
-        loadingFollowing={loadingFollowing}
-        loadingFollowers={loadingFollowers}
-        numFollowers={p.followersCount}
-        numFollowing={p.followingCount}
-        onSelectTab={changeTab}
-        selectedTab={selectedTab}
-      />
-    )
-  }
-
-  const bioTeamProofsSection = {
-    data: [{type: 'bioTeamProofs'}],
-    renderItem: () => (
-      <BioTeamProofs
-        onAddIdentity={p.onAddIdentity}
-        assertionKeys={p.assertionKeys}
-        backgroundColorType={p.backgroundColorType}
-        username={p.username}
-        name={p.name}
-        service={p.service}
-        serviceIcon={p.serviceIcon}
-        reason={p.reason}
-        sbsAvatarUrl={p.sbsAvatarUrl}
-        suggestionKeys={p.suggestionKeys}
-        onEditAvatar={p.onEditAvatar}
-        notAUser={p.notAUser}
-        fullName={p.fullName}
-        title={p.title}
-      />
-    ),
-  } as const
-
-  const sections: Array<Section> = [
-    bioTeamProofsSection,
-    {
-      data: chunks,
-      renderItem: ({item, index}: {item: Item; index: number}) => {
-        if (item.type === 'bioTeamProofs') return null
-        if (item.type === 'friend') {
-          return <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
-        }
-        return p.notAUser ? null : (
-          <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
-            <Kb.Text type="BodySmall">{item.text}</Kb.Text>
-          </Kb.Box2>
-        )
-      },
+  const loadingFollowing = p.following === undefined
+  const loadingFollowers = p.followers === undefined
+  const renderSectionHeader = React.useCallback(
+    ({section}: {section: Section}) => {
+      if (section.data[0]?.type === 'bioTeamProofs') return null
+      if (p.notAUser) return null
+      return (
+        <Tabs
+          key="tabs"
+          loadingFollowing={loadingFollowing}
+          loadingFollowers={loadingFollowers}
+          numFollowers={p.followersCount}
+          numFollowing={p.followingCount}
+          onSelectTab={changeTab}
+          selectedTab={selectedTab}
+        />
+      )
     },
-  ] as const
+    [p.notAUser, loadingFollowing, loadingFollowers, p.followersCount, p.followingCount, changeTab, selectedTab]
+  )
+
+  const sections: Array<Section> = React.useMemo(
+    () => [
+      {
+        data: [{type: 'bioTeamProofs'}],
+        renderItem: () => (
+          <BioTeamProofs
+            onAddIdentity={p.onAddIdentity}
+            assertionKeys={p.assertionKeys}
+            backgroundColorType={p.backgroundColorType}
+            username={p.username}
+            name={p.name}
+            service={p.service}
+            serviceIcon={p.serviceIcon}
+            reason={p.reason}
+            sbsAvatarUrl={p.sbsAvatarUrl}
+            suggestionKeys={p.suggestionKeys}
+            onEditAvatar={p.onEditAvatar}
+            notAUser={p.notAUser}
+            fullName={p.fullName}
+            title={p.title}
+          />
+        ),
+      } as const,
+      {
+        data: chunks,
+        renderItem: ({item, index}: {item: Item; index: number}) => {
+          if (item.type === 'bioTeamProofs') return null
+          if (item.type === 'friend') {
+            return <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
+          }
+          return p.notAUser ? null : (
+            <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+              <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+            </Kb.Box2>
+          )
+        },
+      },
+    ] as const,
+    [
+      p.onAddIdentity, p.assertionKeys, p.backgroundColorType, p.username, p.name,
+      p.service, p.serviceIcon, p.reason, p.sbsAvatarUrl, p.suggestionKeys,
+      p.onEditAvatar, p.notAUser, p.fullName, p.title, chunks,
+    ]
+  )
 
   return (
     <Kb.Reloadable

@@ -60,12 +60,12 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onAddReaction = () => {
     navigateAppend(conversationIDKey => ({
-      props: {
+      name: 'chatChooseEmoji',
+      params: {
         conversationIDKey,
         onPickAddToMessageOrdinal: ordinal,
         pickKey: 'reaction',
       },
-      selected: 'chatChooseEmoji',
     }))
   }
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
@@ -74,7 +74,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     messageAuthorIsBot(s, meta.teamID, meta.teamname, meta.teamType, author, participantInfo)
   )
   const _onInstallBot = () => {
-    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
+    navigateAppend(() => ({name: 'chatInstallBotPick', params: {botUsername: author}}))
   }
   const onInstallBot = authorIsBot ? _onInstallBot : undefined
 
@@ -143,8 +143,8 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
+      name: 'chatForwardMsgPick',
+      params: {conversationIDKey, ordinal},
     }))
   }
   const onForward = isAttach || (message.unfurls?.size ?? 0) > 0 ? _onForward : undefined // only unfurls for text
@@ -214,7 +214,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const _onKick = () => {
-    navigateAppend(() => ({props: {members: [author], teamID}, selected: 'teamReallyRemoveMember'}))
+    navigateAppend(() => ({name: 'teamReallyRemoveMember', params: {members: [author], teamID}}))
   }
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const authorInTeam = teamMembers?.has(author) ?? true

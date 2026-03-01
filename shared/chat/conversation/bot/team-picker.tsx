@@ -43,8 +43,8 @@ const BotTeamPicker = (props: Props) => {
   const onSelect = (convID: T.RPCChat.ConversationID) => {
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername, conversationIDKey},
     })
   }
 

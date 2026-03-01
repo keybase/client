@@ -16,7 +16,7 @@ const AddPeople = (p: Props) => {
     startAddMembersWizard(teamID)
   }
   const onAddToChannel = () => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
+    navigateAppend(conversationIDKey => ({name: 'chatAddToChannel', params: {conversationIDKey, teamID}}))
   }
 
   let directAction: undefined | (() => void)

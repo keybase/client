@@ -100,7 +100,7 @@ const NonExistent = (props: Props) => (
 const Oops = (props: OwnProps) => {
   const nav = useSafeNavigation()
   const openParent = () =>
-    nav.safeNavigateAppend({props: {path: T.FS.getPathParent(props.path)}, selected: 'fsRoot'})
+    nav.safeNavigateAppend({name: 'fsRoot', params: {path: T.FS.getPathParent(props.path)}})
   switch (props.reason) {
     case T.FS.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />

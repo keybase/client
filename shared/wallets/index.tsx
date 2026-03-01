@@ -13,7 +13,7 @@ const Row = (p: {account: Wallets.Account}) => {
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
-    navigateAppend({props: {accountID}, selected: 'removeAccount'})
+    navigateAppend({name: 'removeAccount', params: {accountID}})
   }
   const onCopied = () => {
     setSK('')

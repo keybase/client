@@ -27,17 +27,17 @@ const BlockButtons = () => {
   )
 
   const onViewProfile = () => showUserProfile(adder)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
   const onBlock = () =>
     nav.safeNavigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         conversationIDKey,
         others: others,
         team: team,
         username: adder,
       },
-      selected: 'chatBlockingModal',
     })
   const onDismiss = () => dismissBlockButtons(teamID)
 

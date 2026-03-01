@@ -90,8 +90,8 @@ const RetentionPicker = (p: Props) => {
           showSaved.current = false
           if (selected) {
             navigateAppend({
-              props: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
-              selected: 'retentionWarning',
+              name: 'retentionWarning',
+              params: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
             })
           }
         } else {

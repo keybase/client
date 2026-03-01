@@ -242,7 +242,7 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
   useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  navigateAppend({props: {index}, selected: 'destinationPicker'})
+  navigateAppend({name: 'destinationPicker', params: {index}})
 }
 
 const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
@@ -1209,8 +1209,8 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             // Don't leave the user on a broken FS dir screen.
             navigateUp()
             navigateAppend({
-              props: {source: 'newFolder', usernames},
-              selected: 'contactRestricted',
+              name: 'contactRestricted',
+              params: {source: 'newFolder', usernames},
             })
           }
           errorToActionOrThrow(error, tlfPath)
@@ -1807,7 +1807,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      navigateAppend({name: 'destinationPicker', params: {index: 0}})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -1822,7 +1822,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      navigateAppend({name: 'destinationPicker', params: {index: 0}})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

@@ -203,8 +203,8 @@ export const navigateAppend = (path: PathParam, replace?: boolean) => {
   if (typeof path === 'string') {
     routeName = path
   } else {
-    routeName = path.selected
-    params = path.props as object
+    routeName = path.name
+    params = path.params as object
   }
   if (!routeName) {
     DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
@@ -248,7 +248,7 @@ export const navToProfile = (username: string) => {
   if (isMobile) {
     clearModals()
   }
-  navigateAppend({props: {username}, selected: 'profile'})
+  navigateAppend({name: 'profile', params: {username}})
 }
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
@@ -263,7 +263,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // navigateAppend with replace uses setParams when the screen is already visible,
     // which avoids remounting the navigator tree.
     switchTab('chatTab' as Tabs.AppTab)
-    navigateAppend({props: {conversationIDKey}, selected: 'chatRoot'}, true)
+    navigateAppend({name: 'chatRoot', params: {conversationIDKey}}, true)
   } else {
     // Phone: full reset to build the chat → conversation stack
     const nextState = {
@@ -283,42 +283,42 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
 
 export const appendPeopleBuilder = () => {
   navigateAppend({
-    props: {
+    name: 'peopleTeamBuilder',
+    params: {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       namespace: 'people',
       title: '',
     },
-    selected: 'peopleTeamBuilder',
   })
 }
 
 export const appendNewChatBuilder = () => {
-  navigateAppend({props: {namespace: 'chat', title: 'New chat'}, selected: 'chatNewChat'})
+  navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
 }
 
 // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
 export const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
   navigateAppend({
-    props: {
+    name: 'teamsTeamBuilder',
+    params: {
       filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
       goButtonLabel: 'Add',
       namespace: 'teams',
       teamID,
       title: '',
     },
-    selected: 'teamsTeamBuilder',
   })
 }
 
 export const appendEncryptRecipientsBuilder = () => {
   navigateAppend({
-    props: {
+    name: 'cryptoTeamBuilder',
+    params: {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       goButtonLabel: 'Add',
       namespace: 'crypto',
       recommendedHideYourself: true,
       title: 'Recipients',
     },
-    selected: 'cryptoTeamBuilder',
   })
 }

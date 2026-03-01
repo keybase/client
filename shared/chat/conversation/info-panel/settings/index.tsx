@@ -40,7 +40,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const navigateAppend = Chat.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
+    navigateAppend(conversationIDKey => ({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}}))
   }
 
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
@@ -49,13 +49,13 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
       navigateAppend(conversationIDKey => ({
-        props: {
+        name: 'chatBlockingModal',
+        params: {
           blockUserByDefault: true,
           conversationIDKey,
           others: membersForBlock,
           team: teamname,
         },
-        selected: 'chatBlockingModal',
       }))
     } else {
       onHideConv()
@@ -69,8 +69,8 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID' as const},
-      selected: 'archiveModal',
+      name: 'archiveModal',
+      params: {conversationIDKey, type: 'chatID' as const},
     }))
   }
 

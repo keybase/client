@@ -30,8 +30,8 @@ function EmojiRowContainer(p: OwnProps) {
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
+      name: 'chatForwardMsgPick',
+      params: {conversationIDKey, ordinal},
     }))
   }
   const onReact = (emoji: string) => {

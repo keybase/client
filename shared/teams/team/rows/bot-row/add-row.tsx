@@ -7,7 +7,7 @@ type Props = {
 const AddBotRow = (props: Props) => {
   const {teamID} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onBotAdd = () => navigateAppend({props: {teamID}, selected: 'chatSearchBots'})
+  const onBotAdd = () => navigateAppend({name: 'chatSearchBots', params: {teamID}})
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.container}>

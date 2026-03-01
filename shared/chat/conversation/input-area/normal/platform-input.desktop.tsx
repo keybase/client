@@ -153,8 +153,8 @@ const FileButton = function FileButton(p: {
     }, [])
     if (pathAndOutboxIDs?.length) {
       navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
+        name: 'chatAttachmentGetTitles',
+        params: {conversationIDKey, pathAndOutboxIDs},
       }))
     }
 

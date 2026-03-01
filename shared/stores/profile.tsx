@@ -417,11 +417,11 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
             })
             if (error.code === T.RPCGen.StatusCode.scgeneric && reason === 'appLink') {
               navigateAppend({
-                props: {
+                name: 'keybaseLinkError',
+                params: {
                   error:
                     "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
                 },
-                selected: 'keybaseLinkError',
               })
             }
           }

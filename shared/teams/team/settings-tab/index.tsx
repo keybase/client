@@ -376,7 +376,7 @@ const Container = (ownProps: OwnProps) => {
       setPublicity(teamID, settings)
     }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
-      navigateAppend({props: {isOpenTeam, teamname}, selected: 'openTeamWarning'})
+      navigateAppend({name: 'openTeamWarning', params: {isOpenTeam, teamname}})
     }
   const allowOpenTrigger = useSettingsTabState(s => s.allowOpenTrigger)
 

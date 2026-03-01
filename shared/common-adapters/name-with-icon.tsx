@@ -368,7 +368,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const onOpenTeamProfile = () => {
     if (teamID) {
       clearModals()
-      navigateAppend({props: {teamID}, selected: 'team'})
+      navigateAppend({name: 'team', params: {teamID}})
     }
   }
   const showUser = useTrackerState(s => s.dispatch.showUser)

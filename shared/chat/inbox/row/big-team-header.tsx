@@ -23,7 +23,7 @@ const BigTeamHeaderInner = (props: Props) => {
   const {teamID, teamname} = props
   const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = () => navigateAppend({props: {teamID}, selected: 'team'})
+  const onClick = () => navigateAppend({name: 'team', params: {teamID}})
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p

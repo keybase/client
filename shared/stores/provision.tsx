@@ -555,7 +555,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
         s.startProvisionTrigger++
         s.username = name
       })
-      navigateAppend({props: {fromReset}, selected: 'username'})
+      navigateAppend({name: 'username', params: {fromReset}})
     },
   }
 

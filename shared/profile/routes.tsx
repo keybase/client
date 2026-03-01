@@ -69,5 +69,3 @@ export const newModalRoutes = {
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke'))),
   profileShowcaseTeamOffer: {screen: React.lazy(async () => import('./showcase-team-offer'))},
 }
-
-export type RootParamListProfile = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

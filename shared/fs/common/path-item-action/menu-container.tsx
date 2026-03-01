@@ -159,7 +159,7 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-chat',
           onClick: hideAndCancelAfter(() => {
-            path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
+            path && navigateAppend({name: 'chatSendToChat', params: {sendPaths: [path]}})
           }),
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
@@ -246,7 +246,7 @@ const Container = (op: OwnProps) => {
           danger: true,
           icon: 'iconfont-trash',
           onClick: hideAfter(() => {
-            navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
+            navigateAppend({name: 'confirmDelete', params: {mode, path}})
           }),
           title: 'Delete',
         },
@@ -257,8 +257,8 @@ const Container = (op: OwnProps) => {
     path && layout.archive && pathItem.type === T.FS.PathType.Folder
       ? () => {
           navigateAppend({
-            props: {path, type: 'fsPath' as const},
-            selected: 'archiveModal',
+            name: 'archiveModal',
+            params: {path, type: 'fsPath' as const},
           })
         }
       : undefined

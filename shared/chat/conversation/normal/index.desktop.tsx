@@ -34,8 +34,8 @@ const Conversation = function Conversation() {
   const onAttach = (paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({path: p}))
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, pathAndOutboxIDs},
-      selected: 'chatAttachmentGetTitles',
+      name: 'chatAttachmentGetTitles',
+      params: {conversationIDKey, pathAndOutboxIDs},
     }))
   }
   const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)

@@ -6,7 +6,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
   const nav = useSafeNavigation()
   const onCreateChannel = () =>
-    nav.safeNavigateAppend({props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'})
+    nav.safeNavigateAppend({name: 'chatCreateChannel', params: {...props, navToChatOnSuccess: false}})
 
   const waitingKey = C.waitingKeyTeamsGetChannels(props.teamID)
   const waitingForGet = C.Waiting.useAnyWaiting(waitingKey)

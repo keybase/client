@@ -1,18 +1,16 @@
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import type {RootParamListGit} from '../git/routes'
-import type {RootParamListPeople} from '../people/routes'
-import type {RootParamListProfile} from '../profile/routes'
-import type {RootParamListFS} from '@/fs/routes'
-import type {RootParamListTeams} from '../teams/routes'
-import type {RootParamListChat} from '../chat/routes'
-import type {RootParamListWallets} from '../wallets/routes'
-import type {RootParamListDevices} from '../devices/routes'
-import type {RootParamListCrypto} from '../crypto/routes'
-import type {RootParamListLogin} from '../login/routes'
-import type {RootParamListSettings} from '../settings/routes'
-import type {RootParamListSignup} from '../signup/routes'
-import type {RootParamListIncomingShare} from '../incoming-share/routes'
+import type {routes, modalRoutes, loggedOutRoutes} from './routes'
+
+type _ExtractParams<T> = {
+  [K in keyof T]: T[K] extends {screen: infer U}
+    ? U extends (args: infer V) => any
+      ? V extends {route: {params: infer W}}
+        ? W
+        : undefined
+      : undefined
+    : undefined
+}
 
 type Tabs = {
   'tabs.chatTab': undefined
@@ -40,20 +38,10 @@ type TabRoots =
   | 'devicesRoot'
   | 'settingsRoot'
 
-export type RootParamList = RootParamListIncomingShare &
-  RootParamListSignup &
-  RootParamListLogin &
-  RootParamListWallets &
-  RootParamListChat &
-  RootParamListTeams &
-  RootParamListFS &
-  RootParamListPeople &
-  RootParamListProfile &
-  RootParamListCrypto &
-  RootParamListDevices &
-  RootParamListSettings &
-  RootParamListGit &
-  Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined} // special in root navigator
+type _AllScreens = typeof routes & typeof modalRoutes & typeof loggedOutRoutes
+
+export type RootParamList = _ExtractParams<_AllScreens> &
+  Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
 
 export type RouteKeys = keyof RootParamList
 type AllOptional<T> = {
@@ -65,8 +53,8 @@ type Distribute<U> = U extends RouteKeys
   ? RootParamList[U] extends undefined
     ? U
     : AllOptional<RootParamList[U]> extends true
-      ? {selected: U; props: RootParamList[U]} | U
-      : {selected: U; props: RootParamList[U]}
+      ? {name: U; params: RootParamList[U]} | U
+      : {name: U; params: RootParamList[U]}
   : never
 export type NavigateAppendType = Distribute<RouteKeys>
 
