@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
@@ -21,157 +20,199 @@ const headerBackgroundColorType = (
   }
 }
 
-// Compute a stable primitive string from assertion entries. The assertions Map
-// gets a new reference on every Immer store update, but the sorted keys are
-// the same unless assertions actually change. By joining to a string (primitive),
-// downstream useMemo deps compare by value rather than reference.
-const assertionKeysToStr = (assertions: ReadonlyMap<string, T.Tracker.Assertion> | undefined): string | undefined => {
-  if (!assertions) return undefined
-  return [...assertions.entries()]
-    .sort((a, b) => a[1].priority - b[1].priority)
-    .map(e => e[0])
-    .join('\0')
-}
+// const filterWebOfTrustEntries = memoize(
+//   (
+//     webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
+//   ): Array<T.Tracker.WebOfTrustEntry> =>
+//     webOfTrustEntries ? webOfTrustEntries.filter(C.Tracker.showableWotEntry) : []
+// )
 
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const userIsYou = username === myName
-
-  // Select individual properties from Details instead of the whole `d` object.
-  // Immer creates a new Details object on every assertion verification, but
-  // primitives compare equal by value and untouched Sets keep the same reference,
-  // so useShallow won't trigger re-renders for assertion-only updates.
   const trackerState = useTrackerState(
     C.useShallow(s => {
-      const d = s.getDetails(username)
       const _suggestionKeys = userIsYou ? s.proofSuggestions : undefined
       return {
         _suggestionKeys,
-        assertionKeysStr: assertionKeysToStr(d.assertions),
-        blocked: d.blocked,
-        detailState: d.state,
-        followers: d.followers,
-        followersCount: d.followersCount,
-        following: d.following,
-        followingCount: d.followingCount,
+        d: s.getDetails(username),
         getProofSuggestions: s.dispatch.getProofSuggestions,
-        hidFromFollowers: d.hidFromFollowers,
         loadNonUserProfile: s.dispatch.loadNonUserProfile,
         nonUserDetails: s.getNonUserDetails(username),
-        reason: d.reason,
         showUser: s.dispatch.showUser,
       }
     })
   )
-  const {
-    _suggestionKeys, assertionKeysStr, blocked, detailState, followers: followersSet,
-    followersCount, following: followingSet, followingCount, getProofSuggestions,
-    hidFromFollowers, loadNonUserProfile, nonUserDetails, reason, showUser,
-  } = trackerState
+  const {d, getProofSuggestions, loadNonUserProfile, nonUserDetails, showUser, _suggestionKeys} = trackerState
+  const notAUser = d.state === 'notAUserYet'
 
-  const notAUser = detailState === 'notAUserYet'
+  const commonProps = {
+    _assertions: undefined,
+    _suggestionKeys: undefined,
+    blocked: d.blocked,
+    followThem: false,
+    followers: undefined,
+    followersCount: 0,
+    following: undefined,
+    followingCount: 0,
+    fullName: '',
+    guiID: d.guiID,
+    hidFromFollowers: d.hidFromFollowers,
+    myName,
+    name: '',
+    reason: d.reason,
+    service: '',
+    state: d.state,
+    userIsYou,
+    username,
+  }
 
   const followThem = useFollowerState(s => s.following.has(username))
+  // const followsYou = useFollowerState(s => s.followers.has(username))
+  // const mutualFollow = followThem && followsYou
 
   const isDarkMode = useColorScheme() === 'dark'
+  const stateProps = (() => {
+    if (!notAUser) {
+      // Keybase user
+      const {followersCount, followingCount, followers, following, reason /*, webOfTrustEntries = []*/} = d
 
-  // Compute background color
-  const backgroundColorType = headerBackgroundColorType(detailState, notAUser ? false : followThem)
+      // const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
+      // const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
+      // const vouchShowButton = mutualFollow && !hasAlreadyVouched
+      // const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
 
-  // SBS-specific derived values
-  const sbsName = notAUser ? (nonUserDetails.assertionValue || username) : ''
-  const sbsService = notAUser ? nonUserDetails.assertionKey : ''
-  const sbsTitle = notAUser ? (nonUserDetails.formattedName || sbsName) : ''
-  const sbsFullName = notAUser ? nonUserDetails.fullName : ''
-  const sbsAvatarUrl = notAUser ? (nonUserDetails.pictureUrl || undefined) : undefined
-  const sbsServiceIcon = notAUser
-    ? (isDarkMode ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull)
-    : undefined
+      return {
+        ...commonProps,
+        _assertions: d.assertions,
+        _suggestionKeys,
+        backgroundColorType: headerBackgroundColorType(d.state, followThem),
+        followThem,
+        followers,
+        followersCount,
+        following,
+        followingCount,
+        reason,
+        sbsAvatarUrl: undefined,
+        serviceIcon: undefined,
+        title: username,
+        // vouchDisableButton,
+        // vouchShowButton,
+        // webOfTrustEntries: filteredWot,
+      }
+    } else {
+      // SBS profile. But `nonUserDetails` might not have arrived yet,
+      // make sure the screen does not appear broken until then.
+      const name = nonUserDetails.assertionValue || username
+      const service = nonUserDetails.assertionKey
+      // For SBS profiles, display service username as the "big username". Some
+      // profiles will have a special formatting for the name, e.g. phone numbers
+      // will be formatted.
+      const title = nonUserDetails.formattedName || name
 
-  const onEditAvatar = useProfileState(s => s.dispatch.editAvatar)
+      return {
+        ...commonProps,
+        backgroundColorType: headerBackgroundColorType(d.state, false),
+        fullName: nonUserDetails.fullName,
+        name,
+        sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
+        service,
+        serviceIcon: isDarkMode ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
+        title,
+        vouchDisableButton: true,
+        vouchShowButton: false,
+        webOfTrustEntries: [],
+      }
+    }
+  })()
+
+  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
+  const _onEditAvatar = editAvatar
+  // const _onIKnowThem = (username: string, guiID: string) => {
+  //   dispatch(
+  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
+  //   )
+  // }
+  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
+    if (state !== 'valid' && !isYou) {
+      // Might be a Keybase user or not, launch non-user profile fetch.
+      loadNonUserProfile(username)
+    }
+    if (state !== 'notAUserYet') {
+      showUser(username, false, true)
+
+      if (isYou) {
+        getProofSuggestions()
+      }
+    }
+  }
   const {navigateAppend, navigateUp} = C.useRouterState(
     C.useShallow(s => ({
       navigateAppend: s.dispatch.navigateAppend,
       navigateUp: s.dispatch.navigateUp,
     }))
   )
-
-  const onReload = React.useCallback(() => {
-    if (detailState !== 'valid' && !userIsYou) {
-      loadNonUserProfile(username)
-    }
-    if (detailState !== 'notAUserYet') {
-      showUser(username, false, true)
-      if (userIsYou) {
-        getProofSuggestions()
-      }
-    }
-  }, [detailState, userIsYou, username, loadNonUserProfile, showUser, getProofSuggestions])
-
-  const onAddIdentity = React.useCallback(() => {
+  const onAddIdentity = () => {
     navigateAppend('profileProofsList')
-  }, [navigateAppend])
-
-  const onBack = React.useCallback(() => {
+  }
+  const onBack = () => {
     navigateUp()
-  }, [navigateUp])
+  }
 
-  const allowOnAddIdentity = userIsYou && !!_suggestionKeys?.some(s => s.belowFold)
+  let allowOnAddIdentity = false
+  if (stateProps.userIsYou && stateProps._suggestionKeys?.some(s => s.belowFold)) {
+    allowOnAddIdentity = true
+  }
 
-  // Memoize Set→Array conversions so downstream deps stay stable.
-  // Immer reuses untouched Sets, so these only bust when followers/following actually change.
-  const followers = React.useMemo(
-    () => (followersSet ? [...followersSet] : undefined),
-    [followersSet]
-  )
-  const following = React.useMemo(
-    () => (followingSet ? [...followingSet] : undefined),
-    [followingSet]
-  )
+  let assertionKeys =
+    notAUser && !!stateProps.service
+      ? [stateProps.username]
+      : stateProps._assertions
+        ? [...stateProps._assertions.entries()].sort((a, b) => a[1].priority - b[1].priority).map(e => e[0])
+        : undefined
 
-  const service = notAUser ? sbsService : ''
+  // For 'phone' or 'email' profiles do not display placeholder assertions.
+  const service = stateProps.service
   const impTofu = notAUser && (service === 'phone' || service === 'email')
-
-  // assertionKeysStr is already a primitive string from the selector, so useMemo
-  // compares by value and won't bust when the Map reference changes.
-  const assertionKeys = React.useMemo(() => {
-    if (notAUser && !!service) return [username]
-    if (impTofu) return []
-    if (assertionKeysStr !== undefined) return assertionKeysStr.split('\0')
-    return undefined
-  }, [notAUser, service, username, impTofu, assertionKeysStr])
-
-  const suggestionKeys = React.useMemo(
-    () => _suggestionKeys?.filter(s => !s.belowFold).map(s => s.assertionKey),
-    [_suggestionKeys]
-  )
+  if (impTofu) {
+    assertionKeys = []
+  }
 
   return {
     assertionKeys,
-    backgroundColorType,
-    blocked,
-    followThem,
-    followers,
-    followersCount: followersCount ?? 0,
-    following,
-    followingCount: followingCount ?? 0,
-    fullName: notAUser ? sbsFullName : '',
-    hidFromFollowers,
-    name: notAUser ? sbsName : '',
+    backgroundColorType: stateProps.backgroundColorType,
+    blocked: stateProps.blocked,
+    followThem: stateProps.followThem,
+    followers: stateProps.followers ? [...stateProps.followers] : undefined,
+    followersCount: stateProps.followersCount,
+    following: stateProps.following ? [...stateProps.following] : undefined,
+    followingCount: stateProps.followingCount,
+    fullName: stateProps.fullName,
+    hidFromFollowers: stateProps.hidFromFollowers,
+    name: stateProps.name,
     notAUser,
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
-    onBack,
-    onEditAvatar: userIsYou ? onEditAvatar : undefined,
-    onReload,
-    reason,
-    sbsAvatarUrl,
-    service,
-    serviceIcon: sbsServiceIcon,
-    state: detailState,
-    suggestionKeys,
-    title: notAUser ? sbsTitle : username,
-    userIsYou,
-    username,
+    onBack: onBack,
+    onEditAvatar: stateProps.userIsYou ? _onEditAvatar : undefined,
+    // onIKnowThem:
+    //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
+    //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
+    //     : undefined,
+    onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
+    reason: stateProps.reason,
+    sbsAvatarUrl: stateProps.sbsAvatarUrl,
+    service: stateProps.service,
+    serviceIcon: stateProps.serviceIcon,
+    state: stateProps.state,
+    suggestionKeys: stateProps._suggestionKeys
+      ? stateProps._suggestionKeys.filter(s => !s.belowFold).map(s => s.assertionKey)
+      : undefined,
+    title: stateProps.title,
+    userIsYou: stateProps.userIsYou,
+    username: stateProps.username,
+    // vouchDisableButton: stateProps.vouchDisableButton,
+    // vouchShowButton: stateProps.vouchShowButton,
+    // webOfTrustEntries: stateProps.webOfTrustEntries,
   }
 }
 
