@@ -69,9 +69,9 @@ const useScrolling = (p: {
     pointerWrapperRef.current = r
   }
 
-  const isLockedToBottom = () => {
+  const isLockedToBottom = C.useEvent(() => {
     return lockedToBottomRef.current
-  }
+  })
 
   const adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
     ignoreOnScrollRef.current = true
@@ -94,7 +94,7 @@ const useScrolling = (p: {
     }
   }
 
-  const scrollToBottomSync = () => {
+  const scrollToBottomSync = C.useEvent(() => {
     lockedToBottomRef.current = true
     const list = listRef.current
     if (list) {
@@ -102,16 +102,16 @@ const useScrolling = (p: {
         list.scrollTop = list.scrollHeight - list.clientHeight
       })
     }
-  }
+  })
 
-  const scrollToBottom = () => {
+  const scrollToBottom = C.useEvent(() => {
     scrollToBottomSync()
     setTimeout(() => {
       requestAnimationFrame(scrollToBottomSync)
     }, 1)
-  }
+  })
 
-  const performScrollToCentered = () => {
+  const performScrollToCentered = C.useEvent(() => {
     const list = listRef.current
     const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)[0] as HTMLElement | undefined
     if (!list || !waypoint) return
@@ -123,26 +123,26 @@ const useScrolling = (p: {
     adjustScrollAndIgnoreOnScroll(() => {
       list.scrollTop = clamped
     })
-  }
+  })
 
-  const scrollToCentered = () => {
+  const scrollToCentered = C.useEvent(() => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         performScrollToCentered()
         setTimeout(performScrollToCentered, 50)
       })
     })
-  }
+  })
 
-  const scrollDown = () => {
+  const scrollDown = C.useEvent(() => {
     const list = listRef.current
     list &&
       adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop += list.clientHeight
       })
-  }
+  })
 
-  const scrollUp = () => {
+  const scrollUp = C.useEvent(() => {
     lockedToBottomRef.current = false
     const list = listRef.current
     list &&
@@ -150,18 +150,6 @@ const useScrolling = (p: {
         list.scrollTop -= list.clientHeight
         checkForLoadMoreThrottled()
       })
-  }
-
-  // Refs for stable access from effects without adding to deps
-  const scrollToBottomRef = React.useRef(scrollToBottom)
-  const scrollToCenteredRef = React.useRef(scrollToCentered)
-  const scrollDownRef = React.useRef(scrollDown)
-  const scrollUpRef = React.useRef(scrollUp)
-  React.useEffect(() => {
-    scrollToBottomRef.current = scrollToBottom
-    scrollToCenteredRef.current = scrollToCentered
-    scrollDownRef.current = scrollDown
-    scrollUpRef.current = scrollUp
   })
 
   const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -206,7 +194,7 @@ const useScrolling = (p: {
   // we did it so we should ignore it
   const programaticScrollRef = React.useRef(false)
 
-  const onScroll = () => {
+  const onScroll = C.useEvent(() => {
     if (programaticScrollRef.current) {
       programaticScrollRef.current = false
       return
@@ -224,20 +212,17 @@ const useScrolling = (p: {
     lockedToBottomRef.current = false
     checkForLoadMoreThrottled()
     onScrollThrottled()
-  }
+  })
 
   const setListRef = (list: HTMLDivElement | null) => {
+    if (listRef.current) {
+      listRef.current.removeEventListener('scroll', onScroll)
+    }
+    if (list) {
+      list.addEventListener('scroll', onScroll, {passive: true})
+    }
     _setListRef(list)
   }
-
-  React.useEffect(() => {
-    const list = listRef.current
-    if (!list) return
-    list.addEventListener('scroll', onScroll, {passive: true})
-    return () => {
-      list.removeEventListener('scroll', onScroll)
-    }
-  })
 
   React.useEffect(() => {
     return () => {
@@ -271,11 +256,11 @@ const useScrolling = (p: {
 
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
-      scrollToCenteredRef.current()
+      scrollToCentered()
     } else {
-      scrollToBottomRef.current()
+      scrollToBottom()
     }
-  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead])
+  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
 
   const firstOrdinal = messageOrdinals[0]
   const prevFirstOrdinalRef = React.useRef(firstOrdinal)
@@ -306,7 +291,7 @@ const useScrolling = (p: {
       olderMessagesAdded &&
       list &&
       !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
-      !lockedToBottomRef.current &&
+      !isLockedToBottom() &&
       isMounted() &&
       scrollBottomOffsetRef.current !== undefined
     ) {
@@ -316,7 +301,7 @@ const useScrolling = (p: {
     }
     return undefined
     // we want this to fire when the ordinals change
-  }, [centeredOrdinal, ordinalsLength, isMounted, listRef, firstOrdinal])
+  }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
 
   // Also handle centered ordinal changing while already loaded (e.g. from thread search results)
   const prevCenteredOrdinal = React.useRef(centeredOrdinal)
@@ -333,21 +318,17 @@ const useScrolling = (p: {
 
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
-      scrollToCenteredRef.current()
+      scrollToCentered()
     } else if (containsLatestMessage) {
       lockedToBottomRef.current = true
-      scrollToBottomRef.current()
+      scrollToBottom()
     }
-  }, [centeredOrdinal, loaded, containsLatestMessage])
+  }, [centeredOrdinal, loaded, containsLatestMessage, scrollToCentered, scrollToBottom])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
-    setScrollRef({
-      scrollDown: () => scrollDownRef.current(),
-      scrollToBottom: () => scrollToBottomRef.current(),
-      scrollUp: () => scrollUpRef.current(),
-    })
-  }, [setScrollRef])
+    setScrollRef({scrollDown, scrollToBottom, scrollUp})
+  }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
   const editingOrdinal = Chat.useChatContext(s => s.editing)

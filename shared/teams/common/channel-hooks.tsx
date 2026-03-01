@@ -34,7 +34,7 @@ export const useAllChannelMetas = (
 
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  const reloadChannels = async () =>
+  const reloadChannels = C.useEvent(async () =>
       new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
         getConversations(
@@ -71,19 +71,15 @@ export const useAllChannelMetas = (
           }
         )
       })
-
-  const reloadChannelsRef = React.useRef(reloadChannels)
-  React.useEffect(() => {
-    reloadChannelsRef.current = reloadChannels
-  })
+  )
 
   React.useEffect(() => {
     if (!dontCallRPC) {
-      reloadChannelsRef.current()
+      reloadChannels()
         .then(() => {})
         .catch(() => {})
     }
-  }, [dontCallRPC])
+  }, [reloadChannels, dontCallRPC])
 
   return {channelMetas, loadingChannels, reloadChannels}
 }
