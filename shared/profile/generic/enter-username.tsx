@@ -146,7 +146,6 @@ type InputProps = {
 }
 
 const EnterUsernameInput = (props: InputProps) => {
-  const [focus, setFocus] = React.useState(false)
   const [username, setUsername] = React.useState(props.username)
   const {onChangeUsername: _onChangeUsername} = props
 
@@ -155,60 +154,27 @@ const EnterUsernameInput = (props: InputProps) => {
     setUsername(username)
   }
 
-  const onFocus = () => setFocus(true)
-  const onBlur = () => setFocus(false)
-
-  // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
   const usernamePlaceholder = props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
   return (
-    <Kb.Box2
-      direction="vertical"
-      style={Kb.Styles.collapseStyles([
-        styles.inputBox,
-        username && styles.inputBoxSmall,
-        focus && styles.borderBlue,
-        props.error && styles.borderRed,
-      ])}
-      fullWidth={true}
-    >
-      {!!username && (
-        <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
-          {usernamePlaceholder}
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
-        <SiteIcon
-          set={props.serviceIcon}
-          full={false}
-          style={username ? styles.opacity75 : styles.opacity40}
-        />
-        <Kb.Box2 direction="horizontal" relative={true} fullWidth={true}>
-          <Kb.PlainInput
-            autoFocus={true}
-            flexable={true}
-            textType="BodySemibold"
-            value={username}
-            onChangeText={onChangeUsername}
-            onEnterKeyDown={props.onEnterKeyDown}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            style={styles.input}
-          />
-          <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
-            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
-              <Kb.Text
-                type="BodySemibold"
-                style={Kb.Styles.collapseStyles([styles.placeholder, !!username && styles.invisible])}
-              >
-                {username || usernamePlaceholder}
-              </Kb.Text>
-              <Kb.Text type="BodySemibold" style={styles.placeholderService}>
-                {props.serviceSuffix}
-              </Kb.Text>
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
+      <SiteIcon
+        set={props.serviceIcon}
+        full={false}
+        style={username ? styles.opacity75 : styles.opacity40}
+      />
+      <Kb.Input3
+        autoFocus={true}
+        value={username}
+        onChangeText={onChangeUsername}
+        onEnterKeyDown={props.onEnterKeyDown}
+        placeholder={usernamePlaceholder}
+        error={props.error}
+        decoration={
+          <Kb.Text type="BodySemibold" style={styles.placeholderService}>
+            {props.serviceSuffix}
+          </Kb.Text>
+        }
+      />
     </Kb.Box2>
   )
 }
@@ -256,8 +222,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         top: Kb.Styles.globalMargins.small,
       },
-      borderBlue: {borderColor: Kb.Styles.globalColors.blue},
-      borderRed: {borderColor: Kb.Styles.globalColors.red},
       buttonBar: {
         ...Kb.Styles.padding(
           Kb.Styles.globalMargins.small,
@@ -268,7 +232,6 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
-      colorBlue: {color: Kb.Styles.globalColors.blueDark},
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
 
@@ -276,11 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      input: Kb.Styles.platformStyles({
-        common: {marginRight: Kb.Styles.globalMargins.medium},
-        isAndroid: {top: 1},
-        isElectron: {marginTop: -1},
-      }),
       inputBox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
         borderColor: Kb.Styles.globalColors.black_10,
@@ -289,29 +247,15 @@ const styles = Kb.Styles.styleSheetCreate(
         borderWidth: 1,
         padding: Kb.Styles.globalMargins.xsmall,
       },
-      inputBoxSmall: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall)},
       inputContainer: {
         ...Kb.Styles.padding(
           0,
           Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.medium
         ),
       },
-      inputPlaceholder: {
-        left: 1,
-        position: 'absolute',
-        right: 0,
-        top: 1,
-      },
-      invisible: {
-        // opacity doesn't work in nested Text on android
-        // see here: https://github.com/facebook/react-native/issues/18057
-        color: Kb.Styles.globalColors.transparent,
-      },
       marginLeftAuto: {marginLeft: 'auto'},
       opacity40: {opacity: 0.4},
       opacity75: {opacity: 0.75},
-      paddingRightTiny: {paddingRight: Kb.Styles.globalMargins.tiny},
-      placeholder: {color: Kb.Styles.globalColors.black_35},
       placeholderService: {color: Kb.Styles.globalColors.black_20},
       serviceIconFull: {
         height: 64,
