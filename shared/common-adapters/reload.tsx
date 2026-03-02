@@ -76,8 +76,14 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  const stableReload = C.useEvent(() => {
-    reloadOnMount && onReload()
+  const reloadOnMountRef = React.useRef(reloadOnMount)
+  const onReloadRef = React.useRef(onReload)
+  React.useEffect(() => {
+    reloadOnMountRef.current = reloadOnMount
+    onReloadRef.current = onReload
+  }, [reloadOnMount, onReload])
+  const [stableReload] = React.useState(() => () => {
+    reloadOnMountRef.current && onReloadRef.current()
   })
   C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
