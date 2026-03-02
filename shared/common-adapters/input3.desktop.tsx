@@ -11,7 +11,7 @@ import type {Input3Props, Input3Ref} from './input3'
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
   const {error, growAndScroll, hideBorder, icon, inputStyle, maxLength, multiline, selectTextOnFocus} = props
-  const {onBlur: onBlurProp, onChangeText, onEnterKeyDown, onFocus: onFocusProp, onKeyDown: onKeyDownProp} = props
+  const {onBlur: onBlurProp, onChangeText, onClick, onEnterKeyDown, onFocus: onFocusProp, onKeyDown: onKeyDownProp} = props
   const {placeholder, prefix, ref, rowsMax, rowsMin, secureTextEntry, textType = 'BodySemibold', value} = props
 
   const [focused, setFocused] = React.useState(false)
@@ -81,6 +81,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     maxLength,
     onBlur,
     onChange,
+    onClick,
     onCompositionEnd,
     onCompositionStart,
     onFocus,

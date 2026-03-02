@@ -50,6 +50,7 @@ export type Input3Props = {
   // Focus
   onFocus?: () => void
   onBlur?: () => void
+  onClick?: (event: React.BaseSyntheticEvent) => void
 
   // iOS autofill
   textContentType?: TextContentType

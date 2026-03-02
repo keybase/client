@@ -151,7 +151,7 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
     }
   }
   Kb.useHotKey('esc', onHotKey)
-  const inputRef = React.createRef<Kb.PlainInputRef>()
+  const inputRef = React.createRef<Kb.Input3Ref>()
   const onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
@@ -206,15 +206,16 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
       <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
-            <Kb.PlainInput
+            <Kb.Input3
               autoFocus={true}
-              flexable={true}
               onChangeText={onChangedText}
               onEnterKeyDown={onEnter}
               onKeyDown={onKeyDown}
               placeholder="Search..."
               ref={inputRef}
               value={text}
+              hideBorder={true}
+              containerStyle={styles.bareInput}
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -259,7 +260,7 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
   const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
   const {inProgress, hasResults, selectedIndex, text, style, status} = props
 
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
   const onceRef = React.useRef(false)
   React.useEffect(() => {
     if (onceRef.current) return
@@ -279,15 +280,16 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
-            <Kb.PlainInput
+            <Kb.Input3
               ref={inputRef}
               autoFocus={false}
-              flexable={true}
               onChangeText={onChangedText}
               onEnterKeyDown={onEnter}
               placeholder="Search..."
               returnKeyType="search"
               value={text}
+              hideBorder={true}
+              containerStyle={styles.bareInput}
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -321,6 +323,7 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      bareInput: {backgroundColor: Kb.Styles.globalColors.transparent, flex: 1, padding: 0, width: 'auto'},
       done: {color: Kb.Styles.globalColors.blueDark},
       doneContainer: {flexShrink: 0},
       hitList: Kb.Styles.platformStyles({

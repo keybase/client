@@ -5,7 +5,7 @@ import Text from './text'
 import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
-import PlainInput, {type PlainInputRef} from './plain-input'
+import Input3, {type Input3Ref} from './input3'
 import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
@@ -29,8 +29,8 @@ const Kb = {
   FloatingMenu,
   FloatingPicker,
   Icon,
+  Input3,
   NativeEmoji,
-  PlainInput,
   ProgressIndicator,
   SearchFilter,
   Text,
@@ -271,7 +271,7 @@ const PhoneInput = (p: Props) => {
   )
   const [prefix, setPrefix] = React.useState(p.defaultCountry && getCallingCode(p.defaultCountry).slice(1))
 
-  const phoneInputRef = React.useRef<PlainInputRef | null>(null)
+  const phoneInputRef = React.useRef<Input3Ref | null>(null)
   const countrySelectorRef = React.useRef<CountrySelectorRef | null>(null)
 
   // AsYouTypeFormatter doesn't support backspace
@@ -587,11 +587,12 @@ const PhoneInput = (p: Props) => {
             <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
               {'+'}
             </Kb.Text>
-            <Kb.PlainInput
-              style={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
-              flexable={true}
+            <Kb.Input3
+              hideBorder={true}
+              containerStyle={styles.bareInput}
+              inputStyle={Styles.collapseStyles([styles.plainInputBig, styles.prefixInput])}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              onChangeText={_newText => {
+              onChangeText={(_newText: string) => {
                 let newText = filterNumeric(_newText)
                 const matchedCountry = codeToCountry()[newText]
                 if (matchedCountry) {
@@ -625,13 +626,14 @@ const PhoneInput = (p: Props) => {
             !isSmall && focused && styles.highlight,
           ])}
         >
-          <Kb.PlainInput
+          <Kb.Input3
             autoFocus={autoFocus}
-            style={isSmall ? styles.plainInputSmall : styles.plainInputBig}
-            flexable={true}
+            hideBorder={true}
+            containerStyle={styles.bareInput}
+            inputStyle={isSmall ? styles.plainInputSmall : styles.plainInputBig}
             keyboardType={isIOS ? 'number-pad' : 'numeric'}
             placeholder={getPlaceholder(country)}
-            onChangeText={x => reformatPhoneNumberNoSkipCountry(x)}
+            onChangeText={(x: string) => reformatPhoneNumberNoSkipCountry(x)}
             onEnterKeyDown={onEnterKeyDown}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -652,6 +654,7 @@ const PhoneInput = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      bareInput: {backgroundColor: Styles.globalColors.transparent, flex: 1, padding: 0, width: 'auto'},
       clearIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
