@@ -1,7 +1,5 @@
 TOOD:
 react-native-screens header doesn't handle dyanmic colors still https://github.com/software-mansion/react-native-screens/issues/3570
-expo image broken, falling back to rn for now . small circle issue
-
 
 
 ios:
