@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import type {MeasureRef} from './measure-ref'
 
@@ -18,7 +17,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const attachTo = popupAnchor
   const lastToggle = React.useRef(0)
 
-  const hidePopup = C.useEvent(() => {
+  const [hidePopup] = React.useState(() => () => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
       return
@@ -26,7 +25,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
     lastToggle.current = now
     setShowingPopup(false)
   })
-  const showPopup = C.useEvent(() => {
+  const [showPopup] = React.useState(() => () => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
       return
