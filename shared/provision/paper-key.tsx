@@ -64,19 +64,18 @@ export const PaperKey = (props: Props) => {
           <Kb.Icon type="icon-paper-key-64" />
           <Kb.Text type="Header">{props.hint}</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.inputContainer}>
-          <Kb.PlainInput
-            autoFocus={true}
-            multiline={true}
-            rowsMax={3}
-            placeholder="Type in your entire paper key"
-            textType="Body"
-            style={styles.input}
-            onEnterKeyDown={_onSubmit}
-            onChangeText={setPaperKey}
-            value={paperKey}
-          />
-        </Kb.Box2>
+        <Kb.Input3
+          autoFocus={true}
+          multiline={true}
+          rowsMax={3}
+          placeholder="Type in your entire paper key"
+          textType="Body"
+          containerStyle={styles.container2}
+          inputStyle={styles.inputText}
+          onEnterKeyDown={_onSubmit}
+          onChangeText={setPaperKey}
+          value={paperKey}
+        />
       </Kb.Box2>
     </SignupScreen>
   )
@@ -85,6 +84,11 @@ export const PaperKey = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      container2: {
+        minHeight: 77,
+        padding: Kb.Styles.globalMargins.small,
+        width: '100%',
+      },
       contents: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
@@ -94,18 +98,9 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {maxWidth: 300},
         isTablet: {maxWidth: 460},
       }),
-      input: {
-        color: Kb.Styles.globalColors.black,
+      inputText: {
         ...Kb.Styles.globalStyles.fontTerminal,
-      },
-      inputContainer: {
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: 4,
-        borderStyle: 'solid',
-        borderWidth: 1,
-        minHeight: 77,
-        padding: Kb.Styles.globalMargins.small,
-        width: '100%',
+        color: Kb.Styles.globalColors.black,
       },
     }) as const
 )

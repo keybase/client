@@ -2,6 +2,7 @@ import type * as React from 'react'
 import type {IconType} from './icon'
 import type {StylesCrossPlatform} from '@/styles'
 import type {KeyboardType, TextContentType} from './plain-input'
+import type {TextType} from './text.shared'
 
 export type Input3Ref = {
   focus: () => void
@@ -26,8 +27,12 @@ export type Input3Props = {
   containerStyle?: StylesCrossPlatform
   inputStyle?: StylesCrossPlatform
 
+  // Text
+  textType?: TextType
+
   // Behavior
   autoFocus?: boolean
+  selectTextOnFocus?: boolean
   multiline?: boolean
   rowsMin?: number
   rowsMax?: number

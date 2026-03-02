@@ -11,9 +11,9 @@ import type {Input3Props, Input3Ref} from './input3'
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
-  const {error, hideBorder, icon, inputStyle, keyboardType, maxLength, multiline} = props
+  const {error, hideBorder, icon, inputStyle, keyboardType, maxLength, multiline, selectTextOnFocus} = props
   const {onBlur: onBlurProp, onChangeText, onEnterKeyDown, onFocus: onFocusProp} = props
-  const {placeholder, prefix, ref, returnKeyType, rowsMax, rowsMin, secureTextEntry, textContentType, value} = props
+  const {placeholder, prefix, ref, returnKeyType, rowsMax, rowsMin, secureTextEntry, textContentType, textType = 'BodySemibold', value} = props
 
   const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<NativeTextInput>(null)
@@ -48,14 +48,14 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     focus: () => inputRef.current?.focus(),
   }))
 
-  let textStyle = getTextStyle('BodySemibold', isDarkMode)
+  let textStyle = getTextStyle(textType, isDarkMode)
   if (isIOS) {
     const {lineHeight: _, ...rest} = textStyle
     textStyle = rest
   }
 
   const fontSize = textStyle.fontSize
-  const lineHeight = getTextStyle('BodySemibold', true).lineHeight ?? 20
+  const lineHeight = getTextStyle(textType, true).lineHeight ?? 20
   const defaultRows = Math.min(2, rowsMax || 2)
   const rows = rowsMin || defaultRows
 
@@ -78,6 +78,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
       ref={inputRef}
       returnKeyType={returnKeyType}
       secureTextEntry={secureTextEntry}
+      selectTextOnFocus={selectTextOnFocus}
       style={Styles.collapseStyles([
         textStyle,
         styles.input,

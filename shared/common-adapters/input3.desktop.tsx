@@ -10,9 +10,9 @@ import type {Input3Props, Input3Ref} from './input3'
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
-  const {error, growAndScroll, hideBorder, icon, inputStyle, maxLength, multiline} = props
+  const {error, growAndScroll, hideBorder, icon, inputStyle, maxLength, multiline, selectTextOnFocus} = props
   const {onBlur: onBlurProp, onChangeText, onEnterKeyDown, onFocus: onFocusProp, onKeyDown: onKeyDownProp} = props
-  const {placeholder, prefix, ref, rowsMax, rowsMin, secureTextEntry, value} = props
+  const {placeholder, prefix, ref, rowsMax, rowsMin, secureTextEntry, textType = 'BodySemibold', value} = props
 
   const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(null)
@@ -22,6 +22,9 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const onFocus = () => {
     if (disabled) return
     setFocused(true)
+    if (selectTextOnFocus) {
+      inputRef.current?.select()
+    }
     onFocusProp?.()
   }
 
@@ -64,7 +67,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     focus: () => inputRef.current?.focus(),
   }))
 
-  const textStyle = getTextStyle('BodySemibold', isDarkMode)
+  const textStyle = getTextStyle(textType, isDarkMode)
   const fontSize = textStyle.fontSize
 
   const rows = rowsMin || Math.min(2, rowsMax || 2)

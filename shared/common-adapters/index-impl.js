@@ -159,6 +159,9 @@ module.exports = {
   get Input() {
     return require('./input').Input
   },
+  get Input3() {
+    return require('./input3').default
+  },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
@@ -197,9 +200,6 @@ get ListItem() {
   },
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
-  },
-  get Input3() {
-    return require('./input3').default
   },
   get NewInput() {
     return require('./new-input').default
