@@ -39,23 +39,16 @@ const Container = () => {
               Prove your...
             </Kb.Text>
           )}
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.inputContainer}>
-            <Kb.Icon
-              type="iconfont-search"
-              color={Kb.Styles.globalColors.black_50}
-              fontSize={Kb.Styles.isMobile ? 20 : 16}
-            />
-            <Kb.PlainInput
-              autoFocus={true}
-              placeholder={`Search ${providers.length} platforms`}
-              flexable={true}
-              multiline={false}
-              onChangeText={setFilter}
-              type="text"
-              style={styles.text}
-              value={filter}
-            />
-          </Kb.Box2>
+          <Kb.Input3
+            icon="iconfont-search"
+            autoFocus={true}
+            placeholder={`Search ${providers.length} platforms`}
+            onChangeText={setFilter}
+            value={filter}
+            hideBorder={true}
+            containerStyle={styles.inputContainer}
+            inputStyle={styles.text}
+          />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Providers
               filter={filter}
@@ -201,6 +194,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       iconArrow: {marginRight: Kb.Styles.globalMargins.small},
       inputContainer: {
+        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
         marginBottom: Kb.Styles.globalMargins.xsmall,
@@ -208,6 +202,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.xsmall,
         padding: Kb.Styles.globalMargins.tiny,
+        width: 'auto',
       },
       listContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
@@ -223,7 +218,6 @@ const styles = Kb.Styles.styleSheetCreate(
       text: {
         backgroundColor: Kb.Styles.globalColors.transparent,
         color: Kb.Styles.globalColors.black_50,
-        marginLeft: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
       title: {
