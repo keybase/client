@@ -1,1 +1,6 @@
-• Fix a bug when deleting teams.
+• On iOS quicky share to recent conversations
+• Emoji 16 support
+• iOS HEIC Avatar support
+• Better sharing/push support
+• Various bug fixes and performance improvements
+
