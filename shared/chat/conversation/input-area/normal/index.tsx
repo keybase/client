@@ -12,7 +12,7 @@ import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
-import type {RefType as InputRef} from '@/common-adapters/input'
+import type {RefType as InputRef} from './input'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const useHintText = (p: {

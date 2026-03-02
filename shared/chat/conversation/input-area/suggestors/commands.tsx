@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import type {RefType as InputRef} from '@/common-adapters/input'
+import type {RefType as InputRef} from '../normal/input'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
