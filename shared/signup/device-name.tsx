@@ -60,31 +60,9 @@ const EnterDevicename = (props: Props) => {
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
 
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
-  C.useOnMountOnce(() => {
-    inputRef.current?.transformText(i => {
-      if (!props.initialDevicename) return i
-      return {
-        selection: {
-          end: props.initialDevicename.length,
-          start: 0,
-        },
-        text: props.initialDevicename,
-      }
-    })
-  })
-
   React.useEffect(() => {
     if (cleanDeviceName !== deviceName) {
-      inputRef.current?.transformText(() => {
-        return {
-          selection: {
-            end: cleanDeviceName.length,
-            start: cleanDeviceName.length,
-          },
-          text: cleanDeviceName,
-        }
-      })
+      setDeviceName(cleanDeviceName)
     }
   }, [deviceName, cleanDeviceName])
 
@@ -113,15 +91,15 @@ const EnterDevicename = (props: Props) => {
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.LabeledInput
-            ref={inputRef}
             autoFocus={true}
+            selectTextOnFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
+            value={deviceName}
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>

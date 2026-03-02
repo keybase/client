@@ -32,7 +32,6 @@ const CreateChannel = (p: Props) => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
           <Kb.LabeledInput
             autoFocus={true}
-            style={styles.input}
             placeholder="Channel name"
             value={props.channelname}
             onEnterKeyDown={props.onSubmit}
@@ -47,7 +46,6 @@ const CreateChannel = (p: Props) => {
             rowsMax={10}
             // From go/chat/msgchecker/constants.go#HeadlineMaxLength
             maxLength={280}
-            style={styles.input}
             placeholder="Add a description or topic..."
             value={props.description}
             onEnterKeyDown={props.onSubmit}
@@ -97,9 +95,6 @@ const styles = Kb.Styles.styleSheetCreate(
       cover: {
         alignItems: 'center',
         justifyContent: 'center',
-      },
-      input: {
-        width: '100%',
       },
     }) as const
 )

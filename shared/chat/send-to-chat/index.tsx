@@ -162,7 +162,6 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
           <Kb.LabeledInput
             placeholder="Title"
             value={props.title}
-            style={desktopStyles.input}
             onChangeText={props.setTitle}
           />
         </Kb.Box2>
@@ -203,9 +202,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       header: {
         paddingTop: Kb.Styles.globalMargins.mediumLarge,
-      },
-      input: {
-        width: '100%',
       },
       pathItem: {
         marginTop: Kb.Styles.globalMargins.mediumLarge,

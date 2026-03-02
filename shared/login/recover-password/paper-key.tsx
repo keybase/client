@@ -51,10 +51,10 @@ const PaperKey = () => {
               autoFocus={true}
               multiline={true}
               rowsMax={3}
-              hoverPlaceholder="Ex: garage blue three..."
               placeholder="Type your paper key"
               textType="Header"
-              style={styles.input}
+              containerStyle={styles.inputContainer2}
+              inputStyle={styles.inputText}
               onEnterKeyDown={onSubmit}
               onChangeText={paperKey => setPaperKey(paperKey)}
               value={paperKey}
@@ -72,14 +72,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     maxWidth: Kb.Styles.isMobile ? '100%' : 460,
     width: '100%',
   },
-  input: {
-    ...Kb.Styles.globalStyles.fontTerminal,
-    color: Kb.Styles.globalColors.black,
-    marginTop: 10,
-    width: '100%',
-  },
   inputContainer: {
     width: '100%',
+  },
+  inputContainer2: {
+    marginTop: 10,
+  },
+  inputText: {
+    ...Kb.Styles.globalStyles.fontTerminal,
+    color: Kb.Styles.globalColors.black,
   },
 }))
 export default PaperKey

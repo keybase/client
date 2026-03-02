@@ -17,7 +17,7 @@ const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolea
 )
 
 const Login = (props: Props) => {
-  const _inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const _inputRef = React.useRef<Kb.Input3Ref>(null)
 
   const _onClickUserIdx = (selected: number) => {
     const user = props.users.at(selected)

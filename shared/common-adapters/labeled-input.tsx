@@ -1,170 +1,35 @@
-import * as React from 'react'
-import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
-import {Box2} from './box'
-import Text from './text'
-import {getTextStyle} from './text.styles'
-import * as Styles from '@/styles'
-import {isMobile} from '@/constants/platform'
-import {useColorScheme} from 'react-native'
-import './input.css'
+import type * as React from 'react'
+import Input3, {type Input3Props, type Input3Ref} from './input3'
+import type * as Styles from '@/styles'
 
 export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
-  hoverPlaceholder?: string // placeholder while there is no text; if this is set then props.placholder is used as a label only.
-  placeholder: string // placeholder while unselected, label while selected
+  hoverPlaceholder?: string
+  placeholder: string
   placeholderInline?: boolean
 }
 
-export type Props = PropsWithInput<_Props>
+type PasswordProps = {type?: 'password' | 'text' | 'passwordVisible'}
+export type Props = Input3Props & _Props & PasswordProps
 
-function LabeledInputImpl(props: Props & {ref?: React.Ref<PlainInputRef>}) {
-  const {containerStyle, error, placeholder, placeholderInline, ref, ...plainInputProps} = props
-  const [focused, setFocused] = React.useState(false)
-  const {onBlur, onFocus} = props
-  const isDarkMode = useColorScheme() === 'dark'
-  const _onFocus = () => {
-    if (props.disabled) {
-      return
-    }
-    setFocused(true)
-    onFocus?.()
-  }
-  const _onBlur = () => {
-    setFocused(false)
-    onBlur?.()
-  }
-
-  // If we're uncontrolled, monitor the changes instead
-  const {value, onChangeText} = props
-  const [uncontrolledValue, setUncontrolledValue] = React.useState('')
-  const _onChangeText = (newValue: string) => {
-    value === undefined && setUncontrolledValue(newValue)
-    onChangeText?.(newValue)
-  }
-
-  // Style is supposed to switch when there's any input or its focused
-  const actualValue = value !== undefined ? value : uncontrolledValue
-  const populated = !!actualValue && actualValue.length > 0
-  const multiline = props.multiline
-  const collapsed = focused || populated || multiline
-
-  // We're using fontSize to derive heights
-  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize ?? 14
-  const computedContainerSize = fontSize + (isMobile ? 48 : 38) + (multiline ? fontSize : 0)
+function LabeledInput(props: Props & {ref?: React.Ref<Input3Ref>}) {
+  const {containerStyle, decoration, error, hoverPlaceholder: _, placeholder, placeholderInline: _pi} = props
+  const {type, ref, ...rest} = props
+  const secureTextEntry = type === 'password' ? true : props.secureTextEntry
 
   return (
-    <Box2
-      direction="vertical"
-      style={Styles.collapseStyles([
-        styles.container,
-        {height: !multiline ? computedContainerSize : undefined, minHeight: computedContainerSize},
-        focused && styles.containerFocused,
-        error && styles.containerError,
-        containerStyle,
-      ])}
-    >
-      {placeholderInline ? null : (
-        <Text
-          type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
-          style={Styles.collapseStyles([
-            styles.label,
-            props.placeholderColor && {color: props.placeholderColor},
-            collapsed ? styles.labelSmall : styles.labelLarge,
-            focused && styles.labelFocused,
-          ])}
-        >
-          {placeholder}
-        </Text>
-      )}
-      <PlainInput
-        {...plainInputProps}
-        onChangeText={_onChangeText}
-        onFocus={_onFocus}
-        onBlur={_onBlur}
-        placeholder={placeholderInline ? props.placeholder : collapsed ? props.hoverPlaceholder : undefined}
-        ref={ref}
-        style={Styles.collapseStyles([
-          styles.input,
-          props.style,
-          collapsed && styles.inputSmall,
-          multiline && styles.inputMultiline,
-        ])}
-      />
-    </Box2>
-  )
-}
-
-function LabeledInput(props: Props & {ref?: React.Ref<PlainInputRef>}) {
-  const {ref} = props
-  const flexable = props.flexable ?? true
-  const keyboardType = props.keyboardType ?? 'default'
-  const textType = props.textType ?? 'BodySemibold'
-
-  return (
-    <LabeledInputImpl
-      {...props}
+    <Input3
+      {...rest}
+      containerStyle={containerStyle}
+      decoration={decoration}
+      error={error}
+      placeholder={placeholder}
       ref={ref}
-      flexable={flexable}
-      keyboardType={keyboardType}
-      textType={textType}
+      secureTextEntry={secureTextEntry}
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      container: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
-          borderRadius: 4,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          justifyContent: 'center',
-          margin: 0,
-          position: 'relative',
-          width: '100%',
-        },
-        isElectron: {width: '100%'},
-      }),
-      containerError: {borderColor: Styles.globalColors.red},
-      containerFocused: {borderColor: Styles.globalColors.blue},
-      input: {
-        backgroundColor: Styles.globalColors.transparent,
-        flexGrow: 1,
-        marginBottom: 22,
-        marginTop: 22,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        width: '100%',
-      },
-      inputMultiline: Styles.platformStyles({
-        isMobile: {
-          textAlignVertical: 'top',
-        } as const,
-      }), // not sure why this fails
-      inputSmall: {paddingTop: 0},
-      label: Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          position: 'absolute',
-        },
-        isElectron: {pointerEvents: 'none'},
-      }),
-      labelFocused: {color: Styles.globalColors.blueDark},
-      labelLarge: {color: Styles.globalColors.black_50},
-      labelSmall: {
-        color: Styles.globalColors.black,
-        position: 'absolute',
-        top: 2,
-      },
-    }) as const
-)
 
 export default LabeledInput
