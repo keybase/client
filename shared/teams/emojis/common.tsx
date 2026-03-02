@@ -15,7 +15,7 @@ type AliasInputProps = {
 export type AliasRef = {focus: () => void}
 export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>}) {
   const {ref, error, disabled, small, onChangeAlias, onEnterKeyDown, onRemove} = props
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   React.useImperativeHandle(ref, () => ({
     focus: () => {
@@ -26,7 +26,7 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
   return (
     <Kb.Box2 direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-        <Kb.NewInput
+        <Kb.Input3
           ref={inputRef}
           error={!!error}
           disabled={disabled}

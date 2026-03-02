@@ -12,7 +12,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
   const {error, growAndScroll, hideBorder, icon, inputStyle, maxLength, multiline, selectTextOnFocus} = props
   const {onBlur: onBlurProp, onChangeText, onClick, onEnterKeyDown, onFocus: onFocusProp, onKeyDown: onKeyDownProp} = props
-  const {placeholder, prefix, ref, rowsMax, rowsMin, secureTextEntry, textType = 'BodySemibold', value} = props
+  const {placeholder, prefix, ref, rowsMax, rowsMin, secureTextEntry, spellCheck, textType = 'BodySemibold', value} = props
 
   const [focused, setFocused] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(null)
@@ -88,8 +88,10 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     onKeyDown,
     placeholder,
     ref: inputRef,
+    spellCheck,
     value,
     ...(disabled ? {readOnly: true as const} : {}),
+    'data-allow-keyboard-shortcuts': 'true',
   }
 
   const inputElement = multiline ? (
@@ -99,8 +101,8 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
       rows={rows}
       style={
         Styles.collapseStyles([
-          textStyle,
           styles.noChrome,
+          textStyle,
           styles.multiline,
           {minHeight: rows * lineHeight},
           rowsMax && {maxHeight: rowsMax * lineHeight},

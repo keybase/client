@@ -79,7 +79,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
   const searchInput =
     Kb.Styles.isMobile && !isSearching ? (
       <Kb.ClickableBox2 onClick={onStartSearch} style={Kb.Styles.collapseStyles([styles.searchBox, styles.searchPlaceholder])}>
-        <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start" gap="tiny">
+        <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} gap="tiny">
           <Kb.Icon type="iconfont-search" sizeType="Small" color={Kb.Styles.globalColors.black_50} />
           <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>Search</Kb.Text>
         </Kb.Box2>

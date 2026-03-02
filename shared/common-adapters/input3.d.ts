@@ -46,6 +46,7 @@ export type Input3Props = {
   keyboardType?: KeyboardType
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
+  spellCheck?: boolean
 
   // Focus
   onFocus?: () => void
