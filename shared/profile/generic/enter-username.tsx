@@ -44,9 +44,13 @@ const ConnectedEnterUsername = () => {
   const onCancel = onBack
 
   const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
+  const wasWaiting = React.useRef(false)
 
   React.useEffect(() => {
-    if (!waiting) {
+    if (waiting) {
+      wasWaiting.current = true
+    } else if (wasWaiting.current) {
+      wasWaiting.current = false
       onContinue()
     }
     if (error) {
