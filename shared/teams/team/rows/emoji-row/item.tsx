@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -23,12 +22,12 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = C.useEvent(() => {
+  const onAddAlias = () => {
     nav.safeNavigateAppend({
       name: 'teamAddEmojiAlias',
       params: {conversationIDKey, defaultSelected: emojiData},
     })
-  })
+  }
   const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
