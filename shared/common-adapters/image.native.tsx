@@ -4,21 +4,12 @@ import type {Props} from './image'
 import {Image as ExpoImage, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
 
 const Image = (p: Props) => {
-  const {
-    showLoadingStateUntilLoaded,
-    src,
-    onLoad,
-    onError,
-    style,
-    contentFit = 'contain',
-    allowDownscaling,
-  } = p
-  // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
+  const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain', allowDownscaling} = p
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const [lastSrc, setLastSrc] = React.useState(src)
-  const _onLoad = (e: ImageLoadEventData) => {
+  const _onLoad = (e?: ImageLoadEventData) => {
     setLoading(false)
-    onLoad?.(e)
+    onLoad?.(e ?? ({} as any))
   }
 
   if (lastSrc !== src) {
@@ -26,11 +17,13 @@ const Image = (p: Props) => {
     setLoading(true)
   }
 
-  const _onError = (e: ImageErrorEventData) => {
+  const _onError = (e?: ImageErrorEventData) => {
     setLoading(false)
-    console.log('Image load error', e.error)
+    console.log('Image load error', e?.error)
     onError?.()
   }
+
+  const recyclingKey = typeof src === 'string' ? src : Array.isArray(src) ? src[0]?.uri : String(src)
 
   return (
     <>
@@ -41,7 +34,7 @@ const Image = (p: Props) => {
         contentFit={contentFit}
         onError={_onError}
         allowDownscaling={allowDownscaling}
-        recyclingKey={typeof src === 'string' ? src : undefined}
+        recyclingKey={recyclingKey}
       />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>

@@ -23,7 +23,7 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
     const onChangeTextRef = React.useRef(_onChangeText)
     React.useEffect(() => {
       onChangeTextRef.current = _onChangeText
-    })
+    }, [_onChangeText])
     const [onChange] = React.useState(() => (e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
       const s = e.target.value
       setValue(s)
