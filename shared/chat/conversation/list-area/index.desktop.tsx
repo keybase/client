@@ -59,7 +59,6 @@ const useScrolling = (p: {
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMounted = C.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
@@ -302,7 +301,6 @@ const useScrolling = (p: {
       list &&
       !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
       !isLockedToBottom() &&
-      isMounted() &&
       scrollBottomOffsetRef.current !== undefined
     ) {
       programaticScrollRef.current = true
@@ -311,7 +309,7 @@ const useScrolling = (p: {
     }
     return undefined
     // we want this to fire when the ordinals change
-  }, [centeredOrdinal, ordinalsLength, isLockedToBottom, isMounted, listRef, firstOrdinal])
+  }, [centeredOrdinal, ordinalsLength, isLockedToBottom, listRef, firstOrdinal])
 
   // Also handle centered ordinal changing while already loaded (e.g. from thread search results)
   const prevCenteredOrdinal = React.useRef(centeredOrdinal)

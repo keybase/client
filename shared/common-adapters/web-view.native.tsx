@@ -30,7 +30,6 @@ const KBWebViewBase = (props: WebViewProps) => {
   const {showLoadingStateUntilLoaded} = props
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
-  const isMounted = C.useIsMounted()
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
   const [opacity, setOpacity] = React.useState(isLoaded ? 1 : 0)
 
@@ -69,9 +68,9 @@ const KBWebViewBase = (props: WebViewProps) => {
               props.showLoadingStateUntilLoaded && loading && styles.absolute,
             ]),
           ]}
-          onLoadStart={() => isMounted() && setLoading(true)}
-          onLoadEnd={() => isMounted() && setLoading(false)}
-          onLoadProgress={({nativeEvent}) => isMounted() && setProgress(nativeEvent.progress)}
+          onLoadStart={() => setLoading(true)}
+          onLoadEnd={() => setLoading(false)}
+          onLoadProgress={({nativeEvent}) => setProgress(nativeEvent.progress)}
           onError={event => {
             onError?.(event.nativeEvent.description)
           }}
