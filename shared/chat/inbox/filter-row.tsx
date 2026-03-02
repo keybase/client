@@ -73,29 +73,36 @@ function ConversationFilterInput(ownProps: OwnProps) {
     }
   }, [isSearching])
 
-  const searchInput = (
-    <Kb.SearchFilter
-      ref={inputRef}
-      size="full-width"
-      style={styles.searchBox}
-      icon="iconfont-search"
-      placeholderText="Search"
-      hotkey="k"
-      showXOverride={isSearching ? true : undefined}
-      value={filter}
-      valueControlled={true}
-      // On mobile SearchFilter is re-mounted when toggling isSearching. (See chat/inbox/index.native.tsx:render's use of isSearching)
-      // Simple props would cause the keyboard to appear and then disappear on dismount.
-      // Take care instead to only launch the keyboard from the isSearching=true mountpoint.
-      dummyInput={Kb.Styles.isMobile && !isSearching}
-      focusOnMount={Kb.Styles.isMobile && isSearching}
-      onChange={onChange}
-      onCancel={onStopSearch}
-      onFocus={onStartSearch}
-      onKeyDown={onKeyDown}
-      onEnterKeyDown={onEnterKeyDown}
-    />
-  )
+  // On mobile, SearchFilter is re-mounted when toggling isSearching
+  // (see chat/inbox/index.native.tsx). To avoid keyboard flicker, render
+  // a simple placeholder that triggers search on tap when not searching.
+  const searchInput =
+    Kb.Styles.isMobile && !isSearching ? (
+      <Kb.ClickableBox2 onClick={onStartSearch} style={Kb.Styles.collapseStyles([styles.searchBox, styles.searchPlaceholder])}>
+        <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start" gap="tiny">
+          <Kb.Icon type="iconfont-search" sizeType="Small" color={Kb.Styles.globalColors.black_50} />
+          <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>Search</Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox2>
+    ) : (
+      <Kb.SearchFilter
+        ref={inputRef}
+        size="full-width"
+        style={styles.searchBox}
+        icon="iconfont-search"
+        placeholderText="Search"
+        hotkey="k"
+        showXOverride={isSearching ? true : undefined}
+        value={filter}
+        valueControlled={true}
+        focusOnMount={Kb.Styles.isMobile && isSearching}
+        onChange={onChange}
+        onCancel={onStopSearch}
+        onFocus={onStartSearch}
+        onKeyDown={onKeyDown}
+        onEnterKeyDown={onEnterKeyDown}
+      />
+    )
   return (
     <Kb.Box2
       direction="horizontal"
@@ -139,6 +146,17 @@ const styles = Kb.Styles.styleSheetCreate(
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
+      searchPlaceholder: {
+        backgroundColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
+        height: 32,
+        justifyContent: 'center',
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+      },
+      searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )
