@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -34,34 +35,34 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
   const doRemove = canRemove
-        ? () => {
-            removeRpc(
-              [
-                {
-                  alias: emojiData.short_name,
-                  convID: T.Chat.keyToConversationID(conversationIDKey),
-                },
-              ],
-              () => refreshEmoji(),
-              err => {
-                throw err
-              }
-            )
+    ? () => {
+        removeRpc(
+          [
+            {
+              alias: emojiData.short_name,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+          ],
+          () => refreshEmoji(),
+          err => {
+            throw err
           }
-        : undefined
+        )
+      }
+    : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <EmojiMenu
-          attachTo={attachTo}
-          visible={true}
-          onAddAlias={doAddAlias}
-          onRemove={doRemove}
-          onHidden={hidePopup}
-          isAlias={emoji.isAlias}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <EmojiMenu
+        attachTo={attachTo}
+        visible={true}
+        onAddAlias={doAddAlias}
+        onRemove={doRemove}
+        onHidden={hidePopup}
+        isAlias={emoji.isAlias}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
