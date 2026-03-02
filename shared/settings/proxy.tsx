@@ -150,9 +150,9 @@ const ProxySettingsComponent = (props: Props) => {
       {proxyType === 'noProxy' ? null : (
         <>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.NewInput placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
+          <Kb.Input3 placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.NewInput placeholder="8080" onChangeText={setPort} value={port} />
+          <Kb.Input3 placeholder="8080" onChangeText={setPort} value={port} />
         </>
       )}
       <Kb.Checkbox

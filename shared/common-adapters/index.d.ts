@@ -65,6 +65,7 @@ export {default as Modal, Header as ModalHeader, useModalHeaderTitleAndCancel} f
 export {default as Modal2} from './modal2'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon'
+export {default as Input3, type Input3Ref, type Input3Props} from './input3'
 export {default as NewInput} from './new-input'
 export {default as Overlay} from './overlay'
 export {default as PhoneInput} from './phone-input'

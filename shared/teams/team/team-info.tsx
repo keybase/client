@@ -90,7 +90,7 @@ const TeamInfo = (props: Props) => {
           style={styles.avatar}
         />
         {isSubteam ? (
-          <Kb.NewInput
+          <Kb.Input3
             autoFocus={true}
             maxLength={16}
             onChangeText={setName}

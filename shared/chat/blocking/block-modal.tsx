@@ -105,7 +105,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
         <Kb.Text type="BodySmall" style={{marginLeft: 4}}>
           We will review this report within 24 hours and take an action
         </Kb.Text>
-        <Kb.NewInput
+        <Kb.Input3
           multiline={true}
           placeholder="Extra notes"
           onChangeText={props.setExtraNotes}

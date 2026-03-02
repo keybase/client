@@ -72,7 +72,7 @@ const EditChannel = (props: Props) => {
       backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.NewInput
+        <Kb.Input3
           autoFocus={true}
           maxLength={16}
           onChangeText={setName}

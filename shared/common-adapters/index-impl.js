@@ -198,6 +198,9 @@ get ListItem() {
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
   },
+  get Input3() {
+    return require('./input3').default
+  },
   get NewInput() {
     return require('./new-input').default
   },

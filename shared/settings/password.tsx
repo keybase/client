@@ -47,7 +47,6 @@ export const UpdatePassword = (props: Props) => {
 
   const canSubmit = () => !errorSaving && password.length >= 8 && password === passwordConfirm
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
   const notification = props.error
     ? props.error
@@ -136,18 +135,19 @@ export const UpdatePassword = (props: Props) => {
           A password is required for you to sign out and sign back in.
         </Kb.Text>
         <Kb.RoundedBox side="top">
-          <Kb.PlainInput
+          <Kb.Input3
             placeholder="New password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             keyboardType={keyboardType}
             value={password}
             onChangeText={handlePasswordChange}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         <Kb.RoundedBox side="bottom">
-          <Kb.PlainInput
+          <Kb.Input3
             placeholder="Confirm password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             keyboardType={keyboardType}
             value={passwordConfirm}
             onChangeText={handlePasswordConfirmChange}
@@ -156,6 +156,7 @@ export const UpdatePassword = (props: Props) => {
                 props.onSave(password)
               }
             }}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         {typeof hintText === 'string' ? (
