@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props} from './image'
@@ -8,9 +7,8 @@ const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()
 const Image = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError} = p
   const [loading, setLoading] = React.useState(true)
-  const isMounted = C.useIsMounted()
   const _onLoad = (e: React.BaseSyntheticEvent) => {
-    isMounted() && setLoading(false)
+    setLoading(false)
     onLoad?.(e)
   }
   const style = {

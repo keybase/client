@@ -53,7 +53,6 @@ const WithTooltip = (props: Props) => {
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
-  const isMounted = C.useIsMounted()
   const {width: screenWidth, height: screenHeight} = useSafeAreaFrame()
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
@@ -85,10 +84,6 @@ const WithTooltip = (props: Props) => {
       }),
     ] as const)
       .then(([c, t]) => {
-        if (!isMounted()) {
-          return
-        }
-
         const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
         const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
         if (position === 'bottom center') {
