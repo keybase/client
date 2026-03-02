@@ -73,7 +73,7 @@ export const CreateNewTeam = (props: Props) => {
       onClose={props.onCancel}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Name your team"
           value={name}
           onChangeText={setName}

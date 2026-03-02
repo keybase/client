@@ -85,8 +85,7 @@ const EditChannel = (props: Props) => {
         {oldName === 'general' && (
           <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
-        <Kb.LabeledInput
-          hoverPlaceholder="What is this channel about?"
+        <Kb.Input3
           placeholder="Description"
           value={description}
           rowsMin={3}

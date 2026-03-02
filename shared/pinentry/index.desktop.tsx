@@ -54,13 +54,13 @@ const Pinentry = (props: Props) => {
           gapStart={true}
           style={styles.inputContainer}
         >
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.retryLabel}
             onChangeText={setPassword}
             onEnterKeyDown={handleSubmit}
             placeholder="Password"
-            type={showTyping ? 'passwordVisible' : 'password'}
+            secureTextEntry={!showTyping}
             value={password}
           />
           {props.retryLabel ? (

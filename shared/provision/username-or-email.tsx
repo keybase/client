@@ -127,7 +127,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Username"
               maxLength={C.maxUsernameLength}
@@ -135,7 +135,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
               onChangeText={setUsername}
               value={username}
               textType="BodySemibold"
-              placeholderInline={true}
             />
             <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?

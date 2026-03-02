@@ -83,13 +83,12 @@ const AddEmail = (props: Props) => {
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.errorMessage}
             multiline={true}
             onChangeText={text => setInvitees(text)}
             placeholder="Email addresses"
-            hoverPlaceholder="Ex: daniel@domain.com, kim@domain.com, etc."
             rowsMin={3}
             rowsMax={8}
             value={invitees}

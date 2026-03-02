@@ -165,9 +165,6 @@ module.exports = {
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
-  get LabeledInput() {
-    return require('./labeled-input').default
-  },
   get List() {
     return require('./list').default
   },
@@ -200,9 +197,6 @@ get ListItem() {
   },
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
-  },
-  get NewInput() {
-    return require('./new-input').default
   },
   get Overlay() {
     return require('./overlay').default

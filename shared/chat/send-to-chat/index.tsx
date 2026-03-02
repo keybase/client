@@ -159,7 +159,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             dropdownButtonStyle={desktopStyles.dropdown}
             onSelect={props.onSelect}
           />
-          <Kb.LabeledInput
+          <Kb.Input3
             placeholder="Title"
             value={props.title}
             onChangeText={props.setTitle}

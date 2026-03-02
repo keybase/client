@@ -57,6 +57,6 @@ export type Input3Props = {
   textContentType?: TextContentType
 }
 
-declare const Input3: React.ForwardRefExoticType<Input3Props & React.RefAttributes<Input3Ref>>
+declare function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}): React.ReactNode
 
 export default Input3

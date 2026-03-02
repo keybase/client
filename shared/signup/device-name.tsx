@@ -90,7 +90,7 @@ const EnterDevicename = (props: Props) => {
           }
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             selectTextOnFocus={true}
             containerStyle={styles.input}

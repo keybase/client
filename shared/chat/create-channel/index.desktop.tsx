@@ -30,14 +30,14 @@ const CreateChannel = (p: Props) => {
           <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             placeholder="Channel name"
             value={props.channelname}
             onEnterKeyDown={props.onSubmit}
             onChangeText={channelname => props.onChannelnameChange(channelname)}
           />
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={false}
             autoCorrect={true}
             autoCapitalize="sentences"

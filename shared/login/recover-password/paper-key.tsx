@@ -47,7 +47,7 @@ const PaperKey = () => {
             <Kb.Icon type="icon-paper-key-96" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.inputContainer} fullWidth={true}>
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               multiline={true}
               rowsMax={3}

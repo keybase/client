@@ -148,9 +148,8 @@ const AddMembersConfirm = () => {
                 Include a note in your email
               </Kb.Text>
             ) : (
-              <Kb.LabeledInput
+              <Kb.Input3
                 autoFocus={true}
-                hoverPlaceholder="Ex: Hey folks, here is my team on Keybase. Can't wait to chat securely!"
                 maxLength={250}
                 multiline={true}
                 onChangeText={text => setEmailMessage(text)}

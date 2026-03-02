@@ -36,10 +36,10 @@ const EnterPassword = () => {
       buttons={[{label: 'Continue', onClick: onContinue, waiting}]}
     >
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Enter your password"
           containerStyle={styles.input}
-          type="password"
+          secureTextEntry={true}
           onChangeText={setPassword}
           onEnterKeyDown={onContinue}
           autoFocus={true}

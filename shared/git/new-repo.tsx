@@ -145,7 +145,7 @@ const Container = (ownProps: OwnProps) => {
               style={styles.dropdown}
             />
           )}
-          <Kb.LabeledInput
+          <Kb.Input3
             value={name}
             autoFocus={true}
             onChangeText={setName}

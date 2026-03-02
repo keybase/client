@@ -100,7 +100,7 @@ const TeamInfo = (props: Props) => {
             containerStyle={styles.subteamNameInput}
           />
         ) : (
-          <Kb.LabeledInput
+          <Kb.Input3
             containerStyle={styles.faded}
             maxLength={16}
             onChangeText={setName}
@@ -112,8 +112,7 @@ const TeamInfo = (props: Props) => {
         <Kb.Text type="BodySmall">
           {isSubteam ? `Subteam names are private.` : `Team names can't be changed.`}
         </Kb.Text>
-        <Kb.LabeledInput
-          hoverPlaceholder={isSubteam ? 'What is this subteam about?' : 'What is your team about?'}
+        <Kb.Input3
           placeholder="Description"
           value={description}
           autoFocus={!isSubteam}

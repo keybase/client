@@ -56,13 +56,13 @@ const Login = (props: Props) => {
           />
           {props.needPassword && (
             <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.inputRow}>
-              <Kb.LabeledInput
+              <Kb.Input3
                 autoFocus={true}
                 placeholder="Password"
                 onChangeText={props.passwordChange}
                 onEnterKeyDown={props.onSubmit}
                 ref={_inputRef}
-                type="password"
+                secureTextEntry={true}
                 value={props.password}
               />
             </Kb.Box2>

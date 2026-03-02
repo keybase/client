@@ -73,14 +73,14 @@ const Password = () => {
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Password"
               onEnterKeyDown={_onSubmitClick}
               onChangeText={setPassword}
               value={password}
               textType="BodySemibold"
-              type="password"
+              secureTextEntry={true}
             />
             <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
               Forgot password?

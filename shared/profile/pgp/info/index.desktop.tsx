@@ -38,27 +38,27 @@ const Info = () => {
         <Kb.Text type="BodySemibold" style={styles.centered}>
           Fill in your public info.
         </Kb.Text>
-        <Kb.LabeledInput
+        <Kb.Input3
           autoFocus={true}
           placeholder="Your full name"
           value={data.pgpFullName}
           onChangeText={onChangeFullName}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 1"
           onChangeText={onChangeEmail1}
           onEnterKeyDown={onNext}
           value={data.pgpEmail1}
           error={data.pgpErrorEmail1}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 2 (optional)"
           onChangeText={onChangeEmail2}
           onEnterKeyDown={onNext}
           value={data.pgpEmail2}
           error={data.pgpErrorEmail2}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 3 (optional)"
           onChangeText={onChangeEmail3}
           onEnterKeyDown={onNext}
