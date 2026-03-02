@@ -204,9 +204,6 @@ get ListItem() {
   get Placeholder() {
     return require('./placeholder').default
   },
-  get PlainInput() {
-    return require('./plain-input').default
-  },
   get PlatformIcon() {
     return require('./platform-icon').default
   },
