@@ -61,9 +61,9 @@ const CreateSubteams = () => {
           hierarchy.
         </Kb.Text>
         {subteams.map((value, idx) => (
-          <Kb.NewInput
+          <Kb.Input3
             value={value}
-            onChangeText={text => setSubteam(idx, cleanSubteamName(text))}
+            onChangeText={(text: string) => setSubteam(idx, cleanSubteamName(text))}
             decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}
             placeholder="subteam"
             prefix={`${teamname}.`}

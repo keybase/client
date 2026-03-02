@@ -47,32 +47,32 @@ const Container = () => {
             </Kb.Text>
           )}
           <Kb.RoundedBox side="top">
-            <Kb.PlainInput
+            <Kb.Input3
               value={fullname}
               placeholder="Full name"
               autoFocus={true}
               onChangeText={setFullname}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="middle">
-            <Kb.PlainInput
+            <Kb.Input3
               value={bio}
               placeholder="Bio"
               multiline={true}
               rowsMin={7}
               rowsMax={7}
               onChangeText={setBio}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="bottom">
-            <Kb.PlainInput
+            <Kb.Input3
               value={location}
               placeholder="Location"
               onChangeText={setLocation}
               onEnterKeyDown={submit}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
@@ -101,11 +101,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   gap: {minHeight: Kb.Styles.globalMargins.small},
   header: {marginBottom: Kb.Styles.globalMargins.small},
-  widthFix: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 'auto',
-    },
-  }),
 }))
 
 export default Container
