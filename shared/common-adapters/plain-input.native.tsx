@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
@@ -31,6 +30,14 @@ type PlainInputRef = {
   setSelection: (s: Selection) => void
 }
 
+// Pure helper — no component state needed
+const sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
+  let {start, end} = selection
+  end = Math.max(0, Math.min(end || 0, nativeText.length))
+  start = Math.min(start || 0, end)
+  return {end, start}
+}
+
 function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
     const {dummyInput, onFocus, value, maxBytes, onChangeText, onSelectionChange} = p
     const {onPasteImage, onEnterKeyDown, ref} = p
@@ -44,41 +51,37 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
     // This is controlled if a value prop is passed
     const controlled = typeof value === 'string'
 
-    // Needed to support wrapping with e.g. a ClickableBox. See
-    // https://facebook.github.io/react-native/docs/direct-manipulation.html .
-    const setNativeProps = (nativeProps: object) => {
-      inputRef.current?.setNativeProps(nativeProps)
-    }
-
-    // Validate that this selection makes sense with current value
-    const _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
-      let {start, end} = selection
-      end = Math.max(0, Math.min(end || 0, nativeText.length))
-      start = Math.min(start || 0, end)
-      return {end, start}
-    }
-
-    const _setSelection = C.useEvent((selection: Selection) => {
-      const newSelection = _sanityCheckSelection(selection, lastNativeTextRef.current || '')
-      setNativeProps({selection: newSelection})
-      lastNativeSelectionRef.current = selection
-    })
+    // Refs for values that change but need to be read inside stable callbacks
+    const controlledRef = React.useRef(controlled)
+    const maxBytesRef = React.useRef(maxBytes)
+    const onChangeTextPropRef = React.useRef(onChangeText)
+    React.useEffect(() => {
+      controlledRef.current = controlled
+      maxBytesRef.current = maxBytes
+      onChangeTextPropRef.current = onChangeText
+    }, [controlled, maxBytes, onChangeText])
 
     const _onChangeText = (t: string) => {
-      if (maxBytes) {
-        if (stringToUint8Array(t).byteLength > maxBytes) {
+      if (maxBytesRef.current) {
+        if (stringToUint8Array(t).byteLength > maxBytesRef.current) {
           return
         }
       }
       lastNativeTextRef.current = t
-      onChangeText?.(t)
+      onChangeTextPropRef.current?.(t)
 
       // call if it hasn't been called already
       afterTransformRef.current?.()
     }
 
-    const transformText = C.useEvent((fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
-      if (controlled) {
+    const [_setSelection] = React.useState(() => (selection: Selection) => {
+      const newSelection = sanityCheckSelection(selection, lastNativeTextRef.current || '')
+      inputRef.current?.setNativeProps({selection: newSelection})
+      lastNativeSelectionRef.current = selection
+    })
+
+    const [transformText] = React.useState(() => (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => {
+      if (controlledRef.current) {
         const errMsg =
           'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
         logger.error(errMsg)
@@ -89,17 +92,14 @@ function PlainInput(p: InternalProps & {ref?: React.Ref<PlainInputRef>}) {
         text: lastNativeTextRef.current || '',
       }
       const newTextInfo = fn(currentTextInfo)
-      const newCheckedSelection = _sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
+      const newCheckedSelection = sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
       checkTextInfo(newTextInfo)
-
-      // this is a very hacky workaround for internal bugs in RN TextInput
-      // write a stub with different content
 
       afterTransformRef.current = () => {
         afterTransformRef.current = undefined
-        setNativeProps({text: newTextInfo.text})
+        inputRef.current?.setNativeProps({text: newTextInfo.text})
         setTimeout(() => {
-          setNativeProps({selection: newCheckedSelection})
+          inputRef.current?.setNativeProps({selection: newCheckedSelection})
         }, 20)
         if (reflectChange) {
           _onChangeText(newTextInfo.text)

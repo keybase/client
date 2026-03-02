@@ -68,8 +68,11 @@ const useScrolling = (p: {
   const setPointerWrapperRef = (r: HTMLDivElement | null) => {
     pointerWrapperRef.current = r
   }
+  const numOrdinalsRef = React.useRef(numOrdinals)
+  const loadOlderMessagesRef = React.useRef(loadOlderMessages)
+  const loadNewerMessagesRef = React.useRef(loadNewerMessages)
 
-  const isLockedToBottom = C.useEvent(() => {
+  const [isLockedToBottom] = React.useState(() => () => {
     return lockedToBottomRef.current
   })
 
@@ -78,23 +81,22 @@ const useScrolling = (p: {
     fn()
   }
 
-  const checkForLoadMoreThrottled = () => {
-    // are we at the top?
+  const [checkForLoadMoreThrottled] = React.useState(() => () => {
     const list = listRef.current
     if (list) {
       if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessages(numOrdinals)
+        loadOlderMessagesRef.current(numOrdinalsRef.current)
       } else if (
-        !containsLatestMessage &&
-        !isLockedToBottom() &&
+        !containsLatestMessageRef.current &&
+        !lockedToBottomRef.current &&
         list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlopBottom
       ) {
-        loadNewerMessages()
+        loadNewerMessagesRef.current()
       }
     }
-  }
+  })
 
-  const scrollToBottomSync = C.useEvent(() => {
+  const [scrollToBottomSync] = React.useState(() => () => {
     lockedToBottomRef.current = true
     const list = listRef.current
     if (list) {
@@ -104,14 +106,14 @@ const useScrolling = (p: {
     }
   })
 
-  const scrollToBottom = C.useEvent(() => {
+  const [scrollToBottom] = React.useState(() => () => {
     scrollToBottomSync()
     setTimeout(() => {
       requestAnimationFrame(scrollToBottomSync)
     }, 1)
   })
 
-  const performScrollToCentered = C.useEvent(() => {
+  const [performScrollToCentered] = React.useState(() => () => {
     const list = listRef.current
     const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)[0] as HTMLElement | undefined
     if (!list || !waypoint) return
@@ -125,7 +127,7 @@ const useScrolling = (p: {
     })
   })
 
-  const scrollToCentered = C.useEvent(() => {
+  const [scrollToCentered] = React.useState(() => () => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         performScrollToCentered()
@@ -134,7 +136,7 @@ const useScrolling = (p: {
     })
   })
 
-  const scrollDown = C.useEvent(() => {
+  const [scrollDown] = React.useState(() => () => {
     const list = listRef.current
     list &&
       adjustScrollAndIgnoreOnScroll(() => {
@@ -142,7 +144,7 @@ const useScrolling = (p: {
       })
   })
 
-  const scrollUp = C.useEvent(() => {
+  const [scrollUp] = React.useState(() => () => {
     lockedToBottomRef.current = false
     const list = listRef.current
     list &&
@@ -191,10 +193,18 @@ const useScrolling = (p: {
     {leading: true, trailing: true}
   )
 
+  const onScrollThrottledRef = React.useRef(onScrollThrottled)
+  React.useEffect(() => {
+    numOrdinalsRef.current = numOrdinals
+    loadOlderMessagesRef.current = loadOlderMessages
+    loadNewerMessagesRef.current = loadNewerMessages
+    onScrollThrottledRef.current = onScrollThrottled
+  }, [numOrdinals, loadOlderMessages, loadNewerMessages, onScrollThrottled])
+
   // we did it so we should ignore it
   const programaticScrollRef = React.useRef(false)
 
-  const onScroll = C.useEvent(() => {
+  const [onScroll] = React.useState(() => () => {
     if (programaticScrollRef.current) {
       programaticScrollRef.current = false
       return
@@ -211,7 +221,7 @@ const useScrolling = (p: {
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
     lockedToBottomRef.current = false
     checkForLoadMoreThrottled()
-    onScrollThrottled()
+    onScrollThrottledRef.current()
   })
 
   const setListRef = (list: HTMLDivElement | null) => {

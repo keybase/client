@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -38,7 +37,7 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const scrollToBottom = C.useEvent(() => {
+  const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   })
 
@@ -55,18 +54,23 @@ const useScrolling = (p: {
     }
   }, [centeredOrdinal])
 
-  const scrollToCentered = C.useEvent(() => {
+  const centeredOrdinalRef = React.useRef(centeredOrdinal)
+  React.useEffect(() => {
+    centeredOrdinalRef.current = centeredOrdinal
+  }, [centeredOrdinal])
+  const [scrollToCentered] = React.useState(() => () => {
     setTimeout(() => {
       const list = listRef.current
       if (!list) {
         return
       }
-      if (lastScrollToCentered.current === centeredOrdinal) {
+      const co = centeredOrdinalRef.current
+      if (lastScrollToCentered.current === co) {
         return
       }
 
-      lastScrollToCentered.current = centeredOrdinal
-      list.scrollToItem({animated: false, item: centeredOrdinal, viewPosition: 0.5})
+      lastScrollToCentered.current = co
+      list.scrollToItem({animated: false, item: co, viewPosition: 0.5})
     }, 100)
   })
 
@@ -137,7 +141,7 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = C.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
+  const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }
@@ -145,7 +149,7 @@ const ConversationList = function ConversationList() {
       return 'sent'
     }
     return recycleTypeRef.current.get(ordinal) ?? messageTypeMap.get(ordinal) ?? 'text'
-  })
+  }
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,

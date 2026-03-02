@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -40,12 +39,16 @@ const Dropdown = (props: Props) => {
   const [value, setValue] = React.useState(_value || pickItemValue)
   const showingPick = !value
 
-  const selected = C.useEvent((v: string) => {
-    if (v === _value) return
+  const propsRef = React.useRef({_value, onClick, onOther})
+  React.useEffect(() => {
+    propsRef.current = {_value, onClick, onOther}
+  }, [_value, onClick, onOther])
+  const [selected] = React.useState(() => (v: string) => {
+    if (v === propsRef.current._value) return
     if (v === otherItemValue) {
-      onOther()
+      propsRef.current.onOther()
     } else {
-      onClick(v)
+      propsRef.current.onClick(v)
     }
   })
 

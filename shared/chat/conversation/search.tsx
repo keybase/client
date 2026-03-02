@@ -51,8 +51,12 @@ const useCommon = (ownProps: OwnProps) => {
     threadSearch(text)
   }
 
-  const selectResult = C.useEvent((index: number) => {
-    const message = _hits[index] || Chat.makeMessageText()
+  const hitsRef = React.useRef(_hits)
+  React.useEffect(() => {
+    hitsRef.current = _hits
+  }, [_hits])
+  const [selectResult] = React.useState(() => (index: number) => {
+    const message = hitsRef.current[index] || Chat.makeMessageText()
     if (message.id > 0) {
       loadMessagesCentered(message.id, 'always')
     }

@@ -1,0 +1,31 @@
+diff --git a/node_modules/expo-image/ios/ImageView.swift b/node_modules/expo-image/ios/ImageView.swift
+index adcf377..0b7a8f8 100644
+--- a/node_modules/expo-image/ios/ImageView.swift
++++ b/node_modules/expo-image/ios/ImageView.swift
+@@ -109,11 +109,26 @@ public final class ImageView: ExpoView {
+     didSet {
+       // Reload the image when the bounds size has changed and is not empty.
+       if oldValue.size != bounds.size && bounds.size != .zero {
++        // Explicitly resize sdImageView since autoresizingMask doesn't work
++        // correctly when the initial frame is zero.
++        sdImageView.frame = CGRect(origin: .zero, size: bounds.size)
+         reload()
+       }
+     }
+   }
+ 
++  public override func layoutSubviews() {
++    super.layoutSubviews()
++    // RCTViewComponentView.invalidateLayer applies a CAShapeLayer mask to any
++    // UIImageView subview (for border-radius clipping). Because sdImageView
++    // starts with frame .zero, the mask path is created with zero bounds and
++    // clips the entire image. The parent view's clipsToBounds already handles
++    // clipping, so we remove the stale mask here after layout completes.
++    if sdImageView.layer.mask != nil {
++      sdImageView.layer.mask = nil
++    }
++  }
++
+   public required init(appContext: AppContext? = nil) {
+     super.init(appContext: appContext)
+ 

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -37,9 +36,13 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
       inputRef.current = ti
     }
 
-    const onChangeText = C.useEvent((s: string) => {
+    const onChangeTextRef = React.useRef(_onChangeText)
+    React.useEffect(() => {
+      onChangeTextRef.current = _onChangeText
+    })
+    const [onChangeText] = React.useState(() => (s: string) => {
       setValue(s)
-      _onChangeText?.(s)
+      onChangeTextRef.current?.(s)
     })
     const onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
       setSelection(e.nativeEvent.selection)

@@ -23,46 +23,46 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = C.useEvent(() => {
+  const onAddAlias = () => {
     nav.safeNavigateAppend({
       name: 'teamAddEmojiAlias',
       params: {conversationIDKey, defaultSelected: emojiData},
     })
-  })
+  }
   const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
   const doRemove = canRemove
-        ? () => {
-            removeRpc(
-              [
-                {
-                  alias: emojiData.short_name,
-                  convID: T.Chat.keyToConversationID(conversationIDKey),
-                },
-              ],
-              () => refreshEmoji(),
-              err => {
-                throw err
-              }
-            )
+    ? () => {
+        removeRpc(
+          [
+            {
+              alias: emojiData.short_name,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+          ],
+          () => refreshEmoji(),
+          err => {
+            throw err
           }
-        : undefined
+        )
+      }
+    : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <EmojiMenu
-          attachTo={attachTo}
-          visible={true}
-          onAddAlias={doAddAlias}
-          onRemove={doRemove}
-          onHidden={hidePopup}
-          isAlias={emoji.isAlias}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <EmojiMenu
+        attachTo={attachTo}
+        visible={true}
+        onAddAlias={doAddAlias}
+        onRemove={doRemove}
+        onHidden={hidePopup}
+        isAlias={emoji.isAlias}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

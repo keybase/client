@@ -34,17 +34,26 @@ export const useAllChannelMetas = (
 
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  const reloadChannels = C.useEvent(async () =>
+  const getConversationsRef = React.useRef(getConversations)
+  const teamnameRef = React.useRef(teamname)
+  const teamIDRef = React.useRef(teamID)
+  React.useEffect(() => {
+    getConversationsRef.current = getConversations
+    teamnameRef.current = teamname
+    teamIDRef.current = teamID
+  }, [getConversations, teamname, teamID])
+
+  const [reloadChannels] = React.useState(() => async () =>
       new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
-        getConversations(
+        getConversationsRef.current(
           [
             {
               membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname,
+              tlfName: teamnameRef.current,
               topicType: T.RPCChat.TopicType.chat,
             },
-            C.waitingKeyTeamsGetChannels(teamID),
+            C.waitingKeyTeamsGetChannels(teamIDRef.current),
           ],
           ({convs}) => {
             resolve()

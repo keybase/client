@@ -292,10 +292,10 @@ const PlatformInput = (p: Props) => {
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
   const [hasText, setHasText] = React.useState(false)
 
-  const toggleExpandInput = C.useEvent(() => {
+  const toggleExpandInput = () => {
     const nextState = !expanded
     setExpanded(nextState)
-  })
+  }
 
   const insertText = (toInsert: string) => {
     const i = inputRef.current
@@ -308,13 +308,20 @@ const PlatformInput = (p: Props) => {
     }, true)
   }
 
-  const onQueueSubmit = C.useEvent(() => {
+  const expandedRef = React.useRef(expanded)
+  const onSubmitRef = React.useRef(onSubmit)
+  React.useEffect(() => {
+    expandedRef.current = expanded
+    onSubmitRef.current = onSubmit
+  }, [expanded, onSubmit])
+
+  const [onQueueSubmit] = React.useState(() => () => {
     setTimeout(() => {
       const text = lastText.current
       if (text) {
-        onSubmit(text)
-        if (expanded) {
-          toggleExpandInput()
+        onSubmitRef.current(text)
+        if (expandedRef.current) {
+          setExpanded(false)
         }
       }
     }, 60)

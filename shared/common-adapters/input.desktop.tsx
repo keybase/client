@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {Props, TextInfo, RefType} from './input'
@@ -21,10 +20,14 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
     const inputSingleRef = React.useRef<HTMLInputElement>(null)
     const inputMultiRef = React.useRef<HTMLTextAreaElement>(null)
 
-    const onChange = C.useEvent((e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
+    const onChangeTextRef = React.useRef(_onChangeText)
+    React.useEffect(() => {
+      onChangeTextRef.current = _onChangeText
+    }, [_onChangeText])
+    const [onChange] = React.useState(() => (e: {target: HTMLInputElement | HTMLTextAreaElement}) => {
       const s = e.target.value
       setValue(s)
-      _onChangeText?.(s)
+      onChangeTextRef.current?.(s)
     })
     const onSelect = (e: {currentTarget: HTMLInputElement | HTMLTextAreaElement}) => {
       selectionRef.current = {
