@@ -6,8 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
-import type {Props} from '../normal/platform-input'
-import type {RefType as InputRef} from '../normal/input'
+import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
 
 const positionFallbacks = ['bottom center'] as const
 
