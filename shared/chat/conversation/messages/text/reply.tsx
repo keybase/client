@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -12,9 +13,7 @@ export const useReply = (ordinal: T.Chat.Ordinal) => {
   return showReplyTo ? <Reply /> : null
 }
 
-const emptyMessage = Chat.makeMessageText()
-
-const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(emptyMessage)
+const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(null!)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
@@ -125,12 +124,12 @@ function ReplyStructure(p: RS) {
 
 function Reply() {
   const ordinal = useOrdinal()
-  const replyTo = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'text' ? m.replyTo : undefined
-  })
-
-  const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
+  const {replyTo, replyJump} = Chat.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      return {replyJump: s.dispatch.replyJump, replyTo: m?.type === 'text' ? m.replyTo : undefined}
+    })
+  )
   const onClick = () => {
     const id = replyTo?.id ?? 0
     id && replyJump(id)

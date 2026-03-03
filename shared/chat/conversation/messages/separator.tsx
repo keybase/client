@@ -10,7 +10,6 @@ import logger from '@/logger'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
-// import {useChatDebugDump} from '@/constants/chat/debug'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -199,8 +198,6 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   const you = useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
-  // const TEMP = React.useRef({})
-
   const ret = Chat.useChatContext(
     C.useShallow(s => {
       const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
@@ -221,64 +218,42 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
           ? formatTimeForConversationList(m.timestamp)
           : ''
 
-      // TEMP.current = {
-      //   orangeOrdinal,
-      //   ordinal,
-      //   previous,
-      //   showUsername,
-      //   mauthor: m.author,
-      //   mbot: m.botUsername,
-      //   mtype: m.type,
-      //   mtime: m.timestamp,
-      //   pauthor: pmessage?.author,
-      //   pbot: pmessage?.botUsername,
-      //   ptype: pmessage?.type,
-      //   ptime: pmessage?.timestamp,
-      //   msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
-      //   pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
-      // }
       return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
-
-  // useChatDebugDump(
-  //   `CHATDEBUGSep${ordinal}:`,
-  //   C.useEvent(() => {
-  //     return JSON.stringify(TEMP.current, null, 2)
-  //   })
-  // )
 
   return ret
 }
 
 const useState = (ordinal: T.Chat.Ordinal) => {
-  const d = Chat.useChatContext(
+  const {author, teamID, teamType, teamname, botAlias, timestamp, isAdhocBot} = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
-      const participantInfoNames = s.participants.name
       const {author, timestamp} = m
       const {teamID, botAliases, teamType, teamname} = s.meta
-      // TODO not reactive
-      const authorRoleInTeam = useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
-      const authorIsOwner = authorRoleInTeam === 'owner'
-      const authorIsAdmin = authorRoleInTeam === 'admin'
-      const botAlias = botAliases[author] ?? ''
-      const authorIsBot = teamname
-        ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-        : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-          ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      const participantInfoNames = s.participants.name
+      const isAdhocBot =
+        teamType === 'adhoc' && participantInfoNames.length > 0
+          ? !participantInfoNames.includes(author)
           : false
       return {
-        authorIsAdmin,
-        authorIsBot,
-        authorIsOwner,
-        botAlias,
+        author,
+        botAlias: botAliases[author] ?? '',
+        isAdhocBot,
+        teamID,
         teamType,
+        teamname,
         timestamp,
       }
     })
   )
-  return d
+  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+  const authorIsBot = teamname
+    ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+    : isAdhocBot
+  return {authorIsAdmin, authorIsBot, authorIsOwner, botAlias, teamType, timestamp}
 }
 
 type Props = {
@@ -292,13 +267,6 @@ function SeparatorConnector(p: Props) {
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
-  // useful to show ordinal information while debugging
-  // return (
-  //   <Kb.Text
-  //     type="BodyTiny"
-  //     style={{height: 20}}
-  //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
-  // )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Kb.Box2
       direction="horizontal"

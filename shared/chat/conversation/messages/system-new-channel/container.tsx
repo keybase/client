@@ -8,7 +8,7 @@ type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
-  const {teamID} = Chat.useChatContext(s => s.meta)
+  const teamID = Chat.useChatContext(s => s.meta.teamID)
   const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = () => {
     manageChatChannels(teamID)

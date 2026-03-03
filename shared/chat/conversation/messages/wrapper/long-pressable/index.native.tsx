@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -9,7 +10,6 @@ import {SwipeTrigger as OldSwipeTrigger} from './swipeable.native'
 import {Pressable, Keyboard} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
 import * as Reanimated from 'react-native-reanimated'
-// import {useDebugLayout} from '@/util/debug-react'
 
 // const ReplyIcon = React.memo(function ({progress}: {progress: Reanimated.SharedValue<number>}) {
 function ReplyIcon() {
@@ -30,21 +30,11 @@ function LongPressable(props: Props) {
 
   const onPress = () => Keyboard.dismiss()
 
-  // uncomment to debug measuring issues w/ items
-  // const onLayout =
-  //   useDebugLayout()
-  // React.useCallback(() => {
-  //   const {conversationIDKey, ordinal} = getIds()
-  //   return global.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)?.get(ordinal)
-  // }, [getIds])
-
   const inner = (
     <Pressable
       style={[styles.pressable, style]}
       onLongPress={onLongPress}
       onPress={onPress}
-      // uncomment to debug measuring issues w/ items
-      // onLayout={onLayout}
     >
       {children}
     </Pressable>
@@ -52,8 +42,9 @@ function LongPressable(props: Props) {
 
   const makeAction = (/*_: unknown, progress: Reanimated.SharedValue<number>*/) => <ReplyIcon /*progress={progress}*/ />
 
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
+  const {toggleThreadSearch, setReplyTo} = Chat.useChatContext(
+    C.useShallow(s => ({setReplyTo: s.dispatch.setReplyTo, toggleThreadSearch: s.dispatch.toggleThreadSearch}))
+  )
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = () => {
@@ -91,7 +82,7 @@ function LongPressable(props: Props) {
   //   >
   //     {inner}
   //   </Swipeable>
-  // )
+  //   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
