@@ -167,34 +167,53 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
         convertJSIToMP(runtime, arr.getValueAtIndex(runtime, i), &pk);
       }
     } else {
-      // Check for Uint8Array: has "byteLength" and "buffer" properties
-      // where "buffer" is an ArrayBuffer
-      auto byteLengthProp = obj.getProperty(runtime, "byteLength");
-      if (byteLengthProp.isNumber()) {
-        auto bufferProp = obj.getProperty(runtime, "buffer");
-        if (bufferProp.isObject()) {
-          auto bufferObj = bufferProp.asObject(runtime);
-          if (bufferObj.isArrayBuffer(runtime)) {
-            // This is a TypedArray (Uint8Array) — encode as BIN
-            auto arrayBuf = bufferObj.getArrayBuffer(runtime);
-            auto byteOffset = obj.getProperty(runtime, "byteOffset");
-            size_t offset = byteOffset.isNumber()
-                                ? static_cast<size_t>(byteOffset.getNumber())
-                                : 0;
-            size_t length = static_cast<size_t>(byteLengthProp.getNumber());
-            pk.pack_bin(static_cast<uint32_t>(length));
-            pk.pack_bin_body(
-                reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
-                static_cast<uint32_t>(length));
-            return;
-          }
-        }
-      }
-      // Regular object — encode as MAP
       auto names = obj.getPropertyNames(runtime);
       auto len = names.size(runtime);
+
+      // Probe for TypedArray (Uint8Array). Extracted as a lambda so it
+      // can be called from two sites without duplicating the logic.
+      auto tryPackTypedArray = [&]() -> bool {
+        auto byteLengthProp = obj.getProperty(runtime, "byteLength");
+        if (!byteLengthProp.isNumber()) return false;
+        auto bufferProp = obj.getProperty(runtime, "buffer");
+        if (!bufferProp.isObject()) return false;
+        auto bufferObj = bufferProp.asObject(runtime);
+        if (!bufferObj.isArrayBuffer(runtime)) return false;
+        auto arrayBuf = bufferObj.getArrayBuffer(runtime);
+        auto byteOffset = obj.getProperty(runtime, "byteOffset");
+        size_t offset = byteOffset.isNumber()
+                            ? static_cast<size_t>(byteOffset.getNumber())
+                            : 0;
+        size_t length = static_cast<size_t>(byteLengthProp.getNumber());
+        pk.pack_bin(static_cast<uint32_t>(length));
+        pk.pack_bin_body(
+            reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
+            static_cast<uint32_t>(length));
+        return true;
+      };
+
+      // Empty object: could be {} or empty TypedArray — must probe
+      if (len == 0) {
+        if (tryPackTypedArray()) return;
+        pk.pack_map(0);
+        return;
+      }
+
+      // Get first property name (needed for MAP encoding anyway).
+      // TypedArrays have numeric index keys ("0", "1", ...); regular
+      // RPC objects have string keys. Only probe for TypedArray when
+      // the first key looks numeric — saves a JSI call per regular object.
+      auto firstName = names.getValueAtIndex(runtime, 0).getString(runtime);
+      auto firstStr = firstName.utf8(runtime);
+      if (!firstStr.empty() && firstStr[0] >= '0' && firstStr[0] <= '9') {
+        if (tryPackTypedArray()) return;
+      }
+
+      // Regular object — encode as MAP
       pk.pack_map(static_cast<uint32_t>(len));
-      for (size_t i = 0; i < len; ++i) {
+      pk.pack(firstStr);
+      convertJSIToMP(runtime, obj.getProperty(runtime, firstName), &pk);
+      for (size_t i = 1; i < len; ++i) {
         auto name = names.getValueAtIndex(runtime, i).getString(runtime);
         auto nameStr = name.utf8(runtime);
         pk.pack(nameStr);
