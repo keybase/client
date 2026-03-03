@@ -128,10 +128,6 @@ class TransportShared extends Framed.transport.RobustTransport {
 
   // Override RobustTransport.invoke.
   invoke(arg: Framed.InvokeArgs, cb: (err: Framed.ErrorType, data: object) => void) {
-    // don't actually compress
-    // if (arg.ctype == undefined) {
-    //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
-    // }
     const extra = arg.args[0]
     const method = arg.method
     const reason = '[+calling]'
@@ -157,6 +153,30 @@ class TransportShared extends Framed.transport.RobustTransport {
   }
 }
 
+// Base for transports that are always locally connected (mobile JSI, desktop renderer IPC).
+// Only send() needs to be overridden per platform.
+class LocalTransport extends TransportShared {
+  constructor(
+    incomingRPCCallback: Framed.incomingRPCCallbackType,
+    connectCallback?: Framed.connectDisconnectCB,
+    disconnectCallback?: Framed.connectDisconnectCB
+  ) {
+    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
+    this.needsConnect = false
+  }
+  connect(cb: (err?: unknown) => void) {
+    cb()
+  }
+  is_connected() {
+    return true
+  }
+  reset() {}
+  close() {}
+  get_generation() {
+    return 1
+  }
+}
+
 function sharedCreateClient(nativeTransport: TransportShared) {
   const rpcClient = new Framed.client.Client(nativeTransport)
 
@@ -171,4 +191,4 @@ function sharedCreateClient(nativeTransport: TransportShared) {
   return rpcClient
 }
 
-export {TransportShared, sharedCreateClient, rpcLog}
+export {TransportShared, LocalTransport, sharedCreateClient, rpcLog}

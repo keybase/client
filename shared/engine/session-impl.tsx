@@ -9,7 +9,7 @@ import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -192,11 +192,6 @@ class Session {
 
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
-    if (__DEV__) {
-      if (Object.hasOwn(this._seqIDResponded, String(seqID))) {
-        console.log('Cancelling seqid found, current session state', this)
-      }
-    }
     return Object.hasOwn(this._seqIDResponded, String(seqID))
   }
 }

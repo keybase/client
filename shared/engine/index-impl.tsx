@@ -59,15 +59,6 @@ class Engine {
   ) {
     this._onConnectedCB = onConnected
     this._onEngineIncoming = onEngineIncoming
-    // the node engine doesn't do this and we don't want to pull in any reqs
-    if (onEngineIncoming) {
-      this._engineConstantsIncomingCall = (action: EngineGen.Actions) => {
-        // defer a frame so its more like before
-        setTimeout(() => {
-          this._onEngineIncoming?.(action)
-        }, 0)
-      }
-    }
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
@@ -173,13 +164,13 @@ class Engine {
           .join('')
 
         const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
-        this._engineConstantsIncomingCall(act as EngineGen.Actions)
+        if (this._onEngineIncoming) {
+          setTimeout(() => {
+            this._onEngineIncoming?.(act as EngineGen.Actions)
+          }, 0)
+        }
       }
     }
-  }
-  _engineConstantsIncomingCall = (_a: EngineGen.Actions): void => {
-    logger.error('_engineConstantsIncomingCall not overriden')
-    throw Error('needs override')
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers

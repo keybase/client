@@ -1,36 +1,9 @@
-import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+import {LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
 import logger from '@/logger'
 import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
 
-class NativeTransport extends TransportShared {
-  constructor(
-    incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
-  ) {
-    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
-
-    // We're connected locally so we never get disconnected
-    this.needsConnect = false
-  }
-
-  // We're always connected, so call the callback
-  connect(cb: (err?: unknown) => void) {
-    cb()
-  }
-  is_connected() {
-    return true
-  }
-
-  // Override and disable some built in stuff in TransportShared
-  reset() {}
-  close() {}
-  get_generation() {
-    return 1
-  }
-
-  // A custom send override to write to the react native bridge
+class NativeTransport extends LocalTransport {
   send(msg: unknown) {
     try {
       if (!global.rpcOnGo) {
