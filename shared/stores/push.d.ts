@@ -4,6 +4,7 @@ import type {UseBoundStore, StoreApi} from 'zustand'
 type Store = T.Immutable<{
   hasPermissions: boolean
   justSignedUp: boolean
+  pendingPushNotification?: T.Push.PushNotification
   showPushPrompt: boolean
   token: string
 }>
@@ -14,6 +15,7 @@ export type State = Store & {
       onGetDaemonHandshakeState?: () => T.Config.DaemonHandshakeState
     }
     checkPermissions: () => Promise<boolean>
+    clearPendingPushNotification: () => void
     deleteToken: (version: number) => void
     handlePush: (notification: T.Push.PushNotification) => void
     initialPermissionsCheck: () => void

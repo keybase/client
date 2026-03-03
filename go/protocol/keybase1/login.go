@@ -15,6 +15,7 @@ type ConfiguredAccount struct {
 	Fullname        FullName `codec:"fullname" json:"fullname"`
 	HasStoredSecret bool     `codec:"hasStoredSecret" json:"hasStoredSecret"`
 	IsCurrent       bool     `codec:"isCurrent" json:"isCurrent"`
+	Uid             UID      `codec:"uid" json:"uid"`
 }
 
 func (o ConfiguredAccount) DeepCopy() ConfiguredAccount {
@@ -23,6 +24,7 @@ func (o ConfiguredAccount) DeepCopy() ConfiguredAccount {
 		Fullname:        o.Fullname.DeepCopy(),
 		HasStoredSecret: o.HasStoredSecret,
 		IsCurrent:       o.IsCurrent,
+		Uid:             o.Uid.DeepCopy(),
 	}
 }
 

@@ -1,4 +1,4 @@
-• On iOS quicky share to recent conversations
+• On iOS quickly share to recent conversations
 • Emoji 16 support
 • iOS HEIC Avatar support
 • Better sharing/push support

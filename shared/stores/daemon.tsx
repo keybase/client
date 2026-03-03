@@ -30,7 +30,11 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => void
+    loadDaemonAccounts: (
+      configuredAccountsLength: number,
+      loggedIn: boolean,
+      refreshAccounts: () => Promise<void>
+    ) => void
     loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
@@ -117,7 +121,11 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
     },
-    loadDaemonAccounts: (configuredAccountsLength: number, loggedIn: boolean, refreshAccounts: () => Promise<void>) => {
+    loadDaemonAccounts: (
+      configuredAccountsLength: number,
+      loggedIn: boolean,
+      refreshAccounts: () => Promise<void>
+    ) => {
       const f = async () => {
         const version = get().handshakeVersion
         if (configuredAccountsLength) {
