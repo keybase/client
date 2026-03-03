@@ -73,7 +73,7 @@ const SetPublicName = () => {
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
-          <Kb.NewInput
+          <Kb.Input3
             autoFocus={true}
             error={showDisabled}
             maxLength={64}
@@ -81,7 +81,7 @@ const SetPublicName = () => {
             onEnterKeyDown={onSubmit}
             onChangeText={_setDeviceName}
             value={cleanDeviceName}
-            style={styles.nameInput}
+            containerStyle={styles.nameInput}
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>

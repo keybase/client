@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 import type * as Styles from '@/styles'
-import type {RefType as InputRef} from '@/common-adapters/input'
+import type {RefType as InputRef} from './input'
 
 export type Props = {
   cannotWrite: boolean

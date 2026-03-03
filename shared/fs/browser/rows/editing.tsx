@@ -29,7 +29,9 @@ function Editing({editID}: Props) {
   React.useEffect(() => {
     setEditName(editID, filename)
   }, [editID, filename, setEditName])
-  const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') onCancel()
+  }
   return (
     <Kb.ListItem
       type="Small"
@@ -48,15 +50,16 @@ function Editing({editID}: Props) {
       }
       body={
         <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
-          <Kb.PlainInput
+          <Kb.Input3
             value={filename}
             placeholder={edit.originalName}
             selectTextOnFocus={true}
-            style={styles.text}
+            inputStyle={styles.text}
             onEnterKeyDown={onSubmit}
-            onChangeText={name => setFilename(name)}
+            onChangeText={(name: string) => setFilename(name)}
             autoFocus={true}
-            onKeyUp={onKeyUp}
+            onKeyDown={onKeyDown}
+            hideBorder={true}
           />
         </Kb.Box2>
       }

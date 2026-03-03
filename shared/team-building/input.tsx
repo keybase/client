@@ -1,7 +1,5 @@
 import * as React from 'react'
-import noop from 'lodash/noop'
 import * as Kb from '@/common-adapters/index'
-import type {NativeSyntheticEvent} from 'react-native'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -74,10 +72,6 @@ const Input = (props: Props) => {
       )
     }
 
-  const onKeyPress = (e: NativeSyntheticEvent<{key: string}>) => {
-      handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
-    }
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.SearchFilter
@@ -90,7 +84,6 @@ const Input = (props: Props) => {
         onCancel={props.onClear}
         placeholderText={props.placeholder}
         onKeyDown={onKeyDown}
-        onKeyPress={onKeyPress}
         onEnterKeyDown={props.onEnterKeyDown}
         ref={ref}
       />

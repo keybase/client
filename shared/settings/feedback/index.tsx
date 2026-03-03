@@ -76,15 +76,15 @@ const Feedback = (props: Props) => {
         )}
         <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.NewInput
+            <Kb.Input3
               autoCapitalize="sentences"
               autoCorrect={true}
               autoFocus={true}
               containerStyle={styles.input}
+              inputStyle={styles.inputResize}
               multiline={true}
               onChangeText={_onChangeFeedback}
               placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-              resize={true}
               rowsMin={4}
               rowsMax={Kb.Styles.isMobile ? 4 : 10}
               value={feedback}
@@ -107,7 +107,7 @@ const Feedback = (props: Props) => {
           </Kb.Box2>
           {props.loggedOut && (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.NewInput
+              <Kb.Input3
                 containerStyle={styles.input}
                 placeholder="Your email address"
                 onChangeText={_onChangeEmail}
@@ -150,6 +150,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {padding: Kb.Styles.globalMargins.tiny},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
       }),
+      inputResize: Kb.Styles.platformStyles({isElectron: {resize: 'vertical'}}),
       mainBox: Kb.Styles.platformStyles({
         common: {
           padding: Kb.Styles.globalMargins.small,

@@ -69,7 +69,7 @@ const ForgotUsername = () => {
           selected={emailSelected}
         />
         {emailSelected && (
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             placeholder="Email address"
             onEnterKeyDown={onSubmit}

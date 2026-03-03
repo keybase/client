@@ -13,7 +13,7 @@ import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, LayoutOptions, RouteDef, RouteMap} from '@/constants/types/router'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
@@ -114,28 +114,9 @@ type LayoutFn = (props: {
 type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
 
-// Keys to strip from getOptions before passing to React Navigation
-const layoutOptionKeys: ReadonlySet<string> = new Set<keyof LayoutOptions>([
-  'safeAreaStyle',
-  'modal2Style',
-  'modal2AvoidTabs',
-  'modal2',
-  'modal2ClearCover',
-  'modal2NoClose',
-  'modal2Type',
-  'headerBottomStyle',
-  'headerRightActions',
-])
-
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
-  const result: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(opts)) {
-    if (!layoutOptionKeys.has(k)) result[k] = v
-  }
-  // Safe cast: remaining keys are standard NativeStackNavigationOptions properties.
-  // headerStyle type is wider than RN declares but works at runtime.
-  return result as NativeStackNavigationOptions
+  return opts as NativeStackNavigationOptions
 }
 
 export function routeMapToStaticScreens(

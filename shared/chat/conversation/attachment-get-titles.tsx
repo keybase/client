@@ -110,7 +110,7 @@ const Container = (ownProps: OwnProps) => {
     setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
   }
 
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   const {info, path} = pathAndInfos[index] ?? {}
   const titleHint = 'Add a caption...'
@@ -158,21 +158,22 @@ const Container = (ownProps: OwnProps) => {
               </Kb.Box2>
             )}
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-              <Kb.PlainInput
+              <Kb.Input3
                 ref={inputRef}
-                style={styles.input}
                 autoFocus={!Kb.Styles.isMobile}
-                onClick={e => {
+                onClick={(e: React.BaseSyntheticEvent) => {
                   e.stopPropagation()
                 }}
                 autoCorrect={true}
                 placeholder={titleHint}
                 multiline={true}
                 rowsMin={2}
-                padding="tiny"
                 value={titles[index]}
                 onEnterKeyDown={onNext}
                 onChangeText={updateTitle}
+                hideBorder={true}
+                containerStyle={styles.inputBare}
+                inputStyle={styles.input}
               />
               {/* (
                 <Kb.Checkbox
@@ -259,10 +260,11 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           borderColor: Kb.Styles.globalColors.blue,
           borderRadius: Kb.Styles.borderRadius,
+          borderStyle: 'solid',
           borderWidth: 1,
-          marginBottom: Kb.Styles.globalMargins.tiny,
           maxHeight: 42,
           minHeight: 42,
+          padding: Kb.Styles.globalMargins.tiny,
           width: '100%',
         },
         isTablet: {
@@ -270,6 +272,12 @@ const styles = Kb.Styles.styleSheetCreate(
           maxWidth: 460,
         },
       }),
+      inputBare: {
+        backgroundColor: Kb.Styles.globalColors.transparent,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        padding: 0,
+        width: '100%',
+      },
       inputContainer: Kb.Styles.platformStyles({
         isElectron: {
           paddingLeft: Kb.Styles.globalMargins.small,

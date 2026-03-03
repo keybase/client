@@ -40,6 +40,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: '100%',
   },
   container: {
+    alignSelf: 'stretch',
     marginBottom: Kb.Styles.globalMargins.tiny,
     marginTop: Kb.Styles.globalMargins.tiny,
   },

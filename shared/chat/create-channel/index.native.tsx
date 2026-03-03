@@ -15,13 +15,13 @@ const CreateChannel = (p: Props) => {
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.box}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Channel name"
               value={props.channelname}
               onChangeText={channelname => props.onChannelnameChange(channelname)}
             />
-            <Kb.LabeledInput
+            <Kb.Input3
               autoCorrect={true}
               autoFocus={false}
               autoCapitalize="sentences"

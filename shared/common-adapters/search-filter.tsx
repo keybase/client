@@ -2,8 +2,7 @@ import * as React from 'react'
 import Animation from './animation'
 import {Box2, Box2Measure} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
-import NewInput from './new-input'
-import PlainInput, {type PlainInputRef} from './plain-input'
+import Input3, {type Input3Ref} from './input3'
 import Text from './text'
 import type {AllowedColors} from './text.shared'
 import ProgressIndicator from './progress-indicator'
@@ -11,7 +10,6 @@ import {useHotKey} from './hot-key'
 import Icon, {type IconType} from './icon'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
-import type {NativeSyntheticEvent} from 'react-native'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
@@ -21,8 +19,7 @@ const Kb = {
   ClickableBox,
   ClickableBox2,
   Icon,
-  NewInput,
-  PlainInput,
+  Input3,
   ProgressIndicator,
   Text,
   useHotKey,
@@ -42,7 +39,6 @@ type Props = {
   waiting?: boolean
   mobileCancelButton?: boolean // show "Cancel" on the left
   showXOverride?: boolean
-  dummyInput?: boolean
   onBlur?: () => void
   onCancel?: () => void
   // If onClick is provided, this component won't focus on click. User is
@@ -55,8 +51,6 @@ type Props = {
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   onKeyDown?: (event: React.KeyboardEvent) => void
-  onKeyUp?: (event: React.KeyboardEvent) => void
-  onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
   measureRef?: React.RefObject<MeasureRef | null>
 }
 
@@ -70,7 +64,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const [focused, setFocused] = React.useState(props.focusOnMount || false)
   const [hover, setHover] = React.useState(false)
   const [text, setText] = React.useState('')
-  const inputRef = React.useRef<PlainInputRef>(null)
+  const inputRef = React.useRef<Input3Ref>(null)
   const mounted = React.useRef(false)
 
   const focusOnMountRef = React.useRef(props.focusOnMount)
@@ -176,23 +170,19 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
         ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
     return (
-      <Kb.NewInput
-        flexable={true}
+      <Kb.Input3
         autoFocus={props.focusOnMount}
         value={currentText()}
         placeholder={props.placeholderText + hotkeyText}
-        dummyInput={props.dummyInput}
         onChangeText={update}
         onBlur={onBlur}
         onFocus={onFocus}
         onKeyDown={onKeyDown}
-        onKeyUp={props.onKeyUp}
-        onKeyPress={props.onKeyPress}
         onEnterKeyDown={props.onEnterKeyDown}
         ref={inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
-        style={styles.input}
+        inputStyle={styles.input}
       />
     )
   }

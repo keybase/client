@@ -101,7 +101,7 @@ export const EnterEmailBody = (props: BodyProps) => (
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-        <Kb.LabeledInput
+        <Kb.Input3
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"

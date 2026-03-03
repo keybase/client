@@ -95,13 +95,13 @@ export const InviteByContact = (props: InviteByContactProps) => {
       {hasItems && (
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.listContainer}>
           <Kb.Box2 direction="horizontal" style={styles.filterContainer}>
-            <Kb.PlainInput
+            <Kb.Input3
               autoFocus={true}
               keyboardType="email-address"
               value={filterValue}
               onChangeText={onFilterChange}
               placeholder="Search"
-              style={styles.filter}
+              hideBorder={true}
             />
           </Kb.Box2>
           <FloatingRolePicker
@@ -147,9 +147,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.red,
         padding: Kb.Styles.globalMargins.tiny,
-      },
-      filter: {
-        width: '100%',
       },
       filterContainer: {
         borderBottomColor: Kb.Styles.globalColors.black_10,

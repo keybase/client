@@ -177,13 +177,11 @@ const TeamPicker = (props: Props) => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-          <Kb.PlainInput
-            style={styles.input}
+          <Kb.Input3
+            containerStyle={styles.input}
             autoFocus={true}
             autoCorrect={true}
             placeholder="Add a caption..."
-            multiline={false}
-            padding="tiny"
             onEnterKeyDown={onSubmit}
             onChangeText={setTitle}
             value={title}
@@ -249,11 +247,8 @@ const styles = Kb.Styles.styleSheetCreate(
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderWidth: 1,
           marginBottom: Kb.Styles.globalMargins.tiny,
           minHeight: 40,
-          padding: Kb.Styles.globalMargins.xtiny,
           width: '100%',
         },
         isElectron: {maxHeight: 100},

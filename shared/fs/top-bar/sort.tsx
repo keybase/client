@@ -88,12 +88,21 @@ const Container = (ownProps: OwnProps) => {
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
-          <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(sortSetting)}</Kb.Text>
+          <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
+            {getTextFromSortSetting(sortSetting)}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
       {popup}
     </>
   ) : null
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      sortText: Kb.Styles.platformStyles({isElectron: {whiteSpace: 'nowrap'}}),
+    }) as const
+)
 
 export default Container

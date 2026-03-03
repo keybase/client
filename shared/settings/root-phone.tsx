@@ -12,7 +12,7 @@ import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.PlainInputRef>(null)
+  const ref = React.useRef<Kb.Input3Ref>(null)
 
   return (
     <Kb.Box2
@@ -30,19 +30,14 @@ const PerfRow = () => {
           T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
             .then(() => {})
             .catch(() => {})
-          ref.current?.transformText(
-            () => ({
-              selection: {end: 0, start: 0},
-              text: '',
-            }),
-            true
-          )
+          ref.current?.clear()
         }}
       />
-      <Kb.PlainInput
+      <Kb.Input3
         ref={ref}
-        onChangeText={text => setToSubmit(`GUI: ${text}`)}
-        style={styles.perfInput}
+        onChangeText={(text: string) => setToSubmit(`GUI: ${text}`)}
+        hideBorder={true}
+        containerStyle={styles.perfInput}
         placeholder="Add to perf log"
       />
     </Kb.Box2>
@@ -224,7 +219,7 @@ function SettingsNav() {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  perfInput: {backgroundColor: Kb.Styles.globalColors.grey},
+  perfInput: {backgroundColor: Kb.Styles.globalColors.grey, flex: 1, padding: 0, width: 'auto' as const},
   perfRow: {height: 44},
   sectionTitle: {
     backgroundColor: Kb.Styles.globalColors.blueLighter3,

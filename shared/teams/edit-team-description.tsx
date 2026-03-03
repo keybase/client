@@ -67,7 +67,7 @@ const EditTeamDescription = (props: Props) => {
       allowOverflow={true}
     >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Team description"
           onChangeText={setDescription}
           value={description}

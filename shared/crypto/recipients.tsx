@@ -29,15 +29,13 @@ const Recipients = () => {
         {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
-          <>
-            <Kb.PlainInput
-              disabled={inProgress}
-              placeholder={placeholder}
-              allowFontScaling={false}
-              onFocus={onAddRecipients}
-              style={styles.input}
-            />
-          </>
+          <Kb.Input3
+            disabled={inProgress}
+            placeholder={placeholder}
+            onFocus={onAddRecipients}
+            hideBorder={true}
+            containerStyle={styles.input}
+          />
         )}
         {recipients.length ? (
           <Kb.Icon
@@ -62,10 +60,9 @@ const styles = Kb.Styles.styleSheetCreate(
       input: {
         ...Kb.Styles.globalStyles.flexGrow,
         alignSelf: 'center',
-        borderBottomWidth: 0,
-        borderWidth: 0,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         marginLeft: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: 0,
+        padding: 0,
       },
       recipientsContainer: {
         minHeight: recipientsRowHeight,

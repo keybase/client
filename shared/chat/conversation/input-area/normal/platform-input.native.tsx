@@ -28,7 +28,8 @@ import {
 import logger from '@/logger'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
-import type {RefType as InputRef, Props as InputProps} from '@/common-adapters/input'
+import {Input} from './input'
+import type {RefType as InputRef, Props as InputProps} from './input'
 import {useConfigState} from '@/stores/config'
 
 const singleLineHeight = 36
@@ -494,7 +495,7 @@ const AnimatedInput = (() => {
       const {expanded, ref, ...rest} = p
       return (
         <Animated.View style={[p.style, rest.style]}>
-          <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+          <Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
         </Animated.View>
       )
     }
@@ -518,7 +519,7 @@ const AnimatedInput = (() => {
       }, [expanded, offset])
       return (
         <Animated.View style={[p.style, as]}>
-          <Kb.Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
+          <Input multiline={true} {...rest} ref={ref} style={styles.inputInner} />
         </Animated.View>
       )
     }

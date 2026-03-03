@@ -67,7 +67,6 @@ const LogoutContainer = () => {
     setLoggingOut(true)
   }
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return hasRandomPW === undefined ? (
@@ -155,15 +154,16 @@ const LogoutContainer = () => {
           You will need it to sign back in.
         </Kb.Text>
         <Kb.RoundedBox>
-          <Kb.PlainInput
+          <Kb.Input3
             keyboardType={keyboardType}
             onEnterKeyDown={() => {
               checkPasswordIsCorrect ? logOut() : onCheckPassword(password)
             }}
             onChangeText={setPassword}
             placeholder="Your password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             value={password}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         <Kb.Checkbox

@@ -97,15 +97,14 @@ const Container = (ownProps: OwnProps) => {
             ] as const)}
             fullWidth={true}
           >
-            <Kb.PlainInput
+            <Kb.Input3
               autoFocus={true}
               disabled={waiting}
               onChangeText={setNewName}
               onEnterKeyDown={handleRename}
-              textType="BodySemibold"
-              flexable={true}
               maxLength={16}
               placeholder={originalName}
+              hideBorder={true}
             />
           </Kb.Box2>
           {(!!error || !!propError) && (

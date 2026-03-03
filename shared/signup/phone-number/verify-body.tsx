@@ -26,22 +26,16 @@ const VerifyBody = (props: BodyProps) => {
       <Kb.Text type="Body" negative={true} center={true}>
         Enter the code in the SMS you received:
       </Kb.Text>
-      <Kb.PlainInput
+      <Kb.Input3
         autoFocus={true}
-        style={styles.input}
-        flexable={true}
         keyboardType="numeric"
         onChangeText={props.onChangeCode}
         textType="Header"
         textContentType="oneTimeCode"
-      >
-        {Kb.Styles.isAndroid ? undefined : (
-          <Kb.Text type="Header" style={styles.inputText}>
-            {/* We put this child in Input because some text styles don't work on RN input itself - the one we need here is letterSpacing */}
-            {props.code}
-          </Kb.Text>
-        )}
-      </Kb.PlainInput>
+        hideBorder={true}
+        containerStyle={styles.inputContainer2}
+        inputStyle={styles.inputText2}
+      />
       <Kb.ClickableBox
         onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
         style={styles.positionRelative}
@@ -86,17 +80,13 @@ const styles = Kb.Styles.styleSheetCreate(
           top: 1,
         },
       }),
-      input: Kb.Styles.platformStyles({
+      inputContainer2: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueDark,
           borderRadius: Kb.Styles.borderRadius,
-          color: Kb.Styles.globalColors.white,
-          letterSpacing: 20,
-          textAlign: 'center',
         },
         isElectron: {
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
-          fontVariantLigatures: 'none', // ligatures interfere with letterSpacing
           height: 38,
           width: 368,
         },
@@ -107,11 +97,14 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isTablet: {maxWidth: 368},
       }),
-      inputText: Kb.Styles.platformStyles({
-        isMobile: {
+      inputText2: Kb.Styles.platformStyles({
+        common: {
           color: Kb.Styles.globalColors.white,
           letterSpacing: 20,
-          lineHeight: 28, // arrived at by fiddling - doesn't affect android
+          textAlign: 'center',
+        },
+        isElectron: {
+          fontVariant: 'none',
         },
       }),
       opacity30: {opacity: 0.3},

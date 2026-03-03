@@ -350,7 +350,7 @@ const EnterText = (props: {
   }
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
-      <Kb.PlainInput
+      <Kb.Input3
         autoFocus={true}
         multiline={true}
         onChangeText={setCode}
@@ -358,7 +358,9 @@ const EnterText = (props: {
         rowsMin={3}
         placeholder={`Type the ${props.otherDevice.type === 'mobile' ? '9' : '8'}-word secret code`}
         textType="Terminal"
-        style={styles.enterTextInput}
+        hideBorder={true}
+        containerStyle={styles.enterTextContainer2}
+        inputStyle={styles.enterTextColor}
         value={code}
       />
     </Kb.Box2>
@@ -540,25 +542,21 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: Kb.Styles.isMobile ? undefined : 460,
         width: '90%',
       },
+      enterTextColor: {color: Kb.Styles.globalColors.greenDark},
       enterTextContainer: {
         alignItems: Kb.Styles.isMobile ? 'stretch' : 'center',
         alignSelf: 'stretch',
       },
-      enterTextInput: Kb.Styles.platformStyles({
+      enterTextContainer2: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.fontTerminalSemibold,
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 4,
-          color: Kb.Styles.globalColors.greenDark,
           paddingBottom: 15,
           paddingLeft: 20,
           paddingRight: 20,
           paddingTop: 15,
         },
-        isElectron: {
-          fontSize: 16,
-          maxWidth: 460,
-        },
+        isElectron: {maxWidth: 460},
         isMobile: {width: '100%'},
       }),
       flexWrap: Kb.Styles.platformStyles({isMobile: {flexWrap: 'wrap'}}),

@@ -86,12 +86,13 @@ const Container = (ownProps: OwnProps) => {
       ) : (
         <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
           <Kb.RoundedBox>
-            <Kb.PlainInput
+            <Kb.Input3
               autoFocus={true}
               onChangeText={setName}
               onEnterKeyDown={onSubmit}
               placeholder="Token or team name"
               value={name}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>

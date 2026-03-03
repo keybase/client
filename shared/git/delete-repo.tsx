@@ -93,7 +93,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text style={styles.confirm} type="BodySemibold">
             Enter the name of the repository to&nbsp;confirm:
           </Kb.Text>
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             value={name}
             onChangeText={setName}

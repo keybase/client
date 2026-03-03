@@ -47,7 +47,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
-        <Kb.NewInput
+        <Kb.Input3
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"

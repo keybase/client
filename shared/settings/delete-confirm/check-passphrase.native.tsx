@@ -24,7 +24,6 @@ const CheckPassphraseMobile = () => {
   }
 
   const waitingKey = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return (
@@ -75,13 +74,14 @@ const CheckPassphraseMobile = () => {
           You will need it to delete this account.
         </Kb.Text>
         <Kb.RoundedBox>
-          <Kb.PlainInput
+          <Kb.Input3
             keyboardType={keyboardType}
             onEnterKeyDown={() => onCheckPassword(password)}
-            onChangeText={password => setPassword(password)}
+            onChangeText={(password: string) => setPassword(password)}
             placeholder="Your password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             value={password}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         <Kb.Checkbox

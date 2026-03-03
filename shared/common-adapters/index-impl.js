@@ -156,14 +156,11 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input() {
-    return require('./input').Input
+  get Input3() {
+    return require('./input3').default
   },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
-  },
-  get LabeledInput() {
-    return require('./labeled-input').default
   },
   get List() {
     return require('./list').default
@@ -198,9 +195,6 @@ get ListItem() {
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
   },
-  get NewInput() {
-    return require('./new-input').default
-  },
   get Overlay() {
     return require('./overlay').default
   },
@@ -209,9 +203,6 @@ get ListItem() {
   },
   get Placeholder() {
     return require('./placeholder').default
-  },
-  get PlainInput() {
-    return require('./plain-input').default
   },
   get PlatformIcon() {
     return require('./platform-icon').default

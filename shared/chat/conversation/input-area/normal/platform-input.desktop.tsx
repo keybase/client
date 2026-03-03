@@ -10,7 +10,8 @@ import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
-import type {RefType as InputRef} from '@/common-adapters/input'
+import {Input} from './input'
+import type {RefType as InputRef} from './input'
 import KB2 from '@/util/electron.desktop'
 
 // import logger from '@/logger'
@@ -406,7 +407,7 @@ const PlatformInput = function PlatformInput(p: Props) {
               />
             )}
             <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={styles.inputBox}>
-              <Kb.Input
+              <Input
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}

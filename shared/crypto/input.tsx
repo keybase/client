@@ -81,7 +81,7 @@ const TextInput = (props: TextProps) => {
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
   const onFocusInput = () => {
     inputRef.current?.focus()
   }
@@ -112,7 +112,7 @@ const TextInput = (props: TextProps) => {
 
   // Styling
   const rowsMax = Kb.Styles.isMobile ? undefined : value ? undefined : 1
-  const growAndScroll = !Kb.Styles.isMobile
+  const growAndScroll = !Kb.Styles.isMobile && !!value
   const inputStyle = Kb.Styles.collapseStyles([
     styles.input,
     value ? styles.inputFull : styles.inputEmpty,
@@ -144,22 +144,20 @@ const TextInput = (props: TextProps) => {
           fullHeight={Kb.Styles.isMobile || !!value}
           style={styles.inputAndFilePickerContainer}
         >
-          <Kb.NewInput
+          <Kb.Input3
             value={value}
             placeholder={placeholder}
             multiline={true}
             autoFocus={true}
-            allowKeyboardEvents={true}
             hideBorder={true}
             rowsMax={rowsMax}
             growAndScroll={growAndScroll}
-            padding="tiny"
             containerStyle={inputContainerStyle}
-            style={inputStyle}
+            inputStyle={inputStyle}
             textType={textType === 'cipher' ? 'Terminal' : 'Body'}
             autoCorrect={textType !== 'cipher'}
             spellCheck={textType !== 'cipher'}
-            onChangeText={onChangeText}
+            onChangeText={(text: string) => onChangeText(text)}
             ref={inputRef}
           />
           {!Kb.Styles.isMobile && browseButton}
@@ -444,7 +442,6 @@ const styles = Kb.Styles.styleSheetCreate(
       inputEmpty: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.padding(0),
-          minHeight: 'initial',
           overflowY: 'hidden',
         },
         isMobile: {

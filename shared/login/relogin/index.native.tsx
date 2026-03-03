@@ -4,12 +4,12 @@ import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
-import type {Props as InputProps} from '@/common-adapters/labeled-input'
+import type {Input3Props} from '@/common-adapters/input3'
 import type {Props} from '.'
 
 const LoginRender = (props: Props) => {
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
-  const inputProps: InputProps = {
+  const inputProps: Input3Props = {
     autoFocus: true,
     error: !!props.error,
     keyboardType: props.showTyping && C.isAndroid ? 'visible-password' : 'default',
@@ -17,7 +17,6 @@ const LoginRender = (props: Props) => {
     onEnterKeyDown: () => props.onSubmit(),
     placeholder: 'Password',
     secureTextEntry: !props.showTyping,
-    type: props.showTyping ? 'text' : 'password',
   }
 
   return (
@@ -47,7 +46,7 @@ const LoginRender = (props: Props) => {
             />
             {props.needPassword && (
               <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
-                <Kb.LabeledInput {...inputProps} />
+                <Kb.Input3 {...inputProps} />
                 <Kb.Checkbox
                   checked={props.showTyping}
                   label="Show typing"
