@@ -8,24 +8,24 @@ import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
-import isEqual from 'lodash/isEqual'
 
-// Encoding all 4 states as static objects so we don't re-render
+let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
+const getSentHighlighted = () => {
+  _sentHighlighted ??= Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+  return _sentHighlighted
+}
+
 const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
 ): Kb.Styles.StylesCrossPlatform => {
   if (isHighlighted) {
-    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+    return getSentHighlighted()
   } else if (type === 'sent') {
-    return isEditing
-      ? sharedStyles.sentEditing
-      : sharedStyles.sent
+    return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
   } else {
-    return isEditing
-      ? sharedStyles.pendingFailEditing
-      : sharedStyles.pendingFail
+    return isEditing ? sharedStyles.pendingFailEditing : sharedStyles.pendingFail
   }
 }
 
@@ -57,7 +57,6 @@ function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
 
 function WrapperText(p: Props) {
   const {ordinal} = p
-  // Fetch message data once and share with both useCommon and WrapperMessage
   const messageData = useMessageData(ordinal)
   const common = useCommonWithData(ordinal, messageData)
   const {type, showCenteredHighlight} = common
@@ -88,31 +87,7 @@ function WrapperText(p: Props) {
     }
   }, [ordinal, reply, hasReactions, setRecycleType])
 
-  // Uncomment to test effective recycling
-  // const DEBUGOldOrdinalRef = React.useRef(0)
-  // const DEBUGOldTypeRef = React.useRef('')
-  // React.useEffect(() => {
-  //   const oldtype = DEBUGOldTypeRef.current
-  //   if (DEBUGOldOrdinalRef.current) {
-  //     console.log(
-  //       'debug textwrapperRecycle',
-  //       DEBUGOldOrdinalRef.current,
-  //       ordinal,
-  //       subType === oldtype ? `SAME ${subType}` : `${subType} != ${oldtype} <<<<<<<<<<<<<<<<<`
-  //     )
-  //   }
-  //   DEBUGOldOrdinalRef.current = ordinal
-  //   DEBUGOldTypeRef.current = subType
-  // }, [ordinal, subType])
-
-  const [style, setStyle] = React.useState<Kb.Styles.StylesCrossPlatform>(
-    getStyle(textType, isEditing, showCenteredHighlight)
-  )
-
-  React.useEffect(() => {
-    const s = getStyle(textType, isEditing, showCenteredHighlight)
-    setStyle(old => (isEqual(s, old) ? old : s))
-  }, [textType, isEditing, showCenteredHighlight])
+  const style = getStyle(textType, isEditing, showCenteredHighlight)
 
   const children = (
     <>

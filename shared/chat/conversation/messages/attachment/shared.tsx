@@ -65,37 +65,30 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = useOrdinal()
-  const state = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'attachment') {
-      return 'none'
-    }
-
-    if (m.downloadPath?.length) {
-      return 'doneWithPath'
-    }
-    if (m.transferProgress === 1) {
-      return 'done'
-    }
-    switch (m.transferState) {
-      case 'downloading':
-      case 'mobileSaving':
-        return 'downloading'
-      default:
-        return 'none'
-    }
-  })
-
-  const downloadPath = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      return m.downloadPath
-    }
-    return ''
-  })
-
-  const download = Chat.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  const {state, downloadPath, download} = Chat.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      let state: 'none' | 'doneWithPath' | 'done' | 'downloading' = 'none'
+      let downloadPath = ''
+      if (m?.type === 'attachment') {
+        downloadPath = m.downloadPath ?? ''
+        if (downloadPath.length) {
+          state = 'doneWithPath'
+        } else if (m.transferProgress === 1) {
+          state = 'done'
+        } else {
+          switch (m.transferState) {
+            case 'downloading':
+            case 'mobileSaving':
+              state = 'downloading'
+              break
+            default:
+          }
+        }
+      }
+      const download = C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+      return {download, downloadPath, state}
+    })
   )
   const onDownload = () => {
     download(ordinal)
@@ -263,13 +256,7 @@ export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseI
 
 export const useAttachmentState = () => {
   const ordinal = useOrdinal()
-  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
-  const openFullscreen = () => {
-    Keyboard.dismiss()
-    attachmentPreviewSelect(ordinal)
-  }
-
-  const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
+  const {attachmentPreviewSelect, fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
     Chat.useChatContext(
       C.useShallow(s => {
         const m = s.messageMap.get(ordinal)
@@ -281,9 +268,13 @@ export const useAttachmentState = () => {
         const fileName =
           deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
-        return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
+        return {attachmentPreviewSelect: s.dispatch.attachmentPreviewSelect, fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
       })
     )
+  const openFullscreen = () => {
+    Keyboard.dismiss()
+    attachmentPreviewSelect(ordinal)
+  }
 
   return {
     fileName,

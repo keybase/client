@@ -14,7 +14,6 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
-// import {useDebugLayout} from '@/util/debug-react'
 
 export type Props = {
   ordinal: T.Chat.Ordinal
@@ -261,21 +260,6 @@ function TextAndSiblings(p: TSProps) {
   ) : (
     children
   )
-
-  // uncomment to debug sizing issues
-  // const dump = Container.useEvent(() => p)
-  // const debugLayout = useDebugLayout()
-  // content = (
-  //   <Kb.Box2
-  //     key="TEMP"
-  //     direction="vertical"
-  //     onLayout={debugLayout}
-  //     alignItems="flex-start"
-  //     alignSelf="flex-start"
-  //   >
-  //     {content}
-  //   </Kb.Box2>
-  // )
 
   return (
     <LongPressable {...pressableProps}>

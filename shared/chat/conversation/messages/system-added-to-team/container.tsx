@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -12,15 +13,23 @@ type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
-  const meta = Chat.useChatContext(s => s.meta)
-  const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
-  const authorIsOwner = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
+  const {teamID, teamname, teamType, showInfoPanel} = Chat.useChatContext(
+    C.useShallow(s => ({
+      showInfoPanel: s.dispatch.showInfoPanel,
+      teamID: s.meta.teamID,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
+  const {authorIsAdmin, authorIsOwner} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      authorIsAdmin: Teams.userIsRoleInTeam(s, teamID, author, 'admin'),
+      authorIsOwner: Teams.userIsRoleInTeam(s, teamID, author, 'owner'),
+    }))
+  )
   const you = useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
-
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageNotifications = () => {
     showInfoPanel(true, 'settings')
   }
