@@ -66,7 +66,7 @@ function Inbox(p: TInbox.Props) {
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
   const lastVisibleIdxRef = React.useRef(-1)
-  const listRef = React.useRef</*FlashList<RowItem> | */ FlatList<RowItem> | null>(null)
+  const listRef = React.useRef<FlatList | null>(null)
 
   const onScrollUnbox = C.useDebouncedCallback(
     (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {

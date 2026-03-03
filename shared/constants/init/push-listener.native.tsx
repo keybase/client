@@ -220,9 +220,9 @@ export const initPushListener = () => {
   usePushState.getState().dispatch.initialPermissionsCheck()
 
   // When current-user.uid changes, run pending push if it was for this account
-  storeRegistry.getStore('current-user').subscribe((s, old) => {
+  useCurrentUserState.subscribe((s, old) => {
     if (s.uid === old.uid) return
-    const pushState = storeRegistry.getState('push')
+    const pushState = usePushState.getState()
     const pending = pushState.pendingPushNotification
     if (!pending || !('forUid' in pending)) return
     const forUid = (pending as {forUid?: string}).forUid
@@ -232,10 +232,10 @@ export const initPushListener = () => {
   })
 
   // Clear pending push on logout
-  storeRegistry.getStore('config').subscribe((s, old) => {
+  useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     if (!s.loggedIn) {
-      storeRegistry.getState('push').dispatch.clearPendingPushNotification()
+      usePushState.getState().dispatch.clearPendingPushNotification()
     }
   })
 

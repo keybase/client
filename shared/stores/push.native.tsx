@@ -157,9 +157,9 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
           const forUid = 'forUid' in notification ? notification.forUid : undefined
 
           if (forUid) {
-            const currentUid = storeRegistry.getState('current-user').uid
+            const currentUid = useCurrentUserState.getState().uid
             if (forUid !== currentUid) {
-              const {configuredAccounts, dispatch: configDispatch} = storeRegistry.getState('config')
+              const {configuredAccounts, dispatch: configDispatch} = useConfigState.getState()
               const account = configuredAccounts.find(acc => acc.uid === forUid)
               if (!account) {
                 logger.info('[Push] notification forUid not in configured accounts, skipping')
