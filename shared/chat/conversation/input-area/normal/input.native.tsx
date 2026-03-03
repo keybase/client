@@ -33,8 +33,8 @@ import {useSuggestors} from '../suggestors'
 
 // Low-level TextInput wrapper
 
-export const Input = React.forwardRef<RefType, InputLowLevelProps>(function Input(p, ref) {
-  const {style: _style, onChangeText: _onChangeText, multiline, placeholder} = p
+export function Input(p: InputLowLevelProps) {
+  const {style: _style, onChangeText: _onChangeText, multiline, placeholder, ref} = p
   const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
   const {
     autoFocus: _autoFocus,
@@ -169,7 +169,7 @@ export const Input = React.forwardRef<RefType, InputLowLevelProps>(function Inpu
       value={value}
     />
   )
-})
+}
 
 const inputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   common: {borderWidth: 0, flexGrow: 1},

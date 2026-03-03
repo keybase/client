@@ -48,7 +48,7 @@ export type Props = {
   onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   placeholder?: string
   className?: string
-  ref?: React.RefObject<RefType | null>
+  ref?: React.Ref<RefType | null>
   textType?: TextType
   style?: Styles.StylesCrossPlatform
   onChangeText?: (value: string) => void

@@ -20,8 +20,8 @@ const {getPathForFile} = KB2.functions
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
 
-export const Input = React.forwardRef<RefType, InputLowLevelProps>(function Input(p, ref) {
-  const {style: _style, onChangeText: _onChangeText, multiline} = p
+export function Input(p: InputLowLevelProps) {
+  const {style: _style, onChangeText: _onChangeText, multiline, ref} = p
   const {textType = 'Body', rowsMax, rowsMin, padding, placeholder, onKeyUp: _onKeyUp} = p
   const {allowKeyboardEvents, className, disabled, autoFocus, onKeyDown: _onKeyDown, onEnterKeyDown} = p
 
@@ -182,7 +182,7 @@ export const Input = React.forwardRef<RefType, InputLowLevelProps>(function Inpu
   ) : (
     <input {...commonProps} ref={inputSingleRef} style={Kb.Styles.castStyleDesktop(style)} />
   )
-})
+}
 
 const inputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   multiline: Kb.Styles.platformStyles({
