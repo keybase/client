@@ -433,7 +433,9 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       bookmarkScrollView: {
+        flexGrow: 0,
         flexShrink: 0,
+        height: 44,
       },
       emoji: {
         ...Kb.Styles.globalStyles.flexBoxColumn,

@@ -1,4 +1,5 @@
 import type * as React from 'react'
+import type * as T from '@/constants/types'
 import type * as Styles from '@/styles'
 import type {TextType} from '@/common-adapters/text.shared'
 import type {TextInputProps} from 'react-native'
@@ -47,7 +48,7 @@ export type Props = {
   onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   placeholder?: string
   className?: string
-  ref?: React.RefObject<RefType | null>
+  ref?: React.Ref<RefType | null>
   textType?: TextType
   style?: Styles.StylesCrossPlatform
   onChangeText?: (value: string) => void
@@ -58,6 +59,22 @@ export type Props = {
   padding?: keyof typeof Styles.globalMargins | 0 // globalMargins does not have an option for 0
 }
 
-declare const Input: React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<Props> & React.RefAttributes<RefType>
->
+export type PlatformInputProps = {
+  cannotWrite: boolean
+  explodingModeSeconds: number
+  setExplodingMode: (mode: number) => void
+  hintText: string
+  setInputRef: (r: RefType | null) => void
+  isEditing: boolean
+  isExploding: boolean
+  minWriterRole: T.Teams.TeamRoleType
+  onCancelEditing: () => void
+  onChangeText: (newText: string) => void
+  onSubmit: (text: string) => void
+  showReplyPreview: boolean
+  suggestBotCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
+  suggestionOverlayStyle: Styles.StylesCrossPlatform
+}
+
+declare const PlatformInput: (p: PlatformInputProps) => React.ReactNode
+export default PlatformInput
