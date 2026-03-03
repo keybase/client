@@ -273,7 +273,6 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 48,
     },
     isMobile: {
-      backgroundColor: Styles.globalColors.fastBlank,
       height: 64,
       width: 64,
     },

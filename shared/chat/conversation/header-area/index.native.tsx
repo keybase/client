@@ -284,7 +284,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       center: {
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         justifyContent: 'center',
         textAlign: 'center',
       },

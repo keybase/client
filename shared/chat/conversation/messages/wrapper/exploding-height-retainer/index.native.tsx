@@ -208,7 +208,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       ashes: {
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         height: 80,
         width: 400,
       },
@@ -237,7 +236,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 0,
       },
       tagBox: {
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         bottom: 2,
         minWidth: 80,
         position: 'absolute',

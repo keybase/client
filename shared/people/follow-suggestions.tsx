@@ -35,7 +35,6 @@ export default FollowSuggestions
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    backgroundColor: Kb.Styles.globalColors.fastBlank,
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
   meta: {
@@ -45,7 +44,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   scrollViewContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxRow,
-      backgroundColor: Kb.Styles.globalColors.fastBlank,
       borderBottomWidth: 1,
       borderColor: Kb.Styles.globalColors.black_10,
       paddingBottom: Kb.Styles.globalMargins.small,

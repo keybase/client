@@ -535,7 +535,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         minHeight: 1,

@@ -104,7 +104,7 @@ const SmallTeamInner = (p: Props) => {
   const backgroundColor = isSelected
     ? Kb.Styles.globalColors.blue
     : Kb.Styles.isPhone && !Kb.Styles.isTablet
-      ? Kb.Styles.globalColors.fastBlank
+      ? undefined
       : Kb.Styles.globalColors.blueGrey
 
   const teamname = teamDisplayName ? teamDisplayName.split('#')[0] ?? '' : ''
@@ -122,7 +122,7 @@ const SmallTeamInner = (p: Props) => {
             : styles.container
         }
       >
-        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
+        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.rowContainer}>
           {teamname ? (
             <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
           ) : (
@@ -135,7 +135,7 @@ const SmallTeamInner = (p: Props) => {
               participantTwo={participantTwo}
             />
           )}
-          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+          <Kb.Box2 direction="vertical" style={styles.conversationRow}>
             <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
               <TopLine
                 isSelected={isSelected}
@@ -164,7 +164,7 @@ type TopLineProps = {
   isSelected: boolean
   hasUnread: boolean
   hasBadge: boolean
-  backgroundColor: string
+  backgroundColor?: string
   teamDisplayName: string
   participants: Array<string>
   timestamp: number
@@ -512,10 +512,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       draftLabel: {color: Kb.Styles.globalColors.orange},
-      fastBlank: Kb.Styles.platformStyles({
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-        isTablet: {backgroundColor: undefined},
-      }),
       icon: {position: 'relative'} as const,
       innerBox: Kb.Styles.platformStyles({
         common: {
@@ -553,13 +549,9 @@ const styles = Kb.Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      timestamp: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
-          color: Kb.Styles.globalColors.blueDark,
-        },
-        isTablet: {backgroundColor: undefined},
-      }),
+      timestamp: {
+        color: Kb.Styles.globalColors.blueDark,
+      },
       unreadDotStyle: {
         backgroundColor: Kb.Styles.globalColors.orange,
         borderRadius: 6,

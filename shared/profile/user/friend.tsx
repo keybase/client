@@ -54,7 +54,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 80,
       wordBreak: 'break-all',
     },
-    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
 }))
 

@@ -537,11 +537,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   followTabText: Kb.Styles.platformStyles({
     common: {color: Kb.Styles.globalColors.black_50},
-    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
   followTabTextSelected: Kb.Styles.platformStyles({
     common: {color: Kb.Styles.globalColors.black},
-    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
   friendRow: Kb.Styles.platformStyles({
     common: {

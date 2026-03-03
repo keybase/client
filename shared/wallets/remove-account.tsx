@@ -37,7 +37,6 @@ const Container = (ownProps: OwnProps) => {
       backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
-      safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.Icon
@@ -73,9 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
   }),
   marginBottomTiny: {marginBottom: Kb.Styles.globalMargins.tiny},
-  safeAreaBottom: {
-    backgroundColor: Kb.Styles.globalColors.fastBlank,
-  },
   warningText: Kb.Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'} as const,
     isMobile: {

@@ -33,7 +33,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      backgroundColor: Kb.Styles.globalColors.fastBlank,
       flexShrink: 0,
       height: 120,
       width: '100%',

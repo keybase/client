@@ -102,16 +102,13 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: 6,
         },
       }),
-      team: Kb.Styles.platformStyles({
-        common: {
-          alignSelf: 'center',
-          color: Kb.Styles.globalColors.black_50,
-          letterSpacing: 0.2,
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginRight: Kb.Styles.globalMargins.tiny,
-        },
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
+      team: {
+        alignSelf: 'center',
+        color: Kb.Styles.globalColors.black_50,
+        letterSpacing: 0.2,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
+      },
       teamRowContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,

@@ -18,7 +18,7 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? Kb.Styles.globalColors.blue
     : Kb.Styles.isPhone
-      ? Kb.Styles.globalColors.fastBlank
+      ? undefined
       : Kb.Styles.globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isSelected

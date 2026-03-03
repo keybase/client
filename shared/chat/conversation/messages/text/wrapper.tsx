@@ -21,14 +21,11 @@ const getStyle = (
   } else if (type === 'sent') {
     return isEditing
       ? sharedStyles.sentEditing
-      : Kb.Styles.collapseStyles([sharedStyles.sent, {backgroundColor: Kb.Styles.globalColors.fastBlank}])
+      : sharedStyles.sent
   } else {
     return isEditing
       ? sharedStyles.pendingFailEditing
-      : Kb.Styles.collapseStyles([
-          sharedStyles.pendingFail,
-          {backgroundColor: Kb.Styles.globalColors.fastBlank},
-        ])
+      : sharedStyles.pendingFail
   }
 }
 

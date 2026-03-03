@@ -44,7 +44,7 @@ export const theme: Theme = {
       return themed.black_10 as string
     },
     get card() {
-      return (useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return undefined as unknown as string
     },
     get notification() {
       return themed.black as string

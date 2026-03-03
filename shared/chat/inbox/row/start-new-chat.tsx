@@ -42,7 +42,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.isMobile
-          ? Kb.Styles.globalColors.fastBlank
+          ? undefined
           : Kb.Styles.globalColors.blueGrey,
         minHeight: 48,
         paddingLeft: Kb.Styles.globalMargins.small,
