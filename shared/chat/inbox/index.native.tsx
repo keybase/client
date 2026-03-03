@@ -11,7 +11,7 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
-import {type ViewToken, Alert} from 'react-native'
+import {type FlatList as RNFlatList, type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
@@ -25,7 +25,13 @@ const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="small" justifyContent="flex-end" style={styles.noChatsContainer}>
+    <Kb.Box2
+      direction="vertical"
+      gapStart={true}
+      gap="small"
+      justifyContent="flex-end"
+      style={styles.noChatsContainer}
+    >
       <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySmall" center={true}>
@@ -66,7 +72,7 @@ function Inbox(p: TInbox.Props) {
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
   const lastVisibleIdxRef = React.useRef(-1)
-  const listRef = React.useRef<FlatList | null>(null)
+  const listRef = React.useRef<RNFlatList<RowItem> | null>(null)
 
   const onScrollUnbox = C.useDebouncedCallback(
     (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
@@ -378,10 +384,7 @@ const NoRowsBuildTeam = () => {
 }
 
 const LoadingLine = () => {
-  const isLoading = C.Waiting.useAnyWaiting([
-    C.waitingKeyChatInboxRefresh,
-    C.waitingKeyChatInboxSyncStarted,
-  ])
+  const isLoading = C.Waiting.useAnyWaiting([C.waitingKeyChatInboxRefresh, C.waitingKeyChatInboxSyncStarted])
   return isLoading ? (
     <Kb.Box2 direction="vertical" style={styles.loadingContainer}>
       <Kb.LoadingLine />
