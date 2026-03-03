@@ -136,7 +136,6 @@ const styles = Styles.styleSheetCreate(
       hideBorder: {borderWidth: 0},
       icon: {marginRight: Styles.globalMargins.xtiny},
       input: {
-        backgroundColor: Styles.globalColors.fastBlank,
         borderWidth: 0,
         flexGrow: 1,
       },

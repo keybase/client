@@ -387,20 +387,17 @@ const labelStyles = Styles.styleSheetCreate(() => {
     ...commonLabel(),
     color: Styles.globalColors.whiteOrWhite,
   }
-  const secondaryLabel = {
-    backgroundColor: Styles.globalColors.fastBlank,
-  }
   return {
     PrimaryDanger: primaryWhiteBgLabel,
     PrimaryDefault: primaryWhiteBgLabel,
     PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
     PrimarySuccess: primaryWhiteBgLabel,
     PrimaryWallet: primaryWhiteBgLabel,
-    SecondaryDanger: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.redDark},
-    SecondaryDefault: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.blueDark},
-    SecondaryDim: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.black_50},
-    SecondarySuccess: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.greenDark},
-    SecondaryWallet: {...commonLabel(), ...secondaryLabel, color: Styles.globalColors.purpleDark},
+    SecondaryDanger: {...commonLabel(), color: Styles.globalColors.redDark},
+    SecondaryDefault: {...commonLabel(), color: Styles.globalColors.blueDark},
+    SecondaryDim: {...commonLabel(), color: Styles.globalColors.black_50},
+    SecondarySuccess: {...commonLabel(), color: Styles.globalColors.greenDark},
+    SecondaryWallet: {...commonLabel(), color: Styles.globalColors.purpleDark},
   } as const
 })
 

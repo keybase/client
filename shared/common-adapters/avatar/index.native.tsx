@@ -104,7 +104,6 @@ const boxStyles = Styles.styleSheetCreate(
 
 const makeImageStyle = (size: AvatarSize) =>
   ({
-    backgroundColor: Styles.globalColors.fastBlank,
     bottom: 0,
     height: size,
     left: 0,

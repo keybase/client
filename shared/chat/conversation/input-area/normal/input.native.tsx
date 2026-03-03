@@ -151,7 +151,7 @@ export function Input(p: Props & {ref?: React.Ref<RefType>}) {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  common: {backgroundColor: Styles.globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
+  common: {borderWidth: 0, flexGrow: 1},
   multiline: Styles.platformStyles({
     isMobile: {
       height: undefined,

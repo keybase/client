@@ -68,7 +68,7 @@ const Text = (p: TextProps & {ref?: React.Ref<RNText>}) => {
 
   return (
     <RNText
-      style={[styles.text, style, p.fixOverdraw && styles.fixOverdraw, fontSizeStyle, p.style]}
+      style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
       onPress={p.onClick || undefined}
@@ -227,9 +227,6 @@ export function urlsToBaseSrc(_imgMap: {[key: number]: string}, _targetSize: num
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  fixOverdraw: {
-    backgroundColor: Styles.globalColors.fastBlank,
-  },
   text: {
     color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',

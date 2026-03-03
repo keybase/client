@@ -395,7 +395,6 @@ const styles = Kb.Styles.styleSheetCreate(
       button: {width: '100%'},
       container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
           flexGrow: 1,
           position: 'relative',
         },
@@ -413,7 +412,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       newChat: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         flexShrink: 0,
         width: '100%',
       },

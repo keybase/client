@@ -209,17 +209,11 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},
       textError: {color: Kb.Styles.globalColors.redDark},
-      textPlain: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_63},
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
-      textPlainBold: Kb.Styles.platformStyles({
-        common: {
-          color: Kb.Styles.globalColors.blackOrWhite,
-          ...Kb.Styles.globalStyles.fontBold,
-        },
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
+      textPlain: {color: Kb.Styles.globalColors.black_63},
+      textPlainBold: {
+        color: Kb.Styles.globalColors.blackOrWhite,
+        ...Kb.Styles.globalStyles.fontBold,
+      },
       textSelected: {color: Kb.Styles.globalColors.white},
       textSelectedBold: {
         color: Kb.Styles.globalColors.white,

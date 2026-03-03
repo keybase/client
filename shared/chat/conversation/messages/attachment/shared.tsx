@@ -214,7 +214,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   return (
     <Kb.Icon
       hint="Collapse"
-      style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : (styles.collapseLabel as Kb.IconStyle)}
+      style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : undefined}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
     />
@@ -222,7 +222,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  collapseLabel: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+
   collapseLabelWhite: {color: Kb.Styles.globalColors.white_75},
   titleContainer: {
     alignSelf: 'flex-start',

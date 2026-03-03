@@ -50,7 +50,7 @@ function UnfurlGiphy(p: {idx: number}) {
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">
             {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
-            <Kb.Text type="BodySmall" style={styles.fastStyle}>
+            <Kb.Text type="BodySmall">
               Giphy
             </Kb.Text>
             <Kb.Icon
@@ -64,7 +64,7 @@ function UnfurlGiphy(p: {idx: number}) {
           {onClose ? (
             <Kb.Icon
               type="iconfont-close"
-              boxStyle={styles.fastStyle}
+
               onClick={onClose}
               className="unfurl-closebox"
               padding="xtiny"
@@ -95,14 +95,13 @@ const styles = Kb.Styles.styleSheetCreate(
       collapseBox: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
       },
       container: Kb.Styles.platformStyles({
         common: {alignSelf: 'flex-start'},
         isElectron: {maxWidth: 500},
         isTablet: {maxWidth: 500},
       }),
-      fastStyle: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+
       favicon: {
         borderRadius: Kb.Styles.borderRadius,
         height: 16,
@@ -114,7 +113,6 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 150,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
           borderColor: Kb.Styles.globalColors.grey,
           borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,

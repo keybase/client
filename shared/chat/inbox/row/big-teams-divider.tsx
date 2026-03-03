@@ -85,7 +85,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
           paddingLeft: Kb.Styles.globalMargins.small,
           paddingRight: Kb.Styles.globalMargins.small,
         },

@@ -565,7 +565,6 @@ const styles = Kb.Styles.styleSheetCreate(
       strikeThrough: {textDecorationLine: 'line-through'},
       textContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
-        isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       }),
       tooltip: Kb.Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
       username: Kb.Styles.platformStyles({
