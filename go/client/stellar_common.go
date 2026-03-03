@@ -15,10 +15,10 @@ import (
 )
 
 func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, details bool, dui libkb.DumbOutputUI) {
-	lineUnescaped := func(format string, args ...interface{}) {
+	lineUnescaped := func(format string, args ...any) {
 		_, _ = dui.PrintfUnescaped(format+"\n", args...)
 	}
-	line := func(format string, args ...interface{}) {
+	line := func(format string, args ...any) {
 		dui.Printf(format+"\n", args...)
 	}
 	timeStr := p.Time.Time().Format("2006/01/02 15:04")

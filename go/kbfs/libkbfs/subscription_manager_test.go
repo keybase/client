@@ -21,7 +21,7 @@ import (
 )
 
 func waitForCall(t *testing.T, timeout time.Duration) (
-	waiter func(), done func(args ...interface{}),
+	waiter func(), done func(args ...any),
 ) {
 	ch := make(chan struct{})
 	return func() {
@@ -30,7 +30,7 @@ func waitForCall(t *testing.T, timeout time.Duration) (
 				t.Fatalf("waiting on lastMockDone timeout")
 			case <-ch:
 			}
-		}, func(args ...interface{}) {
+		}, func(args ...any) {
 			ch <- struct{}{}
 		}
 }
@@ -54,10 +54,10 @@ func initSubscriptionManagerTest(t *testing.T) (config Config,
 }
 
 type sliceMatcherNoOrder struct {
-	x interface{}
+	x any
 }
 
-func (e sliceMatcherNoOrder) Matches(x interface{}) bool {
+func (e sliceMatcherNoOrder) Matches(x any) bool {
 	vExpected := reflect.ValueOf(e.x)
 	vGot := reflect.ValueOf(x)
 	if vExpected.Kind() != reflect.Slice || vGot.Kind() != reflect.Slice {
@@ -86,8 +86,7 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 	config, sm, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
+	ctx := t.Context()
 	ctx, err := libcontext.NewContextWithCancellationDelayer(
 		libcontext.NewContextReplayable(
 			ctx, func(c context.Context) context.Context {
@@ -233,8 +232,7 @@ func TestSubscriptionManagerSubscribePathNoFolderBranch(t *testing.T) {
 	config, sm, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
+	ctx := t.Context()
 	ctx, err := libcontext.NewContextWithCancellationDelayer(
 		libcontext.NewContextReplayable(
 			ctx, func(c context.Context) context.Context {

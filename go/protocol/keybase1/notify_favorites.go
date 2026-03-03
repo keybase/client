@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_favorites.avdl
 
 package keybase1
@@ -23,11 +23,11 @@ func NotifyFavoritesProtocol(i NotifyFavoritesInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyFavorites",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"favoritesChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FavoritesChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FavoritesChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FavoritesChangedArg)(nil), args)
@@ -47,6 +47,6 @@ type NotifyFavoritesClient struct {
 
 func (c NotifyFavoritesClient) FavoritesChanged(ctx context.Context, uid UID) (err error) {
 	__arg := FavoritesChangedArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFavorites.favoritesChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFavorites.favoritesChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }

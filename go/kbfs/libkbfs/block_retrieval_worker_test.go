@@ -319,9 +319,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 
 	w.Shutdown()
 	block := &data.FileBlock{}
-	ctx, cancel := context.WithCancel(context.Background())
-	// Ensure the context loop is stopped so the test doesn't leak goroutines
-	defer cancel()
+	ctx := t.Context()
 	ch := q.Request(
 		ctx, 1, makeKMD(), ptr1, block, data.NoCacheEntry, BlockRequestSolo)
 	shutdown := false

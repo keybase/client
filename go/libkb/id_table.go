@@ -182,8 +182,8 @@ func ParseWotReact(base GenericChainLink) (ret *WotReactChainLink, err error) {
 }
 
 type sigExpansion struct {
-	Key string      `json:"key"`
-	Obj interface{} `json:"obj"`
+	Key string `json:"key"`
+	Obj any    `json:"obj"`
 }
 
 // ExtractExpansionObj extracts the `obj` field from a sig expansion and verifies the
@@ -629,7 +629,7 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		for i := 0; i < n; i++ {
+		for i := range n {
 			keyJSON := pgpKeysJSON.AtIndex(i)
 			tracked, err := trackedKeyFromJSON(keyJSON)
 			if err != nil {
@@ -682,7 +682,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	if err != nil {
 		return nil
 	}
-	for index := 0; index < ln; index++ {
+	for index := range ln {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
 		sb := convertTrackedProofToServiceBlock(l.G(), proof, index)
 		if sb != nil {
@@ -1050,7 +1050,7 @@ type WalletStellarChainLink struct {
 
 func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLink, err error) {
 	ret = &WalletStellarChainLink{GenericChainLink: b}
-	mkErr := func(format string, args ...interface{}) error {
+	mkErr := func(format string, args ...any) error {
 		return ChainLinkError{fmt.Sprintf(format, args...) + fmt.Sprintf(" @%s", b.ToDebugString())}
 	}
 	bodyW := b.UnmarshalPayloadJSON()

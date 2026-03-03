@@ -103,7 +103,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		}
 
 		payload := make(libkb.JSONPayload)
-		payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
+		payload["sigs"] = []any{renameSubteamSig, renameUpPointerSig}
 		err = ratchetBlindingKeys.AddToJSONPayload(payload)
 		if err != nil {
 			return err

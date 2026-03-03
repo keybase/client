@@ -17,7 +17,7 @@ func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {
 	go func() {
 		errChan <- rwg.Wait(context.Background())
 	}()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		rwg.Done()
 	}
 	err := <-errChan
@@ -41,7 +41,7 @@ func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 		errChan <- rwg.Wait(ctx)
 	}()
 	// Only finish half the tasks
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		rwg.Done()
 	}
 	cancel()
@@ -54,13 +54,13 @@ func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 func TestRepeatedWaitGroupMultiWait(t *testing.T) {
 	var rwg RepeatedWaitGroup
 	// Three in serial
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		testRepeatedWaitGroupSimpleWait(t, &rwg)
 	}
 
 	// Three in parallel!
 	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

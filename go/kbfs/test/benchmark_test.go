@@ -167,7 +167,7 @@ func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 		if err != nil {
 			return err
 		}
-		for j := 0; j < numWritesPerFile; j++ {
+		for j := range numWritesPerFile {
 			// make each block unique
 			for k := 0; k < 1+len(buf)/data.MaxBlockSizeBytesDefault; k++ {
 				buf[k] = byte(i)
@@ -269,7 +269,7 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 	// * A bunch of 2 MB files
 	// * Another 100 MB to make sure the buffer is still sized right
 	fileSizes := []int64{100 << 20}
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		fileSizes = append(fileSizes, 2<<20)
 	}
 	fileSizes = append(fileSizes, 100<<20)

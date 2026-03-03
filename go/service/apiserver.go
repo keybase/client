@@ -134,7 +134,7 @@ func (a *APIServerHandler) doPostJSON(mctx libkb.MetaContext, rawarg keybase1.Po
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
 	for _, kvpair := range rawarg.JSONPayload {
-		var value interface{}
+		var value any
 		err = jsonw.EnsureMaxDepthBytesDefault([]byte(kvpair.Value))
 		if err != nil {
 			return keybase1.APIRes{}, err

@@ -442,7 +442,7 @@ type hasAcceptedDisclaimerDBEntry struct {
 // For a UV, accepted starts out false and transitions to true. It never becomes false again.
 // A cached true is returned, but a false always hits the server.
 func (s *Stellar) hasAcceptedDisclaimer(ctx context.Context) (bool, error) {
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		s.G().Log.CDebugf(ctx, "Stellar.hasAcceptedDisclaimer "+format, args...)
 	}
 	uv, err := s.G().GetMeUV(ctx)
@@ -579,7 +579,6 @@ func (s *Stellar) acquireBuildPayment(mctx1 libkb.MetaContext, bid stellar1.Buil
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
 	for _, entry := range s.bids {
-		entry := entry
 		if !entry.Bid.Eq(bid) {
 			continue
 		}
@@ -609,7 +608,6 @@ func (s *Stellar) finalizeBuildPayment(mctx libkb.MetaContext, bid stellar1.Buil
 	s.bidLock.Lock()
 	defer s.bidLock.Unlock()
 	for _, entry := range s.bids {
-		entry := entry
 		if !entry.Bid.Eq(bid) {
 			continue
 		}

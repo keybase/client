@@ -52,7 +52,7 @@ func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner
 		Phrase:          secret.Phrase(),
 		OtherDeviceType: provisioneeType,
 	}
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(m.Ctx(), arg)
 		if err != nil {
 			m.Warning("DisplayAndPromptSecret error: %s", err)

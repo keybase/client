@@ -142,7 +142,7 @@ func sendPing(cli keybase1.SessionClient) error {
 	return cli.SessionPing(ctx)
 }
 
-func (c *CmdChatAPIListen) ErrWriteLn(format string, obj ...interface{}) {
+func (c *CmdChatAPIListen) ErrWriteLn(format string, obj ...any) {
 	_, _ = c.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, obj...) + "\n"))
 }
 
@@ -222,17 +222,17 @@ func newBaseNotificationDisplay(g *libkb.GlobalContext) *baseNotificationDisplay
 	}
 }
 
-func (d *baseNotificationDisplay) printf(fmt string, args ...interface{}) error {
+func (d *baseNotificationDisplay) printf(fmt string, args ...any) error {
 	_, err := d.G().UI.GetTerminalUI().Printf(fmt, args...)
 	return err
 }
 
-func (d *baseNotificationDisplay) errorf(format string, args ...interface{}) error {
+func (d *baseNotificationDisplay) errorf(format string, args ...any) error {
 	_, err := fmt.Fprintf(d.G().UI.GetTerminalUI().ErrorWriter(), format, args...)
 	return err
 }
 
-func (d *baseNotificationDisplay) printJSON(data interface{}) {
+func (d *baseNotificationDisplay) printJSON(data any) {
 	if jsonStr, err := json.Marshal(data); err != nil {
 		_ = d.errorf("Error while marshaling JSON: %s\n", err)
 	} else {

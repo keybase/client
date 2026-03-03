@@ -191,7 +191,7 @@ func deleteOldLogFilesIfNeededWorker(config LogFileConfig) error {
 	}
 	// Try to remove all old log files that we want to remove, and
 	// don't stop on the first error.
-	for i := 0; i < removeN; i++ {
+	for i := range removeN {
 		err2 := os.Remove(entries[i])
 		if err == nil {
 			err = err2

@@ -212,18 +212,12 @@ func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.Convers
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && s.opts.Matches(msg) {
 			var afterMessages, beforeMessages []chat1.UIMessage
 			if s.opts.AfterContext > 0 {
-				afterLimit := i - s.opts.AfterContext
-				if afterLimit < 0 {
-					afterLimit = 0
-				}
+				afterLimit := max(i-s.opts.AfterContext, 0)
 				afterMessages = getUIMsgs(ctx, s.indexer.G(), convID, s.uid, msgs[afterLimit:i])
 			}
 
 			if s.opts.BeforeContext > 0 && i < len(msgs)-1 {
-				beforeLimit := i + 1 + s.opts.BeforeContext
-				if beforeLimit >= len(msgs) {
-					beforeLimit = len(msgs)
-				}
+				beforeLimit := min(i+1+s.opts.BeforeContext, len(msgs))
 				beforeMessages = getUIMsgs(ctx, s.indexer.G(), convID, s.uid, msgs[i+1:beforeLimit])
 			}
 

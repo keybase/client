@@ -96,7 +96,7 @@ func (e *FavoriteAdd) checkInviteNeeded(m libkb.MetaContext) error {
 		return nil
 	}
 
-	for _, user := range strings.Split(e.arg.Folder.Name, ",") {
+	for user := range strings.SplitSeq(e.arg.Folder.Name, ",") {
 		assertion, ok := externals.NormalizeSocialAssertion(m, user)
 		if !ok {
 			m.Debug("not a social assertion: %s", user)

@@ -180,7 +180,7 @@ func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
 	// Add log tags
 	ctx = libkb.WithLogTagWithValue(ctx, "chat-trace", trace)
 
-	rpcTags := make(map[string]interface{})
+	rpcTags := make(map[string]any)
 	rpcTags["user-agent"] = libkb.UserAgent
 	rpcTags["platform"] = libkb.GetPlatformString()
 	rpcTags["apptype"] = g.GetAppType()

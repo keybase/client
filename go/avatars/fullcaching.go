@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -97,10 +98,10 @@ type FullCachingSource struct {
 
 	prepareDirs sync.Once
 
-	usersMissBatch  func(interface{})
-	teamsMissBatch  func(interface{})
-	usersStaleBatch func(interface{})
-	teamsStaleBatch func(interface{})
+	usersMissBatch  func(any)
+	teamsMissBatch  func(any)
+	usersStaleBatch func(any)
+	teamsStaleBatch func(any)
 
 	// testing
 	populateSuccessCh chan struct{}
@@ -116,16 +117,16 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(),
 	}
-	batcher := func(intBatched interface{}, intSingle interface{}) interface{} {
+	batcher := func(intBatched any, intSingle any) any {
 		reqs, _ := intBatched.([]remoteFetchArg)
 		single, _ := intSingle.(remoteFetchArg)
 		return append(reqs, single)
 	}
-	reset := func() interface{} {
+	reset := func() any {
 		return []remoteFetchArg{}
 	}
-	actor := func(loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) func(interface{}) {
-		return func(intBatched interface{}) {
+	actor := func(loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)) func(any) {
+		return func(intBatched any) {
 			reqs, _ := intBatched.([]remoteFetchArg)
 			s.makeRemoteFetchRequests(reqs, loadFn)
 		}
@@ -213,7 +214,7 @@ func (c *FullCachingSource) StartBackgroundTasks(mctx libkb.MetaContext) {
 	c.started = true
 	go c.monitorAppState(mctx)
 	c.populateCacheCh = make(chan populateArg, 100)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		go c.populateCacheWorker(mctx)
 	}
 	mctx, cancel := mctx.WithContextCancel()
@@ -238,7 +239,7 @@ func (c *FullCachingSource) StopBackgroundTasks(mctx libkb.MetaContext) {
 	}
 }
 
-func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
+func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...any) {
 	m.Debug("Avatars.FullCachingSource: %s", fmt.Sprintf(msg, args...))
 }
 
@@ -266,7 +267,7 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 
 func (c *FullCachingSource) processLRUHit(entry lru.DiskLRUEntry) (res lruEntry) {
 	var ok bool
-	if _, ok = entry.Value.(map[string]interface{}); ok {
+	if _, ok = entry.Value.(map[string]any); ok {
 		jstr, _ := json.Marshal(entry.Value)
 		_ = json.Unmarshal(jstr, &res)
 		return res
@@ -488,9 +489,7 @@ func (c *FullCachingSource) makeURL(m libkb.MetaContext, path string) keybase1.A
 
 func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.LoadAvatarsRes) {
 	for username, rec := range m.Picmap {
-		for format, url := range rec {
-			res.Picmap[username][format] = url
-		}
+		maps.Copy(res.Picmap[username], rec)
 	}
 }
 

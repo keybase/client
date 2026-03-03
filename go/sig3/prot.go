@@ -60,7 +60,7 @@ type OuterLink struct {
 }
 
 type InnerLink struct {
-	Body        interface{} `codec:"b"`           // The actual body, which varies based on the type in the outer link
+	Body        any         `codec:"b"`           // The actual body, which varies based on the type in the outer link
 	Ctime       TimeSec     `codec:"c"`           // Seconds since 1970 UTC.
 	Entropy     Entropy     `codec:"e"`           // entropy for hiding the value of the inner link
 	ClientInfo  *ClientInfo `codec:"i,omitempty"` // Optional client type making sig

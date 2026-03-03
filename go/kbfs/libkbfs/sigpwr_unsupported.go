@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 //
 //go:build !linux && !netbsd
-// +build !linux,!netbsd
 
 // see files in https://golang.org/src/syscall/ starting with "zerrors_" for support
 

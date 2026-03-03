@@ -13,6 +13,7 @@ import (
 	"math"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -128,10 +129,7 @@ const DbShortFormLen = 10
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() ConvIDShort {
-	end := DbShortFormLen
-	if end > len(cid) {
-		end = len(cid)
-	}
+	end := min(DbShortFormLen, len(cid))
 	return cid[:end]
 }
 
@@ -337,28 +335,16 @@ func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
 			res = append(res, mt)
 		}
 	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i] < res[j]
-	})
+	slices.Sort(res)
 	return res
 }
 
 func IsDeletableByDelete(typ MessageType) bool {
-	for _, typ2 := range deletableMessageTypesByDelete {
-		if typ == typ2 {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(deletableMessageTypesByDelete, typ)
 }
 
 func IsDeletableByDeleteHistory(typ MessageType) bool {
-	for _, typ2 := range nonDeletableMessageTypesByDeleteHistory {
-		if typ == typ2 {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(nonDeletableMessageTypesByDeleteHistory, typ)
 }
 
 // EphemeralAllowed flags if the given topic type is allowed to send ephemeral
@@ -635,12 +621,7 @@ func (m MessageUnboxed) IsValidDeleted() bool {
 
 func (m MessageUnboxed) IsVisible() bool {
 	typ := m.GetMessageType()
-	for _, visType := range VisibleChatMessageTypes() {
-		if typ == visType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(VisibleChatMessageTypes(), typ)
 }
 
 func (m MessageUnboxed) HasReactions() bool {
@@ -898,12 +879,7 @@ func (m MessagePlaintext) MessageType() MessageType {
 
 func (m MessagePlaintext) IsVisible() bool {
 	typ := m.MessageType()
-	for _, visType := range VisibleChatMessageTypes() {
-		if typ == visType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(VisibleChatMessageTypes(), typ)
 }
 
 func (m MessagePlaintext) IsBadgableType() bool {
@@ -961,12 +937,10 @@ func (m MessageUnboxedValid) ExplodedBy() *string {
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
 	originalLifetime := lifetime.ToDuration()
 	elapsedLifetime := now.Time().Sub(ctime.Time())
-	remainingLifetime := originalLifetime - elapsedLifetime
-	// If the server's view doesn't make sense, just use the signed lifetime
-	// from the message.
-	if remainingLifetime > originalLifetime {
-		remainingLifetime = originalLifetime
-	}
+	remainingLifetime := min(
+		// If the server's view doesn't make sense, just use the signed lifetime
+		// from the message.
+		originalLifetime-elapsedLifetime, originalLifetime)
 	etime := rtime.Time().Add(remainingLifetime)
 	return gregor1.ToTime(etime)
 }
@@ -1285,7 +1259,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 }
 
 var sha256Pool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return sha256.New()
 	},
 }
@@ -1671,12 +1645,7 @@ func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
-	for _, auid := range c.Metadata.ActiveList {
-		if uid.Eq(auid) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(c.Metadata.ActiveList, uid.Eq)
 }
 
 func (c Conversation) GetMaxDeletedUpTo() MessageID {
@@ -2812,12 +2781,7 @@ func (o SearchOpts) Matches(msg MessageUnboxed) bool {
 				return true
 			}
 		}
-		for _, username := range msg.AtMentionUsernames() {
-			if o.SentTo == username {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(msg.AtMentionUsernames(), o.SentTo)
 	}
 	return true
 }
@@ -2931,9 +2895,7 @@ func GlobalAppNotificationSettingsSorted() (res []GlobalAppNotificationSetting) 
 			res = append(res, setting)
 		}
 	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i] < res[j]
-	})
+	slices.Sort(res)
 	return res
 }
 

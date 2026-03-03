@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/identify3.avdl
 
 package keybase1
@@ -36,11 +36,11 @@ func Identify3Protocol(i Identify3Interface) rpc.Protocol {
 		Name: "keybase.1.identify3",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"identify3": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3Arg)(nil), args)
@@ -51,11 +51,11 @@ func Identify3Protocol(i Identify3Interface) rpc.Protocol {
 				},
 			},
 			"identify3FollowUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3FollowUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3FollowUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3FollowUserArg)(nil), args)
@@ -66,11 +66,11 @@ func Identify3Protocol(i Identify3Interface) rpc.Protocol {
 				},
 			},
 			"identify3IgnoreUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Identify3IgnoreUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Identify3IgnoreUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Identify3IgnoreUserArg)(nil), args)
@@ -89,17 +89,17 @@ type Identify3Client struct {
 }
 
 func (c Identify3Client) Identify3(ctx context.Context, __arg Identify3Arg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3Client) Identify3FollowUser(ctx context.Context, __arg Identify3FollowUserArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3FollowUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3FollowUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3Client) Identify3IgnoreUser(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3IgnoreUserArg{GuiID: guiID}
-	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3IgnoreUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.identify3.identify3IgnoreUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

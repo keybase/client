@@ -258,7 +258,7 @@ func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, rea
 
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
-	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {
+	_, err := w.refreshGroup.Do("RefreshAll", func() (any, error) {
 		doErr := w.refreshAll(mctx, reason)
 		return nil, doErr
 	})
@@ -585,7 +585,7 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 	}
 	w.G().Log.CDebugf(ctx, "ExchangeRate(%s) using remote", currency)
 
-	rateRes, err := w.rateGroup.Do(currency, func() (interface{}, error) {
+	rateRes, err := w.rateGroup.Do(currency, func() (any, error) {
 		return w.Remoter.ExchangeRate(ctx, currency)
 	})
 	rate, ok := rateRes.(stellar1.OutsideExchangeRate)
@@ -686,7 +686,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 
 // Refresh updates all the data for this account from the server.
 func (a *AccountState) Refresh(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string) error {
-	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
+	_, err := a.refreshGroup.Do("Refresh", func() (any, error) {
 		doErr := a.refresh(mctx, router, reason)
 		return nil, doErr
 	})
@@ -695,7 +695,7 @@ func (a *AccountState) Refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 
 // RefreshWithDetails updates all the data for this account with the provided details data.
 func (a *AccountState) RefreshWithDetails(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string, details *stellar1.DetailsPlusPayments) error {
-	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
+	_, err := a.refreshGroup.Do("Refresh", func() (any, error) {
 		var doErr error
 		if details != nil {
 			doErr = a.refreshWithDetails(mctx, router, reason, details)
@@ -1053,7 +1053,7 @@ func pendingChanged(a, b []stellar1.PaymentSummary) bool {
 		return false
 	}
 
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		atxid, err := a[i].TransactionID()
 		if err != nil {
 			return true

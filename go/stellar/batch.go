@@ -66,7 +66,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 
 	// submit the payments
 	// need to submit tx one at a time, in order
-	for i := 0; i < len(prepared); i++ {
+	for i := range prepared {
 		if prepared[i] == nil {
 			unlock()
 			// this should never happen
@@ -170,7 +170,7 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 
 	// prepared chan could be out of order, so sort by seqno
 	preparedList := make([]*MiniPrepared, len(payments))
-	for i := 0; i < len(payments); i++ {
+	for i := range payments {
 		preparedList[i] = <-prepared
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })

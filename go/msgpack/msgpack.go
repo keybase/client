@@ -10,19 +10,19 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
-func EncodeCanonical(src interface{}) (dst []byte, err error) {
+func EncodeCanonical(src any) (dst []byte, err error) {
 	ch := kbcrypto.CodecHandle()
 	ch.Canonical = true
 	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
 	return dst, err
 }
 
-func Decode(dst interface{}, src []byte) (err error) {
+func Decode(dst any, src []byte) (err error) {
 	ch := kbcrypto.CodecHandle()
 	return codec.NewDecoderBytes(src, ch).Decode(dst)
 }
 
-func Encode(src interface{}) (dst []byte, err error) {
+func Encode(src any) (dst []byte, err error) {
 	ch := kbcrypto.CodecHandle()
 	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
 	return dst, err
@@ -30,7 +30,7 @@ func Encode(src interface{}) (dst []byte, err error) {
 
 // Decode data into out, but make sure that all bytes in data are
 // used.
-func DecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
+func DecodeAll(data []byte, handle *codec.MsgpackHandle, out any) error {
 	decoder := codec.NewDecoderBytes(data, handle)
 	err := decoder.Decode(out)
 	if err != nil {

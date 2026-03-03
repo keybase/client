@@ -259,7 +259,7 @@ func (t *kvStoreAPIHandler) list(ctx context.Context, c Call, w io.Writer) error
 	return t.encodeResult(c, res, w)
 }
 
-func (t *kvStoreAPIHandler) encodeResult(call Call, result interface{}, w io.Writer) error {
+func (t *kvStoreAPIHandler) encodeResult(call Call, result any, w io.Writer) error {
 	return encodeResult(call, result, w, t.indent)
 }
 

@@ -110,11 +110,11 @@ type IdentityHasher struct{}
 
 var _ Encoder = IdentityHasher{}
 
-func (i IdentityHasher) Encode(o interface{}) (dst []byte, err error) {
+func (i IdentityHasher) Encode(o any) (dst []byte, err error) {
 	return dst, i.EncodeTo(o, &dst)
 }
 
-func (i IdentityHasher) EncodeTo(o interface{}, out *[]byte) (err error) {
+func (i IdentityHasher) EncodeTo(o any, out *[]byte) (err error) {
 	enc, err := msgpack.EncodeCanonical(o)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (i IdentityHasher) GetEncodingType() EncodingType {
 	return EncodingTypeForTesting
 }
 
-func (i IdentityHasher) Decode(dest interface{}, src []byte) error {
+func (i IdentityHasher) Decode(dest any, src []byte) error {
 	return msgpack.Decode(dest, src)
 }
 
@@ -140,7 +140,7 @@ func (i IdentityHasher) HashKeyEncodedValuePairWithKeySpecificSecretTo(kevp KeyE
 	return err
 }
 
-func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+func (i IdentityHasher) EncodeAndHashGeneric(o any) ([]byte, Hash, error) {
 	enc, err := i.Encode(o)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Encoding error in IdentityHasher for %v: %v", o, err)
@@ -148,7 +148,7 @@ func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error
 	return enc, Hash(enc), nil
 }
 
-func (i IdentityHasher) HashGeneric(o interface{}, h *Hash) (err error) {
+func (i IdentityHasher) HashGeneric(o any, h *Hash) (err error) {
 	_, *h, err = i.EncodeAndHashGeneric(o)
 	return err
 }
@@ -181,7 +181,7 @@ func (i IdentityHasherBlinded) GetEncodingType() EncodingType {
 	return EncodingTypeForTesting
 }
 
-func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+func (i IdentityHasherBlinded) EncodeAndHashGeneric(o any) ([]byte, Hash, error) {
 	enc, err := msgpack.EncodeCanonical(o)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
@@ -189,16 +189,16 @@ func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) ([]byte, Hash
 	return enc, Hash(enc), nil
 }
 
-func (i IdentityHasherBlinded) HashGeneric(o interface{}, h *Hash) (err error) {
+func (i IdentityHasherBlinded) HashGeneric(o any, h *Hash) (err error) {
 	_, *h, err = i.EncodeAndHashGeneric(o)
 	return err
 }
 
-func (i IdentityHasherBlinded) Encode(o interface{}) (dst []byte, err error) {
+func (i IdentityHasherBlinded) Encode(o any) (dst []byte, err error) {
 	return dst, i.EncodeTo(o, &dst)
 }
 
-func (i IdentityHasherBlinded) EncodeTo(o interface{}, out *[]byte) (err error) {
+func (i IdentityHasherBlinded) EncodeTo(o any, out *[]byte) (err error) {
 	enc, err := msgpack.EncodeCanonical(o)
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (i IdentityHasherBlinded) EncodeTo(o interface{}, out *[]byte) (err error) 
 	return nil
 }
 
-func (i IdentityHasherBlinded) Decode(dest interface{}, src []byte) error {
+func (i IdentityHasherBlinded) Decode(dest any, src []byte) error {
 	return msgpack.Decode(dest, src)
 }
 
@@ -324,7 +324,7 @@ func makeRandomKVPFromKeysForTesting(keys []Key, randSrc *rand.Rand) ([]KeyValue
 	return kvps, nil
 }
 
-func ConstructStringValueContainer() interface{} {
+func ConstructStringValueContainer() any {
 	return ""
 }
 
@@ -336,11 +336,11 @@ func (e SHA512_256Encoder) GetEncodingType() EncodingType {
 	return EncodingTypeForTesting
 }
 
-func (e SHA512_256Encoder) Encode(o interface{}) (dst []byte, err error) {
+func (e SHA512_256Encoder) Encode(o any) (dst []byte, err error) {
 	return dst, e.EncodeTo(o, &dst)
 }
 
-func (e SHA512_256Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
+func (e SHA512_256Encoder) EncodeTo(o any, out *[]byte) (err error) {
 	enc, err := msgpack.EncodeCanonical(o)
 	if err != nil {
 		return err
@@ -349,11 +349,11 @@ func (e SHA512_256Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
 	return nil
 }
 
-func (e SHA512_256Encoder) Decode(dest interface{}, src []byte) error {
+func (e SHA512_256Encoder) Decode(dest any, src []byte) error {
 	return msgpack.Decode(dest, src)
 }
 
-func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+func (e SHA512_256Encoder) EncodeAndHashGeneric(o any) ([]byte, Hash, error) {
 	enc, err := e.Encode(o)
 	if err != nil {
 		return nil, nil, err
@@ -366,7 +366,7 @@ func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, er
 	return enc, hasher.Sum(nil), nil
 }
 
-func (e SHA512_256Encoder) HashGeneric(o interface{}, h *Hash) (err error) {
+func (e SHA512_256Encoder) HashGeneric(o any, h *Hash) (err error) {
 	_, *h, err = e.EncodeAndHashGeneric(o)
 	return err
 }

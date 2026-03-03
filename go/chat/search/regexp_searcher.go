@@ -115,10 +115,7 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 			}
 		}
 		// Get the remaining context from the new current page of the thread.
-		remainingContext := beforeContext - len(hitContext)
-		if remainingContext > len(next.Messages) {
-			remainingContext = len(next.Messages)
-		}
+		remainingContext := min(beforeContext-len(hitContext), len(next.Messages))
 		hitContext = append(hitContext, next.Messages[:remainingContext]...)
 		return next, hitContext, nil
 	}
@@ -134,10 +131,7 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 		hitContext := cur.Messages[:i]
 		if prev != nil {
 			// Get the remaining context from the previous page of the thread.
-			remainingContext := len(prev.Messages) - (afterContext - len(hitContext))
-			if remainingContext < 0 {
-				remainingContext = 0
-			}
+			remainingContext := max(len(prev.Messages)-(afterContext-len(hitContext)), 0)
 			hitContext = append(prev.Messages[remainingContext:], hitContext...)
 		}
 		return hitContext

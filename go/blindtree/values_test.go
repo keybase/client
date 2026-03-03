@@ -18,7 +18,7 @@ func TestEncodeMerkleValues(t *testing.T) {
 	}
 
 	encodingTests := []struct {
-		Value        interface{}
+		Value        any
 		EncodedValue BlindMerkleValue
 		Type         BlindMerkleValueType
 	}{

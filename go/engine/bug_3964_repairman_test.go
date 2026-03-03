@@ -30,71 +30,71 @@ func (a *auditLog) ClearLines() {
 	a.lines = &[]string{}
 }
 
-func (a *auditLog) Debug(format string, args ...interface{}) {
+func (a *auditLog) Debug(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	a.l.CloneWithAddedDepth(1).Debug(s)
 	*a.lines = append(*a.lines, s)
 }
 
-func (a *auditLog) CDebugf(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CDebugf(ctx context.Context, format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	a.l.CloneWithAddedDepth(1).CDebugf(ctx, s)
 	*a.lines = append(*a.lines, s)
 }
 
-func (a *auditLog) Info(format string, args ...interface{}) {
+func (a *auditLog) Info(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Info(format, args...)
 }
 
-func (a *auditLog) CInfof(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CInfof(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CInfof(ctx, format, args...)
 }
 
-func (a *auditLog) Notice(format string, args ...interface{}) {
+func (a *auditLog) Notice(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Notice(format, args...)
 }
 
-func (a *auditLog) CNoticef(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CNoticef(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CNoticef(ctx, format, args...)
 }
 
-func (a *auditLog) Warning(format string, args ...interface{}) {
+func (a *auditLog) Warning(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Warning(format, args...)
 }
 
-func (a *auditLog) CWarningf(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CWarningf(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CWarningf(ctx, format, args...)
 }
 
-func (a *auditLog) Error(format string, args ...interface{}) {
+func (a *auditLog) Error(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
 
-func (a *auditLog) Errorf(format string, args ...interface{}) {
+func (a *auditLog) Errorf(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
 
-func (a *auditLog) CErrorf(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CErrorf(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CErrorf(ctx, format, args...)
 }
 
-func (a *auditLog) Critical(format string, args ...interface{}) {
+func (a *auditLog) Critical(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Critical(format, args...)
 }
 
-func (a *auditLog) CCriticalf(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CCriticalf(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CCriticalf(ctx, format, args...)
 }
 
-func (a *auditLog) Fatalf(format string, args ...interface{}) {
+func (a *auditLog) Fatalf(format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Fatalf(format, args...)
 }
 
-func (a *auditLog) CFatalf(ctx context.Context, format string, args ...interface{}) {
+func (a *auditLog) CFatalf(ctx context.Context, format string, args ...any) {
 	a.l.CloneWithAddedDepth(1).CFatalf(ctx, format, args...)
 }
 
-func (a *auditLog) Profile(fmts string, args ...interface{}) {
+func (a *auditLog) Profile(fmts string, args ...any) {
 	a.l.CloneWithAddedDepth(1).Profile(fmts, args...)
 }
 

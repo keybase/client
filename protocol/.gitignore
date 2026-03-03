@@ -1,3 +1,4 @@
+.config
 build-stamp
 node_modules/
 objc-build-stamp

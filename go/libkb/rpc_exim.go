@@ -193,13 +193,13 @@ func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 
 // =============================================================================
 
-func MakeWrapError(g *GlobalContext) func(e error) interface{} {
-	return func(e error) interface{} {
+func MakeWrapError(g *GlobalContext) func(e error) any {
+	return func(e error) any {
 		return ExportErrorAsStatus(g, e)
 	}
 }
 
-func WrapError(e error) interface{} {
+func WrapError(e error) any {
 	return ExportErrorAsStatus(nil, e)
 }
 
@@ -213,11 +213,11 @@ func NewContextifiedErrorUnwrapper(g *GlobalContext) ErrorUnwrapper {
 	return ErrorUnwrapper{NewContextified(g)}
 }
 
-func (c ErrorUnwrapper) MakeArg() interface{} {
+func (c ErrorUnwrapper) MakeArg() any {
 	return &keybase1.Status{}
 }
 
-func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+func (c ErrorUnwrapper) UnwrapError(arg any) (appError error, dispatchError error) {
 	targ, ok := arg.(*keybase1.Status)
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")

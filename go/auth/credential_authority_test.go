@@ -59,7 +59,7 @@ func newTestUser(nKeys int) *testUser {
 		sibkeys:  make([]keybase1.KID, nKeys),
 		subkeys:  make([]keybase1.KID, nKeys),
 	}
-	for i := 0; i < nKeys; i++ {
+	for i := range nKeys {
 		ret.sibkeys[i] = genKID()
 		ret.subkeys[i] = genKID()
 	}
@@ -236,7 +236,7 @@ func TestSimple(t *testing.T) {
 	u1 := state.newTestUser(4)
 
 	ng := 3
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		err = credentialAuthority.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.sibkeys[0], false)
 		if err != nil {
 			t.Fatal(err)
@@ -283,7 +283,7 @@ func TestCheckUsers(t *testing.T) {
 	state, credentialAuthority := newTestSetup()
 
 	var users, usersWithDud []keybase1.UID
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		u := state.newTestUser(2)
 		users = append(users, u.uid)
 		usersWithDud = append(usersWithDud, u.uid)

@@ -34,11 +34,11 @@ func newBaseBox(g *globals.Context) *baseBox {
 	}
 }
 
-func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res interface{}) (bool, error) {
+func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res any) (bool, error) {
 	return i.encryptedDB.Get(ctx, key, res)
 }
 
-func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interface{}) error {
+func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data any) error {
 	return i.encryptedDB.Put(ctx, key, data)
 }
 

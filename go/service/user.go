@@ -121,7 +121,7 @@ func (h *UserHandler) LoadUserPlusKeysV2(ctx context.Context, arg keybase1.LoadU
 	}
 
 	retp := &ret
-	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (any, error) {
 		return h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
 	})
 	if s, ok := servedRet.(*keybase1.UserPlusKeysV2AllIncarnations); ok && s != nil {

@@ -17,7 +17,7 @@ func TestInterestingPeople(t *testing.T) {
 
 	maxUsers := 3
 	var users []*kbtest.FakeUser
-	for i := 0; i < maxUsers; i++ {
+	for range maxUsers {
 		u, err := kbtest.CreateAndSignupFakeUser("ppl", tc.G)
 		require.NoError(t, err)
 		users = append(users, u)

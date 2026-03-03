@@ -14,23 +14,23 @@ func NewNull() *Null {
 // Verify Null fully implements the Logger interface.
 var _ Logger = (*Null)(nil)
 
-func (l *Null) Debug(_ string, _ ...interface{})                         {}
-func (l *Null) Info(_ string, _ ...interface{})                          {}
-func (l *Null) Warning(_ string, _ ...interface{})                       {}
-func (l *Null) Notice(_ string, _ ...interface{})                        {}
-func (l *Null) Errorf(_ string, _ ...interface{})                        {}
-func (l *Null) Critical(_ string, _ ...interface{})                      {}
-func (l *Null) CCriticalf(_ context.Context, _ string, _ ...interface{}) {}
-func (l *Null) Fatalf(_ string, _ ...interface{})                        {}
-func (l *Null) CFatalf(_ context.Context, _ string, _ ...interface{})    {}
-func (l *Null) Profile(_ string, _ ...interface{})                       {}
-func (l *Null) CDebugf(_ context.Context, _ string, _ ...interface{})    {}
-func (l *Null) CInfof(_ context.Context, _ string, _ ...interface{})     {}
-func (l *Null) CNoticef(_ context.Context, _ string, _ ...interface{})   {}
-func (l *Null) CWarningf(_ context.Context, _ string, _ ...interface{})  {}
-func (l *Null) CErrorf(_ context.Context, _ string, _ ...interface{})    {}
-func (l *Null) Error(_ string, _ ...interface{})                         {}
-func (l *Null) Configure(_ string, _ bool, _ string)                     {}
+func (l *Null) Debug(_ string, _ ...any)                         {}
+func (l *Null) Info(_ string, _ ...any)                          {}
+func (l *Null) Warning(_ string, _ ...any)                       {}
+func (l *Null) Notice(_ string, _ ...any)                        {}
+func (l *Null) Errorf(_ string, _ ...any)                        {}
+func (l *Null) Critical(_ string, _ ...any)                      {}
+func (l *Null) CCriticalf(_ context.Context, _ string, _ ...any) {}
+func (l *Null) Fatalf(_ string, _ ...any)                        {}
+func (l *Null) CFatalf(_ context.Context, _ string, _ ...any)    {}
+func (l *Null) Profile(_ string, _ ...any)                       {}
+func (l *Null) CDebugf(_ context.Context, _ string, _ ...any)    {}
+func (l *Null) CInfof(_ context.Context, _ string, _ ...any)     {}
+func (l *Null) CNoticef(_ context.Context, _ string, _ ...any)   {}
+func (l *Null) CWarningf(_ context.Context, _ string, _ ...any)  {}
+func (l *Null) CErrorf(_ context.Context, _ string, _ ...any)    {}
+func (l *Null) Error(_ string, _ ...any)                         {}
+func (l *Null) Configure(_ string, _ bool, _ string)             {}
 
 func (l *Null) CloneWithAddedDepth(_ int) Logger { return l }
 

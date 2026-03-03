@@ -526,7 +526,7 @@ func (r *runner) printGitJournalStart(ctx context.Context) {
 	}
 	if r.verbosity >= 1 {
 		r.printStageStart(ctx,
-			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
+			fmt.Appendf(nil, "Syncing %s data to Keybase: ", adj),
 			"mem.flush.prof", "")
 	}
 }
@@ -536,10 +536,7 @@ func (r *runner) printGitJournalMessage(
 ) int {
 	const bytesFmt string = "(%.2f%%) %s... "
 	eraseStr := strings.Repeat("\b", lastByteCount)
-	flushed := totalSize - sizeLeft
-	if flushed < 0 {
-		flushed = 0
-	}
+	flushed := max(totalSize-sizeLeft, 0)
 	str := fmt.Sprintf(
 		bytesFmt, percent(flushed, totalSize),
 		humanizeBytes(flushed, totalSize))
