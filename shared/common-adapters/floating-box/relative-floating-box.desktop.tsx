@@ -1,12 +1,9 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import includes from 'lodash/includes'
-import {Box2} from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import type {MeasureDesktop} from '@/common-adapters/measure-ref'
-
-const Kb = {Box2}
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -295,10 +292,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>
           {disableEscapeKey ? (
-            <Kb.Box2 direction="vertical" className="fade-in-generic">{children}</Kb.Box2>
+            <div className="fade-in-generic">{children}</div>
           ) : (
             <EscapeHandler onESC={onClosePopup}>
-              <Kb.Box2 direction="vertical" className="fade-in-generic">{children}</Kb.Box2>
+              <div className="fade-in-generic">{children}</div>
             </EscapeHandler>
           )}
         </div>,
