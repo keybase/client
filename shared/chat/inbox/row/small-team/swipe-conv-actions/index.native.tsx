@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
-import {RectButton} from 'react-native-gesture-handler'
+import {RectButton, TouchableOpacity} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {View} from 'react-native'
 import {useOpenedRowState} from '../../opened-row-state'
@@ -57,7 +57,7 @@ function SwipeConvActions(p: Props) {
       setOpenedRow(Chat.noConversationIDKey)
     }
   }
-  const {children} = p
+  const {children, onPress} = p
 
   const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
   const mute = Chat.useChatContext(s => s.dispatch.mute)
@@ -131,7 +131,11 @@ function SwipeConvActions(p: Props) {
       renderRightActions={renderRightActions}
       containerStyle={styles.row}
     >
-      {children}
+      {onPress ? (
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.touchable}>
+          {children}
+        </TouchableOpacity>
+      ) : children}
     </Swipeable>
   )
 }
@@ -162,6 +166,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       row: {
         flexShrink: 0,
+        height: RowSizes.smallRowHeight,
+      },
+      touchable: {
         height: RowSizes.smallRowHeight,
       },
     }) as const
