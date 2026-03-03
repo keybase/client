@@ -15,6 +15,7 @@ export const usePushState = Z.createZustand<State>('push', () => {
     checkPermissions: async () => {
       return Promise.resolve(false)
     },
+    clearPendingPushNotification: () => {},
     defer: {
       onGetDaemonHandshakeState: () => {
         return 'done'

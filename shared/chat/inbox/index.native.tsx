@@ -25,7 +25,13 @@ const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
-    <Kb.Box2 direction="vertical" gapStart={true} gap="small" justifyContent="flex-end" style={styles.noChatsContainer}>
+    <Kb.Box2
+      direction="vertical"
+      gapStart={true}
+      gap="small"
+      justifyContent="flex-end"
+      style={styles.noChatsContainer}
+    >
       <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySmall" center={true}>
@@ -378,10 +384,7 @@ const NoRowsBuildTeam = () => {
 }
 
 const LoadingLine = () => {
-  const isLoading = C.Waiting.useAnyWaiting([
-    C.waitingKeyChatInboxRefresh,
-    C.waitingKeyChatInboxSyncStarted,
-  ])
+  const isLoading = C.Waiting.useAnyWaiting([C.waitingKeyChatInboxRefresh, C.waitingKeyChatInboxSyncStarted])
   return isLoading ? (
     <Kb.Box2 direction="vertical" style={styles.loadingContainer}>
       <Kb.LoadingLine />
