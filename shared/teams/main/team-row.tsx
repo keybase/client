@@ -1,13 +1,12 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type Props = {
   firstItem: boolean
@@ -15,27 +14,24 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
-const TeamRow = React.memo(function TeamRow(props: Props) {
+const TeamRow = function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
   const nav = useSafeNavigation()
   const teamMeta = useTeamsState(s => Teams.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   const activity = <Activity level={activityLevel} />
 
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    },
-    [teamID]
-  )
+    }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const teamIDToResetUsers = useTeamsState(s => s.teamIDToResetUsers)
@@ -65,7 +61,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
 
   return (
     <>
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         firstItem={firstItem}
         onClick={onViewTeam}
@@ -86,17 +82,17 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
         height={Kb.Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
-            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
+            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" flex={1} style={styles.bodyLeft}>
               <Kb.Box2
                 direction="vertical"
                 fullHeight={true}
                 alignItems="flex-start"
-                style={styles.bodyLeftText}
+                justifyContent="center"
               >
                 <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text2 type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
                     {teamMeta.teamname}
-                  </Kb.Text2>
+                  </Kb.Text>
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
@@ -113,7 +109,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
                       style={styles.alignSelfCenter}
                     />
                   )}
-                  <Kb.Text fixOverdraw={true} type="BodySmall">
+                  <Kb.Text type="BodySmall">
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>
@@ -155,7 +151,7 @@ const TeamRow = React.memo(function TeamRow(props: Props) {
       {popup}
     </>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
@@ -178,10 +174,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
-    flex: 1,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
     flex: 0.7,
   },
@@ -198,9 +192,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {bottom: 4, right: -5},
   }),
   darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
-  openMeta: {
-    alignSelf: 'center',
-  },
   white: {backgroundColor: Kb.Styles.globalColors.white},
 }))
 

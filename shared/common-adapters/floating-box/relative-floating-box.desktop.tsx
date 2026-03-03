@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import includes from 'lodash/includes'
-import Box from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
-const Kb = {Box}
+const Kb = {Box2}
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -239,22 +239,19 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props
 
-  const handleDown = React.useCallback((e: MouseEvent) => {
-    downRef.current = {x: e.clientX, y: e.clientY}
-  }, [])
+  React.useEffect(() => {
+    const handleDown = (e: MouseEvent) => {
+      downRef.current = {x: e.clientX, y: e.clientY}
+    }
 
-  const handleClick = React.useCallback(
-    (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
         !propagateOutsideClicks && e.stopPropagation()
         onClosePopup()
       }
-    },
-    [onClosePopup, propagateOutsideClicks, popupNode]
-  )
+    }
 
-  const handleUp = React.useCallback(
-    (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent) => {
       if (!downRef.current) {
         return
       }
@@ -265,11 +262,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       if (Math.abs(x - clientX) < 5 && Math.abs(y - clientY) < 5) {
         handleClick(e)
       }
-    },
-    [handleClick]
-  )
+    }
 
-  React.useEffect(() => {
     const node = document.body
     node.addEventListener('mousedown', handleDown, {capture: true})
     node.addEventListener('mouseup', handleUp, {capture: true})
@@ -277,7 +271,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       node.removeEventListener('mousedown', handleDown, {capture: true})
       node.removeEventListener('mouseup', handleUp, {capture: true})
     }
-  }, [handleDown, handleUp])
+  }, [onClosePopup, popupNode, propagateOutsideClicks])
 
   React.useEffect(() => {
     if (targetRect && popupNode) {
@@ -301,10 +295,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>
           {disableEscapeKey ? (
-            <Kb.Box className="fade-in-generic">{children}</Kb.Box>
+            <Kb.Box2 direction="vertical" className="fade-in-generic">{children}</Kb.Box2>
           ) : (
             <EscapeHandler onESC={onClosePopup}>
-              <Kb.Box className="fade-in-generic">{children}</Kb.Box>
+              <Kb.Box2 direction="vertical" className="fade-in-generic">{children}</Kb.Box2>
             </EscapeHandler>
           )}
         </div>,

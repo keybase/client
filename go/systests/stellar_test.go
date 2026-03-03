@@ -140,7 +140,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Recipient:    bob.username,
 		Amount:       "50",
 	}
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		err = cmd.Run()
 		if err == nil {
 			break
@@ -154,7 +154,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Recipient:    bob.username,
 		Amount:       "30",
 	}
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		err = cmd.Run()
 		if err == nil {
 			break
@@ -219,7 +219,7 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Amount:       "10",
 		ForceRelay:   true,
 	}
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		err = cmd.Run()
 		if err == nil {
 			break
@@ -274,7 +274,7 @@ func TestStellarRelayAutoClaimsSBS(t *testing.T) {
 		Recipient:    rooterAssertion,
 		Amount:       "50",
 	}
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		err = cmd.Run()
 		if err == nil {
 			break
@@ -354,7 +354,7 @@ func sampleNote() stellar1.NoteContents {
 func gift(t testing.TB, accountID stellar1.AccountID) {
 	t.Logf("gift -> %v", accountID)
 	url := "https://friendbot.stellar.org/?addr=" + accountID.String()
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		t.Logf("gift url: %v", url)
 		res, err := http.Get(url) //nolint:gosec // G107: Test code calling Stellar testnet friendbot with account ID parameter
 		if err != nil {
@@ -432,7 +432,7 @@ func TestAccountMerge(t *testing.T) {
 		Recipient:    secondAccountID.String(),
 		Amount:       "50",
 	}
-	for i := 0; i < retryCount; i++ {
+	for range retryCount {
 		err = sendCmd.Run()
 		if err == nil {
 			break

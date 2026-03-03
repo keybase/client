@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import upperFirst from 'lodash/upperFirst'
 import type {Props} from '.'
 
@@ -14,11 +14,11 @@ export default (p: Props) => {
   const [channelname, onChannelnameChange] = React.useState<string>('')
   const [description, onDescriptionChange] = React.useState<string>('')
   const createChannel = Teams.useTeamsState(s => s.dispatch.createChannel)
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (channelname) {
       createChannel({channelname, description, navToChatOnSuccess, teamID})
     }
-  }, [createChannel, navToChatOnSuccess, channelname, description, teamID])
+  }
 
   const setChannelCreationError = Teams.useTeamsState(s => s.dispatch.setChannelCreationError)
   C.useOnMountOnce(() => {

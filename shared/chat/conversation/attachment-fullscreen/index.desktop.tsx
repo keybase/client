@@ -13,7 +13,7 @@ type ArrowProps = {
 const Arrow = (props: ArrowProps) => {
   const {left, onClick} = props
   return (
-    <Kb.Box
+    <Kb.ClickableBox
       className="hover_background_color_black background_color_black_50 fade-background-color"
       onClick={e => {
         e.stopPropagation()
@@ -26,11 +26,11 @@ const Arrow = (props: ArrowProps) => {
         color={Kb.Styles.globalColors.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 
-const Fullscreen = React.memo(function Fullscreen(p: Props) {
+const Fullscreen = function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
@@ -38,50 +38,41 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {fullWidth, fullHeight} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
-  const onIsZoomed = React.useCallback((zoomed: boolean) => {
+  const onIsZoomed = (zoomed: boolean) => {
     setIsZoomed(zoomed)
-  }, [])
+  }
 
-  const preload = React.useCallback((path: string, onLoad: () => void, onError: () => void) => {
+  const preload = (path: string, onLoad: () => void, onError: () => void) => {
     const img = new Image()
     img.src = path
     img.onload = onLoad
     img.onerror = onError
-  }, [])
+  }
 
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
 
-  const forceDims = React.useMemo(() => {
-    return fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
-  }, [fullHeight, fullWidth])
+  const forceDims = fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
-  const onHotKey = React.useCallback(
-    (cmd: string) => {
-      cmd === 'left' && onPreviousAttachment()
-      cmd === 'right' && onNextAttachment()
-    },
-    [onPreviousAttachment, onNextAttachment]
-  )
+  const onHotKey = (cmd: string) => {
+    cmd === 'left' && onPreviousAttachment()
+    cmd === 'right' && onNextAttachment()
+  }
   Kb.useHotKey(['left', 'right'], onHotKey)
   const isDownloadError = !!message.transferErrMsg
 
   const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
 
-  const titleOverride = React.useMemo(
-    () =>
-      ({
-        paragraph: Kb.Styles.platformStyles({
-          isElectron: {whiteSpace: 'nowrap'},
-        }),
-      }) as StyleOverride,
-    []
-  )
+  const titleOverride = {
+    paragraph: Kb.Styles.platformStyles({
+      isElectron: {whiteSpace: 'nowrap'},
+    }),
+  } as StyleOverride
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
-      <Kb.Box style={styles.container}>
-        <Kb.Box style={styles.headerFooter}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
@@ -96,7 +87,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             onClick={showPopup}
           />
           {popup}
-        </Kb.Box>
+        </Kb.Box2>
         {path && (
           <Kb.BoxGrow>
             <Kb.ClickableBox style={styles.contentsFit} key={path}>
@@ -126,7 +117,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             </Kb.ClickableBox>
           </Kb.BoxGrow>
         )}
-        <Kb.Box style={styles.headerFooter}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           {!!progressLabel && (
             <Kb.Text
               type="BodySmall"
@@ -154,11 +145,11 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
               Show in {Kb.Styles.fileUIName}
             </Kb.Text>
           )}
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -183,7 +174,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 36,
         },
       }),
-      container: {...Kb.Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
@@ -192,28 +182,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
-      imgOrig: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'flex',
-          margin: 'auto',
-          maxHeight: '100%',
-          maxWidth: '100%',
-          transform: '',
-        },
-      }),
-      imgZoomed: Kb.Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-          transformOrigin: 'top left',
-        },
-      }),
       link: Kb.Styles.platformStyles({
         isElectron: {color: Kb.Styles.globalColors.black_50, cursor: 'pointer'},
       }),
@@ -221,27 +193,6 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
       },
-      scrollAttachOrig: Kb.Styles.platformStyles({
-        isElectron: {
-          alignItems: 'center',
-          cursor: 'zoom-in',
-          display: 'flex',
-          height: '100%',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
-      scrollAttachZoomed: Kb.Styles.platformStyles({
-        isElectron: {
-          cursor: 'zoom-out',
-          height: '100%',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
       videoFit: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'normal',

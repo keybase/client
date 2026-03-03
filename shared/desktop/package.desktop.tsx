@@ -1,7 +1,7 @@
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
-import packager, {type Options} from '@electron/packager'
+import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
 import rootConfig from './webpack.config.babel'
@@ -10,7 +10,7 @@ import {electronChecksums} from './electron-sums'
 
 const TEMP_SKIP_BUILD: boolean = false
 
-// absolute path relative to this script
+// absolute path relative={true} to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
 async function walk(dir: string, onlyExts: Array<string>): Promise<Array<string>> {
@@ -237,14 +237,14 @@ async function pack(plat: string, arch: string) {
   if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
-  const opts = {
+  const opts: Options = {
     ...packagerOpts,
-    arch,
+    arch: arch as Options['arch'],
     out: packageOutDir,
-    platform: plat,
+    platform: plat as Options['platform'],
     ...(plat === 'win32'
       ? {
-          'version-string': {
+          win32metadata: {
             CompanyName: companyName,
             FileDescription: appName,
             OriginalFilename: appName + '.exe',
@@ -256,8 +256,7 @@ async function pack(plat: string, arch: string) {
   console.log('Building using options', opts)
 
   const ret = await packager(opts)
-  // sometimes returns bools, unclear why
-  return ret.filter(o => typeof o === 'string')
+  return ret
 }
 
 function postPack(appPaths: Array<string>, plat: string, arch: string) {
@@ -267,7 +266,7 @@ function postPack(appPaths: Array<string>, plat: string, arch: string) {
   }
   const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
   const dir = path.join(appPaths[0]!, subdir, 'app/desktop/dist')
-  const modules = ['node', 'main', 'tracker2', 'menubar', 'unlock-folders', 'pinentry']
+  const modules = ['node', 'main', 'tracker', 'menubar', 'unlock-folders', 'pinentry']
   const files = [
     ...modules.map(p => p + '.bundle.js'),
     ...modules.filter(p => p !== 'node').map(p => p + '.html'),

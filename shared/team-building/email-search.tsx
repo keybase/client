@@ -1,11 +1,12 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
+import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {validateEmailAddress} from '@/util/email-address'
 import {UserMatchMention} from './phone-search'
 import ContinueButton from './continue-button'
+import {searchWaitingKey} from '@/constants/strings'
 
 type EmailSearchProps = {
   continueLabel: string
@@ -17,12 +18,11 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const teamBuildingSearchResults = TB.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
+  const waiting = C.Waiting.useAnyWaiting(searchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
-  const onChange = React.useCallback(
-    (_text: string) => {
+  const onChange = (_text: string) => {
       // Remove leading or trailing whitespace
       const text = _text.trim()
       setEmailString(text)
@@ -31,24 +31,22 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
       if (valid) {
         search(text, 'email')
       }
-    },
-    [search]
-  )
+    }
 
   const addUsersToTeamSoFar = TB.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!user || !canSubmit) {
       return
     }
     addUsersToTeamSoFar([user])
     // Clear input
     onChange('')
-  }, [addUsersToTeamSoFar, canSubmit, user, onChange])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexGrow}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -78,7 +76,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
             {!Kb.Styles.isMobile && (
               <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
-            {namespace === 'chat2' ? (
+            {namespace === 'chat' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>
                 Start a chat with any email contact, then tell them to install Keybase. Your messages will
                 unlock after they sign up.
@@ -111,9 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(
           zIndex: -1,
         },
       }),
-      bottomContainer: {
-        flexGrow: 1,
-      },
       emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
@@ -122,9 +117,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '90%'},
       }),
-      flexGrow: {
-        flex: 1,
-      },
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
@@ -143,10 +135,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: 48,
         },
       }),
-      userMatchMention: {
-        alignSelf: 'flex-start',
-        marginLeft: Kb.Styles.globalMargins.small,
-      },
     }) as const
 )
 

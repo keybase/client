@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -134,7 +134,7 @@ const TextInput = (props: TextProps) => {
   ) : null
 
   return (
-    <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
+    <Kb.ClickableBox onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.Box2
           direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
@@ -166,7 +166,7 @@ const TextInput = (props: TextProps) => {
         </Kb.Box2>
       </Kb.Box2>
       {!Kb.Styles.isMobile && clearButton}
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 
@@ -396,9 +396,6 @@ const styles = Kb.Styles.styleSheetCreate(
       fileContainer: {
         alignSelf: 'flex-start',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      },
-      hidden: {
-        display: 'none',
       },
       input: Kb.Styles.platformStyles({
         common: {

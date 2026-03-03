@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
@@ -45,8 +45,8 @@ const TeamInfo = (props: Props) => {
   }
   const onEditAvatar = () =>
     nav.safeNavigateAppend({
-      props: {sendChatNotification: true, showBack: true, teamID},
-      selected: 'profileEditAvatar',
+      name: 'profileEditAvatar',
+      params: {sendChatNotification: true, showBack: true, teamID},
     })
   return (
     <Kb.Modal
@@ -132,7 +132,6 @@ const TeamInfo = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
   bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
@@ -143,16 +142,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   faded: {opacity: 0.5},
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
 }))
 
 export default TeamInfo

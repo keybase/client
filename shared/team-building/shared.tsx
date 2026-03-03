@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import * as TeamBuilding from '@/constants/team-building'
+import * as TeamBuilding from '@/stores/team-building'
 
 const services: {
   [K in T.TB.ServiceIdWithContact]: {

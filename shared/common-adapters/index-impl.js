@@ -147,8 +147,8 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
-  get Image2() {
-    return require('./image2').default
+  get Image() {
+    return require('./image').default
   },
   get InfoNote() {
     return require('./info-note').default
@@ -156,8 +156,8 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input2() {
-    return require('./input2').Input2
+  get Input() {
+    return require('./input').Input
   },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
@@ -168,14 +168,8 @@ module.exports = {
   get List() {
     return require('./list').default
   },
-  get List2() {
-    return require('./list2').default
-  },
-  get ListItem() {
+get ListItem() {
     return require('./list-item').default
-  },
-  get ListItem2() {
-    return require('./list-item2').default
   },
   get LoadingLine() {
     return require('./loading-line').default
@@ -294,9 +288,6 @@ module.exports = {
   get Text() {
     return require('./text').default
   },
-  get Text2() {
-    return require('./text2').Text2
-  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
@@ -324,14 +315,17 @@ module.exports = {
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },
-  get largeListItem2Height() {
-    return require('./list-item2').largeHeight
+  get largeListItemHeight() {
+    return require('./list-item').largeHeight
   },
-  get smallListItem2Height() {
-    return require('./list-item2').smallHeight
+  get smallListItemHeight() {
+    return require('./list-item').smallHeight
   },
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
+  },
+  get useClickURL() {
+    return require('./text-url').useClickURL
   },
   get useHotKey() {
     return require('./hot-key').useHotKey

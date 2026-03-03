@@ -15,7 +15,7 @@ export const Video = (p: Props) => {
     setPlaying(autoPlay)
   }
 
-  const _onClick = React.useCallback(() => {
+  const _onClick = () => {
     if (onClick) {
       onClick()
       return
@@ -32,13 +32,13 @@ export const Video = (p: Props) => {
       videoRef.current.pause()
     }
     setPlaying(p => !p)
-  }, [playing, onClick])
+  }
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+    <Kb.Box2 direction="horizontal" relative={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-      </Kb.Box>
+      </Kb.Box2>
       <video
         ref={videoRef}
         onClick={_onClick}
@@ -62,7 +62,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         alignSelf: 'flex-start',
-        position: 'relative',
       },
       playButton: {
         bottom: '50%',

@@ -111,7 +111,7 @@ func TestGiphyPreview(t *testing.T) {
 		require.Fail(t, "no waiting ch")
 	}
 	giphy.Preview(ctx, uid, convID, "", "/giphy miketown")
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case show := <-ui.GiphyWindow:
 			require.True(t, show)

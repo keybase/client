@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_service.avdl
 
 package keybase1
@@ -46,11 +46,11 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyService",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"HTTPSrvInfoUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HTTPSrvInfoUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HTTPSrvInfoUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HTTPSrvInfoUpdateArg)(nil), args)
@@ -61,11 +61,11 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 				},
 			},
 			"handleKeybaseLink": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HandleKeybaseLinkArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HandleKeybaseLinkArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HandleKeybaseLinkArg)(nil), args)
@@ -76,11 +76,11 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 				},
 			},
 			"shutdown": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ShutdownArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ShutdownArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ShutdownArg)(nil), args)
@@ -100,17 +100,17 @@ type NotifyServiceClient struct {
 
 func (c NotifyServiceClient) HTTPSrvInfoUpdate(ctx context.Context, info HttpSrvInfo) (err error) {
 	__arg := HTTPSrvInfoUpdateArg{Info: info}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.HTTPSrvInfoUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.HTTPSrvInfoUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyServiceClient) HandleKeybaseLink(ctx context.Context, __arg HandleKeybaseLinkArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.handleKeybaseLink", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.handleKeybaseLink", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyServiceClient) Shutdown(ctx context.Context, code int) (err error) {
 	__arg := ShutdownArg{Code: code}
-	err = c.Cli.Call(ctx, "keybase.1.NotifyService.shutdown", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyService.shutdown", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

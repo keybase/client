@@ -1,14 +1,13 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -24,65 +23,58 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = C.useEvent(() => {
+  const onAddAlias = () => {
     nav.safeNavigateAppend({
-      props: {conversationIDKey, defaultSelected: emojiData},
-      selected: 'teamAddEmojiAlias',
+      name: 'teamAddEmojiAlias',
+      params: {conversationIDKey, defaultSelected: emojiData},
     })
-  })
+  }
   const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
-  const doRemove = React.useMemo(
-    () =>
-      canRemove
-        ? () => {
-            removeRpc(
-              [
-                {
-                  alias: emojiData.short_name,
-                  convID: T.Chat.keyToConversationID(conversationIDKey),
-                },
-              ],
-              () => refreshEmoji(),
-              err => {
-                throw err
-              }
-            )
+  const doRemove = canRemove
+    ? () => {
+        removeRpc(
+          [
+            {
+              alias: emojiData.short_name,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+          ],
+          () => refreshEmoji(),
+          err => {
+            throw err
           }
-        : undefined,
-    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
-  )
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <EmojiMenu
-          attachTo={attachTo}
-          visible={true}
-          onAddAlias={doAddAlias}
-          onRemove={doRemove}
-          onHidden={hidePopup}
-          isAlias={emoji.isAlias}
-        />
-      )
-    },
-    [doAddAlias, doRemove, emoji.isAlias]
-  )
+        )
+      }
+    : undefined
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <EmojiMenu
+        attachTo={attachTo}
+        visible={true}
+        onAddAlias={doAddAlias}
+        onRemove={doRemove}
+        onHidden={hidePopup}
+        isAlias={emoji.isAlias}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={styles.outerContainer}>
-      <Kb.ListItem2
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
+      <Kb.ListItem
         type="Small"
         body={
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
             alignItems="center"
-            style={styles.container}
+            justifyContent="flex-end"
             gap="small"
           >
             <Kb.Emoji
@@ -127,7 +119,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
         fullDivider={true}
         height={Kb.Styles.isMobile ? 48 : 42}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -145,9 +137,6 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: Kb.Styles.globalMargins.small,
         },
       }),
-      container: {
-        justifyContent: 'flex-end',
-      },
       date: {
         maxWidth: 130,
         width: 130,

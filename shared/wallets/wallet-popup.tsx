@@ -109,11 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {},
   }),
-  header: Kb.Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
-    },
-  }),
   headerStyle: {backgroundColor: Kb.Styles.globalColors.transparent},
   outerContainer: Kb.Styles.platformStyles({
     isElectron: {

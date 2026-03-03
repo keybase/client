@@ -1,13 +1,13 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
-import {type Device, useProvisionState} from '@/constants/provision'
+import {useCurrentUserState} from '@/stores/current-user'
+import {type Device, useProvisionState} from '@/stores/provision'
 
 const CodePageContainer = () => {
   const {deviceID, storeDeviceName} = useCurrentUserState(
@@ -35,17 +35,14 @@ const CodePageContainer = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
 
-  const _onSubmitTextCode = React.useCallback(
-    (code: string) => {
-      !waiting && submitTextCode?.(code)
-    },
-    [submitTextCode, waiting]
-  )
+  const _onSubmitTextCode = (code: string) => {
+    !waiting && submitTextCode?.(code)
+  }
 
   const [code, setCode] = React.useState('')
   const [troubleshooting, setTroubleshooting] = React.useState(false)
 
-  const defaultTab = React.useMemo(() => {
+  const defaultTab = (() => {
     const getTabOrOpposite = (tabToShowToNew: Tab) => {
       if (!currentDeviceAlreadyProvisioned) return tabToShowToNew
       switch (tabToShowToNew) {
@@ -64,7 +61,7 @@ const CodePageContainer = () => {
       case 'desktop':
         return otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
-  }, [currentDeviceAlreadyProvisioned, otherDevice.type])
+  })()
 
   const [tab, setTab] = React.useState<Tab>(defaultTab)
 
@@ -120,6 +117,7 @@ const CodePageContainer = () => {
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
+          justifyContent="center"
           style={currentDeviceAlreadyProvisioned ? styles.imageContainerOnLeft : styles.imageContainerOnRight}
         >
           <Kb.Icon
@@ -139,9 +137,9 @@ const CodePageContainer = () => {
           </>
         )}
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny" justifyContent="space-between">
               <Instructions
                 currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
                 currentDevice={currentDevice}
@@ -346,13 +344,10 @@ const EnterText = (props: {
 }) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(
-    (e?: React.KeyboardEvent) => {
-      e?.preventDefault()
-      code && onSubmitTextCode(code)
-    },
-    [code, onSubmitTextCode]
-  )
+  const onSubmit = (e?: React.KeyboardEvent) => {
+    e?.preventDefault()
+    code && onSubmitTextCode(code)
+  }
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
       <Kb.PlainInput
@@ -515,7 +510,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: Kb.Styles.platformStyles({
-        common: {justifyContent: 'space-between'},
         isElectron: {
           height: '100%',
           padding: Kb.Styles.globalMargins.large,
@@ -580,13 +574,11 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
-        justifyContent: 'center',
       },
       imageContainerOnRight: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
-        justifyContent: 'center',
       },
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
@@ -611,10 +603,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
-      },
-      scrollContainer: {
-        flexGrow: 1,
-        position: 'relative',
       },
       switchTab: {
         marginBottom: Kb.Styles.globalMargins.xtiny,

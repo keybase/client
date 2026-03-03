@@ -10,6 +10,7 @@ const GiphySearch = () => {
   const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
   const divRef = React.useRef<HTMLDivElement>(null)
+  const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/linkpreviews')
 
   React.useEffect(() => {
     if (!divRef.current) return
@@ -28,7 +29,7 @@ const GiphySearch = () => {
     )
   }
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" relative={true} style={styles.outerContainer}>
       <Kb.Box2Div
         direction="vertical"
         ref={divRef}
@@ -37,14 +38,14 @@ const GiphySearch = () => {
           Kb.Styles.platformStyles({isElectron: {overflowY: width ? 'auto' : 'scroll'}}),
         ])}
       >
-        <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" justifyContent="center">
           <Kb.Text style={styles.instructions} type="BodySmall">
             {"Tip: hit 'Enter' now to send a random GIF."}
           </Kb.Text>
           <Kb.Text
             style={styles.instructions}
             type="BodySmallSecondaryLink"
-            onClickURL="https://keybase.io/docs/chat/linkpreviews"
+            {...learnMoreUrlProps}
           >
             Learn more about GIFs & encryption
           </Kb.Text>
@@ -55,8 +56,8 @@ const GiphySearch = () => {
               {props.previews.map((p, index) => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
-                  <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
-                    <Kb.Box style={Kb.Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                  <Kb.Box2 key={String(index)} direction="horizontal" overflow="hidden" style={styles.imageContainer}>
+                    <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
                       <UnfurlImage
                         autoplayVideo={true}
                         height={gridHeight}
@@ -66,7 +67,7 @@ const GiphySearch = () => {
                         url={p.previewUrl}
                         width={scaledWidth(p.previewWidth)}
                       />
-                    </Kb.Box>
+                    </Kb.Box2>
                   </Kb.Box2>
                 ) : null
               })}
@@ -84,7 +85,7 @@ const GiphySearch = () => {
           ))}
       </Kb.Box2Div>
       <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -93,7 +94,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         flexWrap: 'wrap',
-        justifyContent: 'flex-start',
         minHeight: 200,
       },
       image: {
@@ -105,7 +105,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         borderWidth: Kb.Styles.globalMargins.xxtiny,
         margin: -1,
-        overflow: 'hidden',
       },
       instructions: Kb.Styles.platformStyles({
         common: {
@@ -117,9 +116,7 @@ const styles = Kb.Styles.styleSheetCreate(
           lineHeight: 17,
         },
       }),
-      instructionsContainer: {
-        justifyContent: 'center',
-      },
+
       loadingContainer: {
         minHeight: 200,
       },
@@ -127,7 +124,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.xtiny,
         marginLeft: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.small,
-        position: 'relative',
       },
       poweredBy: {
         bottom: 0,

@@ -19,9 +19,9 @@ type walletNotification struct {
 	// wallet
 	Type string `json:"type"`
 	// payment, request, etc
-	Source       string      `json:"source"`
-	Notification interface{} `json:"notification,omitempty"`
-	Error        *string     `json:"error,omitempty"`
+	Source       string  `json:"source"`
+	Notification any     `json:"notification,omitempty"`
+	Error        *string `json:"error,omitempty"`
 }
 
 func newWalletNotification(source string) *walletNotification {

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
@@ -16,7 +16,7 @@ type Props = {
   visible: boolean
 }
 
-const MessagePopup = React.memo(function MessagePopup(p: Props) {
+function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible} = p
   const type = Chat.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
@@ -76,31 +76,28 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
     case undefined:
       return null
   }
-})
+}
 
 // Mobile only
 type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
   const {pop} = C.useNav()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo} = p
-      return pop ? (
-        <Kb.FloatingModalContext.Provider value={true}>
-          <MessagePopup
-            ordinal={ordinal}
-            key="popup"
-            attachTo={attachTo}
-            onHidden={pop}
-            position="top right"
-            visible={true}
-          />
-        </Kb.FloatingModalContext.Provider>
-      ) : null
-    },
-    [ordinal, pop]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo} = p
+    return pop ? (
+      <Kb.FloatingModalContext.Provider value={true}>
+        <MessagePopup
+          ordinal={ordinal}
+          key="popup"
+          attachTo={attachTo}
+          onHidden={pop}
+          position="top right"
+          visible={true}
+        />
+      </Kb.FloatingModalContext.Provider>
+    ) : null
+  }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
     showPopup()
@@ -120,26 +117,23 @@ export const useMessagePopup = (p: {
 }) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const {ordinal, shouldShow, style} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (shouldShow?.() ?? true) ? (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <Kb.FloatingModalContext.Provider value="bottomsheet">
-            <MessagePopup
-              ordinal={ordinal}
-              key="popup"
-              attachTo={attachTo}
-              onHidden={hidePopup}
-              position="top right"
-              style={style}
-              visible={true}
-            />
-          </Kb.FloatingModalContext.Provider>
-        </Chat.ChatProvider>
-      ) : null
-    },
-    [ordinal, shouldShow, style, conversationIDKey]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (shouldShow?.() ?? true) ? (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <Kb.FloatingModalContext.Provider value="bottomsheet">
+          <MessagePopup
+            ordinal={ordinal}
+            key="popup"
+            attachTo={attachTo}
+            onHidden={hidePopup}
+            position="top right"
+            style={style}
+            visible={true}
+          />
+        </Kb.FloatingModalContext.Provider>
+      </Chat.ChatProvider>
+    ) : null
+  }
   return Kb.usePopup2(makePopup)
 }

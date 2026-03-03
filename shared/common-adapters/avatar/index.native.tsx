@@ -1,17 +1,16 @@
 import Icon from '../icon'
-import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from '../clickable-box'
-import Image2 from '../image2'
-import Box from '../box'
+import Image from '../image'
+import {Box2} from '../box'
 import type {Props, AvatarSize} from '.'
 import useHook from './hooks'
 
 const Kb = {
-  Box,
+  Box2,
   ClickableBox,
   Icon,
-  Image2,
+  Image,
 }
 
 const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
@@ -24,11 +23,9 @@ const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
 ])
 
 const backgroundOffset = 1
-const borderOffset = -1
-const borderSize = 1
 // Layer on top to extend outside of the image
 
-const Avatar = React.memo(function Avatar(p: Props) {
+function Avatar(p: Props) {
   const props = useHook(p)
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
@@ -36,17 +33,20 @@ const Avatar = React.memo(function Avatar(p: Props) {
 
   return (
     <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
-      <Kb.Box style={containerStyle}>
+      <Kb.Box2 direction="vertical" style={boxStyles[size]}>
         {!props.skipBackground && (
-          <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
+          <Kb.Box2
+            direction="vertical"
+            style={Styles.collapseStyles([styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}])}
+          />
         )}
         {!!props.blocked && (
-          <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
+          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([imageStyles[props.size], {borderRadius}])}>
             <Icon type="icon-poop-96" style={iconStyles[props.size]} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!props.url && (
-          <Kb.Image2
+          <Kb.Image
             showLoadingStateUntilLoaded={false}
             src={props.url}
             style={Styles.collapseStyles([
@@ -69,10 +69,10 @@ const Avatar = React.memo(function Avatar(p: Props) {
           />
         )}
         {props.children}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
-})
+}
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
 const iconStyles = Styles.styleSheetCreate(
@@ -135,15 +135,6 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: backgroundOffset,
         top: backgroundOffset,
-      },
-      borderBase: {
-        borderWidth: borderSize,
-        bottom: borderOffset,
-        left: borderOffset,
-        margin: borderSize / 2,
-        position: 'absolute',
-        right: borderOffset,
-        top: borderOffset,
       },
       edit: {
         bottom: 0,

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
@@ -65,7 +65,7 @@ const CheckPassphraseMobile = () => {
       }}
       onClose={onCancel}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
         {Kb.Styles.isMobile && (
           <Kb.Text style={styles.headerText} type="Header">
             Do you know your password?
@@ -125,7 +125,6 @@ const styles = Kb.Styles.styleSheetCreate(
           Kb.Styles.globalMargins.small
         ),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
       },
       deleteButton: {
         marginTop: Kb.Styles.globalMargins.large,

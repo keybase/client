@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
 import {
@@ -10,7 +10,9 @@ import {
   type NavigationContainerRef,
 } from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
-import {makeNavScreens} from '@/router-v2/shim'
+import {routeMapToScreenElements} from '@/router-v2/routes'
+import {makeLayout} from '@/router-v2/screen-layout.desktop'
+import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -69,11 +71,15 @@ function LeftTabNavigator({
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
-            return i === state.index ? (
-              <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key]?.render()}
-              </Kb.Box2>
-            ) : null
+            const selected = i === state.index
+            const desc = descriptors[route.key]
+            return (
+              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                  {desc?.render()}
+                </Kb.Box2>
+              </React.Activity>
+            )
           })}
         </Kb.BoxGrow>
       </Kb.Box2>
@@ -97,7 +103,14 @@ export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) a
   StaticConfig<NavigatorTypeBagBase>
 >
 const TabNavigator = createLeftTabNavigator()
-const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
+const makeOptions = (rd: RouteDef) => {
+  return ({route, navigation}: GetOptionsParams) => {
+    const no = rd.getOptions
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt}
+  }
+}
+const cryptoScreens = routeMapToScreenElements(cryptoSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
     {cryptoScreens}

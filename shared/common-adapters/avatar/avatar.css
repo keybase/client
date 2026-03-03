@@ -127,29 +127,17 @@
 
 /* Background layer - no border-radius needed, parent clips via overflow */
 .avatar-background {
-  background-color: var(--color-greyLight);
-  bottom: 0;
-  left: 0;
+  background-color: light-dark(var(--color-greyLight), #0f0f0f);
   position: absolute;
-  right: 0;
-  top: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .avatar-background {
-    background-color: #0f0f0f;
-  }
+  inset: 0;
 }
 
 /* Image layer - no border-radius needed, parent clips via overflow */
 .avatar-user-image {
   flex-shrink: 0;
   background-size: cover;
-  bottom: 0;
-  left: 0;
   position: absolute;
-  right: 0;
-  top: 0;
+  inset: 0;
 }
 
 /* For img tag avatars - better caching and performance */
@@ -172,12 +160,9 @@ img.avatar-user-image {
 .avatar-border-team {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0);
-  bottom: 0;
   flex-shrink: 0;
-  left: 0;
   position: absolute;
-  right: 0;
-  top: 0;
+  inset: 0;
 }
 
 @media (prefers-color-scheme: dark) {

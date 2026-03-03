@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const username = useCurrentUserState(s => s.username)
@@ -75,7 +75,7 @@ const Container = () => {
               style={styles.widthFix}
             />
           </Kb.RoundedBox>
-          <Kb.Box2 direction="vertical" style={styles.gap} />
+          <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTracker}
             label="Save"
@@ -92,7 +92,6 @@ const Container = () => {
 const maxBio = 255
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bio: {maxHeight: undefined},
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {
@@ -100,7 +99,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 350,
     },
   }),
-  gap: {flexGrow: 1, minHeight: Kb.Styles.globalMargins.small},
+  gap: {minHeight: Kb.Styles.globalMargins.small},
   header: {marginBottom: Kb.Styles.globalMargins.small},
   widthFix: Kb.Styles.platformStyles({
     isElectron: {

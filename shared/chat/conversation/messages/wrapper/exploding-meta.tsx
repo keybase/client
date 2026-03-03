@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {useIsHighlighted, useOrdinal} from '../ids-context'
 import * as Kb from '@/common-adapters'
@@ -10,7 +10,7 @@ import {animationDuration} from './exploding-height-retainer'
 
 export type OwnProps = {onClick?: () => void}
 
-const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
+function ExplodingMetaContainer(p: OwnProps) {
   const {onClick} = p
   const ordinal = useOrdinal()
   const [now, setNow] = React.useState(() => Date.now())
@@ -54,84 +54,88 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = useIsHighlighted()
 
-  const _secondLoop = React.useCallback(() => {
-    const n = Date.now()
-    setNow(n)
-    const difference = explodesAt - n
-    if (difference <= 0 || exploded) {
-      if (mode === 'countdown') {
-        setMode('boom')
-      }
-      return
-    }
-  }, [exploded, explodesAt, mode, setMode])
-
   const [inter, setInter] = React.useState(0)
-  const updateLoop = React.useCallback(() => {
-    setNow(Date.now())
-    if (pending) {
-      setInter(0)
-      return
-    }
-
-    const difference = explodesAt - Date.now()
-    if (difference <= 0 || exploded) {
-      setMode('boom')
-      setInter(0)
-      return
-    }
-    // we don't need a timer longer than 60000 (android complains also)
-    setInter(Math.min(getLoopInterval(difference), 60000))
-  }, [exploded, explodesAt, pending, setMode])
 
   React.useEffect(() => {
     if (!inter) return () => {}
 
     if (inter < 1000) {
       // switch to 'seconds' mode
-      const id = addTicker(_secondLoop)
+      const id = addTicker(() => {
+        const n = Date.now()
+        setNow(n)
+        const difference = explodesAt - n
+        if (difference <= 0 || exploded) {
+          if (mode === 'countdown') {
+            setMode('boom')
+          }
+        }
+      })
       return () => {
         removeTicker(id)
       }
     } else {
       const id = setTimeout(() => {
-        updateLoop()
+        setNow(Date.now())
+        if (pending) {
+          setInter(0)
+          return
+        }
+        const difference = explodesAt - Date.now()
+        if (difference <= 0 || exploded) {
+          setMode('boom')
+          setInter(0)
+          return
+        }
+        // we don't need a timer longer than 60000 (android complains also)
+        setInter(Math.min(getLoopInterval(difference), 60000))
       }, inter)
       return () => {
         clearTimeout(id)
       }
     }
-  }, [inter, _secondLoop, updateLoop])
-
-  const _setHidden = React.useCallback(() => {
-    mode !== 'hidden' && setMode('hidden')
-  }, [mode, setMode])
-
-  const _setCountdown = React.useCallback(() => {
-    if (mode === 'countdown') return
-    setMode('countdown')
-    updateLoop()
-  }, [mode, setMode, updateLoop])
-
-  const hideOrStart = React.useCallback(() => {
-    if (mode === 'none' && !pending && (Date.now() >= explodesAt || exploded)) {
-      _setHidden()
-      return
-    }
-    !pending && _setCountdown()
-  }, [_setCountdown, _setHidden, exploded, explodesAt, mode, pending])
+  }, [inter, explodesAt, exploded, mode, pending])
 
   React.useEffect(() => {
-    hideOrStart()
-  }, [hideOrStart])
+    if (mode === 'none' && !pending && (Date.now() >= explodesAt || exploded)) {
+      setMode('hidden')
+      return
+    }
+    if (!pending) {
+      if (mode !== 'countdown') {
+        setMode('countdown')
+        // inline updateLoop logic for initial countdown start
+        setNow(Date.now())
+        const difference = explodesAt - Date.now()
+        if (difference <= 0 || exploded) {
+          setMode('boom')
+          setInter(0)
+        } else {
+          setInter(Math.min(getLoopInterval(difference), 60000))
+        }
+      }
+    }
+  }, [mode, pending, explodesAt, exploded])
 
   const lastPendingRef = React.useRef(pending)
   React.useEffect(() => {
     if (!pending && lastPendingRef.current) {
-      hideOrStart()
+      if (mode === 'none' && (Date.now() >= explodesAt || exploded)) {
+        setMode('hidden')
+      } else if (mode !== 'countdown') {
+        setMode('countdown')
+        setNow(Date.now())
+        const difference = explodesAt - Date.now()
+        if (difference <= 0 || exploded) {
+          setMode('boom')
+          setInter(0)
+        } else {
+          setInter(Math.min(getLoopInterval(difference), 60000))
+        }
+      }
     }
     lastPendingRef.current = pending
-  }, [hideOrStart, pending])
+  }, [pending, mode, explodesAt, exploded])
 
   const lastExplodedRef = React.useRef(exploded)
   React.useEffect(() => {
@@ -210,7 +214,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
       {children}
     </Kb.ClickableBox>
   )
-})
+}
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -282,19 +286,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       countdownHighlighted: {color: Kb.Styles.globalColors.whiteOrWhite},
-      explodingTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
       hidden: {opacity: 0},
-      progressContainer: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        isElectron: {width: 28},
-        isMobile: {
-          height: 15,
-          width: 32,
-        },
-      }),
     }) as const
 )
 

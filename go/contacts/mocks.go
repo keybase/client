@@ -1,5 +1,4 @@
 //go:build !production
-// +build !production
 
 package contacts
 

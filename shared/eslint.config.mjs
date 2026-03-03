@@ -114,7 +114,6 @@ const rules = {
   'promise/valid-params': 'error',
   'promise/no-nesting': 'error',
   'react-hooks/exhaustive-deps': 'error',
-  'react-hooks/preserve-manual-memoization': 'warn',
   'react-hooks/rules-of-hooks': 'error',
   'react/boolean-prop-naming': 'error',
   'react/jsx-boolean-value': ['error', 'always'],

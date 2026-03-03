@@ -1,5 +1,4 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useOrdinal, useIsHighlighted} from '../ids-context'
@@ -47,10 +46,10 @@ const ReplyImage = () => {
   const imageWidth = replyTo.previewWidth
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
-    <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-      <Kb.Box style={sizing?.margins}>
-        <Kb.Image2 src={imageURL} style={sizing?.dims} />
-      </Kb.Box>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
+      <Kb.Box2 direction="vertical" style={sizing?.margins}>
+        <Kb.Image src={imageURL} style={sizing?.dims} />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -84,7 +83,7 @@ type RS = {
   onClick: () => void
 }
 
-const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
+function ReplyStructure(p: RS) {
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
@@ -97,13 +96,13 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
         className={Kb.Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
+        <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <AvatarHolder />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {showImage && <ReplyImage />}
-            <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
+            <Kb.Box2 direction="horizontal" flex={1} style={styles.replyTextContainer}>
               {isDeleted ? (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
                   The original message was deleted.
@@ -122,9 +121,9 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
-const Reply = React.memo(function Reply() {
+function Reply() {
   const ordinal = useOrdinal()
   const replyTo = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
@@ -132,10 +131,10 @@ const Reply = React.memo(function Reply() {
   })
 
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
-  const onClick = C.useEvent(() => {
+  const onClick = () => {
     const id = replyTo?.id ?? 0
     id && replyJump(id)
-  })
+  }
 
   if (!replyTo?.id) return null
 
@@ -148,7 +147,7 @@ const Reply = React.memo(function Reply() {
       <ReplyStructure isDeleted={isDeleted} showImage={showImage} showEdited={showEdited} onClick={onClick} />
     </ReplyToContext.Provider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -162,27 +161,9 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      replyContentContainer: {flex: 1},
       replyEdited: {color: Kb.Styles.globalColors.black_35},
-      replyImageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
-      replyProgress: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -12,
-        marginLeft: -12,
-        marginRight: -12,
-        marginTop: -12,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
-        width: 24,
-      },
       replyTextContainer: {
         alignSelf: 'flex-start',
-        flex: 1,
       },
       replyUsername: {alignSelf: 'center'},
       replyUsernameHighlighted: {color: Kb.Styles.globalColors.blackOrBlack},

@@ -20,7 +20,7 @@ export const newRoutes = {
         headerLeft: p => {
           return (
             <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-              <HeaderLeftArrowCanGoBack onPress={p.onPress} tintColor={p.tintColor} />
+              <HeaderLeftArrowCanGoBack tintColor={p.tintColor} />
             </Kb.Styles.CanFixOverdrawContext.Provider>
           )
         },
@@ -55,7 +55,7 @@ export const newModalRoutes = {
   profileFinished: {screen: React.lazy(async () => import('./pgp/finished'))},
   profileGenerate: {screen: React.lazy(async () => import('./pgp/generate'))},
   profileGenericEnterUsername: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./generic/enter-username')),
   },
   profileGenericProofResult: {screen: React.lazy(async () => import('./generic/result'))},
@@ -69,5 +69,3 @@ export const newModalRoutes = {
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke'))),
   profileShowcaseTeamOffer: {screen: React.lazy(async () => import('./showcase-team-offer'))},
 }
-
-export type RootParamListProfile = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

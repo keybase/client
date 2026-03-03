@@ -3,14 +3,14 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type Props = {
   editID: T.FS.EditID
 }
 
-const Editing = React.memo(function Editing({editID}: Props) {
+function Editing({editID}: Props) {
   const {discardEdit, commitEdit, edit, setEditName} = useFSState(
     C.useShallow(s => ({
       commitEdit: s.dispatch.commitEdit,
@@ -31,7 +31,7 @@ const Editing = React.memo(function Editing({editID}: Props) {
   }, [editID, filename, setEditName])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={true /* we add divider in Rows */}
       statusIcon={
@@ -42,12 +42,12 @@ const Editing = React.memo(function Editing({editID}: Props) {
         />
       }
       icon={
-        <Kb.Box style={rowStyles.pathItemIcon}>
+        <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
           <Kb.Icon type="icon-folder-32" />
-        </Kb.Box>
+        </Kb.Box2>
       }
       body={
-        <Kb.Box key="main" style={rowStyles.itemBox}>
+        <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
           <Kb.PlainInput
             value={filename}
             placeholder={edit.originalName}
@@ -58,10 +58,10 @@ const Editing = React.memo(function Editing({editID}: Props) {
             autoFocus={true}
             onKeyUp={onKeyUp}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
       action={
-        <Kb.Box key="right" style={styles.rightBox}>
+        <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
@@ -82,11 +82,11 @@ const Editing = React.memo(function Editing({editID}: Props) {
             hoverColor={Kb.Styles.globalColors.black}
             style={styles.iconCancel}
           />
-        </Kb.Box>
+        </Kb.Box2>
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -104,10 +104,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       rightBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         flexShrink: 1,
-        justifyContent: 'flex-end',
       },
       text: Kb.Styles.platformStyles({
         common: {

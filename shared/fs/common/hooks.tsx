@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '@/logger'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -185,8 +185,8 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
         C.useShallow(s => ({
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          finishedDownloadWithIntentMobile: s.dispatch.dynamic.finishedDownloadWithIntentMobile,
-          finishedRegularDownloadMobile: s.dispatch.dynamic.finishedRegularDownloadMobile,
+          finishedDownloadWithIntentMobile: s.dispatch.defer.finishedDownloadWithIntentMobile,
+          finishedRegularDownloadMobile: s.dispatch.defer.finishedRegularDownloadMobile,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
@@ -224,26 +224,24 @@ export const useFsWatchDownloadForMobile = C.isMobile
 export const useFuseClosedSourceConsent = (disabled: boolean, invert = false) => {
   const [agreed, setAgreed] = React.useState<boolean>(false)
 
-  const component = React.useMemo(() => {
-    return C.isDarwin ? (
-      <Kb.Checkbox
-        disabled={disabled}
-        checked={agreed}
-        onCheck={(v: boolean) => setAgreed(v)}
-        checkboxStyle={invert ? {backgroundColor: Kb.Styles.globalColors.white} : undefined}
-        checkboxColor={invert ? Kb.Styles.globalColors.black : undefined}
-        labelComponent={
-          <Kb.Text
-            type="BodySmall"
-            style={invert ? {color: Kb.Styles.globalColors.white} : undefined}
-            onClick={() => setAgreed(a => !a)}
-          >
-            {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
-          </Kb.Text>
-        }
-      />
-    ) : undefined
-  }, [disabled, agreed, invert])
+  const component = C.isDarwin ? (
+    <Kb.Checkbox
+      disabled={disabled}
+      checked={agreed}
+      onCheck={(v: boolean) => setAgreed(v)}
+      checkboxStyle={invert ? {backgroundColor: Kb.Styles.globalColors.white} : undefined}
+      checkboxColor={invert ? Kb.Styles.globalColors.black : undefined}
+      labelComponent={
+        <Kb.Text
+          type="BodySmall"
+          style={invert ? {color: Kb.Styles.globalColors.white} : undefined}
+          onClick={() => setAgreed(a => !a)}
+        >
+          {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
+        </Kb.Text>
+      }
+    />
+  ) : undefined
 
   return {
     canContinue: !C.isDarwin || agreed,

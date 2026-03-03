@@ -1,15 +1,14 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import Main from './main'
 import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -78,17 +77,13 @@ const Connected = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   }
 
-  const teams = React.useMemo(
-    () =>
-      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
-    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
-  )
+  const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter)
 
   const loadTeams = getTeams
 
@@ -102,7 +97,7 @@ const Connected = () => {
   const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
 
   const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
-  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>

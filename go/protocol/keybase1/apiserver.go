@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/apiserver.avdl
 
 package keybase1
@@ -76,11 +76,11 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 		Name: "keybase.1.apiserver",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"Get": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetArg)(nil), args)
@@ -91,11 +91,11 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 				},
 			},
 			"Delete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteArg)(nil), args)
@@ -106,11 +106,11 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 				},
 			},
 			"GetWithSession": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetWithSessionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetWithSessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetWithSessionArg)(nil), args)
@@ -121,11 +121,11 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 				},
 			},
 			"Post": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PostArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PostArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PostArg)(nil), args)
@@ -136,11 +136,11 @@ func ApiserverProtocol(i ApiserverInterface) rpc.Protocol {
 				},
 			},
 			"PostJSON": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PostJSONArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PostJSONArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PostJSONArg)(nil), args)
@@ -159,26 +159,26 @@ type ApiserverClient struct {
 }
 
 func (c ApiserverClient) Get(ctx context.Context, __arg GetArg) (res APIRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.apiserver.Get", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.Get", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ApiserverClient) Delete(ctx context.Context, __arg DeleteArg) (res APIRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.apiserver.Delete", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.Delete", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ApiserverClient) GetWithSession(ctx context.Context, __arg GetWithSessionArg) (res APIRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.apiserver.GetWithSession", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.GetWithSession", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ApiserverClient) Post(ctx context.Context, __arg PostArg) (res APIRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.apiserver.Post", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.Post", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ApiserverClient) PostJSON(ctx context.Context, __arg PostJSONArg) (res APIRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.apiserver.PostJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.apiserver.PostJSON", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

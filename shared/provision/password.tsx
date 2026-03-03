@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useProvisionState} from '@/constants/provision'
+import {useState as useRecoverState} from '@/stores/recover-password'
+import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
   const error = useProvisionState(s => s.error)
@@ -20,12 +20,9 @@ const Password = () => {
     navigateUp()
   }
   const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = React.useCallback(
-    (password: string) => !waiting && _onSubmit?.(password),
-    [_onSubmit, waiting]
-  )
+  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
   const [password, setPassword] = React.useState('')
-  const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
+  const _onSubmitClick = () => onSubmit(password)
   const resetState = useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {

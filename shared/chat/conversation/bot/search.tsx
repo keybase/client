@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import type * as T from '@/constants/types'
 import {Bot} from '../info-panel/bot'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
+import {getFeaturedSorted, useBotsState} from '@/stores/bots'
 
 type Props = {teamID?: T.Teams.TeamID}
 
@@ -58,8 +58,8 @@ const SearchBotPopup = (props: Props) => {
   }, 200)
   const onSelect = (username: string) => {
     navigateAppend({
-      props: {botUsername: username, conversationIDKey, teamID},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: username, conversationIDKey, teamID},
     })
   }
 

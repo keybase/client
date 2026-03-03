@@ -84,7 +84,7 @@ func TestGPGSign(t *testing.T) {
 	}
 	fp := fps[0]
 
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		_, err = cli.Sign(tc.MetaContext(), fp, []byte("hello"))
 		if err != nil {
 			t.Fatal(err)

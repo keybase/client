@@ -35,7 +35,7 @@ const OpenTeamWarning = (props: Props) => {
 
   return (
     <Wrapper onBack={onCancel}>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
         <Kb.Icon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
@@ -70,7 +70,7 @@ const OpenTeamWarning = (props: Props) => {
             disabled={!enabled}
           />
         </Kb.ButtonBar>
-      </Kb.Box>
+      </Kb.Box2>
     </Wrapper>
   )
 }
@@ -87,8 +87,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       paddingBottom: Kb.Styles.globalMargins.large,
     },
     isElectron: {

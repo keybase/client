@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 
@@ -21,7 +21,6 @@ const TLFTypeContainer = (p: OwnProps) => {
       writingToJournal={false}
       content={
         <Kb.Text
-          fixOverdraw={true}
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
           lineClamp={Kb.Styles.isMobile ? 1 : undefined}

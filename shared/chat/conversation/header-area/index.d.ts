@@ -1,4 +1,4 @@
-import type {GetOptionsRet} from '@/constants/types/router2'
+import type {GetOptionsRet} from '@/constants/types/router'
 
 declare function headerNavigationOptions(route: {
   params: {conversationIDKey?: string}

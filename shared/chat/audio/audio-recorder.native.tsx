@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
@@ -15,11 +15,11 @@ import {
 } from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
-import {Audio} from 'expo-av'
+import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
 import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
-import * as FileSystem from 'expo-file-system'
+import {File} from 'expo-file-system'
 import AudioSend from './audio-send.native'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
@@ -77,10 +77,10 @@ const useTooltip = () => {
     </Portal>
   ) : null
 
-  const flashTip = React.useCallback(() => {
+  const flashTip = () => {
     'worklet'
     runOnJS(setShowTooltip)(true)
-  }, [setShowTooltip])
+  }
 
   return {flashTip, tooltip}
 }
@@ -121,34 +121,34 @@ const useIconAndOverlay = (p: {
     }
   )
 
-  const onReset = React.useCallback(() => {
+  const onReset = () => {
     'worklet'
     fadeSV.set(withTiming(0, {duration: 200}))
     dragXSV.set(0)
     dragYSV.set(0)
     lockedSV.set(0)
     canceledSV.set(0)
-  }, [fadeSV, dragXSV, dragYSV, lockedSV, canceledSV])
+  }
 
-  const onCancelRecording = React.useCallback(() => {
+  const onCancelRecording = () => {
     onReset()
     cancelRecording()
-  }, [cancelRecording, onReset])
+  }
 
-  const onStageRecording = React.useCallback(() => {
+  const onStageRecording = () => {
     onReset()
     stageRecording()
-  }, [stageRecording, onReset])
+  }
 
-  const onSendRecording = React.useCallback(() => {
+  const onSendRecording = () => {
     onReset()
     sendRecording()
-  }, [sendRecording, onReset])
+  }
 
-  const onFlashTip = React.useCallback(() => {
+  const onFlashTip = () => {
     flashTip()
     onCancelRecording()
-  }, [flashTip, onCancelRecording])
+  }
 
   const [iconVisible, setIconVisible] = React.useState(false)
 
@@ -163,7 +163,7 @@ const useIconAndOverlay = (p: {
   }, [])
   const panStartSV = useSharedValue(0)
 
-  const gesture = React.useMemo(() => {
+  const gesture = (() => {
     let id: number
     const showOverlay = () => {
       // we get this multiple times for some reason
@@ -239,20 +239,7 @@ const useIconAndOverlay = (p: {
         }
       })
     return panGesture
-  }, [
-    onReset,
-    panStartSV,
-    fadeSV,
-    onFlashTip,
-    lockedSV,
-    canceledSV,
-    dragXSV,
-    dragYSV,
-    startRecording,
-    sendRecording,
-    onCancelRecording,
-    startedSV,
-  ])
+  })()
 
   const icon = iconVisible ? (
     <View>
@@ -308,42 +295,29 @@ const vibrate = (short: boolean) => {
   }
 }
 
-const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
-  vibrate(true)
-
-  const recording = new Audio.Recording()
-  await recording.prepareToRecordAsync({
-    android: {
-      audioEncoder: Audio.AndroidAudioEncoder.AAC,
-      bitRate: 32000,
-      extension: '.m4a',
-      numberOfChannels: 1,
-      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-      sampleRate: 22050,
-    },
-    ios: {
-      audioQuality: Audio.IOSAudioQuality.MIN,
-      bitRate: 32000,
-      extension: '.m4a',
-      linearPCMBitDepth: 16,
-      linearPCMIsBigEndian: false,
-      linearPCMIsFloat: false,
-      numberOfChannels: 1,
-      outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-      sampleRate: 22050,
-    },
-    isMeteringEnabled: true,
-    web: {},
-  })
-  recording.setProgressUpdateInterval(100)
-  recording.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
-  return recording
+const recordingOptions = {
+  android: {
+    audioEncoder: 'aac' as const,
+    outputFormat: 'mpeg4' as const,
+  },
+  bitRate: 32000,
+  extension: '.m4a',
+  ios: {
+    audioQuality: AudioQuality.MIN,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+    outputFormat: IOSOutputFormat.MPEG4AAC,
+  },
+  isMeteringEnabled: true,
+  numberOfChannels: 1,
+  sampleRate: 22050,
+  web: {},
 }
 
 // Hook for interfacing with the native recorder
 const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
   const {ampSV, setShowAudioSend, showAudioSend} = p
-  const recordingRef = React.useRef<Audio.Recording | undefined>(undefined)
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
@@ -351,7 +325,22 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
 
-  const stopRecording = React.useCallback(async () => {
+  const recorder = useAudioRecorder(recordingOptions)
+  const recorderState = useAudioRecorderState(recorder, 100)
+
+  React.useEffect(() => {
+    const inamp = recorderState.metering
+    if (inamp === undefined) {
+      return
+    }
+    const amp = 10 ** (inamp * 0.05)
+    ampTracker.addAmp(amp)
+    const maxScale = 8
+    const minScale = 3
+    ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
+  }, [recorderState, ampTracker, ampSV])
+
+  const stopRecording = async () => {
     const needsTeardown = hasSetupRecording.current
     if (needsTeardown) {
       hasSetupRecording.current = false
@@ -359,19 +348,14 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordEndRef.current = Date.now()
 
-    const recording = recordingRef.current
-    recordingRef.current = undefined
-    if (recording) {
-      recording.setOnRecordingStatusUpdate(null)
-      try {
-        await recording.stopAndUnloadAsync()
-      } catch (e) {
-        console.log('Recoding stopping fail', e)
-      }
+    try {
+      await recorder.stop()
+    } catch (e) {
+      console.log('Recording stopping fail', e)
     }
-  }, [])
+  }
 
-  const onReset = React.useCallback(async () => {
+  const onReset = async () => {
     try {
       await stopRecording()
     } catch {}
@@ -380,26 +364,25 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     pathRef.current = ''
     if (path) {
       try {
-        await FileSystem.deleteAsync(path, {idempotent: true})
+        new File(path).delete()
       } catch {}
     }
     recordStartRef.current = 0
     recordEndRef.current = 0
     setStaged(false)
     setShowAudioSend(false)
-  }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
+  }
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
 
-  const startRecording = React.useCallback(() => {
-    // calls of this never handle the promise so just handle it here
+  const startRecording = () => {
     const checkPerms = async () => {
       try {
-        let {status} = await Audio.getPermissionsAsync()
-        if (status === Audio.PermissionStatus.UNDETERMINED) {
-          const askRes = await Audio.requestPermissionsAsync()
+        let {status} = await AudioModule.getRecordingPermissionsAsync()
+        if (status === 'undetermined') {
+          const askRes = await AudioModule.requestRecordingPermissionsAsync()
           status = askRes.status
         }
-        if (status === Audio.PermissionStatus.DENIED) {
+        if (status === 'denied') {
           throw new Error('Please allow Keybase to access the microphone in the phone settings.')
         }
         return true
@@ -423,27 +406,16 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
 
       await setupAudioMode(true)
       hasSetupRecording.current = true
-      const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
-        const inamp = status.metering
-        if (inamp === undefined) {
-          return
-        }
-        const amp = 10 ** (inamp * 0.05)
-        ampTracker.addAmp(amp)
-        const maxScale = 8
-        const minScale = 3
-        ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
-      }
+      vibrate(true)
 
-      const recording = await makeRecorder(onRecordingStatusUpdate)
-      const audioPath = recording.getURI()?.substring('file://'.length)
+      await recorder.prepareToRecordAsync()
+      const audioPath = recorder.uri?.replace(/^file:\/\//, '')
       if (!audioPath) {
         throw new Error("Couldn't start audio recording")
       }
       pathRef.current = audioPath
-      recordingRef.current = recording
 
-      await recording.startAsync()
+      recorder.record()
       recordStartRef.current = Date.now()
       recordEndRef.current = recordStartRef.current
     }
@@ -451,18 +423,14 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {
-        onReset()
-          // eslint-disable-next-line
-          .then(() => {})
-          // eslint-disable-next-line
-          .catch(() => {})
+        void onReset()
       })
     return
-  }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
+  }
 
   const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
 
-  const sendRecording = React.useCallback(() => {
+  const sendRecording = () => {
     const impl = async () => {
       await stopRecording()
       vibrate(false)
@@ -479,13 +447,13 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [sendAudioRecording, ampTracker, onReset, stopRecording])
+  }
 
-  const cancelRecording = React.useCallback(() => {
+  const cancelRecording = () => {
     onReset()
       .then(() => {})
       .catch(() => {})
-  }, [onReset])
+  }
 
   const audioSend = showAudioSend ? (
     <AudioSend
@@ -497,7 +465,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     />
   ) : null
 
-  const stageRecording = React.useCallback(() => {
+  const stageRecording = () => {
     const impl = async () => {
       await stopRecording()
       setStaged(true)
@@ -506,22 +474,24 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [stopRecording, setStaged, setShowAudioSend])
+  }
 
   // on unmount cleanup
+  const onResetRef = React.useRef(onReset)
+  onResetRef.current = onReset
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onReset()
+      onResetRef.current()
         .then(() => {})
         .catch(() => {})
     }
-  }, [onReset, setShowAudioSend])
+  }, [setShowAudioSend])
 
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }
 
-const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
+const AudioRecorder = function AudioRecorder(props: Props) {
   const {setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
@@ -548,7 +518,7 @@ const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
       {overlay}
     </>
   )
-})
+}
 
 const BigBackground = (props: {fadeSV: SVN}) => {
   'use no memo'
@@ -820,10 +790,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   bigBackgroundStyle: {
     ...circleAroundIcon(Kb.Styles.isTablet ? 2000 : 750),
-  },
-  cancelHintIcon: {
-    left: 0,
-    position: 'absolute',
   },
   cancelHintStyle: {
     ...Kb.Styles.globalStyles.flexBoxRow,

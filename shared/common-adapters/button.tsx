@@ -1,19 +1,19 @@
 import './button.css'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Icon, {type SizeType} from './icon'
-import Text, {type StylesTextCrossPlatform} from './text'
+import Text from './text'
+import type {StylesTextCrossPlatform} from './text.shared'
 import WithTooltip from './with-tooltip'
 import type {IconType} from './icon.constants-gen'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import type {MeasureRef} from './measure-ref'
 import type AnimationType from './animation'
 
 const Kb = {
   Badge,
-  Box,
   Box2,
   ClickableBox,
   Icon,
@@ -76,12 +76,12 @@ export type Props = DefaultProps & WithIconProps
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}
   return (
-    <Kb.Box style={styles.progressContainer}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
       <Animation
         animationType={white ? 'spinnerWhite' : 'spinner'}
         style={small ? styles.progressSmall : styles.progressNormal}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -110,10 +110,8 @@ type ModeAndBGColor =
   | 'Primaryyellow'
   | 'Secondary'
 
-const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
-  props: Props,
-  ref: React.Ref<MeasureRef | null>
-) {
+const Button = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {ref} = props
   const {mode = 'Primary', type = 'Default'} = props
   const modeAndType = (mode + type) as ModeAndType
   const modeAndBGColor = (mode + (props.backgroundColor ?? '')) as ModeAndBGColor
@@ -151,13 +149,10 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
 
   containerStyle = Styles.collapseStyles([containerStyle, props.style])
   const {onClick: ponClick} = props
-  const _onClick = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.stopPropagation()
-      ponClick?.(e)
-    },
-    [ponClick]
-  )
+  const _onClick = (e: React.BaseSyntheticEvent) => {
+    e.stopPropagation()
+    ponClick?.(e)
+  }
   const onClick = !unclickable && props.onClick ? _onClick : props.disabledStopClick ? stopClick : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
@@ -190,7 +185,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   }
   const underlay =
     !Styles.isMobile && underlayClassNames.length ? (
-      <Kb.Box className={Styles.classNames(underlayClassNames)} />
+      <Kb.Box2 direction="vertical" className={Styles.classNames(underlayClassNames)} />
     ) : null
 
   if (props.className) classNames.push(props.className)
@@ -208,10 +203,10 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
       tooltip={props.tooltip}
     >
       {underlay}
-      <Kb.Box
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
         style={Styles.collapseStyles([
-          Styles.globalStyles.flexBoxRow,
-          Styles.globalStyles.flexBoxCenter,
           styles.labelContainer,
           props.labelContainerStyle,
         ])}
@@ -246,7 +241,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
         </Kb.Box2>
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
         {!!props.waiting && <Progress small={props.small} white={whiteSpinner} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
   if (props.disabled && props.tooltip && Styles.isMobile) {
@@ -258,7 +253,7 @@ const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   }
 
   return content
-})
+}
 
 const typeToColorName = {
   Danger: 'red',
@@ -335,7 +330,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
-  progressContainer: {...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxCenter},
+  progressContainer: {...Styles.globalStyles.fillAbsolute},
   progressNormal: {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24},
   progressSmall: {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20},
   small: {

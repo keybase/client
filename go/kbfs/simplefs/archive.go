@@ -15,6 +15,7 @@ import (
 	"hash"
 	"io"
 	"io/fs"
+	"maps"
 	"os"
 	"path"
 	"path/filepath"
@@ -221,9 +222,7 @@ func (m *archiveManager) getCurrentStateLocked(ctx context.Context) (
 	state keybase1.SimpleFSArchiveState, errorStates map[string]errorState,
 ) {
 	errorStates = make(map[string]errorState)
-	for jobID, errState := range m.errors {
-		errorStates[jobID] = errState
-	}
+	maps.Copy(errorStates, m.errors)
 	return m.state.DeepCopy(), errorStates
 }
 

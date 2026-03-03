@@ -4,6 +4,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
+import type {ChatInboxRowItem} from './rowitem'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
@@ -20,7 +21,7 @@ const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 const FakeRow = ({idx}: {idx: number}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
     <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
-    <Kb.Box2 direction="vertical" style={styles.fakeText}>
+    <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={styles.fakeText}>
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
@@ -47,17 +48,17 @@ const DragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
   style: object
-  rows: T.Chat.ChatInboxRowItem[]
+  rows: ChatInboxRowItem[]
 }) => {
   const {inboxNumSmallRows, showButton, style, scrollDiv} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, rows, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
-  const deltaNewSmallRows = React.useCallback(() => {
+  const deltaNewSmallRows = () => {
     if (dragY === -1) {
       return 0
     }
     return Math.max(0, Math.floor(dragY / smallRowHeight)) - inboxNumSmallRows
-  }, [dragY, inboxNumSmallRows])
+  }
 
   const newSmallRows = deltaNewSmallRows()
   let expandingRows: Array<string> = []
@@ -71,8 +72,14 @@ const DragLine = (p: {
 
   const throttledDragY = C.useThrottledCallback(setDragY, 100)
 
-  const onDragOver = React.useCallback(
-    (e: DragEvent) => {
+  const goodDropRef = React.useRef(false)
+
+  React.useEffect(() => {
+    const d = scrollDiv.current
+    if (!d) {
+      return
+    }
+    const onDragOver = (e: DragEvent) => {
       e.preventDefault()
       if (
         scrollDiv.current &&
@@ -85,21 +92,10 @@ const DragLine = (p: {
           throttledDragY(dy)
         }
       }
-    },
-    [scrollDiv, throttledDragY]
-  )
-
-  const goodDropRef = React.useRef(false)
-
-  const onDrop = React.useCallback((e: DragEvent) => {
-    e.preventDefault()
-    goodDropRef.current = true
-  }, [])
-
-  React.useEffect(() => {
-    const d = scrollDiv.current
-    if (!d) {
-      return
+    }
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault()
+      goodDropRef.current = true
     }
     d.addEventListener('dragover', onDragOver)
     d.addEventListener('drop', onDrop)
@@ -107,13 +103,13 @@ const DragLine = (p: {
       d.removeEventListener('dragover', onDragOver)
       d.removeEventListener('drop', onDrop)
     }
-  }, [scrollDiv, onDragOver, onDrop])
+  }, [scrollDiv, throttledDragY])
 
-  const onDragStart = React.useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const onDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(dragKey, dragKey)
     goodDropRef.current = false
-  }, [])
-  const onDragEnd = React.useCallback(() => {
+  }
+  const onDragEnd = () => {
     if (goodDropRef.current) {
       const delta = deltaNewSmallRows()
       if (delta !== 0) {
@@ -122,7 +118,7 @@ const DragLine = (p: {
       goodDropRef.current = false
     }
     setDragY(-1)
-  }, [setInboxNumSmallRows, inboxNumSmallRows, deltaNewSmallRows])
+  }
 
   return (
     <div
@@ -147,7 +143,7 @@ const DragLine = (p: {
               <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box style={styles.spacer} />
+          <Kb.Box2 direction="vertical" style={styles.spacer} />
         </>
       )}
       {dragY !== -1 && (
@@ -185,7 +181,7 @@ const DragLine = (p: {
 type InboxRowData = {
   inboxNumSmallRows: number
   navKey: string
-  rows: T.Chat.ChatInboxRowItem[]
+  rows: ChatInboxRowItem[]
   scrollDiv: React.RefObject<HTMLDivElement | null>
   selectedConversationIDKey: string
   setInboxNumSmallRows: (rows: number) => void
@@ -193,7 +189,7 @@ type InboxRowData = {
   toggleSmallTeamsExpanded: () => void
 }
 
-const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>) {
+function InboxRow(p: RowComponentProps<InboxRowData>) {
   const {index, style, rows} = p
   const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
   const {setInboxNumSmallRows, navKey, selectedConversationIDKey} = p
@@ -233,9 +229,30 @@ const InboxRow = React.memo(function InboxRow(p: RowComponentProps<InboxRowData>
       {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
     </div>
   )
-}) as (props: RowComponentProps<InboxRowData>) => React.ReactElement
+}
 
-const Inbox = React.memo(function Inbox(props: TInbox.Props) {
+const shouldShowFloating = (rows: ChatInboxRowItem[], visibleIdx: number) =>
+  visibleIdx >= 0 && rows[visibleIdx]?.type === 'small'
+
+const calcUnreadShortcut = (unreadIndices: Map<number, number>, visibleIdx: number) => {
+  if (!unreadIndices.size || visibleIdx < 0) {
+    return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
+  }
+  let unreadCount = 0
+  let foid = 0
+  unreadIndices.forEach((count, idx) => {
+    if (idx > visibleIdx) {
+      if (foid <= 0) foid = idx
+      unreadCount += count
+    }
+  })
+  if (foid) {
+    return {firstOffscreen: foid, showUnread: true, unreadCount}
+  }
+  return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
+}
+
+function Inbox(props: TInbox.Props) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = props
   const {toggleSmallTeamsExpanded, navKey, selectedConversationIDKey, onUntrustedInboxVisible} = props
   const {setInboxNumSmallRows, allowShowFloatingButton} = props
@@ -250,113 +267,56 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
   const firstOffscreenIdx = React.useRef(-1)
   const lastVisibleIdx = React.useRef(-1)
 
-  const isMounted = C.useIsMounted()
-
-  const lastSmallTeamsExpanded = React.useRef(smallTeamsExpanded)
-  const lastRowsLength = React.useRef(rows.length)
   const lastUnreadIndices = React.useRef(unreadIndices)
   const lastUnreadTotal = React.useRef(unreadTotal)
 
-  const itemSizeGetter = React.useCallback(
-    (index: number) => {
-      const row = rows[index]
-      if (!row) {
-        return 0
-      }
+  const itemSizeGetter = (index: number) => {
+    const row = rows[index]
+    if (!row) {
+      return 0
+    }
 
-      return getRowHeight(row.type, row.type === 'divider' && row.showButton)
-    },
-    [rows]
-  )
+    return getRowHeight(row.type, row.type === 'divider' && row.showButton)
+  }
 
-  const scrollToUnread = React.useCallback(() => {
+  const scrollToUnread = () => {
     if (firstOffscreenIdx.current <= 0) {
       return
     }
     listRef.current?.scrollToRow({index: firstOffscreenIdx.current})
-  }, [listRef])
-
-  const calculateShowFloating = React.useCallback(() => {
-    if (lastVisibleIdx.current < 0) {
-      return
-    }
-    let show = true
-    const row = rows[lastVisibleIdx.current]
-    if (row?.type !== 'small') {
-      show = false
-    }
-    setShowFloating(show)
-  }, [rows])
+  }
 
   const onItemsRenderedDebounced = C.useDebouncedCallback(
-    React.useCallback(
-      (p: {startIndex: number; stopIndex: number}) => {
-        if (!isMounted()) {
-          return
-        }
-        const {startIndex, stopIndex} = p
-        const toUnbox = rows
-          .slice(startIndex, stopIndex + 1)
-          .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-              arr.push(r.conversationIDKey)
-            }
-            return arr
-          }, [])
-        calculateShowFloating()
-        onUntrustedInboxVisible(toUnbox)
-      },
-      [calculateShowFloating, onUntrustedInboxVisible, rows, isMounted]
-    ),
+    (p: {startIndex: number; stopIndex: number}) => {
+      const {startIndex, stopIndex} = p
+      const toUnbox = rows
+        .slice(startIndex, stopIndex + 1)
+        .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
+          if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
+            arr.push(r.conversationIDKey)
+          }
+          return arr
+        }, [])
+      setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
+      onUntrustedInboxVisible(toUnbox)
+    },
     200
   )
 
-  const rowsLength = rows.length
+  const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(() => {
+    const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
+    setShowUnread(result.showUnread)
+    setUnreadCount(result.unreadCount)
+    firstOffscreenIdx.current = result.firstOffscreen
+  }, 100)
 
-  const calculateShowUnreadShortcut = React.useCallback(() => {
-    if (!isMounted()) {
-      return
-    }
-    if (!unreadIndices.size || lastVisibleIdx.current < 0) {
-      if (showUnread) {
-        setShowUnread(false)
-      }
-      return
-    }
+  const onItemsRendered = ({startIndex, stopIndex}: {startIndex: number; stopIndex: number}) => {
+    lastVisibleIdx.current = stopIndex
+    calculateShowUnreadShortcutThrottled()
+    onItemsRenderedDebounced({startIndex, stopIndex})
+  }
 
-    let unreadCount = 0
-    let foid = 0
-    unreadIndices.forEach((count, idx) => {
-      if (idx > lastVisibleIdx.current) {
-        if (foid <= 0) {
-          foid = idx
-        }
-        unreadCount += count
-      }
-    })
-    if (foid) {
-      setShowUnread(true)
-      setUnreadCount(unreadCount)
-      firstOffscreenIdx.current = foid
-    } else {
-      setShowUnread(false)
-      setUnreadCount(0)
-      firstOffscreenIdx.current = -1
-    }
-  }, [showUnread, unreadIndices, isMounted])
-
-  const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(calculateShowUnreadShortcut, 100)
-
-  const onItemsRendered = React.useCallback(
-    ({startIndex, stopIndex}: {startIndex: number; stopIndex: number}) => {
-      lastVisibleIdx.current = stopIndex
-      calculateShowUnreadShortcutThrottled()
-      onItemsRenderedDebounced({startIndex, stopIndex})
-    },
-    [calculateShowUnreadShortcutThrottled, onItemsRenderedDebounced]
-  )
-
-  const scrollToBigTeams = React.useCallback(() => {
+  const scrollToBigTeams = () => {
     if (!scrollDiv.current) return
 
     if (smallTeamsExpanded) {
@@ -374,61 +334,48 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
     if (boundingHeight + currentScrollTop < top + dragHeight) {
       scrollableDiv.scrollBy({behavior: 'smooth', top})
     }
-  }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
+  }
 
   React.useEffect(() => {
-    if (rowsLength !== lastRowsLength.current) {
-      calculateShowFloating()
-    }
-  }, [calculateShowFloating, rowsLength])
+    setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
+  }, [rows])
 
   React.useEffect(() => {
     if (
       !C.shallowEqual(lastUnreadIndices.current, unreadIndices) ||
       lastUnreadTotal.current !== unreadTotal
     ) {
-      calculateShowUnreadShortcut()
+      const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
+      setShowUnread(result.showUnread)
+      setUnreadCount(result.unreadCount)
+      firstOffscreenIdx.current = result.firstOffscreen
     }
-  }, [calculateShowUnreadShortcut, unreadIndices, unreadTotal])
+  }, [unreadIndices, unreadTotal])
 
   React.useEffect(() => {
-    lastSmallTeamsExpanded.current = smallTeamsExpanded
-    lastRowsLength.current = rowsLength
     lastUnreadIndices.current = unreadIndices
     lastUnreadTotal.current = unreadTotal
-  }, [unreadTotal, unreadIndices, rowsLength, smallTeamsExpanded])
+  }, [unreadTotal, unreadIndices])
 
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
 
-  const itemData = React.useMemo(
-    () => ({
-      inboxNumSmallRows,
-      navKey,
-      rows,
-      scrollDiv,
-      selectedConversationIDKey,
-      setInboxNumSmallRows,
-      smallTeamsExpanded,
-      toggleSmallTeamsExpanded,
-    }),
-    [
-      inboxNumSmallRows,
-      navKey,
-      rows,
-      scrollDiv,
-      selectedConversationIDKey,
-      setInboxNumSmallRows,
-      smallTeamsExpanded,
-      toggleSmallTeamsExpanded,
-    ]
-  )
+  const itemData = {
+    inboxNumSmallRows,
+    navKey,
+    rows,
+    scrollDiv,
+    selectedConversationIDKey,
+    setInboxNumSmallRows,
+    smallTeamsExpanded,
+    toggleSmallTeamsExpanded,
+  }
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box className="inbox-hover-container" style={styles.container}>
-        <div style={styles.list} ref={scrollDiv}>
+      <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
+        <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
           {rows.length ? (
             <List
               listRef={listRef}
@@ -442,17 +389,16 @@ const Inbox = React.memo(function Inbox(props: TInbox.Props) {
         </div>
         {floatingDivider || (rows.length === 0 && <BuildTeam />)}
         {showUnread && !showFloating && <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ErrorBoundary>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           contain: 'strict',
           height: '100%',
@@ -461,10 +407,6 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
-      divider: {
-        backgroundColor: 'purple',
-        overflow: 'hidden',
-      },
       fakeAvatar: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.black_10,
@@ -481,11 +423,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      fakeRemovingRowDivider: {
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-      },
       fakeRow: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -501,15 +438,8 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         zIndex: 9999,
       },
-      fakeRowDivider: {
-        bottom: 0,
-        position: 'absolute',
-        width: '100%',
-      },
       fakeText: {
-        flexGrow: 1,
         height: '100%',
-        justifyContent: 'space-around',
         padding: 8,
         paddingLeft: 16,
       },
@@ -553,13 +483,9 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: 1,
         width: Kb.Styles.globalMargins.small,
       },
-      hover: {backgroundColor: Kb.Styles.globalColors.blueGreyDark},
       list: {
         flex: 1,
         height: '100%',
-      },
-      rowWithDragger: {
-        height: 68,
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,

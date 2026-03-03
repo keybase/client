@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useConfigState} from '@/constants/config'
+import * as Chat from '@/stores/chat'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import Normal from '.'
 import * as T from '@/constants/types'
-import {useActiveState} from '@/constants/active'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
 
@@ -12,7 +11,7 @@ const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
   const id = Chat.useChatContext(s => s.id)
   // this hook only deals with the active changes, otherwise the rest of the logic is in the store
-  const loadOrangeLine = React.useCallback(() => {
+  const loadOrangeLine = React.useEffectEvent(() => {
     const f = async () => {
       const store = Chat.getConvoState(id)
       const convID = store.getConvID()
@@ -25,12 +24,12 @@ const useOrangeLine = () => {
       setOrangeLine(T.Chat.numberToOrdinal(unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0))
     }
     C.ignorePromise(f())
-  }, [id])
+  })
 
   // initial load
   React.useEffect(() => {
     loadOrangeLine()
-  }, [loadOrangeLine])
+  }, [])
 
   const {markedAsUnread, maxVisibleMsgID} = Chat.useChatContext(
     C.useShallow(s => {
@@ -47,16 +46,16 @@ const useOrangeLine = () => {
       lastMarkedAsUnreadRef.current = markedAsUnread
       setOrangeLine(T.Chat.numberToOrdinal(markedAsUnread))
     }
-  }, [loadOrangeLine, markedAsUnread])
+  }, [markedAsUnread])
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
-  const active = useActiveState(s => s.active)
+  const active = useConfigState(s => s.active)
   React.useEffect(() => {
     if (!active) {
       loadOrangeLine()
     }
-  }, [maxVisibleMsgID, loadOrangeLine, active])
+  }, [maxVisibleMsgID, active])
 
   // mobile backgrounded us
   const mobileAppState = useConfigState(s => s.mobileAppState)
@@ -72,7 +71,7 @@ const useOrangeLine = () => {
   return orangeLine
 }
 
-const NormalWrapper = React.memo(function NormalWrapper() {
+const NormalWrapper = function NormalWrapper() {
   const orangeLine = useOrangeLine()
   return (
     <OrangeLineContext.Provider value={orangeLine}>
@@ -83,5 +82,5 @@ const NormalWrapper = React.memo(function NormalWrapper() {
       </FocusProvider>
     </OrangeLineContext.Provider>
   )
-})
+}
 export default NormalWrapper

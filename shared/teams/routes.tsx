@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import teamsRootGetOptions from './get-options'
@@ -45,7 +45,7 @@ export const newModalRoutes = {
   teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
   teamAddToTeamConfirm: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false},
     screen: React.lazy(async () => import('./add-members-wizard/confirm')),
   },
   teamAddToTeamContacts: {screen: React.lazy(async () => import('./add-members-wizard/add-contacts'))},
@@ -79,5 +79,3 @@ export const newModalRoutes = {
   teamWizardSubteamMembers: {screen: React.lazy(async () => import('./new-team/wizard/add-subteam-members'))},
   teamsTeamBuilder,
 }
-
-export type RootParamListTeams = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

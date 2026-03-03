@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 const TeamPurpose = () => {
   const nav = useSafeNavigation()
@@ -75,14 +75,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 4,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
   }),
 }))
 

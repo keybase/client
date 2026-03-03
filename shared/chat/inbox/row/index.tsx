@@ -3,9 +3,9 @@ import BigTeamHeader from './big-team-header'
 import BigTeamChannel from './big-team-channel'
 import {SmallTeam} from './small-team'
 import {BigTeamsLabel} from './big-teams-label'
-import type * as T from '@/constants/types'
+import type {ChatInboxRowItem} from '../rowitem'
 
-const makeRow = (item: T.Chat.ChatInboxRowItem, navKey: string, selected: boolean) => {
+const makeRow = (item: ChatInboxRowItem, navKey: string, selected: boolean) => {
   if (item.type === 'bigTeamsLabel') {
     return <BigTeamsLabel />
   }
@@ -25,7 +25,6 @@ const makeRow = (item: T.Chat.ChatInboxRowItem, navKey: string, selected: boolea
     case 'small':
       return (
         <SmallTeam
-          isInWidget={false}
           conversationIDKey={item.conversationIDKey}
           layoutIsTeam={item.isTeam}
           layoutName={item.teamname}

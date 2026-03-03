@@ -34,9 +34,7 @@ export const newModalRoutes = {
   ...provisionNewRoutes,
   deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device'))),
   devicePaperKey: {
-    getOptions: {gesturesEnabled: false, modal2: true, modal2NoClose: true},
+    getOptions: {gestureEnabled: false, modal2: true, modal2NoClose: true},
     screen: React.lazy(async () => import('./paper-key')),
   },
 }
-
-export type RootParamListDevices = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

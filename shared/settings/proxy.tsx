@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSettingsState} from '@/constants/settings'
+import {useSettingsState} from '@/stores/settings'
 
 const useConnect = () => {
   const allowTlsMitmToggle = useSettingsState(s => s.didToggleCertificatePinning)
@@ -170,46 +170,30 @@ const ProxySettingsPopup = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
       <Kb.HeaderHocWrapper onBack={props.onBack}>
-        <Kb.Box style={styles.popupBox}>
-          <Kb.Box style={styles.proxySettingPopupBox}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
             <ProxySettingsComponent {...props} />
-          </Kb.Box>
-        </Kb.Box>
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.HeaderHocWrapper>
     )
   }
   return (
     <Kb.PopupDialog>
-      <Kb.Box style={styles.popupBox}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
         <Kb.BackButton onClick={props.onBack} />
-        <Kb.Box style={styles.proxySettingPopupBox}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
           <ProxySettingsComponent {...props} />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  divider: {
-    marginTop: Kb.Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  flexButtons: {
-    display: 'flex',
-    flexShrink: 0,
-    flexWrap: 'wrap',
-    marginTop: Kb.Styles.globalMargins.tiny,
-  },
   popupBox: {
     minHeight: '40%',
     padding: Kb.Styles.globalMargins.small,
-  },
-  proxyContainer: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.medium,
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
   proxySettingPopupBox: {padding: Kb.Styles.globalMargins.xlarge},

@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 
 const PaperKey = () => {
   const error = useRecoverState(s => s.paperKeyError)
@@ -14,11 +14,11 @@ const PaperKey = () => {
   }
   const props = {error, onBack}
   const [paperKey, setPaperKey] = React.useState('')
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (paperKey) {
       submitPaperKey?.(paperKey)
     }
-  }, [paperKey, submitPaperKey])
+  }
 
   return (
     <SignupScreen
@@ -38,6 +38,7 @@ const PaperKey = () => {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
+          flex={1}
           style={styles.contents}
           centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
           gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
@@ -68,7 +69,6 @@ const PaperKey = () => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
-    flexGrow: 1,
     maxWidth: Kb.Styles.isMobile ? '100%' : 460,
     width: '100%',
   },

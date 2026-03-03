@@ -5,16 +5,17 @@ import {emojiData} from '@/common-adapters/emoji'
 
 const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
-    <Kb.Box style={{position: 'relative'}}>
-      {outerCircle && <Kb.Box style={styles.circleOuter} />}
-      <Kb.Box
+    <Kb.Box2 direction="vertical" relative={true}>
+      {outerCircle && <Kb.Box2 direction="vertical" style={styles.circleOuter} />}
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
           isExpanded && styles.circleExpanded,
           {backgroundColor: T.Chat.SkinToneToDotColor(skinTone)},
         ])}
-      ></Kb.Box>
-    </Kb.Box>
+      />
+    </Kb.Box2>
   )
 }
 
@@ -33,7 +34,7 @@ const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
   return [currentSkinTone, ...rest]
 }
 
-const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
+function SkinTonePicker(props: Props) {
   const [expanded, _setExpanded] = React.useState(false)
   const setExpanded = (toSet: boolean) => {
     _setExpanded(toSet)
@@ -58,7 +59,7 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
-        style={styles.optionSkinTonesContainerMobile}
+        justifyContent="space-between"
       >
         {optionSkinTones}
       </Kb.Box2>
@@ -71,9 +72,9 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
       </Kb.ClickableBox>
     )
   ) : (
-    <Kb.Box style={styles.relative}>
+    <Kb.Box2 direction="vertical" relative={true}>
       {expanded ? (
-        <Kb.Box2 direction="vertical" style={styles.popupContainer}>
+        <Kb.Box2 direction="vertical" overflow="hidden" style={styles.popupContainer}>
           {optionSkinTones}
         </Kb.Box2>
       ) : (
@@ -83,10 +84,10 @@ const SkinTonePicker = React.memo(function SkinTonePicker(props: Props) {
           </Kb.ClickableBox>
         </Kb.WithTooltip>
       )}
-      <Kb.Box style={styles.dotPlaceholder} />
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" style={styles.dotPlaceholder} />
+    </Kb.Box2>
   )
-})
+}
 
 export default SkinTonePicker
 
@@ -131,9 +132,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: Kb.Styles.globalMargins.small * 2,
     width: Kb.Styles.globalMargins.small * 2,
   },
-  optionSkinTonesContainerMobile: {
-    justifyContent: 'space-between',
-  },
   popupContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
     borderColor: Kb.Styles.globalColors.black_10,
@@ -143,10 +141,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: 126,
     marginLeft: Kb.Styles.globalMargins.xtiny - 1,
     marginTop: Kb.Styles.globalMargins.xtiny - 1,
-    overflow: 'hidden',
     padding: Kb.Styles.globalMargins.xxtiny,
     position: 'absolute',
     zIndex: 1,
   },
-  relative: {position: 'relative'},
 }))

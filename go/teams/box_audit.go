@@ -1146,7 +1146,7 @@ func putJailToDisk(mctx libkb.MetaContext, jail *BoxAuditJail) error {
 	return putToDisk(mctx, BoxAuditJailDbKey(mctx), jail)
 }
 
-func putToDisk(mctx libkb.MetaContext, dbKey libkb.DbKey, i interface{}) error {
+func putToDisk(mctx libkb.MetaContext, dbKey libkb.DbKey, i any) error {
 	return mctx.G().LocalDb.PutObj(dbKey, nil, i)
 }
 

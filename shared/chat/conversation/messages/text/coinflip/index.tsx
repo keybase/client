@@ -1,7 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
@@ -9,7 +8,7 @@ import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
 
-const CoinFlipContainer = React.memo(function CoinFlipContainer() {
+function CoinFlipContainer() {
   const ordinal = useOrdinal()
   const {isSendError, text, flipGameID, sendMessage} = Chat.useChatContext(
     C.useShallow(s => {
@@ -22,9 +21,9 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     })
   )
   const status = Chat.useChatState(s => s.flipStatusMap.get(flipGameID))
-  const onFlipAgain = React.useCallback(() => {
+  const onFlipAgain = () => {
     text && sendMessage(text.stringValue())
-  }, [sendMessage, text])
+  }
   const phase = status?.phase
   const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined
@@ -40,20 +39,17 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     }, 0) ?? 0
   const revealSummary = `${revealed} / ${numParticipants}`
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <CoinFlipParticipants
-          attachTo={attachTo}
-          onHidden={hidePopup}
-          participants={participants}
-          visible={true}
-        />
-      )
-    },
-    [participants]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <CoinFlipParticipants
+        attachTo={attachTo}
+        onHidden={hidePopup}
+        participants={participants}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
@@ -103,7 +99,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
-                <Kb.Image2 src={commitSrc} style={styles.progressVis} />
+                <Kb.Image src={commitSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
@@ -113,7 +109,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
             </Kb.Box2>
             <Kb.Box2 direction="vertical">
               {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
-                <Kb.Image2 src={revealSrc} style={styles.progressVis} />
+                <Kb.Image src={revealSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
@@ -151,7 +147,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -168,26 +164,10 @@ const styles = Kb.Styles.styleSheetCreate(
       flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
       flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
       placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
-      progress: Kb.Styles.platformStyles({
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
       progressVis: {
         height: 40,
         width: 64,
       },
-      result: Kb.Styles.platformStyles({
-        common: {fontWeight: '600'},
-        isElectron: {
-          cursor: 'text',
-          userSelect: 'text',
-          wordBreak: 'break-all',
-        },
-      }),
-      statusContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

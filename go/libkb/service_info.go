@@ -54,7 +54,7 @@ func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 
 // serviceLog is the log interface for ServiceInfo
 type serviceLog interface {
-	Debug(s string, args ...interface{})
+	Debug(s string, args ...any)
 }
 
 func LoadServiceInfo(path string) (*ServiceInfo, error) {

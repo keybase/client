@@ -179,7 +179,7 @@ func (l *ephemeralLifetime) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (l ephemeralLifetime) MarshalJSON() (b []byte, err error) {
-	return []byte(fmt.Sprintf(`"%s"`, l.String())), nil
+	return fmt.Appendf(nil, `"%s"`, l.String()), nil
 }
 
 func (l ephemeralLifetime) Valid() bool {

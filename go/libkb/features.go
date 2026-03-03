@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -24,8 +25,8 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	if len(s) == 0 {
 		return ret
 	}
-	v := strings.Split(s, ",")
-	for _, f := range v {
+	v := strings.SplitSeq(s, ",")
+	for f := range v {
 		ret = append(ret, Feature(strings.TrimSpace(f)))
 	}
 	return ret
@@ -34,21 +35,14 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 // Admin returns true if the admin feature set is on or the user is a keybase
 // admin.
 func (set FeatureFlags) Admin(uid keybase1.UID) bool {
-	for _, f := range set {
-		if f == Feature("admin") {
-			return true
-		}
+	if slices.Contains(set, Feature("admin")) {
+		return true
 	}
 	return IsKeybaseAdmin(uid)
 }
 
 func (set FeatureFlags) HasFeature(feature Feature) bool {
-	for _, f := range set {
-		if f == feature {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(set, feature)
 }
 
 func (set FeatureFlags) Empty() bool {

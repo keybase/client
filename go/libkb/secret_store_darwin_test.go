@@ -1,5 +1,4 @@
 //go:build darwin
-// +build darwin
 
 package libkb
 
@@ -64,7 +63,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 	require.Equal(t, string(expectedSecret1), string(secret.Bytes()))
 
 	// verify our keychain state
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		account := newKeychainSlottedAccount(nu, i)
 		query := keychain.NewItem()
 		query.SetSecClass(keychain.SecClassGenericPassword)
@@ -94,7 +93,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 	err = secretStore.ClearSecret(mctx, nu)
 	require.NoError(t, err)
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		account := newKeychainSlottedAccount(nu, i)
 		query := keychain.NewItem()
 		query.SetSecClass(keychain.SecClassGenericPassword)

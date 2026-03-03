@@ -166,49 +166,41 @@ type CountrySelectorRef = {
   onSelectMenu: (s: string) => void
 }
 
-const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProps>(
-  function CountrySelector(p, ref) {
-    const {onHidden, onSelect, selected: _selected, visible, attachTo} = p
+function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelectorRef>}) {
+    const {onHidden, onSelect, selected: _selected, visible, attachTo, ref} = p
     const [filter, setFilter] = React.useState('')
     const [selected, setSelected] = React.useState(_selected)
-
-    const clearFilter = React.useCallback(() => {
-      setFilter('')
-    }, [])
 
     const onSelectMenu = p.onSelect
 
     React.useImperativeHandle(
       ref,
       () => ({
-        clearFilter,
+        clearFilter: () => setFilter(''),
         onSelectMenu,
       }),
-      [clearFilter, onSelectMenu]
+      [onSelectMenu]
     )
 
-    const onCancel = React.useCallback(() => {
+    const onCancel = () => {
       setSelected(p.selected)
       onHidden()
-    }, [p.selected, onHidden])
+    }
 
-    const onDone = React.useCallback(() => {
+    const onDone = () => {
       if (!selected) {
         return
       }
       onSelect(selected)
       onHidden()
-    }, [onSelect, onHidden, selected])
+    }
 
     React.useEffect(() => {
       setSelected(_selected)
     }, [_selected])
 
-    const desktopItems = React.useMemo(
-      () => menuItems(countryData(), filter, onSelectMenu),
-      [filter, onSelectMenu]
-    )
-    const mobileItems = React.useMemo(() => pickerItems(countryData()), [])
+    const desktopItems = menuItems(countryData(), filter, onSelectMenu)
+    const mobileItems = pickerItems(countryData())
 
     const onSelectFirst = () => {
       if (Styles.isMobile && mobileItems[0]) {
@@ -257,8 +249,7 @@ const CountrySelector = React.forwardRef<CountrySelectorRef, CountrySelectorProp
         visible={visible}
       />
     )
-  }
-)
+}
 
 type Props = {
   autoFocus?: boolean
@@ -289,109 +280,94 @@ const PhoneInput = (p: Props) => {
   // 2. Remove any non-numerics from the text
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
-  const reformatPhoneNumberSkipCountry = React.useCallback(
-    (_newText: string) => {
-      if (!formatter) {
-        return
+  const reformatPhoneNumberSkipCountry = (_newText: string) => {
+    if (!formatter) {
+      return
+    }
+
+    let newText = _newText
+
+    // ACME DIGIT REMOVAL MACHINE 5000
+    // This code works around iOS not letting you accurately move your cursor
+    // anymore. Fixes editing "middle" numbers in the phone number input.
+    // 1) It doesn't run in reformats with skipCountry:true
+    // 2) It only runs when the total length decreased
+    // 3) It only runs when we had formatted text before
+    // 4) It should not do anything if it wasn't a whitespace change in the middle
+
+    formatter.clear()
+    newText = filterNumeric(newText)
+
+    if (newText.trim().length === 0) {
+      setFormatted('')
+      return
+    }
+    for (let i = 0; i < newText.length - 1; i++) {
+      formatter.inputDigit(newText[i]!)
+    }
+    const formatted = formatter.inputDigit(newText.at(-1)!)
+    setFormatted(formatted)
+  }
+
+  const setCountry2NoKeepPrefix = (_country: string) => {
+    let c = _country
+    if (country !== c) {
+      c = normalizeCountryCode(c)
+
+      setCountry(c)
+      setFormatter(c ? new AsYouTypeFormatter(c) : undefined)
+
+      // Special behaviour for NA numbers
+      if (getCallingCode(c).length === 6) {
+        reformatPhoneNumberSkipCountry(getCallingCode(c).slice(-3))
+      } else {
+        reformatPhoneNumberSkipCountry('')
       }
 
-      let newText = _newText
-
-      // ACME DIGIT REMOVAL MACHINE 5000
-      // This code works around iOS not letting you accurately move your cursor
-      // anymore. Fixes editing "middle" numbers in the phone number input.
-      // 1) It doesn't run in reformats with skipCountry:true
-      // 2) It only runs when the total length decreased
-      // 3) It only runs when we had formatted text before
-      // 4) It should not do anything if it wasn't a whitespace change in the middle
-
-      formatter.clear()
-      newText = filterNumeric(newText)
-
-      if (newText.trim().length === 0) {
-        setFormatted('')
-        return
+      const _newText = getCallingCode(c).slice(1)
+      let newText = filterNumeric(_newText)
+      // NA countries that use area codes require special behaviour
+      if (newText.length === 4) {
+        newText = newText[0]!
       }
-      for (let i = 0; i < newText.length - 1; i++) {
-        formatter.inputDigit(newText[i]!)
-      }
-      const formatted = formatter.inputDigit(newText.at(-1)!)
-      setFormatted(formatted)
-    },
-    [formatter]
-  )
+      setPrefix(newText)
+    }
+  }
 
-  const setCountry2NoKeepPrefix = React.useCallback(
-    (_country: string) => {
-      let c = _country
-      if (country !== c) {
-        c = normalizeCountryCode(c)
-
-        setCountry(c)
-        setFormatter(c ? new AsYouTypeFormatter(c) : undefined)
-
-        // Special behaviour for NA numbers
-        if (getCallingCode(c).length === 6) {
-          reformatPhoneNumberSkipCountry(getCallingCode(c).slice(-3))
-        } else {
-          reformatPhoneNumberSkipCountry('')
-        }
-
-        const _newText = getCallingCode(c).slice(1)
-        let newText = filterNumeric(_newText)
-        // NA countries that use area codes require special behaviour
-        if (newText.length === 4) {
-          newText = newText[0]!
-        }
-        setPrefix(newText)
-      }
-    },
-    [country, reformatPhoneNumberSkipCountry]
-  )
-
-  const onSelectCountry = React.useCallback(
-    (code: string | undefined) => {
-      setCountry2NoKeepPrefix(code ?? '')
-      phoneInputRef.current?.focus()
-    },
-    [setCountry2NoKeepPrefix]
-  )
+  const onSelectCountry = (code: string | undefined) => {
+    setCountry2NoKeepPrefix(code ?? '')
+    phoneInputRef.current?.focus()
+  }
 
   const {defaultCountry} = p
 
-  const _toggleShowingMenu = React.useCallback(
-    (hidePopup: () => void) => {
-      if (!country && defaultCountry) {
-        countrySelectorRef.current?.onSelectMenu(defaultCountry)
-      }
-      countrySelectorRef.current?.clearFilter()
-      hidePopup()
-    },
-    [country, defaultCountry]
-  )
+  const _toggleShowingMenu = (hidePopup: () => void) => {
+    if (!country && defaultCountry) {
+      countrySelectorRef.current?.onSelectMenu(defaultCountry)
+    }
+    countrySelectorRef.current?.clearFilter()
+    hidePopup()
+  }
 
-  const makePopup = React.useCallback(
-    (p: Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <CountrySelector
-          attachTo={attachTo}
-          onSelect={onSelectCountry}
-          onHidden={() => _toggleShowingMenu(hidePopup)}
-          selected={country}
-          visible={true}
-          ref={countrySelectorRef}
-        />
-      )
-    },
-    [country, onSelectCountry, _toggleShowingMenu]
-  )
+  const makePopup = (p: Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <CountrySelector
+        attachTo={attachTo}
+        onSelect={onSelectCountry}
+        onHidden={() => _toggleShowingMenu(hidePopup)}
+        selected={country}
+        visible={true}
+        ref={countrySelectorRef}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const toggleShowingMenu = React.useCallback(() => {
+  const toggleShowingMenu = () => {
     _toggleShowingMenu(showPopup)
-  }, [_toggleShowingMenu, showPopup])
+  }
 
   const lastFormattedRef = React.useRef(formatted)
   React.useEffect(() => {

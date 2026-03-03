@@ -1,7 +1,8 @@
 import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
 import {Box2} from './box'
-import Text, {getTextStyle} from './text'
+import Text from './text'
+import {getTextStyle} from './text.styles'
 import * as Styles from '@/styles'
 import {isMobile} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
@@ -18,33 +19,30 @@ export type _Props = {
 
 export type Props = PropsWithInput<_Props>
 
-const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function LabeledInputImple(props, ref) {
-  const {containerStyle, error, placeholder, placeholderInline, ...plainInputProps} = props
+function LabeledInputImpl(props: Props & {ref?: React.Ref<PlainInputRef>}) {
+  const {containerStyle, error, placeholder, placeholderInline, ref, ...plainInputProps} = props
   const [focused, setFocused] = React.useState(false)
   const {onBlur, onFocus} = props
   const isDarkMode = useColorScheme() === 'dark'
-  const _onFocus = React.useCallback(() => {
+  const _onFocus = () => {
     if (props.disabled) {
       return
     }
     setFocused(true)
     onFocus?.()
-  }, [onFocus, props.disabled])
-  const _onBlur = React.useCallback(() => {
+  }
+  const _onBlur = () => {
     setFocused(false)
     onBlur?.()
-  }, [onBlur])
+  }
 
   // If we're uncontrolled, monitor the changes instead
   const {value, onChangeText} = props
   const [uncontrolledValue, setUncontrolledValue] = React.useState('')
-  const _onChangeText = React.useCallback(
-    (newValue: string) => {
-      value === undefined && setUncontrolledValue(newValue)
-      onChangeText?.(newValue)
-    },
-    [value, onChangeText]
-  )
+  const _onChangeText = (newValue: string) => {
+    value === undefined && setUncontrolledValue(newValue)
+    onChangeText?.(newValue)
+  }
 
   // Style is supposed to switch when there's any input or its focused
   const actualValue = value !== undefined ? value : uncontrolledValue
@@ -53,7 +51,7 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
   const collapsed = focused || populated || multiline
 
   // We're using fontSize to derive heights
-  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize
+  const fontSize = getTextStyle(props.textType || 'BodySemibold', isDarkMode).fontSize ?? 14
   const computedContainerSize = fontSize + (isMobile ? 48 : 38) + (multiline ? fontSize : 0)
 
   return (
@@ -96,9 +94,10 @@ const LabeledInputImpl = React.forwardRef<PlainInputRef, Props>(function Labeled
       />
     </Box2>
   )
-})
+}
 
-const LabeledInput = React.forwardRef<PlainInputRef, Props>(function LabeledInput(props, ref) {
+function LabeledInput(props: Props & {ref?: React.Ref<PlainInputRef>}) {
+  const {ref} = props
   const flexable = props.flexable ?? true
   const keyboardType = props.keyboardType ?? 'default'
   const textType = props.textType ?? 'BodySemibold'
@@ -112,7 +111,7 @@ const LabeledInput = React.forwardRef<PlainInputRef, Props>(function LabeledInpu
       textType={textType}
     />
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -134,9 +133,6 @@ const styles = Styles.styleSheetCreate(
       }),
       containerError: {borderColor: Styles.globalColors.red},
       containerFocused: {borderColor: Styles.globalColors.blue},
-      displayFlex: {display: 'flex'},
-      hideBorder: {borderWidth: 0},
-      icon: {marginRight: Styles.globalMargins.xtiny},
       input: {
         backgroundColor: Styles.globalColors.transparent,
         flexGrow: 1,

@@ -34,14 +34,14 @@ const RetentionWarning = (props: Props) => {
   const convType: string = getConvType(props.entityType)
   return (
     <Wrapper>
-      <Kb.Box style={styles.container}>
-        <Kb.Box style={styles.iconBoxStyle}>
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
+        <Kb.Box2 direction="vertical" style={styles.iconBoxStyle}>
           <Kb.Icon
             color={props.exploding ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_20}
             fontSize={48}
             type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}
           />
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           {props.exploding ? 'Explode' : 'Auto-delete'} chat messages after {props.timePeriod}?
         </Kb.Text>
@@ -78,7 +78,7 @@ const RetentionWarning = (props: Props) => {
             disabled={!enabled}
           />
         </Kb.ButtonBar>
-      </Kb.Box>
+      </Kb.Box2>
     </Wrapper>
   )
 }
@@ -117,8 +117,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       paddingBottom: Kb.Styles.globalMargins.large,
     },
     isElectron: {
@@ -159,12 +157,12 @@ const Container = (ownProps: OwnProps) => {
   const policy = ownProps.policy
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       openModal()
       return () => {
         closeModal()
       }
-    }, [openModal, closeModal])
+    }
   )
 
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)

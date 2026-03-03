@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -57,28 +57,16 @@ const Container = (ownProps: OwnProps) => {
   const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
-  const _onSubmit = React.useCallback(
-    (titles: Array<string>, spoiler: boolean) => {
-      tlfName || noDragDrop
-        ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
-        : attachFromDragAndDrop(pathAndOutboxIDs, titles)
-      clearModals()
+  const _onSubmit = (titles: Array<string>, spoiler: boolean) => {
+    tlfName || noDragDrop
+      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
+      : attachFromDragAndDrop(pathAndOutboxIDs, titles)
+    clearModals()
 
-      if (selectConversationWithReason) {
-        navigateToThread(selectConversationWithReason)
-      }
-    },
-    [
-      attachFromDragAndDrop,
-      attachmentsUpload,
-      clearModals,
-      navigateToThread,
-      noDragDrop,
-      pathAndOutboxIDs,
-      selectConversationWithReason,
-      tlfName,
-    ]
-  )
+    if (selectConversationWithReason) {
+      navigateToThread(selectConversationWithReason)
+    }
+  }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
     const filename = T.FS.getLocalPathName(path)
     const info: Info = {
@@ -96,40 +84,31 @@ const Container = (ownProps: OwnProps) => {
   const [spoiler, setSpoiler] = React.useState(false)
   setSpoiler // TODO commented out
 
-  const onNext = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      e?.preventDefault()
+  const onNext = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault()
 
-      const {info} = pathAndInfos[index] ?? {}
-      if (!info) return
+    const {info} = pathAndInfos[index] ?? {}
+    if (!info) return
 
-      const nextIndex = index + 1
+    const nextIndex = index + 1
 
-      // done
-      if (nextIndex === pathAndInfos.length) {
-        _onSubmit(titles, spoiler)
-      } else {
-        // go to next
-        setIndex(s => s + 1)
-      }
-    },
-    [index, pathAndInfos, titles, spoiler, setIndex, _onSubmit]
-  )
-
-  const onSubmit = React.useCallback(
-    (e?: React.BaseSyntheticEvent) => {
-      e?.preventDefault()
+    // done
+    if (nextIndex === pathAndInfos.length) {
       _onSubmit(titles, spoiler)
-    },
-    [_onSubmit, titles, spoiler]
-  )
+    } else {
+      // go to next
+      setIndex(s => s + 1)
+    }
+  }
 
-  const updateTitle = React.useCallback(
-    (title: string) => {
-      setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
-    },
-    [index, titles]
-  )
+  const onSubmit = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault()
+    _onSubmit(titles, spoiler)
+  }
+
+  const updateTitle = (title: string) => {
+    setTitles([...titles.slice(0, index), title, ...titles.slice(index + 1)])
+  }
 
   const inputRef = React.useRef<Kb.PlainInputRef>(null)
 
@@ -239,7 +218,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small, 0),
       }),
-      cancelButton: {marginRight: Kb.Styles.globalMargins.tiny},
       container: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -277,20 +255,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      imageContainer: Kb.Styles.platformStyles({
-        common: {justifyContent: 'center'},
-        isElectron: {
-          flex: 1,
-          height: 325,
-          paddingBottom: Kb.Styles.globalMargins.medium,
-          paddingTop: Kb.Styles.globalMargins.medium,
-          width: 325,
-        },
-        isMobile: {
-          height: '100%',
-          width: '100%',
-        },
-      }),
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
@@ -311,18 +275,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.small,
           paddingRight: Kb.Styles.globalMargins.small,
         },
-      }),
-      nonImage: {
-        alignSelf: 'center',
-        justifyContentSelf: 'center',
-      },
-      scrollView: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
-          height: '100%',
-          width: '100%',
-        },
-        isElectron: {borderRadius: Kb.Styles.borderRadius},
       }),
     }) as const
 )

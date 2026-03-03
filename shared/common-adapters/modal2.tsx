@@ -1,13 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
-import {Box2, Box, type LayoutEvent} from './box'
+import {Box2, type LayoutEvent} from './box'
 import BoxGrow from './box-grow'
 import Text from './text'
 import {useTimeout} from './use-timers'
 
 const Kb = {
-  Box,
   Box2,
   BoxGrow,
   ScrollView,
@@ -56,15 +55,12 @@ const Header2 = (props: HeaderProps) => {
   // On native, let the header sides layout for 100ms to measure which is wider.
   // Then, set this as the `width` of the sides and let the center expand.
   const [widerWidth, setWiderWidth] = React.useState(-1)
-  const onLayoutSide = React.useCallback(
-    (evt: LayoutEvent) => {
-      const {width} = evt.nativeEvent.layout
-      if (width > widerWidth) {
-        setWiderWidth(width)
-      }
-    },
-    [widerWidth]
-  )
+  const onLayoutSide = (evt: LayoutEvent) => {
+    const {width} = evt.nativeEvent.layout
+    if (width > widerWidth) {
+      setWiderWidth(width)
+    }
+  }
   // end mobile only
 
   let subTitle: React.ReactNode = null
@@ -107,7 +103,7 @@ const Header2 = (props: HeaderProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {
-          <Kb.Box>
+          <Kb.Box2 direction="vertical">
             {!!subTitle && props.subTitleAbove && subTitle}
             {typeof props.title === 'string' ? (
               <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
@@ -117,7 +113,7 @@ const Header2 = (props: HeaderProps) => {
               props.title
             )}
             {!!subTitle && !props.subTitleAbove && subTitle}
-          </Kb.Box>
+          </Kb.Box2>
         }
         <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.headerRight])}>
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
@@ -176,15 +172,6 @@ const styles = Styles.styleSheetCreate(() => {
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
     },
-    footerFullscreen: Styles.platformStyles({
-      isElectron: {
-        ...Styles.padding(
-          Styles.globalMargins.xsmall,
-          Styles.globalMargins.small,
-          Styles.globalMargins.xlarge
-        ),
-      },
-    }),
     footerWide: Styles.platformStyles({
       isElectron: {
         ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
@@ -211,26 +198,6 @@ const styles = Styles.styleSheetCreate(() => {
       ...headerCommon,
       minHeight: 64,
     },
-    measured: {
-      alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
-    },
-    overflowVisible: {overflow: 'visible'},
-    scroll: Styles.platformStyles({
-      isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
-    }),
-    scrollContentContainer: Styles.platformStyles({
-      common: {
-        ...Styles.globalStyles.flexBoxColumn,
-        flexGrow: 1,
-        width: '100%',
-      },
-      isTablet: {
-        alignSelf: 'center',
-        maxWidth: 600,
-      },
-    }),
   }
 })
 

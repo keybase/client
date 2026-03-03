@@ -43,7 +43,7 @@ export type Props = {
   skipColor?: boolean // only used in one place, todo make an Icon2
 }
 
-export declare const Icon: ReturnType<typeof React.forwardRef<MeasureRef, Props>>
+export declare function Icon(props: Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
 export default Icon
 
 export declare function iconTypeToImgSet(imgMap: {[K in string]: IconType}, targetSize: number): string

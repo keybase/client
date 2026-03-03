@@ -25,7 +25,7 @@ const NavRow = (props: Props) => {
         hover_background_color_blueGreyDark: !isSelected,
       })}
     >
-      <Kb.ListItem2
+      <Kb.ListItem
         type="Small"
         firstItem={true}
         statusIcon={
@@ -67,17 +67,7 @@ const NavRow = (props: Props) => {
   return Kb.Styles.isMobile ? mobileRow : desktopRow
 }
 
-const rowHeight = 50
-
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  clickableContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
-      flexShrink: 0,
-      height: rowHeight,
-      width: '100%',
-    },
-  }),
   textContainer: {
     justifyContent: 'center',
     marginLeft: Kb.Styles.globalMargins.tiny,

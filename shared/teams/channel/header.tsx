@@ -1,9 +1,9 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
@@ -44,10 +44,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     teamID,
   }
   const nav = useSafeNavigation()
-  const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
+  const onEditChannel = () => nav.safeNavigateAppend({name: 'teamEditChannel', params: editChannelProps})
   const onAddMembers = () =>
-    nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
-  const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+    nav.safeNavigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
+  const onNavToTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
   const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
@@ -70,8 +70,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
-  const menuItems: Array<Kb.MenuItem> = React.useMemo(
-    () => [
+  const menuItems: Array<Kb.MenuItem> = [
       // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
       // It's included in the other place this menu appears.
       ...(canDelete
@@ -86,12 +85,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             },
           ]
         : []),
-    ],
-    [deleteChannelConfirmed, nav, teamID, conversationIDKey, canDelete]
-  )
+    ]
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -102,9 +98,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           visible={true}
         />
       )
-    },
-    [menuItems]
-  )
+    }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
@@ -187,6 +181,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.outerBoxDesktop}
       >
         {topDescriptors}
@@ -221,7 +216,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       outerBoxDesktop: {
-        flexGrow: 1,
         flexShrink: 1,
         marginBottom: Kb.Styles.globalMargins.small,
       },

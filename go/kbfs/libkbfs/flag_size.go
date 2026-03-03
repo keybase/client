@@ -16,7 +16,7 @@ type SizeFlag struct {
 }
 
 // Get for flag interface.
-func (sf SizeFlag) Get() interface{} { return *sf.v }
+func (sf SizeFlag) Get() any { return *sf.v }
 
 // String for flag interface.
 func (sf SizeFlag) String() string {

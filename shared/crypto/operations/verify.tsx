@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {Input, InputActionsBar, DragAndDrop, OperationBanner} from '../input'

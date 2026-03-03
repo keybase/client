@@ -245,7 +245,7 @@ func (bi BlockInfo) String() string {
 }
 
 // BPSize is the estimated size of a block pointer in bytes.
-var BPSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
+var BPSize = uint64(reflect.TypeFor[BlockPointer]().Size())
 
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {

@@ -2,7 +2,7 @@ package ephemeral
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"sync"
 	"time"
 
@@ -402,17 +402,15 @@ func (s *UserEKBoxStorage) getExpiredGenerations(mctx libkb.MetaContext, keyMap 
 	for k := range keyMap {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	slices.Sort(keys)
 
 	for i, generation := range keys {
 		keyCtime := keyMap[generation].Time()
 		expiryOffset := libkb.MaxEphemeralKeyStaleness
 		if i < len(keys)-1 {
-			expiryOffset = keyMap[keys[i+1]].Time().Sub(keyCtime)
-			// Offset can be max libkb.MaxEphemeralKeyStaleness
-			if expiryOffset > libkb.MaxEphemeralKeyStaleness {
-				expiryOffset = libkb.MaxEphemeralKeyStaleness
-			}
+			expiryOffset = min(
+				// Offset can be max libkb.MaxEphemeralKeyStaleness
+				keyMap[keys[i+1]].Time().Sub(keyCtime), libkb.MaxEphemeralKeyStaleness)
 		}
 		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
 			mctx.Debug("getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v, %v, %v",

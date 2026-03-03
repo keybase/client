@@ -2,11 +2,9 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
-import {IconWithPopupDesktop as WhatsNewIconWithPopup} from '@/whats-new/icon'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
-import shallowEqual from 'shallowequal'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -46,15 +44,15 @@ const PlainTitle = ({title}: {title: React.ReactNode}) => (
 )
 
 const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
-  const onMinimize = React.useCallback(() => {
+  const onMinimize = () => {
     minimizeWindow?.()
-  }, [])
-  const onToggleMaximizeWindow = React.useCallback(() => {
+  }
+  const onToggleMaximizeWindow = () => {
     toggleMaximizeWindow?.()
-  }, [])
-  const onCloseWindow = React.useCallback(() => {
+  }
+  const onCloseWindow = () => {
     closeWindow?.()
-  }, [])
+  }
   return (
     <Kb.Box2 direction="horizontal">
       <Kb.ClickableBox
@@ -97,14 +95,14 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   )
 }
 
-const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
+function DesktopHeader(p: Props) {
   const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
-  const pop = React.useCallback(() => {
+  const pop = () => {
     back && navigation.pop()
-  }, [back, navigation])
+  }
 
   if (headerMode === 'none') {
     return null
@@ -185,7 +183,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {headerLeft !== null && (
-            <Kb.Box
+            <Kb.ClickableBox
               className={Kb.Styles.classNames('hover_container', {
                 hover_background_color_black_10: !!back,
               })}
@@ -198,16 +196,15 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
                 className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
                 boxStyle={styles.icon}
               />
-            </Kb.Box>
+            </Kb.ClickableBox>
           )}
-          <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
+          <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
               negative={
                 p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
                 p.style?.backgroundColor !== Kb.Styles.globalColors.white
               }
             />
-            {loggedIn && <WhatsNewIconWithPopup attachToRef={popupAnchor} />}
             {!title && rightActions}
             {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
           </Kb.Box2>
@@ -218,7 +215,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
           fullWidth={true}
           style={Kb.Styles.collapseStyles([styles.bottom, headerBottomStyle])}
         >
-          <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
+          <Kb.Box2 direction="horizontal" flex={1} overflow="hidden" style={styles.bottomTitle}>
             {titleNode}
           </Kb.Box2>
           {!!title && rightActions}
@@ -227,7 +224,7 @@ const DesktopHeader = React.memo(function DesktopHeader(p: Props) {
       {subHeaderNode}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -250,9 +247,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
-      bottomExpandable: {minHeight: 40 - 1},
-      bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      flexOne: {flex: 1},
+      bottomTitle: {height: '100%', maxHeight: '100%'},
       headerBack: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
@@ -312,70 +307,44 @@ const styles = Kb.Styles.styleSheetCreate(
       plainText: {
         ...Kb.Styles.globalStyles.flexGrow,
       },
-      topRightContainer: {flex: 1, justifyContent: 'flex-end'},
     }) as const
 )
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
-const DesktopHeaderWrapper = React.memo(
-  function DesktopHeaderWrapper(p: HeaderProps) {
-    const {options: _options, back, style, params, navigation} = p
-    const useNativeFrame = useConfigState(s => s.useNativeFrame)
-    const loggedIn = useConfigState(s => s.loggedIn)
-    const isMaximized = useConfigState(s => s.windowState.isMaximized)
-    const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-    const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
-    const options = React.useMemo(() => {
-      return {
-        headerBottomStyle,
-        headerLeft,
-        headerMode,
-        headerRightActions,
-        headerShadowVisible,
-        headerStyle,
-        headerTitle,
-        headerTransparent,
-        subHeader,
-        title,
-      }
-    }, [
-      headerBottomStyle,
-      headerLeft,
-      headerMode,
-      headerRightActions,
-      headerShadowVisible,
-      headerStyle,
-      headerTitle,
-      headerTransparent,
-      subHeader,
-      title,
-    ])
-
-    return (
-      <DesktopHeader
-        useNativeFrame={useNativeFrame}
-        loggedIn={loggedIn}
-        key={String(isMaximized)}
-        isMaximized={isMaximized}
-        options={options}
-        back={!!back /* not a bool upstream */}
-        style={style}
-        params={params}
-        navigation={navigation}
-      />
-    )
-  },
-  (a, b) => {
-    return shallowEqual(a, b, (obj: unknown, oth: unknown, key) => {
-      if (key === 'options') {
-        return shallowEqual(obj, oth)
-      } else if (key === 'back') {
-        return !!a.back === !!b.back
-      }
-      return undefined
-    })
+function DesktopHeaderWrapper(p: HeaderProps) {
+  const {options: _options, back, style, params, navigation} = p
+  const useNativeFrame = useConfigState(s => s.useNativeFrame)
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const isMaximized = useConfigState(s => s.windowState.isMaximized)
+  const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
+  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const options = {
+    headerBottomStyle,
+    headerLeft,
+    headerMode,
+    headerRightActions,
+    headerShadowVisible,
+    headerStyle,
+    headerTitle,
+    headerTransparent,
+    subHeader,
+    title,
   }
-)
+
+  return (
+    <DesktopHeader
+      useNativeFrame={useNativeFrame}
+      loggedIn={loggedIn}
+      key={String(isMaximized)}
+      isMaximized={isMaximized}
+      options={options}
+      back={!!back /* not a bool upstream */}
+      style={style}
+      params={params}
+      navigation={navigation}
+    />
+  )
+}
 
 export default DesktopHeaderWrapper

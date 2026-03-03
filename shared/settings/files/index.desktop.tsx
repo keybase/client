@@ -6,8 +6,8 @@ import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -58,7 +58,7 @@ const FinderIntegration = () => {
       C.useShallow(s => ({
         driverDisable: s.dispatch.driverDisable,
         driverStatus: s.sfmi.driverStatus,
-        openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+        openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
         preferredMountDirs: s.sfmi.preferredMountDirs,
       }))
     )
@@ -80,8 +80,8 @@ const FinderIntegration = () => {
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
-        <Kb.Box>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
@@ -124,7 +124,7 @@ const FinderIntegration = () => {
               </Kb.Box2>
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </>
@@ -141,8 +141,8 @@ const FilesSettings = () => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox
@@ -161,7 +161,7 @@ const FilesSettings = () => {
               disabled={props.areSettingsLoading}
               style={styles.syncNotificationCheckbox}
             />
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </>

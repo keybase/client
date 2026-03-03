@@ -100,7 +100,7 @@ const NonExistent = (props: Props) => (
 const Oops = (props: OwnProps) => {
   const nav = useSafeNavigation()
   const openParent = () =>
-    nav.safeNavigateAppend({props: {path: T.FS.getPathParent(props.path)}, selected: 'fsRoot'})
+    nav.safeNavigateAppend({name: 'fsRoot', params: {path: T.FS.getPathParent(props.path)}})
   switch (props.reason) {
     case T.FS.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />
@@ -128,11 +128,6 @@ const styles = Kb.Styles.styleSheetCreate(
       explainTextTeam: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xtiny,
-      },
-      footer: {paddingBottom: Kb.Styles.globalMargins.large},
-      header: {
-        backgroundColor: Kb.Styles.globalColors.red,
-        height: 40,
       },
       main: {...Kb.Styles.globalStyles.flexGrow},
       textYouDontHave: Kb.Styles.platformStyles({

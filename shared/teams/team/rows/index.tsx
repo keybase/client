@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
@@ -14,7 +14,7 @@ import {RequestRow, InviteRow} from './invite-row'
 import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -295,7 +295,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
-  const doGetUserEmoji = React.useCallback(() => {
+  const doGetUserEmoji = React.useEffectEvent(() => {
     if (!convID || convID === Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
@@ -319,7 +319,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       },
       _ => setCustomEmoji([])
     )
-  }, [convID, getUserEmoji, shouldActuallyLoad])
+  })
 
   const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
@@ -330,7 +330,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       setLastUpdatedTrigger(updatedTrigger)
       doGetUserEmoji()
     }
-  }, [doGetUserEmoji, lastActuallyLoad, lastUpdatedTrigger, shouldActuallyLoad, updatedTrigger])
+  }, [lastActuallyLoad, lastUpdatedTrigger, shouldActuallyLoad, updatedTrigger])
 
   C.useOnMountOnce(() => {
     doGetUserEmoji()

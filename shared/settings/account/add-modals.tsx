@@ -6,8 +6,8 @@ import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 export const Email = () => {
   const nav = useSafeNavigation()
@@ -52,14 +52,14 @@ export const Email = () => {
     }
   }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
-  const onClose = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const onContinue = React.useCallback(() => {
+  const onClose = () => nav.safeNavigateUp()
+  const onContinue = () => {
     if (disabled || waiting) {
       return
     }
     onAddEmailInProgress(emailTrimmed)
     addEmail(emailTrimmed, searchable)
-  }, [addEmail, disabled, waiting, emailTrimmed, searchable])
+  }
   return (
     <Kb.Modal
       onClose={onClose}
@@ -95,6 +95,8 @@ export const Email = () => {
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
+        flex={1}
+          relative={true}
         style={styles.body}
       >
         <EnterEmailBody
@@ -162,19 +164,19 @@ export const Phone = () => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const onClose = React.useCallback(() => {
+  const onClose = () => {
     clearPhoneNumberAdd()
     nav.safeNavigateUp()
-  }, [clearPhoneNumberAdd, nav])
+  }
 
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
-  }, [addPhoneNumber, disabled, waiting, searchable, phoneNumber])
+  }
 
-  const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     onChangeNumber(phoneNumber)
     onChangeValidity(validity)
-  }, [])
+  }
 
   return (
     <Kb.Modal
@@ -211,6 +213,8 @@ export const Phone = () => {
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
+        flex={1}
+          relative={true}
         style={styles.body}
       >
         <EnterPhoneNumberBody
@@ -272,17 +276,14 @@ export const VerifyPhone = () => {
     }
   }, [verificationState, error, clearModals])
 
-  const onResend = React.useCallback(() => {
+  const onResend = () => {
     resendVerificationForPhone(pendingVerification)
-  }, [resendVerificationForPhone, pendingVerification])
-  const onClose = React.useCallback(() => {
+  }
+  const onClose = () => {
     clearPhoneNumberAdd()
     clearModals()
-  }, [clearPhoneNumberAdd, clearModals])
-  const onContinue = React.useCallback(
-    () => verifyPhoneNumber(pendingVerification, code),
-    [verifyPhoneNumber, code, pendingVerification]
-  )
+  }
+  const onContinue = () => verifyPhoneNumber(pendingVerification, code)
   const disabled = !code
 
   const displayPhone = e164ToDisplay(pendingVerification)
@@ -367,8 +368,6 @@ const styles = Kb.Styles.styleSheetCreate(
           0
         ),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
-        position: 'relative',
       },
       buttonBar: {
         minHeight: undefined,

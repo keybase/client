@@ -1,18 +1,18 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {settingsAccountTab, settingsGitTab} from '@/constants/settings/util'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {usePeopleState, todoTypes} from '@/constants/people'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
+import {useTrackerState} from '@/stores/tracker'
+import {useProfileState} from '@/stores/profile'
+import {usePeopleState, todoTypes} from '@/stores/people'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type TodoOwnProps = {
   badged: boolean
@@ -26,9 +26,9 @@ type TodoOwnProps = {
 const installLinkURL = 'https://keybase.io/download'
 const useOnSkipTodo = (type: T.People.TodoType) => {
   const skipTodo = usePeopleState(s => s.dispatch.skipTodo)
-  return React.useCallback(() => {
+  return () => {
     skipTodo(type)
-  }, [skipTodo, type])
+  }
 }
 
 function makeDefaultButtons(
@@ -148,7 +148,7 @@ const ChatConnector = (props: TodoOwnProps) => {
 
 const PaperKeyConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onConfirm = () => navigateAppend({props: {highlight: ['paper key']}, selected: 'deviceAdd'})
+  const onConfirm = () => navigateAppend({name: 'deviceAdd', params: {highlight: ['paper key']}})
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -186,7 +186,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
     } else {
       switchTab(C.Tabs.gitTab)
     }
-    navigateAppend({props: {isTeam}, selected: 'gitNewRepo'})
+    navigateAppend({name: 'gitNewRepo', params: {isTeam}})
   }
   const onDismiss = useOnSkipTodo('gitRepo')
   const buttons: Array<TaskButton> = [
@@ -402,12 +402,6 @@ const Task = (props: Props) => (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   instructions: {marginTop: 2},
-  search: {
-    alignSelf: undefined,
-    flexGrow: 0,
-    marginBottom: Kb.Styles.globalMargins.xsmall,
-    marginTop: Kb.Styles.globalMargins.xsmall,
-  },
 }))
 
 export default TaskChooser

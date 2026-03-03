@@ -46,5 +46,5 @@ sleep 5 && requestbundles &
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
 while true; do
-  yarn react-native start --reset-cache
+  npx expo start --clear
 done

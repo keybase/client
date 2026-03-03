@@ -1,8 +1,9 @@
 import * as React from 'react'
 import PlainInput, {type PropsWithInput, type PlainInputRef} from './plain-input'
-import Box, {Box2} from './box'
+import {Box2} from './box'
 import Icon, {type IconType} from './icon'
-import Text, {getTextStyle} from './text'
+import Text from './text'
+import {getTextStyle} from './text.styles'
 import * as Styles from '@/styles'
 import './input.css'
 
@@ -17,25 +18,25 @@ export type _Props = {
 
 type Props = PropsWithInput<_Props>
 
-const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(props, ref) {
+function NewInput(props: Props & {ref?: React.Ref<PlainInputRef>}) {
   const {textType = 'BodySemibold', onFocus: _onFocus, disabled, onBlur: _onBlur} = props
   const [focused, setFocused] = React.useState(false)
 
-  const onFocus = React.useCallback(() => {
+  const onFocus = () => {
     if (disabled) {
       return
     }
     setFocused(true)
     _onFocus?.()
-  }, [disabled, _onFocus])
+  }
 
-  const onBlur = React.useCallback(() => {
+  const onBlur = () => {
     setFocused(false)
     _onBlur?.()
-  }, [_onBlur])
+  }
 
   const fontSize = getTextStyle(textType, true).fontSize
-  const {containerStyle, decoration, error, hideBorder, icon, prefix, ...plainInputProps} = props
+  const {containerStyle, decoration, error, hideBorder, icon, prefix, ref, ...plainInputProps} = props
   const plainInputStyle = prefix
     ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
     : plainInputProps.style
@@ -52,14 +53,14 @@ const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(p
       ])}
     >
       {!!props.icon && (
-        <Box style={styles.icon}>
+        <Box2 direction="horizontal" style={styles.icon}>
           <Icon
             color={Styles.globalColors.black_20} // not sure how to make this dynamic
             type={props.icon}
             fontSize={fontSize}
             style={styles.displayFlex}
           />
-        </Box>
+        </Box2>
       )}
       {!!prefix && (
         <Text type={textType} style={styles.prefix}>
@@ -70,7 +71,7 @@ const NewInput = React.forwardRef<PlainInputRef, Props>(function NewInputInner(p
       {props.decoration}
     </Box2>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

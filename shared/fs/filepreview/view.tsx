@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import DefaultView from './default-view'
@@ -7,8 +7,8 @@ import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   path: T.FS.Path
@@ -57,14 +57,14 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   const reloadBanner = loadedLastModifiedTimestamp !== pathItem.lastModifiedTimestamp && (
-    <Kb.Box style={styles.bannerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.bannerContainer}>
       <Kb.Banner color="blue" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="blue"
           content={['The content of this file has updated. ', {onClick: reload, text: 'Reload'}, '.']}
         />
       </Kb.Banner>
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   // Electron caches <img> aggressively and doesn't really probe server to
@@ -140,8 +140,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       bannerContainer: {
-        position: 'relative',
-        width: '100%',
         zIndex: 200, // needed for mobile
       },
       container: {

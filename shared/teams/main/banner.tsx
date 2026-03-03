@@ -6,12 +6,12 @@ export type Props = {
 }
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
-  <Kb.Box style={styles.containerBanner}>
+  <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} alignItems="center" fullWidth={true} style={styles.containerBanner}>
     <Kb.Icon
       style={styles.illustration}
       type={Kb.Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
     />
-    <Kb.Box style={styles.containerHeader}>
+    <Kb.Box2 direction="vertical" style={styles.containerHeader}>
       <Kb.Text negative={true} type="Header" style={styles.header}>
         Create a team on Keybase
       </Kb.Text>
@@ -22,21 +22,18 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
       <Kb.Text negative={true} type="BodySmallSemiboldPrimaryLink" className="underline" onClick={onReadMore}>
         Read more
       </Kb.Text>
-    </Kb.Box>
-    <Kb.Box style={styles.closeIconContainer}>
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.closeIconContainer}>
       <Kb.Icon
         type="iconfont-close"
         style={{padding: Kb.Styles.globalMargins.xtiny}}
         onClick={onHideChatBanner}
       />
-    </Kb.Box>
-  </Kb.Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  closeIcon: {
-    padding: Kb.Styles.globalMargins.xtiny,
-  },
   closeIconContainer: Kb.Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -54,28 +51,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   containerBanner: Kb.Styles.platformStyles({
     common: {
-      alignItems: 'center',
       backgroundColor: Kb.Styles.globalColors.blue,
       flexShrink: 0,
       position: 'relative',
-      width: '100%',
     },
     isElectron: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
       height: 212,
       justifyContent: 'flex-start',
       paddingRight: Kb.Styles.globalMargins.large,
     },
     isMobile: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
       justifyContent: 'center',
       padding: 24,
     },
   }),
   containerHeader: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-    },
     isElectron: {
       maxWidth: 360,
     },

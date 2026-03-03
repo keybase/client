@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PieSlice from './pie-slice'
@@ -71,7 +70,7 @@ function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string 
   }
 }
 
-const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
+function PathStatusIcon(props: Props) {
   return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
@@ -98,9 +97,9 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
   ) : props.isTlfType ? (
     <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
-    <Kb.Box style={styles.placeholder} />
+    <Kb.Box2 direction="vertical" style={styles.placeholder} />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {

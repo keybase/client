@@ -6,8 +6,8 @@ import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type Props = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -93,7 +93,7 @@ const PathItemInfo = (props: Props) => {
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
+        <Kb.Box2 direction="horizontal" style={styles.nameTextBox} justifyContent="center">{name}</Kb.Box2>
         {pathItem.type === T.FS.PathType.File && (
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
@@ -111,9 +111,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       nameTextBox: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
-          justifyContent: 'center',
         },
         isElectron: {
           textAlign: 'center',

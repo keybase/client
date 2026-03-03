@@ -1,9 +1,8 @@
-import * as React from 'react'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemAddedToTeamType from './container'
 
-const SystemAddedToTeam = React.memo(function SystemAddedToTeam(p: Props) {
+function SystemAddedToTeam(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -16,6 +15,6 @@ const SystemAddedToTeam = React.memo(function SystemAddedToTeam(p: Props) {
       <SystemAddedToTeam message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemAddedToTeam

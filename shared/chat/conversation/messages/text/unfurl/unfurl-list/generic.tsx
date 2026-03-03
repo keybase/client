@@ -1,14 +1,13 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import UnfurlImage from './image'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {getUnfurlInfo, useActions} from './use-state'
 
-const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
+function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
@@ -56,6 +55,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     ordinal
   )
 
+  const titleUrlProps = Kb.useClickURL(data?.url ?? '')
+
   if (!data) return null
 
   const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
@@ -63,7 +64,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-      {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
+      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
       <Kb.BoxGrow style={styles.fastStyle}>
         <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
           {siteName}
@@ -122,7 +123,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const rightImage =
     imageLocation === 'side' && mediaUrl ? (
       <Kb.Box2 direction="vertical">
-        <Kb.Image2 src={mediaUrl} style={styles.sideImage} />
+        <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null
 
@@ -131,7 +132,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
         {publisher}
-        <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={url}>
+        <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
           {title}
         </Kb.Text>
         {snippet}
@@ -140,7 +141,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {rightImage}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

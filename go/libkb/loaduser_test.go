@@ -16,7 +16,7 @@ func TestLoadUserPlusKeys(t *testing.T) {
 	m := NewMetaContextForTest(tc)
 
 	// this is kind of pointless as there is no cache anymore
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		u, err := LoadUserPlusKeys(m.Ctx(), tc.G, "295a7eea607af32040647123732bc819", "")
 		if err != nil {
 			t.Fatal(err)

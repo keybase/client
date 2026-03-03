@@ -1,9 +1,8 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
-import * as React from 'react'
+import * as AutoReset from '@/stores/autoreset'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const SelectOtherDeviceContainer = () => {
   const devices = useProvisionState(s => s.devices)
@@ -15,16 +14,13 @@ const SelectOtherDeviceContainer = () => {
   const onBack = useSafeSubmit(_onBack, false)
   const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
 
-  const onResetAccount = React.useCallback(() => {
+  const onResetAccount = () => {
     startAccountReset(false, username)
-  }, [startAccountReset, username])
+  }
 
-  const onSelect = React.useCallback(
-    (name: string) => {
-      if (!waiting) submitDeviceSelect?.(name)
-    },
-    [submitDeviceSelect, waiting]
-  )
+  const onSelect = (name: string) => {
+    if (!waiting) submitDeviceSelect?.(name)
+  }
 
   return (
     <SelectOtherDevice

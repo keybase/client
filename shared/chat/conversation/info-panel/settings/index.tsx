@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}
@@ -40,38 +39,38 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onShowClearConversationDialog = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
-  }, [navigateAppend])
+  const onShowClearConversationDialog = () => {
+    navigateAppend(conversationIDKey => ({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}}))
+  }
 
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = React.useCallback(() => hideConversation(true), [hideConversation])
-  const onUnhideConv = React.useCallback(() => hideConversation(false), [hideConversation])
-  const onShowBlockConversationDialog = React.useCallback(() => {
+  const onHideConv = () => hideConversation(true)
+  const onUnhideConv = () => hideConversation(false)
+  const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
       navigateAppend(conversationIDKey => ({
-        props: {
+        name: 'chatBlockingModal',
+        params: {
           blockUserByDefault: true,
           conversationIDKey,
           others: membersForBlock,
           team: teamname,
         },
-        selected: 'chatBlockingModal',
       }))
     } else {
       onHideConv()
     }
-  }, [membersForBlock, onHideConv, teamname, navigateAppend])
+  }
 
   const leaveConversation = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveConversation = React.useCallback(() => {
+  const onLeaveConversation = () => {
     leaveConversation()
-  }, [leaveConversation])
+  }
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID' as const},
-      selected: 'archiveModal',
+      name: 'archiveModal',
+      params: {conversationIDKey, type: 'chatID' as const},
     }))
   }
 

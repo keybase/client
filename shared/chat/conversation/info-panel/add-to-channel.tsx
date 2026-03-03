@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
@@ -23,11 +23,9 @@ const AddToChannel = (props: Props) => {
   const {channelname} = Teams.useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
-  const allMembers = React.useMemo(() => {
-    return [...teamDetails.members.values()]
-      .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
-      .sort((a, b) => a.username.localeCompare(b.username))
-  }, [teamDetails.members])
+  const allMembers = [...teamDetails.members.values()]
+    .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+    .sort((a, b) => a.username.localeCompare(b.username))
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
   )
@@ -116,7 +114,7 @@ const AddToChannel = (props: Props) => {
         style={styles.filterInput}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <Kb.List2
+        <Kb.List
           items={membersFiltered}
           renderItem={(idx, item) => {
             const alreadyIn = participants.includes(item.username)
@@ -130,7 +128,7 @@ const AddToChannel = (props: Props) => {
               }
             }
             return (
-              <Kb.ListItem2
+              <Kb.ListItem
                 firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
@@ -162,7 +160,7 @@ const AddToChannel = (props: Props) => {
               />
             )
           }}
-          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
           style={styles.list}
         />
       </Kb.Box2>

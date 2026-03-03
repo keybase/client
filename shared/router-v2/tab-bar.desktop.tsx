@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
@@ -13,13 +13,13 @@ import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
-import {settingsLogOutTab} from '@/constants/settings/util'
-import {useTrackerState} from '@/constants/tracker2'
-import {useFSState} from '@/constants/fs'
-import {useProfileState} from '@/constants/profile'
-import {useNotifState} from '@/constants/notifications'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {settingsLogOutTab} from '@/constants/settings'
+import {useTrackerState} from '@/stores/tracker'
+import {useFSState} from '@/stores/fs'
+import {useProfileState} from '@/stores/profile'
+import {useNotifState} from '@/stores/notifications'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useProvisionState} from '@/stores/provision'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -47,16 +47,16 @@ const Header = () => {
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
 
-  const onAddAccount = React.useCallback(() => {
+  const onAddAccount = () => {
     startProvision()
-  }, [startProvision])
-  const onHelp = React.useCallback(() => openURL('https://book.keybase.io'), [])
+  }
+  const onHelp = () => openURL('https://book.keybase.io')
   const {dumpLogs} = useConfigState(
     C.useShallow(s => ({
       dumpLogs: s.dispatch.dumpLogs,
     }))
   )
-  const onQuit = React.useCallback(() => {
+  const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
         stop()
@@ -69,7 +69,7 @@ const Header = () => {
     setTimeout(() => {
       ctlQuit?.()
     }, 2000)
-  }, [dumpLogs])
+  }
 
   const {navigateAppend, switchTab} = C.useRouterState(
     C.useShallow(s => ({
@@ -77,64 +77,61 @@ const Header = () => {
       switchTab: s.dispatch.switchTab,
     }))
   )
-  const onSettings = React.useCallback(() => switchTab(Tabs.settingsTab), [switchTab])
-  const onSignOut = React.useCallback(() => navigateAppend(settingsLogOutTab), [navigateAppend])
+  const onSettings = () => switchTab(Tabs.settingsTab)
+  const onSignOut = () => navigateAppend(settingsLogOutTab)
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuItems: Kb.MenuItems = [
-        {onClick: onAddAccount, title: 'Log in as another user'},
-        {onClick: onSettings, title: 'Settings'},
-        {onClick: onHelp, title: 'Help'},
-        {danger: true, onClick: onSignOut, title: 'Sign out'},
-        {danger: true, onClick: onQuit, title: 'Quit Keybase'},
-      ]
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const menuItems: Kb.MenuItems = [
+      {onClick: onAddAccount, title: 'Log in as another user'},
+      {onClick: onSettings, title: 'Settings'},
+      {onClick: onHelp, title: 'Help'},
+      {danger: true, onClick: onSignOut, title: 'Sign out'},
+      {danger: true, onClick: onQuit, title: 'Quit Keybase'},
+    ]
 
-      const onClickWrapper = () => {
-        hidePopup()
-        showUserProfile(username)
-      }
+    const onClickWrapper = () => {
+      hidePopup()
+      showUserProfile(username)
+    }
 
-      const menuHeader = (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-            <Kb.ConnectedNameWithIcon
-              username={username}
-              onClick={onClickWrapper}
-              metaTwo={
-                <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-                  {fullname}
-                </Kb.Text>
-              }
-            />
-          </Kb.ClickableBox>
-          <Kb.Button
-            label="View/Edit profile"
-            mode="Secondary"
+    const menuHeader = (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+          <Kb.ConnectedNameWithIcon
+            username={username}
             onClick={onClickWrapper}
-            small={true}
-            style={styles.button}
+            metaTwo={
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                {fullname}
+              </Kb.Text>
+            }
           />
-          <AccountSwitcher />
-        </Kb.Box2>
-      )
-
-      return (
-        <Kb.FloatingMenu
-          position="bottom left"
-          containerStyle={styles.menu}
-          header={menuHeader}
-          closeOnSelect={true}
-          visible={true}
-          attachTo={attachTo}
-          items={menuItems}
-          onHidden={hidePopup}
+        </Kb.ClickableBox>
+        <Kb.Button
+          label="View/Edit profile"
+          mode="Secondary"
+          onClick={onClickWrapper}
+          small={true}
+          style={styles.button}
         />
-      )
-    },
-    [fullname, onAddAccount, onHelp, onQuit, onSettings, onSignOut, username, showUserProfile]
-  )
+        <AccountSwitcher />
+      </Kb.Box2>
+    )
+
+    return (
+      <Kb.FloatingMenu
+        position="bottom left"
+        containerStyle={styles.menu}
+        header={menuHeader}
+        closeOnSelect={true}
+        visible={true}
+        attachTo={attachTo}
+        items={menuItems}
+        onHidden={hidePopup}
+      />
+    )
+  }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -182,15 +179,12 @@ const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs
 )
 const hotKeys = Object.keys(keysMap)
 
-const TabBar = React.memo(function TabBar(props: Props) {
+function TabBar(props: Props) {
   const {navigation, state} = props
   const username = useCurrentUserState(s => s.username)
-  const onHotKey = React.useCallback(
-    (cmd: string) => {
-      navigation.navigate(keysMap[cmd] as Tabs.Tab)
-    },
-    [navigation]
-  )
+  const onHotKey = (cmd: string) => {
+    navigation.navigate(keysMap[cmd] as Tabs.Tab)
+  }
   Kb.useHotKey(hotKeys, onHotKey)
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
@@ -219,7 +213,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
       <RuntimeStats />
     </Kb.Box2>
   ) : null
-})
+}
 
 type TabProps = {
   tab: Tabs.AppTab
@@ -240,7 +234,7 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
 
-const Tab = React.memo(function Tab(props: TabProps) {
+function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const isPeopleTab = index === 0
   const {label} = Tabs.desktopTabMeta[tab]
@@ -251,59 +245,43 @@ const Tab = React.memo(function Tab(props: TabProps) {
       setUserSwitching: s.dispatch.setUserSwitching,
     }))
   )
-  const onQuickSwitch = React.useMemo(
-    () =>
-      isPeopleTab
-        ? () => {
-            const accountRows = useConfigState.getState().configuredAccounts
-            const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
-            if (row) {
-              setUserSwitching(true)
-              login(row.username, '')
-            } else {
-              onSelectTab(tab)
-            }
-          }
-        : undefined,
-    [login, isPeopleTab, current, onSelectTab, tab, setUserSwitching]
-  )
+  const onQuickSwitch = isPeopleTab
+    ? () => {
+        const accountRows = useConfigState.getState().configuredAccounts
+        const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+        if (row) {
+          setUserSwitching(true)
+          login(row.username, '')
+        } else {
+          onSelectTab(tab)
+        }
+      }
+    : undefined
 
   // no long press on desktop so a quick version
   const [mouseTime, setMouseTime] = React.useState(0)
-  const onMouseUp = React.useMemo(
-    () =>
-      isPeopleTab
-        ? () => {
-            if (mouseTime && Date.now() - mouseTime > 1000) {
-              onQuickSwitch?.()
-            }
-            setMouseTime(0)
-          }
-        : undefined,
-    [isPeopleTab, onQuickSwitch, mouseTime]
-  )
-  const onMouseDown = React.useMemo(
-    () =>
-      isPeopleTab
-        ? () => {
-            setMouseTime(Date.now())
-          }
-        : undefined,
-    [isPeopleTab]
-  )
-  const onMouseLeave = React.useMemo(
-    () =>
-      isPeopleTab
-        ? () => {
-            setMouseTime(0)
-          }
-        : undefined,
-    [isPeopleTab]
-  )
+  const onMouseUp = isPeopleTab
+    ? () => {
+        if (mouseTime && Date.now() - mouseTime > 1000) {
+          onQuickSwitch?.()
+        }
+        setMouseTime(0)
+      }
+    : undefined
+  const onMouseDown = isPeopleTab
+    ? () => {
+        setMouseTime(Date.now())
+      }
+    : undefined
+  const onMouseLeave = isPeopleTab
+    ? () => {
+        setMouseTime(0)
+      }
+    : undefined
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     onSelectTab(tab)
-  }, [onSelectTab, tab])
+  }
 
   return (
     <Kb.ClickableBox
@@ -322,11 +300,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
           'tab-tooltip',
           'tooltip-top-right'
         )}
+          relative={true}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-        <Kb.Box2 style={styles.iconBox} direction="horizontal">
+        <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
           <Kb.Icon
             className="tab-icon"
             type={Tabs.desktopTabMeta[tab].icon}
@@ -342,17 +321,12 @@ const Tab = React.memo(function Tab(props: TabProps) {
       </Kb.Box2Measure>
     </Kb.ClickableBox>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatar: {marginLeft: 14},
-      badgeIcon: {
-        bottom: -4,
-        position: 'absolute',
-        right: 8,
-      },
       badgeIconUpload: {
         bottom: -Kb.Styles.globalMargins.xxtiny,
         height: Kb.Styles.globalMargins.xsmall,
@@ -370,10 +344,6 @@ const styles = Kb.Styles.styleSheetCreate(
       headerBox: {
         paddingTop: Kb.Styles.globalMargins.small,
       },
-      iconBox: {
-        justifyContent: 'flex-end',
-        position: 'relative',
-      },
       menu: {marginLeft: Kb.Styles.globalMargins.tiny},
       nameContainer: {height: 24},
       osButtons: Kb.Styles.platformStyles({
@@ -385,7 +355,6 @@ const styles = Kb.Styles.styleSheetCreate(
       tab: {
         alignItems: 'center',
         paddingRight: 12,
-        position: 'relative',
       },
       username: Kb.Styles.platformStyles({
         isElectron: {color: Kb.Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},

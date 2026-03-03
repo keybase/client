@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import * as React from 'react'
+import type * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
@@ -14,7 +14,7 @@ import {
   serviceOnlyNoWrapOutput,
 } from './react'
 import type * as T from '@/constants/types'
-import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
 import isArray from 'lodash/isArray'
 import {ErrorBoundary} from 'react-error-boundary'
 
@@ -417,7 +417,7 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
   )
 }
 
-const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
+function SimpleMarkdownComponent(p: MarkdownProps) {
   const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
   const {serviceOnlyNoWrap, disallowAnimation, context} = p
@@ -515,7 +515,7 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
       )}
     </ErrorBoundary>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({

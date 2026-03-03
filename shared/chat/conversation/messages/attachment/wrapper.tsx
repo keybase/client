@@ -1,11 +1,10 @@
-import * as React from 'react'
 import type AudioAttachmentType from './audio'
 import type FileAttachmentType from './file'
-import type ImageAttachmentType from './image2'
+import type ImageAttachmentType from './image'
 import type VideoAttachmentType from './video'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 
-export const WrapperAttachmentAudio = React.memo(function WrapperAttachmentAudio(p: Props) {
+export function WrapperAttachmentAudio(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {default: AudioAttachment} = require('./audio') as {default: typeof AudioAttachmentType}
@@ -14,8 +13,8 @@ export const WrapperAttachmentAudio = React.memo(function WrapperAttachmentAudio
       <AudioAttachment />
     </WrapperMessage>
   )
-})
-export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p: Props) {
+}
+export function WrapperAttachmentFile(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {showPopup} = common
@@ -27,8 +26,8 @@ export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p
       <FileAttachment showPopup={showPopup} />
     </WrapperMessage>
   )
-})
-export const WrapperAttachmentVideo = React.memo(function WrapperAttachmentVideo(p: Props) {
+}
+export function WrapperAttachmentVideo(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {showPopup} = common
@@ -39,16 +38,16 @@ export const WrapperAttachmentVideo = React.memo(function WrapperAttachmentVideo
       <VideoAttachment showPopup={showPopup} />
     </WrapperMessage>
   )
-})
-export const WrapperAttachmentImage = React.memo(function WrapperAttachmentImage(p: Props) {
+}
+export function WrapperAttachmentImage(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {showPopup} = common
-  const {default: ImageAttachment} = require('./image2') as {default: typeof ImageAttachmentType}
+  const {default: ImageAttachment} = require('./image') as {default: typeof ImageAttachmentType}
 
   return (
     <WrapperMessage {...p} {...common}>
       <ImageAttachment showPopup={showPopup} />
     </WrapperMessage>
   )
-})
+}

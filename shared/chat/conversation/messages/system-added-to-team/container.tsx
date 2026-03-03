@@ -1,16 +1,15 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
-const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContainer(p: OwnProps) {
+function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
   const meta = Chat.useChatContext(s => s.meta)
@@ -22,25 +21,25 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   const isTeam = teamType === 'big' || teamType === 'small'
 
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onManageNotifications = React.useCallback(() => {
+  const onManageNotifications = () => {
     showInfoPanel(true, 'settings')
-  }, [showInfoPanel])
+  }
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onViewBot = React.useCallback(() => {
+  const onViewBot = () => {
     navigateAppend(conversationIDKey => ({
-      props: {botUsername: addee, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: addee, conversationIDKey},
     }))
-  }, [navigateAppend, addee])
+  }
 
-  const onViewTeam = React.useCallback(() => {
+  const onViewTeam = () => {
     if (teamID) {
-      navigateAppend(() => ({props: {teamID}, selected: 'team'}))
+      navigateAppend(() => ({name: 'team', params: {teamID}}))
     } else {
       showInfoPanel(true, 'settings')
     }
-  }, [navigateAppend, showInfoPanel, teamID])
+  }
 
   const role = _role !== 'none' && isBot(_role) ? Teams.typeToLabel[_role].toLowerCase() : null
   const mc = (
@@ -92,7 +91,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 type Props = {
   addee: string
@@ -120,11 +119,11 @@ const ManageComponent = (props: Props) => {
   }
   if (addee === you) {
     return (
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
+      <Kb.Box2 direction="vertical">
         <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )
   } else if (bot) {
     return (

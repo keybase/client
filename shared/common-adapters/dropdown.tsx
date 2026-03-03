@@ -1,5 +1,5 @@
-import * as React from 'react'
-import Box, {Box2, Box2Measure} from './box'
+import type * as React from 'react'
+import {Box2, Box2Measure} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -14,7 +14,6 @@ import type {MeasureRef} from './measure-ref'
 import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
-  Box,
   Box2,
   Box2Measure,
   ClickableBox,
@@ -64,9 +63,9 @@ export const DropdownButton = (props: DropdownButtonProps) => {
           {width: inline ? undefined : '100%'},
         ])}
       >
-        <Kb.Box style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
           {loading ? <Kb.ProgressIndicator type="Small" /> : selected}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Icon
           type="iconfont-caret-down"
           inheritColor={true}
@@ -96,59 +95,53 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const {position, itemBoxStyle, items, selected} = p
   const {bottom} = Kb.useSafeAreaInsets()
 
-  const makePopup = React.useCallback(
-    (p: Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.Overlay
-          style={Styles.collapseStyles([styles.overlay, overlayStyle])}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          position={position || 'center center'}
-        >
-          <Kb.ScrollView style={styles.scrollView} contentInset={{bottom}}>
-            {items.map((i: N, idx) => (
-              <Kb.ClickableBox
-                key={idx}
-                onClick={evt => {
-                  evt.stopPropagation()
-                  evt.preventDefault()
-                  // Bug in flow that doesn't let us just call this function
-                  // onSelect(i)
-                  onChangedIdx?.(idx)
-                  hidePopup()
-                }}
-                style={styles.itemClickBox}
+  const makePopup = (p: Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.Overlay
+        style={Styles.collapseStyles([styles.overlay, overlayStyle])}
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        position={position || 'center center'}
+      >
+        <Kb.ScrollView style={styles.scrollView} contentInset={{bottom}}>
+          {items.map((i: N, idx) => (
+            <Kb.ClickableBox
+              key={idx}
+              onClick={evt => {
+                evt.stopPropagation()
+                evt.preventDefault()
+                // Bug in flow that doesn't let us just call this function
+                // onSelect(i)
+                onChangedIdx?.(idx)
+                hidePopup()
+              }}
+              style={styles.itemClickBox}
+            >
+              <Kb.Box2
+                direction="vertical"
+                style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
+                className="hover_background_color_blueLighter2"
               >
-                <Kb.Box2
-                  direction="vertical"
-                  style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
-                  className="hover_background_color_blueLighter2"
-                >
-                  {i}
-                </Kb.Box2>
-              </Kb.ClickableBox>
-            ))}
-          </Kb.ScrollView>
-        </Kb.Overlay>
-      )
-    },
-    [bottom, items, onChangedIdx, overlayStyle, position, itemBoxStyle]
-  )
+                {i}
+              </Kb.Box2>
+            </Kb.ClickableBox>
+          ))}
+        </Kb.ScrollView>
+      </Kb.Overlay>
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  const toggleOpen = React.useCallback(
-    (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation()
-      evt?.preventDefault()
-      showPopup()
-    },
-    [showPopup]
-  )
+  const toggleOpen = (evt?: React.BaseSyntheticEvent) => {
+    evt?.stopPropagation()
+    evt?.preventDefault()
+    showPopup()
+  }
 
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.overlayContainer, style])}>
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.overlayContainer, style])}>
       <DropdownButton
         disabled={disabled}
         selected={selected}
@@ -157,7 +150,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
         toggleOpen={toggleOpen}
       />
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -288,9 +281,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       selectedBox: {
-        ...Styles.globalStyles.flexBoxCenter,
         minHeight: regularHeight,
-        width: '100%',
       },
     }) as const
 )

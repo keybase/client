@@ -1,6 +1,6 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 type OwnProps = {
   username: string
@@ -32,9 +32,9 @@ const Container = (ownProps: OwnProps) => {
           colorFollowing={true}
           lineClamp={1}
         />
-        <Kb.Text2 type="BodySmall" lineClamp={1} style={styles.fullname}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
           {fullname}
-        </Kb.Text2>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox>
   )

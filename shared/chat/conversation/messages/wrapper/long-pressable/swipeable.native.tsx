@@ -2,7 +2,7 @@ import * as React from 'react'
 import {StyleSheet, View, Animated, PanResponder} from 'react-native'
 
 // A row swipe container. Shows an action which triggers on a full swipe
-export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
+export function SwipeTrigger(p: {
   children: React.ReactNode
   actionWidth: number
   makeAction: () => React.ReactNode
@@ -11,17 +11,17 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
   const [pan] = React.useState(new Animated.ValueXY())
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const {children, makeAction, onSwiped} = p
-  const resetPosition = React.useCallback(() => {
+  const resetPosition = () => {
     setHasSwiped(false)
     Animated.timing(pan, {
       duration: 200,
       toValue: {x: 0, y: 0},
       useNativeDriver: true,
     }).start()
-  }, [pan])
+  }
 
   const threshold = 40
-  const panResponder = React.useMemo(() => {
+  const panResponder = (() => {
     let running = false
     return PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
@@ -68,11 +68,9 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       },
       onStartShouldSetPanResponder: () => false,
     })
-  }, [onSwiped, pan, resetPosition])
+  })()
 
-  const action = React.useMemo((): React.ReactNode => {
-    return hasSwiped ? makeAction() : null
-  }, [makeAction, hasSwiped])
+  const action: React.ReactNode = hasSwiped ? makeAction() : null
 
   return (
     <View style={styles.container}>
@@ -85,7 +83,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       </Animated.View>
     </View>
   )
-})
+}
 
 const styles = StyleSheet.create({
   actionContainerTrigger: {

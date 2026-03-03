@@ -1,6 +1,6 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Style from '@/styles'
 import type * as T from '@/constants/types'
@@ -71,23 +71,20 @@ type DropdownProps = {
 
 const Dropdown = (p: DropdownProps) => {
   const {items, minWriterRole, saving} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          items={items}
-          onHidden={hidePopup}
-          position="top center"
-          positionFallbacks={positionFallbacks}
-        />
-      )
-    },
-    [items]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        visible={true}
+        items={items}
+        onHidden={hidePopup}
+        position="top center"
+        positionFallbacks={positionFallbacks}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
@@ -136,7 +133,6 @@ const styles = Style.styleSheetCreate(
       }),
       label: {
         alignItems: 'center',
-        justifyContent: 'flex-start',
         minHeight: Style.isMobile ? 40 : 32,
         paddingLeft: Style.globalMargins.xsmall,
         width: '100%',

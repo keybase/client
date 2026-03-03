@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
@@ -48,17 +48,10 @@ const NewTeamInfo = () => {
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
   const checkTeam = C.useDebouncedCallback(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100)
-  type TeamNameParams = Parameters<typeof checkTeam>
-  const checkTeamNameTaken = React.useCallback(
-    (teamNames: TeamNameParams[0], cb: TeamNameParams[1], eb: TeamNameParams[2]) => {
-      checkTeam(teamNames, cb, eb)
-    },
-    [checkTeam]
-  )
 
   React.useEffect(() => {
     if (name.length >= minLength) {
-      checkTeamNameTaken(
+      checkTeam(
         [{teamName: {parts: teamname.split('.')}}],
         ({exists, status}) => {
           setTeamNameTaken(exists)
@@ -70,7 +63,7 @@ const NewTeamInfo = () => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [teamname, name.length, setTeamNameTaken, checkTeamNameTaken, setTeamNameTakenStatus, minLength])
+  }, [teamname, name.length, checkTeam, minLength])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(
@@ -252,9 +245,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   extraLineText: {
     height: 36,
   },
@@ -265,11 +255,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
 }))
 
 export default NewTeamInfo

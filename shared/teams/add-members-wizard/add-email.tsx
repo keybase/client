@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
@@ -116,15 +116,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   errorText: {color: Kb.Styles.globalColors.redDark},
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
 }))
 
 export default AddEmail

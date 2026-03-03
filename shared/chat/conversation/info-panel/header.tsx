@@ -1,6 +1,5 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
@@ -26,24 +25,21 @@ const TeamHeader = () => {
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <InfoPanelMenu
-            attachTo={attachTo}
-            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={hidePopup}
-            hasHeader={false}
-            isSmallTeam={isSmallTeam}
-            visible={true}
-          />
-        </Chat.ChatProvider>
-      )
-    },
-    [conversationIDKey, isSmallTeam]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <InfoPanelMenu
+          attachTo={attachTo}
+          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+          onHidden={hidePopup}
+          hasHeader={false}
+          isSmallTeam={isSmallTeam}
+          visible={true}
+        />
+      </Chat.ChatProvider>
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -69,12 +65,13 @@ const TeamHeader = () => {
             />
           </>
         ) : (
-          <Kb.Box2 direction="vertical" gap="xxtiny" style={styles.channelnameContainer}>
+          <Kb.Box2 direction="vertical" gap="xxtiny" flex={1}>
             <Kb.Box2
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              style={styles.textWrapper}
+              flex={1}
+              justifyContent="space-between"
             >
               <Kb.Text lineClamp={1} type="Body" style={styles.channelName}>
                 # <Kb.Text type="BodyBold">{channelname}</Kb.Text>
@@ -93,7 +90,8 @@ const TeamHeader = () => {
               alignSelf="flex-start"
               direction="horizontal"
               fullWidth={true}
-              style={styles.textWrapper}
+              flex={1}
+              justifyContent="space-between"
             >
               <Kb.Box2 direction="horizontal" gap="xtiny">
                 <Kb.Avatar teamname={teamname} size={16} />
@@ -144,8 +142,8 @@ export const AdhocHeader = () => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey},
-      selected: 'chatShowNewTeamDialog',
+      name: 'chatShowNewTeamDialog',
+      params: {conversationIDKey},
     }))
   }
   return (
@@ -172,26 +170,13 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.small,
       },
-      adhocPartContainer: {padding: Kb.Styles.globalMargins.tiny},
-      adhocScrollContainer: Kb.Styles.platformStyles({
-        isElectron: {maxHeight: 230},
-        isMobile: {maxHeight: 220},
-      }),
       channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      channelnameContainer: {flex: 1},
       description: {
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
       },
-      editBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        position: 'absolute',
-        right: -50,
-        top: Kb.Styles.isMobile ? 2 : 1,
-      },
-      editIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
       floatingMenuContainerStyle: Kb.Styles.platformStyles({
         isElectron: {
@@ -211,10 +196,6 @@ const styles = Kb.Styles.styleSheetCreate(
       smallContainer: {
         alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.small,
-      },
-      textWrapper: {
-        flex: 1,
-        justifyContent: 'space-between',
       },
     }) as const
 )

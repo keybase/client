@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
-import {useTrackerState} from '@/constants/tracker2'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
@@ -113,7 +113,7 @@ const TeamRow = (p: RowProps) => {
 }
 
 const ShowcaseTeamOfferHeader = () => (
-  <Kb.Box style={styles.headerContainer}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
     {!Kb.Styles.isMobile && (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
         <Kb.Text type="Header">{"Feature the teams you're in"}</Kb.Text>
@@ -125,7 +125,7 @@ const ShowcaseTeamOfferHeader = () => (
         members will be public.
       </Kb.Text>
     </Kb.InfoNote>
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

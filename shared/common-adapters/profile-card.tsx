@@ -2,32 +2,31 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as Platforms from '@/util/platforms'
-import * as Tracker from '@/constants/tracker2'
+import * as Tracker from '@/stores/tracker'
 import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2, Box2Measure} from './box'
+import {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon'
 import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import Meta from './meta'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useProfileState} from '@/stores/profile'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
-import {useTrackerState} from '@/constants/tracker2'
+import {useTrackerState} from '@/stores/tracker'
 import type {MeasureRef} from './measure-ref'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
-  Box,
   Box2,
   Box2Measure,
   ClickableBox,
@@ -178,16 +177,13 @@ const ProfileCard = ({
   ])
 
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _changeFollow = React.useCallback(
-    (follow: boolean) => changeFollow(userDetails.guiID, follow),
-    [changeFollow, userDetails]
-  )
+  const _changeFollow = (follow: boolean) => changeFollow(userDetails.guiID, follow)
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const openProfile = React.useCallback(() => {
+  const openProfile = () => {
     showUserProfile(username)
     onHide?.()
-  }, [showUserProfile, onHide, username])
+  }
 
   const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
     default: typeof FollowButtonType
@@ -258,19 +254,16 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
-  const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
+  const onLayoutChange = () => setRemeasureHint(Date.now())
   const you = useCurrentUserState(s => s.username)
   const isSelf = you === username
-  const onShow = C.useDebouncedCallback(
-    React.useCallback(() => {
-      setShowing(true)
-    }, []),
-    200
-  )
-  const onHide = React.useCallback(() => {
+  const onShow = C.useDebouncedCallback(() => {
+    setShowing(true)
+  }, 200)
+  const onHide = () => {
     onShow.cancel()
     setShowing(false)
-  }, [onShow])
+  }
 
   if (isSelf) {
     return children()

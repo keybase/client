@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -9,7 +8,7 @@ type Props = {
 
 export const ContactRestricted = (props: Props) => {
   const nav = useSafeNavigation()
-  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onBack = () => nav.safeNavigateUp()
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []
@@ -76,7 +75,7 @@ export const ContactRestricted = (props: Props) => {
         {disallowedUsers.length > 0 && (
           <>
             {disallowedUsers.map((username, idx) => (
-              <Kb.ListItem2
+              <Kb.ListItem
                 key={username}
                 type={Kb.Styles.isMobile ? 'Large' : 'Small'}
                 icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
@@ -113,10 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flex: 1,
     },
   }),
-  icon: {
-    marginBottom: Kb.Styles.globalMargins.medium,
-    marginTop: Kb.Styles.globalMargins.xlarge,
-  },
   text: {
     margin: Kb.Styles.globalMargins.small,
   },

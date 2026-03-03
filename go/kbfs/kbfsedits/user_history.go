@@ -7,6 +7,7 @@ package kbfsedits
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -178,13 +179,7 @@ func (uh *UserHistory) Get(loggedInUser string) (
 		// Only include public TLFs if they match the logged-in user.
 		if history.Folder.FolderType == keybase1.FolderType_PUBLIC {
 			names := strings.Split(history.Folder.Name, ",")
-			match := false
-			for _, name := range names {
-				if name == loggedInUser {
-					match = true
-					break
-				}
-			}
+			match := slices.Contains(names, loggedInUser)
 			if !match {
 				continue
 			}

@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
-import {getAssetPath} from '@/constants/platform.desktop'
 import {useColorScheme} from 'react-native'
 
 export const animationDuration = 2000
@@ -59,7 +57,6 @@ const ExplodingHeightRetainer = (p: Props) => {
 
 const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
   const {doneExploding, explodedBy, exploded, height} = props
-  const isDarkMode = useColorScheme() === 'dark'
   let explodedTag: React.ReactNode = null
   if (doneExploding) {
     explodedTag = explodedBy ? (
@@ -87,26 +84,8 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
 
   return (
     <div
-      className={Kb.Styles.classNames('ashbox', {'full-width': exploded})}
-      style={Kb.Styles.castStyleDesktop(
-        Kb.Styles.collapseStyles([
-          styles.ashBox,
-          Kb.Styles.platformStyles({
-            isElectron: {
-              backgroundImage:
-                (isDarkMode
-                  ? urlsToImgSet(
-                      {'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')},
-                      68
-                    )
-                  : urlsToImgSet(
-                      {'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')},
-                      68
-                    )) ?? '',
-            },
-          }),
-        ])
-      )}
+      className={Kb.Styles.classNames('ashbox', 'ashes-bg', {'full-width': exploded})}
+      style={Kb.Styles.castStyleDesktop(Kb.Styles.collapseStyles([styles.ashBox]))}
     >
       {exploded && explodedTag}
       <FlameFront height={height} stop={doneExploding} />
@@ -114,7 +93,7 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   )
 }
 
-const FlameFront = React.memo(function FlameFront(props: {height: number; stop: boolean}) {
+function FlameFront(props: {height: number; stop: boolean}) {
   const isDarkMode = useColorScheme() === 'dark'
   if (props.stop) {
     return null
@@ -123,17 +102,17 @@ const FlameFront = React.memo(function FlameFront(props: {height: number; stop: 
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(
-      <Kb.Box key={String(i)} style={styles.flame}>
+      <Kb.Box2 direction="vertical" key={String(i)} style={styles.flame}>
         <Kb.Animation animationType={isDarkMode ? 'darkExploding' : 'exploding'} width={64} height={64} />
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
   return (
-    <Kb.Box className="flame-container" style={styles.flameContainer}>
+    <Kb.Box2 direction="vertical" className="flame-container" style={styles.flameContainer}>
       {children}
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -149,7 +128,7 @@ const styles = Kb.Styles.styleSheetCreate(
           top: 0,
         },
       }),
-      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+      container: {flex: 1},
       exploded: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white,

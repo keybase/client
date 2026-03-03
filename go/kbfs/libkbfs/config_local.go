@@ -224,10 +224,7 @@ func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
 	capacity := uint64(data.MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
-		ramBased := vmstat.Total / 8
-		if ramBased < minCapacity {
-			ramBased = minCapacity
-		}
+		ramBased := max(vmstat.Total/8, minCapacity)
 		if ramBased < capacity {
 			capacity = ramBased
 		}

@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import type {StylesCrossPlatform} from '@/styles'
@@ -37,31 +37,18 @@ const RetentionPicker = (p: Props) => {
 
   const userSelectedRef = React.useRef(false)
 
-  const setSelected = React.useCallback(
-    (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
+  const setSelected = (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
       if (userSelected) {
         userSelectedRef.current = userSelected
       }
       _setSelected(r)
-    },
-    [_setSelected]
-  )
+    }
 
   const showSaved = React.useRef(false)
 
-  const setInitialSelected = React.useCallback(
-    (p?: T.Retention.RetentionPolicy) => {
-      setSelected(p || policy, false)
-    },
-    [setSelected, policy]
-  )
-
-  const isSelected = React.useCallback(
-    (p: T.Retention.RetentionPolicy) => {
+  const isSelected = (p: T.Retention.RetentionPolicy) => {
       return policyEquals(policy, p)
-    },
-    [policy]
-  )
+    }
 
   const modalConfirmed = useConfirm(s => s.confirmed)
   const modalOpen = useConfirm(s => s.modalOpen)
@@ -74,10 +61,10 @@ const RetentionPicker = (p: Props) => {
     if (lastModalOpen !== modalOpen) {
       setLastModalOpen(modalOpen)
       if (!modalOpen) {
-        setInitialSelected()
+        setSelected(policy, false)
       }
     }
-  }, [lastModalOpen, modalOpen, setInitialSelected])
+  }, [lastModalOpen, modalOpen, policy])
 
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
@@ -103,8 +90,8 @@ const RetentionPicker = (p: Props) => {
           showSaved.current = false
           if (selected) {
             navigateAppend({
-              props: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
-              selected: 'retentionWarning',
+              name: 'retentionWarning',
+              params: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
             })
           }
         } else {
@@ -129,14 +116,13 @@ const RetentionPicker = (p: Props) => {
         // we just got updated retention policy matching the selected one
         setSaving(false)
       } // we could show a notice that we received a new value in an else block
-      setInitialSelected(policy)
+      setSelected(policy, false)
     }
     lastPolicy.current = policy
     lastTeamPolicy.current = teamPolicy
-  }, [policy, teamPolicy, selected, setInitialSelected])
+  }, [policy, teamPolicy, selected])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
 
       const makeItems = () => {
@@ -208,24 +194,22 @@ const RetentionPicker = (p: Props) => {
           position="top center"
         />
       )
-    },
-    [isSelected, setSelected, showInheritOption, teamPolicy]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, containerStyle])}>
+    <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
       {popup}
-      <Kb.Box style={styles.heading}>
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.ClickableBox
         onClick={showPopup}
         ref={popupAnchor}
         style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
         underlayColor={Kb.Styles.globalColors.white_40}
       >
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
@@ -238,7 +222,7 @@ const RetentionPicker = (p: Props) => {
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
       {showSaveIndicator && <SaveIndicator saving={saving} style={styles.saveState} />}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -263,12 +247,12 @@ const RetentionDisplay = (
   }
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
+    <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -279,12 +263,9 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: 2,
       },
       heading: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
       label: {
-        justifyContent: 'flex-start',
         minHeight: Kb.Styles.isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },

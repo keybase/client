@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -1223,18 +1224,16 @@ func (ccs *crChains) findPathForDeleted(mostRecent data.BlockPointer) data.Path 
 			if !ok {
 				continue
 			}
-			for _, unref := range ro.Unrefs() {
-				if unref == mostRecent {
-					// If the path isn't set yet, recurse.
-					p := ro.getFinalPath()
-					if !p.IsValid() {
-						p = ccs.findPathForDeleted(ptr)
-						ro.setFinalPath(p)
-					}
-					return p.ChildPath(
-						ro.obfuscatedOldName(), mostRecent,
-						ccs.makeObfuscator())
+			if slices.Contains(ro.Unrefs(), mostRecent) {
+				// If the path isn't set yet, recurse.
+				p := ro.getFinalPath()
+				if !p.IsValid() {
+					p = ccs.findPathForDeleted(ptr)
+					ro.setFinalPath(p)
 				}
+				return p.ChildPath(
+					ro.obfuscatedOldName(), mostRecent,
+					ccs.makeObfuscator())
 			}
 		}
 	}
@@ -1272,18 +1271,16 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) data.Path {
 			if !ok {
 				continue
 			}
-			for _, ref := range co.Refs() {
-				if ref == createdChain.original {
-					// If the path isn't set yet, recurse.
-					p := co.getFinalPath()
-					if !p.IsValid() {
-						p = ccs.findPathForCreated(chain)
-						co.setFinalPath(p)
-					}
-					return p.ChildPath(
-						co.obfuscatedNewName(), mostRecent,
-						ccs.makeObfuscator())
+			if slices.Contains(co.Refs(), createdChain.original) {
+				// If the path isn't set yet, recurse.
+				p := co.getFinalPath()
+				if !p.IsValid() {
+					p = ccs.findPathForCreated(chain)
+					co.setFinalPath(p)
 				}
+				return p.ChildPath(
+					co.obfuscatedNewName(), mostRecent,
+					ccs.makeObfuscator())
 			}
 		}
 	}

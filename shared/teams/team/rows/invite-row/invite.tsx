@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -18,7 +17,7 @@ export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
   const text2 = subLabel ? `${subLabel} · ${Teams.typeToLabel[role]}` : Teams.typeToLabel[role]
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       icon={<Kb.Avatar username={isKeybaseUser ? label : '+'} size={32} />}
       body={
@@ -40,8 +39,7 @@ export const TeamInviteRow = (props: Props) => {
 
 const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
   const {onCancelInvite} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -52,9 +50,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
           attachTo={attachTo}
         />
       )
-    },
-    [onCancelInvite]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>

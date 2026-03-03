@@ -15,11 +15,11 @@ type testAttempt struct {
 	failed bool
 }
 
-func (t *testAttempt) Error(args ...interface{}) {
+func (t *testAttempt) Error(args ...any) {
 	t.Log(args...)
 }
 
-func (t *testAttempt) Errorf(format string, args ...interface{}) {
+func (t *testAttempt) Errorf(format string, args ...any) {
 	t.Logf(format, args...)
 }
 
@@ -42,7 +42,7 @@ func (t *testAttempt) Failed() bool {
 	return t.failed
 }
 
-func (t *testAttempt) Fatal(args ...interface{}) {
+func (t *testAttempt) Fatal(args ...any) {
 	t.Log(args...)
 	t.Lock()
 	t.failed = true
@@ -50,7 +50,7 @@ func (t *testAttempt) Fatal(args ...interface{}) {
 	panic("Fatal call")
 }
 
-func (t *testAttempt) Fatalf(format string, args ...interface{}) {
+func (t *testAttempt) Fatalf(format string, args ...any) {
 	t.Logf(format, args...)
 	t.Lock()
 	t.failed = true
@@ -58,11 +58,11 @@ func (t *testAttempt) Fatalf(format string, args ...interface{}) {
 	panic("Fatalf call")
 }
 
-func (t *testAttempt) Log(args ...interface{}) {
+func (t *testAttempt) Log(args ...any) {
 	t.t.Log(args...)
 }
 
-func (t *testAttempt) Logf(format string, args ...interface{}) {
+func (t *testAttempt) Logf(format string, args ...any) {
 	t.t.Logf(format, args...)
 }
 
@@ -70,7 +70,7 @@ func (t *testAttempt) Name() string {
 	return t.t.Name()
 }
 
-func (t *testAttempt) Skip(args ...interface{}) {
+func (t *testAttempt) Skip(args ...any) {
 	t.t.Skip(args...)
 }
 
@@ -78,7 +78,7 @@ func (t *testAttempt) SkipNow() {
 	t.t.SkipNow()
 }
 
-func (t *testAttempt) Skipf(format string, args ...interface{}) {
+func (t *testAttempt) Skipf(format string, args ...any) {
 	t.t.Skipf(format, args...)
 }
 

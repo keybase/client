@@ -1,6 +1,9 @@
 import Foundation
 import UserNotifications
 import Keybasego
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "push")
 
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
    func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
@@ -14,15 +17,15 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     let request = UNNotificationRequest(identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
       if let error = error {
-        NSLog("local notification failed: %@", error.localizedDescription)
+        log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
       }
     }
   }
-  
+
   func display(_ n: KeybaseChatNotification?) {
     guard let notification = n else { return }
     guard let message = notification.message else { return }
-    
+
     let ident = "\(notification.convID):\(message.id_)"
     let msg: String
     if notification.isPlaintext && !message.plaintext.isEmpty {

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/gammazero/workerpool"
@@ -797,7 +798,8 @@ func (bt *blockTree) String() string {
 	level := []BlockWithPtrs{block}
 	// TODO: use a `bytes.Buffer` instead of a regular string here if
 	// we ever use this function from real code.
-	res := "\n---------------\n"
+	var res strings.Builder
+	res.WriteString("\n---------------\n")
 	for len(level) > 0 {
 		var nextLevel []BlockWithPtrs
 		for i, block := range level {
@@ -806,7 +808,7 @@ func (bt *blockTree) String() string {
 			}
 			for j := 0; j < block.NumIndirectPtrs(); j++ {
 				info, off := block.IndirectPtr(j)
-				res += fmt.Sprintf("\"%s\" ", off)
+				fmt.Fprintf(&res, "\"%s\" ", off)
 				if info.DirectType == DirectBlock {
 					continue
 				}
@@ -818,14 +820,14 @@ func (bt *blockTree) String() string {
 				nextLevel = append(nextLevel, child)
 			}
 			if i+1 < len(level) {
-				res += "| "
+				res.WriteString("| ")
 			}
 		}
-		res += "\n"
+		res.WriteString("\n")
 		level = nextLevel
 	}
-	res += "---------------\n"
-	return res
+	res.WriteString("---------------\n")
+	return res.String()
 }
 
 // shiftBlocksToFillHole should be called after newRightBlock when the
@@ -1115,10 +1117,7 @@ func (bt *blockTree) readyHelper(
 	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
 		eg, groupCtx := errgroup.WithContext(ctx)
 		indices := make(chan int, len(pathsFromRoot))
-		numWorkers := len(pathsFromRoot)
-		if numWorkers > maxParallelReadies {
-			numWorkers = maxParallelReadies
-		}
+		numWorkers := min(len(pathsFromRoot), maxParallelReadies)
 
 		worker := func() error {
 			for i := range indices {
@@ -1131,11 +1130,11 @@ func (bt *blockTree) readyHelper(
 			}
 			return nil
 		}
-		for i := 0; i < numWorkers; i++ {
+		for range numWorkers {
 			eg.Go(worker)
 		}
 
-		for i := 0; i < len(pathsFromRoot); i++ {
+		for i := range pathsFromRoot {
 			indices <- i
 		}
 		close(indices)

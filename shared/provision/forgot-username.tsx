@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useProvisionState} from '@/constants/provision'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useProvisionState} from '@/stores/provision'
 
 const ForgotUsername = () => {
   const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
@@ -27,13 +27,13 @@ const ForgotUsername = () => {
 
   const forgotUsername = useProvisionState(s => s.dispatch.forgotUsername)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!emailSelected && phoneNumber) {
       forgotUsername(phoneNumber)
     } else if (emailSelected) {
       forgotUsername(undefined, email)
     }
-  }, [forgotUsername, email, phoneNumber, emailSelected])
+  }
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === undefined) || (emailSelected && !email)

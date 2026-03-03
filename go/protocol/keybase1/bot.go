@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/bot.avdl
 
 package keybase1
@@ -28,9 +28,11 @@ func (o BotTokenInfo) DeepCopy() BotTokenInfo {
 	}
 }
 
-type BotTokenListArg struct{}
+type BotTokenListArg struct {
+}
 
-type BotTokenCreateArg struct{}
+type BotTokenCreateArg struct {
+}
 
 type BotTokenDeleteArg struct {
 	Token BotToken `codec:"token" json:"token"`
@@ -47,31 +49,31 @@ func BotProtocol(i BotInterface) rpc.Protocol {
 		Name: "keybase.1.bot",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"botTokenList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BotTokenListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.BotTokenList(ctx)
 					return
 				},
 			},
 			"botTokenCreate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BotTokenCreateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.BotTokenCreate(ctx)
 					return
 				},
 			},
 			"botTokenDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BotTokenDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BotTokenDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BotTokenDeleteArg)(nil), args)
@@ -90,17 +92,17 @@ type BotClient struct {
 }
 
 func (c BotClient) BotTokenList(ctx context.Context) (res []BotTokenInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenList", []interface{}{BotTokenListArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenList", []any{BotTokenListArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BotClient) BotTokenCreate(ctx context.Context) (res BotToken, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenCreate", []interface{}{BotTokenCreateArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenCreate", []any{BotTokenCreateArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BotClient) BotTokenDelete(ctx context.Context, token BotToken) (err error) {
 	__arg := BotTokenDeleteArg{Token: token}
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenDelete", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

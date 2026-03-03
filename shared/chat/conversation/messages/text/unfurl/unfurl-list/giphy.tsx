@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
-import * as React from 'react'
 import UnfurlImage from './image'
 import * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {getUnfurlInfo, useActions} from './use-state'
 
-const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
+function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
@@ -48,9 +47,9 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">
-            {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
+            {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall" style={styles.fastStyle}>
               Giphy
             </Kb.Text>
@@ -79,7 +78,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -109,12 +108,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 16,
         width: 16,
       },
-      imageContainer: Kb.Styles.platformStyles({
-        isMobile: {
-          alignSelf: 'flex-start',
-          padding: Kb.Styles.globalMargins.xxtiny,
-        },
-      }),
       innerContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -136,7 +129,6 @@ const styles = Kb.Styles.styleSheetCreate(
       siteNameContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          justifyContent: 'space-between',
         },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.xxtiny,

@@ -143,9 +143,6 @@ export default Feedback
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        common: {flex: 1},
-      }),
       includeLogs: {
         ...Kb.Styles.globalStyles.fullWidth,
       },
@@ -166,7 +163,5 @@ const styles = Kb.Styles.styleSheetCreate(
           width: Kb.Styles.globalStyles.largeWidthPercent,
         },
       }),
-      outerStyle: {backgroundColor: Kb.Styles.globalColors.white},
-      smallLabel: {color: Kb.Styles.globalColors.black},
     }) as const
 )

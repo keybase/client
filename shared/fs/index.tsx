@@ -5,8 +5,8 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -72,7 +72,7 @@ const Connected = (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
-    navigateAppend({props: {path}, selected: 'barePreview'})
+    navigateAppend({name: 'barePreview', params: {path}})
   }
   const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {

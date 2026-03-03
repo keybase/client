@@ -55,7 +55,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
     navRef.current = navigation
   }, [navigation])
 
-  const onSelectTab = React.useCallback((tab: string) => {
+  const onSelectTab = (tab: string) => {
     const r = routesRef.current?.find((r: {name?: string; key?: string}) => {
       return r.name === tab
     })
@@ -65,7 +65,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
       ? navRef.current.emit({
           canPreventDefault: true,
           target: key,
-          // @ts-ignore
+          // @ts-ignore tabPress is valid but not in the emit type
           type: 'tabPress',
         })
       : {defaultPrevented: false}
@@ -76,7 +76,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
         target: stateKeyRef.current,
       })
     }
-  }, [])
+  }
 
   return onSelectTab
 }

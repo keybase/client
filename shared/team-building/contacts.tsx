@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useTBContext} from '@/constants/team-building'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useTBContext} from '@/stores/team-building'
 
 const useContactsProps = () => {
   const contactsImported = useSettingsContactsState(s => s.importEnabled)
@@ -18,12 +18,12 @@ const useContactsProps = () => {
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled
 
-  const onImportContactsPermissionsGranted = React.useCallback(() => {
+  const onImportContactsPermissionsGranted = () => {
     editContactImportEnabled(true, false)
-  }, [editContactImportEnabled])
-  const onImportContactsPermissionsNotGranted = React.useCallback(() => {
+  }
+  const onImportContactsPermissionsNotGranted = () => {
     requestPermissions(true, false)
-  }, [requestPermissions])
+  }
 
   const onImportContacts =
     contactsPermissionStatus === 'denied'
@@ -95,7 +95,7 @@ export const ContactsBanner = (props: {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-contact-import-mobile-72-96" style={styles.bannerIcon} />
-      <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
+      <Kb.Box2 direction="vertical" flex={1} justifyContent="center">
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
@@ -180,10 +180,6 @@ const styles = Kb.Styles.styleSheetCreate(
       bannerText: {
         flexWrap: 'wrap',
         marginTop: Kb.Styles.globalMargins.tiny,
-      },
-      bannerTextContainer: {
-        flex: 1,
-        justifyContent: 'center',
       },
       iconContactBookContainer: {
         alignItems: 'center',

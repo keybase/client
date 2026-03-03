@@ -3,12 +3,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import peopleTeamBuilder from '../team-building/page'
 import ProfileSearch from '../profile/search'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = React.useCallback(() => navigateAppend('accountSwitcher'), [navigateAppend])
+  const onClick = () => navigateAppend('accountSwitcher')
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
@@ -27,5 +27,3 @@ export const newModalRoutes = {
   accountSwitcher: {screen: React.lazy(async () => import('../router-v2/account-switcher'))},
   peopleTeamBuilder,
 }
-
-export type RootParamListPeople = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

@@ -38,7 +38,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	if key != key2 {
 		t.Fatal("keys are unequal")
 	}
-	for i := 0; i < 11; i++ {
+	for i := range 11 {
 		id = tlf.FakeID(byte(i), tlf.Public)
 		key = kbfscrypto.MakeTLFCryptKey([32]byte{byte(i)})
 		err = cache.PutTLFCryptKey(id, keyGen, key)
@@ -46,7 +46,7 @@ func TestKeyCacheBasic(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for i := 0; i < 11; i++ {
+	for i := range 11 {
 		id = tlf.FakeID(byte(i), tlf.Public)
 		_, err = cache.GetTLFCryptKey(id, keyGen)
 		if i > 0 && err != nil {

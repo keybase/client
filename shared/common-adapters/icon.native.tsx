@@ -29,7 +29,8 @@ type DirtyType = {
   color?: string
 }
 
-const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
+const Text = (p: TextProps & {ref?: React.Ref<RNText>}) => {
+  const {ref} = p
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -77,15 +78,15 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
       {p.children}
     </RNText>
   )
-})
-Text.displayName = 'IconText'
+}
 
 type ImageProps = {
   style?: Props['style']
   source?: number
 }
 
-const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
+const Image = (p: ImageProps & {ref?: React.Ref<RNImage>}) => {
+  const {ref} = p
   if (!p.source) return null
 
   let style: Styles.StylesCrossPlatform | undefined
@@ -108,12 +109,10 @@ const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
   }
 
   return <RNImage ref={ref} style={[style, pStyle]} source={p.source} />
-})
-Image.displayName = 'IconImage'
+}
 
-// This ref isn't correct but i'm not sure what would break if its changed now, TODO
-const Icon = React.memo<Props>(
-  React.forwardRef<MeasureRef, Props>((p, ref) => {
+const Icon = (p: Props & {ref?: React.Ref<MeasureRef>}) => {
+    const {ref} = p
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
@@ -174,9 +173,7 @@ const Icon = React.memo<Props>(
     ) : (
       icon
     )
-  })
-)
-Icon.displayName = 'Icon'
+}
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): unknown {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)

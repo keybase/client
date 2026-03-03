@@ -1,18 +1,16 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
-  Box,
   Styles,
 }
 
-const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxInner(props, ref) {
+const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
-  const {style, activeOpacity, children} = props
+  const {style, activeOpacity, children, ref} = props
 
   React.useImperativeHandle(ref, () => {
     // we don't use this in mobile for now, and likely never
@@ -42,11 +40,10 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
         <TouchableWithoutFeedback
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          style={clickStyle}
           onPress={onClick}
           onLongPress={onLongPress}
         >
-          {children}
+          <View style={clickStyle}>{children}</View>
         </TouchableWithoutFeedback>
       )
     }
@@ -58,7 +55,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
     }
     return <View style={style}>{children}</View>
   }
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   box: {borderRadius: 3},
@@ -68,9 +65,9 @@ export default ClickableBox
 
 export const ClickableBox2 = (p: Props2) => {
   const {onLongPress, onClick, children, hitSlop, style} = p
-  const onPress = React.useCallback(() => {
+  const onPress = () => {
     onClick?.()
-  }, [onClick])
+  }
   return (
     <Pressable onLongPress={onLongPress} onPress={onPress} style={style} hitSlop={hitSlop}>
       {children}

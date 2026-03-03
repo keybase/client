@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/avatars.avdl
 
 package keybase1
@@ -98,11 +98,11 @@ func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
 		Name: "keybase.1.avatars",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"loadUserAvatars": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadUserAvatarsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadUserAvatarsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadUserAvatarsArg)(nil), args)
@@ -113,11 +113,11 @@ func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
 				},
 			},
 			"loadTeamAvatars": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadTeamAvatarsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadTeamAvatarsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadTeamAvatarsArg)(nil), args)
@@ -136,11 +136,11 @@ type AvatarsClient struct {
 }
 
 func (c AvatarsClient) LoadUserAvatars(ctx context.Context, __arg LoadUserAvatarsArg) (res LoadAvatarsRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatars", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatars", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AvatarsClient) LoadTeamAvatars(ctx context.Context, __arg LoadTeamAvatarsArg) (res LoadAvatarsRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.avatars.loadTeamAvatars", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.avatars.loadTeamAvatars", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Toast from './toast.desktop'
 import {Box2} from './box'
-import Text from './text.desktop'
+import Text from './text'
 import type {Props} from './zoomable-image'
 import type {MeasureRef} from './measure-ref'
 
@@ -11,7 +11,7 @@ const Kb = {
   Toast,
 }
 
-const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
+function ZoomableImage(p: Props) {
   const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError, forceDims} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
@@ -21,13 +21,13 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const scaleRef = React.useRef(1)
   const isZoomedRef = React.useRef(isZoomed)
 
-  const toggleZoom = React.useCallback(() => {
+  const toggleZoom = () => {
     isZoomedRef.current = !isZoomed
     setIsZoomed(s => !s)
     // hide until we handle mouse move
     imgRef.current?.classList.remove('fade-anim-enter-active')
     onIsZoomed?.(!isZoomed)
-  }, [isZoomed, onIsZoomed])
+  }
 
   React.useEffect(() => {
     if (isZoomed) {
@@ -164,6 +164,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       </Kb.Toast>
     </div>
   )
-})
+}
 
 export default ZoomableImage

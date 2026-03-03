@@ -65,7 +65,7 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	for {
 		i++
 		mctx := mctx.WithLogTag("ACR") // shadow mctx for this round with a log tag
-		log := func(format string, args ...interface{}) {
+		log := func(format string, args ...any) {
 			mctx.Debug(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
 		}
 		action, err := r.step(mctx, i, trigger)
@@ -99,7 +99,7 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 
 // `trigger` is optional
 func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.MsgID) (action autoClaimLoopAction, err error) {
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		mctx.Debug(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
 	}
 	log("step begin")

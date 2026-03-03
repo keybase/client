@@ -875,7 +875,7 @@ func (fbo *folderBranchOps) forceStuckConflictForTesting(
 		return err
 	}
 
-	for i := 0; i < maxConflictResolutionAttempts+1; i++ {
+	for i := range maxConflictResolutionAttempts + 1 {
 		filename := fmt.Sprintf("FILE_FOR_STUCK_CONFLICT_%02d", i)
 		_, _, err := fbo.createEntryLocked(
 			ctx, lState, rootNode, rootNode.ChildName(filename), data.File,
@@ -1108,7 +1108,7 @@ func (fbo *folderBranchOps) syncOneNode(
 }
 
 func (fbo *folderBranchOps) startOp(
-	ctx context.Context, fs string, args ...interface{}) (
+	ctx context.Context, fs string, args ...any) (
 	time.Time, *time.Timer,
 ) {
 	now := fbo.config.Clock().Now()
@@ -1120,7 +1120,7 @@ func (fbo *folderBranchOps) startOp(
 		case <-ctx.Done():
 			return
 		default:
-			newArgs := make([]interface{}, len(args)+1)
+			newArgs := make([]any, len(args)+1)
 			newArgs[0] = now
 			copy(newArgs[1:], args)
 			fbo.deferLog.CDebugf(
@@ -1132,11 +1132,11 @@ func (fbo *folderBranchOps) startOp(
 
 func (fbo *folderBranchOps) endOp(
 	ctx context.Context, startTime time.Time, timer *time.Timer, fs string,
-	args ...interface{},
+	args ...any,
 ) {
 	timer.Stop()
 	d := fbo.config.Clock().Now().Sub(startTime)
-	newArgs := make([]interface{}, len(args)+1)
+	newArgs := make([]any, len(args)+1)
 	newArgs[0] = d
 	copy(newArgs[1:], args)
 	fbo.defer2Log.CDebugf(ctx, "[duration=%s] "+fs, newArgs...)
@@ -3782,7 +3782,7 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 }
 
 func (fbo *folderBranchOps) deferLogIfErr(
-	ctx context.Context, err error, fs string, args ...interface{},
+	ctx context.Context, err error, fs string, args ...any,
 ) {
 	if err != nil {
 		fbo.defer2Log.CDebugf(ctx, fs, args...)

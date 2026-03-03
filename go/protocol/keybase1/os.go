@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/os.avdl
 
 package keybase1
@@ -41,7 +41,8 @@ func (o RuntimeGroup) String() string {
 	return fmt.Sprintf("%v", int(o))
 }
 
-type RuntimeInterface interface{}
+type RuntimeInterface interface {
+}
 
 func RuntimeProtocol(i RuntimeInterface) rpc.Protocol {
 	return rpc.Protocol{

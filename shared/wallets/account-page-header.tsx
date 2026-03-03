@@ -12,7 +12,7 @@ type Props = {
 }
 
 const AccountPageHeader = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
+  <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>
     <Kb.Box2 direction="vertical">
       {Kb.Styles.isMobile && !!props.accountName && (
         <Kb.Text center={true} type="BodySmallSemibold">
@@ -25,9 +25,5 @@ const AccountPageHeader = (props: Props) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {flex: 1},
-}))
 
 export default AccountPageHeader

@@ -29,7 +29,7 @@ export declare function getEngine(): Engine
 export declare function makeEngine(
   emitWaiting: (b: BatchParams) => void,
   onConnected: (c: boolean) => void,
-  allowIncomingCalls?: boolean
+  onEngineIncoming?: (action: EngineGen.Actions) => void
 ): Engine
 export default getEngine
 export type {IncomingCallMapType, CustomResponseIncomingCallMapType}

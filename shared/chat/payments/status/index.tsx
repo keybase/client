@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -9,7 +9,7 @@ import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
@@ -185,7 +185,7 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
+function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
   const paymentInfo = Chat.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
@@ -210,6 +210,6 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
     text,
   }
   return <PaymentStatus {...props} />
-})
+}
 
 export default PaymentStatusContainer

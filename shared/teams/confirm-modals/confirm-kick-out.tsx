@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -29,7 +29,7 @@ const ConfirmKickOut = (props: Props) => {
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
   const nav = useSafeNavigation()
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onCancel = () => nav.safeNavigateUp()
 
   const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
   const removeMember = useTeamsState(s => s.dispatch.removeMember)
@@ -65,7 +65,7 @@ const ConfirmKickOut = (props: Props) => {
     </Kb.Text>
   )
   const header = (
-    <Kb.Box style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Box2
         direction="horizontal"
@@ -82,7 +82,7 @@ const ConfirmKickOut = (props: Props) => {
           style={styles.headerIcon}
         />
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
   return (
     <Kb.ConfirmModal
@@ -140,9 +140,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   iconContainerMany: {
     right: Kb.Styles.isMobile ? 0 : 20,
-  },
-  positionRelative: {
-    position: 'relative',
   },
   prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
 }))

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
 
@@ -75,10 +75,6 @@ const styles = Kb.Styles.styleSheetCreate(
         bottom: -5,
         position: 'absolute',
         right: -5,
-      },
-      serviceIcon: {
-        height: 64,
-        width: 64,
       },
       serviceIconContainer: Kb.Styles.platformStyles({
         common: {

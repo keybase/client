@@ -1,122 +1,114 @@
+import type * as React from 'react'
 import * as Styles from '@/styles'
-import * as React from 'react'
-import SafeReactList from './safe-react-list'
-import logger from '@/logger'
-import type RL from 'react-list'
+import {List as ReactWindowList, type RowComponentProps} from 'react-window'
 import type {Props} from './list'
-import {renderElementOrComponentOrNot} from '@/util/util'
-import {useThrottledCallback} from 'use-debounce'
+import {smallHeight, largeHeight} from './list-item'
 
-const List = React.memo(function List<T>(p: Props<T>) {
-  const {
-    items,
-    renderItem,
-    indexAsKey,
-    keyProperty,
-    fixedHeight,
-    onEndReached: _onEndReached,
-    selectedIndex,
-  } = p
-  const listRef = React.useRef<RL>(null)
+const Row = ((
+  p: RowComponentProps<{
+    items: ReadonlyArray<unknown>
+    renderItem: (index: number, item: unknown) => React.ReactElement | null
+  }>
+) => {
+  const {index, style, items, renderItem} = p
+  const item = items[index]
+  return item ? <div style={style}>{renderItem(index, item)}</div> : <div style={style} />
+}) as (
+  props: RowComponentProps<{
+    items: ReadonlyArray<unknown>
+    renderItem: (index: number, item: unknown) => React.ReactElement | null
+  }>
+) => React.ReactElement
 
-  const itemRender = React.useCallback(
-    (index: number, _: number | string): React.JSX.Element => {
-      // ReactList has an issue where it caches the list length into its own state so can ask
-      // for indices outside of the items...
-      if (index >= items.length) {
-        return <></>
-      }
-      const item = items[index]
-      const children = item ? renderItem(index, item) : <></>
+function List<T>(props: Props<T>) {
+  const {items, renderItem, style, itemHeight} = props
 
-      if (indexAsKey) {
-        // if indexAsKey is set, just use index.
-        return <React.Fragment key={String(index)}>{children}</React.Fragment>
-      }
-      const keyProp = keyProperty || 'key'
-      const i = item as {[key: string]: unknown} | undefined
-      if (i?.[keyProp]) {
-        const key: unknown = i[keyProp]
-        // otherwise, see if key is set on item directly.
-        return <React.Fragment key={String(key)}>{children}</React.Fragment>
-      }
-      // We still don't have a key. So hopefully renderItem will provide the key.
-      logger.info(
-        'Setting key from renderItem does not work on native. Please set it directly on items or use indexAsKey.'
-      )
-      return children
-    },
-    [items, renderItem, indexAsKey, keyProperty]
-  )
+  // Need to pass in itemData to make items re-render on prop changes.
+  const _fixed = (p: {itemHeight: number}) => {
+    const {itemHeight} = p
+    return (
+      <ReactWindowList
+        listRef={props.desktopRef as any}
+        style={
+          {
+            height: '100%',
+            overflowY: 'auto',
+            scrollbarGutter: 'stable',
+            width: '100%',
+            ...Styles.castStyleDesktop(style),
+          } as const
+        }
+        rowCount={items.length}
+        rowProps={{
+          items,
+          renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+        }}
+        rowHeight={itemHeight}
+        rowComponent={Row}
+      />
+    )
+  }
 
-  const lastSelectedIndexRef = React.useRef(selectedIndex)
-  React.useEffect(() => {
-    if (selectedIndex !== -1 && selectedIndex !== lastSelectedIndexRef.current) {
-      lastSelectedIndexRef.current = selectedIndex
-      if (selectedIndex !== undefined) {
-        listRef.current?.scrollAround(selectedIndex)
-      }
+  const _variableItemSize = (index: number, data: {items: ReadonlyArray<unknown>}) => {
+    const {items} = data
+    return itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index] as T).length : 0
+  }
+
+  if (items.length === 0) return null
+  switch (props.itemHeight.type) {
+    case 'fixed':
+      return _fixed({itemHeight: props.itemHeight.height})
+    case 'fixedListItemAuto': {
+      const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+      return _fixed({itemHeight})
     }
-  }, [selectedIndex])
-
-  const type = fixedHeight ? 'uniform' : 'simple'
-  const didOnEndReadchedRef = React.useRef(false)
-
-  React.useEffect(() => {
-    didOnEndReadchedRef.current = false
-  }, [items])
-
-  const onScroll = useThrottledCallback(
-    (e: React.BaseSyntheticEvent<unknown, HTMLDivElement | undefined>) => {
-      if (didOnEndReadchedRef.current) return
-      const target = e.currentTarget
-      if (!target) return
-      const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
-      if (diff < 5) {
-        didOnEndReadchedRef.current = true
-        _onEndReached?.()
-      }
-    },
-    100
-  )
-
-  return (
-    <div style={Styles.collapseStyles([styles.outerDiv, p.style]) as React.CSSProperties}>
-      <div style={Styles.globalStyles.fillAbsolute}>
-        <div
-          style={Styles.collapseStyles([styles.innerDiv, p.contentContainerStyle]) as React.CSSProperties}
-          onScroll={_onEndReached ? onScroll : undefined}
-        >
-          {renderElementOrComponentOrNot(p.ListHeaderComponent)}
-          <SafeReactList
-            ref={listRef}
-            useTranslate3d={false}
-            useStaticSize={!!fixedHeight}
-            itemRenderer={itemRender}
-            length={items.length}
-            type={type}
-          />
-        </div>
-      </div>
-    </div>
-  )
-})
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      innerDiv: Styles.platformStyles({
-        isElectron: {
-          height: '100%',
-          overflowY: 'auto',
-          width: '100%',
-        },
-      }),
-      outerDiv: {
-        flexGrow: 1,
-        position: 'relative',
-      },
-    }) as const
-)
+    case 'trueVariable':
+      return (
+        <ReactWindowList
+          listRef={props.desktopRef as any}
+          style={
+            {
+              height: '100%',
+              overflowY: 'auto',
+              scrollbarGutter: 'stable',
+              width: '100%',
+              ...Styles.castStyleDesktop(style),
+            } as const
+          }
+          rowCount={items.length}
+          rowProps={{
+            items,
+            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+          }}
+          rowHeight={props.itemHeight.rowHeight}
+          rowComponent={Row}
+        />
+      )
+    case 'variable':
+      return (
+        <ReactWindowList
+          listRef={props.desktopRef as any}
+          style={
+            {
+              height: '100%',
+              overflowY: 'auto',
+              scrollbarGutter: 'stable',
+              width: '100%',
+              ...Styles.castStyleDesktop(style),
+            } as const
+          }
+          rowCount={items.length}
+          rowProps={{
+            items,
+            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
+          }}
+          rowHeight={_variableItemSize}
+          rowComponent={Row}
+        />
+      )
+    default:
+      return <></>
+  }
+}
 
 export default List

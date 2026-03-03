@@ -1,7 +1,5 @@
-import type * as ChatTypes from './chat2'
+import type * as ChatTypes from './chat'
 import type * as RPCChatTypes from './rpc-chat-gen'
-
-export type TokenType = 'apple' | 'appledev' | 'androidplay'
 
 export type PushNotification =
   | {

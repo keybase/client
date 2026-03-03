@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const Container = () => {
   const error = useProvisionState(s => s.error)
@@ -85,16 +85,6 @@ export const PaperKey = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Kb.Styles.platformStyles({
-        isElectron: {
-          marginLeft: Kb.Styles.globalMargins.medium,
-          marginTop: Kb.Styles.globalMargins.medium,
-        },
-        isMobile: {
-          marginLeft: 0,
-          marginTop: 0,
-        },
-      }),
       contents: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,

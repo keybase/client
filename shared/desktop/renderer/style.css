@@ -211,6 +211,7 @@ table {
 /* End Keybase */
 
 :root {
+  color-scheme: light dark;
   --size-xxtiny: 2px;
   --size-xtiny: 4px;
   --size-tiny: 8px;
@@ -243,6 +244,7 @@ html {
 body {
   height: 100%;
   width: 100%;
+  scrollbar-gutter: stable;
 }
 
 :root {
@@ -250,17 +252,9 @@ body {
   --scrollbar-minlength: 0.5rem;
   --scrollbar-ff-width: thin;
   --scrollbar-track-color: transparent;
-  --scrollbar-color: rgba(0, 0, 0, 0.2);
-  --scrollbar-color-hover: rgba(0, 0, 0, 0.3);
-  --scrollbar-color-active: rgb(0, 0, 0);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --scrollbar-color: rgba(255, 255, 255, 0.2);
-    --scrollbar-color-hover: rgba(255, 255, 255, 0.3);
-    --scrollbar-color-active: rgb(255, 255, 255, 0.5);
-  }
+  --scrollbar-color: light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.2));
+  --scrollbar-color-hover: light-dark(rgba(0, 0, 0, 0.3), rgba(255, 255, 255, 0.3));
+  --scrollbar-color-active: light-dark(rgb(0, 0, 0), rgb(255, 255, 255, 0.5));
 }
 
 /* Used to customize scrollbars and enable testing the auto hide behavior on os x */
@@ -274,8 +268,6 @@ body {
 .scrollbar-test {
   overscroll-behavior: contain;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  -ms-overflow-style: -ms-autohiding-scrollbar;
   scrollbar-width: var(--scrollbar-ff-width);
 }
 
@@ -308,10 +300,7 @@ body {
 #root {
   position: absolute;
   display: flex;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -329,13 +318,7 @@ body {
 .emoji-picker-emoji-box {
   border-radius: 2px;
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .emoji-picker-emoji-box:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.15));
   }
 }
 
@@ -483,18 +466,9 @@ body {
 }
 
 body {
-  background-color: #ffffff;
+  background-color: light-dark(#ffffff, #191919);
   &.isWidget {
     background-color: transparent;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #191919;
-    &.isWidget {
-      background-color: transparent;
-    }
   }
 }
 
@@ -503,15 +477,7 @@ body {
 }
 .headerTitle:hover {
   .addInviteAndLinkBox {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .headerTitle:hover {
-    .addInviteAndLinkBox {
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
-    }
+    box-shadow: light-dark(0 2px 5px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.8));
   }
 }
 

@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user'
 
-const BottomMessageContainer = React.memo(function BottomMessageContainer() {
+function BottomMessageContainer() {
   const {showSuperseded, showResetParticipants} = Chat.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
@@ -21,5 +20,5 @@ const BottomMessageContainer = React.memo(function BottomMessageContainer() {
     return <OldProfileReset />
   }
   return null
-})
+}
 export default BottomMessageContainer

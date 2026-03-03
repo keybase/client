@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {AvatarSize} from '@/common-adapters/avatar'
 import './chat.css'
 
-const OverlayIcon = React.memo(function OverlayIcon(p: {
+const OverlayIcon = function OverlayIcon(p: {
   isHovered: boolean
   isMuted: boolean
   isSelected: boolean
@@ -28,7 +27,7 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
   if (!type) return null
 
   return (
-    <Kb.Box style={styles.mutedIcon}>
+    <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
       <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
@@ -49,9 +48,9 @@ const OverlayIcon = React.memo(function OverlayIcon(p: {
         type={type}
         fontSize={16}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 type Props = {
   participantOne?: string
@@ -64,7 +63,7 @@ type Props = {
   singleSize?: AvatarSize
 }
 
-const Avatars = React.memo(function Avatars(p: Props) {
+const Avatars = function Avatars(p: Props) {
   const {participantOne, participantTwo, backgroundColor} = p
   const {singleSize = 48} = p
   const {isHovered = false} = p
@@ -73,69 +72,59 @@ const Avatars = React.memo(function Avatars(p: Props) {
   const {isSelected = false} = p
   const opacity = isLocked ? 0.4 : 1
 
-  const leftProps = React.useMemo(
-    () =>
-      ({
-        loadingColor: Kb.Styles.globalColors.greyLight,
-        size: 32,
-        skipBackground: Kb.Styles.isMobile,
-        style: {left: 0, position: 'absolute', top: 0},
-        username: participantTwo,
-      }) as const,
-    [participantTwo]
-  )
+  const leftProps = {
+    loadingColor: Kb.Styles.globalColors.greyLight,
+    size: 32,
+    skipBackground: Kb.Styles.isMobile,
+    style: {left: 0, position: 'absolute', top: 0},
+    username: participantTwo,
+  } as const
 
-  const rightProps = React.useMemo(
-    () =>
-      ({
-        borderColor: backgroundColor,
-        loadingColor: Kb.Styles.globalColors.greyLight,
-        size: 32,
-        skipBackground: Kb.Styles.isMobile,
-        style: {bottom: 0, position: 'absolute', right: 0},
-        username: participantOne,
-      }) as const,
-    [participantOne, backgroundColor]
-  )
+  const rightProps = {
+    borderColor: backgroundColor,
+    loadingColor: Kb.Styles.globalColors.greyLight,
+    size: 32,
+    skipBackground: Kb.Styles.isMobile,
+    style: {bottom: 0, position: 'absolute', right: 0},
+    username: participantOne,
+  } as const
 
   const containerStyle = Kb.Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])
 
   if (!participantTwo) {
     return (
-      <Kb.Box style={containerStyle}>
-        <Kb.Box style={styles.outerBox}>
+      <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 
   return (
-    <Kb.Box2 direction="horizontal" alignItems="center" style={containerStyle}>
+    <Kb.Box2 direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
       <Kb.Avatar {...leftProps} />
       <Kb.Avatar {...rightProps} />
       <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     flexShrink: 0,
     justifyContent: 'flex-start',
     marginRight: Kb.Styles.globalMargins.tiny,
-    position: 'relative',
   },
   mutedIcon: Kb.Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {bottom: -3, right: -1},
     isMobile: {bottom: -1, right: -1},
   }),
-  outerBox: {position: 'relative'},
 }))
 
-const TeamAvatar = React.memo(function TeamAvatar(p: {
+const TeamAvatar = function TeamAvatar(p: {
   teamname: string
   isHovered: boolean
   isMuted: boolean
@@ -144,11 +133,11 @@ const TeamAvatar = React.memo(function TeamAvatar(p: {
 }) {
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
       <Kb.Avatar teamname={teamname} size={size || 48} />
       <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 export {Avatars, TeamAvatar}

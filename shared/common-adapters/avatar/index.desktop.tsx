@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import Icon, {type IconType} from '../icon'
 import * as Styles from '@/styles'
 import type {Props, AvatarSize} from '.'
@@ -32,10 +32,7 @@ const Avatar = (p: Props) => {
       ? 0.1
       : 1
     : props.opacity
-  const imgStyle = React.useMemo(
-    () => (imgOpacity !== 1 ? {opacity: imgOpacity} : undefined),
-    [imgOpacity]
-  )
+  const imgStyle = imgOpacity !== 1 ? {opacity: imgOpacity} : undefined
   
   return (
     <div
@@ -156,11 +153,6 @@ const styles = Styles.styleSheetCreate(
           right: -6,
         },
       }),
-      editTeamOld: {
-        bottom: -2,
-        position: 'absolute',
-        right: -18,
-      },
       poopContainer: {
         alignItems: 'center',
         display: 'flex',

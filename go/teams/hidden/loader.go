@@ -136,10 +136,7 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 		return nil
 	}
 	last := l.LastSeqno()
-	maxR := l.MaxRatchet()
-	if maxR < maxUncommittedSeqnoPromised {
-		maxR = maxUncommittedSeqnoPromised
-	}
+	maxR := max(l.MaxRatchet(), maxUncommittedSeqnoPromised)
 	if maxR <= last {
 		return nil
 	}

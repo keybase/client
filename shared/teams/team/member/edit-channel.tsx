@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'

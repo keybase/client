@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useTeamsState} from '@/constants/teams'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsState} from '@/stores/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
@@ -34,11 +34,13 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
     }))
   )
   const onFeature = () => setMemberPublicity(teamID, true)
-  const onNoThanks = React.useCallback(() => {
+  const onNoThanks = () => {
     setJustFinishedAddMembersWizard(false)
-  }, [setJustFinishedAddMembersWizard])
+  }
   // Automatically dismisses this when the user navigates away
-  React.useEffect(() => onNoThanks, [onNoThanks])
+  React.useEffect(() => {
+    return () => setJustFinishedAddMembersWizard(false)
+  }, [setJustFinishedAddMembersWizard])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
     <Kb.Box2
@@ -50,9 +52,9 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       alignSelf="flex-end"
       fullWidth={true}
     >
-      <Kb.Box style={styles.illustration}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.illustration}>
         <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
       <Kb.Text type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text>
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
@@ -106,13 +108,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
-    },
-    [teamID]
-  )
+    }
   const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (
@@ -269,6 +268,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.flexShrinkGrow}
       >
         {topDescriptors}
@@ -300,13 +300,13 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
-        nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})
+        nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamEditTeamInfo'})
+    ? () => nav.safeNavigateAppend({name: 'teamEditTeamInfo', params: {teamID}})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
+    ? () => nav.safeNavigateAppend({name: 'teamRename', params: {teamname: meta.teamname}})
     : undefined
   return {
     onAddSelf,
@@ -389,11 +389,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       flexShrink: {flexShrink: 1},
       flexShrinkGrow: {
-        flexGrow: 1,
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      illustration: {borderRadius: 4, width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

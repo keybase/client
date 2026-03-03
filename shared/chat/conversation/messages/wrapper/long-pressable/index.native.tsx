@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
@@ -12,7 +12,7 @@ import * as Reanimated from 'react-native-reanimated'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // const ReplyIcon = React.memo(function ({progress}: {progress: Reanimated.SharedValue<number>}) {
-const ReplyIcon = React.memo(function ReplyIcon() {
+function ReplyIcon() {
   // const as = Reanimated.useAnimatedStyle(() => {
   //   const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
   //   return {opacity}
@@ -23,19 +23,19 @@ const ReplyIcon = React.memo(function ReplyIcon() {
       <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
     </Reanimated.default.View>
   )
-})
+}
 
-const LongPressable = React.memo(function LongPressable(props: Props) {
+function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
 
-  const onPress = React.useCallback(() => Keyboard.dismiss(), [])
+  const onPress = () => Keyboard.dismiss()
 
   // uncomment to debug measuring issues w/ items
   // const onLayout =
   //   useDebugLayout()
   // React.useCallback(() => {
   //   const {conversationIDKey, ordinal} = getIds()
-  //   return global.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  //   return global.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)?.get(ordinal)
   // }, [getIds])
 
   const inner = (
@@ -50,20 +50,17 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     </Pressable>
   )
 
-  const makeAction = React.useCallback(
-    (/*_: unknown, progress: Reanimated.SharedValue<number>*/) => <ReplyIcon /*progress={progress}*/ />,
-    []
-  )
+  const makeAction = (/*_: unknown, progress: Reanimated.SharedValue<number>*/) => <ReplyIcon /*progress={progress}*/ />
 
   const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
   const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
-  const onSwipeLeft = React.useCallback(() => {
+  const onSwipeLeft = () => {
     setReplyTo(ordinal)
     toggleThreadSearch(true)
     focusInput()
-  }, [setReplyTo, toggleThreadSearch, ordinal, focusInput])
+  }
 
   return (
     <OldSwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
@@ -95,7 +92,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   //     {inner}
   //   </Swipeable>
   // )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -111,10 +108,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'flex-end',
       },
       replyIcon: {paddingRight: Kb.Styles.globalMargins.small},
-      view: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        position: 'relative',
-      },
     }) as const
 )
 

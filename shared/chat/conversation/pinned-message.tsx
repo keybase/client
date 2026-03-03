@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
-const PinnedMessage = React.memo(function PinnedMessage() {
+const PinnedMessage = function PinnedMessage() {
   const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
@@ -31,27 +31,27 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     messageID && replyJump(messageID)
-  }, [replyJump, messageID])
-  const onUnpin = React.useCallback(() => {
+  }
+  const onUnpin = () => {
     pinMessage()
-  }, [pinMessage])
+  }
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore
-  const onDismiss = React.useCallback(() => {
+  const onDismiss = () => {
     setShowPopup(false)
     _onDismiss()
-  }, [_onDismiss])
+  }
 
-  const onIconClick = React.useCallback(() => {
+  const onIconClick = () => {
     if (dismissUnpins) {
       setShowPopup(true)
     } else {
       onDismiss()
     }
-  }, [dismissUnpins, onDismiss])
+  }
 
   if (!(type === 'text' || type === 'attachment')) {
     return null
@@ -65,13 +65,13 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         {!!imageURL && (
-          <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-              <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-            </Kb.Box>
+          <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
+            <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
+              <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+            </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodyTinyBold" style={styles.author}>
               {author}
@@ -115,7 +115,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       {popup}
     </>
   )
-})
+}
 
 type UnpinProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -174,10 +174,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         width: '100%',
       },
-      imageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
       label: {color: Kb.Styles.globalColors.blueDark},
       popup: Kb.Styles.platformStyles({
         common: {
@@ -186,10 +182,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.small,
         },
         isElectron: {maxWidth: 200},
-      }),
-      styleOverride: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
-        isElectron: {transition: 'color 0.25s ease-in-out'},
       }),
       text: Kb.Styles.platformStyles({
         common: {color: Kb.Styles.globalColors.black_50},

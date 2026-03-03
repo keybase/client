@@ -6,6 +6,7 @@ import (
 	"crypto/sha1" //nolint:gosec // G505: SHA1 used for non-cryptographic cache key generation, not for security
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -1225,9 +1226,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s", convID)
 	} else {
 		for apptype, kindMap := range settings.Settings {
-			for kind, enabled := range kindMap {
-				conv.Conv.Notifications.Settings[apptype][kind] = enabled
-			}
+			maps.Copy(conv.Conv.Notifications.Settings[apptype], kindMap)
 		}
 		conv.Conv.Notifications.ChannelWide = settings.ChannelWide
 		conv.Conv.Metadata.Version = vers.ToConvVers()

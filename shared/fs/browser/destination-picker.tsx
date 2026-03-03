@@ -8,8 +8,8 @@ import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {OriginalOrCompressedButton} from '@/incoming-share'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {index: number}
 
@@ -72,12 +72,12 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     _onCopyHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
       clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
+      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
     },
     _onMoveHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'move')
       clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
+      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
     },
     _onNewFolder: (destinationParentPath: T.FS.Path) => {
       newFolderRow(destinationParentPath)
@@ -130,7 +130,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     >
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
             <NavHeaderTitle inDestinationPicker={true} path={parentPath} />
             {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
           </Kb.Box2>
@@ -270,7 +270,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       anotherHeader: {
         height: 48,
-        justifyContent: 'space-between',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       desktopHeader: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10),

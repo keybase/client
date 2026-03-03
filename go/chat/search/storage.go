@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"maps"
 	"strings"
 	"sync"
 
@@ -74,9 +75,7 @@ func (a *aliasEntry) dup() (res *aliasEntry) {
 	res = new(aliasEntry)
 	res.Version = a.Version
 	res.Aliases = make(map[string]int, len(a.Aliases))
-	for k, v := range a.Aliases {
-		res.Aliases[k] = v
-	}
+	maps.Copy(res.Aliases, a.Aliases)
 	return res
 }
 

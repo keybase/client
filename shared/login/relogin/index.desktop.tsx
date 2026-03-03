@@ -44,7 +44,7 @@ const Login = (props: Props) => {
       rightActionLabel="Create account"
       title="Log in"
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1} style={styles.contentBox}>
         <UserCard username={props.selectedUser} outerStyle={styles.container} style={styles.userContainer}>
           <Kb.Dropdown
             onChangedIdx={_onClickUserIdx}
@@ -55,7 +55,7 @@ const Login = (props: Props) => {
             style={styles.userDropdown}
           />
           {props.needPassword && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.inputRow}>
               <Kb.LabeledInput
                 autoFocus={true}
                 placeholder="Password"
@@ -67,7 +67,7 @@ const Login = (props: Props) => {
               />
             </Kb.Box2>
           )}
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" flex={1}>
             <Kb.Text
               type="BodySmallSecondaryLink"
               onClick={props.onForgotPassword}
@@ -80,7 +80,8 @@ const Login = (props: Props) => {
             direction="vertical"
             fullWidth={true}
             fullHeight={true}
-            style={styles.loginSubmitContainer}
+            justifyContent="flex-end"
+            flex={1}
           >
             <Kb.WaitingButton
               disabled={props.needPassword && !props.password}
@@ -108,22 +109,16 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       contentBox: {
         alignSelf: 'center',
-        flexGrow: 1,
         maxWidth: 460,
         padding: Kb.Styles.globalMargins.small,
       },
       forgotPassword: {
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      forgotPasswordContainer: {
-        flex: 1,
-        justifyContent: 'flex-end',
-      },
       header: {
         borderBottomWidth: 0,
       },
       inputRow: {
-        flex: 1,
         marginBottom: 0,
         marginTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
@@ -132,10 +127,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: 0,
         maxHeight: 32,
         width: '100%',
-      },
-      loginSubmitContainer: {
-        flexGrow: 1,
-        justifyContent: 'flex-end',
       },
       other: {color: Kb.Styles.globalColors.black},
       provisioned: {color: Kb.Styles.globalColors.orange},

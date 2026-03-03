@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {usePWState} from '@/constants/settings-password'
+import {usePWState} from '@/stores/settings-password'
 
 type Props = {
   error: string
@@ -129,6 +129,7 @@ export const UpdatePassword = (props: Props) => {
         centerChildren={!Kb.Styles.isTablet}
         direction="vertical"
         fullHeight={true}
+        flex={1}
         style={styles.container}
       >
         <Kb.Text type="Body" style={styles.bodyText} center={true}>
@@ -192,12 +193,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
         padding: Kb.Styles.globalMargins.small,
-      },
-      headerText: {
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
       },
       passwordBackground: Kb.Styles.platformStyles({
         isTablet: {

@@ -111,17 +111,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.large,
   },
-  coverTabBarShim: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrBlack_60,
-    justifyContent: 'center',
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: 0,
-    paddingRight: 0,
-    paddingTop: Styles.globalMargins.large,
-  },
 }))
 
 export default PopupDialog

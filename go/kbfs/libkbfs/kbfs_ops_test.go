@@ -601,7 +601,7 @@ type ptrMatcher struct {
 }
 
 // Matches implements the Matcher interface for ptrMatcher.
-func (p ptrMatcher) Matches(x interface{}) bool {
+func (p ptrMatcher) Matches(x any) bool {
 	xPtr, ok := x.(data.BlockPointer)
 	if !ok {
 		return false
@@ -3903,7 +3903,7 @@ func (fi *fakeFileInfo) IsDir() bool {
 	return fi.et == data.Dir
 }
 
-func (fi *fakeFileInfo) Sys() interface{} {
+func (fi *fakeFileInfo) Sys() any {
 	return nil
 }
 

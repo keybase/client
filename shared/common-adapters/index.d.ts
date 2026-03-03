@@ -18,7 +18,7 @@ export {default as AvatarLine} from './avatar/avatar-line'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {Banner, BannerParagraph} from './banner'
-export {default as Box, Box2, Box2Measure, Box2Animated, Box2Div, Box2View, type LayoutEvent} from './box'
+export {Box2, Box2Measure, Box2Animated, Box2Div, Box2View, type LayoutEvent} from './box'
 export type {MeasureDesktop, MeasureNative, MeasureRef} from './measure-ref'
 export {default as ButtonBar} from './button-bar'
 export {default as Button} from './button'
@@ -45,20 +45,18 @@ export {HeaderHocHeader, HeaderHocWrapper, HeaderLeftBlank, HeaderLeftCancel} fr
 export {PopupWrapper} from './header-or-popup'
 export {useHotKey} from './hot-key'
 export {default as Icon, urlsToImgSet, type IconStyle} from './icon'
-export {default as Image2} from './image2'
+export {default as Image} from './image'
 export {default as InfoNote} from './info-note'
-export {Input2} from './input2'
+export {Input} from './input'
 export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 export {default as LabeledInput} from './labeled-input'
 export {default as List} from './list'
-export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
-export {default as ListItem} from './list-item'
 export {
-  default as ListItem2,
-  largeHeight as largeListItem2Height,
-  smallHeight as smallListItem2Height,
-} from './list-item2'
+  default as ListItem,
+  largeHeight as largeListItemHeight,
+  smallHeight as smallListItemHeight,
+} from './list-item'
 export {default as Markdown} from './markdown'
 
 export {default as Meta} from './meta'
@@ -93,7 +91,7 @@ export {default as Switch} from './switch'
 export {default as Tabs} from './tabs'
 export {default as TeamWithPopup} from './team-with-popup'
 export {default as Text} from './text'
-export {Text2} from './text2'
+export {useClickURL} from './text-url'
 export {default as Toast} from './toast'
 export {default as SimpleToast} from './simple-toast'
 export {default as TimelineMarker} from './timeline-marker'

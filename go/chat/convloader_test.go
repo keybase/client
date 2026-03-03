@@ -245,7 +245,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 	u := world.GetUsers()[0]
 	skp, err := sender.(*BlockingSender).getSigningKeyPair(ctx)
 	require.NoError(t, err)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		pt := chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Metadata.IdTriple,
@@ -272,7 +272,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh,
 			types.ConvLoaderGeneric, newConvLoaderPagebackHook(tc.Context(), 0, 1))))
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case <-listener.bgConvLoads:
 		case <-time.After(20 * time.Second):
@@ -326,7 +326,7 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		_, err = j.Push(newTask(convID1, order[i], types.ConvLoaderUnique))
 		require.NoError(t, err)
 	}
-	for i := 0; i < len(order); i++ {
+	for i := range order {
 		task, ok := j.PopFront()
 		require.True(t, ok)
 		require.Equal(t, order[i], task.job.Priority)
@@ -355,7 +355,7 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique, nil)})
 	require.NoError(t, err)
 	require.True(t, queued)
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		_, ok := j.PopFront()
 		require.True(t, ok)
 	}
@@ -400,7 +400,7 @@ func TestConvLoaderStartStopRace(t *testing.T) {
 	}
 
 	// Now test the race: Start multiple times rapidly
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		loader.Start(ctx, uid)
 		require.True(t, loader.isRunning())
 	}

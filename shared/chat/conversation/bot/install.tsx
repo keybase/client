@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -68,7 +68,7 @@ const InstallBotPopup = (props: Props) => {
 
   const botPublicCommands = Chat.useChatState(s => s.botPublicCommands.get(botUsername))
   const meta = Chat.useChatContext(s => s.meta)
-  const commands = React.useMemo(() => {
+  const commands = (() => {
     const {botCommands} = meta
     const commands = (
       botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
@@ -79,7 +79,7 @@ const InstallBotPopup = (props: Props) => {
       .map(c => c.name)
     const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
     return commands.length > 0 ? convCommands : botPublicCommands
-  }, [meta, botPublicCommands, botUsername])
+  })()
 
   const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
@@ -136,8 +136,8 @@ const InstallBotPopup = (props: Props) => {
       return
     }
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatConfirmRemoveBot',
+      name: 'chatConfirmRemoveBot',
+      params: {botUsername, conversationIDKey},
     })
   }
   const onFeedback = () => {
@@ -304,8 +304,8 @@ const InstallBotPopup = (props: Props) => {
           <Kb.Text type="Body">
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
-            </Kb.Text>{' '}
-            if you’d like to customize which messages are encrypted for this bot.
+            </Kb.Text>
+            {" if you’d like to customize which messages are encrypted for this bot."}
           </Kb.Text>
         </Kb.Box2>
       )}

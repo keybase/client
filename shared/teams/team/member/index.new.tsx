@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useCurrentUserState} from '@/constants/current-user'
-import * as Teams from '@/constants/teams'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat'
+import {useCurrentUserState} from '@/stores/current-user'
+import * as Teams from '@/stores/teams'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -220,7 +220,7 @@ const TeamMember = (props: OwnProps) => {
 
   const sections: Array<Section> = [nodesInSection, nodesNotInSection]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true}>
       {errors.length > 0 && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
@@ -294,10 +294,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -401,8 +398,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   const nav = useSafeNavigation()
   const onAddToChannels = () =>
     nav.safeNavigateAppend({
-      props: {teamID: props.node.teamID, usernames: [props.username]},
-      selected: 'teamAddToChannels',
+      name: 'teamAddToChannels',
+      params: {teamID: props.node.teamID, usernames: [props.username]},
     })
   const onKickOutWaitingKey = C.waitingKeyTeamsRemoveMember(props.node.teamID, props.username)
   const onKickOut = () => {
@@ -412,10 +409,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     }
   }
 
-  const openTeam = React.useCallback(
-    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
-    [props.node.teamID, nav]
-  )
+  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
 
   const {expanded, setExpanded} = props
 
@@ -629,7 +623,7 @@ export const TeamMemberHeader = (props: Props) => {
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   const member = teamDetails?.members.get(username)
   if (!member) {
@@ -700,10 +694,9 @@ export const TeamMemberHeader = (props: Props) => {
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
   const nav = useSafeNavigation()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
+      const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -713,9 +706,7 @@ const BlockDropdown = (props: {username: string}) => {
           items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
         />
       )
-    },
-    [nav, username]
-  )
+    }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
@@ -732,16 +723,8 @@ const BlockDropdown = (props: {username: string}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative',
     width: '100%',
   },
   contentCollapsedFixedHeight: Kb.Styles.platformStyles({
@@ -814,20 +797,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   membershipTeamTextExpanded: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
   }),
-  mobileHeader: {
-    backgroundColor: Kb.Styles.globalColors.white,
-    height: 40,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
   paddingBottomMobile: Kb.Styles.platformStyles({
     isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
-  reloadButton: {
-    marginTop: Kb.Styles.globalMargins.tiny,
-    minWidth: 56,
-  },
   roleButton: {paddingRight: 0},
   roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
@@ -845,7 +817,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 65,
     },
   }),
-  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
   teamNameLink: {color: Kb.Styles.globalColors.black},
 }))
 

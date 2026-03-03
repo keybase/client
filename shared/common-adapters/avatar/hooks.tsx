@@ -1,15 +1,14 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import {useConfigState} from '@/constants/config'
-import * as React from 'react'
+import {useConfigState} from '@/stores/config'
 import {iconTypeToImgSet, urlsToImgSet, urlsToSrcSet, urlsToBaseSrc, type IconType} from '../icon'
 import * as Styles from '@/styles'
 import * as AvatarZus from './store'
 import './avatar.css'
 import type {Props} from '.'
 import {useColorScheme} from 'react-native'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
-import {navToProfile} from '@/constants/router2'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {navToProfile} from '@/stores/router'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = (typeof avatarSizes)[number]
@@ -70,10 +69,7 @@ export default (ownProps: Props) => {
   const httpSrv = useConfigState(s => s.httpSrv)
   const blocked = useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
   const showUserProfile = navToProfile
-  const goToProfile = React.useCallback(
-    () => username && showUserProfile(username),
-    [showUserProfile, username]
-  )
+  const goToProfile = () => username && showUserProfile(username)
 
   const opClick = _onClick === 'profile' ? (username ? goToProfile : undefined) : _onClick
   const onClick = onEditAvatarClick || opClick
@@ -83,64 +79,45 @@ export default (ownProps: Props) => {
 
   const isDarkMode = useColorScheme() === 'dark'
 
-  const urlMap = React.useMemo(
-    () =>
-      sizes.reduce<{[key: number]: string}>((m, size) => {
-        m[size] = `http://${address}/av?typ=${
-          isTeam ? 'team' : 'user'
-        }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
-          token
-        }&count=${counter}`
-        return m
-      }, {}),
-    [counter, address, token, isTeam, name, isDarkMode]
-  )
-  const url = React.useMemo(
-    () =>
-      imageOverrideUrl
-        ? `url("${encodeURI(imageOverrideUrl)}")`
-        : address && name
-          ? urlsToImgSet(urlMap, size)
-          : iconTypeToImgSet(
-              isTeam
-                ? teamPlaceHolders
-                : lighterPlaceholders
-                  ? avatarLighterPlaceHolders
-                  : avatarPlaceHolders,
-              size
-            ),
-    [address, name, imageOverrideUrl, lighterPlaceholders, size, urlMap, isTeam]
-  )
+  const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
+    m[size] = `http://${address}/av?typ=${
+      isTeam ? 'team' : 'user'
+    }&name=${name}&format=square_${size}&mode=${isDarkMode ? 'dark' : 'light'}&token=${
+      token
+    }&count=${counter}`
+    return m
+  }, {})
+  const url = imageOverrideUrl
+    ? `url("${encodeURI(imageOverrideUrl)}")`
+    : address && name
+      ? urlsToImgSet(urlMap, size)
+      : iconTypeToImgSet(
+          isTeam
+            ? teamPlaceHolders
+            : lighterPlaceholders
+              ? avatarLighterPlaceHolders
+              : avatarPlaceHolders,
+          size
+        )
 
   // For <img> tags (desktop only): extract src and srcset
-  const src = React.useMemo(
-    () =>
-      Styles.isMobile
-        ? null
-        : imageOverrideUrl
-          ? imageOverrideUrl
-          : address && name
-            ? urlsToBaseSrc(urlMap, size)
-            : null,
-    [address, name, imageOverrideUrl, size, urlMap]
-  )
+  const src = Styles.isMobile
+    ? null
+    : imageOverrideUrl
+      ? imageOverrideUrl
+      : address && name
+        ? urlsToBaseSrc(urlMap, size)
+        : null
 
-  const srcset = React.useMemo(
-    () =>
-      Styles.isMobile
-        ? undefined
-        : imageOverrideUrl
-          ? undefined
-          : address && name
-            ? urlsToSrcSet(urlMap, size)
-            : undefined,
-    [address, name, imageOverrideUrl, size, urlMap]
-  )
+  const srcset = Styles.isMobile
+    ? undefined
+    : imageOverrideUrl
+      ? undefined
+      : address && name
+        ? urlsToSrcSet(urlMap, size)
+        : undefined
 
-  const iconInfo = React.useMemo(
-    () => followIconHelper(size, followsYou, following),
-    [size, followsYou, following]
-  )
+  const iconInfo = followIconHelper(size, followsYou, following)
 
   return {
     blocked: blocked,
