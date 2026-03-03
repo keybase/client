@@ -11,7 +11,7 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
-import {type ViewToken, Alert} from 'react-native'
+import {type FlatList as RNFlatList, type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
@@ -66,7 +66,7 @@ function Inbox(p: TInbox.Props) {
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
   const lastVisibleIdxRef = React.useRef(-1)
-  const listRef = React.useRef</*FlashList<RowItem> | */ FlatList<RowItem> | null>(null)
+  const listRef = React.useRef<RNFlatList<RowItem> | null>(null)
 
   const onScrollUnbox = C.useDebouncedCallback(
     (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {

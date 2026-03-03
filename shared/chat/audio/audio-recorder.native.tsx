@@ -7,12 +7,7 @@ import * as React from 'react'
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {
-  Gesture,
-  GestureDetector,
-  type GestureUpdateEvent,
-  type PanGestureHandlerEventPayload,
-} from 'react-native-gesture-handler'
+import {usePanGesture, GestureDetector, type PanGestureEvent} from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
@@ -163,83 +158,80 @@ const useIconAndOverlay = (p: {
   }, [])
   const panStartSV = useSharedValue(0)
 
-  const gesture = (() => {
-    let id: number
-    const showOverlay = () => {
-      // we get this multiple times for some reason
-      if (startedSV.value) {
+  const overlayTimeoutIdRef = React.useRef(0)
+  const showOverlay = () => {
+    // we get this multiple times for some reason
+    if (startedSV.value) {
+      return
+    }
+    startedSV.set(1)
+    fadeSV.set(withSpring(1, {duration: 200}))
+    startRecording()
+  }
+  const setupOverlayTimeout = () => {
+    overlayTimeoutIdRef.current = setTimeout(() => {
+      showOverlay()
+    }, 200) as unknown as number
+  }
+  const cleanupOverlayTimeout = () => {
+    clearTimeout(overlayTimeoutIdRef.current)
+    overlayTimeoutIdRef.current = 0
+  }
+
+  const gesture = usePanGesture({
+    maxPointers: 1,
+    minDistance: 0,
+    minPointers: 1,
+    onFinalize: (_e: unknown, _success: boolean) => {
+      'worklet'
+      const diff = Date.now() - panStartSV.value
+      startedSV.set(0)
+      panStartSV.set(0)
+      runOnJS(cleanupOverlayTimeout)()
+      const needTip = diff < 200
+      const wasCancel = canceledSV.value === 1
+      const panLocked = lockedSV.value === 1
+      if (wasCancel) {
+        runOnJS(onCancelRecording)()
         return
       }
-      startedSV.set(1)
-      fadeSV.set(withSpring(1, {duration: 200}))
-      startRecording()
-    }
 
-    const setupOverlayTimeout = () => {
-      id = setTimeout(() => {
-        showOverlay()
-      }, 200) as unknown as number
-    }
-    const cleanupOverlayTimeout = () => {
-      clearTimeout(id)
-      id = 0
-    }
+      if (needTip) {
+        runOnJS(onFlashTip)()
+        return
+      }
 
-    const panGesture = Gesture.Pan()
-      .minDistance(0)
-      .minPointers(1)
-      .maxPointers(1)
-      .onTouchesDown(() => {
-        'worklet'
-        runOnJS(setupOverlayTimeout)()
-        if (!panStartSV.value) {
-          panStartSV.set(Date.now())
-        }
-      })
-      .onFinalize((_e: unknown, _success: boolean) => {
-        'worklet'
-        const diff = Date.now() - panStartSV.value
-        startedSV.set(0)
-        panStartSV.set(0)
-        runOnJS(cleanupOverlayTimeout)()
-        const needTip = diff < 200
-        const wasCancel = canceledSV.value === 1
-        const panLocked = lockedSV.value === 1
-        if (wasCancel) {
-          runOnJS(onCancelRecording)()
-          return
-        }
-
-        if (needTip) {
-          runOnJS(onFlashTip)()
-          return
-        }
-
-        if (!panLocked) {
-          runOnJS(sendRecording)()
-          onReset()
-          fadeSV.set(withTiming(0, {duration: 200}))
-        }
-      })
-      .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-        'worklet'
-        if (lockedSV.value || canceledSV.value) {
-          return
-        }
-        const maxCancelDrift = -120
-        const maxLockDrift = -100
-        dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
-        dragXSV.set(
-          interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
-        )
-        if (e.translationX < maxCancelDrift) {
-          canceledSV.set(1)
-        } else if (e.translationY < maxLockDrift) {
-          lockedSV.set(1)
-        }
-      })
-    return panGesture
-  })()
+      if (!panLocked) {
+        runOnJS(sendRecording)()
+        onReset()
+        fadeSV.set(withTiming(0, {duration: 200}))
+      }
+    },
+    onTouchesDown: () => {
+      'worklet'
+      runOnJS(setupOverlayTimeout)()
+      if (!panStartSV.value) {
+        panStartSV.set(Date.now())
+      }
+    },
+    onUpdate: (e: PanGestureEvent) => {
+      'worklet'
+      if (lockedSV.value || canceledSV.value) {
+        return
+      }
+      const maxCancelDrift = -120
+      const maxLockDrift = -100
+      dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
+      dragXSV.set(
+        interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
+      )
+      if (e.translationX < maxCancelDrift) {
+        canceledSV.set(1)
+      } else if (e.translationY < maxLockDrift) {
+        lockedSV.set(1)
+      }
+    },
+  })
 
   const icon = iconVisible ? (
     <View>

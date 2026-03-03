@@ -4,20 +4,16 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {useOrdinal} from '../../ids-context'
-// Perf issues w/ old arch so using old impl now
-//import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
-import {SwipeTrigger as OldSwipeTrigger} from './swipeable.native'
+import Swipeable, {type SwipeableMethods, SwipeDirection} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {Pressable, Keyboard} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
 import * as Reanimated from 'react-native-reanimated'
 
-// const ReplyIcon = React.memo(function ({progress}: {progress: Reanimated.SharedValue<number>}) {
-function ReplyIcon() {
-  // const as = Reanimated.useAnimatedStyle(() => {
-  //   const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
-  //   return {opacity}
-  // })
-  const as = {opacity: 1}
+function ReplyIcon({progress}: {progress: Reanimated.SharedValue<number>}) {
+  const as = Reanimated.useAnimatedStyle(() => {
+    const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
+    return {opacity}
+  })
   return (
     <Reanimated.default.View style={[styles.reply, as]}>
       <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
@@ -40,7 +36,9 @@ function LongPressable(props: Props) {
     </Pressable>
   )
 
-  const makeAction = (/*_: unknown, progress: Reanimated.SharedValue<number>*/) => <ReplyIcon /*progress={progress}*/ />
+  const makeAction = (_progress: Reanimated.SharedValue<number>, translation: Reanimated.SharedValue<number>) => (
+    <ReplyIcon progress={translation} />
+  )
 
   const {toggleThreadSearch, setReplyTo} = Chat.useChatContext(
     C.useShallow(s => ({setReplyTo: s.dispatch.setReplyTo, toggleThreadSearch: s.dispatch.toggleThreadSearch}))
@@ -53,36 +51,25 @@ function LongPressable(props: Props) {
     focusInput()
   }
 
-  return (
-    <OldSwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
-      {inner}
-    </OldSwipeTrigger>
-  )
+  const swipeRef = React.useRef<SwipeableMethods | null>(null)
+  const onSwipeableWillOpen = (dir: SwipeDirection) => {
+    if (dir === SwipeDirection.RIGHT) {
+      swipeRef.current?.close()
+      onSwipeLeft()
+    }
+  }
 
-  // TODO try and bring back w/ new arch
-  // const swipeRef = React.useRef<SwipeableMethods | null>(null)
-  // const onSwipeableWillOpen = React.useCallback(
-  //   (dir: 'left' | 'right') => {
-  //     if (dir === 'right') {
-  //       swipeRef.current?.close()
-  //       onSwipeLeft()
-  //     }
-  //   },
-  //   [onSwipeLeft]
-  // )
-  // return (
-  //   <Swipeable
-  //     enabled={false}
-  //     ref={swipeRef}
-  //     renderRightActions={makeAction}
-  //     onSwipeableWillOpen={onSwipeableWillOpen}
-  //     overshootRight={false}
-  //     // we don't do left swipe else it'll eat swipe back in nav
-  //     dragOffsetFromLeftEdge={1000}
-  //   >
-  //     {inner}
-  //   </Swipeable>
-  //   )
+  return (
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={makeAction}
+      onSwipeableWillOpen={onSwipeableWillOpen}
+      overshootRight={false}
+      dragOffsetFromLeftEdge={1000}
+    >
+      {inner}
+    </Swipeable>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
