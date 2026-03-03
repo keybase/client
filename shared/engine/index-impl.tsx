@@ -2,23 +2,15 @@
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
-import {debugWarning} from '@/util/debug-warning'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionID, SessionIDKey, MethodKey} from './types'
+import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
-
-// delay incoming to stop react from queueing too many setState calls and stopping rendering
-// only while debugging for now
-const DEFER_INCOMING_DURING_DEBUG = __DEV__ && (false as boolean)
-if (DEFER_INCOMING_DURING_DEBUG) {
-  debugWarning('DEFER_INCOMING_DURING_DEBUG is On')
-}
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -46,7 +38,6 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _emitWaiting: (changes: BatchParams) => void
-  _incomingTimeout: NodeJS.Timeout | undefined
   _onEngineIncoming?: (action: EngineGen.Actions) => void
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
@@ -72,7 +63,7 @@ class Engine {
     if (onEngineIncoming) {
       this._engineConstantsIncomingCall = (action: EngineGen.Actions) => {
         // defer a frame so its more like before
-        this._incomingTimeout = setTimeout(() => {
+        setTimeout(() => {
           this._onEngineIncoming?.(action)
         }, 0)
       }
@@ -247,14 +238,6 @@ class Engine {
 
     this._sessionsMap[String(sessionID)] = session
     return session
-  }
-
-  // Cancel a session maybe deprecate, not used
-  cancelSession(sessionID: SessionID) {
-    const session = this._sessionsMap[String(sessionID)]
-    if (session) {
-      session.cancel()
-    }
   }
 
   // Cleanup a session that ended

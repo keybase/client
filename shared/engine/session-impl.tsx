@@ -61,9 +61,6 @@ class Session {
     this._dangling = p.dangling || false
   }
 
-  setId(_: SessionID) {
-    throw new Error("Can't set sessionID")
-  }
   getId(): SessionID {
     return this._id
   }
