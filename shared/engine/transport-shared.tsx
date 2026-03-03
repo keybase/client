@@ -3,7 +3,6 @@ import * as Framed from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '@/local-debug'
 import {requestIdleCallback} from '@/util/idle-callback'
 import * as LocalConsole from './local-console'
-import * as Stats from './stats'
 
 Framed.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
@@ -61,11 +60,6 @@ class TransportShared extends Framed.transport.RobustTransport {
           const reason = '[incoming]'
           const type = 'serverToEngine'
           rpcLog({extra, method, reason, type})
-        }
-
-        // always capture stats
-        if (method) {
-          Stats.gotStat(method, true)
         }
 
         this._injectInstrumentedResponse(payload)
@@ -145,8 +139,6 @@ class TransportShared extends Framed.transport.RobustTransport {
     if (printRPC) {
       rpcLog({extra, method, reason, type})
     }
-    Stats.gotStat(method, false)
-
     let once = false
     super.invoke(arg, (err: Framed.ErrorType, data: object) => {
       if (once) {
@@ -160,7 +152,6 @@ class TransportShared extends Framed.transport.RobustTransport {
         const extra = data
         rpcLog({extra, method, reason, type})
       }
-      Stats.gotStat(method, false)
       cb(err, data)
     })
   }
