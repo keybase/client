@@ -1,7 +1,7 @@
 #include "react-native-kb.h"
 #include <cmath>
 #include <cstring>
-#include <msgpack.hpp>
+#include "msgpack-safe.hpp"
 #include <string>
 
 using namespace facebook;
@@ -11,6 +11,7 @@ namespace kb {
 
 struct KBBridge::MsgpackState {
   msgpack::unpacker unpacker;
+  msgpack::sbuffer sendBuf;
 };
 
 KBBridge::KBBridge() = default;
@@ -41,9 +42,9 @@ static std::string mpToString(msgpack::object &o) {
   case msgpack::type::STR:
     return o.as<std::string>();
   case msgpack::type::POSITIVE_INTEGER:
-    return std::to_string(o.as<unsigned int>());
+    return std::to_string(o.as<uint64_t>());
   case msgpack::type::NEGATIVE_INTEGER:
-    return std::to_string(o.as<int>());
+    return std::to_string(o.as<int64_t>());
   case msgpack::type::FLOAT32:
     return std::to_string(o.as<double>());
   case msgpack::type::FLOAT64:
@@ -62,7 +63,7 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
   case msgpack::type::POSITIVE_INTEGER:
     return jsi::Value(o.as<double>());
   case msgpack::type::NEGATIVE_INTEGER:
-    return jsi::Value(o.as<int>());
+    return jsi::Value(o.as<double>());
   case msgpack::type::FLOAT32:
     return jsi::Value(o.as<double>());
   case msgpack::type::FLOAT64:
@@ -204,20 +205,27 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
 }
 
 void KBBridge::packAndSend(Runtime &runtime, const Value &value) {
-  msgpack::sbuffer sbuf;
-  msgpack::packer<msgpack::sbuffer> pk(&sbuf);
+  mp_->sendBuf.clear();
+  msgpack::packer<msgpack::sbuffer> pk(&mp_->sendBuf);
   convertJSIToMP(runtime, value, &pk);
 
-  // Write framed: [length prefix][content]
-  msgpack::sbuffer frameBuf;
-  msgpack::packer<msgpack::sbuffer> framePk(&frameBuf);
-  framePk.pack(static_cast<uint32_t>(sbuf.size()));
+  // Encode frame header (msgpack uint32 length prefix) on the stack.
+  // 0xce = msgpack uint32 format tag, followed by 4 big-endian bytes.
+  auto contentSize = static_cast<uint32_t>(mp_->sendBuf.size());
+  uint8_t frameHeader[5] = {
+    0xce,
+    static_cast<uint8_t>(contentSize >> 24),
+    static_cast<uint8_t>(contentSize >> 16),
+    static_cast<uint8_t>(contentSize >> 8),
+    static_cast<uint8_t>(contentSize),
+  };
+  constexpr size_t headerLen = 5;
 
-  std::vector<uint8_t> combined(frameBuf.size() + sbuf.size());
-  std::memcpy(combined.data(), frameBuf.data(), frameBuf.size());
-  std::memcpy(combined.data() + frameBuf.size(), sbuf.data(), sbuf.size());
+  combinedBuf_.resize(headerLen + mp_->sendBuf.size());
+  std::memcpy(combinedBuf_.data(), frameHeader, headerLen);
+  std::memcpy(combinedBuf_.data() + headerLen, mp_->sendBuf.data(), mp_->sendBuf.size());
 
-  writeToGo_(combined.data(), combined.size());
+  writeToGo_(combinedBuf_.data(), combinedBuf_.size());
 }
 
 void KBBridge::install(

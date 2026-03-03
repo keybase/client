@@ -446,7 +446,7 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteArr sends raw bytes encoded msgpack rpc payload, ios only
+// WriteArr sends raw bytes encoded msgpack rpc payload from the native layer (iOS and Android)
 func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
