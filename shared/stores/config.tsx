@@ -3,13 +3,12 @@ import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {waitingKeyConfigLogin} from '@/constants/strings'
 import * as EngineGen from '@/actions/engine-gen-gen'
-import * as Stats from '@/engine/stats'
 import * as Z from '@/util/zustand'
 import {noConversationIDKey} from '@/constants/types/chat/common'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {Tab} from '@/constants/tabs'
-import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '@/util/errors'
+import {RPCError, convertToError, isErrorTransient, niceError} from '@/util/errors'
 import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
@@ -718,9 +717,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           s.globalError = e
         })
         logger.error('Error (global):', e.message, e)
-        if (isEOFError(e)) {
-          Stats.gotEOF()
-        }
         if (isErrorTransient(e)) {
           logger.info('globalError silencing:', e)
           return
