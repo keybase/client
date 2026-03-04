@@ -1,63 +1,36 @@
 import type {ConversationIDKey} from '@/constants/types/chat'
-import type * as T from '@/constants/types'
 
-export type ChatInboxRowItemSmall = {
+export type InboxSmallTeamRow = {
   type: 'small'
-  teamname: string
-  isTeam: boolean
   conversationIDKey: ConversationIDKey
-  time: number
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
 }
-export type ChatInboxRowItemBigTeamsLabel = {
-  type: 'bigTeamsLabel'
-  isFiltered: boolean
-  isTeam?: boolean
-  teamname?: never
-  conversationIDKey?: never
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
-  time?: number
+
+export type InboxBigChannelRow = {
+  type: 'big'
+  conversationIDKey: ConversationIDKey
 }
-export type ChatInboxRowItemBigHeader = {
-  conversationIDKey?: never
+
+export type InboxBigHeaderRow = {
   type: 'bigHeader'
-  isTeam?: boolean
   teamname: string
   teamID: string
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
-  time?: number
 }
-export type ChatInboxRowItemBig = {
-  type: 'big'
-  isTeam?: boolean
-  conversationIDKey: ConversationIDKey
-  teamname: string
-  channelname: string
-  snippet?: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
-  time?: number
-}
-export type ChatInboxRowItemDivider = {
-  conversationIDKey?: never
-  teamname?: never
-  showButton: boolean
+
+export type InboxDividerRow = {
   type: 'divider'
+  showButton: boolean
+  hiddenCount: number
 }
-export type ChatInboxRowItemTeamBuilder = {
-  conversationIDKey?: never
-  teamname?: never
+
+export type InboxTeamBuilderRow = {
   type: 'teamBuilder'
 }
 
 export type ChatInboxRowItem =
-  | ChatInboxRowItemSmall
-  | ChatInboxRowItemBigTeamsLabel
-  | ChatInboxRowItemBigHeader
-  | ChatInboxRowItemBig
-  | ChatInboxRowItemDivider
-  | ChatInboxRowItemTeamBuilder
+  | InboxSmallTeamRow
+  | InboxBigChannelRow
+  | InboxBigHeaderRow
+  | InboxDividerRow
+  | InboxTeamBuilderRow
 
 export type ChatInboxRowType = ChatInboxRowItem['type']

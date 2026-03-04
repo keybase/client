@@ -1,56 +1,21 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
-
+import {useInboxRowBig} from '@/stores/inbox-rows'
 type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  layoutChannelname: string
-  navKey: string
+  conversationIDKey: string
   selected: boolean
-  layoutSnippetDecoration?: T.RPCChat.SnippetDecoration
 }
 
 const BigTeamChannel = (props: Props) => {
-  return (
-    <Chat.ChatProvider id={props.conversationIDKey}>
-      <BigTeamChannelInner {...props} />
-    </Chat.ChatProvider>
-  )
-}
-const BigTeamChannelInner = (props: Props) => {
-  const {selected, layoutChannelname, layoutSnippetDecoration} = props
-  const {channelname, isError, snippetDecoration, hasBadge, hasDraft, hasUnread, isMuted, navigateToThread} =
-    Chat.useChatContext(
-      C.useShallow(s => {
-        const d =
-          s.meta.conversationIDKey === Chat.noConversationIDKey
-            ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
-            : s.meta.snippetDecoration
-        let snippetDecoration: number
-        switch (d) {
-          case T.RPCChat.SnippetDecoration.pendingMessage:
-          case T.RPCChat.SnippetDecoration.failedPendingMessage:
-            snippetDecoration = d
-            break
-          default:
-            snippetDecoration = 0
-        }
-        return {
-          channelname: s.meta.channelname || layoutChannelname,
-          hasBadge: s.badge > 0,
-          hasDraft: !!s.meta.draft,
-          hasUnread: s.unread > 0,
-          isError: s.meta.trustedState === 'error',
-          isMuted: s.meta.isMuted,
-          navigateToThread: s.dispatch.navigateToThread,
-          snippetDecoration,
-        }
-      })
-    )
-  const onSelectConversation = () => navigateToThread('inboxBig')
+  const {selected, conversationIDKey} = props
+
+  const row = useInboxRowBig(conversationIDKey)
+  const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
+
+  const onSelectConversation = () => Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null
@@ -127,7 +92,7 @@ const BigTeamChannelInner = (props: Props) => {
 
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={!Kb.Styles.isTablet}>
-      <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
+      <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
         <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
           <Kb.Box2
             className="hover_background_color_blueGreyDark"
@@ -154,7 +119,7 @@ const BigTeamChannelInner = (props: Props) => {
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox2>
     </Kb.Styles.CanFixOverdrawContext.Provider>
   )
 }

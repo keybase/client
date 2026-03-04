@@ -1,40 +1,32 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Chat from '@/stores/chat'
 import * as RowSizes from './sizes'
-import type {ChatInboxRowItem} from '../rowitem'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<ChatInboxRowItem>
   showButton: boolean
+  hiddenCount: number
   toggle: () => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
 function TeamsDivider(props: Props) {
-  const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const smallTeamBadgeCount = Chat.useChatState(s => s.smallTeamBadgeCount)
-  const totalSmallTeams = Chat.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
-  // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = Chat.useChatState(
-    C.useShallow(s =>
-      s.getBadgeHiddenCount(new Set(rows.filter(r => r.type === 'small').map(r => r.conversationIDKey)))
-    )
-  )
-  badgeCount += smallTeamBadgeCount
-  hiddenCount += totalSmallTeams
+  const {showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
+  let {hiddenCount} = props
+
   if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
+
+  // Read badge count from store
+  const badgeCount = Chat.useChatState(s => Math.max(0, s.smallTeamBadgeCount))
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
   const loadMore = async () => T.RPCChat.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
-  badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)
 
   return (

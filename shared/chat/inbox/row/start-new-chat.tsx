@@ -9,12 +9,12 @@ const StartNewChat = (props: Props) => {
   if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
-        <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
+        <Kb.ClickableBox2 style={styles.clickableBox} onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} hoverColor="inital" />
           <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
           </Kb.Text>
-        </Kb.ClickableBox>
+        </Kb.ClickableBox2>
       </Kb.Box2>
     )
   }

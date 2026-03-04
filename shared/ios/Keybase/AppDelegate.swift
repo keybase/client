@@ -454,6 +454,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
   override func applicationWillEnterForeground(_ application: UIApplication) {
     log.info("applicationWillEnterForeground: hiding keyz screen.")
+    PerfFPSMonitor.appWillEnterForeground()
     hideCover()
   }
 

@@ -7,19 +7,11 @@ import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 
 type Props = {
-  navKey: string
   teamname: string
   teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = (props: Props) => {
-  return (
-    <Chat.ChatProvider id={Chat.dummyConversationIDKey}>
-      <BigTeamHeaderInner {...props} />
-    </Chat.ChatProvider>
-  )
-}
-const BigTeamHeaderInner = (props: Props) => {
   const {teamID, teamname} = props
   const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -57,7 +49,7 @@ const BigTeamHeaderInner = (props: Props) => {
           {teamname}
         </Kb.Text>
       </Kb.BoxGrow2>
-      <Kb.ClickableBox
+      <Kb.ClickableBox2
         className="hover_container"
         onClick={showPopup}
         ref={popupAnchor}
@@ -70,7 +62,7 @@ const BigTeamHeaderInner = (props: Props) => {
           type="iconfont-gear"
         />
         <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox2>
     </Kb.Box2>
   )
 }

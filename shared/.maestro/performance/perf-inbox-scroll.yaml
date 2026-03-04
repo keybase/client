@@ -15,7 +15,7 @@ appId: keybase.ios
 - runFlow: ../shared/navigate-to-chat.yaml
 
 - repeat:
-    times: 5
+    times: 3
     commands:
       - swipe:
           id: "inboxList"
@@ -23,7 +23,7 @@ appId: keybase.ios
           duration: 150
 
 - repeat:
-    times: 5
+    times: 3
     commands:
       - swipe:
           id: "inboxList"

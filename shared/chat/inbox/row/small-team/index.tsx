@@ -10,95 +10,31 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useOpenedRowState} from '../opened-row-state'
+import {useInboxRowSmall} from '@/stores/inbox-rows'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
-
 export type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey
+  conversationIDKey: string
   isSelected: boolean
-  layoutIsTeam?: boolean
-  layoutName?: string
-  layoutSnippet?: string
-  layoutTime?: number
-  layoutSnippetDecoration?: T.RPCChat.SnippetDecoration
   onSelectConversation?: () => void
 }
 
 const SmallTeam = (p: Props) => {
-  return (
-    <Chat.ChatProvider id={p.conversationIDKey}>
-      <SmallTeamInner {...p} />
-    </Chat.ChatProvider>
-  )
-}
+  const {conversationIDKey, isSelected} = p
 
-const SmallTeamInner = (p: Props) => {
-  const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime, layoutSnippetDecoration} = p
-
-  const you = useCurrentUserState(s => s.username)
-
-  const {snippet, snippetDecoration, isMuted, isLocked, hasUnread, hasBadge, timestamp, navigateToThread, teamDisplayName} =
-    Chat.useChatContext(
-      C.useShallow(s => {
-        const typingSnippet = (() => {
-          const typers = s.typing
-          if (!typers.size) return undefined
-          if (typers.size === 1) {
-            const [t] = typers
-            return `${t} is typing...`
-          } else {
-            return 'Multiple people typing...'
-          }
-        })()
-        const {meta} = s
-        const maybeLayoutSnippet =
-          meta.conversationIDKey === Chat.noConversationIDKey ? layoutSnippet : undefined
-        const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-        const snippetDecoration =
-          meta.conversationIDKey === Chat.noConversationIDKey
-            ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
-            : meta.snippetDecoration
-        const metaTeamname = (meta.teamname || (layoutIsTeam ? layoutName : '')) || ''
-
-        return {
-          hasBadge: s.badge > 0,
-          hasUnread: s.unread > 0,
-          isLocked: meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy,
-          isMuted: meta.isMuted,
-          navigateToThread: s.dispatch.navigateToThread,
-          snippet,
-          snippetDecoration,
-          teamDisplayName: metaTeamname,
-          timestamp: meta.timestamp || layoutTime || 0,
-        }
-      })
-    )
-
-  const participants = Chat.useChatContext(
-    C.useShallow(s => {
-      const participantInfo = s.participants
-      if (participantInfo.name.length) {
-        return participantInfo.name.filter((participant, _, list) =>
-          list.length === 1 ? true : participant !== you
-        )
-      }
-      if (layoutIsTeam) {
-        return []
-      }
-      return (
-        layoutName
-          ?.split(',')
-          .filter((participant, _, list) => (list.length === 1 ? true : participant !== you)) ?? []
-      )
-    })
-  )
-
+  const row = useInboxRowSmall(conversationIDKey)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+
+  const {isMuted, isLocked, draft: rawDraft, teamDisplayName, hasBadge, hasUnread} = row
+  const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, participants} = row
+  const {snippet, snippetDecoration, typingSnippet, timestamp, isDecryptingSnippet} = row
+  const displaySnippet = typingSnippet || snippet
+  const draft = (!isSelected && !hasUnread && rawDraft) || ''
   const onSelectConversation = isSelected
     ? undefined
     : (p.onSelectConversation ??
         (() => {
           setOpenedRow(Chat.noConversationIDKey)
-          navigateToThread('inboxSmall')
+          Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSmall')
         }))
 
   const backgroundColor = isSelected
@@ -107,13 +43,12 @@ const SmallTeamInner = (p: Props) => {
       ? undefined
       : Kb.Styles.globalColors.blueGrey
 
-  const teamname = teamDisplayName ? teamDisplayName.split('#')[0] ?? '' : ''
-  const participantOne = teamname ? '' : participants[0] ?? ''
-  const participantTwo = teamname ? '' : participants[1] ?? ''
+  const participantOne = teamDisplayName ? '' : participants[0] ?? ''
+  const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
 
   return (
-    <SwipeConvActions onPress={onSelectConversation}>
-      <Kb.ClickableBox
+    <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
+      <Kb.ClickableBox2
         onClick={Kb.Styles.isMobile ? undefined : onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}
         style={
@@ -123,8 +58,8 @@ const SmallTeamInner = (p: Props) => {
         }
       >
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.rowContainer}>
-          {teamname ? (
-            <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+          {teamDisplayName ? (
+            <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
           ) : (
             <Avatars
               backgroundColor={backgroundColor}
@@ -138,55 +73,55 @@ const SmallTeamInner = (p: Props) => {
           <Kb.Box2 direction="vertical" style={styles.conversationRow}>
             <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
               <TopLine
-                isSelected={isSelected}
-                hasUnread={hasUnread}
-                hasBadge={hasBadge}
-                backgroundColor={backgroundColor}
-                teamDisplayName={teamDisplayName}
+                conversationIDKey={conversationIDKey}
                 participants={participants}
+                teamDisplayName={teamDisplayName}
                 timestamp={timestamp}
+                hasBadge={hasBadge}
+                hasUnread={hasUnread}
+                isSelected={isSelected}
+                backgroundColor={backgroundColor}
               />
             </Kb.Box2>
-            <BottomLine
-              snippet={snippet}
+            <BottomLineDisplay
+              snippet={displaySnippet}
               snippetDecoration={snippetDecoration}
               backgroundColor={backgroundColor}
               isSelected={isSelected}
+              hasUnread={hasUnread}
+              draft={draft}
+              hasResetUsers={hasResetUsers}
+              youNeedToRekey={youNeedToRekey}
+              youAreReset={youAreReset}
+              participantNeedToRekey={participantNeedToRekey}
+              isDecryptingSnippet={isDecryptingSnippet}
             />
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox2>
     </SwipeConvActions>
   )
 }
 
 type TopLineProps = {
-  isSelected: boolean
-  hasUnread: boolean
-  hasBadge: boolean
-  backgroundColor?: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  participants: ReadonlyArray<string>
   teamDisplayName: string
-  participants: Array<string>
   timestamp: number
+  hasBadge: boolean
+  hasUnread: boolean
+  isSelected: boolean
+  backgroundColor?: string
 }
 
 const TopLine = (p: TopLineProps) => {
-  const {isSelected, hasUnread, hasBadge, backgroundColor, teamDisplayName, participants, timestamp} = p
+  const {isSelected, backgroundColor, conversationIDKey, participants, teamDisplayName, timestamp, hasBadge, hasUnread} = p
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
     : hasUnread
       ? Kb.Styles.globalColors.black
       : Kb.Styles.globalColors.black_50
-  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
-
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    return (
-      <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
-    )
-  }
-  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = Kb.Styles.collapseStyles([
@@ -211,15 +146,12 @@ const TopLine = (p: TopLineProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-      {showingPopup && popup}
       <Kb.Box2 direction="horizontal" style={styles.insideContainer} relative={true}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
-                {teamDisplayName}
-              </Kb.Text>
-            </Kb.Box2>
+            <Kb.Text type="BodySemibold" style={teamContainerStyle} lineClamp={1}>
+              {teamDisplayName}
+            </Kb.Text>
           ) : (
             <Kb.ConnectedUsernames
               backgroundMode={isSelected ? 'Terminal' : 'Normal'}
@@ -242,63 +174,60 @@ const TopLine = (p: TopLineProps) => {
         {timestampText}
       </Kb.Text>
       {!Kb.Styles.isMobile && (
-        <Kb.Icon
-          type="iconfont-gear"
-          className="conversation-gear"
-          onClick={showPopup}
-          ref={popupAnchor}
-          color={subColor}
-          hoverColor={iconHoverColor}
-          style={styles.icon}
-        />
+        <TopLineGear conversationIDKey={conversationIDKey} subColor={subColor} isSelected={isSelected} />
       )}
       {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
     </Kb.Box2>
   )
 }
 
-type BottomLineProps = {
-  snippet?: string
-  snippetDecoration?: T.RPCChat.SnippetDecoration
+const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: string; isSelected: boolean}) => {
+  const {conversationIDKey, subColor, isSelected} = p
+  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
+  const makePopup = (mp: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = mp
+    return (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
+      </Chat.ChatProvider>
+    )
+  }
+  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  return (
+    <>
+      {showingPopup && popup}
+      <Kb.Icon
+        type="iconfont-gear"
+        className="conversation-gear"
+        onClick={showPopup}
+        ref={popupAnchor}
+        color={subColor}
+        hoverColor={iconHoverColor}
+        style={styles.icon}
+      />
+    </>
+  )
+}
+
+type BottomLineDisplayProps = {
+  snippet: string
+  snippetDecoration: T.RPCChat.SnippetDecoration
   backgroundColor?: string
   isSelected?: boolean
   allowBold?: boolean
+  hasUnread: boolean
+  draft: string
+  hasResetUsers: boolean
+  youNeedToRekey: boolean
+  youAreReset: boolean
+  participantNeedToRekey: boolean
+  isDecryptingSnippet: boolean
 }
 
-const BottomLine = (p: BottomLineProps) => {
+const BottomLineDisplay = (p: BottomLineDisplayProps) => {
   const {allowBold = true, isSelected, backgroundColor} = p
-  const snippet = p.snippet ?? ''
-  const snippetDecoration = p.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
-
-  const you = useCurrentUserState(s => s.username)
-  const {
-    hasUnread,
-    draft: _draft,
-    hasResetUsers,
-    participantNeedToRekey,
-    youAreReset,
-    youNeedToRekey,
-    trustedState,
-    hasId,
-  } = Chat.useChatContext(
-    C.useShallow(s => {
-      const {membershipType, rekeyers, resetParticipants, trustedState} = s.meta
-      return {
-        draft: s.meta.draft,
-        hasId: !!s.id,
-        hasResetUsers: resetParticipants.size > 0,
-        hasUnread: s.unread > 0,
-        participantNeedToRekey: rekeyers.size > 0,
-        trustedState,
-        youAreReset: membershipType === 'youAreReset',
-        youNeedToRekey: rekeyers.has(you),
-      }
-    })
-  )
-
-  const isDecryptingSnippet =
-    hasId && !snippet ? trustedState === 'requesting' || trustedState === 'untrusted' : false
-  const draft = (!isSelected && !hasUnread && _draft) || ''
+  const {snippet, snippetDecoration, hasUnread, draft} = p
+  const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, isDecryptingSnippet} = p
 
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
@@ -361,21 +290,72 @@ const BottomLine = (p: BottomLineProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" justifyContent="flex-start" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
-        {hasResetUsers && (
-          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
-        )}
-        {youNeedToRekey && (
-          <Kb.Meta
-            title="rekey needed"
-            style={styles.alertMeta}
-            backgroundColor={Kb.Styles.globalColors.red}
-          />
-        )}
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
+      {hasResetUsers && (
+        <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
+      )}
+      {youNeedToRekey && (
+        <Kb.Meta
+          title="rekey needed"
+          style={styles.alertMeta}
+          backgroundColor={Kb.Styles.globalColors.red}
+        />
+      )}
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
     </Kb.Box2>
+  )
+}
+
+// Connected BottomLine that uses ChatContext (for external consumers like selectable-small-team)
+type BottomLineProps = {
+  snippet?: string
+  snippetDecoration?: T.RPCChat.SnippetDecoration
+  backgroundColor?: string
+  isSelected?: boolean
+  allowBold?: boolean
+}
+
+const BottomLine = (p: BottomLineProps) => {
+  const {allowBold = true, isSelected, backgroundColor} = p
+  const snippet = p.snippet ?? ''
+  const snippetDecoration = p.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
+
+  const you = useCurrentUserState(s => s.username)
+  const {hasUnread, draft: _draft, hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey, trustedState, hasId} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const {membershipType, rekeyers, resetParticipants, trustedState} = s.meta
+        return {
+          draft: s.meta.draft,
+          hasId: !!s.id,
+          hasResetUsers: resetParticipants.size > 0,
+          hasUnread: s.unread > 0,
+          participantNeedToRekey: rekeyers.size > 0,
+          trustedState,
+          youAreReset: membershipType === 'youAreReset',
+          youNeedToRekey: rekeyers.has(you),
+        }
+      })
+    )
+
+  const isDecryptingSnippet = hasId && !snippet ? trustedState === 'requesting' || trustedState === 'untrusted' : false
+  const draft = (!isSelected && !hasUnread && _draft) || ''
+
+  return (
+    <BottomLineDisplay
+      snippet={snippet}
+      snippetDecoration={snippetDecoration}
+      backgroundColor={backgroundColor}
+      isSelected={isSelected}
+      allowBold={allowBold}
+      hasUnread={hasUnread}
+      draft={draft}
+      hasResetUsers={hasResetUsers}
+      youNeedToRekey={youNeedToRekey}
+      youAreReset={youAreReset}
+      participantNeedToRekey={participantNeedToRekey}
+      isDecryptingSnippet={isDecryptingSnippet}
+    />
   )
 }
 

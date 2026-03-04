@@ -10,13 +10,12 @@ import SearchRow from './search-row'
 import InboxSearch from '../inbox-search'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
-import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
 import {type FlatList as RNFlatList, type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
-// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
+import {useInboxState} from './use-inbox-state'
 import type {ChatInboxRowItem} from './rowitem'
 
 type RowItem = ChatInboxRowItem
@@ -61,14 +60,39 @@ const viewabilityConfig = {
   viewAreaCoveragePercentThreshold: 30,
 }
 
-function Inbox(p: TInbox.Props) {
+function computeUnreadInfo(unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) {
+  if (!unreadIndices.size || lastVisibleIdx < 0) {
+    return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
+  }
+  let uc = 0
+  let firstOffscreenIdx = 0
+  unreadIndices.forEach((count, idx) => {
+    if (idx > lastVisibleIdx) {
+      if (firstOffscreenIdx <= 0) firstOffscreenIdx = idx
+      uc += count
+    }
+  })
+  return firstOffscreenIdx
+    ? {firstOffscreenIdx, showUnread: true, unreadCount: uc}
+    : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
+}
+
+function computeShowFloating(rows: ArrayLike<RowItem>, lastVisibleIdx: number) {
+  if (lastVisibleIdx < 0) return false
+  return rows[lastVisibleIdx]?.type === 'small'
+}
+
+type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+function Inbox(p: InboxProps) {
+  const inbox = useInboxState(p.conversationIDKey)
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
 
-  const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, navKey, selectedConversationIDKey} = p
-  const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = p
-  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = p
+  const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
+  const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
 
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
@@ -94,9 +118,6 @@ function Inbox(p: TInbox.Props) {
     switch (item.type) {
       case 'small':
         layout.size = RowSizes.smallRowHeight
-        break
-      case 'bigTeamsLabel':
-        layout.size = 32
         break
       case 'bigHeader':
         layout.size = RowSizes.bigHeaderHeight
@@ -134,50 +155,12 @@ function Inbox(p: TInbox.Props) {
     onUntrustedInboxVisible(toUnbox)
   }
 
-  const updateShowUnread = () => {
-    if (!unreadIndices.size || lastVisibleIdxRef.current < 0) {
-      setShowUnread(false)
-      return
-    }
-
-    let uc = 0
-    let firstOffscreenIdx = 0
-    unreadIndices.forEach((count, idx) => {
-      if (idx > lastVisibleIdxRef.current) {
-        if (firstOffscreenIdx <= 0) {
-          firstOffscreenIdx = idx
-        }
-        uc += count
-      }
-    })
-    if (firstOffscreenIdx) {
-      setShowUnread(true)
-      setUnreadCount(uc)
-      firstOffscreenIdxRef.current = firstOffscreenIdx
-    } else {
-      setShowUnread(false)
-      setUnreadCount(0)
-      firstOffscreenIdxRef.current = -1
-    }
-  }
-
-  const updateShowFloating = () => {
-    if (lastVisibleIdxRef.current < 0) {
-      return
-    }
-    let show = true
-    const row = rows[lastVisibleIdxRef.current]
-    if (!row) {
-      return
-    }
-
-    if (row.type !== 'small') {
-      show = false
-    }
-
-    if (showFloating !== show) {
-      setShowFloating(show)
-    }
+  const applyUnreadAndFloating = () => {
+    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(info.showUnread)
+    setUnreadCount(info.unreadCount)
+    firstOffscreenIdxRef.current = info.firstOffscreenIdx
+    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
   }
 
   const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
@@ -187,15 +170,16 @@ function Inbox(p: TInbox.Props) {
       element = (
         <TeamsDivider
           showButton={row.showButton}
+          hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}
-          rows={rows}
           smallTeamsExpanded={smallTeamsExpanded}
         />
       )
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)
+      const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
+      element = makeRow(row, isSelected)
     }
 
     return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
@@ -204,11 +188,10 @@ function Inbox(p: TInbox.Props) {
   const keyExtractor = (item: RowItem, idx: number) => {
     const row = item
     switch (row.type) {
-      case 'divider': // fallthrough
-      case 'teamBuilder': // fallthrough
-      case 'bigTeamsLabel':
+      case 'divider':
+      case 'teamBuilder':
         return row.type
-      case 'small': // fallthrough
+      case 'small':
       case 'big':
         return row.conversationIDKey
       case 'bigHeader':
@@ -221,8 +204,7 @@ function Inbox(p: TInbox.Props) {
   const onViewChangedImpl = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
-    updateShowUnread()
-    updateShowFloating()
+    applyUnreadAndFloating()
   }
 
   const onViewChangedImplRef = React.useRef(onViewChangedImpl)
@@ -237,8 +219,6 @@ function Inbox(p: TInbox.Props) {
   const dividerIndexRef = React.useRef(-1)
   const dividerShowButtonRef = React.useRef(false)
   const getItemLayout = (data: ArrayLike<RowItem> | undefined | null, index: number) => {
-    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
-    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
     if (index < dividerIndexRef.current || dividerIndexRef.current === -1) {
       const offset = index ? smallHeight * index : 0
@@ -246,14 +226,14 @@ function Inbox(p: TInbox.Props) {
       return {index, length, offset}
     }
 
-    const dividerHeight = RowSizes.dividerHeight(dividerShowButtonRef.current)
+    const dividerH = RowSizes.dividerHeight(dividerShowButtonRef.current)
     if (index === dividerIndexRef.current) {
       const offset = smallHeight * index
-      const length = dividerHeight
+      const length = dividerH
       return {index, length, offset}
     }
 
-    let offset = smallHeight * dividerIndexRef.current + dividerHeight
+    let offset = smallHeight * dividerIndexRef.current + dividerH
     let i = dividerIndexRef.current + 1
 
     for (; i < index; ++i) {
@@ -270,27 +250,14 @@ function Inbox(p: TInbox.Props) {
     setOpenRow(Chat.noConversationIDKey)
   })
 
-  const rowLength = rows.length
-  const lastUnreadIndicesRef = React.useRef(unreadIndices)
-  const lastUnreadTotalRef = React.useRef(unreadTotal)
-  const lastRowLengthRef = React.useRef(rowLength)
-
-  if (
-    !C.shallowEqual(lastUnreadIndicesRef.current, unreadIndices) ||
-    lastUnreadTotalRef.current !== unreadTotal
-  ) {
-    updateShowUnread()
-  }
-
-  lastUnreadTotalRef.current = unreadTotal
-  lastUnreadIndicesRef.current = unreadIndices
-
-  if (lastRowLengthRef.current !== rowLength) {
-    // list has changed, floating divider is likely to change
-    updateShowFloating()
-  }
-
-  lastRowLengthRef.current = rowLength
+  // Recompute unread/floating when store data changes (not during render to avoid double-renders)
+  React.useEffect(() => {
+    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(info.showUnread)
+    setUnreadCount(info.unreadCount)
+    firstOffscreenIdxRef.current = info.firstOffscreenIdx
+    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
+  }, [unreadIndices, unreadTotal, rows])
 
   if (!usingFlashList) {
     dividerShowButtonRef.current = false

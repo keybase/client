@@ -4,9 +4,9 @@ import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
-import {RectButton, TouchableOpacity} from 'react-native-gesture-handler'
+import {Pressable, View} from 'react-native'
+import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
-import {View} from 'react-native'
 import {useOpenedRowState} from '../../opened-row-state'
 
 const actionWidth = 64
@@ -47,7 +47,7 @@ const Action = (p: {
 }
 
 function SwipeConvActions(p: Props) {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const {conversationIDKey} = p
   const isOpened = useOpenedRowState(s => s.openedRow === conversationIDKey)
   const wasOpenRef = React.useRef(isOpened)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
@@ -59,10 +59,11 @@ function SwipeConvActions(p: Props) {
   }
   const {children, onPress} = p
 
-  const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
+  const isMuted = Chat.useInboxRowSmall(conversationIDKey).isMuted
+  const cs = Chat.getConvoState(conversationIDKey)
+  const setMarkAsUnread = cs.dispatch.setMarkAsUnread
+  const mute = cs.dispatch.mute
+  const hideConversation = cs.dispatch.hideConversation
 
   const onMarkAsUnread = () => {
     setMarkAsUnread()
@@ -124,6 +125,14 @@ function SwipeConvActions(p: Props) {
     )
   }
 
+  const inner = onPress ? (
+    <Pressable onPress={onPress} style={styles.touchable}>
+      {children}
+    </Pressable>
+  ) : (
+    children
+  )
+
   return (
     <Swipeable
       ref={swipeableRef}
@@ -131,11 +140,7 @@ function SwipeConvActions(p: Props) {
       renderRightActions={renderRightActions}
       containerStyle={styles.row}
     >
-      {onPress ? (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.touchable}>
-          {children}
-        </TouchableOpacity>
-      ) : children}
+      {inner}
     </Swipeable>
   )
 }

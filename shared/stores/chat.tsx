@@ -15,6 +15,8 @@ import type {GetOptionsRet} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
+import {flushInboxRowUpdates} from '@/stores/inbox-rows'
+import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isMobile, isPhone} from '@/constants/platform'
@@ -255,7 +257,10 @@ type Store = T.Immutable<{
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
+  inboxAllowShowFloatingButton: boolean
+  inboxRows: Array<ChatInboxRowItem>
   inboxSearch?: T.Chat.InboxSearchInfo
+  inboxSmallTeamsExpanded: boolean
   teamIDToGeneralConvID: Map<T.Teams.TeamID, T.Chat.ConversationIDKey>
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -268,10 +273,13 @@ const initialStore: Store = {
   botPublicCommands: new Map(),
   createConversationError: undefined,
   flipStatusMap: new Map(),
+  inboxAllowShowFloatingButton: false,
   inboxHasLoaded: false,
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
+  inboxRows: [],
   inboxSearch: undefined,
+  inboxSmallTeamsExpanded: false,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
@@ -390,6 +398,102 @@ export interface State extends Store {
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
+
+type InboxRowsResult = {
+  allowShowFloatingButton: boolean
+  rows: Array<ChatInboxRowItem>
+  smallTeamsExpanded: boolean
+}
+
+const emptyInboxRowsResult: InboxRowsResult = {
+  allowShowFloatingButton: false,
+  rows: [],
+  smallTeamsExpanded: false,
+}
+
+// Build structural inbox rows from layout. Display data (badge, unread, muted, etc.)
+// is read per-row via ChatProvider + useChatContext at render time.
+function buildInboxRows(
+  layout: T.RPCChat.UIInboxLayout | undefined,
+  inboxNumSmallRows: number,
+  smallTeamsExpanded: boolean
+): InboxRowsResult {
+  if (!layout) return emptyInboxRowsResult
+
+  const allSmallTeams = layout.smallTeams ?? []
+  const bigTeams = layout.bigTeams ?? []
+  const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
+  const visibleSmallTeams = showAllSmallRows ? allSmallTeams : allSmallTeams.slice(0, inboxNumSmallRows)
+
+  const rows: Array<ChatInboxRowItem> = []
+
+  for (const t of visibleSmallTeams) {
+    const convId = T.Chat.stringToConversationIDKey(t.convID)
+    rows.push({
+      conversationIDKey: convId,
+      type: 'small',
+    })
+  }
+
+  // Divider
+  const hasAllSmallTeamConvs = allSmallTeams.length === layout.totalSmallTeams
+  const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
+  const showDivider = bigTeams.length > 0 || !hasAllSmallTeamConvs
+
+  const hasSmall = visibleSmallTeams.length > 0
+  const hasBig = bigTeams.length > 0
+
+  if (hasSmall && !hasBig && !showDivider) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  if (showDivider) {
+    const dividerHiddenCount = Math.max(0, layout.totalSmallTeams - visibleSmallTeams.length)
+    rows.push({
+      hiddenCount: dividerHiddenCount,
+      showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold,
+      type: 'divider',
+    })
+  }
+
+  if (hasSmall && !hasBig && showDivider) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  // Big team rows
+  for (const t of bigTeams) {
+    switch (t.state) {
+      case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
+        const convId = T.Chat.stringToConversationIDKey(t.channel.convID)
+        rows.push({
+          conversationIDKey: convId,
+          type: 'big',
+        })
+        break
+      }
+      case T.RPCChat.UIInboxBigTeamRowTyp.label:
+        rows.push({
+          teamID: t.label.id,
+          teamname: t.label.name,
+          type: 'bigHeader',
+        })
+        break
+    }
+  }
+
+  if (hasSmall && hasBig) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  const allowShowFloatingButton = allSmallTeams.length > inboxNumSmallRows && hasBig
+  return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
+}
+
+function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean}, result: InboxRowsResult) {
+  draft.inboxRows = T.castDraft(result.rows)
+  draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
+  draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
+}
 
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
@@ -989,6 +1093,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           get().dispatch.defer.onTeamsGetMembers(teamID)
         }
       }
+
     },
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
@@ -1755,6 +1860,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         if (rows > 0) {
           s.inboxNumSmallRows = rows
         }
+        applyInboxRowsResult(s, buildInboxRows(
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
+        ))
       })
       if (ignoreWrite) {
         return
@@ -1813,6 +1921,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
+        applyInboxRowsResult(s, buildInboxRows(
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
+        ))
       })
     },
     unboxRows: (ids, force) => {
@@ -1881,15 +1992,31 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             // After the first layout, any other updates will come in the form of meta updates.
             layout.smallTeams?.forEach(t => {
               const cs = storeRegistry.getConvoState(t.convID)
-              cs.dispatch.updateFromUIInboxLayout(t)
+              cs.dispatch.updateFromUIInboxLayout({
+                ...t,
+                layoutName: t.name || '',
+                snippet: t.snippet ?? undefined,
+                teamname: t.isTeam ? t.name || '' : '',
+                time: t.time || 0,
+              })
             })
             layout.bigTeams?.forEach(t => {
               if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
                 const cs = storeRegistry.getConvoState(t.channel.convID)
-                cs.dispatch.updateFromUIInboxLayout(t.channel)
+                cs.dispatch.updateFromUIInboxLayout({
+                  ...t.channel,
+                  snippet: undefined,
+                  time: undefined,
+                })
               }
             })
+            // Flush inbox row updates synchronously to prevent flash of empty content
+            flushInboxRowUpdates()
           }
+          // Rebuild inbox rows
+          applyInboxRowsResult(s, buildInboxRows(
+            layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
+          ))
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
@@ -1996,28 +2123,26 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     getBadgeHiddenCount: ids => {
       let badgeCount = 0
       let hiddenCount = 0
-
-      chatStores.forEach(s => {
-        const {id, badge} = s.getState()
-        if (ids.has(id)) {
-          badgeCount -= badge
+      ids.forEach(id => {
+        const store = chatStores.get(id)
+        if (store) {
+          badgeCount -= store.getState().badge
           hiddenCount -= 1
         }
       })
-
       return {badgeCount, hiddenCount}
     },
     getUnreadIndicies: ids => {
       const unreadIndices: Map<number, number> = new Map()
       ids.forEach((cur, idx) => {
-        Array.from(chatStores.values()).some(s => {
-          const {id, badge} = s.getState()
-          if (id === cur && badge > 0) {
+        if (!cur) return
+        const store = chatStores.get(cur)
+        if (store) {
+          const badge = store.getState().badge
+          if (badge > 0) {
             unreadIndices.set(idx, badge)
-            return true
           }
-          return false
-        })
+        }
       })
       return unreadIndices
     },
@@ -2053,6 +2178,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
 }
 
 export * from '@/stores/convostate'
+export * from '@/stores/inbox-rows'
 export * from '@/constants/chat/common'
 export * from '@/constants/chat/meta'
 export * from '@/constants/chat/message'
