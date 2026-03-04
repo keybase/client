@@ -222,17 +222,20 @@ This saves a `.cpuprofile` file to `shared/perf/output/` that can be loaded in C
 
 The `baselines/` folder (gitignored) stores snapshots of perf results keyed by git commit hash, enabling before/after comparisons across branches.
 
-### Saving a Baseline
+### Automatic Baseline Saving
+
+Every test run automatically saves results to `shared/perf/baselines/<short-git-hash>/`. If a baseline for that hash already exists, it auto-increments (e.g. `abc1234-1`, `abc1234-2`).
 
 ```bash
-# Run the test and save results to baselines/<short-git-hash>/
-cd shared && yarn maestro-test-perf --save-baseline
-
-# With other options
-cd shared && yarn maestro-test-perf --save-baseline
+# Run the test — baseline is saved automatically
+cd shared && yarn maestro-test-perf
 ```
 
-This copies `react-profiler.json` and `maestro-fps.json` into `shared/perf/baselines/<hash>/`.
+Output includes:
+```
+=== Baseline saved to abc1234/ ===
+react-profiler.json  maestro-fps.json
+```
 
 ### Comparing Against a Baseline
 
@@ -260,13 +263,14 @@ InboxRow-big                  1338      900     -33%     362    210
 1. Check out the **base branch** and run a full build + test:
    ```bash
    git checkout nojima/HOTPOT-next-670-clean
-   cd shared && yarn maestro-test-perf --save-baseline
+   cd shared && yarn maestro-test-perf --build
    ```
+   Note the saved baseline hash from the output.
 2. Switch to the **feature branch**:
    ```bash
    git checkout nojima/HOTPOT-inbox-clean-1
    ```
-3. Build and run with comparison:
+3. Run with comparison against the saved baseline:
    ```bash
    cd shared && yarn maestro-test-perf --compare baselines/<base-hash>
    ```
