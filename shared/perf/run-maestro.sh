@@ -2,7 +2,7 @@
 # Maestro + React Profiler performance test runner.
 #
 # Usage: ./run-maestro.sh [--build] [--simulator "name"] [--flow <name>]
-#                         [--save-baseline] [--compare <baseline-dir>]
+#                         [--compare <baseline-dir>]
 #
 # Prerequisites:
 #   - Maestro CLI installed: curl -Ls "https://get.maestro.mobile.dev" | bash
@@ -12,8 +12,9 @@
 #   --build         Build the app before running (default: skip build)
 #   --simulator     Simulator name (default: "iPhone 17 Pro")
 #   --flow          Maestro flow file relative to shared/.maestro/ (default: performance/perf-inbox-scroll.yaml)
-#   --save-baseline Save results to baselines/<git-hash>/
 #   --compare DIR   Compare results against a baseline directory
+#
+# Results are always saved to baselines/<git-hash>/ (auto-increments for repeat runs).
 
 set -euo pipefail
 
@@ -26,7 +27,6 @@ mkdir -p "$OUTPUT_DIR"
 DO_BUILD=false
 SIMULATOR="iPhone 17 Pro"
 FLOW="performance/perf-inbox-scroll.yaml"
-SAVE_BASELINE=false
 COMPARE_DIR=""
 
 while [[ $# -gt 0 ]]; do
@@ -34,7 +34,6 @@ while [[ $# -gt 0 ]]; do
     --build) DO_BUILD=true; shift ;;
     --simulator) SIMULATOR="$2"; shift 2 ;;
     --flow) FLOW="$2"; shift 2 ;;
-    --save-baseline) SAVE_BASELINE=true; shift ;;
     --compare) COMPARE_DIR="$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
@@ -128,20 +127,26 @@ else
   echo "(could not find app container — is the simulator running?)"
 fi
 
-# Save baseline
-if [ "$SAVE_BASELINE" = true ]; then
-  GIT_HASH=$(git -C "$SHARED_DIR" rev-parse --short HEAD)
-  BASELINE_DIR="$SCRIPT_DIR/baselines/$GIT_HASH"
-  mkdir -p "$BASELINE_DIR"
-  for f in react-profiler.json maestro-fps.json; do
-    if [ -f "$OUTPUT_DIR/$f" ]; then
-      cp "$OUTPUT_DIR/$f" "$BASELINE_DIR/$f"
-    fi
+# Always save baseline with auto-increment
+GIT_HASH=$(git -C "$SHARED_DIR" rev-parse --short HEAD)
+BASELINE_DIR="$SCRIPT_DIR/baselines/$GIT_HASH"
+if [ -d "$BASELINE_DIR" ]; then
+  # Find next available increment
+  N=1
+  while [ -d "$SCRIPT_DIR/baselines/${GIT_HASH}-${N}" ]; do
+    N=$((N + 1))
   done
-  echo ""
-  echo "=== Baseline saved to baselines/$GIT_HASH/ ==="
-  ls "$BASELINE_DIR/"
+  BASELINE_DIR="$SCRIPT_DIR/baselines/${GIT_HASH}-${N}"
 fi
+mkdir -p "$BASELINE_DIR"
+for f in react-profiler.json maestro-fps.json; do
+  if [ -f "$OUTPUT_DIR/$f" ]; then
+    cp "$OUTPUT_DIR/$f" "$BASELINE_DIR/$f"
+  fi
+done
+echo ""
+echo "=== Baseline saved to $(basename "$BASELINE_DIR")/ ==="
+ls "$BASELINE_DIR/"
 
 # Compare against baseline
 if [ -n "$COMPARE_DIR" ]; then
