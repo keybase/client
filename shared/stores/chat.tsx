@@ -605,6 +605,95 @@ function patchInboxRowsBadges(
   }
 }
 
+// Patch meta-derived fields on existing inboxRows in-place (immer draft).
+// This avoids replacing the entire array when metas are received, keeping
+// stable object references so FlatList doesn't re-render unchanged rows.
+function patchInboxRowsMeta(
+  inboxRows: Array<ChatInboxRowItem>,
+  updatedConvIDs: ReadonlySet<T.Chat.ConversationIDKey>
+) {
+  const you = useCurrentUserState.getState().username
+  for (const row of inboxRows) {
+    if (row.type === 'small' && updatedConvIDs.has(row.conversationIDKey)) {
+      const cs = chatStores.get(row.conversationIDKey)?.getState()
+      if (!cs) continue
+      const {meta} = cs
+      if (meta.conversationIDKey !== row.conversationIDKey) continue
+
+      const snippet = meta.snippetDecorated ?? row.snippet
+      if (row.snippet !== snippet) row.snippet = snippet
+      const sd = meta.snippetDecoration
+      if (row.snippetDecoration !== sd) row.snippetDecoration = sd
+      const isMuted = meta.isMuted
+      if (row.isMuted !== isMuted) row.isMuted = isMuted
+      const draft = meta.draft || ''
+      if (row.draft !== draft) row.draft = draft
+      const timestamp = meta.timestamp || row.timestamp
+      if (row.timestamp !== timestamp) row.timestamp = timestamp
+      const teamname = meta.teamname || row.teamname
+      if (row.teamname !== teamname) row.teamname = teamname
+      const teamDisplayName = teamname ? teamname.split('#')[0] ?? '' : ''
+      if (row.teamDisplayName !== teamDisplayName) row.teamDisplayName = teamDisplayName
+      const hasResetUsers = meta.resetParticipants.size > 0
+      if (row.hasResetUsers !== hasResetUsers) row.hasResetUsers = hasResetUsers
+      const isLocked = meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
+      if (row.isLocked !== isLocked) row.isLocked = isLocked
+      const youNeedToRekey = meta.rekeyers.has(you)
+      if (row.youNeedToRekey !== youNeedToRekey) row.youNeedToRekey = youNeedToRekey
+      const youAreReset = meta.membershipType === 'youAreReset'
+      if (row.youAreReset !== youAreReset) row.youAreReset = youAreReset
+      const participantNeedToRekey = meta.rekeyers.size > 0
+      if (row.participantNeedToRekey !== participantNeedToRekey) row.participantNeedToRekey = participantNeedToRekey
+      const trustedState = meta.trustedState
+      const isDecryptingSnippet = !snippet && (trustedState === 'requesting' || trustedState === 'untrusted')
+      if (row.isDecryptingSnippet !== isDecryptingSnippet) row.isDecryptingSnippet = isDecryptingSnippet
+
+      if (cs.participants.name.length) {
+        const newParticipants = cs.participants.name.filter((p, _, list) => list.length === 1 || p !== you)
+        if (row.participants.length !== newParticipants.length || row.participants.some((p, i) => p !== newParticipants[i])) {
+          row.participants = newParticipants
+        }
+      }
+
+      const badge = cs.badge
+      if (row.badge !== badge) row.badge = badge
+      const unread = cs.unread
+      if (row.unread !== unread) row.unread = unread
+    } else if (row.type === 'big' && updatedConvIDs.has(row.conversationIDKey)) {
+      const cs = chatStores.get(row.conversationIDKey)?.getState()
+      if (!cs) continue
+      const {meta} = cs
+      if (meta.conversationIDKey !== row.conversationIDKey) continue
+
+      const channelname = meta.channelname || row.channelname
+      if (row.channelname !== channelname) row.channelname = channelname
+      const isMuted = meta.isMuted
+      if (row.isMuted !== isMuted) row.isMuted = isMuted
+      const hasDraft = !!meta.draft
+      if (row.hasDraft !== hasDraft) row.hasDraft = hasDraft
+      const isError = meta.trustedState === 'error'
+      if (row.isError !== isError) row.isError = isError
+
+      const d = meta.snippetDecoration
+      let sd: number
+      switch (d) {
+        case T.RPCChat.SnippetDecoration.pendingMessage:
+        case T.RPCChat.SnippetDecoration.failedPendingMessage:
+          sd = d
+          break
+        default:
+          sd = 0
+      }
+      if (row.snippetDecoration !== sd) row.snippetDecoration = sd
+
+      const badge = cs.badge
+      if (row.badge !== badge) row.badge = badge
+      const unread = cs.unread
+      if (row.unread !== unread) row.unread = unread
+    }
+  }
+}
+
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   // We keep a set of conversations to unbox
@@ -1205,12 +1294,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
 
-      // Rebuild inbox rows after meta updates
-      const s = get()
-      set(draft => {
-        applyInboxRowsResult(draft, buildInboxRows(
-          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
-        ))
+      // Patch existing inbox rows in-place for updated metas (avoids full array rebuild)
+      const updatedConvIDs = new Set(metas.map(m => m.conversationIDKey))
+      set(s => {
+        patchInboxRowsMeta(s.inboxRows, updatedConvIDs)
       })
     },
     navigateToInbox: (allowSwitchTab = true) => {
