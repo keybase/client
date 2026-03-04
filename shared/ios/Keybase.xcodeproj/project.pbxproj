@@ -41,7 +41,6 @@
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDF89F52DF7779900EA18C2 /* Pusher.swift */; };
 		DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */; };
-		DBPERF0126E0000100000004 /* ScrollPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */; };
 		DBPERF022600000002 /* PerfFPSMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBPERF022600000001 /* PerfFPSMonitor.swift */; };
 /* End PBXBuildFile section */
 
@@ -52,13 +51,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 279FB59B2139AB6A005E4864;
 			remoteInfo = KeybaseShare;
-		};
-		DBPERF0126E000010000000D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = Keybase;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -127,9 +119,6 @@
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		DBDF89F52DF7779900EA18C2 /* Pusher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pusher.swift; sourceTree = "<group>"; };
 		DBF123452DF1234500A12345 /* ShareIntentDonatorImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareIntentDonatorImpl.swift; sourceTree = "<group>"; };
-		DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollPerformanceTests.swift; sourceTree = "<group>"; };
-		DBPERF0126E0000100000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DBPERF0126E0000100000003 /* KeybaseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeybaseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBPERF022600000001 /* PerfFPSMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfFPSMonitor.swift; sourceTree = "<group>"; };
 		F68DC40B579A1F9AC0F34950 /* Pods_KeybaseShare.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KeybaseShare.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -157,13 +146,6 @@
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
 				07C3A80D23FF33AF00A75BA0 /* CoreMedia.framework in Frameworks */,
 				6D30CA5F1EA172E82B44B913 /* Pods_KeybaseShare.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DBPERF0126E0000100000006 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,7 +220,6 @@
 				37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */,
 				DBDCF3031B8D03DD00BA95D8 /* Keybase */,
 				279FB59D2139AB6A005E4864 /* KeybaseShare */,
-				DBPERF0126E0000100000008 /* KeybaseUITests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
 				DB090F7F1F719A2F007E4E1B /* Recovered References */,
@@ -254,7 +235,6 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* Keybase.app */,
 				279FB59C2139AB6A005E4864 /* KeybaseShare.appex */,
-				DBPERF0126E0000100000003 /* KeybaseUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -305,15 +285,6 @@
 			path = Keybase;
 			sourceTree = "<group>";
 		};
-		DBPERF0126E0000100000008 /* KeybaseUITests */ = {
-			isa = PBXGroup;
-			children = (
-				DBPERF0126E0000100000001 /* ScrollPerformanceTests.swift */,
-				DBPERF0126E0000100000002 /* Info.plist */,
-			);
-			path = KeybaseUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -358,24 +329,6 @@
 			productName = KeybaseShare;
 			productReference = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */;
 			productType = "com.apple.product-type.app-extension";
-		};
-		DBPERF0126E0000100000009 /* KeybaseUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = DBPERF0126E000010000000A /* Build configuration list for PBXNativeTarget "KeybaseUITests" */;
-			buildPhases = (
-				DBPERF0126E0000100000005 /* Sources */,
-				DBPERF0126E0000100000006 /* Frameworks */,
-				DBPERF0126E0000100000007 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				DBPERF0126E000010000000E /* PBXTargetDependency */,
-			);
-			name = KeybaseUITests;
-			productName = KeybaseUITests;
-			productReference = DBPERF0126E0000100000003 /* KeybaseUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -431,11 +384,6 @@
 							};
 						};
 					};
-					DBPERF0126E0000100000009 = {
-						CreatedOnToolsVersion = 15.0;
-						ProvisioningStyle = Automatic;
-						TestTargetID = 13B07F861A680F5B00A75B9A;
-					};
 				};
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Keybase" */;
@@ -453,7 +401,6 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* Keybase */,
 				279FB59B2139AB6A005E4864 /* KeybaseShare */,
-				DBPERF0126E0000100000009 /* KeybaseUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -485,13 +432,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DBPERF0126E0000100000007 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,14 +607,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DBPERF0126E0000100000005 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				DBPERF0126E0000100000004 /* ScrollPerformanceTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -682,11 +614,6 @@
 			isa = PBXTargetDependency;
 			target = 279FB59B2139AB6A005E4864 /* KeybaseShare */;
 			targetProxy = 279FB5A52139AB6A005E4864 /* PBXContainerItemProxy */;
-		};
-		DBPERF0126E000010000000E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Keybase */;
-			targetProxy = DBPERF0126E000010000000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1142,54 +1069,6 @@
 			};
 			name = Release;
 		};
-		DBPERF0126E000010000000B /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 99229SGT5K;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = KeybaseUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Keybase;
-			};
-			name = Debug;
-		};
-		DBPERF0126E000010000000C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 99229SGT5K;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = KeybaseUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Keybase;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1216,15 +1095,6 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		DBPERF0126E000010000000A /* Build configuration list for PBXNativeTarget "KeybaseUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				DBPERF0126E000010000000B /* Debug */,
-				DBPERF0126E000010000000C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
