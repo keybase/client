@@ -30,10 +30,11 @@ The flow:
 ### Running Tests
 
 ```bash
-# Quick run (default — skips build)
+# Quick run (default — skips build). Use this for JS-only changes.
 cd shared && yarn maestro-test-perf
 
-# Full run (builds the app first)
+# Full run (builds the app first). Only needed when native code changes
+# (e.g. files in ios/, android/, rnmodules/, go/bind/).
 cd shared && yarn maestro-test-perf --build
 
 # Run any Maestro flow
@@ -260,10 +261,11 @@ InboxRow-big                  1338      900     -33%     362    210
 
 ### Recommended Workflow
 
-1. Check out the **base branch** and run a full build + test:
+1. Check out the **base branch** and run a test (use `--build` only if native code changed):
    ```bash
    git checkout nojima/HOTPOT-next-670-clean
-   cd shared && yarn maestro-test-perf --build
+   cd shared && yarn maestro-test-perf          # JS-only changes
+   cd shared && yarn maestro-test-perf --build   # native code changes
    ```
    Note the saved baseline hash from the output.
 2. Switch to the **feature branch**:

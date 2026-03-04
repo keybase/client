@@ -3,21 +3,29 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
-import type {InboxBigChannelRow} from '../rowitem'
-
 type Props = {
-  row: InboxBigChannelRow
+  conversationIDKey: string
   selected: boolean
 }
 
-const BigTeamChannel = (props: Props) => {
-  const {selected, row} = props
-  const {conversationIDKey, channelname, isMuted, hasDraft, isError, snippetDecoration, badge, unread} = row
-  const hasBadge = badge > 0
-  const hasUnread = unread > 0
+// @ts-ignore
+const _btcDebug = {renders: 0, selectorCalls: 0}
+// @ts-ignore
+globalThis._bigTeamChannelDebug = _btcDebug
 
-  const onSelectConversation = () =>
-    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
+const _bigSelector = (s: {inboxRowBig: Chat.InboxRowBig}) => {
+  _btcDebug.selectorCalls++
+  return s.inboxRowBig
+}
+
+const BigTeamChannel = (props: Props) => {
+  const {selected, conversationIDKey} = props
+  _btcDebug.renders++
+
+  const row = Chat.useConvoState(conversationIDKey, _bigSelector)
+  const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
+
+  const onSelectConversation = () => Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null

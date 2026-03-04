@@ -170,7 +170,6 @@ function Inbox(p: InboxProps) {
       element = (
         <TeamsDivider
           showButton={row.showButton}
-          badgeCount={row.badgeCount}
           hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}
           smallTeamsExpanded={smallTeamsExpanded}
