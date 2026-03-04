@@ -3,26 +3,16 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
+import {useInboxRowBig} from '@/stores/inbox-rows'
 type Props = {
   conversationIDKey: string
   selected: boolean
 }
 
-// @ts-ignore
-const _btcDebug = {renders: 0, selectorCalls: 0}
-// @ts-ignore
-globalThis._bigTeamChannelDebug = _btcDebug
-
-const _bigSelector = (s: {inboxRowBig: Chat.InboxRowBig}) => {
-  _btcDebug.selectorCalls++
-  return s.inboxRowBig
-}
-
 const BigTeamChannel = (props: Props) => {
   const {selected, conversationIDKey} = props
-  _btcDebug.renders++
 
-  const row = Chat.useConvoState(conversationIDKey, _bigSelector)
+  const row = useInboxRowBig(conversationIDKey)
   const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
 
   const onSelectConversation = () => Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')

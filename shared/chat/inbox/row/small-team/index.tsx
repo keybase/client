@@ -10,6 +10,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useOpenedRowState} from '../opened-row-state'
+import {useInboxRowSmall} from '@/stores/inbox-rows'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 export type Props = {
   conversationIDKey: string
@@ -17,21 +18,10 @@ export type Props = {
   onSelectConversation?: () => void
 }
 
-// @ts-ignore
-const _stDebug = {renders: 0, selectorCalls: 0}
-// @ts-ignore
-globalThis._smallTeamDebug = _stDebug
-
-const _smallSelector = (s: {inboxRowSmall: Chat.InboxRowSmall}) => {
-  _stDebug.selectorCalls++
-  return s.inboxRowSmall
-}
-
 const SmallTeam = (p: Props) => {
   const {conversationIDKey, isSelected} = p
-  _stDebug.renders++
 
-  const row = Chat.useConvoState(conversationIDKey, _smallSelector)
+  const row = useInboxRowSmall(conversationIDKey)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
 
   const {isMuted, isLocked, draft: rawDraft, teamDisplayName, hasBadge, hasUnread} = row

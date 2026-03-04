@@ -2174,6 +2174,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
 }
 
 export * from '@/stores/convostate'
+export * from '@/stores/inbox-rows'
 export * from '@/constants/chat/common'
 export * from '@/constants/chat/meta'
 export * from '@/constants/chat/message'

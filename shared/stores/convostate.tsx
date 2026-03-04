@@ -44,6 +44,7 @@ import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
+import {queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
@@ -104,36 +105,6 @@ type LoadMoreReason =
   | 'tab selected'
   | NavReason
 
-// per convo store
-export type InboxRowBig = {
-  channelname: string
-  hasBadge: boolean
-  hasDraft: boolean
-  hasUnread: boolean
-  isError: boolean
-  isMuted: boolean
-  snippetDecoration: number
-}
-
-export type InboxRowSmall = {
-  draft: string
-  hasBadge: boolean
-  hasResetUsers: boolean
-  hasUnread: boolean
-  isLocked: boolean
-  isMuted: boolean
-  participantNeedToRekey: boolean
-  participants: ReadonlyArray<string>
-  isDecryptingSnippet: boolean
-  snippet: string
-  snippetDecoration: T.RPCChat.SnippetDecoration
-  teamDisplayName: string
-  timestamp: number
-  typingSnippet: string
-  youAreReset: boolean
-  youNeedToRekey: boolean
-}
-
 type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
@@ -150,8 +121,6 @@ type ConvoStore = T.Immutable<{
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
-  inboxRowBig: InboxRowBig
-  inboxRowSmall: InboxRowSmall
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -192,16 +161,6 @@ const initialConvoStore: ConvoStore = {
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
-  inboxRowBig: {
-    channelname: '', hasBadge: false, hasDraft: false, hasUnread: false,
-    isError: false, isMuted: false, snippetDecoration: 0,
-  },
-  inboxRowSmall: {
-    draft: '', hasBadge: false, hasResetUsers: false, hasUnread: false,
-    isDecryptingSnippet: true, isLocked: false, isMuted: false, participantNeedToRekey: false,
-    participants: [], snippet: '', snippetDecoration: T.RPCChat.SnippetDecoration.none,
-    teamDisplayName: '', timestamp: 0, typingSnippet: '', youAreReset: false, youNeedToRekey: false,
-  },
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
   messageCenterOrdinal: undefined,
@@ -225,116 +184,6 @@ const initialConvoStore: ConvoStore = {
   unread: 0,
   unsentText: undefined,
   validatedOrdinalRange: undefined,
-}
-
-const buildTypingSnippet = (typing: ReadonlySet<string>): string => {
-  if (!typing.size) return ''
-  if (typing.size === 1) {
-    const [t] = typing
-    return `${t} is typing...`
-  }
-  return 'Multiple people typing...'
-}
-
-const bigSnippetDecoration = (sd: T.RPCChat.SnippetDecoration): number => {
-  switch (sd) {
-    case T.RPCChat.SnippetDecoration.pendingMessage:
-    case T.RPCChat.SnippetDecoration.failedPendingMessage:
-      return sd
-    default:
-      return 0
-  }
-}
-
-// Debug counters for inbox row updaters
-const _ird = {
-  badge: {calls: 0},
-  meta: {calls: 0, timeMs: 0},
-  participants: {calls: 0},
-  typing: {calls: 0},
-  unread: {calls: 0},
-}
-// @ts-ignore
-globalThis._inboxRowDebug = _ird
-setInterval(() => {
-  // @ts-ignore
-  const btc = globalThis._bigTeamChannelDebug
-  // @ts-ignore
-  const st = globalThis._smallTeamDebug
-  console.log('[INBOX_ROW_DEBUG]', JSON.stringify({bigTeam: btc, smallTeam: st, updaters: _ird}))
-}, 10_000)
-
-const updateInboxRowBadge = (s: Z.WritableDraft<ConvoState>) => {
-  _ird.badge.calls++
-  const hasBadge = s.badge > 0
-  s.inboxRowBig.hasBadge = hasBadge
-  s.inboxRowSmall.hasBadge = hasBadge
-}
-
-const updateInboxRowUnread = (s: Z.WritableDraft<ConvoState>) => {
-  _ird.unread.calls++
-  const hasUnread = s.unread > 0
-  s.inboxRowBig.hasUnread = hasUnread
-  s.inboxRowSmall.hasUnread = hasUnread
-}
-
-const updateInboxRowTyping = (s: Z.WritableDraft<ConvoState>) => {
-  _ird.typing.calls++
-  s.inboxRowSmall.typingSnippet = buildTypingSnippet(s.typing)
-}
-
-const updateInboxRowParticipants = (s: Z.WritableDraft<ConvoState>) => {
-  _ird.participants.calls++
-  const you = useCurrentUserState.getState().username
-  const filtered = s.participants.name.length
-    ? (s.participants.name as string[]).filter((pp, _, list) => list.length === 1 || pp !== you)
-    : []
-  // Arrays need manual comparison — Immer compares by reference
-  if (!shallowEqual(s.inboxRowSmall.participants as string[], filtered)) {
-    s.inboxRowSmall.participants = T.castDraft(filtered)
-  }
-}
-
-const updateInboxRowMeta = (s: Z.WritableDraft<ConvoState>, _caller?: string) => {
-  _ird.meta.calls++
-  // @ts-ignore
-  if (_caller) { if (!_ird.meta.callers) _ird.meta.callers = {} as Record<string, number>; _ird.meta.callers[_caller] = (_ird.meta.callers[_caller] ?? 0) + 1 }
-  const t0 = performance.now()
-  const m = s.meta
-  // Big — direct mutations, Immer keeps reference stable if values unchanged
-  s.inboxRowBig.channelname = m.channelname
-  s.inboxRowBig.hasBadge = s.badge > 0
-  s.inboxRowBig.hasDraft = !!m.draft
-  s.inboxRowBig.hasUnread = s.unread > 0
-  s.inboxRowBig.isError = m.trustedState === 'error'
-  s.inboxRowBig.isMuted = m.isMuted
-  s.inboxRowBig.snippetDecoration = bigSnippetDecoration(m.snippetDecoration)
-  // Small — direct mutations
-  const you = useCurrentUserState.getState().username
-  const snippet = m.snippetDecorated ?? ''
-  s.inboxRowSmall.draft = m.draft || ''
-  s.inboxRowSmall.hasBadge = s.badge > 0
-  s.inboxRowSmall.hasResetUsers = m.resetParticipants.size > 0
-  s.inboxRowSmall.hasUnread = s.unread > 0
-  s.inboxRowSmall.isDecryptingSnippet = !!s.id && !snippet && (m.trustedState === 'requesting' || m.trustedState === 'untrusted')
-  s.inboxRowSmall.isLocked = m.rekeyers.size > 0 || !!m.wasFinalizedBy
-  s.inboxRowSmall.isMuted = m.isMuted
-  s.inboxRowSmall.participantNeedToRekey = m.rekeyers.size > 0
-  // Arrays need manual comparison — Immer compares by reference
-  const filtered = s.participants.name.length
-    ? (s.participants.name as string[]).filter((pp, _, list) => list.length === 1 || pp !== you)
-    : []
-  if (!shallowEqual(s.inboxRowSmall.participants as string[], filtered)) {
-    s.inboxRowSmall.participants = T.castDraft(filtered)
-  }
-  s.inboxRowSmall.snippet = snippet
-  s.inboxRowSmall.snippetDecoration = m.snippetDecoration
-  s.inboxRowSmall.teamDisplayName = m.teamname ? m.teamname.split('#')[0] ?? '' : ''
-  s.inboxRowSmall.timestamp = m.timestamp || 0
-  s.inboxRowSmall.typingSnippet = buildTypingSnippet(s.typing)
-  s.inboxRowSmall.youAreReset = m.membershipType === 'youAreReset'
-  s.inboxRowSmall.youNeedToRekey = m.rekeyers.has(you)
-  _ird.meta.timeMs += performance.now() - t0
 }
 
 type LoadMoreMessagesParams = {
@@ -937,8 +786,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         s.meta.snippet = error.message
         s.meta.snippetDecoration = T.RPCChat.SnippetDecoration.none
         s.meta.trustedState = 'error'
-        updateInboxRowMeta(s, 'error')
       })
+      queueInboxRowUpdate(get().id)
     }
   }
 
@@ -1558,8 +1407,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     badgesUpdated: badge => {
       set(s => {
         s.badge = badge
-        updateInboxRowBadge(s)
       })
+      queueInboxRowUpdate(get().id)
     },
     blockConversation: reportUser => {
       const f = async () => {
@@ -3108,8 +2957,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       const wasGood = get().isMetaGood()
       set(s => {
         updateImmer(s.meta, m)
-        updateInboxRowMeta(s, 'setMeta')
       })
+      queueInboxRowUpdate(get().id)
       const isGood = get().isMetaGood()
       if (!wasGood && isGood) {
         // got a good meta, adopt the draft once
@@ -3141,8 +2990,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         if (!isEqual(s.participants.contactName, p.contactName)) {
           s.participants.contactName = T.castDraft(p.contactName)
         }
-        updateInboxRowParticipants(s)
       })
+      queueInboxRowUpdate(get().id)
     },
     setReplyTo: o => {
       set(s => {
@@ -3159,8 +3008,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         if (!isEqual(s.typing, t)) {
           s.typing = t
         }
-        updateInboxRowTyping(s)
       })
+      queueInboxRowUpdate(get().id)
     }, 1000),
     showInfoPanel: (show, tab) => {
       get().dispatch.defer.chatUpdateInfoPanel(show, tab)
@@ -3406,8 +3255,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     unreadUpdated: unread => {
       set(s => {
         s.unread = unread
-        updateInboxRowUnread(s)
       })
+      queueInboxRowUpdate(get().id)
     },
     updateDraft: throttle(
       (text: string) => {
@@ -3437,14 +3286,14 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         }
         if (snippetDecoration !== undefined) s.meta.snippetDecoration = snippetDecoration
         if (time !== undefined) s.meta.timestamp = time
-        updateInboxRowMeta(s, 'layout')
       })
+      queueInboxRowUpdate(get().id)
     },
     updateMeta: pm => {
       set(s => {
         assign(s.meta, pm)
-        updateInboxRowMeta(s, 'updateMeta')
       })
+      queueInboxRowUpdate(get().id)
     },
     updateNotificationSettings: (
       notificationsDesktop,
