@@ -260,8 +260,6 @@ type Store = T.Immutable<{
   inboxRows: Array<ChatInboxRowItem>
   inboxSearch?: T.Chat.InboxSearchInfo
   inboxSmallTeamsExpanded: boolean
-  inboxUnreadBigIndices: Map<number, number>
-  inboxUnreadBigTotal: number
   teamIDToGeneralConvID: Map<T.Teams.TeamID, T.Chat.ConversationIDKey>
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -281,8 +279,6 @@ const initialStore: Store = {
   inboxRows: [],
   inboxSearch: undefined,
   inboxSmallTeamsExpanded: false,
-  inboxUnreadBigIndices: new Map(),
-  inboxUnreadBigTotal: 0,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
@@ -402,15 +398,6 @@ export interface State extends Store {
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
 
-const buildTypingSnippet = (typing: ReadonlySet<string> | undefined): string => {
-  if (!typing?.size) return ''
-  if (typing.size === 1) {
-    const [t] = typing
-    return `${t} is typing...`
-  }
-  return 'Multiple people typing...'
-}
-
 type InboxRowsResult = {
   allowShowFloatingButton: boolean
   rows: Array<ChatInboxRowItem>
@@ -423,17 +410,15 @@ const emptyInboxRowsResult: InboxRowsResult = {
   smallTeamsExpanded: false,
 }
 
-// Build render-ready inbox rows from layout + per-convo store state.
-// Only builds rows for visible items (sliced small teams + all big teams).
+// Build structural inbox rows from layout. Display data (badge, unread, muted, etc.)
+// is read per-row via ChatProvider + useChatContext at render time.
 function buildInboxRows(
   layout: T.RPCChat.UIInboxLayout | undefined,
   inboxNumSmallRows: number,
-  smallTeamsExpanded: boolean,
-  smallTeamBadgeCount: number
+  smallTeamsExpanded: boolean
 ): InboxRowsResult {
   if (!layout) return emptyInboxRowsResult
 
-  const you = useCurrentUserState.getState().username
   const allSmallTeams = layout.smallTeams ?? []
   const bigTeams = layout.bigTeams ?? []
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
@@ -441,57 +426,11 @@ function buildInboxRows(
 
   const rows: Array<ChatInboxRowItem> = []
 
-  // Build visible small team rows
-  let visibleSmallBadgeTotal = 0
   for (const t of visibleSmallTeams) {
     const convId = T.Chat.stringToConversationIDKey(t.convID)
-    const cs = chatStores.get(convId)?.getState()
-    const meta = cs?.meta
-    const metaGood = !!meta && meta.conversationIDKey === convId
-
-    const typingSnippet = buildTypingSnippet(cs?.typing)
-    const snippet = metaGood ? (meta.snippetDecorated ?? t.snippet ?? '') : (t.snippet ?? '')
-    const snippetDecoration = metaGood ? meta.snippetDecoration : t.snippetDecoration
-
-    let participants: Array<string>
-    if (cs?.participants.name.length) {
-      participants = cs.participants.name.filter((p, _, list) => list.length === 1 || p !== you)
-    } else if (t.isTeam) {
-      participants = []
-    } else {
-      participants = t.name.split(',').filter((p, _, list) => list.length === 1 || p !== you)
-    }
-
-    const teamname = (metaGood ? meta.teamname : '') || (t.isTeam ? t.name : '') || ''
-    const badge = cs?.badge ?? 0
-    const unread = cs?.unread ?? 0
-    visibleSmallBadgeTotal += badge
-
-    const trustedState = metaGood ? meta.trustedState : ''
-    const isDecryptingSnippet = !snippet && (trustedState === 'requesting' || trustedState === 'untrusted')
-    const teamDisplayName = teamname ? teamname.split('#')[0] ?? '' : ''
-
     rows.push({
-      badge,
       conversationIDKey: convId,
-      draft: (metaGood ? meta.draft : '') || '',
-      hasResetUsers: metaGood ? meta.resetParticipants.size > 0 : false,
-      isDecryptingSnippet,
-      isLocked: metaGood ? (meta.rekeyers.size > 0 || !!meta.wasFinalizedBy) : false,
-      isMuted: metaGood ? meta.isMuted : false,
-      isTeam: t.isTeam,
-      participantNeedToRekey: metaGood ? meta.rekeyers.size > 0 : false,
-      participants,
-      snippet,
-      snippetDecoration,
-      teamDisplayName,
-      teamname,
-      timestamp: (metaGood ? meta.timestamp : 0) || t.time || 0,
       type: 'small',
-      typingSnippet,
-      unread,
-      youAreReset: metaGood ? meta.membershipType === 'youAreReset' : false,
-      youNeedToRekey: metaGood ? meta.rekeyers.has(you) : false,
     })
   }
 
@@ -500,7 +439,6 @@ function buildInboxRows(
   const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
   const showDivider = bigTeams.length > 0 || !hasAllSmallTeamConvs
 
-  // Team builder placement logic
   const hasSmall = visibleSmallTeams.length > 0
   const hasBig = bigTeams.length > 0
 
@@ -509,10 +447,8 @@ function buildInboxRows(
   }
 
   if (showDivider) {
-    const dividerBadgeCount = Math.max(0, smallTeamBadgeCount - visibleSmallBadgeTotal)
     const dividerHiddenCount = Math.max(0, layout.totalSmallTeams - visibleSmallTeams.length)
     rows.push({
-      badgeCount: dividerBadgeCount,
       hiddenCount: dividerHiddenCount,
       showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold,
       type: 'divider',
@@ -528,32 +464,9 @@ function buildInboxRows(
     switch (t.state) {
       case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
         const convId = T.Chat.stringToConversationIDKey(t.channel.convID)
-        const cs = chatStores.get(convId)?.getState()
-        const meta = cs?.meta
-        const metaGood = !!meta && meta.conversationIDKey === convId
-
-        const d = metaGood ? meta.snippetDecoration : T.RPCChat.SnippetDecoration.none
-        let sd: number
-        switch (d) {
-          case T.RPCChat.SnippetDecoration.pendingMessage:
-          case T.RPCChat.SnippetDecoration.failedPendingMessage:
-            sd = d
-            break
-          default:
-            sd = 0
-        }
-
         rows.push({
-          badge: cs?.badge ?? 0,
-          channelname: metaGood ? (meta.channelname || t.channel.channelname) : t.channel.channelname,
           conversationIDKey: convId,
-          hasDraft: metaGood ? !!meta.draft : false,
-          isError: metaGood ? meta.trustedState === 'error' : false,
-          isMuted: metaGood ? meta.isMuted : t.channel.isMuted,
-          snippetDecoration: sd,
-          teamname: t.channel.teamname,
           type: 'big',
-          unread: cs?.unread ?? 0,
         })
         break
       }
@@ -575,151 +488,10 @@ function buildInboxRows(
   return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
 }
 
-// Recompute unread big team indices from inboxRows.
-// Mutates the draft Map in-place — Immer keeps the reference stable if no mutations occur.
-function updateUnreadBigIndices(draft: {inboxRows: Array<ChatInboxRowItem>; inboxUnreadBigIndices: Map<number, number>; inboxUnreadBigTotal: number}) {
-  const map = draft.inboxUnreadBigIndices
-  const expected = new Map<number, number>()
-  let total = 0
-  draft.inboxRows.forEach((row, idx) => {
-    if (row.type === 'big' && row.badge > 0) {
-      expected.set(idx, row.badge)
-      total += row.badge
-    }
-  })
-  // Add/update entries
-  for (const [k, v] of expected) {
-    if (map.get(k) !== v) map.set(k, v)
-  }
-  // Remove stale entries
-  for (const k of map.keys()) {
-    if (!expected.has(k)) map.delete(k)
-  }
-  draft.inboxUnreadBigTotal = total
-}
-
-function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean; inboxUnreadBigIndices: Map<number, number>; inboxUnreadBigTotal: number}, result: InboxRowsResult) {
+function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean}, result: InboxRowsResult) {
   draft.inboxRows = T.castDraft(result.rows)
   draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
   draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
-  updateUnreadBigIndices(draft)
-}
-
-// Patch badge/unread on existing inboxRows (immer draft)
-function patchInboxRowsBadges(
-  inboxRows: Array<ChatInboxRowItem>,
-  smallTeamBadgeCount: number
-) {
-  let visibleSmallBadgeTotal = 0
-  for (const row of inboxRows) {
-    if (row.type === 'small' || row.type === 'big') {
-      const cs = chatStores.get(row.conversationIDKey)?.getState()
-      const newBadge = cs?.badge ?? 0
-      const newUnread = cs?.unread ?? 0
-      if (row.badge !== newBadge) row.badge = newBadge
-      if (row.unread !== newUnread) row.unread = newUnread
-    }
-    if (row.type === 'small') {
-      visibleSmallBadgeTotal += row.badge
-    }
-  }
-  // Update divider badge count
-  for (const row of inboxRows) {
-    if (row.type === 'divider') {
-      const newBadgeCount = Math.max(0, smallTeamBadgeCount - visibleSmallBadgeTotal)
-      if (row.badgeCount !== newBadgeCount) row.badgeCount = newBadgeCount
-      break
-    }
-  }
-}
-
-// Patch meta-derived fields on existing inboxRows in-place (immer draft).
-// This avoids replacing the entire array when metas are received, keeping
-// stable object references so FlatList doesn't re-render unchanged rows.
-function patchInboxRowsMeta(
-  inboxRows: Array<ChatInboxRowItem>,
-  updatedConvIDs: ReadonlySet<T.Chat.ConversationIDKey>
-) {
-  const you = useCurrentUserState.getState().username
-  for (const row of inboxRows) {
-    if (row.type === 'small' && updatedConvIDs.has(row.conversationIDKey)) {
-      const cs = chatStores.get(row.conversationIDKey)?.getState()
-      if (!cs) continue
-      const {meta} = cs
-      if (meta.conversationIDKey !== row.conversationIDKey) continue
-
-      const snippet = meta.snippetDecorated ?? row.snippet
-      if (row.snippet !== snippet) row.snippet = snippet
-      const sd = meta.snippetDecoration
-      if (row.snippetDecoration !== sd) row.snippetDecoration = sd
-      const isMuted = meta.isMuted
-      if (row.isMuted !== isMuted) row.isMuted = isMuted
-      const draft = meta.draft || ''
-      if (row.draft !== draft) row.draft = draft
-      const timestamp = meta.timestamp || row.timestamp
-      if (row.timestamp !== timestamp) row.timestamp = timestamp
-      const teamname = meta.teamname || row.teamname
-      if (row.teamname !== teamname) row.teamname = teamname
-      const teamDisplayName = teamname ? teamname.split('#')[0] ?? '' : ''
-      if (row.teamDisplayName !== teamDisplayName) row.teamDisplayName = teamDisplayName
-      const hasResetUsers = meta.resetParticipants.size > 0
-      if (row.hasResetUsers !== hasResetUsers) row.hasResetUsers = hasResetUsers
-      const isLocked = meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
-      if (row.isLocked !== isLocked) row.isLocked = isLocked
-      const youNeedToRekey = meta.rekeyers.has(you)
-      if (row.youNeedToRekey !== youNeedToRekey) row.youNeedToRekey = youNeedToRekey
-      const youAreReset = meta.membershipType === 'youAreReset'
-      if (row.youAreReset !== youAreReset) row.youAreReset = youAreReset
-      const participantNeedToRekey = meta.rekeyers.size > 0
-      if (row.participantNeedToRekey !== participantNeedToRekey) row.participantNeedToRekey = participantNeedToRekey
-      const trustedState = meta.trustedState
-      const isDecryptingSnippet = !snippet && (trustedState === 'requesting' || trustedState === 'untrusted')
-      if (row.isDecryptingSnippet !== isDecryptingSnippet) row.isDecryptingSnippet = isDecryptingSnippet
-
-      if (cs.participants.name.length) {
-        const newParticipants = cs.participants.name.filter((p, _, list) => list.length === 1 || p !== you)
-        if (row.participants.length !== newParticipants.length || row.participants.some((p, i) => p !== newParticipants[i])) {
-          row.participants = newParticipants
-        }
-      }
-
-      const badge = cs.badge
-      if (row.badge !== badge) row.badge = badge
-      const unread = cs.unread
-      if (row.unread !== unread) row.unread = unread
-    } else if (row.type === 'big' && updatedConvIDs.has(row.conversationIDKey)) {
-      const cs = chatStores.get(row.conversationIDKey)?.getState()
-      if (!cs) continue
-      const {meta} = cs
-      if (meta.conversationIDKey !== row.conversationIDKey) continue
-
-      const channelname = meta.channelname || row.channelname
-      if (row.channelname !== channelname) row.channelname = channelname
-      const isMuted = meta.isMuted
-      if (row.isMuted !== isMuted) row.isMuted = isMuted
-      const hasDraft = !!meta.draft
-      if (row.hasDraft !== hasDraft) row.hasDraft = hasDraft
-      const isError = meta.trustedState === 'error'
-      if (row.isError !== isError) row.isError = isError
-
-      const d = meta.snippetDecoration
-      let sd: number
-      switch (d) {
-        case T.RPCChat.SnippetDecoration.pendingMessage:
-        case T.RPCChat.SnippetDecoration.failedPendingMessage:
-          sd = d
-          break
-        default:
-          sd = 0
-      }
-      if (row.snippetDecoration !== sd) row.snippetDecoration = sd
-
-      const badge = cs.badge
-      if (row.badge !== badge) row.badge = badge
-      const unread = cs.unread
-      if (row.unread !== unread) row.unread = unread
-    }
-  }
 }
 
 // generic chat store
@@ -743,8 +515,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
-        patchInboxRowsBadges(s.inboxRows, smallTeamBadgeCount)
-        updateUnreadBigIndices(s)
       })
     },
     clearMetas: () => {
@@ -1323,12 +1093,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
 
-      // Patch existing inbox rows in-place for updated metas (avoids full array rebuild)
-      const updatedConvIDs = new Set(metas.map(m => m.conversationIDKey))
-      set(s => {
-        patchInboxRowsMeta(s.inboxRows, updatedConvIDs)
-        updateUnreadBigIndices(s)
-      })
     },
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
@@ -1662,17 +1426,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               .getConvoState(T.Chat.conversationIDToKey(u.convID))
               .dispatch.setTyping(new Set(u.typers?.map(t => t.username)))
           })
-          // Patch typing in inboxRows
-          if (typingUpdates?.length) {
-            set(s => {
-              for (const row of s.inboxRows) {
-                if (row.type !== 'small') continue
-                const cs = chatStores.get(row.conversationIDKey)?.getState()
-                const ts = buildTypingSnippet(cs?.typing)
-                if (row.typingSnippet !== ts) row.typingSnippet = ts
-              }
-            })
-          }
           break
         }
         case EngineGen.chat1NotifyChatChatSetConvRetention: {
@@ -2107,7 +1860,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           s.inboxNumSmallRows = rows
         }
         applyInboxRowsResult(s, buildInboxRows(
-          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
         ))
       })
       if (ignoreWrite) {
@@ -2168,7 +1921,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
         applyInboxRowsResult(s, buildInboxRows(
-          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
         ))
       })
     },
@@ -2238,18 +1991,27 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             // After the first layout, any other updates will come in the form of meta updates.
             layout.smallTeams?.forEach(t => {
               const cs = storeRegistry.getConvoState(t.convID)
-              cs.dispatch.updateFromUIInboxLayout(t)
+              cs.dispatch.updateFromUIInboxLayout({
+                ...t,
+                snippet: t.snippet ?? undefined,
+                teamname: t.isTeam ? t.name || '' : '',
+                time: t.time || 0,
+              })
             })
             layout.bigTeams?.forEach(t => {
               if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
                 const cs = storeRegistry.getConvoState(t.channel.convID)
-                cs.dispatch.updateFromUIInboxLayout(t.channel)
+                cs.dispatch.updateFromUIInboxLayout({
+                  ...t.channel,
+                  snippet: undefined,
+                  time: undefined,
+                })
               }
             })
           }
           // Rebuild inbox rows
           applyInboxRowsResult(s, buildInboxRows(
-            layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+            layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
           ))
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
@@ -2412,6 +2174,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
 }
 
 export * from '@/stores/convostate'
+export * from '@/stores/inbox-rows'
 export * from '@/constants/chat/common'
 export * from '@/constants/chat/meta'
 export * from '@/constants/chat/message'

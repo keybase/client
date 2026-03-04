@@ -1,12 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Chat from '@/stores/chat'
 import * as RowSizes from './sizes'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
   showButton: boolean
-  badgeCount: number
   hiddenCount: number
   toggle: () => void
   style?: Kb.Styles.StylesCrossPlatform
@@ -14,17 +14,19 @@ type Props = {
 
 function TeamsDivider(props: Props) {
   const {showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  let {badgeCount, hiddenCount} = props
+  let {hiddenCount} = props
 
   if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
 
+  // Read badge count from store
+  const badgeCount = Chat.useChatState(s => Math.max(0, s.smallTeamBadgeCount))
+
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
   const loadMore = async () => T.RPCChat.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
-  badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)
 
   return (

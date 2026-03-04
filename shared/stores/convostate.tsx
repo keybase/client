@@ -44,6 +44,7 @@ import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
+import {queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
@@ -104,7 +105,6 @@ type LoadMoreReason =
   | 'tab selected'
   | NavReason
 
-// per convo store
 type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
@@ -335,7 +335,15 @@ export interface ConvoState extends ConvoStore {
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateDraft: DebouncedFunc<(text: string) => void>
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => void
-    updateFromUIInboxLayout: (l: {isMuted: boolean; draft?: string | null}) => void
+    updateFromUIInboxLayout: (l: {
+      isMuted: boolean
+      draft?: string | null
+      teamname?: string
+      channelname?: string
+      snippet?: string | null
+      snippetDecoration?: T.RPCChat.SnippetDecoration
+      time?: number
+    }) => void
     unreadUpdated: (unread: number) => void
     updateNotificationSettings: (
       notificationsDesktop: T.Chat.NotificationsType,
@@ -779,6 +787,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         s.meta.snippetDecoration = T.RPCChat.SnippetDecoration.none
         s.meta.trustedState = 'error'
       })
+      queueInboxRowUpdate(get().id)
     }
   }
 
@@ -1399,6 +1408,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       set(s => {
         s.badge = badge
       })
+      queueInboxRowUpdate(get().id)
     },
     blockConversation: reportUser => {
       const f = async () => {
@@ -2948,6 +2958,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       set(s => {
         updateImmer(s.meta, m)
       })
+      queueInboxRowUpdate(get().id)
       const isGood = get().isMetaGood()
       if (!wasGood && isGood) {
         // got a good meta, adopt the draft once
@@ -2980,6 +2991,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           s.participants.contactName = T.castDraft(p.contactName)
         }
       })
+      queueInboxRowUpdate(get().id)
     },
     setReplyTo: o => {
       set(s => {
@@ -2997,6 +3009,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           s.typing = t
         }
       })
+      queueInboxRowUpdate(get().id)
     }, 1000),
     showInfoPanel: (show, tab) => {
       get().dispatch.defer.chatUpdateInfoPanel(show, tab)
@@ -3243,6 +3256,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       set(s => {
         s.unread = unread
       })
+      queueInboxRowUpdate(get().id)
     },
     updateDraft: throttle(
       (text: string) => {
@@ -3260,17 +3274,26 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     ),
     updateFromUIInboxLayout: l => {
       if (get().isMetaGood()) return
-      const {isMuted, draft} = l
+      const {isMuted, draft, teamname, channelname, snippet, snippetDecoration, time} = l
       set(s => {
         s.meta.draft = draft || ''
         s.meta.isMuted = isMuted
+        if (teamname !== undefined) s.meta.teamname = teamname
+        if (channelname !== undefined) s.meta.channelname = channelname
+        if (snippet != null) {
+          s.meta.snippetDecorated = snippet
+          s.meta.snippet = snippet
+        }
+        if (snippetDecoration !== undefined) s.meta.snippetDecoration = snippetDecoration
+        if (time !== undefined) s.meta.timestamp = time
       })
+      queueInboxRowUpdate(get().id)
     },
     updateMeta: pm => {
       set(s => {
         assign(s.meta, pm)
       })
-      get().dispatch.setMeta(get().meta)
+      queueInboxRowUpdate(get().id)
     },
     updateNotificationSettings: (
       notificationsDesktop,
