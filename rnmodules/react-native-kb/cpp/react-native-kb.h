@@ -1,3 +1,8 @@
+// WARNING: Do NOT #include <msgpack.hpp> in this header.
+// It defines a `nil` typedef that conflicts with ObjC's `nil` macro,
+// causing build failures when this header is included from .mm files.
+// Use #include "msgpack-safe.hpp" in .cpp files instead — it wraps the
+// include with #undef/#pragma push/pop to handle the conflict safely.
 #pragma once
 #include <ReactCommon/CallInvoker.h>
 #include <atomic>
@@ -7,6 +12,7 @@
 #include <jsi/jsi.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace kb {
 
@@ -42,6 +48,7 @@ private:
   std::unique_ptr<facebook::jsi::Function> cachedRpcOnJs_;
   facebook::jsi::Runtime *cachedRuntime_ = nullptr;
   std::function<void(void *ptr, size_t size)> writeToGo_;
+  std::vector<uint8_t> combinedBuf_;
 
   void resetCaches(facebook::jsi::Runtime &runtime);
   facebook::jsi::Value convertMPToJSI(facebook::jsi::Runtime &runtime,

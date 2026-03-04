@@ -1,7 +1,7 @@
 #include "react-native-kb.h"
 #include <cmath>
 #include <cstring>
-#include <msgpack.hpp>
+#include "msgpack-safe.hpp"
 #include <string>
 
 using namespace facebook;
@@ -11,6 +11,7 @@ namespace kb {
 
 struct KBBridge::MsgpackState {
   msgpack::unpacker unpacker;
+  msgpack::sbuffer sendBuf;
 };
 
 KBBridge::KBBridge() = default;
@@ -41,9 +42,9 @@ static std::string mpToString(msgpack::object &o) {
   case msgpack::type::STR:
     return o.as<std::string>();
   case msgpack::type::POSITIVE_INTEGER:
-    return std::to_string(o.as<unsigned int>());
+    return std::to_string(o.as<uint64_t>());
   case msgpack::type::NEGATIVE_INTEGER:
-    return std::to_string(o.as<int>());
+    return std::to_string(o.as<int64_t>());
   case msgpack::type::FLOAT32:
     return std::to_string(o.as<double>());
   case msgpack::type::FLOAT64:
@@ -62,7 +63,7 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
   case msgpack::type::POSITIVE_INTEGER:
     return jsi::Value(o.as<double>());
   case msgpack::type::NEGATIVE_INTEGER:
-    return jsi::Value(o.as<int>());
+    return jsi::Value(o.as<double>());
   case msgpack::type::FLOAT32:
     return jsi::Value(o.as<double>());
   case msgpack::type::FLOAT64:
@@ -166,34 +167,53 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
         convertJSIToMP(runtime, arr.getValueAtIndex(runtime, i), &pk);
       }
     } else {
-      // Check for Uint8Array: has "byteLength" and "buffer" properties
-      // where "buffer" is an ArrayBuffer
-      auto byteLengthProp = obj.getProperty(runtime, "byteLength");
-      if (byteLengthProp.isNumber()) {
-        auto bufferProp = obj.getProperty(runtime, "buffer");
-        if (bufferProp.isObject()) {
-          auto bufferObj = bufferProp.asObject(runtime);
-          if (bufferObj.isArrayBuffer(runtime)) {
-            // This is a TypedArray (Uint8Array) — encode as BIN
-            auto arrayBuf = bufferObj.getArrayBuffer(runtime);
-            auto byteOffset = obj.getProperty(runtime, "byteOffset");
-            size_t offset = byteOffset.isNumber()
-                                ? static_cast<size_t>(byteOffset.getNumber())
-                                : 0;
-            size_t length = static_cast<size_t>(byteLengthProp.getNumber());
-            pk.pack_bin(static_cast<uint32_t>(length));
-            pk.pack_bin_body(
-                reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
-                static_cast<uint32_t>(length));
-            return;
-          }
-        }
-      }
-      // Regular object — encode as MAP
       auto names = obj.getPropertyNames(runtime);
       auto len = names.size(runtime);
+
+      // Probe for TypedArray (Uint8Array). Extracted as a lambda so it
+      // can be called from two sites without duplicating the logic.
+      auto tryPackTypedArray = [&]() -> bool {
+        auto byteLengthProp = obj.getProperty(runtime, "byteLength");
+        if (!byteLengthProp.isNumber()) return false;
+        auto bufferProp = obj.getProperty(runtime, "buffer");
+        if (!bufferProp.isObject()) return false;
+        auto bufferObj = bufferProp.asObject(runtime);
+        if (!bufferObj.isArrayBuffer(runtime)) return false;
+        auto arrayBuf = bufferObj.getArrayBuffer(runtime);
+        auto byteOffset = obj.getProperty(runtime, "byteOffset");
+        size_t offset = byteOffset.isNumber()
+                            ? static_cast<size_t>(byteOffset.getNumber())
+                            : 0;
+        size_t length = static_cast<size_t>(byteLengthProp.getNumber());
+        pk.pack_bin(static_cast<uint32_t>(length));
+        pk.pack_bin_body(
+            reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
+            static_cast<uint32_t>(length));
+        return true;
+      };
+
+      // Empty object: could be {} or empty TypedArray — must probe
+      if (len == 0) {
+        if (tryPackTypedArray()) return;
+        pk.pack_map(0);
+        return;
+      }
+
+      // Get first property name (needed for MAP encoding anyway).
+      // TypedArrays have numeric index keys ("0", "1", ...); regular
+      // RPC objects have string keys. Only probe for TypedArray when
+      // the first key looks numeric — saves a JSI call per regular object.
+      auto firstName = names.getValueAtIndex(runtime, 0).getString(runtime);
+      auto firstStr = firstName.utf8(runtime);
+      if (!firstStr.empty() && firstStr[0] >= '0' && firstStr[0] <= '9') {
+        if (tryPackTypedArray()) return;
+      }
+
+      // Regular object — encode as MAP
       pk.pack_map(static_cast<uint32_t>(len));
-      for (size_t i = 0; i < len; ++i) {
+      pk.pack(firstStr);
+      convertJSIToMP(runtime, obj.getProperty(runtime, firstName), &pk);
+      for (size_t i = 1; i < len; ++i) {
         auto name = names.getValueAtIndex(runtime, i).getString(runtime);
         auto nameStr = name.utf8(runtime);
         pk.pack(nameStr);
@@ -204,20 +224,27 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
 }
 
 void KBBridge::packAndSend(Runtime &runtime, const Value &value) {
-  msgpack::sbuffer sbuf;
-  msgpack::packer<msgpack::sbuffer> pk(&sbuf);
+  mp_->sendBuf.clear();
+  msgpack::packer<msgpack::sbuffer> pk(&mp_->sendBuf);
   convertJSIToMP(runtime, value, &pk);
 
-  // Write framed: [length prefix][content]
-  msgpack::sbuffer frameBuf;
-  msgpack::packer<msgpack::sbuffer> framePk(&frameBuf);
-  framePk.pack(static_cast<uint32_t>(sbuf.size()));
+  // Encode frame header (msgpack uint32 length prefix) on the stack.
+  // 0xce = msgpack uint32 format tag, followed by 4 big-endian bytes.
+  auto contentSize = static_cast<uint32_t>(mp_->sendBuf.size());
+  uint8_t frameHeader[5] = {
+    0xce,
+    static_cast<uint8_t>(contentSize >> 24),
+    static_cast<uint8_t>(contentSize >> 16),
+    static_cast<uint8_t>(contentSize >> 8),
+    static_cast<uint8_t>(contentSize),
+  };
+  constexpr size_t headerLen = 5;
 
-  std::vector<uint8_t> combined(frameBuf.size() + sbuf.size());
-  std::memcpy(combined.data(), frameBuf.data(), frameBuf.size());
-  std::memcpy(combined.data() + frameBuf.size(), sbuf.data(), sbuf.size());
+  combinedBuf_.resize(headerLen + mp_->sendBuf.size());
+  std::memcpy(combinedBuf_.data(), frameHeader, headerLen);
+  std::memcpy(combinedBuf_.data() + headerLen, mp_->sendBuf.data(), mp_->sendBuf.size());
 
-  writeToGo_(combined.data(), combined.size());
+  writeToGo_(combinedBuf_.data(), combinedBuf_.size());
 }
 
 void KBBridge::install(
