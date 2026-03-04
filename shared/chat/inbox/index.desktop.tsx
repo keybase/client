@@ -235,7 +235,7 @@ function InboxRow(p: RowComponentProps<InboxRowData>) {
 const shouldShowFloating = (rows: ReadonlyArray<ChatInboxRowItem>, visibleIdx: number) =>
   visibleIdx >= 0 && rows[visibleIdx]?.type === 'small'
 
-const calcUnreadShortcut = (unreadIndices: Map<number, number>, visibleIdx: number) => {
+const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, visibleIdx: number) => {
   if (!unreadIndices.size || visibleIdx < 0) {
     return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
   }

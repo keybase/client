@@ -260,6 +260,8 @@ type Store = T.Immutable<{
   inboxRows: Array<ChatInboxRowItem>
   inboxSearch?: T.Chat.InboxSearchInfo
   inboxSmallTeamsExpanded: boolean
+  inboxUnreadBigIndices: Map<number, number>
+  inboxUnreadBigTotal: number
   teamIDToGeneralConvID: Map<T.Teams.TeamID, T.Chat.ConversationIDKey>
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -279,6 +281,8 @@ const initialStore: Store = {
   inboxRows: [],
   inboxSearch: undefined,
   inboxSmallTeamsExpanded: false,
+  inboxUnreadBigIndices: new Map(),
+  inboxUnreadBigTotal: 0,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
@@ -571,10 +575,34 @@ function buildInboxRows(
   return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
 }
 
-function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean}, result: InboxRowsResult) {
+// Recompute unread big team indices from inboxRows.
+// Mutates the draft Map in-place — Immer keeps the reference stable if no mutations occur.
+function updateUnreadBigIndices(draft: {inboxRows: Array<ChatInboxRowItem>; inboxUnreadBigIndices: Map<number, number>; inboxUnreadBigTotal: number}) {
+  const map = draft.inboxUnreadBigIndices
+  const expected = new Map<number, number>()
+  let total = 0
+  draft.inboxRows.forEach((row, idx) => {
+    if (row.type === 'big' && row.badge > 0) {
+      expected.set(idx, row.badge)
+      total += row.badge
+    }
+  })
+  // Add/update entries
+  for (const [k, v] of expected) {
+    if (map.get(k) !== v) map.set(k, v)
+  }
+  // Remove stale entries
+  for (const k of map.keys()) {
+    if (!expected.has(k)) map.delete(k)
+  }
+  draft.inboxUnreadBigTotal = total
+}
+
+function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean; inboxUnreadBigIndices: Map<number, number>; inboxUnreadBigTotal: number}, result: InboxRowsResult) {
   draft.inboxRows = T.castDraft(result.rows)
   draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
   draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
+  updateUnreadBigIndices(draft)
 }
 
 // Patch badge/unread on existing inboxRows (immer draft)
@@ -716,6 +744,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
         patchInboxRowsBadges(s.inboxRows, smallTeamBadgeCount)
+        updateUnreadBigIndices(s)
       })
     },
     clearMetas: () => {
@@ -1298,6 +1327,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       const updatedConvIDs = new Set(metas.map(m => m.conversationIDKey))
       set(s => {
         patchInboxRowsMeta(s.inboxRows, updatedConvIDs)
+        updateUnreadBigIndices(s)
       })
     },
     navigateToInbox: (allowSwitchTab = true) => {
