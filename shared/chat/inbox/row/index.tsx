@@ -2,38 +2,16 @@ import logger from '@/logger'
 import BigTeamHeader from './big-team-header'
 import BigTeamChannel from './big-team-channel'
 import {SmallTeam} from './small-team'
-import {BigTeamsLabel} from './big-teams-label'
-import type {ChatInboxRowItem} from '../rowitem'
+import type {ChatInboxRowItem, InboxSmallTeamRow, InboxBigChannelRow} from '../rowitem'
 
 const makeRow = (item: ChatInboxRowItem, navKey: string, selected: boolean) => {
-  if (item.type === 'bigTeamsLabel') {
-    return <BigTeamsLabel />
-  }
   switch (item.type) {
     case 'bigHeader':
       return <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
     case 'big':
-      return (
-        <BigTeamChannel
-          conversationIDKey={item.conversationIDKey}
-          layoutChannelname={item.channelname}
-          selected={selected}
-          navKey={navKey}
-          layoutSnippetDecoration={item.snippetDecoration}
-        />
-      )
+      return <BigTeamChannel row={item as InboxBigChannelRow} selected={selected} navKey={navKey} />
     case 'small':
-      return (
-        <SmallTeam
-          conversationIDKey={item.conversationIDKey}
-          layoutIsTeam={item.isTeam}
-          layoutName={item.teamname}
-          isSelected={selected}
-          layoutTime={item.time}
-          layoutSnippet={item.snippet}
-          layoutSnippetDecoration={item.snippetDecoration}
-        />
-      )
+      return <SmallTeam row={item as InboxSmallTeamRow} isSelected={selected} />
     default:
   }
   logger.error(`Unhandled row type ${item.type}`)

@@ -13,7 +13,6 @@ import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
 import {type FlatList as RNFlatList, type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
-// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import type {ChatInboxRowItem} from './rowitem'
@@ -93,9 +92,6 @@ function Inbox(p: TInbox.Props) {
     switch (item.type) {
       case 'small':
         layout.size = RowSizes.smallRowHeight
-        break
-      case 'bigTeamsLabel':
-        layout.size = 32
         break
       case 'bigHeader':
         layout.size = RowSizes.bigHeaderHeight
@@ -186,15 +182,17 @@ function Inbox(p: TInbox.Props) {
       element = (
         <TeamsDivider
           showButton={row.showButton}
+          badgeCount={row.badgeCount}
+          hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}
-          smallConvIds={row.smallConvIds}
           smallTeamsExpanded={smallTeamsExpanded}
         />
       )
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
     } else {
-      element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)
+      const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
+      element = makeRow(row, navKey, isSelected)
     }
 
     return element
@@ -203,11 +201,10 @@ function Inbox(p: TInbox.Props) {
   const keyExtractor = (item: RowItem, idx: number) => {
     const row = item
     switch (row.type) {
-      case 'divider': // fallthrough
-      case 'teamBuilder': // fallthrough
-      case 'bigTeamsLabel':
+      case 'divider':
+      case 'teamBuilder':
         return row.type
-      case 'small': // fallthrough
+      case 'small':
       case 'big':
         return row.conversationIDKey
       case 'bigHeader':
@@ -236,8 +233,6 @@ function Inbox(p: TInbox.Props) {
   const dividerIndexRef = React.useRef(-1)
   const dividerShowButtonRef = React.useRef(false)
   const getItemLayout = (data: ArrayLike<RowItem> | undefined | null, index: number) => {
-    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
-    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
     if (index < dividerIndexRef.current || dividerIndexRef.current === -1) {
       const offset = index ? smallHeight * index : 0
@@ -245,14 +240,14 @@ function Inbox(p: TInbox.Props) {
       return {index, length, offset}
     }
 
-    const dividerHeight = RowSizes.dividerHeight(dividerShowButtonRef.current)
+    const dividerH = RowSizes.dividerHeight(dividerShowButtonRef.current)
     if (index === dividerIndexRef.current) {
       const offset = smallHeight * index
-      const length = dividerHeight
+      const length = dividerH
       return {index, length, offset}
     }
 
-    let offset = smallHeight * dividerIndexRef.current + dividerHeight
+    let offset = smallHeight * dividerIndexRef.current + dividerH
     let i = dividerIndexRef.current + 1
 
     for (; i < index; ++i) {

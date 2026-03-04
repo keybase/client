@@ -1,5 +1,3 @@
-// TODO we could use context and connected rows better to avoid so much
-// prop drilling / thrash due to props changing inside
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as TInbox from './index.d'
@@ -44,14 +42,15 @@ const DragLine = (p: {
   scrollDiv: React.RefObject<HTMLDivElement | null>
   inboxNumSmallRows: number
   showButton: boolean
+  badgeCount: number
+  hiddenCount: number
   smallTeamsExpanded: boolean
-  smallConvIds: ReadonlySet<T.Chat.ConversationIDKey>
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
   style: object
 }) => {
-  const {inboxNumSmallRows, showButton, style, scrollDiv} = p
-  const {smallTeamsExpanded, toggleSmallTeamsExpanded, smallConvIds, setInboxNumSmallRows} = p
+  const {inboxNumSmallRows, showButton, style, scrollDiv, badgeCount, hiddenCount} = p
+  const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
   const deltaNewSmallRows = () => {
     if (dragY === -1) {
@@ -171,7 +170,8 @@ const DragLine = (p: {
         key="divider"
         toggle={toggleSmallTeamsExpanded}
         showButton={showButton}
-        smallConvIds={smallConvIds}
+        badgeCount={badgeCount}
+        hiddenCount={hiddenCount}
         smallTeamsExpanded={smallTeamsExpanded}
       />
     </div>
@@ -181,7 +181,7 @@ const DragLine = (p: {
 type InboxRowData = {
   inboxNumSmallRows: number
   navKey: string
-  rows: ChatInboxRowItem[]
+  rows: ReadonlyArray<ChatInboxRowItem>
   scrollDiv: React.RefObject<HTMLDivElement | null>
   selectedConversationIDKey: string
   setInboxNumSmallRows: (rows: number) => void
@@ -207,8 +207,9 @@ function InboxRow(p: RowComponentProps<InboxRowData>) {
         scrollDiv={scrollDiv}
         inboxNumSmallRows={inboxNumSmallRows}
         showButton={row.showButton}
+        badgeCount={row.badgeCount}
+        hiddenCount={row.hiddenCount}
         smallTeamsExpanded={smallTeamsExpanded}
-        smallConvIds={row.smallConvIds}
         style={divStyle}
         toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
         setInboxNumSmallRows={setInboxNumSmallRows}
@@ -224,14 +225,15 @@ function InboxRow(p: RowComponentProps<InboxRowData>) {
   }
 
   // pointer events on so you can click even right after a scroll
+  const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
   return (
     <div style={{...divStyle, pointerEvents: 'auto'}}>
-      {makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)}
+      {makeRow(row, navKey, isSelected)}
     </div>
   )
 }
 
-const shouldShowFloating = (rows: ChatInboxRowItem[], visibleIdx: number) =>
+const shouldShowFloating = (rows: ReadonlyArray<ChatInboxRowItem>, visibleIdx: number) =>
   visibleIdx >= 0 && rows[visibleIdx]?.type === 'small'
 
 const calcUnreadShortcut = (unreadIndices: Map<number, number>, visibleIdx: number) => {

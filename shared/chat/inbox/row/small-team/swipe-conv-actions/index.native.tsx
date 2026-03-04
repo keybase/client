@@ -47,7 +47,7 @@ const Action = (p: {
 }
 
 function SwipeConvActions(p: Props) {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const {conversationIDKey} = p
   const isOpened = useOpenedRowState(s => s.openedRow === conversationIDKey)
   const wasOpenRef = React.useRef(isOpened)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
@@ -59,10 +59,11 @@ function SwipeConvActions(p: Props) {
   }
   const {children, onPress} = p
 
-  const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
+  const cs = Chat.getConvoState(conversationIDKey)
+  const setMarkAsUnread = cs.dispatch.setMarkAsUnread
+  const mute = cs.dispatch.mute
+  const hideConversation = cs.dispatch.hideConversation
+  const isMuted = Chat.useConvoState(conversationIDKey, s => s.meta.isMuted)
 
   const onMarkAsUnread = () => {
     setMarkAsUnread()

@@ -15,6 +15,7 @@ import type {GetOptionsRet} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
+import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isMobile, isPhone} from '@/constants/platform'
@@ -255,7 +256,10 @@ type Store = T.Immutable<{
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
+  inboxAllowShowFloatingButton: boolean
+  inboxRows: Array<ChatInboxRowItem>
   inboxSearch?: T.Chat.InboxSearchInfo
+  inboxSmallTeamsExpanded: boolean
   teamIDToGeneralConvID: Map<T.Teams.TeamID, T.Chat.ConversationIDKey>
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -268,10 +272,13 @@ const initialStore: Store = {
   botPublicCommands: new Map(),
   createConversationError: undefined,
   flipStatusMap: new Map(),
+  inboxAllowShowFloatingButton: false,
   inboxHasLoaded: false,
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
+  inboxRows: [],
   inboxSearch: undefined,
+  inboxSmallTeamsExpanded: false,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
@@ -391,6 +398,208 @@ export interface State extends Store {
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
 
+const buildTypingSnippet = (typing: ReadonlySet<string> | undefined): string => {
+  if (!typing?.size) return ''
+  if (typing.size === 1) {
+    const [t] = typing
+    return `${t} is typing...`
+  }
+  return 'Multiple people typing...'
+}
+
+type InboxRowsResult = {
+  allowShowFloatingButton: boolean
+  rows: Array<ChatInboxRowItem>
+  smallTeamsExpanded: boolean
+}
+
+const emptyInboxRowsResult: InboxRowsResult = {
+  allowShowFloatingButton: false,
+  rows: [],
+  smallTeamsExpanded: false,
+}
+
+// Build render-ready inbox rows from layout + per-convo store state.
+// Only builds rows for visible items (sliced small teams + all big teams).
+function buildInboxRows(
+  layout: T.RPCChat.UIInboxLayout | undefined,
+  inboxNumSmallRows: number,
+  smallTeamsExpanded: boolean,
+  smallTeamBadgeCount: number
+): InboxRowsResult {
+  if (!layout) return emptyInboxRowsResult
+
+  const you = useCurrentUserState.getState().username
+  const allSmallTeams = layout.smallTeams ?? []
+  const bigTeams = layout.bigTeams ?? []
+  const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
+  const visibleSmallTeams = showAllSmallRows ? allSmallTeams : allSmallTeams.slice(0, inboxNumSmallRows)
+
+  const rows: Array<ChatInboxRowItem> = []
+
+  // Build visible small team rows
+  let visibleSmallBadgeTotal = 0
+  for (const t of visibleSmallTeams) {
+    const convId = T.Chat.stringToConversationIDKey(t.convID)
+    const cs = chatStores.get(convId)?.getState()
+    const meta = cs?.meta
+    const metaGood = !!meta && meta.conversationIDKey === convId
+
+    const typingSnippet = buildTypingSnippet(cs?.typing)
+    const snippet = metaGood ? (meta.snippetDecorated ?? t.snippet ?? '') : (t.snippet ?? '')
+    const snippetDecoration = metaGood ? meta.snippetDecoration : t.snippetDecoration
+
+    let participants: Array<string>
+    if (cs?.participants.name.length) {
+      participants = cs.participants.name.filter((p, _, list) => list.length === 1 || p !== you)
+    } else if (t.isTeam) {
+      participants = []
+    } else {
+      participants = t.name.split(',').filter((p, _, list) => list.length === 1 || p !== you)
+    }
+
+    const teamname = (metaGood ? meta.teamname : '') || (t.isTeam ? t.name : '') || ''
+    const badge = cs?.badge ?? 0
+    const unread = cs?.unread ?? 0
+    visibleSmallBadgeTotal += badge
+
+    rows.push({
+      badge,
+      conversationIDKey: convId,
+      draft: (metaGood ? meta.draft : '') || '',
+      hasResetUsers: metaGood ? meta.resetParticipants.size > 0 : false,
+      isLocked: metaGood ? (meta.rekeyers.size > 0 || !!meta.wasFinalizedBy) : false,
+      isMuted: metaGood ? meta.isMuted : false,
+      isTeam: t.isTeam,
+      participantNeedToRekey: metaGood ? meta.rekeyers.size > 0 : false,
+      participants,
+      snippet,
+      snippetDecoration,
+      teamname,
+      timestamp: (metaGood ? meta.timestamp : 0) || t.time || 0,
+      trustedState: metaGood ? meta.trustedState : '',
+      type: 'small',
+      typingSnippet,
+      unread,
+      youAreReset: metaGood ? meta.membershipType === 'youAreReset' : false,
+      youNeedToRekey: metaGood ? meta.rekeyers.has(you) : false,
+    })
+  }
+
+  // Divider
+  const hasAllSmallTeamConvs = allSmallTeams.length === layout.totalSmallTeams
+  const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
+  const showDivider = bigTeams.length > 0 || !hasAllSmallTeamConvs
+
+  // Team builder placement logic
+  const hasSmall = visibleSmallTeams.length > 0
+  const hasBig = bigTeams.length > 0
+
+  if (hasSmall && !hasBig && !showDivider) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  if (showDivider) {
+    const dividerBadgeCount = Math.max(0, smallTeamBadgeCount - visibleSmallBadgeTotal)
+    const dividerHiddenCount = Math.max(0, layout.totalSmallTeams - visibleSmallTeams.length)
+    rows.push({
+      badgeCount: dividerBadgeCount,
+      hiddenCount: dividerHiddenCount,
+      showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold,
+      type: 'divider',
+    })
+  }
+
+  if (hasSmall && !hasBig && showDivider) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  // Big team rows
+  for (const t of bigTeams) {
+    switch (t.state) {
+      case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
+        const convId = T.Chat.stringToConversationIDKey(t.channel.convID)
+        const cs = chatStores.get(convId)?.getState()
+        const meta = cs?.meta
+        const metaGood = !!meta && meta.conversationIDKey === convId
+
+        const d = metaGood ? meta.snippetDecoration : T.RPCChat.SnippetDecoration.none
+        let sd: number
+        switch (d) {
+          case T.RPCChat.SnippetDecoration.pendingMessage:
+          case T.RPCChat.SnippetDecoration.failedPendingMessage:
+            sd = d
+            break
+          default:
+            sd = 0
+        }
+
+        rows.push({
+          badge: cs?.badge ?? 0,
+          channelname: metaGood ? (meta.channelname || t.channel.channelname) : t.channel.channelname,
+          conversationIDKey: convId,
+          hasDraft: metaGood ? !!meta.draft : false,
+          isError: metaGood ? meta.trustedState === 'error' : false,
+          isMuted: metaGood ? meta.isMuted : t.channel.isMuted,
+          snippetDecoration: sd,
+          teamname: t.channel.teamname,
+          type: 'big',
+          unread: cs?.unread ?? 0,
+        })
+        break
+      }
+      case T.RPCChat.UIInboxBigTeamRowTyp.label:
+        rows.push({
+          teamID: t.label.id,
+          teamname: t.label.name,
+          type: 'bigHeader',
+        })
+        break
+    }
+  }
+
+  if (hasSmall && hasBig) {
+    rows.push({type: 'teamBuilder'})
+  }
+
+  const allowShowFloatingButton = allSmallTeams.length > inboxNumSmallRows && hasBig
+  return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
+}
+
+function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean}, result: InboxRowsResult) {
+  draft.inboxRows = T.castDraft(result.rows)
+  draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
+  draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
+}
+
+// Patch badge/unread on existing inboxRows (immer draft)
+function patchInboxRowsBadges(
+  inboxRows: Array<ChatInboxRowItem>,
+  smallTeamBadgeCount: number
+) {
+  let visibleSmallBadgeTotal = 0
+  for (const row of inboxRows) {
+    if (row.type === 'small' || row.type === 'big') {
+      const cs = chatStores.get(row.conversationIDKey)?.getState()
+      const newBadge = cs?.badge ?? 0
+      const newUnread = cs?.unread ?? 0
+      if (row.badge !== newBadge) row.badge = newBadge
+      if (row.unread !== newUnread) row.unread = newUnread
+    }
+    if (row.type === 'small') {
+      visibleSmallBadgeTotal += row.badge
+    }
+  }
+  // Update divider badge count
+  for (const row of inboxRows) {
+    if (row.type === 'divider') {
+      const newBadgeCount = Math.max(0, smallTeamBadgeCount - visibleSmallBadgeTotal)
+      if (row.badgeCount !== newBadgeCount) row.badgeCount = newBadgeCount
+      break
+    }
+  }
+}
+
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   // We keep a set of conversations to unbox
@@ -412,6 +621,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
+        patchInboxRowsBadges(s.inboxRows, smallTeamBadgeCount)
       })
     },
     clearMetas: () => {
@@ -989,6 +1199,14 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           get().dispatch.defer.onTeamsGetMembers(teamID)
         }
       }
+
+      // Rebuild inbox rows after meta updates
+      const s = get()
+      set(draft => {
+        applyInboxRowsResult(draft, buildInboxRows(
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+        ))
+      })
     },
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
@@ -1322,6 +1540,17 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               .getConvoState(T.Chat.conversationIDToKey(u.convID))
               .dispatch.setTyping(new Set(u.typers?.map(t => t.username)))
           })
+          // Patch typing in inboxRows
+          if (typingUpdates?.length) {
+            set(s => {
+              for (const row of s.inboxRows) {
+                if (row.type !== 'small') continue
+                const cs = chatStores.get(row.conversationIDKey)?.getState()
+                const ts = buildTypingSnippet(cs?.typing)
+                if (row.typingSnippet !== ts) row.typingSnippet = ts
+              }
+            })
+          }
           break
         }
         case EngineGen.chat1NotifyChatChatSetConvRetention: {
@@ -1755,6 +1984,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         if (rows > 0) {
           s.inboxNumSmallRows = rows
         }
+        applyInboxRowsResult(s, buildInboxRows(
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+        ))
       })
       if (ignoreWrite) {
         return
@@ -1813,6 +2045,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
+        applyInboxRowsResult(s, buildInboxRows(
+          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+        ))
       })
     },
     unboxRows: (ids, force) => {
@@ -1890,6 +2125,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               }
             })
           }
+          // Rebuild inbox rows
+          applyInboxRowsResult(s, buildInboxRows(
+            layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded, s.smallTeamBadgeCount
+          ))
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }

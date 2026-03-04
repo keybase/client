@@ -1,35 +1,21 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as RowSizes from './sizes'
-import type {ConversationIDKey} from '@/constants/types/chat'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  smallConvIds: ReadonlySet<ConversationIDKey>
   showButton: boolean
+  badgeCount: number
+  hiddenCount: number
   toggle: () => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
 function TeamsDivider(props: Props) {
-  const {smallConvIds, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const {smallTeamBadgeCount, totalSmallTeams, badgeCount: _bc, hiddenCount: _hc} = Chat.useChatState(
-    C.useShallow(s => {
-      const {badgeCount, hiddenCount} = s.getBadgeHiddenCount(smallConvIds)
-      return {
-        badgeCount, hiddenCount,
-        smallTeamBadgeCount: s.smallTeamBadgeCount,
-        totalSmallTeams: s.inboxLayout?.totalSmallTeams ?? 0,
-      }
-    })
-  )
-  let badgeCount = _bc
-  let hiddenCount = _hc
-  badgeCount += smallTeamBadgeCount
-  hiddenCount += totalSmallTeams
+  const {showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
+  let {badgeCount, hiddenCount} = props
+
   if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }

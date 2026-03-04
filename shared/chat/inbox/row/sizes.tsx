@@ -20,8 +20,6 @@ export const dividerHeight = (showingButton: boolean) => {
 export const getRowHeight = (type: ChatInboxRowType, showingDividerButton: boolean) => {
   const exhaustive = (type: ChatInboxRowType, showingDividerButton: boolean) => {
     switch (type) {
-      case 'bigTeamsLabel':
-        return bigHeaderHeight
       case 'bigHeader':
         return bigHeaderHeight
       case 'big':

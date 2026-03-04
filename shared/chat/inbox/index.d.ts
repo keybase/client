@@ -11,7 +11,7 @@ export type Props = {
   neverLoaded: boolean
   onNewChat: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<T.Chat.ConversationIDKey>) => void
-  rows: Array<ChatInboxRowItem>
+  rows: ReadonlyArray<ChatInboxRowItem>
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
