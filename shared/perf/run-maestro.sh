@@ -1,7 +1,7 @@
 #!/bin/bash
 # Maestro + React Profiler performance test runner.
 #
-# Usage: ./run-maestro.sh [--skip-build] [--simulator "name"] [--flow <name>]
+# Usage: ./run-maestro.sh [--build] [--simulator "name"] [--flow <name>]
 #                         [--save-baseline] [--compare <baseline-dir>]
 #
 # Prerequisites:
@@ -9,7 +9,7 @@
 #   - Metro running with: yarn rn-start-debug (pipes to /tmp/metro.log)
 #
 # Options:
-#   --skip-build    Skip xcodebuild, just run the Maestro flow
+#   --build         Build the app before running (default: skip build)
 #   --simulator     Simulator name (default: "iPhone 17 Pro")
 #   --flow          Maestro flow file relative to shared/.maestro/ (default: performance/perf-inbox-scroll.yaml)
 #   --save-baseline Save results to baselines/<git-hash>/
@@ -23,7 +23,7 @@ MAESTRO_DIR="$SHARED_DIR/.maestro"
 OUTPUT_DIR="$SCRIPT_DIR/output"
 mkdir -p "$OUTPUT_DIR"
 
-SKIP_BUILD=false
+DO_BUILD=false
 SIMULATOR="iPhone 17 Pro"
 FLOW="performance/perf-inbox-scroll.yaml"
 SAVE_BASELINE=false
@@ -31,7 +31,7 @@ COMPARE_DIR=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --skip-build) SKIP_BUILD=true; shift ;;
+    --build) DO_BUILD=true; shift ;;
     --simulator) SIMULATOR="$2"; shift 2 ;;
     --flow) FLOW="$2"; shift 2 ;;
     --save-baseline) SAVE_BASELINE=true; shift ;;
@@ -76,7 +76,7 @@ echo "Booting simulator..."
 xcrun simctl boot "$SIMULATOR" 2>/dev/null || true
 
 # Build app
-if [ "$SKIP_BUILD" = false ]; then
+if [ "$DO_BUILD" = true ]; then
   echo "Building app..."
   xcodebuild \
     -workspace "$SHARED_DIR/ios/Keybase.xcworkspace" \
@@ -86,7 +86,7 @@ if [ "$SKIP_BUILD" = false ]; then
     build 2>&1 | tail -5
   echo "Build complete."
 else
-  echo "Skipping build (--skip-build)"
+  echo "Skipping build (pass --build to build first)"
 fi
 
 echo ""
