@@ -4,9 +4,9 @@ import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
-import {RectButton, TouchableOpacity} from 'react-native-gesture-handler'
+import {Pressable, View} from 'react-native'
+import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
-import {View} from 'react-native'
 import {useOpenedRowState} from '../../opened-row-state'
 
 const actionWidth = 64
@@ -84,6 +84,13 @@ function SwipeConvActions(p: Props) {
     setOpenedRow(conversationIDKey)
   }
 
+  // Defer mounting Swipeable to avoid 27ms+ gesture infrastructure cost during scroll
+  const [ready, setReady] = React.useState(false)
+  React.useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   React.useEffect(() => {
     if (!isOpened && wasOpenRef.current) {
       swipeableRef.current?.close()
@@ -125,6 +132,18 @@ function SwipeConvActions(p: Props) {
     )
   }
 
+  const inner = onPress ? (
+    <Pressable onPress={onPress} style={styles.touchable}>
+      {children}
+    </Pressable>
+  ) : (
+    children
+  )
+
+  if (!ready) {
+    return <View style={styles.row}>{inner}</View>
+  }
+
   return (
     <Swipeable
       ref={swipeableRef}
@@ -132,11 +151,7 @@ function SwipeConvActions(p: Props) {
       renderRightActions={renderRightActions}
       containerStyle={styles.row}
     >
-      {onPress ? (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.touchable}>
-          {children}
-        </TouchableOpacity>
-      ) : children}
+      {inner}
     </Swipeable>
   )
 }

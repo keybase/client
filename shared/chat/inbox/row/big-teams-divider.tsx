@@ -13,8 +13,7 @@ const BigTeamsDivider = (props: Props) => {
   const {toggle, onEdit} = props
   const badgeCount = Chat.useChatState(s => s.bigTeamBadgeCount)
   return (
-    <Kb.ClickableBox
-      title="Teams with multiple channels."
+    <Kb.ClickableBox2
       onClick={() => {
         T.RPCChat.localRequestInboxSmallResetRpcPromise().catch(() => {})
         toggle()
@@ -40,7 +39,7 @@ const BigTeamsDivider = (props: Props) => {
           </Kb.BoxGrow2>
         ) : null}
       </Kb.Box2>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox2>
   )
 }
 

@@ -94,7 +94,7 @@ const BigTeamChannel = (props: Props) => {
 
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={!Kb.Styles.isTablet}>
-      <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
+      <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
         <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
           <Kb.Box2
             className="hover_background_color_blueGreyDark"
@@ -121,7 +121,7 @@ const BigTeamChannel = (props: Props) => {
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox2>
     </Kb.Styles.CanFixOverdrawContext.Provider>
   )
 }
