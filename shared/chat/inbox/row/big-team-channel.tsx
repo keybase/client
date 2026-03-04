@@ -7,7 +7,6 @@ import type {InboxBigChannelRow} from '../rowitem'
 
 type Props = {
   row: InboxBigChannelRow
-  navKey: string
   selected: boolean
 }
 

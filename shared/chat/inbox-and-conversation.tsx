@@ -5,15 +5,14 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
-import Inbox from './inbox/container'
+import Inbox from './inbox'
 import InboxSearch from './inbox-search'
 import InfoPanel from './conversation/info-panel'
 
-type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 function InboxAndConversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
-  const navKey = props.navKey ?? ''
   const inboxSearch = Chat.useChatState(s => s.inboxSearch)
   const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
@@ -43,7 +42,7 @@ function InboxAndConversation(props: Props) {
           {!C.isTablet && inboxSearch ? (
             <InboxSearch />
           ) : (
-            <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
+            <Inbox conversationIDKey={conversationIDKey} />
           )}
           <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
             <Conversation />

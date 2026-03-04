@@ -63,7 +63,7 @@ function SwipeConvActions(p: Props) {
   const setMarkAsUnread = cs.dispatch.setMarkAsUnread
   const mute = cs.dispatch.mute
   const hideConversation = cs.dispatch.hideConversation
-  const isMuted = Chat.useConvoState(conversationIDKey, s => s.meta.isMuted)
+  const isMuted = p.isMuted
 
   const onMarkAsUnread = () => {
     setMarkAsUnread()

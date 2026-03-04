@@ -20,7 +20,8 @@ export type InboxSmallTeamRow = {
   youNeedToRekey: boolean
   youAreReset: boolean
   participantNeedToRekey: boolean
-  trustedState: string
+  isDecryptingSnippet: boolean
+  teamDisplayName: string
 }
 
 export type InboxBigChannelRow = {

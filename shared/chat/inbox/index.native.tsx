@@ -9,12 +9,12 @@ import SearchRow from './search-row'
 import InboxSearch from '../inbox-search'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
-import type * as TInbox from './index.d'
 import type * as T from '@/constants/types'
 import {type FlatList as RNFlatList, type ViewToken, Alert} from 'react-native'
 import {FlatList} from 'react-native-gesture-handler'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
+import {useInboxState} from './use-inbox-state'
 import type {ChatInboxRowItem} from './rowitem'
 
 type RowItem = ChatInboxRowItem
@@ -59,14 +59,17 @@ const viewabilityConfig = {
   viewAreaCoveragePercentThreshold: 30,
 }
 
-function Inbox(p: TInbox.Props) {
+type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+function Inbox(p: InboxProps) {
+  const inbox = useInboxState(p.conversationIDKey)
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
 
-  const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, navKey, selectedConversationIDKey} = p
-  const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = p
-  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = p
+  const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
+  const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
 
   // stash first offscreen index for callback
   const firstOffscreenIdxRef = React.useRef(-1)
@@ -192,7 +195,7 @@ function Inbox(p: TInbox.Props) {
       element = <BuildTeam />
     } else {
       const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
-      element = makeRow(row, navKey, isSelected)
+      element = makeRow(row, isSelected)
     }
 
     return element

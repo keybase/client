@@ -463,11 +463,16 @@ function buildInboxRows(
     const unread = cs?.unread ?? 0
     visibleSmallBadgeTotal += badge
 
+    const trustedState = metaGood ? meta.trustedState : ''
+    const isDecryptingSnippet = !snippet && (trustedState === 'requesting' || trustedState === 'untrusted')
+    const teamDisplayName = teamname ? teamname.split('#')[0] ?? '' : ''
+
     rows.push({
       badge,
       conversationIDKey: convId,
       draft: (metaGood ? meta.draft : '') || '',
       hasResetUsers: metaGood ? meta.resetParticipants.size > 0 : false,
+      isDecryptingSnippet,
       isLocked: metaGood ? (meta.rekeyers.size > 0 || !!meta.wasFinalizedBy) : false,
       isMuted: metaGood ? meta.isMuted : false,
       isTeam: t.isTeam,
@@ -475,9 +480,9 @@ function buildInboxRows(
       participants,
       snippet,
       snippetDecoration,
+      teamDisplayName,
       teamname,
       timestamp: (metaGood ? meta.timestamp : 0) || t.time || 0,
-      trustedState: metaGood ? meta.trustedState : '',
       type: 'small',
       typingSnippet,
       unread,

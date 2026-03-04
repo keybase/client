@@ -7,19 +7,11 @@ import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 
 type Props = {
-  navKey: string
   teamname: string
   teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = (props: Props) => {
-  return (
-    <Chat.ChatProvider id={Chat.dummyConversationIDKey}>
-      <BigTeamHeaderInner {...props} />
-    </Chat.ChatProvider>
-  )
-}
-const BigTeamHeaderInner = (props: Props) => {
   const {teamID, teamname} = props
   const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

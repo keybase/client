@@ -21,14 +21,12 @@ export type Props = {
 
 const SmallTeam = (p: Props) => {
   const {row, isSelected} = p
-  const {conversationIDKey, teamname, participants, snippet, snippetDecoration, typingSnippet} = row
-  const {timestamp, isMuted, isLocked, badge, unread, draft: rawDraft} = row
-  const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey, trustedState} = row
+  const {conversationIDKey, participants, snippet, snippetDecoration, typingSnippet} = row
+  const {isMuted, isLocked, unread, draft: rawDraft, teamDisplayName, isDecryptingSnippet} = row
+  const {hasResetUsers, youNeedToRekey, youAreReset, participantNeedToRekey} = row
 
-  const hasBadge = badge > 0
   const hasUnread = unread > 0
   const displaySnippet = typingSnippet || snippet
-  const isDecryptingSnippet = !snippet && (trustedState === 'requesting' || trustedState === 'untrusted')
   const draft = (!isSelected && !hasUnread && rawDraft) || ''
 
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
@@ -46,12 +44,11 @@ const SmallTeam = (p: Props) => {
       ? undefined
       : Kb.Styles.globalColors.blueGrey
 
-  const teamDisplayName = teamname ? teamname.split('#')[0] ?? '' : ''
   const participantOne = teamDisplayName ? '' : participants[0] ?? ''
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
 
   return (
-    <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
+    <SwipeConvActions conversationIDKey={conversationIDKey} isMuted={isMuted} onPress={onSelectConversation}>
       <Kb.ClickableBox
         onClick={Kb.Styles.isMobile ? undefined : onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}
@@ -76,16 +73,7 @@ const SmallTeam = (p: Props) => {
           )}
           <Kb.Box2 direction="vertical" style={styles.conversationRow}>
             <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
-              <TopLine
-                conversationIDKey={conversationIDKey}
-                isSelected={isSelected}
-                hasUnread={hasUnread}
-                hasBadge={hasBadge}
-                backgroundColor={backgroundColor}
-                teamDisplayName={teamDisplayName}
-                participants={participants}
-                timestamp={timestamp}
-              />
+              <TopLine row={row} isSelected={isSelected} backgroundColor={backgroundColor} />
             </Kb.Box2>
             <BottomLineDisplay
               snippet={displaySnippet}
@@ -108,18 +96,16 @@ const SmallTeam = (p: Props) => {
 }
 
 type TopLineProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
+  row: InboxSmallTeamRow
   isSelected: boolean
-  hasUnread: boolean
-  hasBadge: boolean
   backgroundColor?: string
-  teamDisplayName: string
-  participants: ReadonlyArray<string>
-  timestamp: number
 }
 
 const TopLine = (p: TopLineProps) => {
-  const {conversationIDKey, isSelected, hasUnread, hasBadge, backgroundColor, teamDisplayName, participants, timestamp} = p
+  const {row, isSelected, backgroundColor} = p
+  const {conversationIDKey, badge, unread, teamDisplayName, participants, timestamp} = row
+  const hasBadge = badge > 0
+  const hasUnread = unread > 0
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
