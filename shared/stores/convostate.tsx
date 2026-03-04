@@ -340,6 +340,7 @@ export interface ConvoState extends ConvoStore {
       draft?: string | null
       teamname?: string
       channelname?: string
+      layoutName?: string
       snippet?: string | null
       snippetDecoration?: T.RPCChat.SnippetDecoration
       time?: number
@@ -3274,7 +3275,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     ),
     updateFromUIInboxLayout: l => {
       if (get().isMetaGood()) return
-      const {isMuted, draft, teamname, channelname, snippet, snippetDecoration, time} = l
+      const {isMuted, draft, teamname, channelname, layoutName, snippet, snippetDecoration, time} = l
       set(s => {
         s.meta.draft = draft || ''
         s.meta.isMuted = isMuted
@@ -3286,6 +3287,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         }
         if (snippetDecoration !== undefined) s.meta.snippetDecoration = snippetDecoration
         if (time !== undefined) s.meta.timestamp = time
+        // For non-team convos, use layout name as participant fallback
+        if (layoutName && !teamname && s.participants.name.length === 0) {
+          const names = layoutName.split(',').map(n => n.trim()).filter(Boolean)
+          s.participants = {all: names, contactName: s.participants.contactName, name: names}
+        }
       })
       queueInboxRowUpdate(get().id)
     },

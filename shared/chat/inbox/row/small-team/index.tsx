@@ -47,7 +47,7 @@ const SmallTeam = (p: Props) => {
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
 
   return (
-    <SwipeConvActions conversationIDKey={conversationIDKey} isMuted={isMuted} onPress={onSelectConversation}>
+    <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
       <Kb.ClickableBox2
         onClick={Kb.Styles.isMobile ? undefined : onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}

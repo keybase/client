@@ -91,7 +91,7 @@ const bigSnippetDecoration = (sd: T.RPCChat.SnippetDecoration): number => {
   }
 }
 
-const flushInboxRowUpdates = () => {
+export const flushInboxRowUpdates = () => {
   flushScheduled = false
   const ids = [...pendingUpdates]
   pendingUpdates.clear()

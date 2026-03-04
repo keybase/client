@@ -59,11 +59,11 @@ function SwipeConvActions(p: Props) {
   }
   const {children, onPress} = p
 
+  const isMuted = Chat.useInboxRowSmall(conversationIDKey).isMuted
   const cs = Chat.getConvoState(conversationIDKey)
   const setMarkAsUnread = cs.dispatch.setMarkAsUnread
   const mute = cs.dispatch.mute
   const hideConversation = cs.dispatch.hideConversation
-  const isMuted = p.isMuted
 
   const onMarkAsUnread = () => {
     setMarkAsUnread()

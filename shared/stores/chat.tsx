@@ -15,6 +15,7 @@ import type {GetOptionsRet} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
+import {flushInboxRowUpdates} from '@/stores/inbox-rows'
 import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
@@ -1993,6 +1994,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               const cs = storeRegistry.getConvoState(t.convID)
               cs.dispatch.updateFromUIInboxLayout({
                 ...t,
+                layoutName: t.name || '',
                 snippet: t.snippet ?? undefined,
                 teamname: t.isTeam ? t.name || '' : '',
                 time: t.time || 0,
@@ -2008,6 +2010,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
                 })
               }
             })
+            // Flush inbox row updates synchronously to prevent flash of empty content
+            flushInboxRowUpdates()
           }
           // Rebuild inbox rows
           applyInboxRowsResult(s, buildInboxRows(
