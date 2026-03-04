@@ -218,6 +218,60 @@ node shared/perf/run-desktop-cdp-profile.js --duration 5000
 
 This saves a `.cpuprofile` file to `shared/perf/output/` that can be loaded in Chrome DevTools (Performance tab > Load profile).
 
+## Baselines & Comparison
+
+The `baselines/` folder (gitignored) stores snapshots of perf results keyed by git commit hash, enabling before/after comparisons across branches.
+
+### Saving a Baseline
+
+```bash
+# Run the test and save results to baselines/<short-git-hash>/
+cd shared && yarn maestro-test-perf --save-baseline
+
+# With other options
+cd shared && yarn maestro-test-perf --skip-build --save-baseline
+```
+
+This copies `react-profiler.json` and `maestro-fps.json` into `shared/perf/baselines/<hash>/`.
+
+### Comparing Against a Baseline
+
+```bash
+# Compare current run against a saved baseline
+cd shared && yarn maestro-test-perf --skip-build --compare baselines/<hash>
+```
+
+Output:
+```
+=== Comparison vs baseline abc1234 ===
+FPS  avg:  56 -> 62  (+10.7%)
+FPS   p5:  40 -> 48  (+20.0%)
+React totalDurationMs: 5192 -> 3800  (-26.8%)
+React totalRenders: 758 -> 520  (-31.4%)
+
+Component                   old ms   new ms   change   old #  new #
+--------------------------------------------------------------------------------
+Inbox                         3374     2100     -38%     308    200
+InboxRow-big                  1338      900     -33%     362    210
+```
+
+### Recommended Workflow
+
+1. Check out the **base branch** and run a full build + test:
+   ```bash
+   git checkout nojima/HOTPOT-next-670-clean
+   cd shared && yarn maestro-test-perf --save-baseline
+   ```
+2. Switch to the **feature branch**:
+   ```bash
+   git checkout nojima/HOTPOT-inbox-clean-1
+   ```
+3. Build and run with comparison:
+   ```bash
+   cd shared && yarn maestro-test-perf --compare baselines/<base-hash>
+   ```
+4. Review the side-by-side output. Negative percentages for React metrics and positive for FPS indicate improvement.
+
 ## Interpreting Results
 
 ### Before/After Comparison
