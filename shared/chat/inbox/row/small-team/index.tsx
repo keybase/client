@@ -112,17 +112,6 @@ const TopLine = (p: TopLineProps) => {
     : hasUnread
       ? Kb.Styles.globalColors.black
       : Kb.Styles.globalColors.black_50
-  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
-
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    return (
-      <Chat.ChatProvider id={conversationIDKey}>
-        <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
-      </Chat.ChatProvider>
-    )
-  }
-  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = Kb.Styles.collapseStyles([
@@ -147,15 +136,12 @@ const TopLine = (p: TopLineProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
-      {showingPopup && popup}
       <Kb.Box2 direction="horizontal" style={styles.insideContainer} relative={true}>
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.nameContainer}>
           {teamDisplayName ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text type="BodySemibold" style={teamContainerStyle}>
-                {teamDisplayName}
-              </Kb.Text>
-            </Kb.Box2>
+            <Kb.Text type="BodySemibold" style={teamContainerStyle} lineClamp={1}>
+              {teamDisplayName}
+            </Kb.Text>
           ) : (
             <Kb.ConnectedUsernames
               backgroundMode={isSelected ? 'Terminal' : 'Normal'}
@@ -178,18 +164,38 @@ const TopLine = (p: TopLineProps) => {
         {timestampText}
       </Kb.Text>
       {!Kb.Styles.isMobile && (
-        <Kb.Icon
-          type="iconfont-gear"
-          className="conversation-gear"
-          onClick={showPopup}
-          ref={popupAnchor}
-          color={subColor}
-          hoverColor={iconHoverColor}
-          style={styles.icon}
-        />
+        <TopLineGear conversationIDKey={conversationIDKey} subColor={subColor} isSelected={isSelected} />
       )}
       {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
     </Kb.Box2>
+  )
+}
+
+const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: string; isSelected: boolean}) => {
+  const {conversationIDKey, subColor, isSelected} = p
+  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
+  const makePopup = (mp: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = mp
+    return (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
+      </Chat.ChatProvider>
+    )
+  }
+  const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  return (
+    <>
+      {showingPopup && popup}
+      <Kb.Icon
+        type="iconfont-gear"
+        className="conversation-gear"
+        onClick={showPopup}
+        ref={popupAnchor}
+        color={subColor}
+        hoverColor={iconHoverColor}
+        style={styles.icon}
+      />
+    </>
   )
 }
 
@@ -274,20 +280,18 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" justifyContent="flex-start" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
-        {hasResetUsers && (
-          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
-        )}
-        {youNeedToRekey && (
-          <Kb.Meta
-            title="rekey needed"
-            style={styles.alertMeta}
-            backgroundColor={Kb.Styles.globalColors.red}
-          />
-        )}
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
+      {hasResetUsers && (
+        <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
+      )}
+      {youNeedToRekey && (
+        <Kb.Meta
+          title="rekey needed"
+          style={styles.alertMeta}
+          backgroundColor={Kb.Styles.globalColors.red}
+        />
+      )}
+      <Kb.Box2 direction="horizontal" alignItems="center" style={styles.innerBox}>{content}</Kb.Box2>
     </Kb.Box2>
   )
 }
