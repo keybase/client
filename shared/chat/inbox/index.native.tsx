@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
@@ -198,7 +199,7 @@ function Inbox(p: InboxProps) {
       element = makeRow(row, isSelected)
     }
 
-    return element
+    return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
   }
 
   const keyExtractor = (item: RowItem, idx: number) => {
@@ -337,6 +338,7 @@ function Inbox(p: InboxProps) {
 
   return (
     <Kb.ErrorBoundary>
+      <PerfProfiler id="Inbox">
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <LoadingLine />
         {isSearching ? (
@@ -372,6 +374,7 @@ function Inbox(p: InboxProps) {
         )}
         {debugWhichList}
       </Kb.Box2>
+      </PerfProfiler>
     </Kb.ErrorBoundary>
   )
 }
