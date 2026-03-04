@@ -14,26 +14,21 @@ appId: keybase.ios
 
 - runFlow: ../shared/navigate-to-chat.yaml
 
-# Wait for animation to settle
-- swipe:
-    direction: UP
-    duration: 500
-
 - repeat:
-    times: 10
+    times: 5
     commands:
       - swipe:
           id: "inboxList"
           direction: UP
-          duration: 300
+          duration: 150
 
 - repeat:
-    times: 10
+    times: 5
     commands:
       - swipe:
           id: "inboxList"
           direction: DOWN
-          duration: 300
+          duration: 150
 
 # Press Home to trigger app background → flushes profiler data
 - pressKey: Home

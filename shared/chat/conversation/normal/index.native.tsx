@@ -12,6 +12,7 @@ import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {PerfProfiler} from '@/perf/react-profiler'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -87,19 +88,23 @@ const Conversation = function Conversation() {
     </Kb.Box2>
   )
 
-  return Kb.Styles.isAndroid ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      {content}
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2
-        extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-        behavior="translate-with-padding"
-      >
-        {content}
-      </Kb.KeyboardAvoidingView2>
-    </Kb.Box2>
+  return (
+    <PerfProfiler id="Conversation">
+      {Kb.Styles.isAndroid ? (
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+          {content}
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+          <Kb.KeyboardAvoidingView2
+            extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
+            behavior="translate-with-padding"
+          >
+            {content}
+          </Kb.KeyboardAvoidingView2>
+        </Kb.Box2>
+      )}
+    </PerfProfiler>
   )
 }
 

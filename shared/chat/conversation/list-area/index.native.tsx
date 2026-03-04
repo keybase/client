@@ -15,6 +15,7 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat/debug'
 import {usingFlashList} from './flashlist-config'
+import {PerfProfiler} from '@/perf/react-profiler'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 // import {useDebugLayout} from '@/util/debug-react'
@@ -125,7 +126,7 @@ const ConversationList = function ConversationList() {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
-    return <Clazz ordinal={ordinal} />
+    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
   }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
@@ -271,6 +272,7 @@ const ConversationList = function ConversationList() {
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext.Provider value={setRecycleType}>
         <ForceListRedrawContext.Provider value={forceListRedraw}>
+          <PerfProfiler id="MessageList">
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
             <List
               testID="messageList"
@@ -303,6 +305,7 @@ const ConversationList = function ConversationList() {
             {jumpToRecent}
             {debugWhichList}
           </Kb.Box2>
+          </PerfProfiler>
         </ForceListRedrawContext.Provider>
       </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>

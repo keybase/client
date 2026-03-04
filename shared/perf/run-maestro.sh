@@ -94,7 +94,7 @@ sleep 3
 # Extract React Profiler data
 echo ""
 echo "=== React Profiler Results ==="
-PROFILER_LINE=$(grep 'PERF_REACT_PROFILER:' /tmp/metro.log | tail -1 || true)
+PROFILER_LINE=$(grep -a 'PERF_REACT_PROFILER:' /tmp/metro.log | tail -1 || true)
 if [ -n "$PROFILER_LINE" ]; then
   PROFILER_JSON=$(echo "$PROFILER_LINE" | sed 's/.*PERF_REACT_PROFILER://')
   echo "$PROFILER_JSON" | python3 -m json.tool 2>/dev/null || echo "$PROFILER_JSON"
