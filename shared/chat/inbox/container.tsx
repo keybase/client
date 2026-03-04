@@ -75,28 +75,29 @@ const Connected = (ownProps: OwnProps) => {
   const chatState = Chat.useChatState(
     C.useShallow(s => {
       const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
-      const {inboxLayout} = s
-      const allowShowFloatingButton = inboxLayout
-        ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
-        : false
+      const smallTeams = s.inboxLayout?.smallTeams ?? noSmallTeams
+      const bigTeams = s.inboxLayout?.bigTeams ?? noBigTeams
+      const allowShowFloatingButton = smallTeams.length > inboxNumSmallRows && bigTeams.length > 0
       return {
         allowShowFloatingButton,
+        bigTeams,
         inboxHasLoaded: s.inboxHasLoaded,
-        inboxLayout,
         inboxNumSmallRows,
         inboxRefresh: s.dispatch.inboxRefresh,
         isSearching: !!s.inboxSearch,
         queueMetaToRequest: s.dispatch.queueMetaToRequest,
         setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
+        smallTeams,
         smallTeamsExpanded: s.smallTeamsExpanded,
         toggleSmallTeamsExpanded: s.dispatch.toggleSmallTeamsExpanded,
+        totalSmallTeams: s.inboxLayout?.totalSmallTeams ?? 0,
       }
     })
   )
   const {
-    allowShowFloatingButton, inboxHasLoaded, inboxLayout, inboxNumSmallRows,
+    allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, bigTeams,
     inboxRefresh, isSearching, queueMetaToRequest, setInboxNumSmallRows,
-    smallTeamsExpanded, toggleSmallTeamsExpanded,
+    smallTeams: allSmallTeams, smallTeamsExpanded, toggleSmallTeamsExpanded, totalSmallTeams,
   } = chatState
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
@@ -128,19 +129,21 @@ const Connected = (ownProps: OwnProps) => {
   })
 
   // Compute rows
-  const bigTeams = inboxLayout?.bigTeams || noBigTeams
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
-  const allSmallTeams = inboxLayout?.smallTeams || noSmallTeams
   const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
   const smallTeams = showAllSmallRows ? allSmallTeams : allSmallTeams.slice(0, inboxNumSmallRows)
   const smallRows = makeSmallRows(smallTeams)
   const bigRows = makeBigRows(bigTeams)
 
-  const hasAllSmallTeamConvs =
-    (inboxLayout?.smallTeams?.length ?? 0) === (inboxLayout?.totalSmallTeams ?? 0)
+  const smallConvIds = React.useMemo(
+    () => new Set(smallRows.map(r => r.type === 'small' ? r.conversationIDKey : '' as T.Chat.ConversationIDKey).filter(Boolean)),
+    [smallRows]
+  )
+
+  const hasAllSmallTeamConvs = allSmallTeams.length === totalSmallTeams
   const divider: Array<ChatInboxRowItemDivider | ChatInboxRowItemTeamBuilder> =
     bigRows.length !== 0 || !hasAllSmallTeamConvs
-      ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
+      ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, smallConvIds, type: 'divider'}]
       : []
 
   const teamBuilder: ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
@@ -194,7 +197,7 @@ const Connected = (ownProps: OwnProps) => {
       rows={rows}
       selectedConversationIDKey={selectedConversationIDKey}
       setInboxNumSmallRows={setInboxNumSmallRows}
-      smallTeamsExpanded={smallTeamsExpanded || bigTeams.length === 0}
+      smallTeamsExpanded={smallTeamsExpanded || !bigTeams.length}
       toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
       unreadIndices={unreadIndices.size ? unreadIndices : emptyMap}
       unreadTotal={unreadTotal}

@@ -45,13 +45,13 @@ const DragLine = (p: {
   inboxNumSmallRows: number
   showButton: boolean
   smallTeamsExpanded: boolean
+  smallConvIds: ReadonlySet<T.Chat.ConversationIDKey>
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
   style: object
-  rows: ChatInboxRowItem[]
 }) => {
   const {inboxNumSmallRows, showButton, style, scrollDiv} = p
-  const {smallTeamsExpanded, toggleSmallTeamsExpanded, rows, setInboxNumSmallRows} = p
+  const {smallTeamsExpanded, toggleSmallTeamsExpanded, smallConvIds, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
   const deltaNewSmallRows = () => {
     if (dragY === -1) {
@@ -171,7 +171,7 @@ const DragLine = (p: {
         key="divider"
         toggle={toggleSmallTeamsExpanded}
         showButton={showButton}
-        rows={rows}
+        smallConvIds={smallConvIds}
         smallTeamsExpanded={smallTeamsExpanded}
       />
     </div>
@@ -208,9 +208,9 @@ function InboxRow(p: RowComponentProps<InboxRowData>) {
         inboxNumSmallRows={inboxNumSmallRows}
         showButton={row.showButton}
         smallTeamsExpanded={smallTeamsExpanded}
+        smallConvIds={row.smallConvIds}
         style={divStyle}
         toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
-        rows={rows}
         setInboxNumSmallRows={setInboxNumSmallRows}
       />
     )

@@ -44,6 +44,7 @@ export type ChatInboxRowItemDivider = {
   conversationIDKey?: never
   teamname?: never
   showButton: boolean
+  smallConvIds: ReadonlySet<ConversationIDKey>
   type: 'divider'
 }
 export type ChatInboxRowItemTeamBuilder = {

@@ -187,7 +187,7 @@ function Inbox(p: TInbox.Props) {
         <TeamsDivider
           showButton={row.showButton}
           toggle={toggleSmallTeamsExpanded}
-          rows={rows}
+          smallConvIds={row.smallConvIds}
           smallTeamsExpanded={smallTeamsExpanded}
         />
       )

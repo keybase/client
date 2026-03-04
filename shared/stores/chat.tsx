@@ -1996,28 +1996,26 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     getBadgeHiddenCount: ids => {
       let badgeCount = 0
       let hiddenCount = 0
-
-      chatStores.forEach(s => {
-        const {id, badge} = s.getState()
-        if (ids.has(id)) {
-          badgeCount -= badge
+      ids.forEach(id => {
+        const store = chatStores.get(id)
+        if (store) {
+          badgeCount -= store.getState().badge
           hiddenCount -= 1
         }
       })
-
       return {badgeCount, hiddenCount}
     },
     getUnreadIndicies: ids => {
       const unreadIndices: Map<number, number> = new Map()
       ids.forEach((cur, idx) => {
-        Array.from(chatStores.values()).some(s => {
-          const {id, badge} = s.getState()
-          if (id === cur && badge > 0) {
+        if (!cur) return
+        const store = chatStores.get(cur)
+        if (store) {
+          const badge = store.getState().badge
+          if (badge > 0) {
             unreadIndices.set(idx, badge)
-            return true
           }
-          return false
-        })
+        }
       })
       return unreadIndices
     },

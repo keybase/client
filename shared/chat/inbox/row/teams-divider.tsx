@@ -3,27 +3,31 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as RowSizes from './sizes'
-import type {ChatInboxRowItem} from '../rowitem'
+import type {ConversationIDKey} from '@/constants/types/chat'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<ChatInboxRowItem>
+  smallConvIds: ReadonlySet<ConversationIDKey>
   showButton: boolean
   toggle: () => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
 function TeamsDivider(props: Props) {
-  const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const smallTeamBadgeCount = Chat.useChatState(s => s.smallTeamBadgeCount)
-  const totalSmallTeams = Chat.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
-  // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = Chat.useChatState(
-    C.useShallow(s =>
-      s.getBadgeHiddenCount(new Set(rows.filter(r => r.type === 'small').map(r => r.conversationIDKey)))
-    )
+  const {smallConvIds, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
+  const {smallTeamBadgeCount, totalSmallTeams, badgeCount: _bc, hiddenCount: _hc} = Chat.useChatState(
+    C.useShallow(s => {
+      const {badgeCount, hiddenCount} = s.getBadgeHiddenCount(smallConvIds)
+      return {
+        badgeCount, hiddenCount,
+        smallTeamBadgeCount: s.smallTeamBadgeCount,
+        totalSmallTeams: s.inboxLayout?.totalSmallTeams ?? 0,
+      }
+    })
   )
+  let badgeCount = _bc
+  let hiddenCount = _hc
   badgeCount += smallTeamBadgeCount
   hiddenCount += totalSmallTeams
   if (!Kb.Styles.isMobile) {
