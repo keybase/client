@@ -42,13 +42,14 @@ const DragLine = (p: {
   scrollDiv: React.RefObject<HTMLDivElement | null>
   inboxNumSmallRows: number
   showButton: boolean
+  badgeCount: number
   hiddenCount: number
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
   style: object
 }) => {
-  const {inboxNumSmallRows, showButton, style, scrollDiv, hiddenCount} = p
+  const {inboxNumSmallRows, showButton, style, scrollDiv, badgeCount, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
   const deltaNewSmallRows = () => {
@@ -169,6 +170,7 @@ const DragLine = (p: {
         key="divider"
         toggle={toggleSmallTeamsExpanded}
         showButton={showButton}
+        badgeCount={badgeCount}
         hiddenCount={hiddenCount}
         smallTeamsExpanded={smallTeamsExpanded}
       />
@@ -204,6 +206,7 @@ function InboxRow(p: RowComponentProps<InboxRowData>) {
         scrollDiv={scrollDiv}
         inboxNumSmallRows={inboxNumSmallRows}
         showButton={row.showButton}
+        badgeCount={row.badgeCount}
         hiddenCount={row.hiddenCount}
         smallTeamsExpanded={smallTeamsExpanded}
         style={divStyle}

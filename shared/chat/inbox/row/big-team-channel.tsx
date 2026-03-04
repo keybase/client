@@ -3,19 +3,21 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
-import {useInboxRowBig} from '@/stores/inbox-rows'
+import type {InboxBigChannelRow} from '../rowitem'
+
 type Props = {
-  conversationIDKey: string
+  row: InboxBigChannelRow
   selected: boolean
 }
 
 const BigTeamChannel = (props: Props) => {
-  const {selected, conversationIDKey} = props
+  const {selected, row} = props
+  const {conversationIDKey, channelname, isMuted, hasDraft, isError, snippetDecoration, badge, unread} = row
+  const hasBadge = badge > 0
+  const hasUnread = unread > 0
 
-  const row = useInboxRowBig(conversationIDKey)
-  const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
-
-  const onSelectConversation = () => Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
+  const onSelectConversation = () =>
+    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null

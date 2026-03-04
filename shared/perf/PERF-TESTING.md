@@ -30,8 +30,11 @@ The flow:
 ### Running Tests
 
 ```bash
-# Quick run (default — skips build). Use this for JS-only changes.
+# Quick run (default — skips build, 3 runs, picks median). Use this for JS-only changes.
 cd shared && yarn maestro-test-perf
+
+# Single run (faster, less accurate)
+cd shared && yarn maestro-test-perf --runs 1
 
 # Full run (builds the app first). Only needed when native code changes
 # (e.g. files in ios/, android/, rnmodules/, go/bind/).
@@ -48,7 +51,7 @@ cd shared && yarn maestro-test-perf --simulator "iPhone 16 Pro"
 
 | Flow | What it measures |
 |------|-----------------|
-| `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 5 fast swipes up + 5 fast swipes down on inbox list |
+| `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 3 swipes up + 3 swipes down on inbox list |
 
 ### React Profiler Wrappers
 
@@ -227,13 +230,25 @@ The `baselines/` folder (gitignored) stores snapshots of perf results keyed by g
 
 Every test run automatically saves results to `shared/perf/baselines/<short-git-hash>/`. If a baseline for that hash already exists, it auto-increments (e.g. `abc1234-1`, `abc1234-2`).
 
+By default, 3 runs are performed and the median (by `totalDurationMs`) is saved. Use `--runs 1` for quick single-run captures.
+
 ```bash
-# Run the test — baseline is saved automatically
+# Run the test — baseline is saved automatically (3 runs, median)
 cd shared && yarn maestro-test-perf
 ```
 
 Output includes:
 ```
+--- Run 1 of 3 ---
+  React: 2100ms / 420 renders
+--- Run 2 of 3 ---
+  React: 2050ms / 415 renders
+--- Run 3 of 3 ---
+  React: 2200ms / 425 renders
+
+=== Selecting median run ===
+  Median: run-2 (2050ms)
+
 === Baseline saved to abc1234/ ===
 react-profiler.json  maestro-fps.json
 ```

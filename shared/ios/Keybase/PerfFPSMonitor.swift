@@ -103,4 +103,11 @@ private let log = Logger(subsystem: "com.keybase.app", category: "perf")
             shared.stop()
         }
     }
+
+    /// Restart monitoring on foreground (clears previous samples)
+    @objc static func appWillEnterForeground() {
+        if !shared.running && ProcessInfo.processInfo.arguments.contains("-PERF_FPS_MONITOR") {
+            shared.start()
+        }
+    }
 }

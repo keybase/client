@@ -60,28 +60,6 @@ const viewabilityConfig = {
   viewAreaCoveragePercentThreshold: 30,
 }
 
-function computeUnreadInfo(unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) {
-  if (!unreadIndices.size || lastVisibleIdx < 0) {
-    return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-  }
-  let uc = 0
-  let firstOffscreenIdx = 0
-  unreadIndices.forEach((count, idx) => {
-    if (idx > lastVisibleIdx) {
-      if (firstOffscreenIdx <= 0) firstOffscreenIdx = idx
-      uc += count
-    }
-  })
-  return firstOffscreenIdx
-    ? {firstOffscreenIdx, showUnread: true, unreadCount: uc}
-    : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-}
-
-function computeShowFloating(rows: ArrayLike<RowItem>, lastVisibleIdx: number) {
-  if (lastVisibleIdx < 0) return false
-  return rows[lastVisibleIdx]?.type === 'small'
-}
-
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 function Inbox(p: InboxProps) {
@@ -155,12 +133,50 @@ function Inbox(p: InboxProps) {
     onUntrustedInboxVisible(toUnbox)
   }
 
-  const applyUnreadAndFloating = () => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
-    setShowUnread(info.showUnread)
-    setUnreadCount(info.unreadCount)
-    firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
+  const updateShowUnread = () => {
+    if (!unreadIndices.size || lastVisibleIdxRef.current < 0) {
+      setShowUnread(false)
+      return
+    }
+
+    let uc = 0
+    let firstOffscreenIdx = 0
+    unreadIndices.forEach((count, idx) => {
+      if (idx > lastVisibleIdxRef.current) {
+        if (firstOffscreenIdx <= 0) {
+          firstOffscreenIdx = idx
+        }
+        uc += count
+      }
+    })
+    if (firstOffscreenIdx) {
+      setShowUnread(true)
+      setUnreadCount(uc)
+      firstOffscreenIdxRef.current = firstOffscreenIdx
+    } else {
+      setShowUnread(false)
+      setUnreadCount(0)
+      firstOffscreenIdxRef.current = -1
+    }
+  }
+
+  const updateShowFloating = () => {
+    if (lastVisibleIdxRef.current < 0) {
+      return
+    }
+    let show = true
+    const row = rows[lastVisibleIdxRef.current]
+    if (!row) {
+      return
+    }
+
+    if (row.type !== 'small') {
+      show = false
+    }
+
+    if (showFloating !== show) {
+      setShowFloating(show)
+    }
   }
 
   const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
@@ -170,6 +186,7 @@ function Inbox(p: InboxProps) {
       element = (
         <TeamsDivider
           showButton={row.showButton}
+          badgeCount={row.badgeCount}
           hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}
           smallTeamsExpanded={smallTeamsExpanded}
@@ -204,7 +221,8 @@ function Inbox(p: InboxProps) {
   const onViewChangedImpl = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
-    applyUnreadAndFloating()
+    updateShowUnread()
+    updateShowFloating()
   }
 
   const onViewChangedImplRef = React.useRef(onViewChangedImpl)
@@ -250,14 +268,27 @@ function Inbox(p: InboxProps) {
     setOpenRow(Chat.noConversationIDKey)
   })
 
-  // Recompute unread/floating when store data changes (not during render to avoid double-renders)
-  React.useEffect(() => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
-    setShowUnread(info.showUnread)
-    setUnreadCount(info.unreadCount)
-    firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
-  }, [unreadIndices, unreadTotal, rows])
+  const rowLength = rows.length
+  const lastUnreadIndicesRef = React.useRef(unreadIndices)
+  const lastUnreadTotalRef = React.useRef(unreadTotal)
+  const lastRowLengthRef = React.useRef(rowLength)
+
+  if (
+    !C.shallowEqual(lastUnreadIndicesRef.current, unreadIndices) ||
+    lastUnreadTotalRef.current !== unreadTotal
+  ) {
+    updateShowUnread()
+  }
+
+  lastUnreadTotalRef.current = unreadTotal
+  lastUnreadIndicesRef.current = unreadIndices
+
+  if (lastRowLengthRef.current !== rowLength) {
+    // list has changed, floating divider is likely to change
+    updateShowFloating()
+  }
+
+  lastRowLengthRef.current = rowLength
 
   if (!usingFlashList) {
     dividerShowButtonRef.current = false

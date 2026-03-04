@@ -13,6 +13,8 @@ export function useInboxState(conversationIDKey?: string) {
       inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
       inboxRefresh: s.dispatch.inboxRefresh,
       inboxRows: s.inboxRows,
+      inboxUnreadBigIndices: s.inboxUnreadBigIndices,
+      inboxUnreadBigTotal: s.inboxUnreadBigTotal,
       isSearching: !!s.inboxSearch,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
@@ -21,6 +23,7 @@ export function useInboxState(conversationIDKey?: string) {
     }))
   )
   const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
+  const {inboxUnreadBigIndices, inboxUnreadBigTotal} = chatState
   const {isSearching, queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
@@ -51,36 +54,24 @@ export function useInboxState(conversationIDKey?: string) {
     }
   })
 
-  // Compute unread big indices at render time from per-convo stores
-  const bigConvIds = React.useMemo(() => {
-    return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
-  }, [inboxRows])
-
-  const unreadIndices = Chat.useChatState(
-    C.useShallow(s => {
-      return s.getUnreadIndicies(bigConvIds)
-    })
-  )
-
-  let unreadTotal = 0
-  unreadIndices.forEach(count => {
-    unreadTotal += count
-  })
-
-  // Filter out the selected conversation
-  let filteredIndices = unreadIndices
-  let filteredTotal = unreadTotal
-  if (selectedConversationIDKey !== Chat.noConversationIDKey && unreadIndices.size) {
+  // Filter out the selected conversation from pre-computed store data.
+  // When on the inbox screen, selectedConversationIDKey is usually noConversationIDKey
+  // so the store-computed values are used directly.
+  let unreadIndices = inboxUnreadBigIndices
+  let unreadTotal = inboxUnreadBigTotal
+  if (selectedConversationIDKey !== Chat.noConversationIDKey && inboxUnreadBigIndices.size) {
+    // Rare path: viewing inbox with a selected conversation, filter it out
     const filtered = new Map<number, number>()
-    filteredTotal = 0
-    unreadIndices.forEach((badge, idx) => {
+    let filteredTotal = 0
+    inboxUnreadBigIndices.forEach((badge, idx) => {
       const row = inboxRows[idx]
       if (row?.type === 'big' && row.conversationIDKey !== selectedConversationIDKey) {
         filtered.set(idx, badge)
         filteredTotal += badge
       }
     })
-    filteredIndices = filtered
+    unreadIndices = filtered
+    unreadTotal = filteredTotal
   }
 
   return {
@@ -95,7 +86,7 @@ export function useInboxState(conversationIDKey?: string) {
     setInboxNumSmallRows,
     smallTeamsExpanded,
     toggleSmallTeamsExpanded,
-    unreadIndices: filteredIndices,
-    unreadTotal: filteredTotal,
+    unreadIndices,
+    unreadTotal,
   }
 }
