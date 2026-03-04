@@ -84,13 +84,6 @@ function SwipeConvActions(p: Props) {
     setOpenedRow(conversationIDKey)
   }
 
-  // Defer mounting Swipeable to avoid 27ms+ gesture infrastructure cost during scroll
-  const [ready, setReady] = React.useState(false)
-  React.useEffect(() => {
-    const id = requestAnimationFrame(() => setReady(true))
-    return () => cancelAnimationFrame(id)
-  }, [])
-
   React.useEffect(() => {
     if (!isOpened && wasOpenRef.current) {
       swipeableRef.current?.close()
@@ -139,10 +132,6 @@ function SwipeConvActions(p: Props) {
   ) : (
     children
   )
-
-  if (!ready) {
-    return <View style={styles.row}>{inner}</View>
-  }
 
   return (
     <Swipeable
