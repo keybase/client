@@ -2,6 +2,7 @@
 # Maestro + React Profiler performance test runner.
 #
 # Usage: ./run-maestro.sh [--skip-build] [--simulator "name"] [--flow <name>]
+#                         [--save-baseline] [--compare <baseline-dir>]
 #
 # Prerequisites:
 #   - Maestro CLI installed: curl -Ls "https://get.maestro.mobile.dev" | bash
@@ -11,6 +12,8 @@
 #   --skip-build    Skip xcodebuild, just run the Maestro flow
 #   --simulator     Simulator name (default: "iPhone 17 Pro")
 #   --flow          Maestro flow file relative to shared/.maestro/ (default: performance/perf-inbox-scroll.yaml)
+#   --save-baseline Save results to baselines/<git-hash>/
+#   --compare DIR   Compare results against a baseline directory
 
 set -euo pipefail
 
@@ -23,12 +26,16 @@ mkdir -p "$OUTPUT_DIR"
 SKIP_BUILD=false
 SIMULATOR="iPhone 17 Pro"
 FLOW="performance/perf-inbox-scroll.yaml"
+SAVE_BASELINE=false
+COMPARE_DIR=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --skip-build) SKIP_BUILD=true; shift ;;
     --simulator) SIMULATOR="$2"; shift 2 ;;
     --flow) FLOW="$2"; shift 2 ;;
+    --save-baseline) SAVE_BASELINE=true; shift ;;
+    --compare) COMPARE_DIR="$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -119,6 +126,88 @@ if [ -n "$APP_CONTAINER" ]; then
   fi
 else
   echo "(could not find app container — is the simulator running?)"
+fi
+
+# Save baseline
+if [ "$SAVE_BASELINE" = true ]; then
+  GIT_HASH=$(git -C "$SHARED_DIR" rev-parse --short HEAD)
+  BASELINE_DIR="$SCRIPT_DIR/baselines/$GIT_HASH"
+  mkdir -p "$BASELINE_DIR"
+  for f in react-profiler.json maestro-fps.json; do
+    if [ -f "$OUTPUT_DIR/$f" ]; then
+      cp "$OUTPUT_DIR/$f" "$BASELINE_DIR/$f"
+    fi
+  done
+  echo ""
+  echo "=== Baseline saved to baselines/$GIT_HASH/ ==="
+  ls "$BASELINE_DIR/"
+fi
+
+# Compare against baseline
+if [ -n "$COMPARE_DIR" ]; then
+  # Resolve relative to script dir if not absolute
+  if [[ "$COMPARE_DIR" != /* ]]; then
+    COMPARE_DIR="$SCRIPT_DIR/$COMPARE_DIR"
+  fi
+  if [ ! -d "$COMPARE_DIR" ]; then
+    echo "Error: Baseline directory not found: $COMPARE_DIR"
+    exit 1
+  fi
+  BASELINE_NAME=$(basename "$COMPARE_DIR")
+  echo ""
+  echo "=== Comparison vs baseline $BASELINE_NAME ==="
+
+  # Compare FPS
+  if [ -f "$COMPARE_DIR/maestro-fps.json" ] && [ -f "$OUTPUT_DIR/maestro-fps.json" ]; then
+    python3 -c "
+import json, sys
+with open('$COMPARE_DIR/maestro-fps.json') as f: old = json.load(f)
+with open('$OUTPUT_DIR/maestro-fps.json') as f: new = json.load(f)
+for key in ['avg', 'min', 'max', 'p5']:
+    o, n = old.get('fps', old).get(key, 0), new.get('fps', new).get(key, 0)
+    if o > 0:
+        pct = (n - o) / o * 100
+        sign = '+' if pct >= 0 else ''
+        print(f'FPS {key:>4}:  {o} -> {n}  ({sign}{pct:.1f}%)')
+    else:
+        print(f'FPS {key:>4}:  {o} -> {n}')
+" 2>/dev/null || echo "(could not compare FPS data)"
+  else
+    echo "(FPS data missing from baseline or current run)"
+  fi
+
+  # Compare React Profiler
+  if [ -f "$COMPARE_DIR/react-profiler.json" ] && [ -f "$OUTPUT_DIR/react-profiler.json" ]; then
+    python3 -c "
+import json
+with open('$COMPARE_DIR/react-profiler.json') as f: old = json.load(f)
+with open('$OUTPUT_DIR/react-profiler.json') as f: new = json.load(f)
+for key in ['totalDurationMs', 'totalRenders']:
+    o, n = old.get(key, 0), new.get(key, 0)
+    if o > 0:
+        pct = (n - o) / o * 100
+        sign = '+' if pct >= 0 else ''
+        print(f'React {key}: {o} -> {n}  ({sign}{pct:.1f}%)')
+    else:
+        print(f'React {key}: {o} -> {n}')
+# Per-component comparison
+print()
+all_ids = sorted(set(list(old.get('components', {}).keys()) + list(new.get('components', {}).keys())))
+if all_ids:
+    print(f'{\"Component\":<25} {\"old ms\":>8} {\"new ms\":>8} {\"change\":>8}   {\"old #\":>6} {\"new #\":>6}')
+    print('-' * 80)
+    for cid in all_ids:
+        oc = old.get('components', {}).get(cid, {})
+        nc = new.get('components', {}).get(cid, {})
+        oms, nms = oc.get('totalMs', 0), nc.get('totalMs', 0)
+        ocnt = oc.get('mountCount', 0) + oc.get('updateCount', 0)
+        ncnt = nc.get('mountCount', 0) + nc.get('updateCount', 0)
+        pct = f'{(nms - oms) / oms * 100:+.0f}%' if oms > 0 else 'new'
+        print(f'{cid:<25} {oms:>8.0f} {nms:>8.0f} {pct:>8}   {ocnt:>6} {ncnt:>6}')
+" 2>/dev/null || echo "(could not compare React Profiler data)"
+  else
+    echo "(React Profiler data missing from baseline or current run)"
+  fi
 fi
 
 echo ""
