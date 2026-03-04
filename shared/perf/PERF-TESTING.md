@@ -30,17 +30,17 @@ The flow:
 ### Running Tests
 
 ```bash
-# Quick run (skip build if app is already installed)
-cd shared && yarn maestro-test-perf --skip-build
-
-# Full run (builds the app first)
+# Quick run (default — skips build)
 cd shared && yarn maestro-test-perf
 
+# Full run (builds the app first)
+cd shared && yarn maestro-test-perf --build
+
 # Run any Maestro flow
-cd shared && yarn maestro-test --flow performance/perf-inbox-scroll.yaml --skip-build
+cd shared && yarn maestro-test --flow performance/perf-inbox-scroll.yaml
 
 # Custom simulator
-cd shared && yarn maestro-test-perf --skip-build --simulator "iPhone 16 Pro"
+cd shared && yarn maestro-test-perf --simulator "iPhone 16 Pro"
 ```
 
 ### Available Flows
@@ -229,7 +229,7 @@ The `baselines/` folder (gitignored) stores snapshots of perf results keyed by g
 cd shared && yarn maestro-test-perf --save-baseline
 
 # With other options
-cd shared && yarn maestro-test-perf --skip-build --save-baseline
+cd shared && yarn maestro-test-perf --save-baseline
 ```
 
 This copies `react-profiler.json` and `maestro-fps.json` into `shared/perf/baselines/<hash>/`.
@@ -238,7 +238,7 @@ This copies `react-profiler.json` and `maestro-fps.json` into `shared/perf/basel
 
 ```bash
 # Compare current run against a saved baseline
-cd shared && yarn maestro-test-perf --skip-build --compare baselines/<hash>
+cd shared && yarn maestro-test-perf --compare baselines/<hash>
 ```
 
 Output:
