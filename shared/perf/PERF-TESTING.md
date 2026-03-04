@@ -1,6 +1,150 @@
 # Performance Testing
 
-Tools and workflows for measuring scroll performance in the Keybase app, covering both the desktop Electron app (via Playwright MCP + CDP) and the iOS simulator (via XCUITest + CADisplayLink FPS monitor).
+Tools and workflows for measuring performance in the Keybase app, covering the desktop Electron app (via Playwright MCP + CDP) and iOS simulator (via Maestro + React Profiler + native FPS monitor).
+
+## iOS Performance Profiling (Maestro)
+
+### Prerequisites
+
+1. Install Maestro: `curl -Ls "https://get.maestro.mobile.dev" | bash`
+2. iOS Simulator booted (e.g. iPhone 17 Pro)
+3. Metro running with debug logging: `cd shared && yarn rn-start-debug`
+4. App built and installed on the simulator
+5. App must be logged in (provision manually before first test run)
+
+### How It Works
+
+Maestro drives the UI while two systems collect performance data:
+
+1. **React `<Profiler>` wrappers (`perf/react-profiler.tsx`)** — In `__DEV__`, wraps key components in `<React.Profiler>` to collect per-component render counts and durations. On app background (Home press), aggregates and logs data as `PERF_REACT_PROFILER:{json}` to console → Metro log.
+
+2. **PerfFPSMonitor (`ios/Keybase/PerfFPSMonitor.swift`)** — Native `CADisplayLink`-based FPS monitor. Activated by the `PERF_FPS_MONITOR` launch argument (passed by Maestro flows). Counts frames per second and writes JSON to the app's tmp directory when the app backgrounds.
+
+The flow:
+- Maestro launches the app with `PERF_FPS_MONITOR: "true"`
+- `AppDelegate` calls `PerfFPSMonitor.startIfEnabled()` on launch
+- Maestro navigates and scrolls as defined in the YAML flow
+- Maestro presses Home → triggers both React Profiler flush (via AppState) and FPS monitor write
+- `run-maestro.sh` extracts both from Metro log and simulator app container
+
+### Running Tests
+
+```bash
+# Quick run (skip build if app is already installed)
+cd shared && yarn maestro-test-perf --skip-build
+
+# Full run (builds the app first)
+cd shared && yarn maestro-test-perf
+
+# Run any Maestro flow
+cd shared && yarn maestro-test --flow performance/perf-inbox-scroll.yaml --skip-build
+
+# Custom simulator
+cd shared && yarn maestro-test-perf --skip-build --simulator "iPhone 16 Pro"
+```
+
+### Available Flows
+
+| Flow | What it measures |
+|------|-----------------|
+| `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 5 fast swipes up + 5 fast swipes down on inbox list |
+
+### React Profiler Wrappers
+
+Components currently wrapped with `<PerfProfiler>`:
+
+| ID | Location | What it covers |
+|----|----------|---------------|
+| `Inbox` | `chat/inbox/index.native.tsx` | Full inbox container |
+| `InboxRow-{type}` | `chat/inbox/index.native.tsx` | Each inbox row (small, big, bigHeader, divider, teamBuilder) |
+| `Conversation` | `chat/conversation/normal/index.native.tsx` | Full conversation screen |
+| `MessageList` | `chat/conversation/list-area/index.native.tsx` | Message list FlatList container |
+| `Msg-{type}` | `chat/conversation/list-area/index.native.tsx` | Each message (text, attachment, system*, etc.) |
+| `ChatInput` | `chat/conversation/input-area/container.tsx` | Chat input area |
+
+To add more wrappers, import `{PerfProfiler}` from `@/perf/react-profiler` and wrap the component. In production builds, `PerfProfiler` is a no-op passthrough.
+
+### React Profiler Output
+
+```json
+{
+  "components": {
+    "Inbox": {"mountCount": 1, "updateCount": 307, "totalMs": 3374, "avgMs": 11.0, "maxMs": 291},
+    "InboxRow-big": {"mountCount": 263, "updateCount": 99, "totalMs": 1338, "avgMs": 3.7, "maxMs": 13}
+  },
+  "totalRenders": 758,
+  "totalDurationMs": 5192
+}
+```
+
+### FPS Output
+
+```json
+{
+  "durationSeconds": 49,
+  "fps": {
+    "avg": 56,
+    "min": 32,
+    "max": 60,
+    "p5": 40,
+    "samples": [46, 56, 60, 57, ...]
+  }
+}
+```
+
+- **avg** — Average FPS across all 1-second samples (includes app launch/navigation)
+- **min** — Lowest single-second sample
+- **max** — Highest (60 = vsync ceiling)
+- **p5** — 5th percentile: worst-case FPS
+- **samples** — Raw per-second frame counts
+
+### iOS Test IDs
+
+| testID | Component |
+|--------|-----------|
+| `inboxList` | Inbox conversation list (FlatList) |
+| `messageList` | Chat message list (FlatList) |
+
+Set via `testID` prop on React Native FlatList, maps to `accessibilityIdentifier` for Maestro.
+
+### Output Files
+
+All output goes to `shared/perf/output/` (gitignored):
+
+| File | Content |
+|------|---------|
+| `react-profiler.json` | React Profiler aggregated data |
+| `maestro-fps.json` | FPS data from PerfFPSMonitor |
+| `maestro.log` | Maestro test console output |
+
+### Adding New Flows
+
+Create a YAML file in `shared/.maestro/performance/`. Example structure:
+
+```yaml
+appId: keybase.ios
+
+---
+
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: "true"
+
+- extendedWaitUntil:
+    visible:
+      text: "Chat"
+    timeout: 60000
+
+- runFlow: ../shared/navigate-to-chat.yaml
+
+# Your test actions here (swipe, tap, etc.)
+
+# Press Home to flush profiler + FPS data
+- pressKey: Home
+```
+
+Shared subflows live in `shared/.maestro/shared/` (e.g. `navigate-to-chat.yaml`).
 
 ## Desktop Performance Profiling
 
@@ -36,7 +180,7 @@ Tools and workflows for measuring scroll performance in the Keybase app, coverin
 | Selector | Component |
 |----------|-----------|
 | `[data-testid="message-list"]` | Chat message list scroll container |
-| `[data-testid="inbox-list"]` | Inbox/conversation list (note: testid is on wrapper div; the scrollable element is its first child) |
+| `[data-testid="inbox-list"]` | Inbox/conversation list |
 
 ### Desktop Metrics Returned
 
@@ -74,126 +218,16 @@ node shared/perf/run-desktop-cdp-profile.js --duration 5000
 
 This saves a `.cpuprofile` file to `shared/perf/output/` that can be loaded in Chrome DevTools (Performance tab > Load profile).
 
-Options:
-- `--duration <ms>` — Recording duration (default: 5000)
-- `--output <path>` — Output file path
-
-## iOS Performance Profiling
-
-### Prerequisites
-
-- Xcode with the Keybase workspace
-- iOS Simulator booted (use a device compatible with your Xcode SDK, e.g. iPhone 17 Pro for Xcode 26)
-- Metro dev server running (`yarn react-native start`) — the first bundle takes ~30s; subsequent runs use cache
-- The app must be logged in on the simulator (provision manually before first test run)
-
-### How It Works
-
-The iOS perf tests use two complementary systems:
-
-1. **XCUITest (`ScrollPerformanceTests.swift`)** — Automates the UI: launches the app, navigates to chat, scrolls lists up and down, and times the operations with `CFAbsoluteTimeGetCurrent()`.
-
-2. **PerfFPSMonitor (`PerfFPSMonitor.swift`)** — A native `CADisplayLink`-based FPS monitor that runs inside the app process. Activated by the `-PERF_FPS_MONITOR` launch argument (passed automatically by the tests). Counts frames per second during the entire test session and writes results to the app's tmp directory as JSON when the app backgrounds.
-
-The flow:
-- XCUITest launches the app with `-PERF_FPS_MONITOR`
-- `AppDelegate` calls `PerfFPSMonitor.startIfEnabled()` on launch
-- The CADisplayLink fires on `.common` run loop mode (works during scroll tracking)
-- Per-second frame counts are accumulated as samples
-- In `tearDown`, the test presses Home → `applicationDidEnterBackground` triggers `PerfFPSMonitor.stop()` → JSON is written
-- The shell script extracts the JSON from the simulator's app container via `xcrun simctl get_app_container`
-
-### iOS Test IDs
-
-| testID | Component |
-|--------|-----------|
-| `messageList` | Chat message list (FlatList) |
-| `inboxList` | Inbox conversation list (FlatList) |
-
-These are set via `testID` prop on the React Native FlatList components, which maps to `accessibilityIdentifier` for XCUITest discovery.
-
-### Running Tests
-
-```bash
-# Run all scroll performance tests
-./shared/perf/run-ios-perf.sh --simulator "iPhone 17 Pro"
-
-# Run a specific test
-./shared/perf/run-ios-perf.sh --simulator "iPhone 17 Pro" --test testInboxScrollPerformance
-
-# Run with xctrace recording
-./shared/perf/run-ios-perf.sh --simulator "iPhone 17 Pro" --trace
-```
-
-### Available Tests
-
-| Test | What it measures |
-|------|-----------------|
-| `testInboxScrollPerformance` | 5 fast swipes up + 5 fast swipes down on inbox list |
-| `testMessageListScrollPerformance` | Opens first conversation, 5 fast swipes down (into history, list is inverted) + 5 back up |
-
-### iOS FPS Metrics
-
-The FPS JSON written by `PerfFPSMonitor` and extracted by the shell script:
-
-```json
-{
-  "durationSeconds": 43,
-  "fps": {
-    "avg": 51.7,
-    "min": 6,
-    "max": 60,
-    "p5": 32,
-    "samples": [46, 12, 59, 60, ...]
-  }
-}
-```
-
-- **avg** — Average FPS across all 1-second samples (includes app launch/navigation, not just scrolling)
-- **min** — Lowest single-second sample (often during transitions, not scroll jank)
-- **max** — Highest single-second sample (60 = vsync ceiling on standard displays)
-- **p5** — 5th percentile: the FPS at the worst 5% of seconds
-- **samples** — Raw per-second frame counts for the entire test duration
-
-### Output Files
-
-All output goes to `shared/perf/output/` (gitignored):
-
-| File | Content |
-|------|---------|
-| `ios-result.xcresult` | Xcode result bundle |
-| `ios-summary.json` | Test pass/fail summary from xcresulttool |
-| `ios-metrics.json` | Test metrics from xcresulttool |
-| `ios-fps.json` | FPS data from PerfFPSMonitor (extracted from app container) |
-| `ios-test.log` | Full xcodebuild console output |
-| `ios-trace.trace` | xctrace recording (if `--trace` used) |
-
-### Parsing Results
-
-```bash
-node shared/perf/parse-ios-results.js
-```
-
-### Gotchas
-
-- **First run after Metro restart**: The initial JS bundle takes ~30-60s. The test setUp has a 60-second timeout for the Chat tab to appear, but if bundling is very slow it can still time out. Run once manually to warm the cache.
-- **App state persistence**: The app saves navigation state between launches. The test setUp handles this by checking for the inbox and pressing Back if inside a conversation.
-- **Inverted message list**: The chat message list is inverted (newest at bottom). Swipe **down** scrolls into history, swipe **up** returns to recent messages.
-- **Tab bar accessibility**: On phones (not tablets), tab bar items show only icons. The `tabBarAccessibilityLabel` prop in `router.native.tsx` provides the "Chat" label for XCUITest discovery.
-- **FlatList rows aren't UITableViewCells**: React Native FlatList items aren't native cells, so `app.cells` won't find them. Use coordinate-based taps instead (e.g. `inbox.coordinate(withNormalizedOffset:)`).
-- **NSLog from test methods**: `NSLog` calls in the XCUITest Swift code don't appear in xcodebuild stdout — they go to the xcresult activity log. Use file-based extraction (like PerfFPSMonitor) for reliable data retrieval.
-
 ## Interpreting Results
 
 ### Before/After Comparison
-
-When measuring the impact of a change:
 
 1. Run the test on the base branch, note metrics
 2. Apply your change
 3. Run the same test again
 4. Compare:
-   - **FPS**: Higher is better. p5 (5th percentile) is the most useful — it captures worst-case jank
+   - **FPS**: Higher is better. p5 (5th percentile) captures worst-case jank
+   - **React Profiler**: Compare render counts and total ms per component
    - **Long tasks** (desktop): Fewer and shorter is better. Any task >100ms causes visible jank
    - **Memory** (desktop): Check for leaks (endHeapMB >> startHeapMB after repeated scroll cycles)
 
@@ -201,4 +235,4 @@ When measuring the impact of a change:
 
 - **Desktop FPS**: 55+ avg is good, <30 p5 indicates jank
 - **Desktop long tasks**: 0 is ideal; >5 during a scroll is concerning
-- **iOS FPS**: 50+ avg is good for simulator (real devices perform differently). p5 > 30 means scrolling is smooth. Dips during app launch and navigation transitions are normal and expected.
+- **iOS FPS**: 50+ avg is good for simulator (real devices perform differently). p5 > 30 means smooth scrolling. Dips during app launch and navigation transitions are normal.

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
@@ -197,7 +198,7 @@ function Inbox(p: TInbox.Props) {
       element = makeRow(row, navKey, selectedConversationIDKey === row.conversationIDKey)
     }
 
-    return element
+    return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
   }
 
   const keyExtractor = (item: RowItem, idx: number) => {
@@ -339,6 +340,7 @@ function Inbox(p: TInbox.Props) {
 
   return (
     <Kb.ErrorBoundary>
+      <PerfProfiler id="Inbox">
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <LoadingLine />
         {isSearching ? (
@@ -374,6 +376,7 @@ function Inbox(p: TInbox.Props) {
         )}
         {debugWhichList}
       </Kb.Box2>
+      </PerfProfiler>
     </Kb.ErrorBoundary>
   )
 }
