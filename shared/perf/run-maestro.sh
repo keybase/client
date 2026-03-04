@@ -1,8 +1,9 @@
 #!/bin/bash
 # Maestro + React Profiler performance test runner.
 #
-# Usage: ./run-maestro.sh [--build] [--simulator "name"] [--flow <name>]
-#                         [--compare <baseline-dir>]
+# Usage:
+#   Capture:  ./run-maestro.sh [--build] [--simulator "name"] [--flow <name>]
+#   Compare:  ./run-maestro.sh --compare <baseline-a> <baseline-b>
 #
 # Prerequisites:
 #   - Maestro CLI installed: curl -Ls "https://get.maestro.mobile.dev" | bash
@@ -12,9 +13,9 @@
 #   --build         Build the app before running (default: skip build)
 #   --simulator     Simulator name (default: "iPhone 17 Pro")
 #   --flow          Maestro flow file relative to shared/.maestro/ (default: performance/perf-inbox-scroll.yaml)
-#   --compare DIR   Compare results against a baseline directory
+#   --compare A B   Compare two existing baselines (no test run)
 #
-# Results are always saved to baselines/<git-hash>/ (auto-increments for repeat runs).
+# Capture mode saves results to baselines/<git-hash>/ (auto-increments for repeat runs).
 
 set -euo pipefail
 
@@ -27,17 +28,107 @@ mkdir -p "$OUTPUT_DIR"
 DO_BUILD=false
 SIMULATOR="iPhone 17 Pro"
 FLOW="performance/perf-inbox-scroll.yaml"
-COMPARE_DIR=""
+COMPARE_A=""
+COMPARE_B=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --build) DO_BUILD=true; shift ;;
     --simulator) SIMULATOR="$2"; shift 2 ;;
     --flow) FLOW="$2"; shift 2 ;;
-    --compare) COMPARE_DIR="$2"; shift 2 ;;
+    --compare)
+      COMPARE_A="$2"
+      COMPARE_B="${3:-}"
+      if [ -z "$COMPARE_B" ]; then
+        echo "Error: --compare requires two arguments: --compare <baseline-a> <baseline-b>"
+        exit 1
+      fi
+      shift 3
+      ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
+
+# --- Compare mode: compare two existing baselines, no test run ---
+if [ -n "$COMPARE_A" ]; then
+  # Resolve relative to baselines/ dir if not absolute
+  if [[ "$COMPARE_A" != /* ]]; then
+    COMPARE_A="$SCRIPT_DIR/baselines/$COMPARE_A"
+  fi
+  if [[ "$COMPARE_B" != /* ]]; then
+    COMPARE_B="$SCRIPT_DIR/baselines/$COMPARE_B"
+  fi
+  if [ ! -d "$COMPARE_A" ]; then
+    echo "Error: Baseline directory not found: $COMPARE_A"
+    exit 1
+  fi
+  if [ ! -d "$COMPARE_B" ]; then
+    echo "Error: Baseline directory not found: $COMPARE_B"
+    exit 1
+  fi
+
+  A_NAME=$(basename "$COMPARE_A")
+  B_NAME=$(basename "$COMPARE_B")
+  echo "=== Comparison: $A_NAME vs $B_NAME ==="
+
+  # Compare FPS
+  if [ -f "$COMPARE_A/maestro-fps.json" ] && [ -f "$COMPARE_B/maestro-fps.json" ]; then
+    python3 -c "
+import json, sys
+with open('$COMPARE_A/maestro-fps.json') as f: old = json.load(f)
+with open('$COMPARE_B/maestro-fps.json') as f: new = json.load(f)
+for key in ['avg', 'min', 'max', 'p5']:
+    o, n = old.get('fps', old).get(key, 0), new.get('fps', new).get(key, 0)
+    if o > 0:
+        pct = (n - o) / o * 100
+        sign = '+' if pct >= 0 else ''
+        print(f'FPS {key:>4}:  {o} -> {n}  ({sign}{pct:.1f}%)')
+    else:
+        print(f'FPS {key:>4}:  {o} -> {n}')
+" 2>/dev/null || echo "(could not compare FPS data)"
+  else
+    echo "(FPS data missing from one or both baselines)"
+  fi
+
+  # Compare React Profiler
+  if [ -f "$COMPARE_A/react-profiler.json" ] && [ -f "$COMPARE_B/react-profiler.json" ]; then
+    python3 -c "
+import json
+with open('$COMPARE_A/react-profiler.json') as f: old = json.load(f)
+with open('$COMPARE_B/react-profiler.json') as f: new = json.load(f)
+for key in ['totalDurationMs', 'totalRenders']:
+    o, n = old.get(key, 0), new.get(key, 0)
+    if o > 0:
+        pct = (n - o) / o * 100
+        sign = '+' if pct >= 0 else ''
+        print(f'React {key}: {o} -> {n}  ({sign}{pct:.1f}%)')
+    else:
+        print(f'React {key}: {o} -> {n}')
+# Per-component comparison
+print()
+all_ids = sorted(set(list(old.get('components', {}).keys()) + list(new.get('components', {}).keys())))
+if all_ids:
+    print(f'{\"Component\":<25} {\"old ms\":>8} {\"new ms\":>8} {\"change\":>8}   {\"old #\":>6} {\"new #\":>6}')
+    print('-' * 80)
+    for cid in all_ids:
+        oc = old.get('components', {}).get(cid, {})
+        nc = new.get('components', {}).get(cid, {})
+        oms, nms = oc.get('totalMs', 0), nc.get('totalMs', 0)
+        ocnt = oc.get('mountCount', 0) + oc.get('updateCount', 0)
+        ncnt = nc.get('mountCount', 0) + nc.get('updateCount', 0)
+        pct = f'{(nms - oms) / oms * 100:+.0f}%' if oms > 0 else 'new'
+        print(f'{cid:<25} {oms:>8.0f} {nms:>8.0f} {pct:>8}   {ocnt:>6} {ncnt:>6}')
+" 2>/dev/null || echo "(could not compare React Profiler data)"
+  else
+    echo "(React Profiler data missing from one or both baselines)"
+  fi
+
+  echo ""
+  echo "=== Done ==="
+  exit 0
+fi
+
+# --- Capture mode: run test and save baseline ---
 
 FLOW_PATH="$MAESTRO_DIR/$FLOW"
 if [ ! -f "$FLOW_PATH" ]; then
@@ -147,73 +238,6 @@ done
 echo ""
 echo "=== Baseline saved to $(basename "$BASELINE_DIR")/ ==="
 ls "$BASELINE_DIR/"
-
-# Compare against baseline
-if [ -n "$COMPARE_DIR" ]; then
-  # Resolve relative to script dir if not absolute
-  if [[ "$COMPARE_DIR" != /* ]]; then
-    COMPARE_DIR="$SCRIPT_DIR/$COMPARE_DIR"
-  fi
-  if [ ! -d "$COMPARE_DIR" ]; then
-    echo "Error: Baseline directory not found: $COMPARE_DIR"
-    exit 1
-  fi
-  BASELINE_NAME=$(basename "$COMPARE_DIR")
-  echo ""
-  echo "=== Comparison vs baseline $BASELINE_NAME ==="
-
-  # Compare FPS
-  if [ -f "$COMPARE_DIR/maestro-fps.json" ] && [ -f "$OUTPUT_DIR/maestro-fps.json" ]; then
-    python3 -c "
-import json, sys
-with open('$COMPARE_DIR/maestro-fps.json') as f: old = json.load(f)
-with open('$OUTPUT_DIR/maestro-fps.json') as f: new = json.load(f)
-for key in ['avg', 'min', 'max', 'p5']:
-    o, n = old.get('fps', old).get(key, 0), new.get('fps', new).get(key, 0)
-    if o > 0:
-        pct = (n - o) / o * 100
-        sign = '+' if pct >= 0 else ''
-        print(f'FPS {key:>4}:  {o} -> {n}  ({sign}{pct:.1f}%)')
-    else:
-        print(f'FPS {key:>4}:  {o} -> {n}')
-" 2>/dev/null || echo "(could not compare FPS data)"
-  else
-    echo "(FPS data missing from baseline or current run)"
-  fi
-
-  # Compare React Profiler
-  if [ -f "$COMPARE_DIR/react-profiler.json" ] && [ -f "$OUTPUT_DIR/react-profiler.json" ]; then
-    python3 -c "
-import json
-with open('$COMPARE_DIR/react-profiler.json') as f: old = json.load(f)
-with open('$OUTPUT_DIR/react-profiler.json') as f: new = json.load(f)
-for key in ['totalDurationMs', 'totalRenders']:
-    o, n = old.get(key, 0), new.get(key, 0)
-    if o > 0:
-        pct = (n - o) / o * 100
-        sign = '+' if pct >= 0 else ''
-        print(f'React {key}: {o} -> {n}  ({sign}{pct:.1f}%)')
-    else:
-        print(f'React {key}: {o} -> {n}')
-# Per-component comparison
-print()
-all_ids = sorted(set(list(old.get('components', {}).keys()) + list(new.get('components', {}).keys())))
-if all_ids:
-    print(f'{\"Component\":<25} {\"old ms\":>8} {\"new ms\":>8} {\"change\":>8}   {\"old #\":>6} {\"new #\":>6}')
-    print('-' * 80)
-    for cid in all_ids:
-        oc = old.get('components', {}).get(cid, {})
-        nc = new.get('components', {}).get(cid, {})
-        oms, nms = oc.get('totalMs', 0), nc.get('totalMs', 0)
-        ocnt = oc.get('mountCount', 0) + oc.get('updateCount', 0)
-        ncnt = nc.get('mountCount', 0) + nc.get('updateCount', 0)
-        pct = f'{(nms - oms) / oms * 100:+.0f}%' if oms > 0 else 'new'
-        print(f'{cid:<25} {oms:>8.0f} {nms:>8.0f} {pct:>8}   {ocnt:>6} {ncnt:>6}')
-" 2>/dev/null || echo "(could not compare React Profiler data)"
-  else
-    echo "(React Profiler data missing from baseline or current run)"
-  fi
-fi
 
 echo ""
 echo "=== Done ==="
