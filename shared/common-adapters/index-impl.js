@@ -61,6 +61,9 @@ module.exports = {
   get Button2() {
     return require('./button2').default
   },
+  get Icon2() {
+    return require('./icon2').default
+  },
   get IconButton() {
     return require('./button2').IconButton
   },

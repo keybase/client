@@ -1,3 +1,4 @@
+import './team-row.css'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
@@ -60,72 +61,101 @@ const TeamRow = function TeamRow(props: Props) {
     </Kb.Box2>
   ) : null
 
-  return (
-    <>
-      <Kb.ListItem
-        type="Small"
-        firstItem={firstItem}
-        onClick={onViewTeam}
-        icon={
-          <Kb.Box2
-            direction="vertical"
-            fullHeight={true}
-            centerChildren={true}
-            style={styles.avatarContainer}
-          >
-            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-            {crownIcon}
-          </Kb.Box2>
-        }
-        style={styles.white}
-        innerStyle={styles.white}
-        height={Kb.Styles.isPhone ? 72 : undefined}
-        body={
-          <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
-            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" flex={1} style={styles.bodyLeft}>
-              <Kb.Box2
-                direction="vertical"
-                fullHeight={true}
-                alignItems="flex-start"
-                justifyContent="center"
-              >
-                <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                  <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
-                    {teamMeta.teamname}
-                  </Kb.Text>
-                  {teamMeta.isOpen && (
-                    <Kb.Meta
-                      title="open"
-                      backgroundColor={Kb.Styles.globalColors.green}
-                      style={styles.alignSelfCenter}
-                    />
-                  )}
-                </Kb.Box2>
-                <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
-                  {isNew && (
-                    <Kb.Meta
-                      title="new"
-                      backgroundColor={Kb.Styles.globalColors.orange}
-                      style={styles.alignSelfCenter}
-                    />
-                  )}
-                  <Kb.Text type="BodySmall">
-                    {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
-                  </Kb.Text>
-                </Kb.Box2>
-                {Kb.Styles.isPhone && activity}
+  if (Kb.Styles.isMobile) {
+    return (
+      <>
+        <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row} alignItems="center">
+            {!firstItem && <Kb.Divider style={styles.divider} />}
+            <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
+              <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+                <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+                {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+                {crownIcon}
               </Kb.Box2>
             </Kb.Box2>
-            {!Kb.Styles.isPhone && (
-              <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyRight}>
-                {activity}
+            <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
+              <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
+                <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  {teamMeta.teamname}
+                </Kb.Text>
+                {teamMeta.isOpen && (
+                  <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
+                )}
               </Kb.Box2>
-            )}
+              <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
+                {isNew && (
+                  <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
+                )}
+                <Kb.Text type="BodySmall">
+                  {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
+                </Kb.Text>
+              </Kb.Box2>
+              {activity}
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.actionMobile}>
+              {showChat && (
+                <Kb.IconButton
+                  type="Dim"
+                  onClick={onChat}
+                  disabled={!teamMeta.isMember}
+                  mode="Secondary"
+                  small={true}
+                  icon="iconfont-chat"
+                />
+              )}
+              <Kb.IconButton
+                type="Dim"
+                onClick={showPopup}
+                mode="Secondary"
+                small={true}
+                icon="iconfont-ellipsis"
+                ref={popupAnchor}
+              />
+            </Kb.Box2>
           </Kb.Box2>
-        }
-        action={
-          <Kb.Box2 direction="horizontal" gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}>
+        </Kb.ClickableBox>
+        {popup}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
+        <Kb.Box2 className="teamRow" direction="horizontal" fullWidth={true} style={styles.row} alignItems="center">
+          {!firstItem && <Kb.Divider style={styles.divider} />}
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
+            <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+              <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+              {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+              {crownIcon}
+            </Kb.Box2>
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
+            <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
+              <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
+                <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  {teamMeta.teamname}
+                </Kb.Text>
+                {teamMeta.isOpen && (
+                  <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.alignSelfCenter} />
+                )}
+              </Kb.Box2>
+              <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" alignSelf="flex-start">
+                {isNew && (
+                  <Kb.Meta title="new" backgroundColor={Kb.Styles.globalColors.orange} style={styles.alignSelfCenter} />
+                )}
+                <Kb.Text type="BodySmall">
+                  {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" alignItems="center" style={styles.bodyRight}>
+              {activity}
+            </Kb.Box2>
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" className="fade" gap="xtiny" alignItems="center" style={styles.action}>
             {showChat && (
               <Kb.IconButton
                 type="Dim"
@@ -146,40 +176,72 @@ const TeamRow = function TeamRow(props: Props) {
               ref={popupAnchor}
             />
           </Kb.Box2>
-        }
-        onlyShowActionOnHover="fade"
-      />
+        </Kb.Box2>
+      </Kb.ClickableBox>
       {popup}
     </>
   )
 }
 
+const smallHeight = Kb.Styles.isMobile ? 56 : 48
+const smallIconWidth = 64
+
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  action: {
+    flexShrink: 0,
+    marginRight: 8,
+    minHeight: smallHeight,
+  },
+  actionMobile: {
+    flexShrink: 0,
+    marginRight: 8,
+  },
   alignSelfCenter: {
     alignSelf: 'center',
   },
   avatarContainer: Kb.Styles.platformStyles({
     common: {
-      marginTop: Kb.Styles.globalMargins.xxtiny,
-      position: 'relative',
+      minHeight: smallHeight,
+      width: smallIconWidth,
     },
-    isPhone: {marginTop: Kb.Styles.globalMargins.small},
+    isPhone: {minHeight: 72},
   }),
+  avatarInner: {
+    height: 32,
+    position: 'relative',
+    width: 32,
+  },
   badge: {
     position: 'absolute',
     right: -5,
     top: -5,
   },
-  bodyContainer: {
+  bodyDesktop: {
+    flexGrow: 1,
+    minHeight: smallHeight,
     paddingBottom: Kb.Styles.globalMargins.tiny,
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
+  bodyMobile: {
+    minHeight: 72,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
+  },
   bodyRight: {
     flex: 0.7,
   },
+  clickableBox: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.white,
+      flexShrink: 0,
+      width: '100%',
+    },
+    isElectron: {minHeight: smallHeight},
+    isPhone: {minHeight: 72},
+  }),
   crownIcon: Kb.Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
   crownIconBox: Kb.Styles.platformStyles({
     common: {
@@ -190,10 +252,23 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 17,
     },
     isElectron: {bottom: -5, right: -5},
-    isMobile: {bottom: 4, right: -5},
+    isMobile: {bottom: -5, right: -5},
   }),
   darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
-  white: {backgroundColor: Kb.Styles.globalColors.white},
-}))
+  divider: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  row: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.white,
+      position: 'relative',
+    },
+    isElectron: {minHeight: smallHeight},
+    isPhone: {minHeight: 72},
+  }),
+}) as const)
 
 export default TeamRow

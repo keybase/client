@@ -6,7 +6,7 @@ import type AnimationType from './animation'
 import type {MeasureRef} from './measure-ref'
 import type {IconType} from './icon.constants-gen'
 import type {default as WithTooltipType} from './with-tooltip'
-import type {default as IconComp} from './icon'
+import type {default as Icon2Comp} from './icon2'
 
 export type Button2Type = 'Default' | 'Success' | 'Danger' | 'Dim'
 
@@ -270,7 +270,7 @@ type IconButtonProps = Omit<Button2Props, 'label' | 'children'> & {
 
 export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null>}) => {
   const {icon, iconColor, ref, ...rest} = props
-  const Icon = (require('./icon') as {default: typeof IconComp}).default
+  const Icon2 = (require('./icon2') as {default: typeof Icon2Comp}).default
   const isPrimary = (rest.mode ?? 'Primary') === 'Primary'
   const type = rest.type ?? 'Default'
   const defaultColor = isPrimary
@@ -278,7 +278,7 @@ export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef 
     : secondaryLabelStyles[type].color
   return (
     <Button2 ref={ref} {...rest}>
-      <Icon type={icon} sizeType="Small" color={iconColor ?? (defaultColor as string)} />
+      <Icon2 type={icon} sizeType="Small" color={iconColor ?? (defaultColor as string)} />
     </Button2>
   )
 }
