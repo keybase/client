@@ -50,8 +50,8 @@ const SelectChannel = (ownProps: OwnProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
         <Kb.ButtonBar>
-          <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
-          <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
+          <Kb.Button2 label="Cancel" onClick={onCancel} small={true} type="Dim" />
+          <Kb.Button2 waiting={waiting} label="Submit" onClick={submit} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.PopupWrapper>

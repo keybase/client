@@ -6,7 +6,7 @@ import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
-import Button from './button'
+import Button2 from './button2'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
@@ -14,7 +14,7 @@ import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2,
-  Button,
+  Button2,
   HeaderHocHeader,
   Icon,
   ScrollView,
@@ -53,8 +53,8 @@ function Reload(props: ReloadProps) {
             {expanded ? 'Hide details' : 'Show details'}
           </Kb.Text>
           <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Button label="Retry" mode="Secondary" onClick={() => props.onReload(true)} />
-            <Kb.Button label="Feedback" mode="Primary" onClick={props.onFeedback} />
+            <Kb.Button2 label="Retry" mode="Secondary" onClick={() => props.onReload(true)} />
+            <Kb.Button2 label="Feedback" mode="Primary" onClick={props.onFeedback} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ScrollView>
