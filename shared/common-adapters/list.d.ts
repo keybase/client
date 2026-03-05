@@ -1,9 +1,8 @@
 import type * as React from 'react'
 import type {CustomStyles} from '@/styles'
-import type {useListRef, DynamicRowHeight} from 'react-window'
+import type {LegendListRef} from '@legendapp/list/react'
 
-// List differs from list in that on desktop it uses react-window.
-// Don't use List if you need a list with dynamic item sizes
+// List differs from list in that on desktop it uses LegendList.
 
 export type VariableItemHeight<Item> = {
   getItemLayout: (
@@ -29,7 +28,6 @@ export type FixedListItemAuto = {
 
 export type TrueVariable = {
   type: 'trueVariable'
-  rowHeight: DynamicRowHeight
 }
 
 // Having flex in the list messes with creating the right size inner container
@@ -48,7 +46,7 @@ export type Props<Item> = {
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
   reAnimated?: boolean // mobile only, make list animated
-  desktopRef?: ReturnType<typeof useListRef>
+  desktopRef?: React.Ref<LegendListRef>
 }
 
 export declare function List<Item>(p: Props<Item>): React.ReactNode

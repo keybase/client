@@ -1,114 +1,64 @@
-import type * as React from 'react'
+import type {CSSProperties} from 'react'
 import * as Styles from '@/styles'
-import {List as ReactWindowList, type RowComponentProps} from 'react-window'
+import {LegendList} from '@legendapp/list/react'
+import type {LegendListRenderItemProps} from '@legendapp/list/react'
 import type {Props} from './list'
 import {smallHeight, largeHeight} from './list-item'
 
-const Row = ((
-  p: RowComponentProps<{
-    items: ReadonlyArray<unknown>
-    renderItem: (index: number, item: unknown) => React.ReactElement | null
-  }>
-) => {
-  const {index, style, items, renderItem} = p
-  const item = items[index]
-  return item ? <div style={style}>{renderItem(index, item)}</div> : <div style={style} />
-}) as (
-  props: RowComponentProps<{
-    items: ReadonlyArray<unknown>
-    renderItem: (index: number, item: unknown) => React.ReactElement | null
-  }>
-) => React.ReactElement
-
 function List<T>(props: Props<T>) {
-  const {items, renderItem, style, itemHeight} = props
+  const {items, renderItem, style, itemHeight, onEndReached, keyProperty, indexAsKey, estimatedItemHeight, desktopRef} = props
 
-  // Need to pass in itemData to make items re-render on prop changes.
-  const _fixed = (p: {itemHeight: number}) => {
-    const {itemHeight} = p
-    return (
-      <ReactWindowList
-        listRef={props.desktopRef as any}
-        style={
-          {
-            height: '100%',
-            overflowY: 'auto',
-            scrollbarGutter: 'stable',
-            width: '100%',
-            ...Styles.castStyleDesktop(style),
-          } as const
-        }
-        rowCount={items.length}
-        rowProps={{
-          items,
-          renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
-        }}
-        rowHeight={itemHeight}
-        rowComponent={Row}
-      />
-    )
+  const legendRenderItem = ({item, index}: LegendListRenderItemProps<T>) => {
+    return renderItem(index, item)
   }
 
-  const _variableItemSize = (index: number, data: {items: ReadonlyArray<unknown>}) => {
-    const {items} = data
-    return itemHeight.type === 'variable' ? itemHeight.getItemLayout(index, items[index] as T).length : 0
-  }
+  const keyExtractor = keyProperty
+    ? (item: T, _index: number) => String((item as Record<string, unknown>)[keyProperty])
+    : indexAsKey
+      ? (_item: T, index: number) => String(index)
+      : undefined
+
+  const getFixedItemSize =
+    itemHeight.type === 'fixed'
+      ? () => itemHeight.height
+      : itemHeight.type === 'fixedListItemAuto'
+        ? () => (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
+        : itemHeight.type === 'variable'
+          ? (item: T, index: number) => itemHeight.getItemLayout(index, item).length
+          : undefined
+
+  const estimatedItemSize =
+    estimatedItemHeight ??
+    (itemHeight.type === 'fixed'
+      ? itemHeight.height
+      : itemHeight.type === 'fixedListItemAuto'
+        ? (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
+        : 48)
 
   if (items.length === 0) return null
-  switch (props.itemHeight.type) {
-    case 'fixed':
-      return _fixed({itemHeight: props.itemHeight.height})
-    case 'fixedListItemAuto': {
-      const itemHeight = props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-      return _fixed({itemHeight})
-    }
-    case 'trueVariable':
-      return (
-        <ReactWindowList
-          listRef={props.desktopRef as any}
-          style={
-            {
-              height: '100%',
-              overflowY: 'auto',
-              scrollbarGutter: 'stable',
-              width: '100%',
-              ...Styles.castStyleDesktop(style),
-            } as const
-          }
-          rowCount={items.length}
-          rowProps={{
-            items,
-            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
-          }}
-          rowHeight={props.itemHeight.rowHeight}
-          rowComponent={Row}
-        />
-      )
-    case 'variable':
-      return (
-        <ReactWindowList
-          listRef={props.desktopRef as any}
-          style={
-            {
-              height: '100%',
-              overflowY: 'auto',
-              scrollbarGutter: 'stable',
-              width: '100%',
-              ...Styles.castStyleDesktop(style),
-            } as const
-          }
-          rowCount={items.length}
-          rowProps={{
-            items,
-            renderItem: renderItem as (index: number, item: unknown) => React.ReactElement | null,
-          }}
-          rowHeight={_variableItemSize}
-          rowComponent={Row}
-        />
-      )
-    default:
-      return <></>
-  }
+
+  return (
+    <LegendList
+      ref={desktopRef as any}
+      data={items as T[]}
+      renderItem={legendRenderItem}
+      keyExtractor={keyExtractor}
+      getFixedItemSize={getFixedItemSize}
+      estimatedItemSize={estimatedItemSize}
+      extraData={renderItem}
+      onEndReached={onEndReached ? () => onEndReached() : undefined}
+      recycleItems={itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto'}
+      style={
+        {
+          height: '100%',
+          overflowY: 'auto',
+          scrollbarGutter: 'stable',
+          width: '100%',
+          ...Styles.castStyleDesktop(style),
+        } as CSSProperties
+      }
+    />
+  )
 }
 
 export default List
