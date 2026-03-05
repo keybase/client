@@ -7,6 +7,9 @@ module.exports = {
   get Avatar() {
     return require('./avatar').default
   },
+  get Avatar2() {
+    return require('./avatar2').default
+  },
   get AvatarLine() {
     return require('./avatar/avatar-line').default
   },
