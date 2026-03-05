@@ -260,7 +260,7 @@ function Inbox(p: InboxProps) {
             overScrollMode="never"
             ref={listRef}
             renderItem={renderItem}
-            drawDistance={1500}
+            drawDistance={250}
           />
         )}
         {noChats}
