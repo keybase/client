@@ -3,16 +3,16 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from './shared'
-import {useListRef, useDynamicRowHeight} from 'react-window'
+import type {LegendListRef} from '@legendapp/list/react'
 
 const SuggestionList = <I,>(props: Props<I>) => {
-  const listRef = useListRef(undefined)
+  const listRef = React.useRef<LegendListRef>(null)
   const {selectedIndex} = props
 
   const lastIndexRef = React.useRef(selectedIndex)
   React.useEffect(() => {
     if (lastIndexRef.current !== selectedIndex) {
-      listRef.current?.scrollToRow({index: selectedIndex})
+      void listRef.current?.scrollToIndex({index: selectedIndex})
     }
     lastIndexRef.current = selectedIndex
   }, [selectedIndex, listRef])
@@ -22,8 +22,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
     return i ? (props.renderItem(index, i) as React.JSX.Element) : <></>
   }
 
-  const rowHeight = useDynamicRowHeight({defaultRowHeight: 24})
-  const itemHeight = {rowHeight, type: 'trueVariable' as const}
+  const itemHeight = {type: 'trueVariable' as const}
 
   if (
     !props.items.length &&
@@ -39,7 +38,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
     >
-      <Kb.List desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} />
+      <Kb.List desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} estimatedItemHeight={24} />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical" justifyContent="center">

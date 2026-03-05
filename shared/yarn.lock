@@ -9590,11 +9590,6 @@ react-test-renderer@19.2.0:
     react-is "^19.2.0"
     scheduler "^0.27.0"
 
-react-window@2.2.7:
-  version "2.2.7"
-  resolved "https://registry.yarnpkg.com/react-window/-/react-window-2.2.7.tgz#7f3d31695d4323701b7e80dfc9bbbe1d4a0c160f"
-  integrity sha512-SH5nvfUQwGHYyriDUAOt7wfPsfG9Qxd6OdzQxl5oQ4dsSsUicqQvjV7dR+NqZ4coY0fUn3w1jnC5PwzIUWEg5w==
-
 react@19.2.0:
   version "19.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-19.2.0.tgz#d33dd1721698f4376ae57a54098cb47fc75d93a5"
