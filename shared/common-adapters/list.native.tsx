@@ -1,61 +1,57 @@
-import {FlatList, View} from 'react-native'
+import {View} from 'react-native'
 import * as Styles from '@/styles'
 import {smallHeight, largeHeight} from './list-item'
-import ReAnimated from './reanimated'
+import {LegendList} from '@legendapp/list/react-native'
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native'
 import type {Props} from './list'
-import noop from 'lodash/noop'
-
-const AnimatedFlatList = ReAnimated.FlatList
 
 function List<T>(p: Props<T>) {
-  const {indexAsKey, keyProperty, itemHeight, renderItem, ...props} = p
+  const {items, renderItem, itemHeight, onEndReached, keyProperty, indexAsKey, estimatedItemHeight} = p
 
-  const itemRender = ({item, index}: {item: T; index: number}) => {
+  const legendRenderItem = ({item, index}: LegendListRenderItemProps<T>) => {
     return renderItem(index, item)
   }
 
-  const getItemLayout = (data: ArrayLike<T> | null | undefined, index: number) => {
-    switch (itemHeight.type) {
-      case 'fixed':
-        return {index, length: itemHeight.height, offset: itemHeight.height * index}
-      case 'fixedListItemAuto': {
-        const length = itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-        return {index, length, offset: length * index}
-      }
-      case 'variable':
-        return {...itemHeight.getItemLayout(index, data ? data[index] : undefined)}
-      default:
-        return {index, length: 0, offset: 0}
-    }
-  }
+  const keyExtractor = keyProperty
+    ? (item: T, _index: number) => String((item as Record<string, unknown>)[keyProperty])
+    : indexAsKey
+      ? (_item: T, index: number) => String(index)
+      : undefined
 
-  const keyExtractor = (item: T, index: number) => {
-    if (indexAsKey || !item) {
-      return String(index)
-    }
+  const getFixedItemSize =
+    itemHeight.type === 'fixed'
+      ? () => itemHeight.height
+      : itemHeight.type === 'fixedListItemAuto'
+        ? () => (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
+        : itemHeight.type === 'variable'
+          ? (item: T, index: number) => itemHeight.getItemLayout(index, item).length
+          : undefined
 
-    const keyProp = keyProperty || 'key'
-    const i: {[key: string]: string} = item
-    return i[keyProp] ?? String(index)
-  }
+  const estimatedItemSize =
+    estimatedItemHeight ??
+    (itemHeight.type === 'fixed'
+      ? itemHeight.height
+      : itemHeight.type === 'fixedListItemAuto'
+        ? (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
+        : 48)
 
-  const ListComp = props.reAnimated ? AnimatedFlatList : FlatList
+  if (items.length === 0) return null
+
   return (
     <View style={styles.outerView}>
-      {/* need windowSize so iphone 6 doesn't have OOM issues */}
-      <ListComp
+      <LegendList
+        data={items as T[]}
+        renderItem={legendRenderItem}
+        keyExtractor={keyExtractor}
+        getFixedItemSize={getFixedItemSize}
+        estimatedItemSize={estimatedItemSize}
+        extraData={renderItem}
+        onEndReached={onEndReached ? () => onEndReached() : undefined}
+        recycleItems={itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto'}
+        keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}
-        renderItem={itemRender}
-        data={p.items}
-        getItemLayout={(data: ArrayLike<T> | null | undefined, index: number) => getItemLayout(data, index)}
-        keyExtractor={keyExtractor}
-        keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
-        onEndReached={props.onEndReached}
-        windowSize={props.windowSize || 10}
-        debug={false /* set to true to debug the list */}
-        contentContainerStyle={props.style}
-        onScrollToIndexFailed={noop}
+        contentContainerStyle={p.style}
       />
     </View>
   )
