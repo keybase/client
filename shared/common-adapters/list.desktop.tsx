@@ -6,11 +6,12 @@ import {useListProps} from './list-common'
 
 function List<T>(p: Props<T>) {
   const {empty, ...listProps} = useListProps(p)
+  const {style, desktopRef} = p
   if (empty) return null
 
   return (
     <LegendList
-      ref={p.desktopRef as any}
+      ref={desktopRef as any}
       {...listProps}
       style={
         {
@@ -18,7 +19,7 @@ function List<T>(p: Props<T>) {
           overflowY: 'auto',
           scrollbarGutter: 'stable',
           width: '100%',
-          ...Styles.castStyleDesktop(p.style),
+          ...Styles.castStyleDesktop(style),
         } as CSSProperties
       }
     />
