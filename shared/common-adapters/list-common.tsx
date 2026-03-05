@@ -2,7 +2,7 @@ import {smallHeight, largeHeight} from './list-item'
 import type {Props} from './list'
 
 export function useListProps<T>(p: Props<T>) {
-  const {items, renderItem, itemHeight, onEndReached, keyProperty, indexAsKey, estimatedItemHeight} = p
+  const {items, renderItem, itemHeight, onEndReached, keyProperty, indexAsKey, estimatedItemHeight, extraData: extraDataProp, selectedIndex} = p
 
   const legendRenderItem = ({item, index}: {item: T; index: number}) => {
     return renderItem(index, item)
@@ -37,7 +37,7 @@ export function useListProps<T>(p: Props<T>) {
     data: items as T[],
     empty: items.length === 0,
     estimatedItemSize,
-    extraData: renderItem,
+    extraData: extraDataProp ?? selectedIndex,
     getFixedItemSize,
     keyExtractor,
     onEndReached: onEndReached ? () => onEndReached() : undefined,

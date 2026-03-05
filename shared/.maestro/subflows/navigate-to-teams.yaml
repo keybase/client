@@ -1,0 +1,11 @@
+appId: keybase.ios
+
+---
+
+- tapOn:
+    text: "Teams"
+
+- extendedWaitUntil:
+    visible:
+      id: "teamsList"
+    timeout: 10000

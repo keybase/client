@@ -1,10 +1,10 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 
@@ -16,12 +16,19 @@ type Props = {
 
 const TeamRow = function TeamRow(props: Props) {
   const {firstItem, showChat = true, teamID} = props
-  const nav = useSafeNavigation()
-  const teamMeta = useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  // useActivityLevels in ../container ensures these are loaded
-  const activityLevel = useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const data = useTeamsState(
+    C.useShallow(s => {
+      const teamMeta = Teams.getTeamMeta(s, teamID)
+      const activityLevel = s.activityLevels.teams.get(teamID) || 'none'
+      const badgeCount = Teams.getTeamRowBadgeCount(s.newTeamRequests, s.teamIDToResetUsers, teamID)
+      const isNew = s.newTeams.has(teamID)
+      return {activityLevel, badgeCount, isNew, teamMeta}
+    })
+  )
+  const {activityLevel, badgeCount, isNew, teamMeta} = data
 
-  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
+  const onViewTeam = () => navigateAppend({name: 'team', params: {teamID}})
 
   const activity = <Activity level={activityLevel} />
 
@@ -33,12 +40,6 @@ const TeamRow = function TeamRow(props: Props) {
       return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
     }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
-
-  const teamIDToResetUsers = useTeamsState(s => s.teamIDToResetUsers)
-  const badgeCount = useTeamsState(s =>
-    Teams.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
-  )
-  const isNew = useTeamsState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'

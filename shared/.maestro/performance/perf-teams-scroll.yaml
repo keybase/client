@@ -9,16 +9,16 @@ appId: keybase.ios
 
 - extendedWaitUntil:
     visible:
-      text: "Chats"
+      text: "Teams"
     timeout: 60000
 
-- runFlow: ../subflows/navigate-to-chat.yaml
+- runFlow: ../subflows/navigate-to-teams.yaml
 
 - repeat:
     times: 3
     commands:
       - swipe:
-          id: "inboxList"
+          id: "teamsList"
           direction: UP
           duration: 150
 
@@ -26,7 +26,7 @@ appId: keybase.ios
     times: 3
     commands:
       - swipe:
-          id: "inboxList"
+          id: "teamsList"
           direction: DOWN
           duration: 150
 

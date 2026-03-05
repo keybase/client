@@ -5,33 +5,23 @@ import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {useTeamsState} from '@/stores/teams'
+import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {
   teamName: string
   deletedBy: string
 }
 
-export type OwnProps = {
-  loaded: boolean
+export type Props = {
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: ReadonlySet<T.Teams.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (teamID: T.Teams.TeamID) => void
-  onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
-  onViewTeam: (teamID: T.Teams.TeamID) => void
-  teamresetusers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
-  newTeamRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
+  onCreateTeam: () => void
+  onJoinTeam: () => void
   teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
-type HeaderProps = {
-  onCreateTeam: () => void
-  onJoinTeam: () => void
-}
-export type Props = OwnProps & HeaderProps
-
-const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
+const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
     <Kb.ClickableBox
       style={styles.bigButton}
@@ -186,17 +176,23 @@ const Teams = function Teams(p: Props) {
         }
         case 'team': {
           const team = item.team
-          return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+          return (
+            <PerfProfiler id="TeamRow">
+              <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+            </PerfProfiler>
+          )
         }
       }
     }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.BoxGrow>
-        <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
-      </Kb.BoxGrow>
-    </Kb.Box2>
+    <PerfProfiler id="TeamsList">
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.BoxGrow>
+          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} testID="teamsList" />
+        </Kb.BoxGrow>
+      </Kb.Box2>
+    </PerfProfiler>
   )
 }
 
