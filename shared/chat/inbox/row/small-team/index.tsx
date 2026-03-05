@@ -49,7 +49,7 @@ const SmallTeam = (p: Props) => {
   return (
     <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
       <Kb.ClickableBox2
-        onClick={Kb.Styles.isMobile ? undefined : onSelectConversation}
+        onClick={onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}
         style={
           Kb.Styles.isTablet
