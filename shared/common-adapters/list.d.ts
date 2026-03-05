@@ -47,6 +47,7 @@ export type Props<Item> = {
   onEndReached?: () => void
   reAnimated?: boolean // mobile only, make list animated
   desktopRef?: React.Ref<LegendListRef>
+  testID?: string
 }
 
 export declare function List<Item>(p: Props<Item>): React.ReactNode

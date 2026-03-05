@@ -40,6 +40,9 @@ cd shared && yarn maestro-test-perf --runs 1
 # (e.g. files in ios/, android/, rnmodules/, go/bind/).
 cd shared && yarn maestro-test-perf --build
 
+# Run teams scroll perf test
+cd shared && yarn maestro-test-perf-teams
+
 # Run any Maestro flow
 cd shared && yarn maestro-test --flow performance/perf-inbox-scroll.yaml
 
@@ -52,6 +55,7 @@ cd shared && yarn maestro-test-perf --simulator "iPhone 16 Pro"
 | Flow | What it measures |
 |------|-----------------|
 | `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 3 swipes up + 3 swipes down on inbox list |
+| `performance/perf-teams-scroll.yaml` | Launch → navigate to Teams → 3 swipes up + 3 swipes down on teams list |
 
 ### React Profiler Wrappers
 
@@ -65,6 +69,8 @@ Components currently wrapped with `<PerfProfiler>`:
 | `MessageList` | `chat/conversation/list-area/index.native.tsx` | Message list FlatList container |
 | `Msg-{type}` | `chat/conversation/list-area/index.native.tsx` | Each message (text, attachment, system*, etc.) |
 | `ChatInput` | `chat/conversation/input-area/container.tsx` | Chat input area |
+| `TeamsList` | `teams/main/index.tsx` | Full teams list container |
+| `TeamRow` | `teams/main/index.tsx` | Each team row |
 
 To add more wrappers, import `{PerfProfiler}` from `@/perf/react-profiler` and wrap the component. In production builds, `PerfProfiler` is a no-op passthrough.
 
@@ -108,6 +114,7 @@ To add more wrappers, import `{PerfProfiler}` from `@/perf/react-profiler` and w
 |--------|-----------|
 | `inboxList` | Inbox conversation list (FlatList) |
 | `messageList` | Chat message list (FlatList) |
+| `teamsList` | Teams list (LegendList via Kb.List) |
 
 Set via `testID` prop on React Native FlatList, maps to `accessibilityIdentifier` for Maestro.
 
@@ -148,7 +155,7 @@ appId: keybase.ios
 - pressKey: Home
 ```
 
-Shared subflows live in `shared/.maestro/shared/` (e.g. `navigate-to-chat.yaml`).
+Shared subflows live in `shared/.maestro/subflows/` (e.g. `navigate-to-chat.yaml`).
 
 ## Desktop Performance Profiling
 

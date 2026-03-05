@@ -12,6 +12,7 @@ function List<T>(p: Props<T>) {
     <View style={styles.outerView}>
       <LegendList
         {...listProps}
+        testID={p.testID}
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}

@@ -5,6 +5,7 @@ import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {useTeamsState} from '@/stores/teams'
+import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {
   teamName: string
@@ -186,17 +187,23 @@ const Teams = function Teams(p: Props) {
         }
         case 'team': {
           const team = item.team
-          return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+          return (
+            <PerfProfiler id="TeamRow">
+              <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+            </PerfProfiler>
+          )
         }
       }
     }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.BoxGrow>
-        <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
-      </Kb.BoxGrow>
-    </Kb.Box2>
+    <PerfProfiler id="TeamsList">
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.BoxGrow>
+          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} testID="teamsList" />
+        </Kb.BoxGrow>
+      </Kb.Box2>
+    </PerfProfiler>
   )
 }
 
