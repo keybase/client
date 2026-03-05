@@ -12,27 +12,16 @@ type DeletedTeam = {
   deletedBy: string
 }
 
-export type OwnProps = {
-  loaded: boolean
+export type Props = {
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: ReadonlySet<T.Teams.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (teamID: T.Teams.TeamID) => void
-  onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
-  onViewTeam: (teamID: T.Teams.TeamID) => void
-  teamresetusers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
-  newTeamRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
+  onCreateTeam: () => void
+  onJoinTeam: () => void
   teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
-type HeaderProps = {
-  onCreateTeam: () => void
-  onJoinTeam: () => void
-}
-export type Props = OwnProps & HeaderProps
-
-const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
+const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
     <Kb.ClickableBox
       style={styles.bigButton}

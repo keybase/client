@@ -46,6 +46,7 @@ export type Props<Item> = {
   windowSize?: number // Mobile only, has a non-RN default,
   onEndReached?: () => void
   reAnimated?: boolean // mobile only, make list animated
+  extraData?: unknown
   desktopRef?: React.Ref<LegendListRef>
   testID?: string
 }
