@@ -1,6 +1,13 @@
+import * as C from '@/constants'
+import * as React from 'react'
+import type * as T from '@/constants/types'
 import type {ChatInboxRowItem} from './rowitem'
 
 export type RowItem = ChatInboxRowItem
+
+// Minimal shape that both @legendapp/list/react and @legendapp/list/react-native ViewToken satisfy
+export type ViewableItem = {index: number; item: RowItem}
+export type ViewableItemsData = {viewableItems: Array<ViewableItem>; changed: Array<ViewableItem>}
 
 export const viewabilityConfig = {
   minimumViewTime: 100,
@@ -24,7 +31,7 @@ export const keyExtractor = (item: RowItem, idx: number) => {
   }
 }
 
-export const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) => {
+const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) => {
   if (!unreadIndices.size || lastVisibleIdx < 0) {
     return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
   }
@@ -41,5 +48,63 @@ export const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, l
     : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
 }
 
-export const shouldShowFloating = (rows: ArrayLike<RowItem>, lastVisibleIdx: number) =>
+const shouldShowFloating = (rows: ArrayLike<RowItem>, lastVisibleIdx: number) =>
   lastVisibleIdx >= 0 && rows[lastVisibleIdx]?.type === 'small'
+
+export function useUnreadShortcut(p: {
+  rows: ReadonlyArray<RowItem>
+  unreadIndices: ReadonlyMap<number, number>
+  unreadTotal: number
+  listRef: React.RefObject<{scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>} | null>
+}) {
+  const {rows, unreadIndices, unreadTotal, listRef} = p
+  const [showFloating, setShowFloating] = React.useState(false)
+  const [showUnread, setShowUnread] = React.useState(false)
+  const [unreadCount, setUnreadCount] = React.useState(0)
+  const firstOffscreenIdxRef = React.useRef(-1)
+  const lastVisibleIdxRef = React.useRef(-1)
+
+  const applyUnreadAndFloating = () => {
+    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(info.showUnread)
+    setUnreadCount(info.unreadCount)
+    firstOffscreenIdxRef.current = info.firstOffscreenIdx
+    setShowFloating(shouldShowFloating(rows, lastVisibleIdxRef.current))
+  }
+
+  const scrollToUnread = () => {
+    if (firstOffscreenIdxRef.current <= 0) {
+      return
+    }
+    void listRef.current?.scrollToIndex({animated: true, index: firstOffscreenIdxRef.current, viewPosition: 0.5})
+  }
+
+  React.useEffect(() => {
+    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
+    setShowUnread(info.showUnread)
+    setUnreadCount(info.unreadCount)
+    firstOffscreenIdxRef.current = info.firstOffscreenIdx
+    setShowFloating(shouldShowFloating(rows, lastVisibleIdxRef.current))
+  }, [unreadIndices, unreadTotal, rows])
+
+  return {applyUnreadAndFloating, lastVisibleIdxRef, scrollToUnread, showFloating, showUnread, unreadCount}
+}
+
+export function useScrollUnbox(
+  onUntrustedInboxVisible: (ids: Array<T.Chat.ConversationIDKey>) => void,
+  debounceMs: number
+) {
+  return C.useDebouncedCallback(
+    (data: ViewableItemsData) => {
+      const toUnbox = data.viewableItems.reduce<Array<T.Chat.ConversationIDKey>>((arr, vi) => {
+        const r = vi.item
+        if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
+          arr.push(r.conversationIDKey)
+        }
+        return arr
+      }, [])
+      onUntrustedInboxVisible(toUnbox)
+    },
+    debounceMs
+  )
+}

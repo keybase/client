@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {type RowItem, viewabilityConfig, getItemType, keyExtractor, calcUnreadShortcut, shouldShowFloating} from './list-helpers'
+import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {LegendList, type LegendListRef, type ViewToken} from '@legendapp/list/react'
+import {LegendList, type LegendListRef} from '@legendapp/list/react'
 import {createPortal} from 'react-dom'
 import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
@@ -192,56 +192,21 @@ function Inbox(props: InboxProps) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
   const {toggleSmallTeamsExpanded, selectedConversationIDKey, onUntrustedInboxVisible} = inbox
   const {setInboxNumSmallRows, allowShowFloatingButton} = inbox
-  const [showFloating, setShowFloating] = React.useState(false)
-  const [showUnread, setShowUnread] = React.useState(false)
-  const [unreadCount, setUnreadCount] = React.useState(0)
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
   const listRef = React.useRef<LegendListRef | null>(null)
 
-  const firstOffscreenIdx = React.useRef(-1)
-  const lastVisibleIdx = React.useRef(-1)
-
-  const lastUnreadIndices = React.useRef(unreadIndices)
-  const lastUnreadTotal = React.useRef(unreadTotal)
+  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
+  const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
   const getFixedItemSize = (item: RowItem): number => {
     return getRowHeight(item.type, item.type === 'divider' && item.showButton)
   }
 
-  const scrollToUnread = () => {
-    if (firstOffscreenIdx.current <= 0) {
-      return
-    }
-    void listRef.current?.scrollToIndex({animated: true, index: firstOffscreenIdx.current})
-  }
-
-  const onScrollUnbox = C.useDebouncedCallback(
-    (data: {viewableItems: Array<ViewToken<RowItem>>}) => {
-      const {viewableItems} = data
-      const toUnbox = viewableItems.reduce<Array<T.Chat.ConversationIDKey>>((arr, vi) => {
-        const r = vi.item
-        if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-          arr.push(r.conversationIDKey)
-        }
-        return arr
-      }, [])
-      setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
-      onUntrustedInboxVisible(toUnbox)
-    },
-    200
-  )
-
-  const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(() => {
-    const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
-    setShowUnread(result.showUnread)
-    setUnreadCount(result.unreadCount)
-    firstOffscreenIdx.current = result.firstOffscreenIdx
-  }, 100)
-
-  const onViewChanged = (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
-    lastVisibleIdx.current = data.viewableItems.at(-1)?.index ?? -1
-    calculateShowUnreadShortcutThrottled()
+  const onViewChanged = (data: ViewableItemsData) => {
+    lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
+    applyUnreadAndFloating()
     onScrollUnbox(data)
   }
 
@@ -263,27 +228,6 @@ function Inbox(props: InboxProps) {
       scrollableDiv.scrollBy({behavior: 'smooth', top})
     }
   }
-
-  React.useEffect(() => {
-    setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
-  }, [rows])
-
-  React.useEffect(() => {
-    if (
-      !C.shallowEqual(lastUnreadIndices.current, unreadIndices) ||
-      lastUnreadTotal.current !== unreadTotal
-    ) {
-      const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
-      setShowUnread(result.showUnread)
-      setUnreadCount(result.unreadCount)
-      firstOffscreenIdx.current = result.firstOffscreenIdx
-    }
-  }, [unreadIndices, unreadTotal])
-
-  React.useEffect(() => {
-    lastUnreadIndices.current = unreadIndices
-    lastUnreadTotal.current = unreadTotal
-  }, [unreadTotal, unreadIndices])
 
   const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
     if (item.type === 'divider') {
