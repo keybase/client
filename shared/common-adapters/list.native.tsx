@@ -1,61 +1,21 @@
-import {FlatList, View} from 'react-native'
+import {View} from 'react-native'
 import * as Styles from '@/styles'
-import {smallHeight, largeHeight} from './list-item'
-import ReAnimated from './reanimated'
+import {LegendList} from '@legendapp/list/react-native'
 import type {Props} from './list'
-import noop from 'lodash/noop'
-
-const AnimatedFlatList = ReAnimated.FlatList
+import {useListProps} from './list-common'
 
 function List<T>(p: Props<T>) {
-  const {indexAsKey, keyProperty, itemHeight, renderItem, ...props} = p
+  const {empty, ...listProps} = useListProps(p)
+  if (empty) return null
 
-  const itemRender = ({item, index}: {item: T; index: number}) => {
-    return renderItem(index, item)
-  }
-
-  const getItemLayout = (data: ArrayLike<T> | null | undefined, index: number) => {
-    switch (itemHeight.type) {
-      case 'fixed':
-        return {index, length: itemHeight.height, offset: itemHeight.height * index}
-      case 'fixedListItemAuto': {
-        const length = itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
-        return {index, length, offset: length * index}
-      }
-      case 'variable':
-        return {...itemHeight.getItemLayout(index, data ? data[index] : undefined)}
-      default:
-        return {index, length: 0, offset: 0}
-    }
-  }
-
-  const keyExtractor = (item: T, index: number) => {
-    if (indexAsKey || !item) {
-      return String(index)
-    }
-
-    const keyProp = keyProperty || 'key'
-    const i: {[key: string]: string} = item
-    return i[keyProp] ?? String(index)
-  }
-
-  const ListComp = props.reAnimated ? AnimatedFlatList : FlatList
   return (
     <View style={styles.outerView}>
-      {/* need windowSize so iphone 6 doesn't have OOM issues */}
-      <ListComp
+      <LegendList
+        {...listProps}
+        keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}
-        renderItem={itemRender}
-        data={p.items}
-        getItemLayout={(data: ArrayLike<T> | null | undefined, index: number) => getItemLayout(data, index)}
-        keyExtractor={keyExtractor}
-        keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
-        onEndReached={props.onEndReached}
-        windowSize={props.windowSize || 10}
-        debug={false /* set to true to debug the list */}
-        contentContainerStyle={props.style}
-        onScrollToIndexFailed={noop}
+        contentContainerStyle={p.style}
       />
     </View>
   )
