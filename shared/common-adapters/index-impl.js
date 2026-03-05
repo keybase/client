@@ -64,12 +64,6 @@ module.exports = {
   get Button2() {
     return require('./button2').default
   },
-  get Icon2() {
-    return require('./icon2').default
-  },
-  get IconButton() {
-    return require('./button2').IconButton
-  },
   get ButtonBar() {
     return require('./button-bar').default
   },
@@ -159,6 +153,12 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
+  get Icon2() {
+    return require('./icon2').default
+  },
+  get IconButton() {
+    return require('./button2').IconButton
+  },
   get Image() {
     return require('./image').default
   },
@@ -177,7 +177,7 @@ module.exports = {
   get List() {
     return require('./list').default
   },
-get ListItem() {
+  get ListItem() {
     return require('./list-item').default
   },
   get LoadingLine() {
