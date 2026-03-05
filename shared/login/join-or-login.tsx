@@ -66,10 +66,10 @@ const Intro = () => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button label="Create account" onClick={onSignup} fullWidth={true} />
-          <Kb.Button label="Log in" mode="Secondary" onClick={onLogin} fullWidth={true} />
+          <Kb.Button2 label="Create account" onClick={onSignup} fullWidth={true} />
+          <Kb.Button2 label="Log in" mode="Secondary" onClick={onLogin} fullWidth={true} />
           {isOnline ? null : (
-            <Kb.Button
+            <Kb.Button2
               label="Configure a proxy"
               mode="Secondary"
               onClick={showProxySettings}

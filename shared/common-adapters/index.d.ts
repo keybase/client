@@ -22,6 +22,7 @@ export {Box2, Box2Measure, Box2Animated, Box2Div, Box2View, type LayoutEvent} fr
 export type {MeasureDesktop, MeasureNative, MeasureRef} from './measure-ref'
 export {default as ButtonBar} from './button-bar'
 export {default as Button} from './button'
+export {default as Button2, IconButton} from './button2'
 export {default as BoxGrow, BoxGrow2} from './box-grow'
 export {default as Checkbox} from './checkbox'
 export {default as CheckCircle} from './check-circle'

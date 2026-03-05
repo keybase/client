@@ -127,7 +127,7 @@ const TeamRow = function TeamRow(props: Props) {
         action={
           <Kb.Box2 direction="horizontal" gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}>
             {showChat && (
-              <Kb.Button
+              <Kb.IconButton
                 type="Dim"
                 onClick={onChat}
                 disabled={!teamMeta.isMember}
@@ -137,7 +137,7 @@ const TeamRow = function TeamRow(props: Props) {
                 tooltip={!teamMeta.isMember ? 'You are not a member of this team.' : ''}
               />
             )}
-            <Kb.Button
+            <Kb.IconButton
               type="Dim"
               onClick={showPopup}
               mode="Secondary"
