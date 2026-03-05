@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import type {ChatInboxRowItem} from './rowitem'
+import {type RowItem, viewabilityConfig, getItemType, keyExtractor, calcUnreadShortcut, shouldShowFloating} from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
@@ -184,33 +184,6 @@ const DragLine = (p: {
   )
 }
 
-const shouldShowFloating = (rows: ReadonlyArray<ChatInboxRowItem>, visibleIdx: number) =>
-  visibleIdx >= 0 && rows[visibleIdx]?.type === 'small'
-
-const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, visibleIdx: number) => {
-  if (!unreadIndices.size || visibleIdx < 0) {
-    return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
-  }
-  let unreadCount = 0
-  let foid = 0
-  unreadIndices.forEach((count, idx) => {
-    if (idx > visibleIdx) {
-      if (foid <= 0) foid = idx
-      unreadCount += count
-    }
-  })
-  if (foid) {
-    return {firstOffscreen: foid, showUnread: true, unreadCount}
-  }
-  return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
-}
-
-const viewabilityConfig = {
-  minimumViewTime: 100,
-  viewAreaCoveragePercentThreshold: 30,
-}
-
-type RowItem = ChatInboxRowItem
 
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
@@ -231,8 +204,6 @@ function Inbox(props: InboxProps) {
 
   const lastUnreadIndices = React.useRef(unreadIndices)
   const lastUnreadTotal = React.useRef(unreadTotal)
-
-  const getItemType = (item: RowItem) => item.type
 
   const getFixedItemSize = (item: RowItem): number => {
     return getRowHeight(item.type, item.type === 'divider' && item.showButton)
@@ -265,7 +236,7 @@ function Inbox(props: InboxProps) {
     const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
     setShowUnread(result.showUnread)
     setUnreadCount(result.unreadCount)
-    firstOffscreenIdx.current = result.firstOffscreen
+    firstOffscreenIdx.current = result.firstOffscreenIdx
   }, 100)
 
   const onViewChanged = (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
@@ -305,7 +276,7 @@ function Inbox(props: InboxProps) {
       const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
       setShowUnread(result.showUnread)
       setUnreadCount(result.unreadCount)
-      firstOffscreenIdx.current = result.firstOffscreen
+      firstOffscreenIdx.current = result.firstOffscreenIdx
     }
   }, [unreadIndices, unreadTotal])
 
@@ -335,21 +306,6 @@ function Inbox(props: InboxProps) {
     return <>{makeRow(item, isSelected)}</>
   }
 
-  const keyExtractor = (item: RowItem, idx: number) => {
-    switch (item.type) {
-      case 'divider':
-      case 'teamBuilder':
-        return item.type
-      case 'small':
-      case 'big':
-        return item.conversationIDKey
-      case 'bigHeader':
-        return item.teamname
-      default:
-        return String(idx)
-    }
-  }
-
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
@@ -362,6 +318,7 @@ function Inbox(props: InboxProps) {
             <LegendList
               data={rows}
               estimatedItemSize={56}
+              extraData={selectedConversationIDKey}
               getItemType={getItemType}
               getFixedItemSize={getFixedItemSize}
               recycleItems={true}

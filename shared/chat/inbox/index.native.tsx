@@ -16,9 +16,7 @@ import {LegendList, type LegendListRef, type ViewToken} from '@legendapp/list/re
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import {useInboxState} from './use-inbox-state'
-import type {ChatInboxRowItem} from './rowitem'
-
-type RowItem = ChatInboxRowItem
+import {type RowItem, viewabilityConfig, getItemType, keyExtractor, calcUnreadShortcut, shouldShowFloating} from './list-helpers'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -52,32 +50,6 @@ const NoChats = (props: {onNewChat: () => void}) => (
 )
 
 const HeadComponent = <SearchRow headerContext="inbox-header" />
-const viewabilityConfig = {
-  minimumViewTime: 100,
-  viewAreaCoveragePercentThreshold: 30,
-}
-
-function computeUnreadInfo(unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) {
-  if (!unreadIndices.size || lastVisibleIdx < 0) {
-    return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-  }
-  let uc = 0
-  let firstOffscreenIdx = 0
-  unreadIndices.forEach((count, idx) => {
-    if (idx > lastVisibleIdx) {
-      if (firstOffscreenIdx <= 0) firstOffscreenIdx = idx
-      uc += count
-    }
-  })
-  return firstOffscreenIdx
-    ? {firstOffscreenIdx, showUnread: true, unreadCount: uc}
-    : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-}
-
-function computeShowFloating(rows: ArrayLike<RowItem>, lastVisibleIdx: number) {
-  if (lastVisibleIdx < 0) return false
-  return rows[lastVisibleIdx]?.type === 'small'
-}
 
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
@@ -114,10 +86,6 @@ function Inbox(p: InboxProps) {
     1000
   )
 
-  const getItemType = (item: RowItem) => {
-    return item.type
-  }
-
   const getFixedItemSize = (item: RowItem): number => {
     switch (item.type) {
       case 'small': return RowSizes.smallRowHeight
@@ -140,11 +108,11 @@ function Inbox(p: InboxProps) {
   }
 
   const applyUnreadAndFloating = () => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
+    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
+    setShowFloating(shouldShowFloating(rows, lastVisibleIdxRef.current))
   }
 
   const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
@@ -169,22 +137,6 @@ function Inbox(p: InboxProps) {
     return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
   }
 
-  const keyExtractor = (item: RowItem, idx: number) => {
-    const row = item
-    switch (row.type) {
-      case 'divider':
-      case 'teamBuilder':
-        return row.type
-      case 'small':
-      case 'big':
-        return row.conversationIDKey
-      case 'bigHeader':
-        return row.teamname
-      default:
-        return String(idx)
-    }
-  }
-
   const onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
@@ -199,11 +151,11 @@ function Inbox(p: InboxProps) {
 
   // Recompute unread/floating when store data changes (not during render to avoid double-renders)
   React.useEffect(() => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
+    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
+    setShowFloating(shouldShowFloating(rows, lastVisibleIdxRef.current))
   }, [unreadIndices, unreadTotal, rows])
 
   const promptSmallTeamsNum = () => {
