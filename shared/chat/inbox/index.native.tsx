@@ -12,13 +12,11 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as T from '@/constants/types'
 import {Alert} from 'react-native'
-import {LegendList, type LegendListRef, type ViewToken} from '@legendapp/list'
+import {LegendList, type LegendListRef, type ViewToken} from '@legendapp/list/react-native'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import {useInboxState} from './use-inbox-state'
-import type {ChatInboxRowItem} from './rowitem'
-
-type RowItem = ChatInboxRowItem
+import {type RowItem, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -52,71 +50,19 @@ const NoChats = (props: {onNewChat: () => void}) => (
 )
 
 const HeadComponent = <SearchRow headerContext="inbox-header" />
-const viewabilityConfig = {
-  minimumViewTime: 100,
-  viewAreaCoveragePercentThreshold: 30,
-}
-
-function computeUnreadInfo(unreadIndices: ReadonlyMap<number, number>, lastVisibleIdx: number) {
-  if (!unreadIndices.size || lastVisibleIdx < 0) {
-    return {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-  }
-  let uc = 0
-  let firstOffscreenIdx = 0
-  unreadIndices.forEach((count, idx) => {
-    if (idx > lastVisibleIdx) {
-      if (firstOffscreenIdx <= 0) firstOffscreenIdx = idx
-      uc += count
-    }
-  })
-  return firstOffscreenIdx
-    ? {firstOffscreenIdx, showUnread: true, unreadCount: uc}
-    : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
-}
-
-function computeShowFloating(rows: ArrayLike<RowItem>, lastVisibleIdx: number) {
-  if (lastVisibleIdx < 0) return false
-  return rows[lastVisibleIdx]?.type === 'small'
-}
 
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 function Inbox(p: InboxProps) {
   const inbox = useInboxState(p.conversationIDKey)
-  const [showFloating, setShowFloating] = React.useState(false)
-  const [showUnread, setShowUnread] = React.useState(false)
-  const [unreadCount, setUnreadCount] = React.useState(0)
-
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
 
-  // stash first offscreen index for callback
-  const firstOffscreenIdxRef = React.useRef(-1)
-  const lastVisibleIdxRef = React.useRef(-1)
   const listRef = React.useRef<LegendListRef | null>(null)
-
-  const onScrollUnbox = C.useDebouncedCallback(
-    (data: {viewableItems: Array<ViewToken<RowItem>>; changed: Array<ViewToken<RowItem>>}) => {
-      const {viewableItems} = data
-      const item = viewableItems[0]
-      if (item && Object.hasOwn(item, 'index')) {
-        const toUnbox = viewableItems.reduce<Array<T.Chat.ConversationIDKey>>((arr, vi) => {
-          const r = vi.item
-          if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-            arr.push(r.conversationIDKey)
-          }
-          return arr
-        }, [])
-        onUntrustedInboxVisible(toUnbox)
-      }
-    },
-    1000
-  )
-
-  const getItemType = (item: RowItem) => {
-    return item.type
-  }
+  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
+  const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
   const getFixedItemSize = (item: RowItem): number => {
     switch (item.type) {
@@ -126,25 +72,6 @@ function Inbox(p: InboxProps) {
       case 'divider': return RowSizes.dividerHeight(item.showButton)
       case 'teamBuilder': return 120
     }
-  }
-
-  const scrollToUnread = () => {
-    if (firstOffscreenIdxRef.current <= 0) {
-      return
-    }
-    void listRef.current?.scrollToIndex({
-      animated: true,
-      index: firstOffscreenIdxRef.current,
-      viewPosition: 0.5,
-    })
-  }
-
-  const applyUnreadAndFloating = () => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
-    setShowUnread(info.showUnread)
-    setUnreadCount(info.unreadCount)
-    firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
   }
 
   const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
@@ -169,22 +96,6 @@ function Inbox(p: InboxProps) {
     return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
   }
 
-  const keyExtractor = (item: RowItem, idx: number) => {
-    const row = item
-    switch (row.type) {
-      case 'divider':
-      case 'teamBuilder':
-        return row.type
-      case 'small':
-      case 'big':
-        return row.conversationIDKey
-      case 'bigHeader':
-        return row.teamname
-      default:
-        return String(idx)
-    }
-  }
-
   const onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
@@ -196,15 +107,6 @@ function Inbox(p: InboxProps) {
   C.Router2.useSafeFocusEffect(() => {
     setOpenRow(Chat.noConversationIDKey)
   })
-
-  // Recompute unread/floating when store data changes (not during render to avoid double-renders)
-  React.useEffect(() => {
-    const info = computeUnreadInfo(unreadIndices, lastVisibleIdxRef.current)
-    setShowUnread(info.showUnread)
-    setUnreadCount(info.unreadCount)
-    firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(computeShowFloating(rows, lastVisibleIdxRef.current))
-  }, [unreadIndices, unreadTotal, rows])
 
   const promptSmallTeamsNum = () => {
     if (C.isIOS) {

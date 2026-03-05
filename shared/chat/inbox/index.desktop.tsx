@@ -1,14 +1,15 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import type {ChatInboxRowItem} from './rowitem'
+import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {List, type RowComponentProps, useListRef} from 'react-window'
-import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
+import {LegendList, type LegendListRef} from '@legendapp/list/react'
+import {createPortal} from 'react-dom'
+import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
 import {useInboxState} from './use-inbox-state'
 import './inbox.css'
@@ -46,11 +47,11 @@ const DragLine = (p: {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
-  style: object
 }) => {
-  const {inboxNumSmallRows, showButton, style, scrollDiv, hiddenCount} = p
+  const {inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
+  const [dividerVisualTop, setDividerVisualTop] = React.useState(0)
   const deltaNewSmallRows = () => {
     if (dragY === -1) {
       return 0
@@ -68,7 +69,10 @@ const DragLine = (p: {
     removingRows = new Array<string>(-newSmallRows).fill('')
   }
 
-  const throttledDragY = C.useThrottledCallback(setDragY, 100)
+  const throttledDragUpdate = C.useThrottledCallback((dy: number, dvt: number) => {
+    setDragY(dy)
+    setDividerVisualTop(dvt)
+  }, 100)
 
   const goodDropRef = React.useRef(false)
 
@@ -87,7 +91,8 @@ const DragLine = (p: {
         const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
         if (scrollableDiv) {
           const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollableDiv.scrollTop
-          throttledDragY(dy)
+          const dvt = inboxNumSmallRows * smallRowHeight - scrollableDiv.scrollTop
+          throttledDragUpdate(dy, dvt)
         }
       }
     }
@@ -101,7 +106,7 @@ const DragLine = (p: {
       d.removeEventListener('dragover', onDragOver)
       d.removeEventListener('drop', onDrop)
     }
-  }, [scrollDiv, throttledDragY])
+  }, [scrollDiv, throttledDragUpdate, inboxNumSmallRows])
 
   const onDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(dragKey, dragKey)
@@ -118,14 +123,36 @@ const DragLine = (p: {
     setDragY(-1)
   }
 
+  const overlayTop = expandingRows.length
+    ? dividerVisualTop
+    : dividerVisualTop - removingRows.length * smallRowHeight
+
+  const overlay =
+    dragY !== -1 && (expandingRows.length > 0 || removingRows.length > 0) && scrollDiv.current
+      ? createPortal(
+          <Kb.Box2
+            direction="vertical"
+            style={Kb.Styles.collapseStyles([
+              styles.fakeRowContainer,
+              {
+                height: (expandingRows.length || removingRows.length) * smallRowHeight,
+                top: overlayTop,
+              },
+            ])}
+          >
+            {expandingRows.map((_, idx) => (
+              <FakeRow idx={idx} key={idx} />
+            ))}
+            {removingRows.map((_, idx) => (
+              <FakeRemovingRow key={idx} />
+            ))}
+          </Kb.Box2>,
+          scrollDiv.current
+        )
+      : null
+
   return (
-    <div
-      style={{
-        ...style,
-        // so the fake rows are above items further down the list
-        zIndex: 999,
-      }}
-    >
+    <div style={styles.dragLineWrapper}>
       {showButton && !smallTeamsExpanded && (
         <>
           <div
@@ -144,26 +171,6 @@ const DragLine = (p: {
           <Kb.Box2 direction="vertical" style={styles.spacer} />
         </>
       )}
-      {dragY !== -1 && (
-        <Kb.Box2
-          direction="vertical"
-          style={Kb.Styles.collapseStyles([
-            styles.fakeRowContainer,
-            {
-              bottom: expandingRows.length ? undefined : dividerHeight(showButton),
-              height: (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
-              top: expandingRows.length ? 0 : undefined,
-            },
-          ])}
-        >
-          {expandingRows.map((_, idx) => (
-            <FakeRow idx={idx} key={idx} />
-          ))}
-          {removingRows.map((_, idx) => (
-            <FakeRemovingRow key={idx} />
-          ))}
-        </Kb.Box2>
-      )}
       <TeamsDivider
         hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
         key="divider"
@@ -172,83 +179,11 @@ const DragLine = (p: {
         hiddenCount={hiddenCount}
         smallTeamsExpanded={smallTeamsExpanded}
       />
+      {overlay}
     </div>
   )
 }
 
-type InboxRowData = {
-  inboxNumSmallRows: number
-  rows: ReadonlyArray<ChatInboxRowItem>
-  scrollDiv: React.RefObject<HTMLDivElement | null>
-  selectedConversationIDKey: string
-  setInboxNumSmallRows: (rows: number) => void
-  smallTeamsExpanded: boolean
-  toggleSmallTeamsExpanded: () => void
-}
-
-function InboxRow(p: RowComponentProps<InboxRowData>) {
-  const {index, style, rows} = p
-  const {scrollDiv, inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = p
-  const {setInboxNumSmallRows, selectedConversationIDKey} = p
-  const row = rows[index]
-  if (!row) {
-    // likely small teams were just collapsed
-    return <div style={style} />
-  }
-
-  const divStyle = style
-
-  if (row.type === 'divider') {
-    return (
-      <DragLine
-        scrollDiv={scrollDiv}
-        inboxNumSmallRows={inboxNumSmallRows}
-        showButton={row.showButton}
-        hiddenCount={row.hiddenCount}
-        smallTeamsExpanded={smallTeamsExpanded}
-        style={divStyle}
-        toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
-        setInboxNumSmallRows={setInboxNumSmallRows}
-      />
-    )
-  }
-  if (row.type === 'teamBuilder') {
-    return (
-      <div style={divStyle}>
-        <BuildTeam />
-      </div>
-    )
-  }
-
-  // pointer events on so you can click even right after a scroll
-  const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
-  return (
-    <div style={{...divStyle, pointerEvents: 'auto'}}>
-      {makeRow(row, isSelected)}
-    </div>
-  )
-}
-
-const shouldShowFloating = (rows: ReadonlyArray<ChatInboxRowItem>, visibleIdx: number) =>
-  visibleIdx >= 0 && rows[visibleIdx]?.type === 'small'
-
-const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, visibleIdx: number) => {
-  if (!unreadIndices.size || visibleIdx < 0) {
-    return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
-  }
-  let unreadCount = 0
-  let foid = 0
-  unreadIndices.forEach((count, idx) => {
-    if (idx > visibleIdx) {
-      if (foid <= 0) foid = idx
-      unreadCount += count
-    }
-  })
-  if (foid) {
-    return {firstOffscreen: foid, showUnread: true, unreadCount}
-  }
-  return {firstOffscreen: -1, showUnread: false, unreadCount: 0}
-}
 
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
@@ -257,64 +192,22 @@ function Inbox(props: InboxProps) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
   const {toggleSmallTeamsExpanded, selectedConversationIDKey, onUntrustedInboxVisible} = inbox
   const {setInboxNumSmallRows, allowShowFloatingButton} = inbox
-  const [showFloating, setShowFloating] = React.useState(false)
-  const [showUnread, setShowUnread] = React.useState(false)
-  const [unreadCount, setUnreadCount] = React.useState(0)
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
-  const listRef = useListRef(null)
+  const listRef = React.useRef<LegendListRef | null>(null)
 
-  // stuff for UnreadShortcut
-  const firstOffscreenIdx = React.useRef(-1)
-  const lastVisibleIdx = React.useRef(-1)
+  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
+  const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
-  const lastUnreadIndices = React.useRef(unreadIndices)
-  const lastUnreadTotal = React.useRef(unreadTotal)
-
-  const itemSizeGetter = (index: number) => {
-    const row = rows[index]
-    if (!row) {
-      return 0
-    }
-
-    return getRowHeight(row.type, row.type === 'divider' && row.showButton)
+  const getFixedItemSize = (item: RowItem): number => {
+    return getRowHeight(item.type, item.type === 'divider' && item.showButton)
   }
 
-  const scrollToUnread = () => {
-    if (firstOffscreenIdx.current <= 0) {
-      return
-    }
-    listRef.current?.scrollToRow({index: firstOffscreenIdx.current})
-  }
-
-  const onItemsRenderedDebounced = C.useDebouncedCallback(
-    (p: {startIndex: number; stopIndex: number}) => {
-      const {startIndex, stopIndex} = p
-      const toUnbox = rows
-        .slice(startIndex, stopIndex + 1)
-        .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-          if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-            arr.push(r.conversationIDKey)
-          }
-          return arr
-        }, [])
-      setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
-      onUntrustedInboxVisible(toUnbox)
-    },
-    200
-  )
-
-  const calculateShowUnreadShortcutThrottled = C.useThrottledCallback(() => {
-    const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
-    setShowUnread(result.showUnread)
-    setUnreadCount(result.unreadCount)
-    firstOffscreenIdx.current = result.firstOffscreen
-  }, 100)
-
-  const onItemsRendered = ({startIndex, stopIndex}: {startIndex: number; stopIndex: number}) => {
-    lastVisibleIdx.current = stopIndex
-    calculateShowUnreadShortcutThrottled()
-    onItemsRenderedDebounced({startIndex, stopIndex})
+  const onViewChanged = (data: ViewableItemsData) => {
+    lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
+    applyUnreadAndFloating()
+    onScrollUnbox(data)
   }
 
   const scrollToBigTeams = () => {
@@ -324,66 +217,62 @@ function Inbox(props: InboxProps) {
       toggleSmallTeamsExpanded()
     }
 
-    // Should we scroll?
     const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
     if (!scrollableDiv) return
 
     const top = inboxNumSmallRows * smallRowHeight
     const boundingHeight = scrollableDiv.getBoundingClientRect().height
-    const dragHeight = 76 // grabbed from inspector
+    const dragHeight = 76
     const currentScrollTop = scrollableDiv.scrollTop
     if (boundingHeight + currentScrollTop < top + dragHeight) {
       scrollableDiv.scrollBy({behavior: 'smooth', top})
     }
   }
 
-  React.useEffect(() => {
-    setShowFloating(shouldShowFloating(rows, lastVisibleIdx.current))
-  }, [rows])
-
-  React.useEffect(() => {
-    if (
-      !C.shallowEqual(lastUnreadIndices.current, unreadIndices) ||
-      lastUnreadTotal.current !== unreadTotal
-    ) {
-      const result = calcUnreadShortcut(unreadIndices, lastVisibleIdx.current)
-      setShowUnread(result.showUnread)
-      setUnreadCount(result.unreadCount)
-      firstOffscreenIdx.current = result.firstOffscreen
+  const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
+    if (item.type === 'divider') {
+      return (
+        <DragLine
+          scrollDiv={scrollDiv}
+          inboxNumSmallRows={inboxNumSmallRows}
+          showButton={item.showButton}
+          hiddenCount={item.hiddenCount}
+          smallTeamsExpanded={smallTeamsExpanded}
+          toggleSmallTeamsExpanded={toggleSmallTeamsExpanded}
+          setInboxNumSmallRows={setInboxNumSmallRows}
+        />
+      )
     }
-  }, [unreadIndices, unreadTotal])
-
-  React.useEffect(() => {
-    lastUnreadIndices.current = unreadIndices
-    lastUnreadTotal.current = unreadTotal
-  }, [unreadTotal, unreadIndices])
+    if (item.type === 'teamBuilder') {
+      return <BuildTeam />
+    }
+    const isSelected = 'conversationIDKey' in item && selectedConversationIDKey === item.conversationIDKey
+    return <>{makeRow(item, isSelected)}</>
+  }
 
   const floatingDivider = showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
-
-  const itemData = {
-    inboxNumSmallRows,
-    rows,
-    scrollDiv,
-    selectedConversationIDKey,
-    setInboxNumSmallRows,
-    smallTeamsExpanded,
-    toggleSmallTeamsExpanded,
-  }
 
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
         <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
           {rows.length ? (
-            <List
-              listRef={listRef}
-              onRowsRendered={onItemsRendered}
-              rowCount={rows.length}
-              rowHeight={itemSizeGetter}
-              rowComponent={InboxRow}
-              rowProps={itemData}
+            <LegendList
+              data={rows}
+              estimatedItemSize={56}
+              extraData={selectedConversationIDKey}
+              getItemType={getItemType}
+              getFixedItemSize={getFixedItemSize}
+              recycleItems={true}
+              keyExtractor={keyExtractor}
+              onViewableItemsChanged={onViewChanged}
+              viewabilityConfig={viewabilityConfig}
+              ref={listRef}
+              renderItem={renderItem}
+              drawDistance={250}
+              style={styles.legendList}
             />
           ) : null}
         </div>
@@ -407,6 +296,9 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
+      dragLineWrapper: {
+        position: 'relative' as const,
+      },
       fakeAvatar: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.black_10,
@@ -483,9 +375,13 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: 1,
         width: Kb.Styles.globalMargins.small,
       },
+      legendList: {
+        height: '100%',
+      },
       list: {
         flex: 1,
         height: '100%',
+        position: 'relative' as const,
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
