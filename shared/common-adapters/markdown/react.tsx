@@ -9,6 +9,7 @@ import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
 import type {default as ServiceDecorationType} from './service-decoration'
+import {PerfProfiler} from '@/perf/react-profiler'
 const SimpleMarkdown = SM.default
 
 let ServiceDecoration: typeof ServiceDecorationType = () => {
@@ -278,17 +279,19 @@ const reactComponentsForMarkdownType = {
   },
   emoji: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
-      <NativeEmoji
-        emojiName={
-          //eslint-disable-next-line
-          String(node['content']).toLowerCase()
-        }
-        size={state.styleOverride?.emojiSize?.size ?? 16}
-        key={state.key}
-        disableSelecting={state.virtualText}
-        allowFontScaling={state.allowFontScaling}
-        style={state.styleOverride?.emoji}
-      />
+      <PerfProfiler id="MD-emoji" key={state.key}>
+        <NativeEmoji
+          key={state.key}
+          emojiName={
+            //eslint-disable-next-line
+            String(node['content']).toLowerCase()
+          }
+          size={state.styleOverride?.emojiSize?.size ?? 16}
+          disableSelecting={state.virtualText}
+          allowFontScaling={state.allowFontScaling}
+          style={state.styleOverride?.emoji}
+        />
+      </PerfProfiler>
     ),
   },
   fence: {
@@ -329,19 +332,21 @@ const reactComponentsForMarkdownType = {
       const oldInParagraph = state.inParagraph
       state.inParagraph = true
       const ret = (
-        <Text
-          className={state.paragraphTextClassName}
-          type="Body"
-          key={state.key}
-          style={Styles.collapseStyles([
-            markdownStyles.textBlockStyle,
-            state.styleOverride?.paragraph,
-            state.inBlockQuote && markdownStyles.quoteStyleText,
-          ])}
-          allowFontScaling={state.allowFontScaling}
-        >
-          {output(node['content'], state)}
-        </Text>
+        <PerfProfiler id="MD-paragraph" key={state.key}>
+          <Text
+            key={state.key}
+            className={state.paragraphTextClassName}
+            type="Body"
+            style={Styles.collapseStyles([
+              markdownStyles.textBlockStyle,
+              state.styleOverride?.paragraph,
+              state.inBlockQuote && markdownStyles.quoteStyleText,
+            ])}
+            allowFontScaling={state.allowFontScaling}
+          >
+            {output(node['content'], state)}
+          </Text>
+        </PerfProfiler>
       )
       state.inParagraph = oldInParagraph
       return ret
@@ -349,16 +354,18 @@ const reactComponentsForMarkdownType = {
   },
   serviceDecoration: {
     react: (node: Node, _output: SM.ReactOutput, state: State) => (
-      <ServiceDecoration
-        json={node['content'] as unknown as string}
-        key={state.key}
-        allowFontScaling={state.allowFontScaling}
-        messageType={state.messageType}
-        styleOverride={state.styleOverride}
-        styles={markdownStyles}
-        disableBigEmojis={false}
-        disableEmojiAnimation={false}
-      />
+      <PerfProfiler id="MD-serviceDecoration" key={state.key}>
+        <ServiceDecoration
+          key={state.key}
+          json={node['content'] as unknown as string}
+          allowFontScaling={state.allowFontScaling}
+          messageType={state.messageType}
+          styleOverride={state.styleOverride}
+          styles={markdownStyles}
+          disableBigEmojis={false}
+          disableEmojiAnimation={false}
+        />
+      </PerfProfiler>
     ),
   },
   spoiler: {

@@ -8,26 +8,21 @@ waitToSettleTimeoutMs: 10
     arguments:
       PERF_FPS_MONITOR: "true"
 
+# App auto-navigates to the target conversation on startup
 - extendedWaitUntil:
     visible:
-      text: "Teams"
-    timeout: 60000
+      id: "messageList"
+    timeout: 120000
 
-- runFlow: ../subflows/navigate-to-teams.yaml
+# Wait for messages to load
+- waitForAnimationToEnd
 
+# Swipe down = scroll back in time through chat history
 - repeat:
-    times: 3
+    times: 10
     commands:
       - swipe:
-          id: "teamsList"
-          direction: UP
-          duration: 10
-
-- repeat:
-    times: 3
-    commands:
-      - swipe:
-          id: "teamsList"
+          id: "messageList"
           direction: DOWN
           duration: 10
 

@@ -1,4 +1,5 @@
 appId: keybase.ios
+waitToSettleTimeoutMs: 10
 
 ---
 
@@ -20,7 +21,7 @@ appId: keybase.ios
       - swipe:
           id: "inboxList"
           direction: UP
-          duration: 150
+          duration: 10
 
 - repeat:
     times: 3
@@ -28,7 +29,7 @@ appId: keybase.ios
       - swipe:
           id: "inboxList"
           direction: DOWN
-          duration: 150
+          duration: 10
 
 # Press Home to trigger app background → flushes profiler data
 - pressKey: Home

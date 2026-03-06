@@ -16,6 +16,7 @@ import {
 import type * as T from '@/constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
 import {ErrorBoundary} from 'react-error-boundary'
+import {PerfProfiler} from '@/perf/react-profiler'
 
 const SimpleMarkdown = SM.default
 
@@ -400,7 +401,9 @@ const parseCacheMaxSize = 200
 const cachedParse = (text: string, parseLevel: ParseLevel, options: Record<string, unknown>): Array<SM.SingleASTNode> => {
   const key = `${parseLevel}:${text}`
   const cached = parseCache.get(key)
-  if (cached) return cached
+  if (cached) {
+    return cached
+  }
   const parser = parseLevel === 'full' ? simpleMarkdownParser : serviceOnlyMarkdownParser
   const result = parser(text, options)
   if (parseCache.size >= parseCacheMaxSize) {
@@ -433,8 +436,10 @@ const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
 
 const fastMDReg = /[*_`~]/
 const serviceDecorationFastCheck = '$>kb$'
-// Fast check for emoji shortcodes (:name:) or unicode emojis
-const emojiQuickCheck = new RegExp(`:[\\w+-]+:|${emojiRegex.source.replace(/^\^/, '')}`)
+// Fast check for unicode emojis — only run the expensive regex if non-ASCII found
+// eslint-disable-next-line no-control-regex
+const nonAsciiCheck = /[^\x00-\x7F]/
+const unicodeEmojiCheck = new RegExp(emojiRegex.source.replace(/^\^/, ''))
 
 type ParseLevel = 'none' | 'serviceOnly' | 'full'
 
@@ -443,7 +448,8 @@ const getParseLevel = (s: string): ParseLevel => {
   if (s.startsWith('>') || s.includes('\n>')) return 'full'
   if (s.includes('!>')) return 'full'
   if (s.includes(serviceDecorationFastCheck)) return 'serviceOnly'
-  if (emojiQuickCheck.test(s)) return 'full'
+  if (s.includes(':')) return 'full'
+  if (nonAsciiCheck.test(s) && unicodeEmojiCheck.test(s)) return 'full'
   return 'none'
 }
 
@@ -458,7 +464,7 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
 
 const emptyStyleOverride: StyleOverride = {}
 
-function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
+function renderMarkdown(p: MarkdownProps): React.ReactNode {
   const {allowFontScaling, styleOverride = emptyStyleOverride, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
   const {serviceOnlyNoWrap, disallowAnimation, context} = p
@@ -615,6 +621,10 @@ function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
       </Text>
     </ErrorBoundary>
   )
+}
+
+function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
+  return <PerfProfiler id="MD-total">{renderMarkdown(p)}</PerfProfiler>
 }
 
 const styles = Styles.styleSheetCreate(() => ({
