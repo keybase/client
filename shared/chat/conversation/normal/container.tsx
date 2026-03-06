@@ -12,19 +12,14 @@ const useOrangeLine = () => {
   const id = Chat.useChatContext(s => s.id)
   // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
   // This ensures we capture the read position before the Go service processes mark-as-read
-  const savedReadMsgIDRef = React.useRef(Chat.getConvoState(id).meta.readMsgID)
-  const prevIdRef = React.useRef(id)
-  if (prevIdRef.current !== id) {
-    prevIdRef.current = id
-    savedReadMsgIDRef.current = Chat.getConvoState(id).meta.readMsgID
-  }
+  const savedReadMsgID = React.useMemo(() => Chat.getConvoState(id).meta.readMsgID, [id])
 
   const loadOrangeLine = React.useEffectEvent((useSavedReadMsgID?: boolean) => {
     const f = async () => {
       const store = Chat.getConvoState(id)
       const convID = store.getConvID()
       const readMsgID = useSavedReadMsgID
-        ? savedReadMsgIDRef.current
+        ? savedReadMsgID
         : store.meta.readMsgID
       const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
         convID,
