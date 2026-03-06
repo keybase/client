@@ -3,6 +3,6 @@ import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
-  return <Kb.Box2Measure direction="horizontal" fullWidth={true} {...props} />
+  return <Kb.Box2 direction="horizontal" fullWidth={true} {...props} />
 }
 export default LongPressable

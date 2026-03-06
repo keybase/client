@@ -53,7 +53,7 @@ function CoinFlipContainer() {
   const {showPopup, hidePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const statusText = showParticipants ? (
-    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       {!Kb.Styles.isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
@@ -63,7 +63,7 @@ function CoinFlipContainer() {
         {`${numParticipants} ${pluralize('participant', numParticipants)}`}
       </Kb.Text>
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">

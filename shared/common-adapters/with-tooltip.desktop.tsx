@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2Measure} from './box'
+import {Box2} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
@@ -9,7 +9,7 @@ import type {MeasureRef} from './measure-ref'
 const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
-  Box2Measure,
+  Box2,
   Text,
   Toast,
 }
@@ -52,7 +52,7 @@ function WithTooltip(p: Props) {
 
   return (
     <>
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="vertical"
         alignSelf="stretch"
         alignItems="center"
@@ -63,7 +63,7 @@ function WithTooltip(p: Props) {
         className={className}
       >
         {children}
-      </Kb.Box2Measure>
+      </Kb.Box2>
       {!disabled && visible && tooltip ? toast : null}
     </>
   )

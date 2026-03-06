@@ -89,15 +89,14 @@ const PinnedMessage = function PinnedMessage() {
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         ) : (
-          <Kb.Box2Measure direction="vertical" ref={closeref}>
-            <Kb.Icon
-              onClick={onIconClick}
-              type="iconfont-close"
-              sizeType="Small"
-              style={styles.close}
-              boxStyle={styles.close}
-            />
-          </Kb.Box2Measure>
+          <Kb.Icon
+            onClick={onIconClick}
+            type="iconfont-close"
+            sizeType="Small"
+            style={styles.close}
+            boxStyle={styles.close}
+            ref={closeref}
+          />
         )}
       </Kb.Box2>
     </Kb.ClickableBox>

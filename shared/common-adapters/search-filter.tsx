@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import {Box2, Box2Measure} from './box'
+import {Box2} from './box'
 import ClickableBox, {ClickableBox2} from './clickable-box'
 import Input3, {type Input3Ref} from './input3'
 import Text from './text'
@@ -15,7 +15,6 @@ import type {MeasureRef} from './measure-ref'
 const Kb = {
   Animation,
   Box2,
-  Box2Measure,
   ClickableBox,
   ClickableBox2,
   Icon,
@@ -243,7 +242,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   }
 
   const inside = (
-    <Kb.Box2Measure
+    <Kb.Box2
       ref={measureRef}
       direction="horizontal"
       style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
@@ -253,7 +252,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       {input()}
       {waiting()}
       {rightCancelIcon()}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 
   const content = Styles.isMobile ? (

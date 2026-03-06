@@ -173,7 +173,7 @@ function DesktopHeader(p: Props) {
           headerStyle,
         ])}
       >
-        <Kb.Box2Measure
+        <Kb.Box2
           key="topBar"
           direction="horizontal"
           fullWidth={true}
@@ -208,7 +208,7 @@ function DesktopHeader(p: Props) {
             {!title && rightActions}
             {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
           </Kb.Box2>
-        </Kb.Box2Measure>
+        </Kb.Box2>
         <Kb.Box2
           key="bottomBar"
           direction="horizontal"

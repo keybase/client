@@ -53,7 +53,7 @@ function EmojiRowContainer(p: OwnProps) {
   const _showPicker = () => _setShowingPicker(true)
   const _hidePicker = () => _setShowingPicker(false)
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([styles.container, style])}
@@ -101,7 +101,7 @@ function EmojiRowContainer(p: OwnProps) {
           <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
         </Kb.FloatingBox>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 

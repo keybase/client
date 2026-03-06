@@ -444,7 +444,7 @@ const User = (props: {username: string}) => {
         fullHeight={true}
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
-        <Kb.Box2Measure direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
+        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}
@@ -453,7 +453,7 @@ const User = (props: {username: string}) => {
             style={styles.sectionList}
             contentContainerStyle={styles.sectionListContentStyle}
           />
-        </Kb.Box2Measure>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Reloadable>
   )

@@ -35,7 +35,7 @@ function Video(p: Props) {
   const content = (
     <>
       {filename}
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
         gap={Kb.Styles.isMobile ? undefined : 'small'}
@@ -60,7 +60,7 @@ function Video(p: Props) {
           <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
         <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
-      </Kb.Box2Measure>
+      </Kb.Box2>
     </>
   )
 

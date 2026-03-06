@@ -5,15 +5,16 @@ import logger from '@/logger'
 import {iconMeta} from './icon.constants-gen'
 import {getAssetPath} from '@/constants/platform.desktop'
 import type {Props, IconType} from './icon'
+import type {MeasureRef} from './measure-ref'
 // Extract color name from CSS variable string: "var(--color-black_50)" → "black_50"
 const cssVarToColorName = (cssVar: string): string | undefined => {
   const match = /^var\(--color-(.+)\)$/.exec(cssVar)
   return match?.[1]
 }
 
-const Icon = (props: Props) => {
+const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
-    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
+    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true, ref} = props
     const iconType = type
     const hasDarkVariant = !!iconMeta[iconType].nameDark
 
@@ -125,6 +126,7 @@ const Icon = (props: Props) => {
 
       return (
         <div
+          ref={ref as React.Ref<HTMLDivElement>}
           style={
             Styles.collapseStyles([
               // This breaks a couple existing uses. So only apply it when padding

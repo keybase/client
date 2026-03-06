@@ -34,7 +34,7 @@ const ExplodingHeightRetainer = (p: Props) => {
   }, [])
 
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.container,
@@ -51,7 +51,7 @@ const ExplodingHeightRetainer = (p: Props) => {
     >
       {retainHeight ? null : children}
       <Ashes doneExploding={!animating} exploded={retainHeight} explodedBy={explodedBy} height={height} />
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 

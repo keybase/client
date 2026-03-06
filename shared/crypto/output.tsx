@@ -260,7 +260,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
               onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
-          <Kb.Box2Measure direction="horizontal" ref={popupAnchor}>
+          <Kb.Box2 direction="horizontal" ref={popupAnchor}>
             <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
                 Copied to clipboard
@@ -275,7 +275,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
                 onClick={() => copy()}
               />
             )}
-          </Kb.Box2Measure>
+          </Kb.Box2>
           {canSaveAsText && !Kb.Styles.isMobile && (
             <Kb.Button
               mode="Secondary"

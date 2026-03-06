@@ -421,7 +421,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   return (
     <>
       {children}
-      <Kb.Box2Measure direction="vertical" ref={popupAnchor} />
+      <Kb.Box2 direction="vertical" ref={popupAnchor} />
       {open && (
         <Kb.FloatingBox
           attachTo={popupAnchor}

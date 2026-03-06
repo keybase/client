@@ -136,16 +136,7 @@ const useBox2Shared = (p: Box2Props) => {
   }
 }
 
-export const Box2 = (p: Box2Props) => {
-  const props = useBox2Shared(p)
-  return <View {...props} />
-}
-
-export const Box2Div = () => {
-  throw new Error('Wrong platform')
-}
-
-export const Box2View = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2 = (p: Box2Props & {ref?: React.Ref<View>}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
   return <View {...props} ref={ref} />
@@ -157,11 +148,6 @@ export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
   return <Reanimated.View {...props} ref={ref} />
 }
 
-export const Box2Measure = (p: Box2Props & {ref?: React.Ref<View>}) => {
-  const {ref, ...rest} = p
-  const props = useBox2Shared(rest)
-  return <View {...props} ref={ref} />
-}
 
 const common = {
   alignItems: 'stretch',

@@ -473,7 +473,7 @@ function RightSide(p: RProps) {
 
   const visibleItems =
     hasVisibleItems || menu ? (
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
@@ -489,7 +489,7 @@ function RightSide(p: RProps) {
         {revokedIcon}
         {coinsIcon}
         {bot}
-      </Kb.Box2Measure>
+      </Kb.Box2>
     ) : null
 
   return (

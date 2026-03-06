@@ -293,7 +293,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 
   return (
     <>
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="vertical"
         style={styles.icon}
         ref={popupAnchor}
@@ -305,7 +305,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
           onClick={showPopup}
           type="iconfont-emoji"
         />
-      </Kb.Box2Measure>
+      </Kb.Box2>
       {popup}
     </>
   )

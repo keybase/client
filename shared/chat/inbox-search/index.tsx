@@ -426,7 +426,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
 
   return (
     <Kb.ClickableBox onClick={showPopup} style={{width: '100%'}}>
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         ref={popupAnchor}
@@ -463,7 +463,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             {description}
           </Kb.Text>
         </Kb.Box2>
-      </Kb.Box2Measure>
+      </Kb.Box2>
       {popup}
     </Kb.ClickableBox>
   )

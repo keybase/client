@@ -107,14 +107,13 @@ const TeamHeader = () => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2Measure direction="vertical" ref={popupAnchor}>
-          <Kb.Icon
-            type="iconfont-gear"
-            onClick={showPopup}
-            style={styles.gear}
-            fontSize={gearIconSize}
-          />
-        </Kb.Box2Measure>
+        <Kb.Icon
+          type="iconfont-gear"
+          onClick={showPopup}
+          ref={popupAnchor}
+          style={styles.gear}
+          fontSize={gearIconSize}
+        />
       </Kb.Box2>
       {!!description && (
         <Kb.Box2 direction="horizontal" style={styles.description}>

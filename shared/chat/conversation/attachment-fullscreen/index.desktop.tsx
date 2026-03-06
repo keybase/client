@@ -76,17 +76,16 @@ const Fullscreen = function Fullscreen(p: Props) {
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
-          <Kb.Box2Measure direction="vertical" ref={popupAnchor}>
-            <Kb.Icon
-              type="iconfont-ellipsis"
-              style={Kb.Styles.platformStyles({
-                common: {marginLeft: Kb.Styles.globalMargins.tiny},
-                isElectron: {cursor: 'pointer'},
-              })}
-              color={Kb.Styles.globalColors.black_50}
-              onClick={showPopup}
-            />
-          </Kb.Box2Measure>
+          <Kb.Icon
+            ref={popupAnchor}
+            type="iconfont-ellipsis"
+            style={Kb.Styles.platformStyles({
+              common: {marginLeft: Kb.Styles.globalMargins.tiny},
+              isElectron: {cursor: 'pointer'},
+            })}
+            color={Kb.Styles.globalColors.black_50}
+            onClick={showPopup}
+          />
           {popup}
         </Kb.Box2>
         {path && (
