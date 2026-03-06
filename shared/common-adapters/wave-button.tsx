@@ -4,7 +4,7 @@ import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import Button2 from './button2'
+import Button from './button'
 import NativeEmoji from './emoji/native-emoji'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
@@ -12,7 +12,7 @@ import logger from '@/logger'
 
 const Kb = {
   Box2,
-  Button2,
+  Button,
   Icon,
   NativeEmoji,
   Text,
@@ -83,7 +83,7 @@ const WaveButtonImpl = (props: Props) => {
           <Kb.Text type="BodySmall"> Waved</Kb.Text>
         </Kb.Box2>
       )}
-      <Kb.Button2
+      <Kb.Button
         onClick={hideButton ? undefined : onWave}
         small={props.small}
         style={hideButton ? styles.hiddenButton : styles.button}
@@ -95,7 +95,7 @@ const WaveButtonImpl = (props: Props) => {
           {waveText}
         </Kb.Text>
         <Kb.NativeEmoji emojiName=":wave:" size={18} />
-      </Kb.Button2>
+      </Kb.Button>
     </Kb.Box2>
   )
 }

@@ -65,7 +65,7 @@ const AddPhone = () => {
       allowOverflow={true}
       footer={{
         content: (
-          <Kb.Button2
+          <Kb.Button
             waiting={waiting}
             fullWidth={true}
             label="Continue"

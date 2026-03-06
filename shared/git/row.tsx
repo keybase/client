@@ -218,7 +218,7 @@ function ConnectedRow(ownProps: OwnProps) {
                 style={{marginTop: Kb.Styles.globalMargins.tiny}}
                 gap="tiny"
               >
-                <Kb.Button2
+                <Kb.Button
                   type="Dim"
                   mode="Secondary"
                   small={true}
@@ -231,8 +231,8 @@ function ConnectedRow(ownProps: OwnProps) {
                     color={Kb.Styles.globalColors.black_50}
                     style={styles.iconXtiny}
                   />
-                </Kb.Button2>
-                <Kb.Button2
+                </Kb.Button>
+                <Kb.Button
                   type="Dim"
                   mode="Secondary"
                   small={true}
@@ -245,9 +245,9 @@ function ConnectedRow(ownProps: OwnProps) {
                     color={Kb.Styles.globalColors.black_50}
                     style={styles.iconXtiny}
                   />
-                </Kb.Button2>
+                </Kb.Button>
                 {canDelete && (
-                  <Kb.Button2
+                  <Kb.Button
                     type="Danger"
                     mode="Secondary"
                     small={true}

@@ -90,13 +90,13 @@ function ChatJob(p: {index: number; id: string}) {
       pauseOrResume = Kb.Styles.isMobile ? (
         <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
-        <Kb.Button2 label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
+        <Kb.Button label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
       )
     } else if (job.status === T.RPCChat.ArchiveChatJobStatus.running) {
       pauseOrResume = Kb.Styles.isMobile ? (
         <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
-        <Kb.Button2 label="Pause" onClick={onPause} small={true} />
+        <Kb.Button label="Pause" onClick={onPause} small={true} />
       )
     }
 
@@ -106,7 +106,7 @@ function ChatJob(p: {index: number; id: string}) {
         {Kb.Styles.isMobile ? (
           <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
         ) : (
-          <Kb.Button2 type="Danger" label="Cancel" onClick={onCancel} small={true} />
+          <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
         )}
       </Kb.Box2>
     )
@@ -368,18 +368,18 @@ const Archive = () => {
           {C.isMobile ? (
             <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
               <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                <Kb.Button2 small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-                <Kb.Button2 small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+                <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+                <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
               </Kb.Box2>
               <Kb.Box2 direction="horizontal" alignSelf="center">
-                <Kb.Button2 small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+                <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
               </Kb.Box2>
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-              <Kb.Button2 small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-              <Kb.Button2 small={C.isMobile} label="Backup all files" onClick={archiveFS} />
-              <Kb.Button2 small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+              <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
+              <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+              <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -394,7 +394,7 @@ const Archive = () => {
                 <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
               ))}
               {showClear ? (
-                <Kb.Button2
+                <Kb.Button
                   mode="Secondary"
                   label="Clear completed"
                   onClick={clearCompleted}

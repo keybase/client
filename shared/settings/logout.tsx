@@ -129,7 +129,7 @@ const LogoutContainer = () => {
             {loggingOut ? (
               <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
             ) : (
-              <Kb.Button2 label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
+              <Kb.Button label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
             )}
           </Kb.ButtonBar>
         ),

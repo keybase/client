@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
-import Button2, {type Button2Props} from './button2'
+import Button, {type ButtonProps} from './button'
 import Text from './text'
 import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
@@ -13,14 +13,14 @@ import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2Measure,
-  Button2,
+  Button,
   Icon,
   Text,
   Toast,
 }
 
 type Props = {
-  buttonType?: Button2Props['type']
+  buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
   disabled?: boolean
   multiline?: boolean | LineClampType
@@ -160,7 +160,7 @@ const CopyText = (props: Props) => {
         </Kb.Text>
       )}
       {!props.disabled && (
-        <Kb.Button2
+        <Kb.Button
           type={props.buttonType || 'Default'}
           style={styles.button}
           onClick={copy}
@@ -169,7 +169,7 @@ const CopyText = (props: Props) => {
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}
           />
-        </Kb.Button2>
+        </Kb.Button>
       )}
     </Kb.Box2Measure>
   )

@@ -28,7 +28,7 @@ const HeaderNewChatButton = () => {
         <Kb.Box2 direction="vertical" flex={1} style={styles.gradientYellow} />
         <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
       </Kb.Box2>
-      <Kb.Button2
+      <Kb.Button
         label="New chat"
         mode="Primary"
         onClick={onNewChat}

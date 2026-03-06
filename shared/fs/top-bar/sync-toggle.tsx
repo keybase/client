@@ -106,7 +106,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
           gap="xtiny"
           centerChildren={true}
         >
-          <Kb.Button2
+          <Kb.Button
             key="cancel"
             small={true}
             type="Dim"
@@ -114,7 +114,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
             onClick={showPopup}
             disabled={waiting}
           />
-          <Kb.Button2
+          <Kb.Button
             key="yes"
             small={true}
             type="Danger"

@@ -50,7 +50,7 @@ const UploadButton = (props: UploadButtonProps) => {
     return null
   }
   if (props.openAndUploadBoth) {
-    return <Kb.Button2 small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
+    return <Kb.Button small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
   }
   // On mobile, always show the menu (iOS gets mixed + file, Android gets photo + video + file).
   // On non-darwin desktop, show menu for file vs directory.
@@ -59,7 +59,7 @@ const UploadButton = (props: UploadButtonProps) => {
       {C.isMobile ? (
         <Kb.Icon type="iconfont-upload" padding="tiny" onClick={showPopup} />
       ) : (
-        <Kb.Button2 onClick={showPopup} label="Upload" ref={popupAnchor} style={props.style} />
+        <Kb.Button onClick={showPopup} label="Upload" ref={popupAnchor} style={props.style} />
       )}
       {popup}
     </>

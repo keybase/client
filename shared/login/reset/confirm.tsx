@@ -47,7 +47,7 @@ const ConfirmReset = () => {
               fullWidth={true}
               waitingKey={C.waitingKeyAutoresetActuallyReset}
             />
-            <Kb.Button2 label="Close" onClick={onClose} type="Dim" fullWidth={true} />
+            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>
         ),
         style: styles.footer,

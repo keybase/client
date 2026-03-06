@@ -143,7 +143,7 @@ const Banner = (props: BannerProps) => (
       {!!(props.button || props.buttonSecondary) && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           {!!props.button && (
-            <Kb.Button2
+            <Kb.Button
               disabled={props.button.disabled}
               label={props.button.buttonText}
               onClick={props.button.action}
@@ -151,7 +151,7 @@ const Banner = (props: BannerProps) => (
             />
           )}
           {!!props.buttonSecondary && (
-            <Kb.Button2
+            <Kb.Button
               disabled={props.buttonSecondary.disabled}
               label={props.buttonSecondary.buttonText}
               onClick={props.buttonSecondary.action}

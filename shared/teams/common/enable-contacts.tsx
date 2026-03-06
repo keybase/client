@@ -35,8 +35,8 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Button2 label="Open phone settings" onClick={onOpenSettings} fullWidth={true} />
-          <Kb.Button2 label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
+          <Kb.Button label="Open phone settings" onClick={onOpenSettings} fullWidth={true} />
+          <Kb.Button label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.MobilePopup>

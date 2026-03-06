@@ -163,7 +163,7 @@ const AvatarUploadWrapper = (p: Props) => {
         <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
-          <Kb.Button2
+          <Kb.Button
             label={selectedImage ? 'Pick a new avatar' : 'Pick an avatar'}
             mode="Secondary"
             onClick={onChooseNewAvatar}

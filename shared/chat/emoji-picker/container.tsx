@@ -155,7 +155,7 @@ const WrapperMobile = (props: Props) => {
         />
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
-          <Kb.Button2
+          <Kb.Button
             mode="Secondary"
             small={true}
             label="Add emoji"
@@ -259,7 +259,7 @@ export const EmojiPickerDesktop = (props: Props) => {
             </Kb.Box2>
           )}
           {canManageEmoji && (
-            <Kb.Button2 mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
+            <Kb.Button mode="Secondary" label="Add emoji" onClick={addEmoji} style={styles.addEmojiButton} />
           )}
         </Kb.Box2>
       )}

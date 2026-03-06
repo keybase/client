@@ -285,7 +285,7 @@ const IncomingShareError = () => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
         <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
-        <Kb.Button2 label="Please let us know" onClick={erroredSendFeedback} />
+        <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
       </Kb.Box2>
     </Kb.Modal>
   )

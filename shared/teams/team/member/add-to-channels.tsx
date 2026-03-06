@@ -204,14 +204,14 @@ const AddToChannels = function AddToChannels(props: Props) {
           : {
               content: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button2
+                  <Kb.Button
                     type="Dim"
                     label="Cancel"
                     onClick={onCancel}
                     style={Kb.Styles.globalStyles.flexOne}
                     disabled={waiting}
                   />
-                  <Kb.Button2
+                  <Kb.Button
                     label={
                       numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
                     }
@@ -281,7 +281,7 @@ const HeaderRow = function HeaderRow(p: {
       style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
     >
       <Kb.BoxGrow2 />
-      <Kb.Button2
+      <Kb.Button
         disabled={!canCreate}
         label="Create channel"
         small={true}
@@ -289,7 +289,7 @@ const HeaderRow = function HeaderRow(p: {
         onClick={onCreate}
       >
         <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
-      </Kb.Button2>
+      </Kb.Button>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
@@ -414,7 +414,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
           onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
           onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
         >
-          <Kb.Button2
+          <Kb.Button
             disabled={meta.channelname === 'general'}
             type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
             mode={inChannel ? 'Secondary' : 'Primary'}
@@ -425,7 +425,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
             waiting={waiting}
           >
             {inChannel && !buttonMousedOver ? <Kb.Icon2 type="iconfont-check" sizeType="Tiny" /> : undefined}
-          </Kb.Button2>
+          </Kb.Button>
         </span>
       }
       {canEdit && (

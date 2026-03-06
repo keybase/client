@@ -16,7 +16,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
     <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
     </Kb.Box2>
-    {Kb.Styles.isMobile && <Kb.Button2 label="Close" onClick={p.onBack} />}
+    {Kb.Styles.isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
   </LoginContainer>
 )
 

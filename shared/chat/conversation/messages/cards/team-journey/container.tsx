@@ -155,7 +155,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
                   disabled={!!deactivateButtons}
                 />
               ) : (
-                <Kb.Button2
+                <Kb.Button
                   key={action.label}
                   small={true}
                   type="Default"

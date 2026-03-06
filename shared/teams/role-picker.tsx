@@ -303,7 +303,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer} justifyContent="flex-end">
         {props.footerComponent}
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
-          <Kb.Button2
+          <Kb.Button
             fullWidth={true}
             disabled={selectedRole === presetRole}
             waiting={props.waiting}

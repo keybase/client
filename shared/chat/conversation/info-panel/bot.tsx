@@ -289,7 +289,7 @@ const BotTab = (props: Props) => {
       renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {
           return (
-            <Kb.Button2
+            <Kb.Button
               mode="Secondary"
               type="Default"
               label="Add a bot"
@@ -324,7 +324,7 @@ const BotTab = (props: Props) => {
         }
         if (item === loadMoreBotsButton) {
           return (
-            <Kb.Button2
+            <Kb.Button
               label="Load more"
               mode="Secondary"
               type="Default"

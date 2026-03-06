@@ -120,7 +120,7 @@ const EditAvatar = (_p: Props) => {
       header={{
         leftButton: wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null,
         rightButton: wizard ? (
-          <Kb.Button2
+          <Kb.Button
             label="Skip"
             mode="Secondary"
             onClick={onSkip}

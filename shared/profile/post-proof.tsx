@@ -112,7 +112,7 @@ const Container = () => {
             </Kb.Text>
           )}
           <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
-            <Kb.Button2 type="Dim" onClick={onCancel} label="Cancel" />
+            <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
             {showSubmit ? (
               <Kb.WaitingButton
                 onClick={onSubmit}
@@ -120,7 +120,7 @@ const Container = () => {
                 waitingKey={C.waitingKeyProfile}
               />
             ) : (
-              <Kb.Button2
+              <Kb.Button
                 onClick={() => {
                   setShowSubmit(true)
                   url && openUrl(url)

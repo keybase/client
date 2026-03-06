@@ -91,7 +91,7 @@ const AddSubteamMembers = () => {
         Kb.Styles.isMobile
           ? undefined
           : {
-              content: <Kb.Button2 label={continueLabel} onClick={onContinue} fullWidth={true} />,
+              content: <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />,
             }
       }
       noScrollView={true}

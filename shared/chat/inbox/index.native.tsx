@@ -38,7 +38,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" gapStart={true} gap="medium" style={styles.newChat}>
-      <Kb.Button2
+      <Kb.Button
         fullWidth={true}
         onClick={props.onNewChat}
         mode="Primary"

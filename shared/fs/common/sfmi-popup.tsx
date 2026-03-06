@@ -46,7 +46,7 @@ const SFMIPopup = (props: Props) => {
           <Kb.Divider style={styles.divider} />
           {fuseConsentComponent}
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonBox}>
-            <Kb.Button2
+            <Kb.Button
               type="Success"
               label="Yes, enable"
               waiting={type === T.FS.DriverStatusType.Disabled && isEnabling}
@@ -78,7 +78,7 @@ const SFMIPopup = (props: Props) => {
           />
         </Kb.WithTooltip>
       ) : (
-        <Kb.Button2
+        <Kb.Button
           mode="Secondary"
           small={true}
           label={`Enable ${C.fileUIName} integration`}

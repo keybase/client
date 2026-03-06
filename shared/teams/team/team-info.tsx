@@ -58,7 +58,7 @@ const TeamInfo = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.Button2
+          <Kb.Button
             label="Save"
             onClick={onSave}
             fullWidth={true}

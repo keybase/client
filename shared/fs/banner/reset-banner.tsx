@@ -98,13 +98,13 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" gap="small">
         {resetParticipants.map(p => (
           <Kb.Box2 direction={C.isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
-            <Kb.Button2
+            <Kb.Button
               mode="Secondary"
               label={'View ' + p + "'s profile"}
               onClick={onViewProfile(p)}
               style={styles.button}
             />
-            <Kb.Button2
+            <Kb.Button
               type="Danger"
               label={'Let ' + p + ' back in'}
               onClick={onReAddToTeam(p)}

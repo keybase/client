@@ -50,9 +50,9 @@ const UnfurlMapPopup = (props: Props) => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Button2 fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
+            <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
             {isAuthor && isLiveLocation && (
-              <Kb.Button2
+              <Kb.Button
                 fullWidth={true}
                 onClick={onStopSharing}
                 label="Stop sharing your location"

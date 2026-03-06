@@ -123,7 +123,7 @@ export const TeamRequestRow = (props: Props) => {
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
           >
-            <Kb.Button2
+            <Kb.Button
               label={approveWord}
               onClick={onAccept}
               small={true}

@@ -125,7 +125,7 @@ const MobileHeader = (props: Props) => (
           {props.fullname}
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Button2 fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
+      <Kb.Button fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
       <Kb.Divider style={styles.divider} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">

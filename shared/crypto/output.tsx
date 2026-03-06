@@ -239,7 +239,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
       {outputType === 'file' && !Kb.Styles.isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
-          <Kb.Button2
+          <Kb.Button
             mode="Secondary"
             label={`Open in ${Kb.Styles.fileUIName}`}
             onClick={() => onShowInFinder()}
@@ -252,7 +252,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
           style={styles.buttonBar}
         >
           {canReplyInChat && signed && signedByUsername && (
-            <Kb.Button2
+            <Kb.Button
               mode="Primary"
               label="Reply in chat"
               disabled={actionsDisabled}
@@ -267,7 +267,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
               </Kb.Text>
             </Kb.Toast>
             {Kb.Styles.isMobile && canReplyInChat ? null : (
-              <Kb.Button2
+              <Kb.Button
                 mode={Kb.Styles.isMobile ? 'Primary' : 'Secondary'}
                 label="Copy to clipboard"
                 disabled={actionsDisabled}
@@ -277,7 +277,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
             )}
           </Kb.Box2Measure>
           {canSaveAsText && !Kb.Styles.isMobile && (
-            <Kb.Button2
+            <Kb.Button
               mode="Secondary"
               label="Save as TXT"
               onClick={onSaveAsText}
@@ -326,7 +326,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button2 mode="Primary" label={`${operationTitle} to ...`} onClick={onOpenFile} />
+        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={onOpenFile} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )

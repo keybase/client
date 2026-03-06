@@ -21,7 +21,7 @@ const YouRekey = ({onRekey}: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar>
-        <Kb.Button2 onClick={onRekey} label="Rekey" />
+        <Kb.Button onClick={onRekey} label="Rekey" />
       </Kb.ButtonBar>
     </Kb.Box2>
   )

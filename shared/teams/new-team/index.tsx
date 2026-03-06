@@ -60,7 +60,7 @@ export const CreateNewTeam = (props: Props) => {
       }
       footer={{
         content: (
-          <Kb.Button2
+          <Kb.Button
             waiting={waiting}
             fullWidth={true}
             label="Create team"

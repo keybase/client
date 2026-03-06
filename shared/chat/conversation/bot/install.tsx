@@ -391,7 +391,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const editButton = showEditButton && (
-    <Kb.Button2
+    <Kb.Button
       fullWidth={true}
       label="Edit settings"
       onClick={() => {
@@ -417,7 +417,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const doneButton = showDoneButton && (
-    <Kb.Button2
+    <Kb.Button
       fullWidth={true}
       label={disableDone ? 'Select at least one channel' : 'Done'}
       onClick={() => setChannelPickerScreen(false)}

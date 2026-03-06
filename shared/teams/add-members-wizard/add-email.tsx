@@ -57,7 +57,7 @@ const AddEmail = (props: Props) => {
       allowOverflow={true}
       footer={{
         content: (
-          <Kb.Button2
+          <Kb.Button
             fullWidth={true}
             label="Continue"
             onClick={onContinue}

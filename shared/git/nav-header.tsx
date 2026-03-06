@@ -61,7 +61,7 @@ export const HeaderRightActions = () => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button2
+      <Kb.Button
         label="New repository"
         onClick={showPopup}
         small={true}

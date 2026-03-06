@@ -70,8 +70,8 @@ const Info = () => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 fullWidth={true} direction="horizontal" gap="small">
-        <Kb.Button2 type="Dim" label="Cancel" onClick={onCancel} />
-        <Kb.Button2 label="Let the math begin" disabled={nextDisabled} onClick={onNext} style={styles.math} />
+        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+        <Kb.Button label="Let the math begin" disabled={nextDisabled} onClick={onNext} style={styles.math} />
       </Kb.Box2>
     </Modal>
   )

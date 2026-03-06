@@ -57,7 +57,7 @@ const NoAccess = (props: Props) => (
         {"You don't have access to this folder or file."}
       </Kb.Text>
       <Explain {...props} />
-      <Kb.Button2
+      <Kb.Button
         type="Default"
         mode="Secondary"
         label="Go to parent folder"
@@ -86,7 +86,7 @@ const NonExistent = (props: Props) => (
           Either it was deleted, or the path is incorrect.
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Button2
+      <Kb.Button
         type="Default"
         mode="Secondary"
         label="Go to parent folder"

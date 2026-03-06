@@ -1,13 +1,13 @@
 import * as React from 'react'
 import Text from '@/common-adapters/text'
-import Button2 from '@/common-adapters/button2'
+import Button from '@/common-adapters/button'
 import {Box2} from '@/common-adapters/box'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {MenuItems} from '@/common-adapters/floating-menu/menu-layout'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import * as Styles from '@/styles'
 
-const Kb = {Box2, Button2, FloatingMenu, Styles, Text}
+const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 
 type PopupProps = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -26,7 +26,7 @@ const UnknownMentionPopup = (props: PopupProps) => {
       <Kb.Text type="BodySmall">
         {props.text} could be either a user or team. You can find out with a quick request to Keybase.
       </Kb.Text>
-      <Kb.Button2 label="Lookup" onClick={props.onResolve} />
+      <Kb.Button label="Lookup" onClick={props.onResolve} />
     </Kb.Box2>
   )
   return (

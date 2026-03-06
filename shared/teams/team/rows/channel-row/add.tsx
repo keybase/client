@@ -13,7 +13,7 @@ const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true} gap="small" justifyContent="flex-start">
-      <Kb.Button2 small={true} mode="Secondary" label="Create channel" onClick={onCreateChannel} />
+      <Kb.Button small={true} mode="Secondary" label="Create channel" onClick={onCreateChannel} />
       {waitingForGet && <Kb.ProgressIndicator type="Small" />}
     </Kb.Box2>
   )

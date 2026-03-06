@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type {Button2Type} from '@/common-adapters/button2'
+import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/stores/recover-password'
 import {useConfigState} from '@/stores/config'
@@ -19,7 +19,7 @@ const ConnectedError = () => {
         {
           label: 'Back',
           onClick: onBack,
-          type: 'Default' as Button2Type,
+          type: 'Default' as ButtonType,
         },
       ]}
       onBack={onBack}

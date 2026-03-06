@@ -572,7 +572,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (
-                      <Kb.Button2
+                      <Kb.Button
                         mode="Secondary"
                         onClick={onAddToChannels}
                         label={isMe ? 'Join channels' : 'Add to channels'}
@@ -637,8 +637,8 @@ export const TeamMemberHeader = (props: Props) => {
 
   const buttons = (
     <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Kb.Styles.isPhone ? 'flex-start' : 'flex-end'}>
-      <Kb.Button2 small={true} label="Chat" onClick={onChat} />
-      <Kb.Button2 small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
+      <Kb.Button small={true} label="Chat" onClick={onChat} />
+      <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
       {username !== yourUsername && <BlockDropdown username={username} />}
     </Kb.Box2>
   )

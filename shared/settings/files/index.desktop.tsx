@@ -103,7 +103,7 @@ const FinderIntegration = () => {
                 .
               </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
-                <Kb.Button2
+                <Kb.Button
                   mode="Secondary"
                   small={true}
                   type="Danger"

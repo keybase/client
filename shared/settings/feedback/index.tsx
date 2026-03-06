@@ -116,7 +116,7 @@ const Feedback = (props: Props) => {
           )}
           <Kb.Box2 alignSelf={props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
             <Kb.ButtonBar>
-              <Kb.Button2
+              <Kb.Button
                 label="Send"
                 onClick={_onSendFeedback}
                 waiting={sending}

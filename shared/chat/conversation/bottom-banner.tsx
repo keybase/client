@@ -50,12 +50,12 @@ const Invite = () => {
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
         <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-          <Kb.Button2
+          <Kb.Button
             label="Send install link"
             onClick={mobileClickInstall}
             small={true}
           />
-          <Kb.Button2
+          <Kb.Button
             label="Dismiss"
             mode="Secondary"
             onClick={onDismiss}

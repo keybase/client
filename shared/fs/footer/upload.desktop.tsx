@@ -33,7 +33,7 @@ const Upload = (props: UploadProps) => {
   return (
     <>
       {!!debugToggleShow && (
-        <Kb.Button2
+        <Kb.Button
           onClick={debugToggleShow}
           label="Toggle"
           style={Kb.Styles.collapseStyles([styles.toggleButton, {bottom: height}])}

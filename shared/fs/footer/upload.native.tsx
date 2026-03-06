@@ -94,7 +94,7 @@ const Upload = (props: UploadProps) => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <>
-      {!!debugToggleShow && <Kb.Button2 onClick={debugToggleShow} label="Toggle" />}
+      {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
       {showing && (
         <NativeAnimated.View style={{position: 'relative', top: uploadTop}}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.backgroundBox}>

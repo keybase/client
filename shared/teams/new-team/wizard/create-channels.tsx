@@ -51,7 +51,7 @@ export const CreateChannelsModal = (props: Props) => {
       ? `Continue with ${numChannels + 1} ${pluralize('channel', numChannels + 1)}`
       : 'Continue without channels'
   const submitButton = (
-    <Kb.Button2
+    <Kb.Button
       fullWidth={true}
       label={continueLabel}
       onClick={onContinue}

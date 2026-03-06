@@ -103,7 +103,7 @@ export const UpdatePassword = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button2
+            <Kb.Button
               fullWidth={true}
               label={props.saveLabel || 'Save'}
               disabled={!canSubmit()}

@@ -19,7 +19,7 @@ type AddButtonProps = {
   onClick: () => void
 }
 const AddButton = (props: AddButtonProps) => (
-  <Kb.Button2
+  <Kb.Button
     mode="Secondary"
     onClick={props.onClick}
     label={`Add ${props.kind}`}
@@ -105,7 +105,7 @@ const Password = () => {
           </Kb.Text>
         )}
         <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-          <Kb.Button2 mode="Secondary" onClick={onSetPassword} label={passwordLabel} small={true} />
+          <Kb.Button mode="Secondary" onClick={onSetPassword} label={passwordLabel} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </SettingsSection>
@@ -121,7 +121,7 @@ const WebAuthTokenLogin = () => {
         <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-        <Kb.Button2
+        <Kb.Button
           label={`Open keybase.io in web browser`}
           onClick={loginBrowserViaWebAuthToken}
           mode="Secondary"
@@ -146,7 +146,7 @@ const DeleteAccount = () => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-        <Kb.Button2
+        <Kb.Button
           type="Danger"
           mode="Secondary"
           onClick={onDeleteAccount}
@@ -235,7 +235,7 @@ const AccountSettings = () => {
               bannerColor="yellow"
               content={`Your phone number ${supersededPhoneNumber} is now associated with another Keybase user.`}
             />
-            <Kb.Button2
+            <Kb.Button
               onClick={onAddPhone}
               label="Add a new number"
               small={true}

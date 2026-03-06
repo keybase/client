@@ -161,7 +161,7 @@ const ProxySettingsComponent = (props: Props) => {
         label="Allow TLS Interception"
         style={styles.proxySetting}
       />
-      <Kb.Button2 onClick={saveProxySettings} label="Save Proxy Settings" />
+      <Kb.Button onClick={saveProxySettings} label="Save Proxy Settings" />
     </>
   )
 }

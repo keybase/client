@@ -83,7 +83,7 @@ const LoginRender = (props: Props) => {
           </UserCard>
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>
-            <Kb.Button2
+            <Kb.Button
               fullWidth={true}
               label="Create account"
               mode="Secondary"

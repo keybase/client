@@ -239,8 +239,8 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Button2 disabled={inProgress} onClick={submitSearch} label="Search" />
-        <Kb.Button2 type="Dim" onClick={onToggleThreadSearch} label="Cancel" />
+        <Kb.Button disabled={inProgress} onClick={submitSearch} label="Search" />
+        <Kb.Button type="Dim" onClick={onToggleThreadSearch} label="Cancel" />
       </Kb.Box2>
       {hits.length > 0 && (
         <Kb.List

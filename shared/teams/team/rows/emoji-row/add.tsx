@@ -27,14 +27,14 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   return !canManageEmoji ? null : (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Button2
+        <Kb.Button
           mode="Secondary"
           label="Add emoji"
           onClick={onAddEmoji}
           small={true}
           style={styles.headerButton}
         />
-        <Kb.Button2
+        <Kb.Button
           mode="Secondary"
           label="Add alias"
           onClick={onAddAlias}

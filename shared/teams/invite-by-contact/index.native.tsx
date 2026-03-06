@@ -33,7 +33,7 @@ const contactRow = (_: number, props: ContactRowProps) => {
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical">
-          <Kb.Button2
+          <Kb.Button
             type="Success"
             mode={props.alreadyInvited ? 'Secondary' : 'Primary'}
             label={props.alreadyInvited ? 'Invited!' : 'Invite'}

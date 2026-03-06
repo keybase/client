@@ -188,7 +188,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             {Kb.Styles.isMobile ? (
               <NewFolder onNewFolder={onNewFolder} />
             ) : (
-              <Kb.Button2 type="Dim" label="Cancel" onClick={onCancel} />
+              <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
             )}
           </Kb.Box2>
         )}

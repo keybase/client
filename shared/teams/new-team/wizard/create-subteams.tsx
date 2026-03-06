@@ -43,7 +43,7 @@ const CreateSubteams = () => {
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create subteams" />,
       }}
-      footer={{content: <Kb.Button2 fullWidth={true} label={continueLabel} onClick={onContinue} />}}
+      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
       allowOverflow={true}
       backgroundStyle={styles.bg}
     >

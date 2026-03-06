@@ -480,7 +480,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             {!Kb.Styles.isMobile && (
-              <Kb.Button2 fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
+              <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
             )}
             <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
           </Kb.ButtonBar>

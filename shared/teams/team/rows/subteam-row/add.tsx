@@ -18,7 +18,7 @@ const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
   )
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
-      <Kb.Button2 mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
+      <Kb.Button mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
       {!Kb.Styles.isMobile && (
         <Kb.SearchFilter
           size="small"

@@ -166,8 +166,8 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
-          <Kb.Button2 type="Dim" label="Cancel" onClick={props.onCancel} />
-          <Kb.Button2 label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+          <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </>

@@ -15,7 +15,7 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAdd = () => startAddMembersWizard(teamID)
   return (
-    <Kb.Button2
+    <Kb.Button
       label="Add/Invite people"
       onClick={onAdd}
       type="Success"
@@ -58,7 +58,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
       <Kb.Text type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text>
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-        <Kb.Button2
+        <Kb.Button
           label="Yes, feature it"
           type="Success"
           onClick={onFeature}
@@ -66,7 +66,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
           style={Kb.Styles.globalStyles.flexOne}
           waiting={waiting}
         />
-        <Kb.Button2
+        <Kb.Button
           label="Later"
           type="Dim"
           onClick={onNoThanks}
@@ -203,14 +203,14 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         )}
         <Activity level={activityLevel} style={styles.activity} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-          {meta.isMember && <Kb.Button2 label="Chat" onClick={onChat} small={true} />}
+          {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
           {yourOperations.editTeamDescription && (
-            <Kb.Button2 label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
+            <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
           )}
-          <Kb.Button2 label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
-          <Kb.Button2 mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
+          <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
+          <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
             <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
-          </Kb.Button2>
+          </Kb.Button>
           {tmpopup}
         </Kb.Box2>
       </Kb.Box2>

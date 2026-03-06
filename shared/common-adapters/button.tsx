@@ -1,4 +1,4 @@
-import './button2.css'
+import './button.css'
 import * as React from 'react'
 import type {Pressable as PressableType, Text as RNTextType, View as ViewType} from 'react-native'
 import * as Styles from '@/styles'
@@ -8,13 +8,13 @@ import type {IconType} from './icon.constants-gen'
 import type {default as WithTooltipType} from './with-tooltip'
 import type {default as Icon2Comp} from './icon2'
 
-export type Button2Type = 'Default' | 'Success' | 'Danger' | 'Dim'
+export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
 
-export type Button2Props = {
+export type ButtonProps = {
   children?: React.ReactNode
   label?: string
   onClick?: (event: React.BaseSyntheticEvent) => void
-  type?: Button2Type
+  type?: ButtonType
   mode?: 'Primary' | 'Secondary'
   small?: boolean
   fullWidth?: boolean
@@ -148,9 +148,9 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   )
 }
 
-type FullProps = Button2Props & {ref?: React.Ref<MeasureRef | null>}
+type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
-const Button2Desktop = (props: FullProps) => {
+const ButtonDesktop = (props: FullProps) => {
   const {children, label, onClick, ref, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
@@ -173,9 +173,9 @@ const Button2Desktop = (props: FullProps) => {
     : (container as Styles.StylesCrossPlatform)
 
   const className = Styles.classNames(
-    isPrimary ? 'button2--primary' : 'button2--secondary',
-    `button2--type-${type}`,
-    unclickable && 'button2--disabled'
+    isPrimary ? 'button--primary' : 'button--secondary',
+    `button--type-${type}`,
+    unclickable && 'button--disabled'
   )
 
   const handleClick = unclickable
@@ -214,7 +214,7 @@ const Button2Desktop = (props: FullProps) => {
   return btn
 }
 
-const Button2Native = (props: FullProps) => {
+const ButtonNative = (props: FullProps) => {
   const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
   const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style} = props
   const unclickable = disabled || waiting
@@ -271,11 +271,11 @@ const Button2Native = (props: FullProps) => {
   )
 }
 
-const Button2 = Styles.isMobile ? Button2Native : Button2Desktop
-export default Button2
+const Button = Styles.isMobile ? ButtonNative : ButtonDesktop
+export default Button
 
 // IconButton — convenience wrapper that renders an Icon as a child
-type IconButtonProps = Omit<Button2Props, 'label' | 'children'> & {
+type IconButtonProps = Omit<ButtonProps, 'label' | 'children'> & {
   icon: IconType
   iconColor?: Styles.Color
 }
@@ -289,8 +289,8 @@ export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef 
     ? type === 'Dim' ? Styles.globalColors.black : Styles.globalColors.whiteOrWhite
     : secondaryLabelStyles[type].color
   return (
-    <Button2 ref={ref} {...rest}>
+    <Button ref={ref} {...rest}>
       <Icon2 type={icon} sizeType="Small" color={iconColor ?? (defaultColor as string)} />
-    </Button2>
+    </Button>
   )
 }

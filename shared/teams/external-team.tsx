@@ -148,8 +148,8 @@ const Header = ({info}: ExternalTeamProps) => {
         {/* TODO add activity */}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
-        <Kb.Button2 onClick={onJoin} type="Success" label="Join team" small={true} />
-        <Kb.Button2 mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
+        <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
+        <Kb.Button mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
         {popup}
       </Kb.Box2>
     </Kb.Box2>

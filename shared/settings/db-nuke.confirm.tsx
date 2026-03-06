@@ -25,8 +25,8 @@ const DbNukeConfirm = () => {
         Are you sure you want to blast away your local database?
       </Kb.Text>
       <Kb.ButtonBar>
-        <Kb.Button2 type="Dim" label="Cancel" onClick={onCancel} />
-        <Kb.Button2 type="Danger" label="Yes, blow it away" onClick={onDBNuke} />
+        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+        <Kb.Button type="Danger" label="Yes, blow it away" onClick={onDBNuke} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )

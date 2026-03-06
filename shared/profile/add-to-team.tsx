@@ -128,7 +128,7 @@ const Container = (ownProps: OwnProps) => {
       footer={{
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && <Kb.Button2 type="Dim" onClick={onBack} label="Cancel" />}
+            {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
             <Kb.WaitingButton
               disabled={selectedTeamCount === 0}
               fullWidth={Kb.Styles.isMobile}

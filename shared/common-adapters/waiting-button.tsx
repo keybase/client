@@ -1,18 +1,18 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {default as Button2, type Button2Props} from './button2'
+import {default as Button, type ButtonProps} from './button'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {
-  Button2,
+  Button,
 }
 
 export type Props = {
   onlyDisable?: boolean
   waitingKey?: Array<string> | string
-} & Button2Props
+} & ButtonProps
 
-/* Waiting button is a <Kb.Button2 /> with handling of waiting states.
+/* Waiting button is a <Kb.Button /> with handling of waiting states.
  *
  * There are two forms:
  *  waitingKey is null: The spinner activates as soon as the button is clicked,
@@ -35,7 +35,7 @@ function WaitingButton(props: Props & {ref?: React.Ref<MeasureRef>}) {
   }
   const waiting = storeWaiting || localWaiting
   return (
-    <Kb.Button2
+    <Kb.Button
       ref={ref}
       {...buttonProps}
       onClick={event => {

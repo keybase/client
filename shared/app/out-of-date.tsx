@@ -72,7 +72,7 @@ const OutOfDate = () => {
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Kb.Styles.isMobile && <Kb.Button2 label="Update" onClick={onOpenAppStore} />}
+      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
     </Kb.Box2>
   )
 }

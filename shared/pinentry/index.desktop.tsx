@@ -77,7 +77,7 @@ const Pinentry = (props: Props) => {
             />
           )}
         </Kb.Box2>
-        <Kb.Button2
+        <Kb.Button
           style={{alignSelf: 'center'}}
           label={props.submitLabel ?? 'Continue'}
           onClick={handleSubmit}

@@ -8,7 +8,7 @@ type Props = {
 const JumpToRecent = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-      <Kb.Button2 label="Jump to recent messages" onClick={props.onClick} small={true}>
+      <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
         <Kb.Icon
           color={Kb.Styles.globalColors.whiteOrWhite}
           type="iconfont-arrow-full-down"
@@ -16,7 +16,7 @@ const JumpToRecent = (props: Props) => {
           sizeType="Small"
           style={styles.arrowText}
         />
-      </Kb.Button2>
+      </Kb.Button>
     </Kb.Box2>
   )
 }

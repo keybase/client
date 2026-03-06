@@ -45,14 +45,14 @@ const ResetUser = () => {
           Don&apos;t let them in until one of the above is&nbsp;true.
         </Kb.Text>
         <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonContainer}>
-          <Kb.Button2
+          <Kb.Button
             fullWidth={true}
             label="View profile"
             mode="Secondary"
             type="Dim"
             onClick={viewProfile}
           />
-          <Kb.Button2
+          <Kb.Button
             fullWidth={true}
             label="Let them in"
             onClick={letThemIn}

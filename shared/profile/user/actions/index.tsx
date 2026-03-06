@@ -64,7 +64,7 @@ const Container = (ownProps: OwnProps) => {
   if (blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
-        <Kb.Button2
+        <Kb.Button
           key="Manage blocking"
           mode="Secondary"
           type="Danger"
@@ -96,11 +96,11 @@ const Container = (ownProps: OwnProps) => {
   if (state === 'notAUserYet') {
     buttons = [
       chatButton,
-      <Kb.Button2 key="Open folder" mode="Secondary" label="Open folder" onClick={onOpenPrivateFolder} />,
+      <Kb.Button key="Open folder" mode="Secondary" label="Open folder" onClick={onOpenPrivateFolder} />,
     ]
   } else if (onEditProfile) {
     buttons = [
-      <Kb.Button2 key="Edit profile" mode="Secondary" label="Edit profile" onClick={onEditProfile} />,
+      <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={onEditProfile} />,
       chatButton,
     ]
   } else if (followThem) {
@@ -218,9 +218,9 @@ const DropdownButton = (p: DropdownProps) => {
   return (
     <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button2 onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
+        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
-        </Kb.Button2>
+        </Kb.Button>
       </Kb.Box2>
       {popup}
     </Kb.ClickableBox>

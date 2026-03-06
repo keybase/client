@@ -58,8 +58,8 @@ module.exports = {
   get BoxGrow2() {
     return require('./box-grow').BoxGrow2
   },
-  get Button2() {
-    return require('./button2').default
+  get Button() {
+    return require('./button').default
   },
   get ButtonBar() {
     return require('./button-bar').default
@@ -154,7 +154,7 @@ module.exports = {
     return require('./icon2').default
   },
   get IconButton() {
-    return require('./button2').IconButton
+    return require('./button').IconButton
   },
   get Image() {
     return require('./image').default

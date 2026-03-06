@@ -11,7 +11,7 @@ import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 
 const LocationButton = (props: {disabled: boolean; label: string; onClick: () => void; subLabel?: string; primary?: boolean}) => (
-  <Kb.Button2
+  <Kb.Button
     disabled={props.disabled}
     fullWidth={true}
     onClick={props.onClick}
@@ -23,7 +23,7 @@ const LocationButton = (props: {disabled: boolean; label: string; onClick: () =>
       <Kb.Text type="BodySemibold" style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}>{props.label}</Kb.Text>
       {!!props.subLabel && <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>{props.subLabel}</Kb.Text>}
     </Kb.Box2>
-  </Kb.Button2>
+  </Kb.Button>
 )
 
 const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
@@ -121,7 +121,7 @@ const LocationPopup = () => {
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Enable location for Keybase to see your current position.
           </Kb.Text>
-          <Kb.Button2 label="Open settings" onClick={onSettings} />
+          <Kb.Button label="Open settings" onClick={onSettings} />
         </Kb.Box2>
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />

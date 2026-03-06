@@ -142,7 +142,7 @@ const DevicePage = (ownProps: OwnProps) => {
       <Kb.NameWithIcon icon={icon} title={device?.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       {device ? <Timeline device={device} /> : null}
       {device?.revokedAt ? null : (
-        <Kb.Button2
+        <Kb.Button
           disabled={!canRevoke}
           type="Danger"
           label={`Revoke this ${revokeName}`}

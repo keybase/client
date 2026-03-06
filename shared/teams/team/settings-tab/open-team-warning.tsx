@@ -62,8 +62,8 @@ const OpenTeamWarning = (props: Props) => {
           }
         />
         <Kb.ButtonBar>
-          <Kb.Button2 type="Dim" onClick={onCancel} label="Cancel" />
-          <Kb.Button2
+          <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
+          <Kb.Button
             type="Danger"
             onClick={onConfirm}
             label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}

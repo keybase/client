@@ -115,10 +115,10 @@ const ConnectedEnterUsername = () => {
           )}
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Kb.Styles.isMobile && !unreachable && (
-              <Kb.Button2 type="Dim" onClick={onBack} label="Cancel" style={styles.buttonSmall} />
+              <Kb.Button type="Dim" onClick={onBack} label="Cancel" style={styles.buttonSmall} />
             )}
             {unreachable ? (
-              <Kb.Button2
+              <Kb.Button
                 type="Success"
                 onClick={onSubmit}
                 label={submitButtonLabel}

@@ -260,7 +260,7 @@ const Buttons = function Buttons(p: ButtonsProps) {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.actionContainer}>
       {isEditing && (
-        <Kb.Button2
+        <Kb.Button
           style={styles.editingButton}
           small={true}
           onClick={onCancelEditing}
@@ -280,7 +280,7 @@ const Buttons = function Buttons(p: ButtonsProps) {
         </Kb.Box2>
       )}
       {hasText && (
-        <Kb.Button2
+        <Kb.Button
           type="Default"
           small={true}
           onClick={onSubmit}

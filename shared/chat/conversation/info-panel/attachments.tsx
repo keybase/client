@@ -512,7 +512,7 @@ export const useAttachmentSections = (
       const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
         return (
-          <Kb.Button2
+          <Kb.Button
             type="Default"
             mode="Secondary"
             label="Load more"
@@ -524,7 +524,7 @@ export const useAttachmentSections = (
         return <Kb.ProgressIndicator type="Small" style={styles.loadMoreProgress} />
       } else if (status === 'error') {
         return (
-          <Kb.Button2
+          <Kb.Button
             type="Danger"
             mode="Secondary"
             label="Error loading, try again"

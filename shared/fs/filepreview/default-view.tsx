@@ -10,7 +10,7 @@ type OwnProps = {path: T.FS.Path}
 
 const Share = (p: ClickableProps) => {
   const {onClick, mref} = p
-  return <Kb.Button2 key="share" label="Share" onClick={onClick} ref={mref} />
+  return <Kb.Button key="share" label="Share" onClick={onClick} ref={mref} />
 }
 
 const Container = (ownProps: OwnProps) => {
@@ -74,7 +74,7 @@ const Container = (ownProps: OwnProps) => {
         }
         {!C.isIOS &&
           (sfmiEnabled ? (
-            <Kb.Button2
+            <Kb.Button
               key="open"
               type="Dim"
               label={'Show in ' + C.fileUIName}
@@ -82,7 +82,7 @@ const Container = (ownProps: OwnProps) => {
               onClick={showInSystemFileManager}
             />
           ) : (
-            <Kb.Button2
+            <Kb.Button
               key="download"
               mode="Secondary"
               label="Download"

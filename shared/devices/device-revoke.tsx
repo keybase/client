@@ -49,7 +49,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       waitingKey={C.waitingKeyDevices}
       onClick={onSubmit}
     />
-    <Kb.Button2 fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
+    <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
 
