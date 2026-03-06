@@ -38,7 +38,6 @@ import * as Platform from '@/constants/platform'
 import KB2 from '@/util/electron'
 import NotifyPopup from '@/util/notify-popup'
 import {hexToUint8Array} from 'uint8array-extras'
-import assign from 'lodash/assign'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config'
@@ -2501,7 +2500,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         set(s => {
           const existing = ordinal ? s.messageMap.get(ordinal) : undefined
           if (existing) {
-            assign(existing, message)
+            Object.assign(existing, message)
           }
           toAdd.push(message)
         })
@@ -3297,7 +3296,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     updateMeta: pm => {
       set(s => {
-        assign(s.meta, pm)
+        Object.assign(s.meta, pm)
       })
       queueInboxRowUpdate(get().id)
     },

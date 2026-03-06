@@ -7,7 +7,6 @@ import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
-import trim from 'lodash/trim'
 import type * as T from '@/constants/types'
 import type * as Types from './types'
 import type {RootRouteProps} from '@/router-v2/route-params'
@@ -246,7 +245,7 @@ export const ListBody = (
   const _recommendations = deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers)
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
-    .get(trim(searchString))
+    .get(searchString.trim())
     ?.get(selectedService)
 
   const searchResults = deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers)

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import clamp from 'lodash/clamp'
 import type {Props} from '.'
 import {ModalTitle} from '@/teams/common'
 import KB2 from '@/util/electron.desktop'
@@ -49,10 +48,10 @@ const getCropCoordinates = (c: Crop) => {
   const maxY = height / scale
   const windowScaled = Math.round(AVATAR_CONTAINER_SIZE / scale)
   let x0 = x / scale
-  x0 = clamp(Math.round(x0), 0, maxX)
+  x0 = Math.min(Math.max(Math.round(x0), 0), maxX)
   const x1 = Math.min(x0 + windowScaled, maxX)
   let y0 = y / scale
-  y0 = clamp(Math.round(y0), 0, maxY)
+  y0 = Math.min(Math.max(Math.round(y0), 0), maxY)
   const y1 = Math.min(y0 + windowScaled, maxY)
   return {x0, x1, y0, y1}
 }

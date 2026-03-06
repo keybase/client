@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import includes from 'lodash/includes'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 
@@ -31,10 +30,10 @@ function _computePopupStyle(
   } = window
   const {clientWidth, clientHeight} = document.documentElement
 
-  if (includes(position, 'right')) {
+  if (position.includes('right')) {
     style.right = Math.round(clientWidth - (coords.right + pageXOffset) + offset)
     style.left = 'auto'
-  } else if (includes(position, 'left')) {
+  } else if (position.includes('left')) {
     style.left = Math.round(coords.left + pageXOffset + offset)
     style.right = 'auto'
   } else if (matchDimension) {
@@ -47,10 +46,10 @@ function _computePopupStyle(
     style.right = 'auto'
   }
 
-  if (includes(position, 'top')) {
+  if (position.includes('top')) {
     style.bottom = Math.round(clientHeight - (coords.top + pageYOffset) - offset)
     style.top = 'auto'
-  } else if (includes(position, 'bottom')) {
+  } else if (position.includes('bottom')) {
     style.top = Math.round(coords.bottom + pageYOffset - offset)
     style.bottom = 'auto'
   } else if (matchDimension) {
@@ -63,9 +62,9 @@ function _computePopupStyle(
     style.bottom = 'auto'
 
     const xOffset = popupCoords.width + 8
-    if (includes(position, 'right') && typeof style.right === 'number') {
+    if (position.includes('right') && typeof style.right === 'number') {
       style.right -= xOffset
-    } else if (includes(position, 'left') && typeof style.left === 'number') {
+    } else if (position.includes('left') && typeof style.left === 'number') {
       style.left -= xOffset
     }
   }

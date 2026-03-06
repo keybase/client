@@ -3,7 +3,6 @@ import {ignorePromise} from '@/constants/utils'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {serviceIdFromString} from '@/util/platforms'
@@ -426,7 +425,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
     search: (query, service, includeContacts, limit) => {
       set(s => {
         s.searchLimit = limit ?? 11
-        s.searchQuery = trim(query)
+        s.searchQuery = query.trim()
         s.selectedService = service
       })
       const f = async () => {
