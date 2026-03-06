@@ -137,7 +137,7 @@ const Header = () => {
   return (
     <>
       <Kb.ClickableBox onClick={togglePopup}>
-        <Kb.Box2Measure
+        <Kb.Box2
           direction="horizontal"
           gap="tiny"
           centerChildren={true}
@@ -163,7 +163,7 @@ const Header = () => {
               style={styles.caret}
             />
           </>
-        </Kb.Box2Measure>
+        </Kb.Box2>
       </Kb.ClickableBox>
       {popup}
     </>
@@ -292,7 +292,7 @@ function Tab(props: TabProps) {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         className={Kb.Styles.classNames(
@@ -318,7 +318,7 @@ function Tab(props: TabProps) {
           {label}
         </Kb.Text>
         <TabBadge name={tab} />
-      </Kb.Box2Measure>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }

@@ -394,17 +394,7 @@ const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   const conversationIdKey = Chat.useChatContext(s => s.id)
 
-  const attachRef = React.useRef<Kb.MeasureRef | null>({
-    divRef: {current: null},
-    measure: () => {
-      const r = inputRef.current?.getBoundingClientRect?.()
-      if (r) {
-        return r
-      } else {
-        return undefined
-      }
-    },
-  })
+  const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
   return Kb.Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type {Props} from '.'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
-import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 import noop from 'lodash/noop'
 import shallowEqual from 'shallowequal'
 
@@ -11,10 +10,10 @@ const FloatingBox = (props: Props) => {
 
   const cur = attachTo?.current
 
-  const [targetRect, setTargetRect] = React.useState<MeasureDesktop | undefined>(cur?.measure?.())
+  const [targetRect, setTargetRect] = React.useState<DOMRect | undefined>(cur?.getBoundingClientRect())
 
   React.useEffect(() => {
-    const tr = cur?.measure?.()
+    const tr = cur?.getBoundingClientRect()
 
     setTargetRect(t => {
       if (t === tr) {

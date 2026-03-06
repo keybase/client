@@ -212,7 +212,7 @@ function KBFSJob(p: {index: number; id: string}) {
       firstItem={index === -1}
       type="Small"
       body={
-        <Kb.Box2Measure
+        <Kb.Box2
           direction="horizontal"
           fullWidth={true}
           alignItems="center"
@@ -300,7 +300,7 @@ function KBFSJob(p: {index: number; id: string}) {
             )}
           </Kb.Box2>
           {popup}
-        </Kb.Box2Measure>
+        </Kb.Box2>
       }
     ></Kb.ListItem>
   )

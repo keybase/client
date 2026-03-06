@@ -1,24 +1,16 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import type {Box2Props} from './box'
-import type {MeasureRef} from './measure-ref'
 import './box.css'
 
-const getProps = (p: Box2Props) => {
-  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
+export const Box2 = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
+  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink, ref} = p
   const {flex, justifyContent, overflow, padding, relative} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
   const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
   const {style: _style, className: _className, title, tooltip} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   const reverse = direction === 'verticalReverse' || direction === 'horizontalReverse'
-
-  // let style = props.style
-  // uncomment this to get debugging colors
-  // style = {
-  //   ...style,
-  //   backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
-  // }
 
   const style = Styles.collapseStyles([
     flex != null && flex !== 1 ? {flex} : undefined,
@@ -50,54 +42,27 @@ const getProps = (p: Box2Props) => {
     },
     _className
   )
-  return {
-    children,
-    className,
-    'data-tooltip': tooltip,
-    onContextMenu,
-    onCopyCapture,
-    onDragLeave,
-    onDragOver,
-    onDrop,
-    onMouseDown,
-    onMouseLeave,
-    onMouseMove,
-    onMouseOver,
-    onMouseUp,
-    style,
-    title,
-  }
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      data-tooltip={tooltip}
+      onContextMenu={onContextMenu}
+      onCopyCapture={onCopyCapture}
+      onDragLeave={onDragLeave}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onMouseDown={onMouseDown}
+      onMouseLeave={onMouseLeave}
+      onMouseMove={onMouseMove}
+      onMouseOver={onMouseOver}
+      onMouseUp={onMouseUp}
+      style={style}
+      title={title}
+      children={children}
+    />
+  )
 }
 
-export const Box2 = (p: Box2Props) => {
-  const props = getProps(p)
-  return <div {...props} />
-}
-
-export const Box2Div = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
-  const {ref, ...rest} = p
-  const props = getProps(rest)
-  return <div {...props} ref={ref} />
-}
-export const Box2Animated = Box2Div
-
-export const Box2View = () => {
-  throw new Error('Wrong platform')
-}
-
-export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
-  const {ref, ...rest} = p
-  const props = getProps(rest)
-  const divRef = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  }, [])
-
-  return <div ref={divRef} {...props} />
-}
-
+export const Box2Animated = Box2

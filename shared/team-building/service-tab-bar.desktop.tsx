@@ -92,7 +92,7 @@ const MoreNetworksButton = (props: {
   return (
     <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1}>
-        <Kb.Box2Measure
+        <Kb.Box2
           direction="vertical"
           style={styles.moreNetworks1}
           fullHeight={true}
@@ -106,7 +106,7 @@ const MoreNetworksButton = (props: {
               </Kb.Text>
             </Kb.ClickableBox>
           </Kb.WithTooltip>
-        </Kb.Box2Measure>
+        </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
       {popup}

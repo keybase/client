@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {MeasureRef} from './measure-ref'
 import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '@/styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
+const ClickableBox = (props: Props & {ref?: React.Ref<HTMLDivElement | null>}) => {
   const {ref} = props
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
@@ -79,20 +78,9 @@ const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
     )
   }
 
-  const divRef = React.useRef<HTMLDivElement>(null)
-
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  }, [])
-
   return (
     <div
-      ref={divRef}
+      ref={ref}
       className={Styles.classNames(className, {tooltip})}
       data-tooltip={tooltip}
       {...passThroughProps}
@@ -144,24 +132,14 @@ const styles = Styles.styleSheetCreate(
 
 export default ClickableBox
 
-export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
+export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<HTMLDivElement | null>}) => {
   const {onClick, children, style, className, onMouseOver, ref} = p
-  const divRef = React.useRef<HTMLDivElement>(null)
-
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  })
   return (
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
       style={Styles.castStyleDesktop(style)}
-      ref={divRef}
+      ref={ref}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}

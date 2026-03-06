@@ -9,8 +9,6 @@ export function Text(p: Props) {
   const setRef = textRef
     ? (r: HTMLSpanElement | null) => {
         textRef.current = r
-          ? {divRef: {current: null}, measure: () => r.getBoundingClientRect()}
-          : null
       }
     : undefined
   const cn = Styles.classNames(`text_${type}`, p.className, {

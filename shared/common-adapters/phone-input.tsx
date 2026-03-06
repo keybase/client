@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import NativeEmoji from './emoji/native-emoji'
 import Text from './text'
-import {Box2, Box2Measure} from './box'
+import {Box2} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import Input3, {type Input3Ref} from './input3'
@@ -24,7 +24,6 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
-  Box2Measure,
   ClickableBox,
   FloatingMenu,
   FloatingPicker,
@@ -560,7 +559,7 @@ const PhoneInput = (p: Props) => {
           onClick={toggleShowingMenu}
           style={isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth}
         >
-          <Kb.Box2Measure
+          <Kb.Box2
             direction="horizontal"
             style={styles.countrySelectorContainer}
             alignItems="center"
@@ -569,7 +568,7 @@ const PhoneInput = (p: Props) => {
           >
             {renderCountrySelector()}
             <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-          </Kb.Box2Measure>
+          </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Box2

@@ -230,7 +230,7 @@ const Container = (ownProps: OwnProps) => {
   const tooltip = state === 'valid' || state === 'revoked' ? 'View proof' : undefined
 
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       className={notAUser ? undefined : 'hover-container'}
       ref={popupAnchor}
       direction="vertical"
@@ -273,7 +273,7 @@ const Container = (ownProps: OwnProps) => {
           )}
         </Kb.Text>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.Box2Measure direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
             <Kb.Icon
               type={stateToIcon(state)}
               fontSize={20}
@@ -288,7 +288,7 @@ const Container = (ownProps: OwnProps) => {
             ) : (
               <Kb.Box2 direction="vertical" />
             )}
-          </Kb.Box2Measure>
+          </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
       {!!metas.length && (
@@ -298,7 +298,7 @@ const Container = (ownProps: OwnProps) => {
           ))}
         </Kb.Box2>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 
@@ -437,10 +437,10 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   return Kb.Styles.isMobile ? (
     label
   ) : (
-    <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
+    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.tooltip}>
       {label}
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 

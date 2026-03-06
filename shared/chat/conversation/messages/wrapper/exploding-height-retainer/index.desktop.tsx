@@ -7,7 +7,7 @@ export const animationDuration = 2000
 
 const ExplodingHeightRetainer = (p: Props) => {
   const {retainHeight, explodedBy, style, children, messageKey} = p
-  const boxRef = React.useRef<Kb.MeasureRef | null>(null)
+  const boxRef = React.useRef<Kb.MeasureRef>(null)
   const [animating, setAnimating] = React.useState(false)
   const [height, setHeight] = React.useState(17)
 
@@ -27,14 +27,14 @@ const ExplodingHeightRetainer = (p: Props) => {
   }, [retainHeight, messageKey])
 
   React.useEffect(() => {
-    const m = boxRef.current?.measure?.()
+    const m = boxRef.current?.getBoundingClientRect()
     if (m) {
       m.height && setHeight(m.height)
     }
   }, [])
 
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.container,
@@ -51,7 +51,7 @@ const ExplodingHeightRetainer = (p: Props) => {
     >
       {retainHeight ? null : children}
       <Ashes doneExploding={!animating} exploded={retainHeight} explodedBy={explodedBy} height={height} />
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 

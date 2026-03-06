@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box2Measure} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Button, {type ButtonProps} from './button'
 import Text from './text'
@@ -12,7 +12,7 @@ import type {MeasureRef} from './measure-ref'
 import {useConfigState} from '@/stores/config'
 
 const Kb = {
-  Box2Measure,
+  Box2,
   Button,
   Icon,
   Text,
@@ -127,7 +127,7 @@ const CopyText = (props: Props) => {
       : undefined
 
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([
@@ -171,7 +171,7 @@ const CopyText = (props: Props) => {
           />
         </Kb.Button>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 

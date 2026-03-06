@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import {Box2, Box2Measure} from './box'
+import {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -15,7 +15,6 @@ import {useSafeAreaInsets} from './safe-area-view'
 
 const Kb = {
   Box2,
-  Box2Measure,
   ClickableBox,
   Icon,
   Overlay,
@@ -43,7 +42,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
       onClick={!disabled ? toggleOpen : undefined}
       style={Styles.collapseStyles([styles.dropdownBoxContainer, style])}
     >
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="vertical"
         ref={popupAnchor}
         className={Styles.classNames('dropdown_border', {
@@ -72,7 +71,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
           sizeType="Tiny"
           style={{marginTop: Styles.isMobile ? 2 : -8}}
         />
-      </Kb.Box2Measure>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }

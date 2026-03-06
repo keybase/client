@@ -83,7 +83,7 @@ export const TeamBotRow = (props: Props) => {
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">{descriptionLabel}</Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2Measure direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
+        <Kb.Box2 direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
@@ -106,7 +106,7 @@ export const TeamBotRow = (props: Props) => {
             onRemove={props.onRemove}
             onHidden={_onHideMenu}
           />
-        </Kb.Box2Measure>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )

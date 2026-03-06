@@ -1,8 +1,7 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
-import type {MeasureRef} from './measure-ref'
 import Reanimated from 'react-native-reanimated'
 
 type Margins = keyof typeof Styles.globalMargins
@@ -137,16 +136,7 @@ const useBox2Shared = (p: Box2Props) => {
   }
 }
 
-export const Box2 = (p: Box2Props) => {
-  const props = useBox2Shared(p)
-  return <View {...props} />
-}
-
-export const Box2Div = () => {
-  throw new Error('Wrong platform')
-}
-
-export const Box2View = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2 = (p: Box2Props & {ref?: React.Ref<View>}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
   return <View {...props} ref={ref} />
@@ -158,18 +148,6 @@ export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
   return <Reanimated.View {...props} ref={ref} />
 }
 
-export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
-  const {ref, ...rest} = p
-  React.useImperativeHandle(ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {
-      divRef: {current: null},
-    }
-  }, [])
-
-  const props = useBox2Shared(rest)
-  return <View {...props} />
-}
 
 const common = {
   alignItems: 'stretch',

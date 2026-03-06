@@ -30,7 +30,7 @@ const GiphySearch = () => {
   }
   return (
     <Kb.Box2 direction="vertical" relative={true} style={styles.outerContainer}>
-      <Kb.Box2Div
+      <Kb.Box2
         direction="vertical"
         ref={divRef}
         style={Kb.Styles.collapseStyles([
@@ -83,7 +83,7 @@ const GiphySearch = () => {
               <Kb.ProgressIndicator />
             </Kb.Box2>
           ))}
-      </Kb.Box2Div>
+      </Kb.Box2>
       <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
     </Kb.Box2>
   )

@@ -1,5 +1,5 @@
 import './button.css'
-import * as React from 'react'
+import type * as React from 'react'
 import type {Pressable as PressableType, Text as RNTextType, View as ViewType} from 'react-native'
 import * as Styles from '@/styles'
 import type AnimationType from './animation'
@@ -152,7 +152,7 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
 const ButtonDesktop = (props: FullProps) => {
-  const {children, label, onClick, ref, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride} = props
+  const {children, label, onClick, ref: measureRef, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
   const hasChildrenOnly = !!children && !label
@@ -190,14 +190,8 @@ const ButtonDesktop = (props: FullProps) => {
 
   const whiteSpinner = isPrimary && type !== 'Dim'
 
-  const divRef = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(ref, () => ({
-    divRef,
-    measure: () => divRef.current?.getBoundingClientRect(),
-  }), [])
-
   const btn = (
-    <div className={className} style={Styles.castStyleDesktop(containerStyle)} onClick={handleClick} ref={divRef}>
+    <div className={className} style={Styles.castStyleDesktop(containerStyle)} onClick={handleClick} ref={measureRef as React.Ref<HTMLDivElement>}>
       {children}
       {!!label && (
         <span className="text_BodySemibold" style={Styles.castStyleDesktop(waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style]) : (labelStyleOverride ? Styles.collapseStyles([labelStyle, labelStyleOverride]) : (labelStyle as Styles.StylesCrossPlatform)))}>

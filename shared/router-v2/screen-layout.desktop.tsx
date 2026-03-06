@@ -73,7 +73,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
   if (modal2) {
     return (
       <EscapeHandler onESC={topMostModal ? () => navigation.pop() : undefined}>
-        <Kb.Box2Div
+        <Kb.Box2
           key="background"
           direction="horizontal"
           ref={backgroundRef}
@@ -102,7 +102,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
               )}
             </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2Div>
+        </Kb.Box2>
       </EscapeHandler>
     )
   } else {

@@ -2,7 +2,6 @@ import type * as React from 'react'
 import type {IconType} from './icon.constants-gen'
 import type {StylesCrossPlatform, Color, globalMargins, CustomStyles} from '@/styles'
 import type {MeasureRef} from './measure-ref'
-
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 // These must be passed as props

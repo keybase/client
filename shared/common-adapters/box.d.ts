@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform, globalMargins} from '@/styles'
+import type {NativeSyntheticEvent} from 'react-native'
 import type {MeasureRef} from './measure-ref'
-import type {View, NativeSyntheticEvent} from 'react-native'
 
 export type LayoutEvent = NativeSyntheticEvent<{
   layout: {
@@ -48,12 +48,6 @@ export type Box2Props = {
   tooltip?: string
 }
 
-export declare const Box2: (p: Box2Props) => React.ReactNode
+export declare function Box2(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
 // wrapped by reanimated
-export declare function Box2Animated(p: Box2Props & {ref?: React.Ref<View>}): React.ReactNode
-// Box2 but with a special ref for targetting popups, split in case there's overhead we barely need
-export declare function Box2Measure(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
-// desktop only
-export declare function Box2Div(p: Box2Props & {ref?: React.Ref<HTMLDivElement>}): React.ReactNode
-// mobile only
-export declare function Box2View(p: Box2Props & {ref?: React.Ref<View>}): React.ReactNode
+export declare function Box2Animated(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
