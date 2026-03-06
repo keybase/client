@@ -130,7 +130,7 @@ const AddToChannel = (props: Props) => {
             return (
               <Kb.ListItem
                 firstItem={!Kb.Styles.isMobile || idx === 0}
-                icon={<Kb.Avatar size={32} username={item.username} />}
+                icon={<Kb.Avatar2 size={32} username={item.username} />}
                 type="Small"
                 onClick={alreadyIn ? undefined : onCheck}
                 hideHover={alreadyIn}

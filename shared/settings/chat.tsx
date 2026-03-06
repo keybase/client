@@ -446,7 +446,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
         <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
-        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
+        <Kb.Avatar2 isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
             <Kb.Text type="BodySemibold" lineClamp={1}>

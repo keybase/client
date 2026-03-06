@@ -96,10 +96,9 @@ function LeftSide(p: {username?: string}) {
   }
 
   return username ? (
-    <Kb.Avatar
+    <Kb.Avatar2
       size={32}
       username={username}
-      skipBackground={true}
       onClick={onAuthorClick}
       style={styles.avatar}
     />

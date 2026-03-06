@@ -56,7 +56,7 @@ const AddSubteamMembers = () => {
     return (
       <Kb.ListItem
         type="Small"
-        icon={<Kb.Avatar username={m.username} size={32} />}
+        icon={<Kb.Avatar2 username={m.username} size={32} />}
         body={
           <Kb.Box2 direction="vertical">
             <Kb.ConnectedUsernames type="BodySemibold" usernames={[m.username]} />

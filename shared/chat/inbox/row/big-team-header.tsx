@@ -37,7 +37,7 @@ const BigTeamHeader = (props: Props) => {
   return (
     <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
       {popup}
-      <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
+      <Kb.Avatar2 onClick={onClick} teamname={teamname} size={32} />
       <Kb.BoxGrow2>
         <Kb.Text
           ellipsizeMode="middle"

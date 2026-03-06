@@ -1,14 +1,19 @@
-// Minimal fast Avatar for list rows. Supports only: size, teamname/username, isTeam.
-// No onClick, no follow icons, no edit, no blocked, no children, no background layer.
+// Minimal fast Avatar (native). Supports: size, teamname/username, isTeam, onClick, style, children.
+import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import * as AvatarZus from './avatar/store'
 import {Image} from 'expo-image'
-import {View} from 'react-native'
+import {Pressable, View} from 'react-native'
 import {useColorScheme} from 'react-native'
+import {navToProfile} from '@/constants/router'
+import type * as React from 'react'
 
 type Props = {
+  children?: React.ReactNode
   isTeam?: boolean
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
 }
@@ -32,7 +37,7 @@ for (const size of allSizes) {
 }
 
 function Avatar2(p: Props) {
-  const {size, teamname, username, isTeam: _isTeam} = p
+  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
@@ -52,11 +57,27 @@ function Avatar2(p: Props) {
     }
   }
 
-  return (
-    <View style={cached.container}>
+  const onClick =
+    _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
+
+  const containerStyle = style ? Styles.collapseStyles([cached.container, style]) : cached.container
+
+  const content = (
+    <>
       {source ? <Image source={source} style={cached.image} /> : null}
-    </View>
+      {children}
+    </>
   )
+
+  if (onClick) {
+    return (
+      <Pressable onPress={onClick} style={containerStyle}>
+        {content}
+      </Pressable>
+    )
+  }
+
+  return <View style={containerStyle}>{content}</View>
 }
 
 export default Avatar2

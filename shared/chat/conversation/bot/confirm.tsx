@@ -27,7 +27,7 @@ const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
       onConfirm={onRemove}
       onCancel={onClose}
       description=""
-      header={<Kb.Avatar username={botUsername} size={96} />}
+      header={<Kb.Avatar2 username={botUsername} size={96} />}
     />
   )
 }

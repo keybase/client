@@ -1,8 +1,12 @@
 import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 type Props = {
+  children?: React.ReactNode
   isTeam?: boolean
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
 }

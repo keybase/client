@@ -72,7 +72,7 @@ const Container = (ownProps: OwnProps) => {
 
     return (
       <Kb.Box2 direction="horizontal" key={item} alignItems="center" style={styles.avatarBox}>
-        <Kb.Avatar
+        <Kb.Avatar2
           isTeam={true}
           teamname={item}
           size={16}

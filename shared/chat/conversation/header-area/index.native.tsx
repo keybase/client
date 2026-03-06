@@ -175,7 +175,7 @@ const ChannelHeader = () => {
   return (
     <Kb.Box2 direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Kb.Avatar
+        <Kb.Avatar2
           teamname={teamname || undefined}
           size={smallTeam ? 16 : (12 as 16) /* not really allowed a one off */}
         />

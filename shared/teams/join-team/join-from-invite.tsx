@@ -143,11 +143,7 @@ const JoinFromInvite = () => {
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
-          <Kb.Avatar
-            size={16}
-            username={details.inviterUsername}
-            borderColor={Kb.Styles.isMobile ? Kb.Styles.globalColors.white : undefined}
-          />
+          <Kb.Avatar2 size={16} username={details.inviterUsername} />
           <Kb.ConnectedUsernames
             type="BodySmallBold"
             usernames={[details.inviterUsername]}

@@ -76,7 +76,7 @@ const MessagePopupHeader = (props: Props) => {
       )}
       <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-          <Kb.Avatar username={author} size={16} onClick="profile" />
+          <Kb.Avatar2 username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked={onUsernameClicked}
             colorFollowing={true}
@@ -92,7 +92,7 @@ const MessagePopupHeader = (props: Props) => {
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-            <Kb.Avatar username={botUsername} size={16} onClick="profile" />
+            <Kb.Avatar2 username={botUsername} size={16} onClick="profile" />
             <Kb.ConnectedUsernames
               onUsernameClicked="profile"
               colorFollowing={true}

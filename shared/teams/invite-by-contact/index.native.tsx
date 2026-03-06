@@ -22,7 +22,7 @@ const contactRow = (_: number, props: ContactRowProps) => {
           {!!hasThumbnail && !!props.pictureUri && (
             <Kb.Image style={styles.thumbnail} src={props.pictureUri} />
           )}
-          {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
+          {!hasThumbnail && <Kb.Avatar2 size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box2 direction="vertical">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="BodySemibold">{props.name}</Kb.Text>

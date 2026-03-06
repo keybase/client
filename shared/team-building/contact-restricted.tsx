@@ -78,7 +78,7 @@ export const ContactRestricted = (props: Props) => {
               <Kb.ListItem
                 key={username}
                 type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-                icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
+                icon={<Kb.Avatar2 size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
                 firstItem={idx === 0}
                 body={
                   <Kb.Box2 direction="vertical" fullWidth={true}>

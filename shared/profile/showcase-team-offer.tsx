@@ -72,7 +72,7 @@ const TeamRow = (p: RowProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 48 : 32} teamname={name} />
+        <Kb.Avatar2 isTeam={true} size={Kb.Styles.isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
             <Kb.Text type="BodySemibold" lineClamp={1}>

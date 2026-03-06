@@ -19,7 +19,7 @@ export type Props = {
 
 const Header = (props: Props) => (
   <>
-    <Kb.Avatar teamname={props.name} size={64} />
+    <Kb.Avatar2 teamname={props.name} size={64} />
     <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
       <Kb.Icon
         type="iconfont-leave"

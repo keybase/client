@@ -94,7 +94,7 @@ const TeamHeader = () => {
               justifyContent="space-between"
             >
               <Kb.Box2 direction="horizontal" gap="xtiny">
-                <Kb.Avatar teamname={teamname} size={16} />
+                <Kb.Avatar2 teamname={teamname} size={16} />
                 <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
               </Kb.Box2>
               <Kb.Meta

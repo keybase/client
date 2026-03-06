@@ -183,7 +183,7 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const _renderHit = (index: number, item: SearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
-        <Kb.Avatar username={item.author} size={24} />
+        <Kb.Avatar2 username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
         </Kb.Text>

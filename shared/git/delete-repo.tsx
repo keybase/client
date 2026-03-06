@@ -71,7 +71,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
             {!!teamname && (
-              <Kb.Avatar
+              <Kb.Avatar2
                 isTeam={true}
                 teamname={teamname}
                 size={16}

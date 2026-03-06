@@ -19,7 +19,7 @@ export const TeamInviteRow = (props: Props) => {
   return (
     <Kb.ListItem
       type="Small"
-      icon={<Kb.Avatar username={isKeybaseUser ? label : '+'} size={32} />}
+      icon={<Kb.Avatar2 username={isKeybaseUser ? label : '+'} size={32} />}
       body={
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical">

@@ -73,7 +73,7 @@ const DeleteConfirm = () => {
       description="This cannot be undone. By deleting this account, you agree that:"
       header={
         <>
-          <Kb.Avatar username={username} size={64} />
+          <Kb.Avatar2 username={username} size={64} />
           <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
         </>
       }

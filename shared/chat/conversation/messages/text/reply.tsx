@@ -20,7 +20,7 @@ const AvatarHolder = () => {
   const showCenteredHighlight = useIsHighlighted()
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-      <Kb.Avatar username={author} size={16} />
+      <Kb.Avatar2 username={author} size={16} />
       <Kb.Text
         type="BodySmallBold"
         style={

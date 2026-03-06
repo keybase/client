@@ -158,7 +158,7 @@ const Header = ({info}: ExternalTeamProps) => {
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
-        <Kb.Avatar size={96} teamname={teamname} />
+        <Kb.Avatar2 size={96} teamname={teamname} />
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="Header">{teamname}</Kb.Text>
@@ -182,7 +182,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
     <Kb.ListItem
       firstItem={firstItem}
       type="Large"
-      icon={<Kb.Avatar size={32} username={member.username} />}
+      icon={<Kb.Avatar2 size={32} username={member.username} />}
       onClick={() => showUserProfile(member.username)}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>

@@ -72,7 +72,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         {alignItems: 'flex-start'},
       ])}
     >
-      {!!command.username && <Kb.Avatar size={32} username={command.username} />}
+      {!!command.username && <Kb.Avatar2 size={32} username={command.username} />}
       <Kb.Box2
         fullWidth={true}
         direction="vertical"

@@ -156,7 +156,7 @@ const Container = (ownProps: OwnProps) => {
         )}
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="Header">Add</Kb.Text>
-          <Kb.Avatar
+          <Kb.Avatar2
             isTeam={false}
             size={16}
             style={{
@@ -260,7 +260,7 @@ const TeamRow = (props: RowProps) => {
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
-          <Kb.Avatar
+          <Kb.Avatar2
             isTeam={true}
             size={Kb.Styles.isMobile ? 48 : 32}
             style={{marginRight: Kb.Styles.globalMargins.tiny}}
