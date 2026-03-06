@@ -148,9 +148,8 @@ const Header = () => {
         >
           <Kb.Avatar
             size={24}
-            borderColor={Kb.Styles.globalColors.blue}
             username={username}
-            style={styles.avatar}
+            style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}
           />
           <>
             <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
@@ -327,6 +326,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatar: {marginLeft: 14},
+      avatarBorder: {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${Kb.Styles.globalColors.blue}`},
       badgeIconUpload: {
         bottom: -Kb.Styles.globalMargins.xxtiny,
         height: Kb.Styles.globalMargins.xsmall,

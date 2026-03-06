@@ -116,16 +116,17 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const avatar = (
     <Kb.Avatar
-      editable={!!onEditAvatar}
-      onEditAvatarClick={onEditAvatar}
+      onClick={onEditAvatar}
       teamname={meta.teamname}
       size={96}
       style={Kb.Styles.collapseStyles([
         styles.alignSelfFlexStart,
-        onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
+        onEditAvatar && styles.marginBottomRightTiny,
         onEditAvatar && styles.clickable,
       ])}
-    />
+    >
+      {!!onEditAvatar && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
+    </Kb.Avatar>
   )
 
   const topDescriptors = (
@@ -386,6 +387,20 @@ const styles = Kb.Styles.styleSheetCreate(
       backgroundWhite: {backgroundColor: Kb.Styles.globalColors.white},
       clickable: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
+      }),
+      editTeamAvatar: Kb.Styles.platformStyles({
+        common: {
+          backgroundColor: Kb.Styles.globalColors.blue,
+          borderColor: Kb.Styles.globalColors.white,
+          borderRadius: 100,
+          borderStyle: 'solid',
+          borderWidth: 2,
+          bottom: -6,
+          color: Kb.Styles.globalColors.whiteOrWhite,
+          padding: 4,
+          position: 'absolute',
+          right: -6,
+        },
       }),
       flexShrink: {flexShrink: 1},
       flexShrinkGrow: {

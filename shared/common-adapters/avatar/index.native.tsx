@@ -1,158 +1,115 @@
-import Icon from '../icon'
+// Minimal fast Avatar (native).
+import {useState} from 'react'
 import * as Styles from '@/styles'
-import ClickableBox from '../clickable-box'
-import Image from '../image'
-import {Box2} from '../box'
-import type {Props, AvatarSize} from '.'
-import useHook from './hooks'
+import {useConfigState} from '@/stores/config'
+import * as AvatarZus from './store'
+import {Image} from 'expo-image'
+import {Pressable, View} from 'react-native'
+import {useColorScheme} from 'react-native'
+import {navToProfile} from '@/constants/router'
+import {iconTypeToImgSet, type IconType} from '../icon'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
 
-const Kb = {
-  Box2,
-  ClickableBox,
-  Icon,
-  Image,
+type Props = {
+  children?: React.ReactNode
+  crop?: T.Teams.AvatarCrop
+  imageOverrideUrl?: string
+  isTeam?: boolean
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  style?: Styles.CustomStyles<'borderStyle'>
+  teamname?: string
+  username?: string
 }
 
-const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
-  [128, 12],
-  [16, 4],
-  [32, 5],
-  [48, 6],
-  [64, 8],
-  [96, 10],
-])
+const avatarPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
+}
+const teamPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
+}
 
-const backgroundOffset = 1
-// Layer on top to extend outside of the image
+const sizeToTeamBorderRadius: Record<number, number> = {
+  128: 12, 16: 4, 24: 4, 32: 5, 48: 6, 64: 8, 96: 10,
+}
+
+// Pre-compute all possible container+image style combos (size x isTeam)
+type SizeStyle = {container: {height: number; width: number}; image: {borderRadius: number; height: number; overflow: 'hidden'; width: number}}
+const allSizes = [16, 24, 32, 48, 64, 96, 128] as const
+const styleCache = new Map<string, SizeStyle>()
+for (const size of allSizes) {
+  for (const isTeam of [true, false]) {
+    const br = isTeam ? (sizeToTeamBorderRadius[size] ?? size / 2) : size / 2
+    styleCache.set(`${size}-${isTeam}`, {
+      container: {height: size, width: size},
+      image: {borderRadius: br, height: size, overflow: 'hidden', width: size},
+    })
+  }
+}
+
+const bgColor = Styles.globalColors.greyLight
 
 function Avatar(p: Props) {
-  const props = useHook(p)
-  const {size} = props
-  const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
-  const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
+  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
+  const {imageOverrideUrl} = p
+  const isTeam = _isTeam || !!teamname
+  const name = isTeam ? teamname : username
+  const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
+  const httpSrv = useConfigState(s => s.httpSrv)
+  const isDarkMode = useColorScheme() === 'dark'
+  const {address, token} = httpSrv
 
-  return (
-    <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
-      <Kb.Box2 direction="vertical" style={boxStyles[size]}>
-        {!props.skipBackground && (
-          <Kb.Box2
-            direction="vertical"
-            style={Styles.collapseStyles([styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}])}
-          />
-        )}
-        {!!props.blocked && (
-          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([imageStyles[props.size], {borderRadius}])}>
-            <Icon type="icon-poop-96" style={iconStyles[props.size]} />
-          </Kb.Box2>
-        )}
-        {!!props.url && (
-          <Kb.Image
-            showLoadingStateUntilLoaded={false}
-            src={props.url}
-            style={Styles.collapseStyles([
-              imageStyles[props.size],
-              {
-                borderRadius,
-                opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
-                overflow: 'hidden',
-              },
-            ])}
-          />
-        )}
-        {props.followIconType && <Kb.Icon type={props.followIconType} style={props.followIconStyle} />}
-        {props.editable && (
-          <Kb.Icon
-            color={props.isTeam ? Styles.globalColors.white : undefined}
-            type="iconfont-edit"
-            onClick={props.onEditAvatarClick}
-            style={props.isTeam ? styles.editTeam : styles.edit}
-          />
-        )}
-        {props.children}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+  const cached = styleCache.get(`${size}-${isTeam}`)!
+
+  let source: {uri: string} | null = null
+  if (imageOverrideUrl) {
+    source = {uri: imageOverrideUrl}
+  } else if (address && name) {
+    const typ = isTeam ? 'team' : 'user'
+    const mode = isDarkMode ? 'dark' : 'light'
+    const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
+    source = {
+      uri: `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=${mode}&token=${token}&count=${counter}`,
+    }
+  }
+
+  // Placeholder source for error state
+  const placeholderSource = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size) as unknown as number
+
+  const [errorUri, setErrorUri] = useState<string>()
+  const imgError = !!source && errorUri === source.uri
+
+  const onClick =
+    _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
+
+  const containerStyle = style ? Styles.collapseStyles([cached.container, style]) : cached.container
+  const imageStyle = imgError ? Styles.collapseStyles([cached.image, {backgroundColor: bgColor}]) : cached.image
+
+  const content = (
+    <>
+      {source && !imgError ? (
+        <Image source={source} style={cached.image} recyclingKey={source.uri} cachePolicy="memory-disk" onError={() => setErrorUri(source.uri)} />
+      ) : (
+        <Image source={placeholderSource} style={imageStyle} />
+      )}
+      {children}
+    </>
   )
+
+  if (onClick) {
+    return (
+      <Pressable onPress={onClick} style={containerStyle}>
+        {content}
+      </Pressable>
+    )
+  }
+
+  return <View style={containerStyle}>{content}</View>
 }
-
-const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
-const iconStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      128: makeIconStyle(128),
-      16: makeIconStyle(16),
-      24: makeIconStyle(24),
-      32: makeIconStyle(32),
-      48: makeIconStyle(48),
-      64: makeIconStyle(64),
-      96: makeIconStyle(96),
-    }) as const
-)
-
-const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' as const, width: size})
-const boxStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      128: makeBoxStyle(128),
-      16: makeBoxStyle(16),
-      24: makeBoxStyle(24),
-      32: makeBoxStyle(32),
-      48: makeBoxStyle(48),
-      64: makeBoxStyle(64),
-      96: makeBoxStyle(96),
-    }) as const
-)
-
-const makeImageStyle = (size: AvatarSize) =>
-  ({
-    bottom: 0,
-    height: size,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    width: size,
-  }) as const
-const imageStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      128: makeImageStyle(128),
-      16: makeImageStyle(16),
-      24: makeImageStyle(24),
-      32: makeImageStyle(32),
-      48: makeImageStyle(48),
-      64: makeImageStyle(64),
-      96: makeImageStyle(96),
-    }) as const
-)
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      background: {
-        bottom: backgroundOffset,
-        left: backgroundOffset,
-        position: 'absolute',
-        right: backgroundOffset,
-        top: backgroundOffset,
-      },
-      edit: {
-        bottom: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      editTeam: {
-        backgroundColor: Styles.globalColors.blue,
-        borderColor: Styles.globalColors.white,
-        borderRadius: 100,
-        borderStyle: 'solid',
-        borderWidth: 2,
-        bottom: -6,
-        color: Styles.globalColors.whiteOrWhite,
-        padding: 4,
-        position: 'absolute',
-        right: -6,
-      } as const,
-    }) as const
-)
 
 export default Avatar

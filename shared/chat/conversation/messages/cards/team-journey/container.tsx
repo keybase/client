@@ -189,7 +189,6 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         size={32}
         isTeam={true}
         teamname={teamname}
-        skipBackground={true}
         style={avatarStyle}
         onClick={deactivateButtons ? undefined : onAuthorClick}
       />

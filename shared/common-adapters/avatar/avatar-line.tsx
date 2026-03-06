@@ -1,8 +1,10 @@
 import Avatar from '.'
-import {avatarSizes, type AvatarSize} from './hooks'
 import {Box2} from '../box'
 import Text from '../text'
 import * as Styles from '@/styles'
+
+type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
+const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 
 const Kb = {
   Avatar,
@@ -42,7 +44,6 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor={Kb.Styles.globalColors.white}
             style={styles.avatar}
           />
         ))

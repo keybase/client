@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
-import Avatar, {type AvatarSize} from './avatar'
+import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
@@ -11,8 +11,16 @@ import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} fro
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
+import {useFollowerState} from '@/stores/followers'
+
+type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
+
+const followSizeToStyle128 = {bottom: 0, left: 88, position: 'absolute'} as const
+const followSizeToStyle96 = {bottom: 0, left: 65, position: 'absolute'} as const
+const followSizeToStyle64 = {bottom: 0, left: 44, position: 'absolute'} as const
+const followSizeToStyle48 = {bottom: 0, left: 30, position: 'absolute'} as const
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
@@ -69,23 +77,48 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const commonHeight = size === 'big' ? 64 : Styles.isMobile ? 48 : 32
   const adapterProps = getAdapterProps(size || 'default')
 
+  const showFollowing = !props.horizontal && !props.hideFollowingOverlay && !!username
+  const following = useFollowerState(s => (showFollowing && username ? s.following.has(username) : false))
+  const followsYou = useFollowerState(s => (showFollowing && username ? s.followers.has(username) : false))
+  const avatarSize: AvatarSize = props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)
+  const followIconType = showFollowing
+    ? followsYou === following
+      ? (followsYou ? ('icon-mutual-follow-21' as const) : undefined)
+      : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
+    : undefined
+  const followIconStyle = avatarSize === 128
+    ? followSizeToStyle128
+    : avatarSize === 96
+      ? followSizeToStyle96
+      : avatarSize === 64
+        ? followSizeToStyle64
+        : avatarSize === 48
+          ? followSizeToStyle48
+          : undefined
+
   let avatarOrIcon: React.ReactNode
   if (isAvatar) {
     avatarOrIcon = (
       <Avatar
         imageOverrideUrl={props.avatarImageOverride}
-        editable={props.editableIcon}
-        onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-        size={props.avatarSize || (props.horizontal ? commonHeight : adapterProps.iconSize)}
-        showFollowingStatus={props.horizontal ? undefined : !props.hideFollowingOverlay}
+        size={avatarSize}
         username={username}
         teamname={teamname}
+        onClick={props.editableIcon ? props.onEditIcon : undefined}
         style={Styles.collapseStyles([
           props.horizontal ? styles.hAvatarStyle : {},
           props.horizontal && size === 'big' ? styles.hbAvatarStyle : {},
           props.avatarStyle,
         ])}
-      />
+      >
+        {!!followIconType && !!followIconStyle && <Icon type={followIconType} style={followIconStyle} />}
+        {!!props.editableIcon && (
+          <Icon
+            type="iconfont-edit"
+            style={teamname ? styles.editTeam : styles.editUser}
+          />
+        )}
+      </Avatar>
     )
   } else if (props.icon) {
     avatarOrIcon = (
@@ -230,6 +263,25 @@ const TextOrComponent = (props: {
 const styles = Styles.styleSheetCreate(() => ({
   botAlias: {
     paddingTop: Styles.globalMargins.xtiny,
+  },
+  editTeam: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      borderColor: Styles.globalColors.white,
+      borderRadius: 100,
+      borderStyle: 'solid',
+      borderWidth: 2,
+      bottom: -6,
+      color: Styles.globalColors.whiteOrWhite,
+      padding: 4,
+      position: 'absolute',
+      right: -6,
+    },
+  }),
+  editUser: {
+    bottom: 0,
+    position: 'absolute',
+    right: 0,
   },
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
