@@ -16,6 +16,26 @@ import type {StyleOverride} from '.'
 import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
 import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
+const decorationCache = new Map<string, T.RPCChat.UITextDecoration>()
+const cacheMaxSize = 500
+
+const parseDecoration = (json: string): T.RPCChat.UITextDecoration | undefined => {
+  const cached = decorationCache.get(json)
+  if (cached) return cached
+  try {
+    const jsonString = uint8ArrayToString(base64ToUint8Array(json))
+    const parsed = JSON.parse(jsonString) as T.RPCChat.UITextDecoration
+    if (decorationCache.size >= cacheMaxSize) {
+      const firstKey = decorationCache.keys().next().value
+      if (firstKey !== undefined) decorationCache.delete(firstKey)
+    }
+    decorationCache.set(json, parsed)
+    return parsed
+  } catch {
+    return undefined
+  }
+}
+
 const prefix = 'keybase://'
 const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 
@@ -134,14 +154,8 @@ export type Props = {
 const ServiceDecoration = (p: Props) => {
   const {json, allowFontScaling, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
-  // Parse JSON to get the type of the decoration
-  let parsed: T.RPCChat.UITextDecoration
-  try {
-    const jsonString = uint8ArrayToString(base64ToUint8Array(json))
-    parsed = JSON.parse(jsonString) as T.RPCChat.UITextDecoration
-  } catch {
-    return null
-  }
+  const parsed = parseDecoration(json)
+  if (!parsed) return null
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
     let paymentID: T.Wallets.PaymentID | undefined
     let error: string | undefined

@@ -339,12 +339,16 @@ const rules: {[type: string]: SM.ParserRule} = {
 
 const simpleMarkdownParser = SimpleMarkdown.parserFor(rules)
 
-const noRules: {[type: string]: SM.ParserRule} = {
-  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
-  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
-  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
-  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
-  // it won't match.
+// Lightweight parser for messages with service decorations but no markdown formatting
+const serviceOnlyRules: {[type: string]: SM.ParserRule} = {
+  emoji: {
+    match: SimpleMarkdown.inlineRegex(emojiRegex),
+    order: SimpleMarkdown.defaultRules.text.order - 0.5,
+    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => {
+      const shortName = emojiIndexByChar[capture[0] ?? '']
+      return {content: shortName || capture[0]}
+    },
+  },
   fallbackParagraph: {
     match: (source: string, state: State, _prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? [source] : null,
@@ -352,14 +356,14 @@ const noRules: {[type: string]: SM.ParserRule} = {
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) =>
       wrapInParagraph(nestedParse, capture[0] ?? '', state),
   },
+  newline: {
+    ...SimpleMarkdown.defaultRules.newline,
+    match: SimpleMarkdown.anyScopeRegex(/^\n/),
+  },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
-    // original:
-    // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
-    // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
     match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
-      // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = (Styles.isMobile ? capture[1]?.replace(/\n$/, '') : capture[1]) ?? ''
       const oldInParagraph = state['inParagraph'] as boolean
       state['inParagraph'] = true
@@ -368,17 +372,40 @@ const noRules: {[type: string]: SM.ParserRule} = {
       return ret
     },
   },
+  serviceDecoration: {
+    match: (source: string, state: State, prevCapture: string) => {
+      return serviceDecorationMatcher(source, state, prevCapture)
+    },
+    order: 1,
+    parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => ({
+      content: capture[1],
+      type: 'serviceDecoration',
+    }),
+  },
   text: {
     ...SimpleMarkdown.defaultRules.text,
-    // original:
-    // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
-    // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
-    // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: (source: string, state: State, _prevCapture: string) =>
       Styles.isMobile && !state['inParagraph'] ? null : [source],
   },
 }
-const noMarkdownParser = SimpleMarkdown.parserFor(noRules)
+const serviceOnlyMarkdownParser = SimpleMarkdown.parserFor(serviceOnlyRules)
+
+const parseCache = new Map<string, Array<SM.SingleASTNode>>()
+const parseCacheMaxSize = 200
+
+const cachedParse = (text: string, parseLevel: number, options: Record<string, unknown>): Array<SM.SingleASTNode> => {
+  const key = `${parseLevel}:${text}`
+  const cached = parseCache.get(key)
+  if (cached) return cached
+  const parser = parseLevel === 2 ? simpleMarkdownParser : serviceOnlyMarkdownParser
+  const result = parser(text, options)
+  if (parseCache.size >= parseCacheMaxSize) {
+    const firstKey = parseCache.keys().next().value
+    if (firstKey !== undefined) parseCache.delete(firstKey)
+  }
+  parseCache.set(key, result)
+  return result
+}
 
 const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
   let emojiLine = 0
@@ -400,12 +427,16 @@ const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
   return emojiLine === 1
 }
 
-const tooLong = 10000
-const fastMDReg = /[*_`@#]/
+const fastMDReg = /[*_`~]/
+const serviceDecorationFastCheck = '$>kb$'
 
-const shouldUseParser = (s: string) => {
-  if (s.length < tooLong) return true
-  return s.search(fastMDReg) !== -1
+// 0 = plain text, 1 = service decorations only, 2 = full markdown
+const getParseLevel = (s: string): number => {
+  if (s.search(fastMDReg) !== -1) return 2
+  if (s.startsWith('>') || s.includes('\n>')) return 2
+  if (s.includes('!>')) return 2
+  if (s.includes(serviceDecorationFastCheck)) return 1
+  return 0
 }
 
 const ErrorComponent = (p: {children: React.ReactNode}) => {
@@ -417,10 +448,83 @@ const ErrorComponent = (p: {children: React.ReactNode}) => {
   )
 }
 
-function SimpleMarkdownComponent(p: MarkdownProps) {
-  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
+const emptyStyleOverride: StyleOverride = {}
+
+function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
+  const {allowFontScaling, styleOverride = emptyStyleOverride, paragraphTextClassName, messageType, children} = p
   const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
   const {serviceOnlyNoWrap, disallowAnimation, context} = p
+
+  const text = children ?? ''
+  const parseLevel = getParseLevel(text)
+
+  // Fast path: plain text with no markdown — skip parsing entirely
+  if (parseLevel === 0) {
+    if (preview) {
+      const previewText = (
+        <Text
+          className={paragraphTextClassName}
+          type={Styles.isMobile ? 'Body' : 'BodySmall'}
+          style={Styles.collapseStyles([markdownStyles.neutralPreviewStyle, style, styleOverride.preview])}
+          lineClamp={1 as const}
+        >
+          {text}
+        </Text>
+      )
+      return Styles.isMobile ? (
+        previewText
+      ) : (
+        <Text
+          className={paragraphTextClassName}
+          type="Body"
+          lineClamp={lineClamp}
+          style={Styles.collapseStyles([styles.rootWrapper, style])}
+          selectable={selectable}
+        >
+          {previewText}
+        </Text>
+      )
+    }
+    if (serviceOnlyNoWrap) {
+      return <Text type="Body">{text}</Text>
+    }
+    if (serviceOnly) {
+      return (
+        <Text className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
+          {text}
+        </Text>
+      )
+    }
+    // Regular rendering — wrap in paragraph Text
+    const plainText = (
+      <Text
+        className={paragraphTextClassName}
+        type="Body"
+        style={Styles.collapseStyles([markdownStyles.textBlockStyle, styleOverride.paragraph])}
+        allowFontScaling={allowFontScaling}
+      >
+        {text}
+      </Text>
+    )
+    return (
+      <ErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
+        {Styles.isMobile ? (
+          plainText
+        ) : (
+          <Text
+            className={paragraphTextClassName}
+            type="Body"
+            lineClamp={lineClamp}
+            style={Styles.collapseStyles([styles.rootWrapper, style])}
+            selectable={selectable}
+          >
+            {plainText}
+          </Text>
+        )}
+      </ErrorBoundary>
+    )
+  }
+
   let parseTree: Array<SM.SingleASTNode>
   let output: React.ReactNode
   try {
@@ -432,14 +536,7 @@ function SimpleMarkdownComponent(p: MarkdownProps) {
       messageType,
     }
 
-    parseTree = (() => {
-      switch (true) {
-        case shouldUseParser(children ?? ''):
-          return simpleMarkdownParser((children || '').trim() + '\n', options)
-        default:
-          return noMarkdownParser(children + '\n', options)
-      }
-    })()
+    parseTree = cachedParse((children || '').trim() + '\n', parseLevel, options)
 
     const state = {
       allowFontScaling,
@@ -498,21 +595,20 @@ function SimpleMarkdownComponent(p: MarkdownProps) {
   })()
 
   // Mobile doesn't use a wrapper
+  if (Styles.isMobile) {
+    return inner
+  }
   return (
     <ErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
-      {Styles.isMobile ? (
-        inner
-      ) : (
-        <Text
-          className={paragraphTextClassName}
-          type="Body"
-          lineClamp={lineClamp}
-          style={Styles.collapseStyles([styles.rootWrapper, style])}
-          selectable={selectable}
-        >
-          {inner}
-        </Text>
-      )}
+      <Text
+        className={paragraphTextClassName}
+        type="Body"
+        lineClamp={lineClamp}
+        style={Styles.collapseStyles([styles.rootWrapper, style])}
+        selectable={selectable}
+      >
+        {inner}
+      </Text>
     </ErrorBoundary>
   )
 }
