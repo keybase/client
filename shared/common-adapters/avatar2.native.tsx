@@ -1,4 +1,5 @@
-// Minimal fast Avatar (native). Supports: size, teamname/username, isTeam, onClick, style, children.
+// Minimal fast Avatar (native).
+import {useState} from 'react'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import * as AvatarZus from './avatar/store'
@@ -6,16 +7,31 @@ import {Image} from 'expo-image'
 import {Pressable, View} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
+import {iconTypeToImgSet, type IconType} from './icon'
 import type * as React from 'react'
+import type * as T from '@/constants/types'
 
 type Props = {
   children?: React.ReactNode
+  crop?: T.Teams.AvatarCrop
+  imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
   style?: Styles.CustomStyles<'borderStyle'>
   teamname?: string
   username?: string
+}
+
+const avatarPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
+}
+const teamPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
 }
 
 const sizeToTeamBorderRadius: Record<number, number> = {
@@ -36,8 +52,11 @@ for (const size of allSizes) {
   }
 }
 
+const bgColor = Styles.globalColors.greyLight
+
 function Avatar2(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
+  const {imageOverrideUrl} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
@@ -48,7 +67,9 @@ function Avatar2(p: Props) {
   const cached = styleCache.get(`${size}-${isTeam}`)!
 
   let source: {uri: string} | null = null
-  if (address && name) {
+  if (imageOverrideUrl) {
+    source = {uri: imageOverrideUrl}
+  } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
     const mode = isDarkMode ? 'dark' : 'light'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
@@ -57,14 +78,25 @@ function Avatar2(p: Props) {
     }
   }
 
+  // Placeholder source for error state
+  const placeholderSource = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size) as unknown as number
+
+  const [errorUri, setErrorUri] = useState<string>()
+  const imgError = !!source && errorUri === source.uri
+
   const onClick =
     _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
 
   const containerStyle = style ? Styles.collapseStyles([cached.container, style]) : cached.container
+  const imageStyle = imgError ? Styles.collapseStyles([cached.image, {backgroundColor: bgColor}]) : cached.image
 
   const content = (
     <>
-      {source ? <Image source={source} style={cached.image} /> : null}
+      {source && !imgError ? (
+        <Image source={source} style={cached.image} onError={() => setErrorUri(source.uri)} />
+      ) : (
+        <Image source={placeholderSource} style={imageStyle} />
+      )}
       {children}
     </>
   )

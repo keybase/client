@@ -3,7 +3,7 @@ import type {Props} from '.'
 
 const UserCard = (p: Props) => {
   const {avatarBackgroundStyle, avatarSize = 96, outerStyle, onAvatarClicked} = p
-  const {username, style, children, lighterPlaceholders} = p
+  const {username, style, children} = p
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch" style={styles.avatar}>
@@ -18,11 +18,10 @@ const UserCard = (p: Props) => {
             avatarBackgroundStyle,
           ])}
         />
-        <Kb.Avatar
+        <Kb.Avatar2
           size={avatarSize}
           onClick={onAvatarClicked}
           username={username}
-          lighterPlaceholders={lighterPlaceholders}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box2>

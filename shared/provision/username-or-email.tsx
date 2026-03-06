@@ -123,7 +123,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
           style={styles.card}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
-          lighterPlaceholders={true}
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">

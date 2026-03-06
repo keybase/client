@@ -82,13 +82,14 @@ const TeamInfo = (props: Props) => {
       backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.Avatar
-          editable={true}
-          onEditAvatarClick={onEditAvatar}
+        <Kb.Avatar2
+          onClick={onEditAvatar}
           teamname={teamname}
           size={96}
           style={styles.avatar}
-        />
+        >
+          <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
+        </Kb.Avatar2>
         {isSubteam ? (
           <Kb.Input3
             autoFocus={true}
@@ -140,6 +141,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 4,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
+  }),
+  editTeamAvatar: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.blue,
+      borderColor: Kb.Styles.globalColors.white,
+      borderRadius: 100,
+      borderStyle: 'solid',
+      borderWidth: 2,
+      bottom: -6,
+      color: Kb.Styles.globalColors.whiteOrWhite,
+      padding: 4,
+      position: 'absolute',
+      right: -6,
+    },
   }),
   faded: {opacity: 0.5},
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),

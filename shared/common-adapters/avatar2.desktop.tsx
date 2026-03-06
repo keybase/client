@@ -1,12 +1,18 @@
-// Minimal fast Avatar (desktop). Supports: size, teamname/username, isTeam, onClick, style, children.
+// Minimal fast Avatar (desktop).
+import './avatar2.css'
+import {useState} from 'react'
 import type * as React from 'react'
+import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import * as AvatarZus from './avatar/store'
 import {navToProfile} from '@/constants/router'
+import {iconTypeToImgSet, type IconType} from './icon'
 
 type Props = {
   children?: React.ReactNode
+  crop?: T.Teams.AvatarCrop
+  imageOverrideUrl?: string
   isTeam?: boolean
   onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
   size: 128 | 96 | 64 | 48 | 32 | 24 | 16
@@ -15,8 +21,24 @@ type Props = {
   username?: string
 }
 
+const avatarPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
+}
+const teamPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
+}
+
+const AVATAR_CONTAINER_SIZE = 175
+const AVATAR_BORDER_SIZE = 4
+const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+
 function Avatar2(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
+  const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
   const name = isTeam ? teamname : username
   const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
@@ -26,14 +48,25 @@ function Avatar2(p: Props) {
   const avatarSizeClassName = `avatar-${isTeam ? 'team' : 'user'}-size-${size}`
 
   let src: string | undefined
-  if (address && name) {
+  if (imageOverrideUrl) {
+    src = imageOverrideUrl
+  } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
     src = `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=light&token=${token}&count=${counter}`
   }
 
+  const placeholderBg = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size)
+
+  const [errorSrc, setErrorSrc] = useState<string>()
+  const imgError = !!src && errorSrc === src
+
   const onClick =
     _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
+
+  const hasCrop = crop?.offsetLeft !== undefined && crop.offsetTop !== undefined
+  const scaledAvatarRatio = size / AVATAR_SIZE
+  const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
 
   return (
     <div
@@ -43,7 +76,21 @@ function Avatar2(p: Props) {
     >
       <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
         <div className="avatar-background" />
-        {!!src && (
+        {(!src || imgError) && !!placeholderBg && (
+          <div className="avatar-user-image" style={{backgroundImage: placeholderBg}} />
+        )}
+        {!!src && !imgError && hasCrop && (
+          <div
+            className="avatar-user-image"
+            style={{
+              backgroundImage: `url("${encodeURI(src)}")`,
+              backgroundPositionX: (crop.offsetLeft ?? 0) * scaledAvatarRatio,
+              backgroundPositionY: (crop.offsetTop ?? 0) * scaledAvatarRatio,
+              backgroundSize: `${avatarScaledWidth}px auto`,
+            }}
+          />
+        )}
+        {!!src && !imgError && !hasCrop && (
           <img
             key={src}
             src={src}
@@ -51,6 +98,7 @@ function Avatar2(p: Props) {
             className="avatar-user-image"
             alt=""
             draggable={false}
+            onError={() => setErrorSrc(src)}
           />
         )}
         {isTeam && (

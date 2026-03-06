@@ -102,7 +102,7 @@ const JoinFromInvite = () => {
         style={styles.body}
       >
         <Kb.Box2 direction="vertical" style={styles.avatar}>
-          <Kb.Avatar
+          <Kb.Avatar2
             size={96}
             teamname={teamname}
             isTeam={true}

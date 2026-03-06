@@ -150,11 +150,11 @@ const Avatar = ({
 }) => {
   const isDarkMode = useColorScheme() === 'dark'
   if (keybaseUsername) {
-    return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
+    return <Kb.Avatar2 size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
-    return <Kb.Avatar size={avatarSize} imageOverrideUrl={pictureUrl} />
+    return <Kb.Avatar2 size={avatarSize} imageOverrideUrl={pictureUrl} />
   } else if (resultForService === 'keybase' || T.TB.isContactServiceId(resultForService)) {
-    return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
+    return <Kb.Avatar2 size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
