@@ -393,11 +393,11 @@ const serviceOnlyMarkdownParser = SimpleMarkdown.parserFor(serviceOnlyRules)
 const parseCache = new Map<string, Array<SM.SingleASTNode>>()
 const parseCacheMaxSize = 200
 
-const cachedParse = (text: string, parseLevel: number, options: Record<string, unknown>): Array<SM.SingleASTNode> => {
+const cachedParse = (text: string, parseLevel: ParseLevel, options: Record<string, unknown>): Array<SM.SingleASTNode> => {
   const key = `${parseLevel}:${text}`
   const cached = parseCache.get(key)
   if (cached) return cached
-  const parser = parseLevel === 2 ? simpleMarkdownParser : serviceOnlyMarkdownParser
+  const parser = parseLevel === 'full' ? simpleMarkdownParser : serviceOnlyMarkdownParser
   const result = parser(text, options)
   if (parseCache.size >= parseCacheMaxSize) {
     const firstKey = parseCache.keys().next().value
@@ -430,13 +430,14 @@ const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
 const fastMDReg = /[*_`~]/
 const serviceDecorationFastCheck = '$>kb$'
 
-// 0 = plain text, 1 = service decorations only, 2 = full markdown
-const getParseLevel = (s: string): number => {
-  if (s.search(fastMDReg) !== -1) return 2
-  if (s.startsWith('>') || s.includes('\n>')) return 2
-  if (s.includes('!>')) return 2
-  if (s.includes(serviceDecorationFastCheck)) return 1
-  return 0
+type ParseLevel = 'none' | 'serviceOnly' | 'full'
+
+const getParseLevel = (s: string): ParseLevel => {
+  if (s.search(fastMDReg) !== -1) return 'full'
+  if (s.startsWith('>') || s.includes('\n>')) return 'full'
+  if (s.includes('!>')) return 'full'
+  if (s.includes(serviceDecorationFastCheck)) return 'serviceOnly'
+  return 'none'
 }
 
 const ErrorComponent = (p: {children: React.ReactNode}) => {
@@ -459,7 +460,7 @@ function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
   const parseLevel = getParseLevel(text)
 
   // Fast path: plain text with no markdown — skip parsing entirely
-  if (parseLevel === 0) {
+  if (parseLevel === 'none') {
     if (preview) {
       const previewText = (
         <Text
@@ -506,22 +507,18 @@ function SimpleMarkdownComponent(p: MarkdownProps): React.ReactNode {
         {text}
       </Text>
     )
-    return (
-      <ErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
-        {Styles.isMobile ? (
-          plainText
-        ) : (
-          <Text
-            className={paragraphTextClassName}
-            type="Body"
-            lineClamp={lineClamp}
-            style={Styles.collapseStyles([styles.rootWrapper, style])}
-            selectable={selectable}
-          >
-            {plainText}
-          </Text>
-        )}
-      </ErrorBoundary>
+    return Styles.isMobile ? (
+      plainText
+    ) : (
+      <Text
+        className={paragraphTextClassName}
+        type="Body"
+        lineClamp={lineClamp}
+        style={Styles.collapseStyles([styles.rootWrapper, style])}
+        selectable={selectable}
+      >
+        {plainText}
+      </Text>
     )
   }
 
