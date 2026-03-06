@@ -115,6 +115,21 @@ const backgroundToBackgroundColor = (background: Background) => {
   }
 }
 
+const buttonOnColorStyle = {backgroundColor: Kb.Styles.globalColors.white}
+
+const backgroundToButtonLabelStyle = (background: Background) => {
+  switch (background) {
+    case Background.Blue:
+      return {color: Kb.Styles.globalColors.blueDark}
+    case Background.Green:
+      return {color: Kb.Styles.globalColors.greenDark}
+    case Background.Yellow:
+      return {color: Kb.Styles.globalColors.brown_75OrYellow}
+    case Background.Black:
+      return {color: Kb.Styles.globalColors.black}
+  }
+}
+
 const Banner = (props: BannerProps) => (
   <Kb.Box2
     direction="horizontal"
@@ -148,6 +163,8 @@ const Banner = (props: BannerProps) => (
               label={props.button.buttonText}
               onClick={props.button.action}
               waiting={props.button.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
           {!!props.buttonSecondary && (
@@ -156,6 +173,8 @@ const Banner = (props: BannerProps) => (
               label={props.buttonSecondary.buttonText}
               onClick={props.buttonSecondary.action}
               waiting={props.buttonSecondary.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
         </Kb.Box2>

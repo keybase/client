@@ -21,7 +21,7 @@ const YouRekey = ({onRekey}: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar>
-        <Kb.Button onClick={onRekey} label="Rekey" />
+        <Kb.Button onClick={onRekey} label="Rekey" style={styles.primaryOnBlue} labelStyle={styles.primaryOnBlueLabel} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
@@ -33,6 +33,8 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         backgroundColor: Kb.Styles.globalColors.blueDarker2,
       },
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
     }) as const
 )
 

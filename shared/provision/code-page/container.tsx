@@ -71,6 +71,7 @@ const CodePageContainer = () => {
 
   const tabBackground = () => (tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green)
   const buttonType = () => (tab === 'QR' ? 'Default' as const : 'Success' as const)
+  const buttonLabelStyle = () => (tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel)
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
 
@@ -193,7 +194,8 @@ const CodePageContainer = () => {
               label="Continue"
               onClick={onSubmitTextCode}
               disabled={!code || waiting}
-              style={styles.enterTextButton}
+              style={Kb.Styles.collapseStyles([styles.enterTextButton, styles.primaryOnColor])}
+              labelStyle={buttonLabelStyle()}
               waitingKey={C.waitingKeyProvision}
             />
           )}
@@ -204,7 +206,8 @@ const CodePageContainer = () => {
               label="Close"
               onClick={onBack}
               onlyDisable={true}
-              style={styles.closeButton}
+              style={Kb.Styles.collapseStyles([styles.closeButton, styles.primaryOnColor])}
+              labelStyle={buttonLabelStyle()}
               waitingKey={C.waitingKeyProvision}
             />
           )}
@@ -581,6 +584,9 @@ const styles = Kb.Styles.styleSheetCreate(
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
       instructionsUpper: {marginBottom: Kb.Styles.globalMargins.tiny},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      primaryOnColor: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnGreenLabel: {color: Kb.Styles.globalColors.greenDark},
       qrContainer: Kb.Styles.platformStyles({
         common: {
           // MUST be white, else darkmode messes up the qr code

@@ -22,6 +22,7 @@ export type ButtonProps = {
   waiting?: boolean
   tooltip?: string
   style?: Styles.StylesCrossPlatform
+  labelStyle?: Styles.StylesCrossPlatform
 }
 
 export const regularHeight = Styles.isMobile ? 40 : 32
@@ -151,7 +152,7 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
 const ButtonDesktop = (props: FullProps) => {
-  const {children, label, onClick, ref, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style} = props
+  const {children, label, onClick, ref, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
   const hasChildrenOnly = !!children && !label
@@ -199,7 +200,7 @@ const ButtonDesktop = (props: FullProps) => {
     <div className={className} style={Styles.castStyleDesktop(containerStyle)} onClick={handleClick} ref={divRef}>
       {children}
       {!!label && (
-        <span className="text_BodySemibold" style={Styles.castStyleDesktop(waiting ? Styles.collapseStyles([labelStyle, opacity0Style]) : (labelStyle as Styles.StylesCrossPlatform))}>
+        <span className="text_BodySemibold" style={Styles.castStyleDesktop(waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style]) : (labelStyleOverride ? Styles.collapseStyles([labelStyle, labelStyleOverride]) : (labelStyle as Styles.StylesCrossPlatform)))}>
           {label}
         </span>
       )}
@@ -216,7 +217,7 @@ const ButtonDesktop = (props: FullProps) => {
 
 const ButtonNative = (props: FullProps) => {
   const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
-  const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style} = props
+  const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style, labelStyle: labelStyleOverride} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
   const hasChildrenOnly = !!children && !label
@@ -249,7 +250,7 @@ const ButtonNative = (props: FullProps) => {
       {!!label && (
         <RNText
           style={Styles.castStyleNative(
-            waiting ? Styles.collapseStyles([labelStyle, opacity0Style, {fontSize, fontWeight}]) : Styles.collapseStyles([labelStyle, {fontSize, fontWeight}])
+            waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style, {fontSize, fontWeight}]) : Styles.collapseStyles([labelStyle, labelStyleOverride, {fontSize, fontWeight}])
           )}
         >
           {label}

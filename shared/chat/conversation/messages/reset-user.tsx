@@ -49,14 +49,16 @@ const ResetUser = () => {
             fullWidth={true}
             label="View profile"
             mode="Secondary"
-            type="Dim"
             onClick={viewProfile}
+            style={styles.secondaryOnRed}
+            labelStyle={styles.secondaryOnRedLabel}
           />
           <Kb.Button
             fullWidth={true}
             label="Let them in"
             onClick={letThemIn}
-            type="Dim"
+            style={styles.primaryOnRed}
+            labelStyle={styles.primaryOnRedLabel}
           />
         </Kb.ButtonBar>
         {allowChatWithoutThem && (
@@ -96,6 +98,13 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.medium,
         textAlign: 'center',
       },
+      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      secondaryOnRed: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
       skullIcon: Kb.Styles.platformStyles({
         common: {margin: Kb.Styles.globalMargins.medium},
         isElectron: {height: 48, width: 48},

@@ -54,12 +54,16 @@ const Invite = () => {
             label="Send install link"
             onClick={mobileClickInstall}
             small={true}
+            style={styles.primaryOnBlue}
+            labelStyle={styles.primaryOnBlueLabel}
           />
           <Kb.Button
             label="Dismiss"
             mode="Secondary"
             onClick={onDismiss}
             small={true}
+            style={styles.secondaryOnColor}
+            labelStyle={styles.secondaryOnColorLabel}
           />
         </Kb.Box2>
       </BannerBox>
@@ -166,5 +170,12 @@ const styles = Kb.Styles.styleSheetCreate(
           marginBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      secondaryOnColor: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnColorLabel: {color: Kb.Styles.globalColors.white},
     }) as const
 )

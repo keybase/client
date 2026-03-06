@@ -102,13 +102,14 @@ const ConnectedBanner = (ownProps: OwnProps) => {
               mode="Secondary"
               label={'View ' + p + "'s profile"}
               onClick={onViewProfile(p)}
-              style={styles.button}
+              style={Kb.Styles.collapseStyles([styles.button, styles.secondaryOnRed])}
+              labelStyle={styles.secondaryOnRedLabel}
             />
             <Kb.Button
-              type="Danger"
               label={'Let ' + p + ' back in'}
               onClick={onReAddToTeam(p)}
-              style={styles.button}
+              style={Kb.Styles.collapseStyles([styles.button, styles.primaryOnRed])}
+              labelStyle={styles.primaryOnRedLabel}
             />
           </Kb.Box2>
         ))}
@@ -175,6 +176,13 @@ const styles = Kb.Styles.styleSheetCreate(
         ...fixedHeight(C.isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
         maxWidth: C.isMobile ? 280 : 400,
       },
+      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      secondaryOnRed: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
       textDontLetThemIn: {
         ...fixedHeight(Kb.Styles.globalMargins.mediumLarge),
         marginBottom: Kb.Styles.globalMargins.tiny,
