@@ -93,7 +93,7 @@ function Avatar(p: Props) {
   const content = (
     <>
       {source && !imgError ? (
-        <Image source={source} style={cached.image} onError={() => setErrorUri(source.uri)} />
+        <Image source={source} style={cached.image} recyclingKey={source.uri} cachePolicy="memory-disk" onError={() => setErrorUri(source.uri)} />
       ) : (
         <Image source={placeholderSource} style={imageStyle} />
       )}

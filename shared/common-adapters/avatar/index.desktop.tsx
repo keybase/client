@@ -1,6 +1,5 @@
 // Minimal fast Avatar (desktop).
 import './avatar.css'
-import {useState} from 'react'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
@@ -47,19 +46,16 @@ function Avatar(p: Props) {
 
   const avatarSizeClassName = `avatar-${isTeam ? 'team' : 'user'}-size-${size}`
 
-  let src: string | undefined
+  let bgImage: string | undefined
   if (imageOverrideUrl) {
-    src = imageOverrideUrl
+    bgImage = `url("${encodeURI(imageOverrideUrl)}")`
   } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
-    src = `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=light&token=${token}&count=${counter}`
+    bgImage = `url(http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=light&token=${token}&count=${counter})`
   }
 
   const placeholderBg = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size)
-
-  const [errorSrc, setErrorSrc] = useState<string>()
-  const imgError = !!src && errorSrc === src
 
   const onClick =
     _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
@@ -67,6 +63,8 @@ function Avatar(p: Props) {
   const hasCrop = crop?.offsetLeft !== undefined && crop.offsetTop !== undefined
   const scaledAvatarRatio = size / AVATAR_SIZE
   const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
+
+  const showBg = bgImage || placeholderBg
 
   return (
     <div
@@ -76,29 +74,18 @@ function Avatar(p: Props) {
     >
       <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
         <div className="avatar-background" />
-        {(!src || imgError) && !!placeholderBg && (
-          <div className="avatar-user-image" style={{backgroundImage: placeholderBg}} />
+        {!!showBg && (
+          <div className="avatar-user-image" style={{backgroundImage: showBg}} />
         )}
-        {!!src && !imgError && hasCrop && (
+        {!!bgImage && hasCrop && (
           <div
             className="avatar-user-image"
             style={{
-              backgroundImage: `url("${encodeURI(src)}")`,
+              backgroundImage: bgImage,
               backgroundPositionX: (crop.offsetLeft ?? 0) * scaledAvatarRatio,
               backgroundPositionY: (crop.offsetTop ?? 0) * scaledAvatarRatio,
               backgroundSize: `${avatarScaledWidth}px auto`,
             }}
-          />
-        )}
-        {!!src && !imgError && !hasCrop && (
-          <img
-            key={src}
-            src={src}
-            decoding="async"
-            className="avatar-user-image"
-            alt=""
-            draggable={false}
-            onError={() => setErrorSrc(src)}
           />
         )}
         {isTeam && (
