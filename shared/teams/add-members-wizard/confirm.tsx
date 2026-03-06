@@ -386,7 +386,7 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
-        <Kb.Avatar2 size={16} username={props.assertion} />
+        <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
           type="BodyBold"
           inline={true}

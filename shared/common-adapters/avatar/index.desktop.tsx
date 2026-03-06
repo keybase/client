@@ -1,13 +1,13 @@
 // Minimal fast Avatar (desktop).
-import './avatar2.css'
+import './avatar.css'
 import {useState} from 'react'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
-import * as AvatarZus from './avatar/store'
+import * as AvatarZus from './store'
 import {navToProfile} from '@/constants/router'
-import {iconTypeToImgSet, type IconType} from './icon'
+import {iconTypeToImgSet, type IconType} from '../icon'
 
 type Props = {
   children?: React.ReactNode
@@ -36,7 +36,7 @@ const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 
-function Avatar2(p: Props) {
+function Avatar(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
   const {imageOverrideUrl, crop} = p
   const isTeam = _isTeam || !!teamname
@@ -119,4 +119,4 @@ const borderTeamStyle: React.CSSProperties = {
   boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`,
 }
 
-export default Avatar2
+export default Avatar

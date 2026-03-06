@@ -5,7 +5,7 @@ const UserCard = (p: Props) => {
   const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children} = p
   return (
     <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>
-      <Kb.Avatar2
+      <Kb.Avatar
         size={avatarSize}
         onClick={onAvatarClicked}
         username={username}

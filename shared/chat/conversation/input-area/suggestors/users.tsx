@@ -234,7 +234,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
-        <Kb.Avatar2 username={username} size={32} />
+        <Kb.Avatar username={username} size={32} />
       )}
       <Kb.ConnectedUsernames
         type="BodyBold"

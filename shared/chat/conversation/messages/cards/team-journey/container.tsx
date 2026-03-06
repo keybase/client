@@ -185,7 +185,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
   const avatarStyle = styles.avatarChat
   return (
     <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
-      <Kb.Avatar2
+      <Kb.Avatar
         size={32}
         isTeam={true}
         teamname={teamname}

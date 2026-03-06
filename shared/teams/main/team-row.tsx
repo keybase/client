@@ -69,7 +69,7 @@ const TeamRow = function TeamRow(props: Props) {
             {!firstItem && <Kb.Divider style={styles.divider} />}
             <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
               <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-                <Kb.Avatar2 size={32} teamname={teamMeta.teamname} isTeam={true} />
+                <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
                 {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
                 {crownIcon}
               </Kb.Box2>
@@ -127,7 +127,7 @@ const TeamRow = function TeamRow(props: Props) {
           {!firstItem && <Kb.Divider style={styles.divider} />}
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
             <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-              <Kb.Avatar2 size={32} teamname={teamMeta.teamname} isTeam={true} />
+              <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
               {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
               {crownIcon}
             </Kb.Box2>

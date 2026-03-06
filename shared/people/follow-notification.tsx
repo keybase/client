@@ -60,7 +60,7 @@ const FollowNotification = (props: Props) => {
               ]
             : undefined
         }
-        icon={<Kb.Avatar2 username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
+        icon={<Kb.Avatar username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
@@ -114,7 +114,7 @@ function MultiFollowNotification(props: Props) {
       >
         {usernames.map(username => (
           <Kb.WithTooltip key={username} tooltip={username}>
-            <Kb.Avatar2 onClick="profile" username={username} size={32} style={styles.avatar} />
+            <Kb.Avatar onClick="profile" username={username} size={32} style={styles.avatar} />
           </Kb.WithTooltip>
         ))}
       </Kb.ScrollView>

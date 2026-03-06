@@ -44,7 +44,7 @@ const ReplyPreview = () => {
         <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar2 username={username} size={32} />
+              <Kb.Avatar username={username} size={32} />
               <Kb.Text type="BodyBold" style={styles.username}>
                 {username}
               </Kb.Text>

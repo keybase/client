@@ -116,7 +116,7 @@ const MobileHeader = (props: Props) => (
       gapEnd={true}
       style={styles.userBox}
     >
-      <Kb.Avatar2 username={props.username} onClick={props.onProfileClick} size={128} />
+      <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
       <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
           {props.username}
@@ -163,7 +163,7 @@ const AccountRow = (props: AccountRowProps) => {
   return (
     <Kb.ListItem
       type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-      icon={<Kb.Avatar2 size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
+      icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>

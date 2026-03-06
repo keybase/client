@@ -107,7 +107,7 @@ function ConnectedRow(ownProps: OwnProps) {
                 style={styles.iconCaret}
                 sizeType="Tiny"
               />
-              <Kb.Avatar2
+              <Kb.Avatar
                 size={Kb.Styles.isMobile ? 48 : 32}
                 isTeam={!!teamname}
                 teamname={teamname}
@@ -152,7 +152,7 @@ function ConnectedRow(ownProps: OwnProps) {
                   {`Last push ${lastEditTime}${!!teamname && !!lastEditUser ? ' by ' : ''}`}
                 </Kb.Text>
                 {!!teamname && !!lastEditUser && (
-                  <Kb.Avatar2
+                  <Kb.Avatar
                     username={lastEditUser}
                     size={16}
                     style={{marginLeft: Kb.Styles.isMobile ? 0 : 4}}

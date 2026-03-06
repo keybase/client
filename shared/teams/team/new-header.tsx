@@ -115,7 +115,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (
-    <Kb.Avatar2
+    <Kb.Avatar
       onClick={onEditAvatar}
       teamname={meta.teamname}
       size={96}
@@ -126,7 +126,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       ])}
     >
       {!!onEditAvatar && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
-    </Kb.Avatar2>
+    </Kb.Avatar>
   )
 
   const topDescriptors = (

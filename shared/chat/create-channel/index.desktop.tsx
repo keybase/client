@@ -8,7 +8,7 @@ const CreateChannel = (p: Props) => {
   return (
     <Kb.PopupDialog onClose={props.onBack} styleCover={styles.cover} styleContainer={styles.container}>
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.boxTop}>
-        <Kb.Avatar2 isTeam={true} teamname={props.teamname} size={32} />
+        <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
           {props.teamname}
         </Kb.Text>

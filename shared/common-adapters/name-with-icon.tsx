@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
-import Avatar2 from './avatar2'
+import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
@@ -99,7 +99,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
   let avatarOrIcon: React.ReactNode
   if (isAvatar) {
     avatarOrIcon = (
-      <Avatar2
+      <Avatar
         imageOverrideUrl={props.avatarImageOverride}
         size={avatarSize}
         username={username}
@@ -118,7 +118,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
             style={teamname ? styles.editTeam : styles.editUser}
           />
         )}
-      </Avatar2>
+      </Avatar>
     )
   } else if (props.icon) {
     avatarOrIcon = (

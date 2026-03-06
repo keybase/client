@@ -83,7 +83,7 @@ const Avatars = function Avatars(p: Props) {
     return (
       <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
         <Kb.Box2 direction="vertical" relative={true}>
-          <Kb.Avatar2 username={participantOne} size={singleSize} style={{opacity}} />
+          <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box2>
       </Kb.Box2>
@@ -92,8 +92,8 @@ const Avatars = function Avatars(p: Props) {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
-      <Kb.Avatar2 username={participantTwo} size={32} style={leftStyle} />
-      <Kb.Avatar2 username={participantOne} size={32} style={rightStyle} />
+      <Kb.Avatar username={participantTwo} size={32} style={leftStyle} />
+      <Kb.Avatar username={participantOne} size={32} style={rightStyle} />
       <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
     </Kb.Box2>
   )
@@ -122,7 +122,7 @@ const TeamAvatar = function TeamAvatar(p: {
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (
     <Kb.Box2 direction="vertical" relative={true} style={styles.container}>
-      <Kb.Avatar2 teamname={teamname} size={size || 48} />
+      <Kb.Avatar teamname={teamname} size={size || 48} />
       <OverlayIcon isSelected={isSelected} isMuted={isMuted} isHovered={isHovered} isLocked={false} />
     </Kb.Box2>
   )

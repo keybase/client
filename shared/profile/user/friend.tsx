@@ -33,9 +33,9 @@ const Container = (ownProps: OwnProps) => {
         style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
         centerChildren={true}
       >
-        <Kb.Avatar2 size={64} username={username} style={styles.avatar}>
+        <Kb.Avatar size={64} username={username} style={styles.avatar}>
           {!!followIconType && <Kb.Icon type={followIconType} style={followSizeToStyle[64]} />}
-        </Kb.Avatar2>
+        </Kb.Avatar>
         <Kb.ConnectedUsernames
           type={Kb.Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
           usernames={username}

@@ -146,7 +146,7 @@ const Header = () => {
           alignItems="center"
           ref={popupAnchor}
         >
-          <Kb.Avatar2
+          <Kb.Avatar
             size={24}
             username={username}
             style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}

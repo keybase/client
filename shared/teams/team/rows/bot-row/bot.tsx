@@ -73,7 +73,7 @@ export const TeamBotRow = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>
         <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
-          <Kb.Avatar2
+          <Kb.Avatar
             username={props.username}
             size={Kb.Styles.isMobile ? 48 : 32}
             onClick={props.onShowTracker}

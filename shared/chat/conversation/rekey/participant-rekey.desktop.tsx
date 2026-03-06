@@ -4,7 +4,7 @@ import type {Props} from './participant-rekey.types'
 const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (
   <Kb.ClickableBox onClick={() => props.onUsernameClicked(props.username)}>
     <Kb.Box2 direction="horizontal" style={styles.row}>
-      <Kb.Avatar2
+      <Kb.Avatar
         username={props.username}
         size={48}
         style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}

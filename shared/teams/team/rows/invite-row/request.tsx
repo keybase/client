@@ -81,7 +81,7 @@ export const TeamRequestRow = (props: Props) => {
   return (
     <Kb.ListItem
       type="Small"
-      icon={<Kb.Avatar2 username={username} size={32} />}
+      icon={<Kb.Avatar username={username} size={32} />}
       body={
         <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical" fullWidth={true}>

@@ -121,7 +121,7 @@ export const Bot = (props: BotProps) => {
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
-      icon={<Kb.Avatar2 size={Kb.Styles.isMobile ? 48 : 32} username={botUsername} />}
+      icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
       style={{backgroundColor: Kb.Styles.globalColors.white}}
       action={

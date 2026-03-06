@@ -206,7 +206,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
         style={Kb.Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
       >
         <Kb.Box2 direction="horizontal" gap="tiny">
-          <Kb.Avatar2 teamname={teamname} size={16} />
+          <Kb.Avatar teamname={teamname} size={16} />
           <Kb.Text type="BodyBold">{teamname}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>

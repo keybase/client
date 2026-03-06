@@ -14,5 +14,5 @@ type Props = {
   username?: string
 }
 
-declare const Avatar2: (p: Props) => React.ReactNode
-export default Avatar2
+declare const Avatar: (p: Props) => React.ReactNode
+export default Avatar

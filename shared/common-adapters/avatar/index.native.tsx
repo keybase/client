@@ -2,12 +2,12 @@
 import {useState} from 'react'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
-import * as AvatarZus from './avatar/store'
+import * as AvatarZus from './store'
 import {Image} from 'expo-image'
 import {Pressable, View} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
-import {iconTypeToImgSet, type IconType} from './icon'
+import {iconTypeToImgSet, type IconType} from '../icon'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 
@@ -54,7 +54,7 @@ for (const size of allSizes) {
 
 const bgColor = Styles.globalColors.greyLight
 
-function Avatar2(p: Props) {
+function Avatar(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
   const {imageOverrideUrl} = p
   const isTeam = _isTeam || !!teamname
@@ -112,4 +112,4 @@ function Avatar2(p: Props) {
   return <View style={containerStyle}>{content}</View>
 }
 
-export default Avatar2
+export default Avatar

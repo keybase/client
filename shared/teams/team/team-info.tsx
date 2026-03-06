@@ -82,14 +82,14 @@ const TeamInfo = (props: Props) => {
       backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.Avatar2
+        <Kb.Avatar
           onClick={onEditAvatar}
           teamname={teamname}
           size={96}
           style={styles.avatar}
         >
           <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
-        </Kb.Avatar2>
+        </Kb.Avatar>
         {isSubteam ? (
           <Kb.Input3
             autoFocus={true}

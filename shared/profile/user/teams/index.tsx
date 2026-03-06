@@ -87,7 +87,7 @@ const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
         <>
           {popup}
-          <Kb.Avatar2 size={32} teamname={props.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
         </>
         <Kb.Text type="BodySemiboldLink" style={styles.link}>
           {name}

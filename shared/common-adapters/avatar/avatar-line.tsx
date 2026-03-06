@@ -1,4 +1,4 @@
-import Avatar2 from '../avatar2'
+import Avatar from '.'
 import {Box2} from '../box'
 import Text from '../text'
 import * as Styles from '@/styles'
@@ -7,7 +7,7 @@ type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 
 const Kb = {
-  Avatar2,
+  Avatar,
   Box2,
   Styles,
   Text,
@@ -40,7 +40,7 @@ const AvatarLine = (props: Props) => {
       )}
       {usernamesToShow
         .map(username => (
-          <Kb.Avatar2
+          <Kb.Avatar
             size={props.size}
             username={username}
             key={username}

@@ -105,7 +105,7 @@ export const TeamMemberRow = (props: Props) => {
 
   const body = (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-      <Kb.Avatar2 username={props.username} size={32} />
+      <Kb.Avatar username={props.username} size={32} />
       <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer} justifyContent="center">
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames

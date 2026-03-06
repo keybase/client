@@ -115,7 +115,7 @@ const EnterUsername = (props: Props) => {
           flex={1}
           fullWidth={true}
         >
-          <Kb.Avatar2 size={C.isLargeScreen ? 96 : 64} />
+          <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
           <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
             <Kb.Input3
               autoFocus={true}

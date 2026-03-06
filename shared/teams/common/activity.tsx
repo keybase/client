@@ -60,7 +60,7 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      <Kb.Avatar2
+      <Kb.Avatar
         size={32}
         teamname={teamname === 'New team' ? '' : teamname}
         style={styles.avatar}

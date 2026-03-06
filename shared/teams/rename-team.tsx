@@ -69,7 +69,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.PopupWrapper onCancel={onCancel} title="Rename subteam">
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
-          <Kb.Avatar2 teamname={teamname} size={Kb.Styles.isMobile ? 64 : 48} />
+          <Kb.Avatar teamname={teamname} size={Kb.Styles.isMobile ? 64 : 48} />
           <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
             {!Kb.Styles.isMobile && (
               <Kb.Text type="Header" center={true}>

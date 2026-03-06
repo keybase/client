@@ -96,7 +96,7 @@ const ContactRow = function ContactRow({
         item.pictureUri ? (
           <Kb.Image style={styles.thumbnail} src={item.pictureUri} />
         ) : (
-          <Kb.Avatar2 size={32} username="" />
+          <Kb.Avatar size={32} username="" />
         )
       }
     />

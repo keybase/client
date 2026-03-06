@@ -71,7 +71,7 @@ export const SignedSender = (props: SignedSenderProps) => {
             alignItems="center"
             style={styles.signedSender}
           >
-            <Kb.Avatar2 key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
+            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
             {isSelfSigned ? (
               <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>

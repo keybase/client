@@ -274,7 +274,7 @@ const InstallBotPopup = (props: Props) => {
               <Kb.DropdownButton
                 selected={
                   <Kb.Box2 direction="horizontal" alignItems="center">
-                    <Kb.Avatar2
+                    <Kb.Avatar
                       size={16}
                       teamname={teamname}
                       style={{marginRight: Kb.Styles.globalMargins.tiny}}

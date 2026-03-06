@@ -9,7 +9,7 @@ const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend('accountSwitcher')
-  return <Kb.Avatar2 size={32} username={myUsername} onClick={onClick} />
+  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
 export const newRoutes = {

@@ -13,7 +13,7 @@ export {
   type BottomSheetBackdropProps,
 } from './bottom-sheet'
 export {default as Animation} from './animation'
-export {default as Avatar2} from './avatar2'
+export {default as Avatar} from './avatar'
 export {default as AvatarLine} from './avatar/avatar-line'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'

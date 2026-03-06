@@ -318,7 +318,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
             styles.contentCollapsedFixedHeight,
           ] as const)}
         >
-          <Kb.Avatar2 teamname={props.node.teamname} size={32} />
+          <Kb.Avatar teamname={props.node.teamname} size={32} />
           <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
@@ -505,7 +505,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     expanded && styles.membershipContentExpanded,
                   ] as const)}
                 >
-                  <Kb.Avatar2 teamname={props.node.teamname} size={32} />
+                  <Kb.Avatar teamname={props.node.teamname} size={32} />
                   <Kb.Box2
                     direction="vertical"
                     alignItems="flex-start"
@@ -653,7 +653,7 @@ export const TeamMemberHeader = (props: Props) => {
             gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}
             alignSelf="flex-start"
           >
-            <Kb.Avatar2 size={16} teamname={teamMeta.teamname} />
+            <Kb.Avatar size={16} teamname={teamMeta.teamname} />
             <Kb.Text
               type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
@@ -670,7 +670,7 @@ export const TeamMemberHeader = (props: Props) => {
             style={styles.headerTextContainer}
           >
             <Kb.Box2 direction="horizontal" gap="small">
-              <Kb.Avatar2 size={64} username={username} />
+              <Kb.Avatar size={64} username={username} />
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
                 <Kb.ConnectedUsernames type="Header" usernames={username} />
                 {!!member.fullName && (

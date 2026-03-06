@@ -18,7 +18,7 @@ const UserCard = (p: Props) => {
             avatarBackgroundStyle,
           ])}
         />
-        <Kb.Avatar2
+        <Kb.Avatar
           size={avatarSize}
           onClick={onAvatarClicked}
           username={username}

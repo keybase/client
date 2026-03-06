@@ -45,7 +45,7 @@ const ReallyLeaveTeam = (props: Props) => (
           style={Kb.Styles.globalStyles.flexBoxCenter}
         >
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
-            <Kb.Avatar2 teamname={props.name} size={Kb.Styles.isMobile ? 96 : 64} />
+            <Kb.Avatar teamname={props.name} size={Kb.Styles.isMobile ? 96 : 64} />
             <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
           </Kb.Box2>
           <Kb.Text type="Header" center={true} style={styles.headerText}>

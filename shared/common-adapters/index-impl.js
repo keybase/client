@@ -4,8 +4,8 @@ module.exports = {
   get Animation() {
     return require('./animation').default
   },
-  get Avatar2() {
-    return require('./avatar2').default
+  get Avatar() {
+    return require('./avatar').default
   },
   get AvatarLine() {
     return require('./avatar/avatar-line').default
