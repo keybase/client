@@ -36,16 +36,16 @@ export const InfoIcon = (props: InfoIconProps) => {
 
   return (
     <>
-      <Kb.Icon
-        type="iconfont-question-mark"
-        onClick={props.invisible ? undefined : showPopup}
-        ref={popupAnchor}
-        style={Kb.Styles.collapseStyles([
+      <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([
           Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}}),
           props.invisible && styles.opacityNone,
           props.style,
-        ])}
-      />
+        ])}>
+        <Kb.Icon
+          type="iconfont-question-mark"
+          onClick={props.invisible ? undefined : showPopup}
+        />
+      </Kb.Box2Measure>
       {popup}
     </>
   )

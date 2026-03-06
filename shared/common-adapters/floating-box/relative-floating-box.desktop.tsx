@@ -3,7 +3,6 @@ import * as Styles from '@/styles'
 import includes from 'lodash/includes'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
-import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -16,8 +15,8 @@ type ComputedStyle = {
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
-  coords: MeasureDesktop,
-  popupCoords: MeasureDesktop,
+  coords: DOMRect,
+  popupCoords: DOMRect,
   matchDimension: boolean,
   offset: number
 ): ComputedStyle {
@@ -74,7 +73,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -115,7 +114,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): b
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop, offset: number) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect, offset: number) {
   const {
     pageYOffset,
     pageXOffset,
@@ -195,7 +194,7 @@ const allPositions: Array<Styles.Position> = [
 
 function computePopupStyle(
   position: Styles.Position,
-  coords: MeasureDesktop,
+  coords: DOMRect,
   popupCoords: DOMRect,
   matchDimension: boolean,
   // When specified, will only use the fallbacks regardless of visibility
@@ -216,7 +215,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect?: MeasureDesktop
+  targetRect?: DOMRect
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean

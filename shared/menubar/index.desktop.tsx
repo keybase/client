@@ -431,14 +431,15 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           : null}
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.hamburgerContainer}>
-        <Kb.Icon
-          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
-          hoverColor={Kb.Styles.globalColors.whiteOrWhite}
-          onClick={showPopup}
-          type="iconfont-nav-2-hamburger"
-          sizeType="Big"
-          ref={popupAnchor}
-        />
+        <Kb.Box2Measure direction="vertical" ref={popupAnchor}>
+          <Kb.Icon
+            color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
+            hoverColor={Kb.Styles.globalColors.whiteOrWhite}
+            onClick={showPopup}
+            type="iconfont-nav-2-hamburger"
+            sizeType="Big"
+          />
+        </Kb.Box2Measure>
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box2>
       {popup}

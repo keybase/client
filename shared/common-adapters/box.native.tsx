@@ -1,8 +1,7 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
-import type {MeasureRef} from './measure-ref'
 import Reanimated from 'react-native-reanimated'
 
 type Margins = keyof typeof Styles.globalMargins
@@ -158,17 +157,10 @@ export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
   return <Reanimated.View {...props} ref={ref} />
 }
 
-export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
+export const Box2Measure = (p: Box2Props & {ref?: React.Ref<View>}) => {
   const {ref, ...rest} = p
-  React.useImperativeHandle(ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {
-      divRef: {current: null},
-    }
-  }, [])
-
   const props = useBox2Shared(rest)
-  return <View {...props} />
+  return <View {...props} ref={ref} />
 }
 
 const common = {

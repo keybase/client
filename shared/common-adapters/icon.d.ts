@@ -1,8 +1,6 @@
 import type * as React from 'react'
 import type {IconType} from './icon.constants-gen'
 import type {StylesCrossPlatform, Color, globalMargins, CustomStyles} from '@/styles'
-import type {MeasureRef} from './measure-ref'
-
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 // These must be passed as props
@@ -43,7 +41,7 @@ export type Props = {
   skipColor?: boolean // only used in one place, todo make an Icon2
 }
 
-export declare function Icon(props: Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
+export declare function Icon(props: Props): React.ReactNode
 export default Icon
 
 export declare function iconTypeToImgSet(imgMap: {[K in string]: IconType}, targetSize: number): string

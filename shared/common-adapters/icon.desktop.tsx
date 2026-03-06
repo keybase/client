@@ -1,21 +1,19 @@
 import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
-import * as React from 'react'
+import type * as React from 'react'
 import logger from '@/logger'
 import {iconMeta} from './icon.constants-gen'
 import {getAssetPath} from '@/constants/platform.desktop'
 import type {Props, IconType} from './icon'
-import type {MeasureRef} from './measure-ref'
-
 // Extract color name from CSS variable string: "var(--color-black_50)" → "black_50"
 const cssVarToColorName = (cssVar: string): string | undefined => {
   const match = /^var\(--color-(.+)\)$/.exec(cssVar)
   return match?.[1]
 }
 
-const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
+const Icon = (props: Props) => {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
-    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true, ref} = props
+    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
     const hasDarkVariant = !!iconMeta[iconType].nameDark
 
@@ -34,18 +32,6 @@ const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
 
     let color = Shared.defaultColor(type)
     let hoverColor = Shared.defaultHoverColor(type)
-
-    const divRef = React.useRef<HTMLDivElement>(null)
-    const imgRef = React.useRef<HTMLImageElement>(null)
-
-    React.useImperativeHandle(ref, () => {
-      return {
-        divRef,
-        measure() {
-          return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
-        },
-      }
-    }, [])
 
     if (inheritColor) {
       color = 'inherit'
@@ -88,7 +74,6 @@ const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
           loading={allowLazy ? 'lazy' : undefined}
           className={className}
           draggable={false}
-          ref={hasContainer ? undefined : imgRef}
           title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
@@ -140,7 +125,6 @@ const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
 
       return (
         <div
-          ref={divRef}
           style={
             Styles.collapseStyles([
               // This breaks a couple existing uses. So only apply it when padding

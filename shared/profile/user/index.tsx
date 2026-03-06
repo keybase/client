@@ -319,14 +319,8 @@ const User = (props: {username: string}) => {
   )
 
   // desktop only
-  const wrapperRef = React.useRef<Kb.MeasureRef | null>(null)
-  const [divRef, setDivRef] = React.useState<React.RefObject<HTMLDivElement | null> | null>(null)
-  React.useEffect(() => {
-    if (wrapperRef.current?.divRef) {
-      setDivRef(wrapperRef.current.divRef)
-    }
-  }, [])
-  useResizeObserver(divRef, e => setWidth(e.contentRect.width))
+  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  useResizeObserver(wrapperRef, e => setWidth(e.contentRect.width))
 
   const lastUsernameRef = React.useRef(p.username)
   React.useEffect(() => {

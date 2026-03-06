@@ -1,11 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
 import {Pressable, Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
-import type {MeasureRef} from './measure-ref'
 import {useColorScheme} from 'react-native'
 
 type TextProps = {
@@ -111,19 +110,12 @@ const Image = (p: ImageProps & {ref?: React.Ref<RNImage>}) => {
   return <RNImage ref={ref} style={[style, pStyle]} source={p.source} />
 }
 
-const Icon = (p: Props & {ref?: React.Ref<MeasureRef>}) => {
-    const {ref} = p
+const Icon = (p: Props) => {
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
     const iconType = p.type
     const isDarkMode = useColorScheme() === 'dark'
-
-    React.useImperativeHandle(ref, () => {
-      return {
-        divRef: {current: null},
-      }
-    }, [])
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn(`Invalid icon type passed in: ${String(iconType)}`)

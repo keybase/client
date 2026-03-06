@@ -67,15 +67,16 @@ const SFMIPopup = (props: Props) => {
     <>
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
-          <Kb.Icon
-            type="iconfont-finder"
-            padding="tiny"
-            fontSize={16}
-            color={Kb.Styles.globalColors.black_50}
-            hoverColor={Kb.Styles.globalColors.black}
-            onClick={showPopup}
-            ref={popupAnchor}
-          />
+          <Kb.Box2Measure direction="vertical" ref={popupAnchor}>
+            <Kb.Icon
+              type="iconfont-finder"
+              padding="tiny"
+              fontSize={16}
+              color={Kb.Styles.globalColors.black_50}
+              hoverColor={Kb.Styles.globalColors.black}
+              onClick={showPopup}
+            />
+          </Kb.Box2Measure>
         </Kb.WithTooltip>
       ) : (
         <Kb.Button

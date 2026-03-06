@@ -196,15 +196,16 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
   return (
     <>
       {showingPopup && popup}
-      <Kb.Icon
-        type="iconfont-gear"
-        className="conversation-gear"
-        onClick={showPopup}
-        ref={popupAnchor}
-        color={subColor}
-        hoverColor={iconHoverColor}
-        style={styles.icon}
-      />
+      <Kb.Box2Measure direction="vertical" ref={popupAnchor}>
+        <Kb.Icon
+          type="iconfont-gear"
+          className="conversation-gear"
+          onClick={showPopup}
+          color={subColor}
+          hoverColor={iconHoverColor}
+          style={styles.icon}
+        />
+      </Kb.Box2Measure>
     </>
   )
 }

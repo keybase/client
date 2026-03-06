@@ -1,23 +1,13 @@
-import * as React from 'react'
 import * as Styles from '@/styles'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'
-import type {MeasureRef} from './measure-ref'
-
 const Kb = {
   Styles,
 }
 
-const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
+const ClickableBox = (props: Props) => {
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
-  const {style, activeOpacity, children, ref} = props
-
-  React.useImperativeHandle(ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {
-      divRef: {current: null},
-    }
-  }, [])
+  const {style, activeOpacity, children} = props
 
   if (onClick) {
     const clickStyle = Kb.Styles.collapseStyles([styles.box, style])

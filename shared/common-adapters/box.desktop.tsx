@@ -1,7 +1,6 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import type {Box2Props} from './box'
-import type {MeasureRef} from './measure-ref'
 import './box.css'
 
 const getProps = (p: Box2Props) => {
@@ -85,19 +84,9 @@ export const Box2View = () => {
   throw new Error('Wrong platform')
 }
 
-export const Box2Measure = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
+export const Box2Measure = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
   const {ref, ...rest} = p
   const props = getProps(rest)
-  const divRef = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  }, [])
-
-  return <div ref={divRef} {...props} />
+  return <div ref={ref} {...props} />
 }
 

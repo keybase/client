@@ -395,14 +395,9 @@ const Popup = (p: PopupProps) => {
   const conversationIdKey = Chat.useChatContext(s => s.id)
 
   const attachRef = React.useRef<Kb.MeasureRef | null>({
-    divRef: {current: null},
-    measure: () => {
+    getBoundingClientRect: () => {
       const r = inputRef.current?.getBoundingClientRect?.()
-      if (r) {
-        return r
-      } else {
-        return undefined
-      }
+      return r ? new DOMRect(r.x, r.y, r.width, r.height) : new DOMRect()
     },
   })
 

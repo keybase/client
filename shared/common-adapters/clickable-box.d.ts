@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
 import type {MeasureRef} from './measure-ref'
-
 export type Props = {
   className?: string
   children?: React.ReactNode
@@ -42,5 +41,5 @@ export type Props2 = {
 }
 
 export declare function ClickableBox(props: Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
-export declare function ClickableBox2(props: Props2 & {ref?: React.Ref<MeasureRef>}): React.ReactNode
+export declare function ClickableBox2(props: Props2 & {ref?: React.Ref<MeasureRef | null>}): React.ReactNode
 export default ClickableBox

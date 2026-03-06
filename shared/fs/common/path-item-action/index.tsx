@@ -42,16 +42,17 @@ function IconClickable(props: ICProps) {
   const {measureRef, actionIconWhite, sizeType, onClick} = props
   return (
     <Kb.WithTooltip tooltip="More actions">
-      <Kb.Icon
-        fixOverdraw={false}
-        type="iconfont-ellipsis"
-        color={actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
-        hoverColor={actionIconWhite ? undefined : Kb.Styles.globalColors.black}
-        padding="tiny"
-        sizeType={sizeType}
-        onClick={onClick}
-        ref={measureRef}
-      />
+      <Kb.Box2Measure direction="vertical" ref={measureRef}>
+        <Kb.Icon
+          fixOverdraw={false}
+          type="iconfont-ellipsis"
+          color={actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
+          hoverColor={actionIconWhite ? undefined : Kb.Styles.globalColors.black}
+          padding="tiny"
+          sizeType={sizeType}
+          onClick={onClick}
+        />
+      </Kb.Box2Measure>
     </Kb.WithTooltip>
   )
 }
