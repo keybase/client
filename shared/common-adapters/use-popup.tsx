@@ -17,22 +17,22 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const attachTo = popupAnchor
   const lastToggle = React.useRef(0)
 
-  const hidePopup = React.useCallback(() => {
+  const [hidePopup] = React.useState(() => () => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
       return
     }
     lastToggle.current = now
     setShowingPopup(false)
-  }, [setShowingPopup])
-  const showPopup = React.useCallback(() => {
+  })
+  const [showPopup] = React.useState(() => () => {
     const now = Date.now()
     if (now - lastToggle.current < tooQuick) {
       return
     }
     lastToggle.current = now
     setShowingPopup(true)
-  }, [setShowingPopup])
+  })
   const togglePopup = showingPopup ? hidePopup : showPopup
 
   React.useEffect(() => {

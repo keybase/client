@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useTBContext} from '@/constants/team-building'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useTBContext} from '@/stores/team-building'
 
 const useContactsProps = () => {
   const contactsImported = useSettingsContactsState(s => s.importEnabled)
@@ -18,12 +18,12 @@ const useContactsProps = () => {
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled
 
-  const onImportContactsPermissionsGranted = React.useCallback(() => {
+  const onImportContactsPermissionsGranted = () => {
     editContactImportEnabled(true, false)
-  }, [editContactImportEnabled])
-  const onImportContactsPermissionsNotGranted = React.useCallback(() => {
+  }
+  const onImportContactsPermissionsNotGranted = () => {
     requestPermissions(true, false)
-  }, [requestPermissions])
+  }
 
   const onImportContacts =
     contactsPermissionStatus === 'denied'
@@ -95,24 +95,25 @@ export const ContactsBanner = (props: {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
       <Kb.Icon type="icon-fancy-contact-import-mobile-72-96" style={styles.bannerIcon} />
-      <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
+      <Kb.Box2 direction="vertical" flex={1} justifyContent="center">
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" style={styles.bannerButtonContainer}>
           <Kb.Button
             label="Import contacts"
-            backgroundColor="blue"
             onClick={onImportContacts}
             small={true}
-            style={styles.importContactsButton}
+            style={Kb.Styles.collapseStyles([styles.importContactsButton, styles.primaryOnBlue])}
+            labelStyle={styles.primaryOnBlueLabel}
           />
           <Kb.Button
             label="Skip"
-            backgroundColor="blue"
             mode="Secondary"
             onClick={onAskForContactsLater}
             small={true}
+            style={styles.secondaryOnBlue}
+            labelStyle={styles.secondaryOnBlueLabel}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -181,10 +182,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexWrap: 'wrap',
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      bannerTextContainer: {
-        flex: 1,
-        justifyContent: 'center',
-      },
       iconContactBookContainer: {
         alignItems: 'center',
         marginLeft: Kb.Styles.globalMargins.xsmall,
@@ -197,5 +194,12 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 64,
         justifyContent: 'flex-start',
       },
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      secondaryOnBlue: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnBlueLabel: {color: Kb.Styles.globalColors.white},
     }) as const
 )

@@ -69,7 +69,7 @@ func (m MetaContext) LoginContext() LoginContext {
 	return m.loginContext
 }
 
-func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...interface{}) {
+func (m MetaContext) VLogf(lev VDebugLevel, msg string, args ...any) {
 	m.g.VDL.CLogfWithAddedDepth(m.ctx, lev, 1, msg, args...)
 }
 
@@ -95,23 +95,23 @@ func (m MetaContext) TimeTracer(label string, enabled bool) profiling.TimeTracer
 	return m.G().CTimeTracer(m.Ctx(), label, enabled)
 }
 
-func (m MetaContext) Debug(f string, args ...interface{}) {
+func (m MetaContext) Debug(f string, args ...any) {
 	m.g.Log.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
 }
 
-func (m MetaContext) PerfDebug(f string, args ...interface{}) {
+func (m MetaContext) PerfDebug(f string, args ...any) {
 	m.g.PerfLog.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
 }
 
-func (m MetaContext) Warning(f string, args ...interface{}) {
+func (m MetaContext) Warning(f string, args ...any) {
 	m.g.Log.CloneWithAddedDepth(1).CWarningf(m.ctx, f, args...)
 }
 
-func (m MetaContext) Error(f string, args ...interface{}) {
+func (m MetaContext) Error(f string, args ...any) {
 	m.g.Log.CloneWithAddedDepth(1).CErrorf(m.ctx, f, args...)
 }
 
-func (m MetaContext) Info(f string, args ...interface{}) {
+func (m MetaContext) Info(f string, args ...any) {
 	m.g.Log.CloneWithAddedDepth(1).CInfof(m.ctx, f, args...)
 }
 

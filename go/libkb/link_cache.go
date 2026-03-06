@@ -121,7 +121,7 @@ func (c *LinkCache) Clean() {
 	c.Lock()
 	defer c.Unlock()
 	delta := len(c.cache) - c.maxSize
-	for i := 0; i < delta; i++ {
+	for range delta {
 		// get the least recently used element
 		oldest := c.accessOrder.Front()
 

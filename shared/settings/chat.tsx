@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
-import {useSettingsChatState as useSettingsChatState} from '@/constants/settings-chat'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState} from '@/constants/settings'
-import {useConfigState} from '@/constants/config'
+import {useSettingsChatState as useSettingsChatState} from '@/stores/settings-chat'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
+import {useSettingsState} from '@/stores/settings'
+import {useConfigState} from '@/stores/config'
 
 const emptyList = new Array<string>()
 
@@ -46,12 +46,9 @@ const Security = () => {
     _contactSettingsTeamsEnabled
   )
 
-  const serverSelectedTeams = React.useMemo(
-    () => new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}])),
-    [_contactSettingsTeams]
-  )
+  const serverSelectedTeams = new Map(_contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))
 
-  const _contactSettingsSelectedTeams = React.useMemo(() => {
+  const _contactSettingsSelectedTeams = (() => {
     const s: {[K in T.Teams.TeamID]: boolean} = {}
     teamMeta.forEach(t => {
       if (serverSelectedTeams.has(t.id)) {
@@ -63,7 +60,7 @@ const Security = () => {
       }
     })
     return s
-  }, [teamMeta, serverSelectedTeams])
+  })()
 
   const [contactSettingsSelectedTeams, setContactSettingsSelectedTeams] = React.useState(
     _contactSettingsSelectedTeams
@@ -109,15 +106,12 @@ const Security = () => {
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
 
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
-  const onRefresh = React.useCallback(() => {
+
+  React.useEffect(() => {
     loadSettings()
     notifRefresh()
     contactSettingsRefresh()
   }, [contactSettingsRefresh, loadSettings, notifRefresh])
-
-  React.useEffect(() => {
-    onRefresh()
-  }, [onRefresh])
 
   return (
     <>
@@ -292,8 +286,8 @@ const Links = () => {
             {getUnfurlWhitelist(false).map((w, idx) => {
               const wlremoved = unfurlWhitelistRemoved[w]
               return (
-                <Kb.Box key={w} style={styles.whitelistInner}>
-                  {idx === 0 && <Kb.Box style={styles.whitelistOuter} />}
+                <Kb.Box2 direction="vertical" key={w} style={styles.whitelistInner}>
+                  {idx === 0 && <Kb.Box2 direction="vertical" style={styles.whitelistOuter} />}
                   <Kb.Box2
                     fullWidth={true}
                     direction="horizontal"
@@ -312,7 +306,7 @@ const Links = () => {
                         Restore
                       </Kb.Text>
                     ) : (
-                      <Kb.Box style={{position: 'relative'}}>
+                      <Kb.Box2 direction="vertical" relative={true}>
                         <Kb.WithTooltip tooltip="Remove">
                           <Kb.Icon
                             onClick={() => toggleUnfurlWhitelist(w)}
@@ -320,10 +314,10 @@ const Links = () => {
                             type="iconfont-trash"
                           />
                         </Kb.WithTooltip>
-                      </Kb.Box>
+                      </Kb.Box2>
                     )}
                   </Kb.Box2>
-                </Kb.Box>
+                </Kb.Box2>
               )
             })}
           </Kb.ScrollView>

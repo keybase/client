@@ -1,7 +1,5 @@
-import trim from 'lodash/trim'
-
 function isBlank(s: string): boolean {
-  return trim(s).length === 0
+  return s.trim().length === 0
 }
 
 function hasSpaces(s: string): boolean {

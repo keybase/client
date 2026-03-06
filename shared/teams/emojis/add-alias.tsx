@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -147,21 +147,20 @@ const ChooseEmoji = Kb.Styles.isMobile
       const conversationIDKey = Chat.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
-          props: {
+          name: 'chatChooseEmoji',
+          params: {
             conversationIDKey,
             hideFrequentEmoji: true,
             onlyTeamCustomEmoji: true,
             pickKey,
             small: true,
           },
-          selected: 'chatChooseEmoji',
         })
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
       const {onChoose} = props
-      const makePopup = React.useCallback(
-        (p: Kb.Popup2Parms) => {
+      const makePopup = (p: Kb.Popup2Parms) => {
           const {attachTo, hidePopup} = p
           return (
             <Kb.FloatingBox
@@ -180,9 +179,7 @@ const ChooseEmoji = Kb.Styles.isMobile
               />
             </Kb.FloatingBox>
           )
-        },
-        [onChoose]
-      )
+        }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>

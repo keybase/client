@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
@@ -83,13 +83,12 @@ const AddEmail = (props: Props) => {
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.errorMessage}
             multiline={true}
             onChangeText={text => setInvitees(text)}
             placeholder="Email addresses"
-            hoverPlaceholder="Ex: daniel@domain.com, kim@domain.com, etc."
             rowsMin={3}
             rowsMax={8}
             value={invitees}
@@ -116,15 +115,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   errorText: {color: Kb.Styles.globalColors.redDark},
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
 }))
 
 export default AddEmail

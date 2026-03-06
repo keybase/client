@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as C from '@/constants'
 import {InfoIcon} from './common'
 
 export const newRoutes = {
@@ -30,5 +29,3 @@ export const newModalRoutes = {
   signupSendFeedbackLoggedIn: {screen: React.lazy(async () => import('./feedback'))},
   signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify'))},
 }
-
-export type RootParamListSignup = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import MaybePopup from './maybe-popup'
 
 const DeleteHistoryWarning = () => {
@@ -18,12 +18,12 @@ const DeleteHistoryWarning = () => {
   return (
     <MaybePopup onClose={onCancel}>
       {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.collapseStyles([
-          Kb.Styles.globalStyles.flexBoxColumn,
           styles.padding,
           styles.box,
-        ] as const)}
+        ])}
       >
         <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
         <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
@@ -32,7 +32,7 @@ const DeleteHistoryWarning = () => {
         <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
           You are about to delete all the messages in this conversation. For everyone.
         </Kb.Text>
-        <Kb.Box style={styles.buttonBox}>
+        <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
           <Kb.Button
             type="Dim"
             style={styles.button}
@@ -47,8 +47,8 @@ const DeleteHistoryWarning = () => {
             label="Yes, clear for everyone"
             fullWidth={Kb.Styles.isMobile}
           />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </MaybePopup>
   )
 }
@@ -73,12 +73,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       buttonBox: Kb.Styles.platformStyles({
         common: {marginTop: Kb.Styles.globalMargins.xlarge},
-        isElectron: {...Kb.Styles.globalStyles.flexBoxRow},
         isMobile: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
           flex: 1,
-          flexDirection: 'column-reverse',
           paddingTop: Kb.Styles.globalMargins.xlarge,
           width: '100%',
         },

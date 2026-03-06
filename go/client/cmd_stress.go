@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build !production
-// +build !production
 
 // this command is only for testing purposes
 package client
@@ -144,14 +143,14 @@ func (c *CmdStress) simulate(username, passphrase string) {
 		c.status,
 		c.trackSomeone,
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		f := funcs[libkb.RandIntn(len(funcs))] //nolint:gosec // G602: RandIntn returns value in [0, n) via modulo, array access is safe
 		f()
 	}
 
 	// now add logout to the mix
 	funcs = append(funcs, c.logout)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		f := funcs[libkb.RandIntn(len(funcs))]
 		f()
 	}

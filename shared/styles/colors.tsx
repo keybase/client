@@ -1,5 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import {isIOS, isAndroid} from '@/constants/platform'
 import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 import type {Opaque} from '@/constants/types/ts'
@@ -48,7 +48,6 @@ const colorDefs = {
   brown: {dark: 'rgb(71, 31, 17)', light: 'rgb(71, 31, 17)'},
   brown_75: {dark: 'rgba(71, 31, 17, 0.75)', light: 'rgba(71, 31, 17, 0.75)'},
   brown_75_on_white: {dark: 'rgb(117,87,78)', light: 'rgb(117,87,78)'},
-  fastBlank: {dark: undefined, light: undefined},
   green: {dark: '#37BD99', light: '#37BD99'},
   greenDark: {dark: '#189E7A', light: '#189E7A'},
   greenDarker: {dark: '#12785D', light: '#12785D'},
@@ -196,7 +195,7 @@ if (isIOS) {
   }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
     obj[name] =
-      name === 'fastBlank' ? undefined : DynamicColorIOS({dark: darkColors[name], light: colors[name]})
+      DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
   }, {}) as Color
 } else {

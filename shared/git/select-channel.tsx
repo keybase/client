@@ -1,5 +1,5 @@
-import * as Git from '@/constants/git'
-import * as Teams from '@/constants/teams'
+import * as Git from '@/stores/git'
+import * as Teams from '@/stores/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -38,14 +38,14 @@ const SelectChannel = (ownProps: OwnProps) => {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
             <Kb.Text type="Header">Select a channel</Kb.Text>
             {channelNames.map(name => (
-              <Kb.Box key={name} style={styles.row}>
+              <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
                 <Kb.RadioButton
                   label={name}
                   selected={selected === name}
                   style={styles.radioButton}
                   onSelect={selected => selected && setSelected(name)}
                 />
-              </Kb.Box>
+              </Kb.Box2>
             ))}
           </Kb.Box2>
         </Kb.ScrollView>
@@ -71,7 +71,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },

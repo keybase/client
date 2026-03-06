@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from './role-picker'
@@ -59,23 +59,20 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.PopupDialog onClose={onClose} styleCover={styles.cover} styleContainer={styles.container}>
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
-        <Kb.Box
-          style={{
-            ...Kb.Styles.globalStyles.flexBoxColumn,
-            alignItems: 'center',
-            margin: Kb.Styles.globalMargins.medium,
-          }}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          direction="vertical"
+          alignItems="center"
+          fullWidth={true}
+          style={{margin: Kb.Styles.globalMargins.medium}}
         >
           <Kb.Text style={styles.header} type="Header">
             Invite by email
           </Kb.Text>
-          <Kb.Box
-            style={{
-              ...Kb.Styles.globalStyles.flexBoxRow,
-              alignItems: 'center',
-              margin: Kb.Styles.globalMargins.tiny,
-            }}
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="center"
+            style={{margin: Kb.Styles.globalMargins.tiny}}
           >
             <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
               Add these team members to {name} as:
@@ -95,9 +92,9 @@ const Container = (ownProps: OwnProps) => {
                 style={{width: 100}}
               />
             </FloatingRolePicker>
-          </Kb.Box>
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
-            <Kb.LabeledInput
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
+            <Kb.Input3
               autoFocus={true}
               error={!!errorMessage}
               multiline={true}
@@ -116,24 +113,24 @@ const Container = (ownProps: OwnProps) => {
           <Kb.ButtonBar>
             <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
           </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </Kb.PopupDialog>
   )
 }
 
 const _makeDropdownItem = (item: string) => (
-  <Kb.Box
+  <Kb.Box2
     key={item}
+    direction="horizontal"
+    alignItems="center"
     style={{
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
       paddingLeft: Kb.Styles.globalMargins.small,
       paddingRight: Kb.Styles.globalMargins.small,
     }}
   >
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

@@ -1,12 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import includes from 'lodash/includes'
-import Box from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
-import type {MeasureDesktop} from '@/common-adapters/measure-ref'
-
-const Kb = {Box}
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -19,8 +14,8 @@ type ComputedStyle = {
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
-  coords: MeasureDesktop,
-  popupCoords: MeasureDesktop,
+  coords: DOMRect,
+  popupCoords: DOMRect,
   matchDimension: boolean,
   offset: number
 ): ComputedStyle {
@@ -35,10 +30,10 @@ function _computePopupStyle(
   } = window
   const {clientWidth, clientHeight} = document.documentElement
 
-  if (includes(position, 'right')) {
+  if (position.includes('right')) {
     style.right = Math.round(clientWidth - (coords.right + pageXOffset) + offset)
     style.left = 'auto'
-  } else if (includes(position, 'left')) {
+  } else if (position.includes('left')) {
     style.left = Math.round(coords.left + pageXOffset + offset)
     style.right = 'auto'
   } else if (matchDimension) {
@@ -51,10 +46,10 @@ function _computePopupStyle(
     style.right = 'auto'
   }
 
-  if (includes(position, 'top')) {
+  if (position.includes('top')) {
     style.bottom = Math.round(clientHeight - (coords.top + pageYOffset) - offset)
     style.top = 'auto'
-  } else if (includes(position, 'bottom')) {
+  } else if (position.includes('bottom')) {
     style.top = Math.round(coords.bottom + pageYOffset - offset)
     style.bottom = 'auto'
   } else if (matchDimension) {
@@ -67,9 +62,9 @@ function _computePopupStyle(
     style.bottom = 'auto'
 
     const xOffset = popupCoords.width + 8
-    if (includes(position, 'right') && typeof style.right === 'number') {
+    if (position.includes('right') && typeof style.right === 'number') {
       style.right -= xOffset
-    } else if (includes(position, 'left') && typeof style.left === 'number') {
+    } else if (position.includes('left') && typeof style.left === 'number') {
       style.left -= xOffset
     }
   }
@@ -77,7 +72,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -118,7 +113,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): b
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop, offset: number) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect, offset: number) {
   const {
     pageYOffset,
     pageXOffset,
@@ -198,7 +193,7 @@ const allPositions: Array<Styles.Position> = [
 
 function computePopupStyle(
   position: Styles.Position,
-  coords: MeasureDesktop,
+  coords: DOMRect,
   popupCoords: DOMRect,
   matchDimension: boolean,
   // When specified, will only use the fallbacks regardless of visibility
@@ -219,7 +214,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect?: MeasureDesktop
+  targetRect?: DOMRect
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
@@ -239,22 +234,19 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props
 
-  const handleDown = React.useCallback((e: MouseEvent) => {
-    downRef.current = {x: e.clientX, y: e.clientY}
-  }, [])
+  React.useEffect(() => {
+    const handleDown = (e: MouseEvent) => {
+      downRef.current = {x: e.clientX, y: e.clientY}
+    }
 
-  const handleClick = React.useCallback(
-    (e: MouseEvent) => {
+    const handleClick = (e: MouseEvent) => {
       if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
         !propagateOutsideClicks && e.stopPropagation()
         onClosePopup()
       }
-    },
-    [onClosePopup, propagateOutsideClicks, popupNode]
-  )
+    }
 
-  const handleUp = React.useCallback(
-    (e: MouseEvent) => {
+    const handleUp = (e: MouseEvent) => {
       if (!downRef.current) {
         return
       }
@@ -265,11 +257,8 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       if (Math.abs(x - clientX) < 5 && Math.abs(y - clientY) < 5) {
         handleClick(e)
       }
-    },
-    [handleClick]
-  )
+    }
 
-  React.useEffect(() => {
     const node = document.body
     node.addEventListener('mousedown', handleDown, {capture: true})
     node.addEventListener('mouseup', handleUp, {capture: true})
@@ -277,7 +266,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       node.removeEventListener('mousedown', handleDown, {capture: true})
       node.removeEventListener('mouseup', handleUp, {capture: true})
     }
-  }, [handleDown, handleUp])
+  }, [onClosePopup, popupNode, propagateOutsideClicks])
 
   React.useEffect(() => {
     if (targetRect && popupNode) {
@@ -301,10 +290,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>
           {disableEscapeKey ? (
-            <Kb.Box className="fade-in-generic">{children}</Kb.Box>
+            <div className="fade-in-generic">{children}</div>
           ) : (
             <EscapeHandler onESC={onClosePopup}>
-              <Kb.Box className="fade-in-generic">{children}</Kb.Box>
+              <div className="fade-in-generic">{children}</div>
             </EscapeHandler>
           )}
         </div>,

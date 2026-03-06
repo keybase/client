@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {teamname: string}
 
@@ -97,15 +97,14 @@ const Container = (ownProps: OwnProps) => {
             ] as const)}
             fullWidth={true}
           >
-            <Kb.PlainInput
+            <Kb.Input3
               autoFocus={true}
               disabled={waiting}
               onChangeText={setNewName}
               onEnterKeyDown={handleRename}
-              textType="BodySemibold"
-              flexable={true}
               maxLength={16}
               placeholder={originalName}
+              hideBorder={true}
             />
           </Kb.Box2>
           {(!!error || !!propError) && (
@@ -180,12 +179,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
       },
       inputContainerError: {borderColor: Kb.Styles.globalColors.red},
-      prefix: Kb.Styles.platformStyles({
-        isMobile: {
-          position: 'relative',
-          top: 1,
-        },
-      }),
       teamnameHeader: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),

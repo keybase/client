@@ -26,21 +26,21 @@ const Pinentry = (props: Props) => {
     }
   }, [_showTyping])
 
-  const handleCheck = React.useCallback((showTyping: boolean) => {
+  const handleCheck = (showTyping: boolean) => {
     setShowTyping(showTyping)
-  }, [])
+  }
 
-  const handleSubmit = React.useCallback(() => {
+  const handleSubmit = () => {
     onSubmit(password)
     setPassword('')
-  }, [password, onSubmit])
+  }
 
   const isPaperKey = props.type === T.RPCGen.PassphraseType.paperKey
 
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={{paddingLeft: 30, paddingRight: 30}}>
         <Kb.Text type="Body" center={true}>
           {props.prompt}
         </Kb.Text>
@@ -54,13 +54,13 @@ const Pinentry = (props: Props) => {
           gapStart={true}
           style={styles.inputContainer}
         >
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.retryLabel}
             onChangeText={setPassword}
             onEnterKeyDown={handleSubmit}
             placeholder="Password"
-            type={showTyping ? 'passwordVisible' : 'password'}
+            secureTextEntry={!showTyping}
             value={password}
           />
           {props.retryLabel ? (
@@ -83,15 +83,14 @@ const Pinentry = (props: Props) => {
           onClick={handleSubmit}
           disabled={!password}
         />
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignment: {marginLeft: Kb.Styles.globalMargins.xsmall},
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
     backgroundColor: Kb.Styles.globalColors.white,
     paddingBottom: Kb.Styles.globalMargins.medium,
   },

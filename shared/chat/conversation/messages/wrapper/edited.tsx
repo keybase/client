@@ -1,5 +1,4 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import {useIsHighlighted, useOrdinal} from '../ids-context'
 
@@ -12,21 +11,16 @@ export const useEdited = () => {
   })
 
   const showCenteredHighlight = useIsHighlighted()
-  const edited = React.useMemo(() => {
-    return hasBeenEdited ? (
-      <Kb.Text
-        key="isEdited"
-        type="BodyTiny"
-        fixOverdraw={!showCenteredHighlight}
-        style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
-        virtualText={true}
-      >
-        EDITED
-      </Kb.Text>
-    ) : null
-  }, [showCenteredHighlight, hasBeenEdited])
-
-  return edited
+  return hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
+      virtualText={true}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
 }
 
 const styles = Kb.Styles.styleSheetCreate(

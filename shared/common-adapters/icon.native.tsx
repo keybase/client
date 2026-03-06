@@ -1,11 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
 import {Pressable, Image as RNImage, Text as RNText} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
-import type {MeasureRef} from './measure-ref'
 import {useColorScheme} from 'react-native'
 
 type TextProps = {
@@ -29,7 +28,8 @@ type DirtyType = {
   color?: string
 }
 
-const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
+const Text = (p: TextProps & {ref?: React.Ref<RNText>}) => {
+  const {ref} = p
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -67,7 +67,7 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
 
   return (
     <RNText
-      style={[styles.text, style, p.fixOverdraw && styles.fixOverdraw, fontSizeStyle, p.style]}
+      style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
       onPress={p.onClick || undefined}
@@ -77,15 +77,15 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
       {p.children}
     </RNText>
   )
-})
-Text.displayName = 'IconText'
+}
 
 type ImageProps = {
   style?: Props['style']
   source?: number
 }
 
-const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
+const Image = (p: ImageProps & {ref?: React.Ref<RNImage>}) => {
+  const {ref} = p
   if (!p.source) return null
 
   let style: Styles.StylesCrossPlatform | undefined
@@ -108,23 +108,14 @@ const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
   }
 
   return <RNImage ref={ref} style={[style, pStyle]} source={p.source} />
-})
-Image.displayName = 'IconImage'
+}
 
-// This ref isn't correct but i'm not sure what would break if its changed now, TODO
-const Icon = React.memo<Props>(
-  React.forwardRef<MeasureRef, Props>((p, ref) => {
+const Icon = (p: Props) => {
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
     const iconType = p.type
     const isDarkMode = useColorScheme() === 'dark'
-
-    React.useImperativeHandle(ref, () => {
-      return {
-        divRef: {current: null},
-      }
-    }, [])
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn(`Invalid icon type passed in: ${String(iconType)}`)
@@ -174,9 +165,7 @@ const Icon = React.memo<Props>(
     ) : (
       icon
     )
-  })
-)
-Icon.displayName = 'Icon'
+}
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): unknown {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
@@ -230,9 +219,6 @@ export function urlsToBaseSrc(_imgMap: {[key: number]: string}, _targetSize: num
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  fixOverdraw: {
-    backgroundColor: Styles.globalColors.fastBlank,
-  },
   text: {
     color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',

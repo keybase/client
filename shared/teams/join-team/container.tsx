@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import upperFirst from 'lodash/upperFirst'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
@@ -73,25 +73,26 @@ const Container = (ownProps: OwnProps) => {
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
                 <Kb.Icon type="icon-illustration-teams-zen-460-96" />
               </Kb.Box2>
-              <Kb.Box style={styles.container}>
+              <Kb.Box2 direction="vertical" style={styles.container}>
                 <Kb.Text center={true} type="Body">
                   Your request was sent to the admins of{' '}
                   {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
                   {"Hang tight, you'll get notified as soon as you're let in."}
                 </Kb.Text>
-              </Kb.Box>
+              </Kb.Box2>
             </Kb.Box2>
           )}
         </Kb.Box2>
       ) : (
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          <Kb.RoundedBox style={styles.roundedBox}>
-            <Kb.PlainInput
+        <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
+          <Kb.RoundedBox>
+            <Kb.Input3
               autoFocus={true}
               onChangeText={setName}
               onEnterKeyDown={onSubmit}
               placeholder="Token or team name"
               value={name}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
@@ -124,7 +125,6 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      roundedBox: {marginBottom: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -20,10 +20,10 @@ export type OwnProps = {
   visible: boolean
 }
 
-const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnectorVisible(p: OwnProps) {
+const InfoPanelMenuConnectorVisible = function InfoPanelMenuConnectorVisible(p: OwnProps) {
   const {visible} = p
   return visible ? <InfoPanelMenuConnector {...p} /> : null
-})
+}
 
 const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const {isSmallTeam, pteamID} = p
@@ -79,7 +79,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   return {...common}
 }
 
-const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
+const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
@@ -99,32 +99,29 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   )
   const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
   const {manageChatChannels, startAddMembersWizard} = teamsState
-  const onAddPeople = React.useCallback(() => {
+  const onAddPeople = () => {
     teamID && startAddMembersWizard(teamID)
-  }, [startAddMembersWizard, teamID])
+  }
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onBlockConv = React.useCallback(() => {
+  const onBlockConv = () => {
     navigateAppend(conversationIDKey => ({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: participants.length === 1,
         conversationIDKey,
         others: participants,
         team: teamname,
       },
-      selected: 'chatBlockingModal',
     }))
-  }, [navigateAppend, teamname, participants])
+  }
 
   const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveTeam = React.useCallback(
-    () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
-    [navigateAppend, teamID]
-  )
-  const onManageChannels = React.useCallback(() => {
+  const onLeaveTeam = () => teamID && navigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
+  const onManageChannels = () => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
-  }, [manageChatChannels, addTeamWithChosenChannels, teamID])
+  }
   const {clearModals, _navigateAppend} = C.useRouterState(
     C.useShallow(s => ({
       _navigateAppend: s.dispatch.navigateAppend,
@@ -132,27 +129,27 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     }))
   )
   const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
-  const onMarkAsRead = React.useCallback(() => {
+  const onMarkAsRead = () => {
     clearModals()
     markTeamAsRead(teamID)
-  }, [clearModals, markTeamAsRead, teamID])
+  }
   const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const onMarkAsUnread = React.useCallback(() => {
+  const onMarkAsUnread = () => {
     clearModals()
     setMarkAsUnread()
-  }, [clearModals, setMarkAsUnread])
-  const onViewTeam = React.useCallback(() => {
+  }
+  const onViewTeam = () => {
     clearModals()
-    navigateAppend(() => ({props: {teamID}, selected: 'team'}))
-  }, [clearModals, navigateAppend, teamID])
+    navigateAppend(() => ({name: 'team', params: {teamID}}))
+  }
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = React.useCallback(() => {
+  const onHideConv = () => {
     hideConversation(true)
-  }, [hideConversation])
+  }
   const onMuteConv = Chat.useChatContext(s => s.dispatch.mute)
-  const onUnhideConv = React.useCallback(() => {
+  const onUnhideConv = () => {
     hideConversation(false)
-  }, [hideConversation])
+  }
 
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
@@ -272,13 +269,13 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
       _navigateAppend({
-        props: {conversationIDKey, type: 'chatID' as const},
-        selected: 'archiveModal',
+        name: 'archiveModal',
+        params: {conversationIDKey, type: 'chatID' as const},
       })
     } else if (teamname) {
       _navigateAppend({
-        props: {teamname, type: 'chatTeam' as const},
-        selected: 'archiveModal',
+        name: 'archiveModal',
+        params: {teamname, type: 'chatTeam' as const},
       })
     }
   }
@@ -395,7 +392,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       />
     </>
   )
-})
+}
 
 type AdhocHeaderProps = {
   fullname: string
@@ -474,21 +471,6 @@ const TeamHeader = (props: TeamHeaderProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
-          borderRadius: 6,
-          height: 8,
-          margin: 6,
-          width: 8,
-        },
-        isElectron: {
-          margin: 4,
-          marginTop: 5,
-          position: 'absolute',
-          right: Kb.Styles.globalMargins.tiny,
-        },
-      }),
       channelHeader: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
@@ -529,28 +511,12 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-word',
         } as const,
       }),
-      muteAction: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
-      noTopborder: {
-        borderTopWidth: 0,
-      },
       teamHeader: {
         borderStyle: 'solid',
         borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      teamText: {
-        flex: 1,
-        justifyContent: 'space-between',
-      },
-      text: Kb.Styles.platformStyles({
-        isMobile: {
-          color: Kb.Styles.globalColors.blueDark,
-        },
-      }),
     }) as const
 )
 

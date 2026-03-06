@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -11,14 +11,10 @@ export const useChannelParticipants = (
 ) => {
   const participants = Chat.useConvoState(conversationIDKey, s => s.participants.all)
   const teamMembers = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.members)
-  return React.useMemo(
-    () =>
-      participants.filter(username => {
+  return participants.filter(username => {
         const maybeMember = teamMembers?.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
-      }),
-    [participants, teamMembers]
-  )
+      })
 }
 
 export const useAllChannelMetas = (
@@ -38,18 +34,26 @@ export const useAllChannelMetas = (
 
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
-  const reloadChannels = React.useCallback(
-    async () =>
+  const getConversationsRef = React.useRef(getConversations)
+  const teamnameRef = React.useRef(teamname)
+  const teamIDRef = React.useRef(teamID)
+  React.useEffect(() => {
+    getConversationsRef.current = getConversations
+    teamnameRef.current = teamname
+    teamIDRef.current = teamID
+  }, [getConversations, teamname, teamID])
+
+  const [reloadChannels] = React.useState(() => async () =>
       new Promise<void>((resolve, reject) => {
         setLoadingChannels(true)
-        getConversations(
+        getConversationsRef.current(
           [
             {
               membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname,
+              tlfName: teamnameRef.current,
               topicType: T.RPCChat.TopicType.chat,
             },
-            C.waitingKeyTeamsGetChannels(teamID),
+            C.waitingKeyTeamsGetChannels(teamIDRef.current),
           ],
           ({convs}) => {
             resolve()
@@ -75,8 +79,7 @@ export const useAllChannelMetas = (
             reject(error)
           }
         )
-      }),
-    [setLoadingChannels, teamID, teamname, getConversations]
+      })
   )
 
   React.useEffect(() => {

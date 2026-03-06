@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from './modal'
@@ -79,7 +79,7 @@ const Container = () => {
           overlay="icon-proof-unfinished"
           overlayColor={Kb.Styles.globalColors.greyDark}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           autoFocus={true}
           placeholder={hintText}
           value={username}

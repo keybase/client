@@ -1,13 +1,12 @@
 import * as Channels from './channels'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
-import type {Props} from '../normal2/platform-input'
-import type {RefType as Input2Ref} from '@/common-adapters/input2'
+import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -52,7 +51,7 @@ type UseSuggestorsProps = Pick<
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
 
@@ -63,7 +62,7 @@ type SelectedType = Parameters<(typeof transformers)['channels' | 'commands' | '
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
@@ -73,12 +72,12 @@ type UseSyncInputProps = {
 
 const useSyncInput = (p: UseSyncInputProps) => {
   const {inputRef, active, setActive, setFilter, selectedItemRef, setLastText, lastTextRef} = p
-  const setInactive = React.useCallback(() => {
+  const setInactive = () => {
     setActive('')
     setFilter('')
-  }, [setActive, setFilter])
+  }
 
-  const getWordAtCursor = React.useCallback(() => {
+  const getWordAtCursor = () => {
     if (inputRef.current) {
       const useSpaces = active === 'commands'
       const input = inputRef.current
@@ -114,10 +113,10 @@ const useSyncInput = (p: UseSyncInputProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef, active, lastTextRef])
+  }
 
   const triggerIDRef = React.useRef<NodeJS.Timeout>(undefined)
-  const checkTrigger = React.useCallback(() => {
+  const checkTrigger = () => {
     if (triggerIDRef.current) {
       clearTimeout(triggerIDRef.current)
     }
@@ -155,7 +154,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
         }
       }
     }, 1)
-  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, active, inputRef])
+  }
 
   React.useEffect(() => {
     return () => {
@@ -163,53 +162,50 @@ const useSyncInput = (p: UseSyncInputProps) => {
     }
   }, [])
 
-  const triggerTransform = React.useCallback(
-    function (maybeValue: SelectedType | undefined, final = true) {
-      if (!inputRef.current || !active) {
-        return
-      }
-      const value = maybeValue ?? selectedItemRef.current
-      if (!value) {
-        return
-      }
-      const input = inputRef.current
-      const cursorInfo = getWordAtCursor()
-      const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
+  const triggerTransform = function (maybeValue: SelectedType | undefined, final = true) {
+    if (!inputRef.current || !active) {
+      return
+    }
+    const value = maybeValue ?? selectedItemRef.current
+    if (!value) {
+      return
+    }
+    const input = inputRef.current
+    const cursorInfo = getWordAtCursor()
+    const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
 
-      let transformedText: {
-        selection: {
-          end: number
-          start: number
-        }
-        text: string
+    let transformedText: {
+      selection: {
+        end: number
+        start: number
       }
+      text: string
+    }
 
-      const transformRest = [
-        matchInfo.marker,
-        {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
-        !final,
-      ] as const
+    const transformRest = [
+      matchInfo.marker,
+      {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
+      !final,
+    ] as const
 
-      // nasty but the typing is hard since its ambiguous here
-      switch (active) {
-        case 'channels':
-          transformedText = transformers[active](value as TransformerType['channels'], ...transformRest)
-          break
-        case 'commands':
-          transformedText = transformers[active](value as TransformerType['commands'], ...transformRest)
-          break
-        case 'emoji':
-          transformedText = transformers[active](value as TransformerType['emoji'], ...transformRest)
-          break
-        case 'users':
-          transformedText = transformers[active](value as TransformerType['users'], ...transformRest)
-          break
-      }
-      setLastText(transformedText.text)
-      input.transformText(() => transformedText, final)
-    },
-    [active, inputRef, getWordAtCursor, selectedItemRef, setLastText, lastTextRef]
-  )
+    // nasty but the typing is hard since its ambiguous here
+    switch (active) {
+      case 'channels':
+        transformedText = transformers[active](value as TransformerType['channels'], ...transformRest)
+        break
+      case 'commands':
+        transformedText = transformers[active](value as TransformerType['commands'], ...transformRest)
+        break
+      case 'emoji':
+        transformedText = transformers[active](value as TransformerType['emoji'], ...transformRest)
+        break
+      case 'users':
+        transformedText = transformers[active](value as TransformerType['users'], ...transformRest)
+        break
+    }
+    setLastText(transformedText.text)
+    input.transformText(() => transformedText, final)
+  }
 
   return {
     active,
@@ -231,54 +227,51 @@ type UseHandleKeyEventsProps = {
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
   const {onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef} = p
 
-  const onKeyDown = React.useCallback(
-    (evt: React.KeyboardEvent) => {
-      if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        checkTrigger()
-      }
+  const onKeyDown = (evt: React.KeyboardEvent) => {
+    if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
+      checkTrigger()
+    }
 
-      if (!active) {
-        // not showing list, bail
-        onKeyDownProps?.(evt)
-        return
-      }
+    if (!active) {
+      // not showing list, bail
+      onKeyDownProps?.(evt)
+      return
+    }
 
-      let shouldCallParentCallback = true
-      // check trigger keys (up, down, enter, tab)
-      switch (evt.key) {
-        case 'ArrowDown':
+    let shouldCallParentCallback = true
+    // check trigger keys (up, down, enter, tab)
+    switch (evt.key) {
+      case 'ArrowDown':
+        evt.preventDefault()
+        onMoveRef.current?.(false)
+        shouldCallParentCallback = false
+        break
+      case 'ArrowUp':
+        evt.preventDefault()
+        onMoveRef.current?.(true)
+        shouldCallParentCallback = false
+        break
+      case 'Enter':
+        if (!(evt.altKey || evt.shiftKey || evt.metaKey)) {
           evt.preventDefault()
-          onMoveRef.current?.(false)
-          shouldCallParentCallback = false
-          break
-        case 'ArrowUp':
-          evt.preventDefault()
-          onMoveRef.current?.(true)
-          shouldCallParentCallback = false
-          break
-        case 'Enter':
-          if (!(evt.altKey || evt.shiftKey || evt.metaKey)) {
-            evt.preventDefault()
-            shouldCallParentCallback = !onSubmitRef.current?.()
-          }
-          break
-        case 'Tab':
-          evt.preventDefault()
-          if (!filterEmpty) {
-            onSubmitRef.current?.()
-          } else {
-            // shift held -> move up
-            onMoveRef.current?.(evt.shiftKey)
-          }
-          shouldCallParentCallback = false
-      }
+          shouldCallParentCallback = !onSubmitRef.current?.()
+        }
+        break
+      case 'Tab':
+        evt.preventDefault()
+        if (!filterEmpty) {
+          onSubmitRef.current?.()
+        } else {
+          // shift held -> move up
+          onMoveRef.current?.(evt.shiftKey)
+        }
+        shouldCallParentCallback = false
+    }
 
-      if (shouldCallParentCallback) {
-        onKeyDownProps?.(evt)
-      }
-    },
-    [onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef]
-  )
+    if (shouldCallParentCallback) {
+      onKeyDownProps?.(evt)
+    }
+  }
 
   return {onKeyDown}
 }
@@ -286,9 +279,9 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>(undefined)
   const lastTextRef = React.useRef('')
-  const setLastText = React.useCallback((text: string) => {
+  const setLastText = (text: string) => {
     lastTextRef.current = text
-  }, [])
+  }
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
@@ -306,14 +299,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>(undefined)
-  const setOnMoveRef = React.useCallback((r: (up: boolean) => void) => {
+  const setOnMoveRef = (r: (up: boolean) => void) => {
     onMoveRef.current = r
-  }, [])
+  }
   // tell list we want to submit the selection, true if it selected anything
   const onSubmitRef = React.useRef<() => boolean>(undefined)
-  const setOnSubmitRef = React.useCallback((r: () => boolean) => {
+  const setOnSubmitRef = (r: () => boolean) => {
     onSubmitRef.current = r
-  }, [])
+  }
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
@@ -324,37 +317,28 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onSubmitRef,
   })
 
-  const onBlur = React.useCallback(() => {
+  const onBlur = () => {
     setInactive()
-  }, [setInactive])
+  }
 
-  const onChangeText = React.useCallback(
-    (text: string) => {
-      lastTextRef.current = text
-      onChangeTextProps(text)
-      checkTrigger()
-    },
-    [onChangeTextProps, checkTrigger]
-  )
-
-  const onFocus = React.useCallback(() => {
+  const onChangeText = (text: string) => {
+    lastTextRef.current = text
+    onChangeTextProps(text)
     checkTrigger()
-  }, [checkTrigger])
+  }
 
-  const onSelectionChange2 = React.useCallback(
-    (_selection: Common.TransformerData['position']) => {
-      checkTrigger()
-    },
-    [checkTrigger]
-  )
+  const onFocus = () => {
+    checkTrigger()
+  }
 
-  const onSelected = React.useCallback(
-    (item: unknown, final: boolean) => {
-      selectedItemRef.current = item as SelectedType
-      triggerTransform(item as SelectedType, final)
-    },
-    [selectedItemRef, triggerTransform]
-  )
+  const onSelectionChange2 = (_selection: Common.TransformerData['position']) => {
+    checkTrigger()
+  }
+
+  const onSelected = (item: unknown, final: boolean) => {
+    selectedItemRef.current = item as SelectedType
+    triggerTransform(item as SelectedType, final)
+  }
 
   const listProps = {
     expanded,
@@ -403,24 +387,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 type PopupProps = {
   suggestionOverlayStyle: Kb.Styles.StylesCrossPlatform
   setInactive: () => void
-  inputRef: React.RefObject<Input2Ref | null>
+  inputRef: React.RefObject<InputRef | null>
   children: React.ReactNode
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   const conversationIdKey = Chat.useChatContext(s => s.id)
 
-  const attachRef = React.useRef<Kb.MeasureRef | null>({
-    divRef: {current: null},
-    measure: () => {
-      const r = inputRef.current?.getBoundingClientRect?.()
-      if (r) {
-        return r
-      } else {
-        return undefined
-      }
-    },
-  })
+  const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
   return Kb.Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>

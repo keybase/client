@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -14,32 +14,32 @@ export default function AddDevice(ownProps: OwnProps) {
   const iconNumbers = Devices.useNextDeviceIconNumber()
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
 
-  const onAddComputer = React.useCallback(() => {
+  const onAddComputer = () => {
     addNewDevice('desktop')
-  }, [addNewDevice])
+  }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   // don't allow mutliple clicks to add paper key
   const canAddPaperKeyRef = React.useRef(true)
-  const onAddPaperKey = React.useCallback(() => {
+  const onAddPaperKey = () => {
     if (!canAddPaperKeyRef.current) return
     canAddPaperKeyRef.current = false
     navigateAppend('devicePaperKey')
     setTimeout(() => {
       canAddPaperKeyRef.current = true
     }, 1000)
-  }, [navigateAppend])
+  }
 
-  const onAddPhone = React.useCallback(() => {
+  const onAddPhone = () => {
     addNewDevice('mobile')
-  }, [addNewDevice])
+  }
   const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     cancel?.()
     navigateUp()
-  }, [cancel, navigateUp])
+  }
 
   return (
     <Kb.PopupWrapper onCancel={onCancel}>

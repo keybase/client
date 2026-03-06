@@ -39,7 +39,7 @@ func NewTrackerLoader(g *libkb.GlobalContext) *TrackerLoader {
 	return l
 }
 
-func (l *TrackerLoader) debug(ctx context.Context, msg string, args ...interface{}) {
+func (l *TrackerLoader) debug(ctx context.Context, msg string, args ...any) {
 	l.G().Log.CDebugf(ctx, "TrackerLoader: %s", fmt.Sprintf(msg, args...))
 }
 

@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const waitingKey = 'phoneLookup'
 
@@ -95,7 +95,7 @@ const AddPhone = () => {
               onEnterKeyDown={maybeSubmit}
             />
           ))}
-          <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
+          <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
@@ -110,14 +110,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
   }),
 }))
 

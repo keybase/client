@@ -1,0 +1,11 @@
+appId: keybase.ios
+
+---
+
+- tapOn:
+    text: "Chats"
+
+- extendedWaitUntil:
+    visible:
+      id: "inboxList"
+    timeout: 10000

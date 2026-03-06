@@ -1,7 +1,7 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
-import Box from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
 import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import Icon, {type IconType} from '@/common-adapters/icon'
@@ -10,7 +10,7 @@ import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box, BoxGrow, FloatingMenu, Icon, Text}
+const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, Icon, Text}
 
 type RightAction = {
   label?: string
@@ -38,12 +38,17 @@ export const HeaderHocHeader = (props: Props) => {
   const hasTextTitle = !!props.title && !props.titleComponent
 
   const header = (
-    <Kb.Box
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
       style={Styles.collapseStyles([styles.header, props.borderless && styles.borderless, props.headerStyle])}
     >
       {props.customComponent}
       {hasTextTitle && (
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
+          alignItems="center"
           style={Styles.collapseStyles([
             styles.titleContainer,
             styles.titleTextContainer,
@@ -60,7 +65,7 @@ export const HeaderHocHeader = (props: Props) => {
           <Text type="BodyBig" style={styles.title} lineClamp={1}>
             {props.title}
           </Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       <LeftAction
         badgeNumber={props.badgeNumber}
@@ -74,7 +79,9 @@ export const HeaderHocHeader = (props: Props) => {
         theme={props.theme}
       />
       {props.titleComponent && (
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
+          alignItems="center"
           style={Styles.collapseStyles([
             styles.titleContainer,
             onLeftAction && styles.titleContainerRightPadding,
@@ -82,10 +89,10 @@ export const HeaderHocHeader = (props: Props) => {
           ] as const)}
         >
           {props.titleComponent}
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {rightAction && <RightActions hasTextTitle={hasTextTitle} rightAction={rightAction} />}
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   return header
@@ -95,7 +102,7 @@ export const LeftAction = (p: LeftActionProps): React.ReactElement => {
   const {badgeNumber, disabled, customCancelText, hasTextTitle, hideBackLabel, leftAction} = p
   const {leftActionText, onLeftAction, theme, customIconColor, style} = p
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
+    <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
       {onLeftAction && leftAction === 'cancel' ? (
         <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
           {leftActionText || customCancelText || 'Cancel'}
@@ -118,16 +125,16 @@ export const LeftAction = (p: LeftActionProps): React.ReactElement => {
           />
         )
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const RightActions = (p: {hasTextTitle: boolean; rightAction: RightAction}) => {
   const {hasTextTitle, rightAction} = p
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-      <Kb.Box style={styles.rightActionsWrapper}>{renderAction(rightAction, 0)}</Kb.Box>
-    </Kb.Box>
+    <Kb.Box2 direction="vertical" alignItems="flex-end" style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
+      <Kb.Box2 direction="horizontal" alignSelf="flex-end">{renderAction(rightAction, 0)}</Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -149,12 +156,12 @@ const renderAction = (action: RightAction, index: number): React.ReactNode =>
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skipHeader?: boolean}) => {
   const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle, skipHeader} = props
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} relative={true}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
       {!skipHeader && <HeaderHocHeader {...props} />}
       <Kb.BoxGrow>{children}</Kb.BoxGrow>
       {!!customSafeAreaBottomStyle && <SafeAreaView style={customSafeAreaBottomStyle} />}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -180,18 +187,10 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
-      actionPressable: {opacity: 0.3},
       borderless: {borderBottomWidth: 0},
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        height: '100%',
-        position: 'relative',
-      },
       grow: {flexGrow: 1},
       header: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           borderBottomColor: Styles.globalColors.black_10,
           borderBottomWidth: 1,
           borderStyle: 'solid',
@@ -206,30 +205,22 @@ const styles = Styles.styleSheetCreate(
           height: 40 + Styles.headerExtraHeight,
         },
       }),
-      innerWrapper: {...Styles.globalStyles.fillAbsolute},
       leftAction: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'flex-start',
           flexShrink: 1,
           justifyContent: 'flex-start',
         },
       }),
       rightActions: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'flex-end',
           flexShrink: 1,
           justifyContent: 'flex-end',
         },
         isIOS: {paddingRight: Styles.globalMargins.tiny},
       }),
-      rightActionsWrapper: {...Styles.globalStyles.flexBoxRow},
       title: {color: Styles.globalColors.black},
       titleContainer: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           flexGrow: 1,
           flexShrink: 2,
           justifyContent: 'center',
@@ -245,17 +236,17 @@ const styles = Styles.styleSheetCreate(
       titleContainerRightPadding: Styles.platformStyles({
         isAndroid: {paddingRight: Styles.globalMargins.small},
       }),
-      titleTextContainer: {...Styles.globalStyles.fillAbsolute},
+      titleTextContainer: Styles.globalStyles.fillAbsolute,
     }) as const
 )
 
 const noop = () => {}
-const HeaderLeftBlankImpl = React.memo(function HeaderLeftBlankImpl() {
+function HeaderLeftBlankImpl() {
   return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
-})
+}
 export const HeaderLeftBlank = () => <HeaderLeftBlankImpl />
 
-export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
+export function HeaderLeftArrow(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress?: () => void
@@ -270,9 +261,9 @@ export const HeaderLeftArrow = React.memo(function HeaderLeftArrow(hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
-})
+}
 
-export const HeaderLeftArrowCanGoBack = React.memo(function HeaderLeftArrowCanGoBack(hp: {
+export function HeaderLeftArrowCanGoBack(hp: {
   canGoBack?: boolean
   tintColor?: string
   onPress?: () => void
@@ -280,9 +271,9 @@ export const HeaderLeftArrowCanGoBack = React.memo(function HeaderLeftArrowCanGo
 }) {
   const canGoBack = useNavigation().canGoBack()
   return <HeaderLeftArrow {...hp} canGoBack={canGoBack} />
-})
+}
 
-export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
+export function HeaderLeftCancel(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   onPress: () => void
@@ -297,9 +288,9 @@ export const HeaderLeftCancel = React.memo(function HeaderLeftCancel(hp: {
       customIconColor={hp.tintColor}
     />
   ) : null
-})
+}
 
-export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
+export function HeaderLeftCancel2(hp: {
   canGoBack?: boolean
   badgeNumber?: number
   tintColor: string
@@ -313,4 +304,4 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
       onLeftAction={nav.goBack}
     />
   ) : null
-})
+}

@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type Props = {
   path: T.FS.Path
@@ -19,7 +19,7 @@ export const useOpen = (props: Props) => {
   const nav = useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {
-    return () => nav.safeNavigateAppend({props: {path: props.path}, selected: 'fsRoot'})
+    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
   }
 
   const isFolder =

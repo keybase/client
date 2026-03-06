@@ -9,8 +9,8 @@ import Text from './text'
 import Button from './button'
 import Icon from './icon'
 import type {RPCError} from '@/util/errors'
-import {settingsFeedbackTab} from '@/constants/settings/util'
-import {useConfigState} from '@/constants/config'
+import {settingsFeedbackTab} from '@/constants/settings'
+import {useConfigState} from '@/stores/config'
 
 const Kb = {
   Box2,
@@ -30,14 +30,14 @@ type ReloadProps = {
   title?: string
 }
 
-const Reload = React.memo(function Reload(props: ReloadProps) {
+function Reload(props: ReloadProps) {
   const [expanded, setExpanded] = React.useState(false)
-  const toggle = React.useCallback(() => setExpanded(e => !e), [])
+  const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
       {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
       <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+        <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
           <Kb.Icon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
@@ -60,7 +60,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
       </Kb.ScrollView>
     </Kb.Box2>
   )
-})
+}
 
 export type Props = {
   children: React.ReactNode
@@ -76,13 +76,16 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  const onEventReload = C.useEvent(onReload)
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      reloadOnMount && onEventReload()
-    }, [reloadOnMount, onEventReload])
-  )
+  const reloadOnMountRef = React.useRef(reloadOnMount)
+  const onReloadRef = React.useRef(onReload)
+  React.useEffect(() => {
+    reloadOnMountRef.current = reloadOnMount
+    onReloadRef.current = onReload
+  }, [reloadOnMount, onReload])
+  const [stableReload] = React.useState(() => () => {
+    reloadOnMountRef.current && onReloadRef.current()
+  })
+  C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
     return <>{props.children}</>
   }
@@ -123,16 +126,8 @@ const styles = Styles.styleSheetCreate(
         isElectron: {wordBreak: 'break-all'},
       }),
       reload: {
-        flexGrow: 1,
         maxHeight: '100%',
         maxWidth: '100%',
-        padding: Styles.globalMargins.small,
-      },
-      scrollInside: {
-        height: '100%',
-        maxHeight: '100%',
-        maxWidth: '100%',
-        width: '100%',
       },
     }) as const
 )

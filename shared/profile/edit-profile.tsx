@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const username = useCurrentUserState(s => s.username)
@@ -47,35 +47,35 @@ const Container = () => {
             </Kb.Text>
           )}
           <Kb.RoundedBox side="top">
-            <Kb.PlainInput
+            <Kb.Input3
               value={fullname}
               placeholder="Full name"
               autoFocus={true}
               onChangeText={setFullname}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="middle">
-            <Kb.PlainInput
+            <Kb.Input3
               value={bio}
               placeholder="Bio"
               multiline={true}
               rowsMin={7}
               rowsMax={7}
               onChangeText={setBio}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
           <Kb.RoundedBox side="bottom">
-            <Kb.PlainInput
+            <Kb.Input3
               value={location}
               placeholder="Location"
               onChangeText={setLocation}
               onEnterKeyDown={submit}
-              style={styles.widthFix}
+              hideBorder={true}
             />
           </Kb.RoundedBox>
-          <Kb.Box2 direction="vertical" style={styles.gap} />
+          <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTracker}
             label="Save"
@@ -92,7 +92,6 @@ const Container = () => {
 const maxBio = 255
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bio: {maxHeight: undefined},
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {
@@ -100,13 +99,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 350,
     },
   }),
-  gap: {flexGrow: 1, minHeight: Kb.Styles.globalMargins.small},
+  gap: {minHeight: Kb.Styles.globalMargins.small},
   header: {marginBottom: Kb.Styles.globalMargins.small},
-  widthFix: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 'auto',
-    },
-  }),
 }))
 
 export default Container

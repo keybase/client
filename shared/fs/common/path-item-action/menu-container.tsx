@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
@@ -8,9 +8,9 @@ import * as Util from '@/util/kbfs'
 import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -32,7 +32,7 @@ const Container = (op: OwnProps) => {
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
       const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
+      const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
         cancelDownload,
@@ -159,7 +159,7 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-chat',
           onClick: hideAndCancelAfter(() => {
-            path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
+            path && navigateAppend({name: 'chatSendToChat', params: {sendPaths: [path]}})
           }),
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
@@ -246,7 +246,7 @@ const Container = (op: OwnProps) => {
           danger: true,
           icon: 'iconfont-trash',
           onClick: hideAfter(() => {
-            navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
+            navigateAppend({name: 'confirmDelete', params: {mode, path}})
           }),
           title: 'Delete',
         },
@@ -257,8 +257,8 @@ const Container = (op: OwnProps) => {
     path && layout.archive && pathItem.type === T.FS.PathType.Folder
       ? () => {
           navigateAppend({
-            props: {path, type: 'fsPath' as const},
-            selected: 'archiveModal',
+            name: 'archiveModal',
+            params: {path, type: 'fsPath' as const},
           })
         }
       : undefined
@@ -293,10 +293,10 @@ const Container = (op: OwnProps) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const userInitiatedHide = React.useCallback(() => {
+  const userInitiatedHide = () => {
     hide()
     downloadID && dismissDownload(downloadID)
-  }, [downloadID, hide, dismissDownload])
+  }
 
   return (
     <Kb.FloatingMenu

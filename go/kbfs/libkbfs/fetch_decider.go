@@ -25,7 +25,7 @@ type fetchDecider struct {
 	log     logger.Logger
 	vlog    *libkb.VDebugLog
 	fetcher func(ctx context.Context) error
-	tagKey  interface{}
+	tagKey  any
 	tagName string
 
 	blockingForTest chan<- struct{}
@@ -37,7 +37,7 @@ type fetchDecider struct {
 
 func newFetchDecider(
 	log logger.Logger, vlog *libkb.VDebugLog,
-	fetcher func(ctx context.Context) error, tagKey interface{}, tagName string,
+	fetcher func(ctx context.Context) error, tagKey any, tagName string,
 	clock clockGetter,
 ) *fetchDecider {
 	return &fetchDecider{

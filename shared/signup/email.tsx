@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSignupState} from '@/constants/signup'
-import {usePushState} from '@/constants/push'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSignupState} from '@/stores/signup'
+import {usePushState} from '@/stores/push'
 
 const ConnectedEnterEmail = () => {
   const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
@@ -14,10 +14,6 @@ const ConnectedEnterEmail = () => {
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _navToPushPrompt = React.useCallback(() => {
-    navigateAppend('settingsPushPrompt', true)
-  }, [navigateAppend])
-
   const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
     setJustSignedUpEmail(C.noEmail)
@@ -27,21 +23,15 @@ const ConnectedEnterEmail = () => {
   const addEmail = useSettingsEmailState(s => s.dispatch.addEmail)
   const onSkip = () => {
     _onSkip()
-    _showPushPrompt ? _navToPushPrompt() : clearModals()
+    _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
   }
-  const onSuccess = React.useCallback(
-    (email: string) => {
-      _onSuccess(email)
-      _showPushPrompt ? _navToPushPrompt() : clearModals()
-    },
-    [_onSuccess, _showPushPrompt, _navToPushPrompt, clearModals]
-  )
   const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
   React.useEffect(() => {
     if (addedEmail === addEmailInProgress) {
-      onSuccess(addEmailInProgress)
+      _onSuccess(addEmailInProgress)
+      _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
     }
-  }, [addedEmail, addEmailInProgress, onSuccess])
+  }, [addedEmail, addEmailInProgress, _onSuccess, _showPushPrompt, navigateAppend, clearModals])
 
   const onCreate = (email: string, searchable: boolean) => {
     addEmail(email, searchable)
@@ -111,7 +101,7 @@ export const EnterEmailBody = (props: BodyProps) => (
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-        <Kb.LabeledInput
+        <Kb.Input3
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"

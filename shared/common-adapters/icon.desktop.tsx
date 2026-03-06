@@ -1,26 +1,22 @@
 import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
-import {colors, darkColors} from '@/styles/colors'
-import * as React from 'react'
+import type * as React from 'react'
 import logger from '@/logger'
 import {iconMeta} from './icon.constants-gen'
-import invert from 'lodash/invert'
 import {getAssetPath} from '@/constants/platform.desktop'
 import type {Props, IconType} from './icon'
 import type {MeasureRef} from './measure-ref'
-import {useColorScheme} from 'react-native'
+// Extract color name from CSS variable string: "var(--color-black_50)" → "black_50"
+const cssVarToColorName = (cssVar: string): string | undefined => {
+  const match = /^var\(--color-(.+)\)$/.exec(cssVar)
+  return match?.[1]
+}
 
-const invertedLight = invert(colors)
-const invertedDark = invert(darkColors)
-
-const Icon = React.memo<Props>(
-  React.forwardRef<MeasureRef, Props>(function Icon(props, ref) {
+const Icon = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
-    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
+    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true, ref} = props
     const iconType = type
     const hasDarkVariant = !!iconMeta[iconType].nameDark
-    const scheme = useColorScheme()
-    const isDarkMode = scheme === 'dark' && hasDarkVariant
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
@@ -37,18 +33,6 @@ const Icon = React.memo<Props>(
 
     let color = Shared.defaultColor(type)
     let hoverColor = Shared.defaultHoverColor(type)
-
-    const divRef = React.useRef<HTMLDivElement>(null)
-    const imgRef = React.useRef<HTMLImageElement>(null)
-
-    React.useImperativeHandle(ref, () => {
-      return {
-        divRef,
-        measure() {
-          return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
-        },
-      }
-    }, [])
 
     if (inheritColor) {
       color = 'inherit'
@@ -86,17 +70,24 @@ const Icon = React.memo<Props>(
         ...(props.color ? {color: color} : {}),
       } as React.CSSProperties
 
-      iconElement = (
+      const img = (
         <img
           loading={allowLazy ? 'lazy' : undefined}
           className={className}
           draggable={false}
-          ref={hasContainer ? undefined : imgRef}
           title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
-          srcSet={iconTypeToSrcSet(iconType, isDarkMode)}
+          srcSet={iconTypeToSrcSet(iconType, false)}
         />
+      )
+      iconElement = hasDarkVariant ? (
+        <picture>
+          <source srcSet={iconTypeToSrcSet(iconType, true)} media="(prefers-color-scheme: dark)" />
+          {img}
+        </picture>
+      ) : (
+        img
       )
     }
 
@@ -112,10 +103,9 @@ const Icon = React.memo<Props>(
           hoverColor: 'inherit',
         }
       } else {
-        const invertedColors = isDarkMode ? invertedDark : invertedLight
-        const hoverColorName = onClick ? invertedColors[hoverColor] : null
+        const hoverColorName = onClick ? cssVarToColorName(hoverColor) : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
-        const colorName = invertedColors[color]
+        const colorName = cssVarToColorName(color)
         if (colorName) {
           colorStyleName = `color_${colorName}`
         }
@@ -136,7 +126,7 @@ const Icon = React.memo<Props>(
 
       return (
         <div
-          ref={divRef}
+          ref={ref as React.Ref<HTMLDivElement>}
           style={
             Styles.collapseStyles([
               // This breaks a couple existing uses. So only apply it when padding
@@ -174,8 +164,7 @@ const Icon = React.memo<Props>(
     } else {
       return iconElement
     }
-  })
-)
+}
 
 const imgName = (
   name: string,

@@ -1,9 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const ChatPDF = (props: Props) => {
   const {ordinal} = props
@@ -11,14 +10,14 @@ const ChatPDF = (props: Props) => {
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
 
   const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
-  const onDownload = React.useCallback(() => {
+  const onDownload = () => {
     message && attachmentDownload(message.ordinal)
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
-  }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
+  }
   return (
     <Kb.Modal2
       header={{

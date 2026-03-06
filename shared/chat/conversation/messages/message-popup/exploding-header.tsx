@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
@@ -37,13 +37,10 @@ const ExplodingPopupHeader = (props: Props) => {
   }, [explodesAt])
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onUsernameClicked = React.useCallback(
-    (user: string) => {
-      showUserProfile(user)
-      onHidden()
-    },
-    [showUserProfile, onHidden]
-  )
+  const onUsernameClicked = (user: string) => {
+    showUserProfile(user)
+    onHidden()
+  }
 
   const [now] = React.useState(() => Date.now())
 

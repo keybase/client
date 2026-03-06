@@ -39,36 +39,30 @@ export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
   const [mode, setMode] = React.useState(Mode.Hidden)
   const [now, setNow] = React.useState(() => Date.now())
 
-  const tick = React.useCallback(() => {
-    setNow(Date.now())
-  }, [])
-
-  // Idempotently start the ticker. If the ticker has already been started,
-  // this is a no-op.
-  const startTicker = React.useCallback(() => {
-    if (tickerID.current) {
-      return
-    }
-    tickerID.current = setInterval(tick, tickInterval)
-  }, [tick])
-
-  // Idempotently stop the ticker. If the ticker is not running, this is a
-  // no-op.
-  const stopTicker = React.useCallback(() => {
-    if (!tickerID.current) {
-      return
-    }
-    clearInterval(tickerID.current)
-    tickerID.current = undefined
-  }, [])
-
   React.useEffect(() => {
     return () => {
-      stopTicker()
+      if (tickerID.current) {
+        clearInterval(tickerID.current)
+        tickerID.current = undefined
+      }
     }
-  }, [stopTicker])
+  }, [])
 
   React.useEffect(() => {
+    const startTicker = () => {
+      if (tickerID.current) {
+        return
+      }
+      tickerID.current = setInterval(() => setNow(Date.now()), tickInterval)
+    }
+    const stopTicker = () => {
+      if (!tickerID.current) {
+        return
+      }
+      clearInterval(tickerID.current)
+      tickerID.current = undefined
+    }
+
     const isUploading = isOnline && (!!files || !!totalSyncingBytes)
     const newDisplayDuration = endEstimate ? endEstimate - now : 0
     switch (mode) {
@@ -110,7 +104,7 @@ export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
       default:
         return
     }
-  }, [isOnline, files, totalSyncingBytes, endEstimate, glueTTL, mode, startTicker, now, stopTicker])
+  }, [isOnline, files, totalSyncingBytes, endEstimate, glueTTL, mode, now])
 
   return {
     debugToggleShow,

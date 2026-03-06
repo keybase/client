@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 	"sync"
@@ -97,7 +98,7 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	// secretbox
 	sealed := secretbox.Seal(nil, contents[:], &nonce, (*[NaclSecretBoxKeySize]byte)(&symmetricKey))
 
-	parts := []interface{}{version, nonce, sealed}
+	parts := []any{version, nonce, sealed}
 
 	// msgpack
 	mh := codec.MsgpackHandle{WriteExt: true}
@@ -519,9 +520,7 @@ func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys,
 }
 
 func (s *PerUserKeyring) mergeLocked(m perUserKeyMap, seqgen perUserKeySeqGenMap) (err error) {
-	for k, v := range m {
-		s.generations[k] = v
-	}
+	maps.Copy(s.generations, m)
 	s.seqgen = seqgen
 	return nil
 }

@@ -63,7 +63,7 @@ func TestSimpleTruncate(t *testing.T) {
 
 func testTruncateLargeThenWriteToSmallerOffset(t *testing.T, dataLen int) {
 	data := make([]byte, dataLen)
-	for i := 0; i < len(data); i++ {
+	for i := range data {
 		if i < 12 || (i >= 64 && i < 68) || (i >= dataLen-12) {
 			data[i] = byte(i)
 		}

@@ -28,7 +28,7 @@ func (t TestHandler) Test(ctx context.Context, arg keybase1.TestArg) (test keyba
 	client := t.rpcClient()
 	cbArg := keybase1.TestCallbackArg(arg)
 	var cbReply string
-	err = client.Call(ctx, "keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply, 0)
+	err = client.Call(ctx, "keybase.1.test.testCallback", []any{cbArg}, &cbReply, 0)
 	if err != nil {
 		return
 	}

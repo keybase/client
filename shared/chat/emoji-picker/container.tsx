@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -35,16 +35,13 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
   const [filter, setFilter] = React.useState('')
   const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const onChoose = React.useCallback(
-    (emoji: string, renderableEmoji: RenderableEmoji) => {
-      if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
-        toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
-      }
-      onPickAction?.(emoji, renderableEmoji)
-      onDidPick?.()
-    },
-    [toggleMessageReaction, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
-  )
+  const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
+    if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
+      toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
+    }
+    onPickAction?.(emoji, renderableEmoji)
+    onDidPick?.()
+  }
   return {
     filter,
     onChoose,
@@ -57,18 +54,15 @@ const useSkinTone = () => {
   const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(Chat.useChatState(s => s.userReacjis.skinTone))
   const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
   const updateUserReacjis = Chat.useChatState(s => s.dispatch.updateUserReacjis)
-  const setSkinTone = React.useCallback(
-    (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
-      rpc(
-        [{skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone)}],
-        res => updateUserReacjis(res),
-        err => {
-          throw err
-        }
-      )
-    },
-    [rpc, updateUserReacjis]
-  )
+  const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
+    rpc(
+      [{skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone)}],
+      res => updateUserReacjis(res),
+      err => {
+        throw err
+      }
+    )
+  }
   return {currentSkinTone, setSkinTone}
 }
 
@@ -108,20 +102,17 @@ const WrapperMobile = (props: Props) => {
   const setFilterTextChangedThrottled = C.useThrottledCallback(setFilter, 200)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const [width, setWidth] = React.useState(0)
-  const onLayout = React.useCallback((evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width), [setWidth])
+  const onLayout = (evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
   const navigateAppend = Chat.useChatNavigateAppend()
-  const addEmoji = React.useCallback(
-    () =>
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, teamID: T.Teams.noTeamID},
-        selected: 'teamAddEmoji',
-      })),
-    [navigateAppend]
-  )
+  const addEmoji = () =>
+    navigateAppend(conversationIDKey => ({
+      name: 'teamAddEmoji',
+      params: {conversationIDKey, teamID: T.Teams.noTeamID},
+    }))
   const canManageEmoji = useCanManageEmoji()
 
   return (
@@ -162,7 +153,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
@@ -185,13 +176,13 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
   const navigateAppend = Chat.useChatNavigateAppend()
-  const addEmoji = React.useCallback(() => {
+  const addEmoji = () => {
     onDidPick?.()
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, teamID: T.Teams.noTeamID},
-      selected: 'teamAddEmoji',
+      name: 'teamAddEmoji',
+      params: {conversationIDKey, teamID: T.Teams.noTeamID},
     }))
-  }, [onDidPick, navigateAppend])
+  }
 
   const setFilter = C.useThrottledCallback(_setFilter, 200)
 
@@ -295,7 +286,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerDesktop: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         backgroundColor: Kb.Styles.globalColors.white,
         height: 561,
         maxWidth: 336,
@@ -321,13 +311,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.small,
         },
       }),
-      input: {
-        borderBottomWidth: 1,
-        borderColor: Kb.Styles.globalColors.black_10,
-        borderRadius: 0,
-        borderWidth: 0,
-        padding: Kb.Styles.globalMargins.small,
-      },
       searchFilter: Kb.Styles.platformStyles({
         isMobile: {
           flexGrow: 1,
@@ -344,12 +327,9 @@ const Routable = (props: RoutableProps) => {
   const small = props.small
   const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = props
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
-  const onPickAction = React.useCallback(
-    (emojiStr: string, renderableEmoji: RenderableEmoji) => {
-      updatePickerMap(pickKey, {emojiStr, renderableEmoji})
-    },
-    [updatePickerMap, pickKey]
-  )
+  const onPickAction = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
+    updatePickerMap(pickKey, {emojiStr, renderableEmoji})
+  }
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onDidPick = navigateUp
 

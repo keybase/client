@@ -28,15 +28,12 @@ function WrapPicker<T>(p: {
   const {initialValue, onValueChange, options, prompt, style, itemStyle} = p
   const [localValue, setLocalValue] = React.useState(initialValue)
 
-  const handleValueChange = React.useCallback(
-    (value: T) => {
-      const selectedOption = options.find(option => option.value === value)
-      if (!selectedOption) return
-      setLocalValue(selectedOption.value)
-      onValueChange(selectedOption.value)
-    },
-    [onValueChange, options]
-  )
+  const handleValueChange = (value: T) => {
+    const selectedOption = options.find(option => option.value === value)
+    if (!selectedOption) return
+    setLocalValue(selectedOption.value)
+    onValueChange(selectedOption.value)
+  }
 
   return (
     <Picker
@@ -73,13 +70,13 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
       }
       onHidden={props.onHidden}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.menu}>
+      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" style={styles.menu}>
         {props.header}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" style={styles.actionButtons}>
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
             Cancel
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={styles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
           <Kb.Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
             Done
           </Kb.Text>
@@ -105,10 +102,6 @@ const styles = Styles.styleSheetCreate(
       actionButtons: {
         alignItems: 'stretch',
         height: 56,
-        justifyContent: 'flex-end',
-      },
-      flexOne: {
-        flex: 1,
       },
       item: {
         ...Styles.globalStyles.fontRegular,
@@ -122,20 +115,6 @@ const styles = Styles.styleSheetCreate(
       menu: {
         alignItems: 'stretch',
         backgroundColor: Styles.globalColors.white,
-        justifyContent: 'flex-end',
-      },
-      overlay: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
-        backgroundColor: Styles.globalColors.black_50,
-        justifyContent: 'flex-end',
-      },
-      overlayContainer: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
       },
       picker: Styles.platformStyles({
         isAndroid: {

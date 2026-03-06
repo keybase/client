@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/pprof.avdl
 
 package keybase1
@@ -52,11 +52,11 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 		Name: "keybase.1.pprof",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"processorProfile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProcessorProfileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProcessorProfileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProcessorProfileArg)(nil), args)
@@ -67,11 +67,11 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 				},
 			},
 			"heapProfile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HeapProfileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HeapProfileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HeapProfileArg)(nil), args)
@@ -82,11 +82,11 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 				},
 			},
 			"logProcessorProfile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LogProcessorProfileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LogProcessorProfileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LogProcessorProfileArg)(nil), args)
@@ -97,11 +97,11 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 				},
 			},
 			"trace": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TraceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TraceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TraceArg)(nil), args)
@@ -112,11 +112,11 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 				},
 			},
 			"logTrace": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LogTraceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LogTraceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LogTraceArg)(nil), args)
@@ -135,26 +135,26 @@ type PprofClient struct {
 }
 
 func (c PprofClient) ProcessorProfile(ctx context.Context, __arg ProcessorProfileArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pprof.processorProfile", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pprof.processorProfile", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PprofClient) HeapProfile(ctx context.Context, __arg HeapProfileArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pprof.heapProfile", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pprof.heapProfile", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PprofClient) LogProcessorProfile(ctx context.Context, __arg LogProcessorProfileArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pprof.logProcessorProfile", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pprof.logProcessorProfile", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PprofClient) Trace(ctx context.Context, __arg TraceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pprof.trace", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pprof.trace", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PprofClient) LogTrace(ctx context.Context, __arg LogTraceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pprof.logTrace", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pprof.logTrace", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

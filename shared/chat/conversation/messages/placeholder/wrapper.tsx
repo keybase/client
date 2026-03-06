@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -10,7 +10,7 @@ const noop = () => {}
 const baseWidth = Kb.Styles.isMobile ? 100 : 150
 const mult = Kb.Styles.isMobile ? 5 : 10
 
-const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
+function WrapperPlaceholder(p: Props) {
   const {ordinal} = p
   const o = T.Chat.ordinalToNumber(ordinal)
   const code = o * 16807
@@ -43,7 +43,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
       </Kb.Box2>
     </WrapperMessage>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -52,11 +52,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
         height: Kb.Styles.isMobile ? 22 : 17, // to match a line of text
         width: '100%',
-      },
-      spinner: {
-        height: 16,
-        marginLeft: 0,
-        width: 16,
       },
     }) as const
 )

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import {
   SectionList as NativeSectionList,
   type SectionListProps,
@@ -30,15 +30,13 @@ type Props<ItemT, SectionT> = SectionListProps<ItemT, SectionT> & {
 }
 
 function SectionListImpl<ItemT, SectionT>(
-  props: Props<ItemT, SectionT>,
-  ref: React.Ref<NativeSectionList<ItemT, SectionT>>
+  props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
 ) {
+  const {ref} = props
   const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
-  const getItemLayout = React.useMemo(() => {
-    return getItemHeight
-      ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
-      : undefined
-  }, [getItemHeight, getSectionHeaderHeight])
+  const getItemLayout = getItemHeight
+    ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
+    : undefined
   const onViewableItemsChanged = onSectionChange
     ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
         const section = e.viewableItems[0]?.section as SectionT | undefined
@@ -61,7 +59,7 @@ function SectionListImpl<ItemT, SectionT>(
 
 export type SectionListRef<ItemT, SectionT> = NativeSectionList<ItemT, SectionT>
 
-const SectionList = React.forwardRef(SectionListImpl) as <ItemT, SectionT>(
+const SectionList = SectionListImpl as <ItemT, SectionT>(
   props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
 ) => React.ReactElement
 

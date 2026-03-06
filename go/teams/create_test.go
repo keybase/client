@@ -146,7 +146,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	var users []*kbtest.FakeUser
 	var uvs []keybase1.UserVersion
 	var impTeam keybase1.ImplicitTeamDisplayName
-	for i := 0; i < numKBUsers; i++ {
+	for range numKBUsers {
 		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 		require.NoError(t, err)
 		users = append(users, u)

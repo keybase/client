@@ -51,7 +51,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// adjacent matches of txPattern can overlap.
 	// For example: "+1xlm +2xlm" -> "+1xlm ", " +2xlm"
 	var matches []ChatTxCandidate
-	for i := 0; i < maxTxsPerMessage; i++ {
+	for range maxTxsPerMessage {
 		rawIndices := txPattern.FindStringSubmatchIndex(buf)
 		if rawIndices == nil {
 			break

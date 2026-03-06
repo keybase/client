@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 
@@ -55,19 +54,16 @@ const MessagePopupHeader = (props: Props) => {
   const whoRevoked = yourMessage ? 'You' : author
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onUsernameClicked = React.useCallback(
-    (user: string) => {
-      showUserProfile(user)
-      onHidden()
-    },
-    [showUserProfile, onHidden]
-  )
+  const onUsernameClicked = (user: string) => {
+    showUserProfile(user)
+    onHidden()
+  }
 
   return (
-    <Kb.Box style={styles.headerContainer}>
+    <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
       {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
       {Kb.Styles.isMobile ? null : (
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+        <Kb.Box2 direction="horizontal">
           <Kb.Text
             type="BodySmall"
             style={{
@@ -76,7 +72,7 @@ const MessagePopupHeader = (props: Props) => {
           >
             ENCRYPTED & SIGNED
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
@@ -134,7 +130,7 @@ const MessagePopupHeader = (props: Props) => {
           width: '100%',
         }}
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -142,11 +138,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alignItemsCenter: {alignItems: 'center'},
-      colorBlack40: {color: Kb.Styles.globalColors.black_50},
       headerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           paddingTop: Kb.Styles.globalMargins.tiny,
           width: '100%',
         },
@@ -155,11 +148,6 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 200,
         },
       }),
-      headerDetailsContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-      },
       headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,

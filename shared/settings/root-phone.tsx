@@ -1,20 +1,18 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {keybaseFM} from '@/constants/whats-new'
 import SettingsItem from './sub-nav/settings-item'
-import WhatsNewIcon from '../whats-new/icon'
 import noop from 'lodash/noop'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import * as Settings from '@/constants/settings'
-import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import * as Settings from '@/stores/settings'
+import {usePushState} from '@/stores/push'
+import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
-  const ref = React.useRef<Kb.PlainInputRef>(null)
+  const ref = React.useRef<Kb.Input3Ref>(null)
 
   return (
     <Kb.Box2
@@ -32,19 +30,14 @@ const PerfRow = () => {
           T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
             .then(() => {})
             .catch(() => {})
-          ref.current?.transformText(
-            () => ({
-              selection: {end: 0, start: 0},
-              text: '',
-            }),
-            true
-          )
+          ref.current?.clear()
         }}
       />
-      <Kb.PlainInput
+      <Kb.Input3
         ref={ref}
-        onChangeText={text => setToSubmit(`GUI: ${text}`)}
-        style={styles.perfInput}
+        onChangeText={(text: string) => setToSubmit(`GUI: ${text}`)}
+        hideBorder={true}
+        containerStyle={styles.perfInput}
         placeholder="Add to perf log"
       />
     </Kb.Box2>
@@ -104,14 +97,6 @@ function SettingsNav() {
             navigateAppend(Settings.settingsWalletsTab)
           },
           text: 'Wallet',
-        },
-        {
-          iconComponent: WhatsNewIcon,
-          onClick: () => {
-            navigateAppend(Settings.settingsWhatsNewTab)
-          },
-          subText: `What's new?`,
-          text: keybaseFM,
         },
       ],
       title: '',
@@ -234,7 +219,7 @@ function SettingsNav() {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  perfInput: {backgroundColor: Kb.Styles.globalColors.grey},
+  perfInput: {backgroundColor: Kb.Styles.globalColors.grey, flex: 1, padding: 0, width: 'auto' as const},
   perfRow: {height: 44},
   sectionTitle: {
     backgroundColor: Kb.Styles.globalColors.blueLighter3,

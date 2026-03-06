@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import Modal from '@/profile/modal'
 
@@ -33,32 +33,32 @@ const Info = () => {
   const nextDisabled = !data.pgpEmail1 || !data.pgpFullName || !!data.pgpErrorText
   return (
     <Modal onCancel={onCancel} skipButton={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
         <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
         <Kb.Text type="BodySemibold" style={styles.centered}>
           Fill in your public info.
         </Kb.Text>
-        <Kb.LabeledInput
+        <Kb.Input3
           autoFocus={true}
           placeholder="Your full name"
           value={data.pgpFullName}
           onChangeText={onChangeFullName}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 1"
           onChangeText={onChangeEmail1}
           onEnterKeyDown={onNext}
           value={data.pgpEmail1}
           error={data.pgpErrorEmail1}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 2 (optional)"
           onChangeText={onChangeEmail2}
           onEnterKeyDown={onNext}
           value={data.pgpEmail2}
           error={data.pgpErrorEmail2}
         />
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Email 3 (optional)"
           onChangeText={onChangeEmail3}
           onEnterKeyDown={onNext}
@@ -81,7 +81,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       centered: {alignSelf: 'center'},
-      content: {flexGrow: 1},
       math: {flexGrow: 1},
     }) as const
 )

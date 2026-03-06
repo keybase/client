@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import openUrl from '@/util/open-url'
@@ -25,10 +25,7 @@ export const CreateNewTeam = (props: Props) => {
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam
 
-  const onSubmitCb = React.useCallback(
-    () => (isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false)),
-    [isSubteam, baseTeam, onSubmit, name, joinSubteam]
-  )
+  const onSubmitCb = () => (isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false))
   const disabled = name.length < 2
 
   // clear error we may have hit on unmount
@@ -76,7 +73,7 @@ export const CreateNewTeam = (props: Props) => {
       onClose={props.onCancel}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Name your team"
           value={name}
           onChangeText={setName}

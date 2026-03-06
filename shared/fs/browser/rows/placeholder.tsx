@@ -7,10 +7,10 @@ type PlaceholderProps = {
 }
 
 const PlaceholderRow = ({type}: PlaceholderProps) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     firstItem={true /* we add divider in Rows */}
-    statusIcon={<Kb.Box />}
+    statusIcon={<Kb.Box2 direction="vertical" />}
     icon={
       <Kb.Icon
         type={type === T.FS.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
@@ -18,9 +18,9 @@ const PlaceholderRow = ({type}: PlaceholderProps) => (
       />
     }
     body={
-      <Kb.Box style={rowStyles.itemBox}>
+      <Kb.Box2 direction="vertical" style={rowStyles.itemBox}>
         <Kb.Placeholder style={styles.placeholder} />
-      </Kb.Box>
+      </Kb.Box2>
     }
   />
 )

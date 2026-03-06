@@ -1,10 +1,10 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -36,8 +36,8 @@ const useSecondaryAction = (props: Props) => {
       case 'members':
         if (conversationIDKey) {
           nav.safeNavigateAppend({
-            props: {conversationIDKey: conversationIDKey, teamID},
-            selected: 'chatAddToChannel',
+            name: 'chatAddToChannel',
+            params: {conversationIDKey: conversationIDKey, teamID},
           })
         } else {
           startAddMembersWizard(teamID)
@@ -47,10 +47,10 @@ const useSecondaryAction = (props: Props) => {
         launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
+        nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
         break
       case 'channelsEmpty':
-        nav.safeNavigateAppend({props: {teamID}, selected: 'teamCreateChannels'})
+        nav.safeNavigateAppend({name: 'teamCreateChannels', params: {teamID}})
         break
     }
   }
@@ -101,7 +101,7 @@ const EmptyRow = (props: Props) => {
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
   return (
-    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true} justifyContent="flex-start">
       <Kb.Box2 direction="horizontal">
         <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>
@@ -135,7 +135,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         ...Kb.Styles.padding(40, 0),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},
       text: Kb.Styles.platformStyles({

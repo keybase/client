@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '@/teams/common'
@@ -72,7 +72,7 @@ const EditChannel = (props: Props) => {
       backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.NewInput
+        <Kb.Input3
           autoFocus={true}
           maxLength={16}
           onChangeText={setName}
@@ -85,8 +85,7 @@ const EditChannel = (props: Props) => {
         {oldName === 'general' && (
           <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
-        <Kb.LabeledInput
-          hoverPlaceholder="What is this channel about?"
+        <Kb.Input3
           placeholder="Description"
           value={description}
           rowsMin={3}

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
@@ -27,7 +27,7 @@ const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
-const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
+function ReactionsRowContainer() {
   const ordinal = useOrdinal()
   const reactions = Chat.useChatContext(
     C.useDeep(s => {
@@ -37,9 +37,7 @@ const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
     })
   )
 
-  const emojis = React.useMemo(() => {
-    return getOrderedReactions(reactions)
-  }, [reactions])
+  const emojis = getOrderedReactions(reactions)
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
@@ -53,7 +51,7 @@ const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
       )}
     </Kb.Box2>
   )
-})
+}
 
 export type Props = {
   activeEmoji: string
@@ -71,20 +69,20 @@ const newBtnClassName = 'WrapperMessage-newEmojiButton'
 type IProps = {
   emoji: string
 }
-const RowItem = React.memo(function RowItem(p: IProps) {
+function RowItem(p: IProps) {
   const ordinal = useOrdinal()
   const {emoji} = p
 
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
-  const showPopup = React.useCallback(() => {
+  const showPopup = () => {
     Kb.Styles.isMobile && Keyboard.dismiss()
     setShowingPopup(true)
-  }, [])
-  const hidePopup = React.useCallback(() => {
+  }
+  const hidePopup = () => {
     setShowingPopup(false)
-  }, [])
+  }
 
   const popup = showingPopup ? (
     <ReactionTooltip
@@ -97,7 +95,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       <ReactButton
         className={btnClassName}
         emoji={emoji}
@@ -105,9 +103,9 @@ const RowItem = React.memo(function RowItem(p: IProps) {
         style={styles.button}
       />
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -128,7 +126,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      visibilityHidden: Kb.Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
     }) as const
 )
 

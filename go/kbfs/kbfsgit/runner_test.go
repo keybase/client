@@ -220,7 +220,7 @@ func testPushWithTemplate(ctx context.Context, t *testing.T,
 		outputMap[line] = true
 	}
 
-	dsts := make([]interface{}, 0, len(refspecs))
+	dsts := make([]any, 0, len(refspecs))
 	for _, refspec := range refspecs {
 		dsts = append(dsts, gogitcfg.RefSpec(refspec).Dst(""))
 	}
@@ -1103,7 +1103,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 
 	t.Log("Add more commits than the maximum to visit per ref. " +
 		"Check that a sentinel value was added.")
-	for i := 0; i < maxCommitsToVisitPerRef+1; i++ {
+	for i := range maxCommitsToVisitPerRef + 1 {
 		filename := fmt.Sprintf("foo%d", i+6)
 		content := fmt.Sprintf("hello%d", i+6)
 		msg := fmt.Sprintf("commit message %d", i+6)

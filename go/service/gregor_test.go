@@ -480,7 +480,7 @@ func TestSyncFresh(t *testing.T) {
 	// Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
 	var refMsgs []gregor.InBandMessage
-	for i := 0; i < numMsgs; i++ {
+	for range numMsgs {
 		msg := server.newIbm(uid)
 		refMsgs = append(refMsgs, msg.ToInBandMessage())
 		err := server.ConsumeMessage(context.TODO(), msg)
@@ -506,7 +506,7 @@ func TestSyncNonFresh(t *testing.T) {
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refMsgs []gregor.InBandMessage
-	for i := 0; i < numMsgs; i++ {
+	for i := range numMsgs {
 		msg := server.newIbm(uid)
 		err := server.ConsumeMessage(context.TODO(), msg)
 		require.NoError(t, err)
@@ -545,7 +545,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
-	for i := 0; i < numMsgs; i++ {
+	for i := range numMsgs {
 		msg := server.newIbm(uid)
 		err := server.ConsumeMessage(context.TODO(), msg)
 		require.NoError(t, err)
@@ -595,7 +595,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	const numMsgs = 6
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
-	for i := 0; i < numMsgs; i++ {
+	for i := range numMsgs {
 		msg := server.newIbm(uid)
 		err := server.ConsumeMessage(context.TODO(), msg)
 		require.NoError(t, err)
@@ -682,7 +682,7 @@ func TestMessagesAddedDuringProcessing(t *testing.T) {
 	blockUntilDone := make(chan struct{})
 	// fire off some of them asynchronously
 	go func() {
-		for i := 0; i < numberToDoAsync; i++ {
+		for i := range numberToDoAsync {
 			err := server.ConsumeMessage(context.TODO(), msgs[i])
 			require.NoError(t, err)
 		}

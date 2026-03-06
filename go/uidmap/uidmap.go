@@ -245,10 +245,7 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 	g.GetLog().CDebugf(ctx, "looking up %d uids from server", len(uids))
 	var ret []libkb.UsernamePackage
 	for i := 0; i < len(uids); i += batchSize {
-		high := i + batchSize
-		if high > len(uids) {
-			high = len(uids)
-		}
+		high := min(i+batchSize, len(uids))
 		inb := uids[i:high]
 		var budget time.Duration
 

@@ -178,7 +178,7 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		role, err := teamObj.MemberRole(context.Background(), tt.users[i].userVersion())
 		require.NoError(t, err)
 		require.Equal(t, role, keybase1.TeamRole_READER)

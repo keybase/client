@@ -15,34 +15,30 @@ const DownloadNativeWrapper: React.FC<Props> = props => {
     })
   ).current
 
-  const ensureStarted = React.useCallback(() => {
+  const ensureStarted = () => {
     if (started.current) {
       return
     }
     started.current = true
     opacityAnimation.start(({finished}) => finished && props.dismiss())
-  }, [opacityAnimation, props])
+  }
 
-  const ensureStopped = React.useCallback(() => {
+  const ensureStopped = () => {
     if (!started.current) {
       return
     }
     opacityAnimation.stop()
     opacity.setValue(1)
     started.current = false
-  }, [opacityAnimation, opacity])
+  }
 
   React.useEffect(() => {
-    const update = () => {
-      props.isFirst && props.done ? ensureStarted() : ensureStopped()
-    }
-
-    update()
+    props.isFirst && props.done ? ensureStarted() : ensureStopped()
 
     return () => {
       ensureStopped()
     }
-  }, [props.isFirst, props.done, ensureStarted, ensureStopped])
+  })
 
   return <NativeAnimated.View style={{opacity}}>{props.children}</NativeAnimated.View>
 }

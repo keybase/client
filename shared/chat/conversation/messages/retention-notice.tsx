@@ -1,8 +1,7 @@
 import type * as T from '@/constants/types'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
@@ -40,14 +39,14 @@ function makeRetentionNotice(
   return `Messages in this ${convType} ${explanation}`
 }
 
-const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() {
+function RetentionNoticeContainer() {
   const meta = Chat.useChatContext(s => s.meta)
   const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
   const canChange = Teams.useTeamsState(s => {
     return meta.teamType !== 'adhoc' ? Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onChange = React.useCallback(() => showInfoPanel(true, 'settings'), [showInfoPanel])
+  const onChange = () => showInfoPanel(true, 'settings')
   const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined
 
   const iconType =
@@ -56,10 +55,10 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() 
       : 'iconfont-timer-solid'
 
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.Box style={styles.iconBox}>
+    <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" style={styles.iconBox}>
         <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
-      </Kb.Box>
+      </Kb.Box2>
       {!!explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
           {explanation}
@@ -74,22 +73,19 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() 
           Change this
         </Kb.Text>
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
         paddingBottom: Kb.Styles.globalMargins.small,
         paddingLeft: Kb.Styles.globalMargins.medium,
         paddingRight: Kb.Styles.globalMargins.medium,
         paddingTop: Kb.Styles.globalMargins.small,
-        width: '100%',
       },
       iconBox: {marginBottom: Kb.Styles.globalMargins.xtiny},
     }) as const

@@ -80,7 +80,7 @@ const CommonResult = (props: CommonResultProps) => {
           keybaseUsername={keybaseUsername}
           pictureUrl={props.pictureUrl}
         />
-        <Kb.Box2 direction="vertical" style={styles.username}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
           {serviceUsername ? (
             <>
               <Username
@@ -188,7 +188,7 @@ const ServicesIcons = (props: {
       ? props.prettyName === props.keybaseUsername
       : !props.displayLabel
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} style={styles.services}>
+    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
@@ -343,18 +343,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'baseline',
     display: 'flex',
   },
-  contactName: {
-    lineHeight: 22,
-  },
   highlighted: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blueLighter2,
       borderRadius: Kb.Styles.borderRadius,
     },
   }),
-  keybaseServiceIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
   // Default padding to people search vlaues:
   // top/bottom: 8, left/right: 12
   //
@@ -367,11 +361,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: Kb.Styles.globalMargins.xtiny,
   },
-  services: {
-    justifyContent: 'flex-start',
-  },
   username: {
-    flex: 1,
     marginLeft: Kb.Styles.globalMargins.small,
   },
 }))

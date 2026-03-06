@@ -1,13 +1,12 @@
 import * as Kb from '@/common-adapters'
 import UploadIcon from '@/fs/common/upload-icon'
-import * as React from 'react'
 import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '@/styles/colors'
-import {useFSState} from '@/constants/fs'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useFSState} from '@/stores/fs'
+import {useDarkModeState} from '@/stores/darkmode'
 
-export const SimpleLoading = React.memo(function SimpleLoading() {
+export function SimpleLoading() {
   return (
     <Kb.Box2
       direction="vertical"
@@ -18,7 +17,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
       <Splash allowFeedback={false} failed="" status="" />
     </Kb.Box2>
   )
-})
+}
 
 export const FilesTabBadge = () => {
   const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
@@ -45,7 +44,7 @@ export const theme: Theme = {
       return themed.black_10 as string
     },
     get card() {
-      return (useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return undefined as unknown as string
     },
     get notification() {
       return themed.black as string

@@ -76,7 +76,7 @@ func (c *cmdWotList) Run() error {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	line := func(format string, args ...interface{}) {
+	line := func(format string, args ...any) {
 		dui.Printf(format+"\n", args...)
 	}
 

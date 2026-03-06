@@ -1,22 +1,21 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
-import {useTeamsState} from '@/constants/teams'
+import * as TB from '@/stores/team-building'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
-import trim from 'lodash/trim'
 import type * as T from '@/constants/types'
 import type * as Types from './types'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 // import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 import {useColorScheme} from 'react-native'
 
@@ -243,19 +242,13 @@ export const ListBody = (
   const userRecs = TB.useTBContext(s => s.userRecs)
   const _teamSoFar = TB.useTBContext(s => s.teamSoFar)
   const _searchResults = TB.useTBContext(s => s.searchResults)
-  const _recommendations = React.useMemo(
-    () => deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers),
-    [userRecs, _teamSoFar, username, following, preExistingTeamMembers]
-  )
+  const _recommendations = deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers)
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
-    .get(trim(searchString))
+    .get(searchString.trim())
     ?.get(selectedService)
 
-  const searchResults = React.useMemo(
-    () => deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers),
-    [userResults, _teamSoFar, username, following, preExistingTeamMembers]
-  )
+  const searchResults = deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers)
 
   const showResults = !!searchString
   const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
@@ -264,9 +257,7 @@ export const ListBody = (
   const showLoading = !!searchString && !searchResults
 
   const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
-  const recommendations = React.useMemo(() => {
-    return showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
-  }, [showRecs, _recommendations, showingContactsButton])
+  const recommendations = showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
 
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
@@ -317,7 +308,8 @@ export const ListBody = (
         fullHeight={true}
         gap="xtiny"
         centerChildren={true}
-        style={styles.loadingContainer}
+        flex={1}
+        justifyContent="flex-start"
       >
         {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
       </Kb.Box2>
@@ -351,37 +343,38 @@ export const ListBody = (
   return (
     <>
       {searchResults?.length ? (
-        <Kb.List
-          reAnimated={true}
-          items={searchResults}
-          selectedIndex={highlightedIndex || 0}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-          keyboardShouldPersistTaps="handled"
-          keyProperty="key"
-          onEndReached={_onEndReached}
-          onEndReachedThreshold={0.1}
-          renderItem={(index, result) => (
-            <ResultRow
-              key={result.username}
-              resultForService={selectedService}
-              username={result.username}
-              prettyName={result.prettyName}
-              pictureUrl={result.pictureUrl}
-              displayLabel={result.displayLabel}
-              services={result.services}
-              namespace={namespace}
-              inTeam={result.inTeam}
-              isPreExistingTeamMember={result.isPreExistingTeamMember}
-              isYou={result.isYou}
-              followingState={result.followingState}
-              highlight={!Kb.Styles.isMobile && index === highlightedIndex}
-              userId={result.userId}
-              onAdd={onAdd}
-              onRemove={onRemove}
-            />
-          )}
-        />
+        <Kb.BoxGrow>
+          <Kb.List
+            reAnimated={true}
+            items={searchResults}
+            selectedIndex={highlightedIndex || 0}
+            style={styles.list}
+            keyboardShouldPersistTaps="handled"
+            keyProperty="key"
+            onEndReached={_onEndReached}
+            itemHeight={{height: Kb.Styles.isMobile ? 64 : 48, type: 'fixed'}}
+            renderItem={(index: number, result: (typeof searchResults)[number]) => (
+              <ResultRow
+                key={result.username}
+                resultForService={selectedService}
+                username={result.username}
+                prettyName={result.prettyName}
+                pictureUrl={result.pictureUrl}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                namespace={namespace}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                isYou={result.isYou}
+                followingState={result.followingState}
+                highlight={!Kb.Styles.isMobile && index === highlightedIndex}
+                userId={result.userId}
+                onAdd={onAdd}
+                onRemove={onRemove}
+              />
+            )}
+          />
+        </Kb.BoxGrow>
       ) : (
         <Kb.Text type="BodySmall" style={styles.noResults}>
           Sorry, no results were found.
@@ -410,8 +403,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       list: Kb.Styles.platformStyles({
         common: {paddingBottom: Kb.Styles.globalMargins.small},
-      }),
-      listContentContainer: Kb.Styles.platformStyles({
         isMobile: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
       loadingAnimation: Kb.Styles.platformStyles({
@@ -424,10 +415,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 48,
         },
       }),
-      loadingContainer: {
-        flex: 1,
-        justifyContent: 'flex-start',
-      },
       noResults: {
         flex: 1,
         textAlign: 'center',

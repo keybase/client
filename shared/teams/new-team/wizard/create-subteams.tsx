@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
@@ -61,9 +61,9 @@ const CreateSubteams = () => {
           hierarchy.
         </Kb.Text>
         {subteams.map((value, idx) => (
-          <Kb.NewInput
+          <Kb.Input3
             value={value}
-            onChangeText={text => setSubteam(idx, cleanSubteamName(text))}
+            onChangeText={(text: string) => setSubteam(idx, cleanSubteamName(text))}
             decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}
             placeholder="subteam"
             prefix={`${teamname}.`}
@@ -72,7 +72,7 @@ const CreateSubteams = () => {
             key={idx}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
     </Kb.Modal>
   )

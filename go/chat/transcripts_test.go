@@ -127,7 +127,7 @@ func TestTranscriptLimit(t *testing.T) {
 				Body: "hello chat",
 			}))
 
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("hello message %d", i),

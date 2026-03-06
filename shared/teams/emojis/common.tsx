@@ -13,8 +13,9 @@ type AliasInputProps = {
 }
 
 export type AliasRef = {focus: () => void}
-export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function AliasInput(props, ref) {
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
+export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>}) {
+  const {ref, error, disabled, small, onChangeAlias, onEnterKeyDown, onRemove} = props
+  const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   React.useImperativeHandle(ref, () => ({
     focus: () => {
@@ -23,34 +24,31 @@ export const AliasInput = React.forwardRef<AliasRef, AliasInputProps>(function A
   }))
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.aliasInputContainer} gap="xxtiny">
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.aliasInputContainer} gap="xxtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
-        <Kb.NewInput
+        <Kb.Input3
           ref={inputRef}
-          error={!!props.error}
-          disabled={props.disabled}
+          error={!!error}
+          disabled={disabled}
           textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
-          containerStyle={Kb.Styles.collapseStyles([
-            styles.aliasInput,
-            !props.small && styles.aliasInputLarge,
-          ])}
-          onChangeText={props.onChangeAlias}
-          onEnterKeyDown={props.onEnterKeyDown}
+          containerStyle={Kb.Styles.collapseStyles([styles.aliasInput, !small && styles.aliasInputLarge])}
+          onChangeText={onChangeAlias}
+          onEnterKeyDown={onEnterKeyDown}
         />
-        {props.onRemove && (
-          <Kb.ClickableBox onClick={props.onRemove} style={styles.removeBox}>
+        {onRemove && (
+          <Kb.ClickableBox onClick={onRemove} style={styles.removeBox}>
             <Kb.Icon type="iconfont-remove" />
           </Kb.ClickableBox>
         )}
       </Kb.Box2>
-      {!!props.error && (
+      {!!error && (
         <Kb.Text type="BodySmallError" lineClamp={1}>
-          {props.error}
+          {error}
         </Kb.Text>
       )}
     </Kb.Box2>
   )
-})
+}
 
 type ModalProps = {
   backButtonOnClick?: () => void
@@ -90,7 +88,7 @@ export const Modal = (props: ModalProps) => {
             <Kb.Text type="Header">{props.title}</Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
           <Kb.Icon type={props.bannerImage} noContainer={true} style={styles.bannerImage} />
           {!!props.bannerError && (
             <Kb.Banner color="red" style={styles.bannerError}>
@@ -140,7 +138,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
-  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1, overflow: 'hidden'},
+  aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1},
   aliasInputLarge: Kb.Styles.platformStyles({
     common: {
       paddingLeft: Kb.Styles.globalMargins.small,
@@ -159,7 +157,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
-    position: 'relative',
   },
   bannerError: Kb.Styles.platformStyles({
     common: {

@@ -17,7 +17,6 @@ export interface Spec extends TurboModule {
     uses24HourClock: boolean
     version: string
   }
-  getDefaultCountryCode(): Promise<string>
   logSend(
     status: string,
     feedback: string,
@@ -27,12 +26,8 @@ export interface Spec extends TurboModule {
     cpuProfileDir: string
   ): Promise<string>
   iosGetHasShownPushPrompt(): Promise<boolean>
-  androidOpenSettings(): void
-  androidSetSecureFlagSetting(s: boolean): Promise<boolean>
-  androidGetSecureFlagSetting(): Promise<boolean>
   androidShareText(text: string, mimeType: string): Promise<boolean>
   androidShare(text: string, mimeType: string): Promise<boolean>
-  androidUnlink(path: string): Promise<void>
   androidAddCompleteDownload(o: {
     description: string
     mime: string

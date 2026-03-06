@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
-import * as Devices from '@/constants/devices'
+import {useConfigState} from '@/stores/config'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {settingsDevicesTab} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {settingsDevicesTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {deviceID: string}
 
@@ -25,7 +25,12 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
         You may lose access to these folders forever:
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
-        <Kb.List items={props.endangeredTLFs} renderItem={_renderTLFEntry} indexAsKey={true} />
+        <Kb.List
+          items={props.endangeredTLFs}
+          renderItem={_renderTLFEntry}
+          indexAsKey={true}
+          itemHeight={{height: 24, type: 'fixed'}}
+        />
       </Kb.Box2>
     </>
   )
@@ -91,13 +96,13 @@ const useRevoke = (deviceID = '') => {
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
-  return React.useCallback(() => {
+  return () => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
           await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.waitingKeyDevices)
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
         } catch {}
       } else {
         try {
@@ -106,7 +111,7 @@ const useRevoke = (deviceID = '') => {
             C.waitingKeyDevices
           )
           load()
-          useConfigState.getState().dispatch.revoke(deviceName)
+          useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
           navUpToScreen(
             C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
           )
@@ -114,7 +119,7 @@ const useRevoke = (deviceID = '') => {
       }
     }
     C.ignorePromise(f())
-  }, [navUpToScreen, deviceID, deviceName, load, username, wasCurrentDevice])
+  }
 }
 
 const DeviceRevoke = (ownProps: OwnProps) => {

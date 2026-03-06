@@ -1,26 +1,21 @@
 {
   "compilerOptions": {
     "allowJs": false,
-    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    "alwaysStrict": true,
-    "assumeChangesOnlyAffectDirectDependencies": false,
-    "baseUrl": ".",
     "checkJs": false,
-    "declaration": true,
-    "exactOptionalPropertyTypes": false,
-    "forceConsistentCasingInFileNames": false,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["ESNext", "dom"],
-    "module": "commonjs",
-    "noErrorTruncation": true,
+    "lib": [
+      "ESNext",
+      "dom"
+    ],
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noImplicitOverride": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -29,7 +24,9 @@
     "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -38,7 +35,10 @@
     "target": "esnext",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
-  "include": ["./**/*.ts", "./**/*.tsx"],
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx"
+  ],
   "exclude": [
     "**/node_modules",
     "./desktop/dist",
@@ -52,6 +52,11 @@
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
-    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
-  }
+    "excludeDirectories": [
+      "**/node_modules",
+      "./desktop/dist",
+      "./desktop/build"
+    ]
+  },
+  "extends": "expo/tsconfig.base"
 }

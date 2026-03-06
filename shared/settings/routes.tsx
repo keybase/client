@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
-import * as Settings from '@/constants/settings/util'
+import * as Settings from '@/constants/settings'
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
@@ -48,7 +48,6 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./files')),
   },
   [Settings.settingsGitTab]: gitRoutes.gitRoot,
-  [Settings.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
   [Settings.settingsNotificationsTab]: {
     getOptions: {title: 'Notifications'},
     screen: React.lazy(async () => import('./notifications')),
@@ -58,15 +57,10 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./screenprotector')),
   },
   [Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [Settings.settingsWhatsNewTab]: {
-    getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
-    screen: React.lazy(async () => import('../whats-new/container')),
-  },
   dbNukeConfirm: {
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
-  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   removeDevice: devicesRoutes.deviceRevoke,
@@ -114,7 +108,7 @@ export const newRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },
   webLinks: C.makeScreen(WebLinks, {
-    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+    getOptions: ({route}) => ({
       header: undefined,
       title: route.params.title,
     }),
@@ -132,5 +126,3 @@ export const newModalRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
   },
 }
-
-export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

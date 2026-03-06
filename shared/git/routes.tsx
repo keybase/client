@@ -25,5 +25,3 @@ export const newModalRoutes = {
   gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo'))),
   gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
 }
-
-export type RootParamListGit = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

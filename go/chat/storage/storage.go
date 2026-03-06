@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -97,7 +98,7 @@ func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey
 	}
 }
 
-func encode(input interface{}) ([]byte, error) {
+func encode(input any) ([]byte, error) {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &mh)
@@ -107,7 +108,7 @@ func encode(input interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func decode(data []byte, res interface{}) error {
+func decode(data []byte, res any) error {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	dec := codec.NewDecoderBytes(data, &mh)
 	err := dec.Decode(res)
@@ -690,7 +691,7 @@ func (s *Storage) flatten(m map[chat1.MessageID]chat1.MessageUnboxed) (res []cha
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed,
 ) Error {
-	de := func(format string, args ...interface{}) {
+	de := func(format string, args ...any) {
 		s.Debug(ctx, "updateMinDeletableMessage: "+fmt.Sprintf(format, args...))
 	}
 
@@ -745,7 +746,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 func (s *Storage) handleDeleteHistory(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, expungeExplicit *chat1.Expunge,
 ) (*chat1.Expunge, Error) {
-	de := func(format string, args ...interface{}) {
+	de := func(format string, args ...any) {
 		s.Debug(ctx, "handleDeleteHistory: "+fmt.Sprintf(format, args...))
 	}
 
@@ -829,7 +830,7 @@ func (s *Storage) applyExpunge(ctx context.Context, conv types.UnboxConversation
 	convID := conv.GetConvID()
 	s.Debug(ctx, "applyExpunge(%v, %v, %v)", convID, uid, expunge.Upto)
 
-	de := func(format string, args ...interface{}) {
+	de := func(format string, args ...any) {
 		s.Debug(ctx, "applyExpunge: "+fmt.Sprintf(format, args...))
 	}
 
@@ -1321,10 +1322,8 @@ func (s *Storage) GetExplodedReplies(ctx context.Context, convID chat1.Conversat
 // updateReactionIDs appends `msgid` to `reactionIDs` if it is not already
 // present.
 func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.MessageID) ([]chat1.MessageID, bool) {
-	for _, reactionID := range reactionIDs {
-		if reactionID == msgid {
-			return reactionIDs, false
-		}
+	if slices.Contains(reactionIDs, msgid) {
+		return reactionIDs, false
 	}
 	return append(reactionIDs, msgid), true
 }

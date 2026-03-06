@@ -668,7 +668,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 2 makes a few changes in the file
-	for i := byte(0); i < 4; i++ {
+	for i := range byte(4) {
 		// This makes sure the unmerged head of user 2 is ahead of (has large
 		// revision than) the merged master branch, so we can test that we properly
 		// fetch updates when unmerged revision number is greater than merged
@@ -688,7 +688,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 
 	// check for at most 4 times. This should be sufficiently long for client get
 	// latest merged revision and register with that
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		record := <-chForMdServer2
 		mergedRev, err := mdServ.getCurrentMergedHeadRevision(
 			ctx, rootNode2.GetFolderBranch().Tlf)
@@ -888,7 +888,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	fbo := ops.getOpsNoAdd(ctx, rootNode2.GetFolderBranch())
 
 	t.Log("Write a bunch more files as user 2, creating more conflicts.")
-	for i := 0; i < maxConflictResolutionAttempts; i++ {
+	for i := range maxConflictResolutionAttempts {
 		fileName := fmt.Sprintf("file%d", i)
 		newFile, _, err := kbfsOps2.CreateFile(
 			ctx, dirA2, testPPS(fileName), false, NoExcl)
@@ -1576,7 +1576,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 
 	// Wait for the rest of the puts (this indicates that the first
 	// two succeeded correctly and two more were sent to replace them)
-	for i := 0; i < maxParallelBlockPuts; i++ {
+	for range maxParallelBlockPuts {
 		<-onSyncStalledCh
 	}
 	// Cancel so all other block puts fail
@@ -2089,7 +2089,7 @@ func TestBasicCRFailureClearAndFastForward(t *testing.T) {
 	t.Log("User 1 updates mod time on a/b.")
 
 	mtime := time.Now()
-	for i := 0; i < fastForwardRevThresh+2; i++ {
+	for range fastForwardRevThresh + 2 {
 		mtime = mtime.Add(1 * time.Minute)
 		err = kbfsOps1.SetMtime(ctx, fileB1, &mtime)
 		require.NoError(t, err)

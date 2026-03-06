@@ -329,7 +329,7 @@ func TestRotateRace(t *testing.T) {
 		return errCh
 	}
 
-	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...any) {
 		select {
 		case err := <-errCh:
 			require.NoError(t, err, msgAndArgs...)
@@ -338,7 +338,7 @@ func TestRotateRace(t *testing.T) {
 		}
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		t.Logf("round %v", i)
 
 		errCh1 := rotate(0)

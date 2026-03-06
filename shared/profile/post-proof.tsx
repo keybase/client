@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import openUrl from '@/util/open-url'
 import Modal from './modal'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const Container = () => {
   const platform = useProfileState(s => s.platform)
@@ -49,7 +49,7 @@ const Container = () => {
       break
   }
   const platformUserName = username
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
@@ -156,8 +156,10 @@ const noteMap = new Map([
 const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
+  const rootUrlProps = Kb.useClickURL(`https://${root}`)
+  const wellKnownUrlProps = Kb.useClickURL(`https://${wellKnown}`)
   return (
-    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text center={true} type="BodySemibold">
         Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text>
         {" at one of these URL's."}
@@ -165,7 +167,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${root}`}
+        {...rootUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         {root}
@@ -173,12 +175,12 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={`https://${wellKnown}`}
+        {...wellKnownUrlProps}
         style={{color: Kb.Styles.globalColors.blueDark}}
       >
         {wellKnown}
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

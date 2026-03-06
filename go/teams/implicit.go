@@ -399,11 +399,11 @@ func newImplicitTeamCache(g *libkb.GlobalContext) *implicitTeamCache {
 	}
 }
 
-func (i *implicitTeamCache) Get(key interface{}) (interface{}, bool) {
+func (i *implicitTeamCache) Get(key any) (any, bool) {
 	return i.cache.Get(key)
 }
 
-func (i *implicitTeamCache) Put(key, value interface{}) bool {
+func (i *implicitTeamCache) Put(key, value any) bool {
 	return i.cache.Add(key, value)
 }
 

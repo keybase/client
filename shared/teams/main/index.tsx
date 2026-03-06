@@ -1,38 +1,28 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
+import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {
   teamName: string
   deletedBy: string
 }
 
-export type OwnProps = {
-  loaded: boolean
+export type Props = {
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: ReadonlySet<T.Teams.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (teamID: T.Teams.TeamID) => void
-  onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
-  onViewTeam: (teamID: T.Teams.TeamID) => void
-  teamresetusers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
-  newTeamRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>
+  onCreateTeam: () => void
+  onJoinTeam: () => void
   teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
-type HeaderProps = {
-  onCreateTeam: () => void
-  onJoinTeam: () => void
-}
-export type Props = OwnProps & HeaderProps
-
-const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny">
+const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
     <Kb.ClickableBox
       style={styles.bigButton}
       onClick={props.onCreateTeam}
@@ -40,10 +30,10 @@ const TeamBigButtons = (props: HeaderProps & {empty: boolean}) => (
     >
       <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Box style={styles.relative}>
+        <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar isTeam={true} size={96} />
           <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -72,8 +62,7 @@ const sortOrderToTitle = {
 }
 const SortHeader = () => {
   const onChangeSort = useTeamsState(s => s.dispatch.setTeamListSort)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -97,9 +86,7 @@ const SortHeader = () => {
           position="bottom left"
         />
       )
-    },
-    [onChangeSort]
-  )
+    }
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   const sortOrder = useTeamsState(s => s.teamListSort)
@@ -122,12 +109,27 @@ type Row = {key: React.Key} & (
   | {team: T.Teams.TeamMeta; type: 'team'}
 )
 
-const Teams = React.memo(function Teams(p: Props) {
+const getRowHeight = (item: Row | undefined): number => {
+  switch (item?.type) {
+    case '_buttons':
+      return Kb.Styles.isMobile ? 180 : 160
+    case '_sortHeader':
+      return Kb.Styles.isMobile ? 44 : 36
+    case 'deletedTeam':
+      return 50
+    case 'team':
+      return Kb.Styles.isMobile ? 72 : 48
+    case '_footer':
+      return 56
+    default:
+      return 48
+  }
+}
+
+const Teams = function Teams(p: Props) {
   const {deletedTeams, teams, onReadMore, onCreateTeam, onHideChatBanner, onJoinTeam} = p
 
-  const items = React.useMemo(
-    (): ReadonlyArray<Row> =>
-      [
+  const items = [
         {key: '_buttons', type: '_buttons'},
         {key: '_sortHeader', type: '_sortHeader'},
         ...deletedTeams.map(
@@ -135,12 +137,21 @@ const Teams = React.memo(function Teams(p: Props) {
         ),
         ...teams.map(team => ({key: team.id, team, type: 'team'}) as const),
         {key: '_footer', type: '_footer'},
-      ] as const,
-    [deletedTeams, teams]
-  )
+      ] as const
 
-  const renderItem = React.useCallback(
-    (index: number, item: Row) => {
+  const itemHeight = {
+      getItemLayout: (index: number, item?: Row) => {
+        const length = getRowHeight(item)
+        let offset = 0
+        for (let i = 0; i < index; i++) {
+          offset += getRowHeight(items[i])
+        }
+        return {index, length, offset}
+      },
+      type: 'variable' as const,
+    }
+
+  const renderItem = (index: number, item: Row) => {
       switch (item.type) {
         case '_banner':
           return <Banner onReadMore={onReadMore} onHideChatBanner={onHideChatBanner} />
@@ -165,29 +176,29 @@ const Teams = React.memo(function Teams(p: Props) {
         }
         case 'team': {
           const team = item.team
-          return <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+          return (
+            <PerfProfiler id="TeamRow">
+              <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
+            </PerfProfiler>
+          )
         }
       }
-    },
-    [onCreateTeam, onHideChatBanner, onJoinTeam, onReadMore, teams]
-  )
+    }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.List items={items} renderItem={renderItem} style={Kb.Styles.globalStyles.fullHeight} />
-    </Kb.Box2>
+    <PerfProfiler id="TeamsList">
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        <Kb.BoxGrow>
+          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} testID="teamsList" />
+        </Kb.BoxGrow>
+      </Kb.Box2>
+    </PerfProfiler>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarContainer: {position: 'relative'},
-      badge: {
-        position: 'absolute',
-        right: -5,
-        top: -5,
-      },
       bigButton: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.black_10,
@@ -204,10 +215,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       container: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       emptyNote: Kb.Styles.padding(60, 42, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium),
-      kerning: {letterSpacing: 0.2},
-      maxWidth: {maxWidth: '100%'},
-      openMeta: {alignSelf: 'center'},
-      relative: {position: 'relative'},
       sortHeader: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isElectron: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},
@@ -216,7 +223,6 @@ const styles = Kb.Styles.styleSheetCreate(
       teamButtons: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        justifyContent: 'flex-start',
       },
       teamPlus: {
         bottom: -2,

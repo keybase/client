@@ -3,9 +3,9 @@ import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -53,13 +53,13 @@ const TLFContainer = (p: OwnProps) => {
   )
 
   const avatar = (
-    <Kb.Box style={styles.avatarBox}>
+    <Kb.Box2 direction="horizontal" style={styles.avatarBox}>
       {FS.isTeamPath(path) ? (
         <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
       ) : (
         <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={usernames} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   return (
@@ -70,7 +70,7 @@ const TLFContainer = (p: OwnProps) => {
         onOpen={disabled ? undefined : onOpen}
         mixedMode={mixedMode}
         writingToJournal={false}
-        body={Kb.Styles.isMobile ? <Kb.Box style={rowStyles.itemBox}>{content}</Kb.Box> : undefined}
+        body={Kb.Styles.isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
         content={
           !Kb.Styles.isMobile ? (
             <>

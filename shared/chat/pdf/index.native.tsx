@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const ChatPDF = (props: Props) => {
   const {ordinal, url} = props
@@ -12,7 +12,7 @@ const ChatPDF = (props: Props) => {
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
-  const showShareActionSheet = useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const onShare = () => {
     showShareActionSheet?.(url ?? '', '', 'application/pdf')
   }
@@ -28,7 +28,7 @@ const ChatPDF = (props: Props) => {
         <Kb.WebView
           originWhitelist={['*']}
           renderLoading={() => (
-            <Kb.Box2 direction="vertical" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
+            <Kb.Box2 direction="vertical" justifyContent="center" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
               <Kb.ProgressIndicator white={true} />
             </Kb.Box2>
           )}
@@ -46,7 +46,6 @@ const ChatPDF = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   progressContainer: {
-    justifyContent: 'center',
     position: 'absolute',
   },
   webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},

@@ -1,12 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import CommonResult, {type ResultProps} from './common-result'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
 
 /*
  * This component is intended to be a drop-in replacement for UserResult.
@@ -15,7 +14,7 @@ import {useCurrentUserState} from '@/constants/current-user'
  * a bunch of React hooks to handle all the stateful logic needed to make the menu and chat button work.
  */
 
-const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
+const PeopleResult = function PeopleResult(props: ResultProps) {
   const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
 
@@ -25,32 +24,32 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onMenuAddToTeam = React.useCallback(() => {
-    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'profileAddToTeam'})
-  }, [navigateAppend, keybaseUsername])
+  const onMenuAddToTeam = () => {
+    keybaseUsername && navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
+  }
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onOpenPrivateFolder = React.useCallback(() => {
+  const onOpenPrivateFolder = () => {
     navigateUp()
-    FS.makeActionForOpenPathInFilesTab(
+    FS.navToPath(
       T.FS.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
-  }, [navigateUp, decoratedUsername, myUsername])
+  }
 
-  const onBrowsePublicFolder = React.useCallback(() => {
+  const onBrowsePublicFolder = () => {
     navigateUp()
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
-  }, [navigateUp, decoratedUsername])
+    FS.navToPath(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
+  }
 
-  const onManageBlocking = React.useCallback(() => {
-    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})
-  }, [navigateAppend, keybaseUsername])
+  const onManageBlocking = () => {
+    keybaseUsername && navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
+  }
 
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const onChat = React.useCallback(() => {
+  const onChat = () => {
     navigateUp()
     previewConversation({participants: [decoratedUsername], reason: 'search'})
-  }, [navigateUp, previewConversation, decoratedUsername])
+  }
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
@@ -88,7 +87,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const rightButtons = Kb.Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
-})
+}
 type DropdownProps = {
   onAddToTeam?: () => void
   onOpenPrivateFolder?: () => void
@@ -100,9 +99,7 @@ type DropdownProps = {
 
 const DropdownButton = (p: DropdownProps) => {
   const {onAddToTeam, onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
-  const items: Kb.MenuItems = React.useMemo(
-    () =>
-      [
+  const items: Kb.MenuItems = [
         onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
         onOpenPrivateFolder && {
           icon: 'iconfont-folder-open',
@@ -123,12 +120,9 @@ const DropdownButton = (p: DropdownProps) => {
       ].reduce<Kb.MenuItems>((arr, i) => {
         i && arr.push(i as Kb.MenuItem)
         return arr
-      }, []),
-    [blocked, onAddToTeam, onBrowsePublicFolder, onManageBlocking, onOpenPrivateFolder]
-  )
+      }, [])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -140,9 +134,7 @@ const DropdownButton = (p: DropdownProps) => {
           visible={true}
         />
       )
-    },
-    [items]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -166,12 +158,6 @@ const DropdownButton = (p: DropdownProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-  highlighted: Kb.Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Kb.Styles.globalColors.blueLighter2,
-      borderRadius: Kb.Styles.borderRadius,
-    },
-  }),
   rowContainer: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
   },

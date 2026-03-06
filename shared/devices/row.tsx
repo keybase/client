@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
+import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from './device-icon'
@@ -13,13 +13,13 @@ type OwnProps = {
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
-const Container = React.memo(function Container(ownProps: OwnProps) {
+function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps
   const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showExistingDevicePage = React.useCallback(() => {
-    navigateAppend({props: {deviceID}, selected: 'devicePage'})
-  }, [navigateAppend, deviceID])
+  const showExistingDevicePage = () => {
+    navigateAppend({name: 'devicePage', params: {deviceID}})
+  }
 
   const isNew = React.useContext(NewContext).has(deviceID)
   if (!device) return null
@@ -27,7 +27,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
   const isRevoked = !!device.revokedByName
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={firstItem}
       onClick={showExistingDevicePage}
@@ -40,7 +40,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
         />
       }
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
               {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
@@ -58,7 +58,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

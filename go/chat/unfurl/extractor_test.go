@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -29,10 +30,10 @@ func TestExtractor(t *testing.T) {
 		whitelist []string
 		result    []ExtractorHit
 	}
-	var maxCase string
+	var maxCase strings.Builder
 	var maxRes []ExtractorHit
 	for i := 0; i < extractor.maxHits+5; i++ {
-		maxCase += " http://www.wsj.com"
+		maxCase.WriteString(" http://www.wsj.com")
 	}
 	for i := 0; i < extractor.maxHits; i++ {
 		maxRes = append(maxRes, ExtractorHit{
@@ -50,7 +51,7 @@ func TestExtractor(t *testing.T) {
 			mode:    chat1.UnfurlMode_ALWAYS,
 		},
 		{
-			message: maxCase,
+			message: maxCase.String(),
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  maxRes,
 		},

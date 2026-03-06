@@ -1,7 +1,7 @@
-import type * as C from '@/constants'
+import type {StaticScreenProps} from '@react-navigation/core'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {TBProvider} from '@/constants/team-building'
+import {TBProvider} from '@/stores/team-building'
 
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace
@@ -31,7 +31,7 @@ const getOptions = ({route}: OwnProps) => {
 }
 
 const Building = React.lazy(async () => import('./container'))
-type OwnProps = C.ViewPropsToPageProps<typeof Building>
+type OwnProps = StaticScreenProps<React.ComponentProps<typeof Building>>
 
 const Screen = (p: OwnProps) => (
   <TBProvider namespace={p.route.params.namespace}>

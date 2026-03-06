@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
@@ -45,8 +45,8 @@ const TeamInfo = (props: Props) => {
   }
   const onEditAvatar = () =>
     nav.safeNavigateAppend({
-      props: {sendChatNotification: true, showBack: true, teamID},
-      selected: 'profileEditAvatar',
+      name: 'profileEditAvatar',
+      params: {sendChatNotification: true, showBack: true, teamID},
     })
   return (
     <Kb.Modal
@@ -83,14 +83,15 @@ const TeamInfo = (props: Props) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Avatar
-          editable={true}
-          onEditAvatarClick={onEditAvatar}
+          onClick={onEditAvatar}
           teamname={teamname}
           size={96}
           style={styles.avatar}
-        />
+        >
+          <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
+        </Kb.Avatar>
         {isSubteam ? (
-          <Kb.NewInput
+          <Kb.Input3
             autoFocus={true}
             maxLength={16}
             onChangeText={setName}
@@ -100,7 +101,7 @@ const TeamInfo = (props: Props) => {
             containerStyle={styles.subteamNameInput}
           />
         ) : (
-          <Kb.LabeledInput
+          <Kb.Input3
             containerStyle={styles.faded}
             maxLength={16}
             onChangeText={setName}
@@ -112,8 +113,7 @@ const TeamInfo = (props: Props) => {
         <Kb.Text type="BodySmall">
           {isSubteam ? `Subteam names are private.` : `Team names can't be changed.`}
         </Kb.Text>
-        <Kb.LabeledInput
-          hoverPlaceholder={isSubteam ? 'What is this subteam about?' : 'What is your team about?'}
+        <Kb.Input3
           placeholder="Description"
           value={description}
           autoFocus={!isSubteam}
@@ -132,7 +132,6 @@ const TeamInfo = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
   bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
@@ -143,16 +142,22 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  faded: {opacity: 0.5},
-  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
+  editTeamAvatar: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.blue,
+      borderColor: Kb.Styles.globalColors.white,
+      borderRadius: 100,
+      borderStyle: 'solid',
+      borderWidth: 2,
+      bottom: -6,
+      color: Kb.Styles.globalColors.whiteOrWhite,
+      padding: 4,
+      position: 'absolute',
+      right: -6,
     },
   }),
+  faded: {opacity: 0.5},
+  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
 export default TeamInfo

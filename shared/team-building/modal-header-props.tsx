@@ -35,7 +35,7 @@ export const modalHeaderProps = (
         title: <TeamsModalTitle teamID={teamID ?? T.Teams.noTeamID} title="Search people" />,
       }
     }
-    case 'chat2': {
+    case 'chat': {
       const rightButton = Kb.Styles.isMobile ? (
         <Kb.Button
           label="Start"

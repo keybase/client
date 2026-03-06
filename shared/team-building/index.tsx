@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
-import * as Teams from '@/constants/teams'
+import * as TB from '@/stores/team-building'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -9,7 +9,6 @@ import Input from './input'
 import PhoneSearch from './phone-search'
 import TeamBox from './team-box'
 import logger from '@/logger'
-import trim from 'lodash/trim'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
@@ -65,21 +64,21 @@ const TeamBuilding = (p: OwnProps) => {
   const [searchString, setSearchString] = React.useState('')
   const [selectedService, setSelectedService] = React.useState<T.TB.ServiceIdWithContact>('keybase')
 
-  const onDownArrowKeyDown = React.useCallback(() => {
+  const onDownArrowKeyDown = () => {
     setHighlightedIndex(old => old + 1)
-  }, [setHighlightedIndex])
+  }
 
-  const onUpArrowKeyDown = React.useCallback(() => {
+  const onUpArrowKeyDown = () => {
     setHighlightedIndex(old => (old < 1 ? 0 : old - 1))
-  }, [setHighlightedIndex])
+  }
 
-  const incFocusInputCounter = React.useCallback(() => {
+  const incFocusInputCounter = () => {
     setFocusInputCounter(old => old + 1)
-  }, [setFocusInputCounter])
+  }
 
-  const onEnterKeyDown = React.useCallback(() => {
+  const onEnterKeyDown = () => {
     setEnterInputCounter(old => old + 1)
-  }, [setEnterInputCounter])
+  }
 
   const searchResults = TB.useTBContext(s => s.searchResults)
   const error = TB.useTBContext(s => s.error)
@@ -87,7 +86,7 @@ const TeamBuilding = (p: OwnProps) => {
   const userRecs = TB.useTBContext(s => s.userRecs)
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = searchResults
-    .get(trim(searchString))
+    .get(searchString.trim())
     ?.get(selectedService)
 
   const teamSoFar = deriveTeamSoFar(_teamSoFar)
@@ -102,40 +101,30 @@ const TeamBuilding = (p: OwnProps) => {
   const _search = TB.useTBContext(s => s.dispatch.search)
   const search = C.useThrottledCallback(
     (query: string, service: T.TB.ServiceIdWithContact, limit?: number) => {
-      _search(query, service, namespace === 'chat2', limit)
+      _search(query, service, namespace === 'chat', limit)
     },
     500
   )
 
   const onClose = cancelTeamBuilding
   const onFinishTeamBuilding = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
-  const onRemove = React.useCallback(
-    (userId: string) => {
+  const onRemove = (userId: string) => {
       removeUsersFromTeamSoFar([userId])
-    },
-    [removeUsersFromTeamSoFar]
-  )
+    }
 
-  const onChangeText = React.useCallback(
-    (newText: string) => {
+  const onChangeText = (newText: string) => {
       setSearchString(newText)
       search(newText, selectedService)
       setHighlightedIndex(0)
-    },
-    [setSearchString, search, setHighlightedIndex, selectedService]
-  )
+    }
 
-  const onClear = React.useCallback(() => onChangeText(''), [onChangeText])
-  const onSearchForMore = React.useCallback(
-    (len: number) => {
+  const onClear = () => onChangeText('')
+  const onSearchForMore = (len: number) => {
       if (len >= 10) {
         search(searchString, selectedService, len + 20)
       }
-    },
-    [search, selectedService, searchString]
-  )
-  const onAdd = React.useCallback(
-    (userId: string) => {
+    }
+  const onAdd = (userId: string) => {
       const user = userResults?.filter(u => u.id === userId)[0] ?? userRecs?.filter(u => u.id === userId)[0]
 
       if (!user) {
@@ -147,20 +136,15 @@ const TeamBuilding = (p: OwnProps) => {
       addUsersToTeamSoFar([user])
       setHighlightedIndex(-1)
       incFocusInputCounter()
-    },
-    [userRecs, addUsersToTeamSoFar, onChangeText, setHighlightedIndex, incFocusInputCounter, userResults]
-  )
+    }
 
-  const onChangeService = React.useCallback(
-    (service: T.TB.ServiceIdWithContact) => {
+  const onChangeService = (service: T.TB.ServiceIdWithContact) => {
       setSelectedService(service)
       incFocusInputCounter()
       if (!T.TB.isContactServiceId(service)) {
         search(searchString, service)
       }
-    },
-    [search, incFocusInputCounter, setSelectedService, searchString]
-  )
+    }
 
   const title = Teams.useTeamsState(s =>
     namespace === 'teams' ? `Add to ${Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
@@ -242,7 +226,7 @@ const TeamBuilding = (p: OwnProps) => {
   }
   const teamBox = !!teamSoFar.length && (
     <TeamBox
-      allowPhoneEmail={selectedService === 'keybase' && namespace === 'chat2'}
+      allowPhoneEmail={selectedService === 'keybase' && namespace === 'chat'}
       onChangeText={onChangeText}
       onDownArrowKeyDown={onDownArrowKeyDown}
       onUpArrowKeyDown={onUpArrowKeyDown}
@@ -300,30 +284,6 @@ const TeamBuilding = (p: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        common: {position: 'relative'},
-      }),
-      headerContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginTop: Kb.Styles.globalMargins.small + 2,
-        },
-      }),
-      mobileFlex: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
-      newChatHeader: Kb.Styles.platformStyles({
-        isElectron: {margin: Kb.Styles.globalMargins.xsmall},
-      }),
-      peoplePopupStyleClose: Kb.Styles.platformStyles({isElectron: {display: 'none'}}),
-      shrinkingGap: {flexShrink: 1, height: Kb.Styles.globalMargins.xtiny},
-      teamAvatar: Kb.Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          position: 'absolute',
-          top: -16,
-        },
-      }),
       waiting: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.black_20,

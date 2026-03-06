@@ -3,9 +3,9 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
-import {useLogoutState} from '@/constants/logout'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsState} from '@/stores/settings'
+import {useLogoutState} from '@/stores/logout'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(
@@ -32,27 +32,24 @@ const LogoutContainer = () => {
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     resetCheckPassword()
     navigateUp()
-  }, [resetCheckPassword, navigateUp])
+  }
   const onCheckPassword = checkPassword
 
   const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
-  const _onLogout = React.useCallback(() => {
+  const _onLogout = () => {
     requestLogout()
     resetCheckPassword()
-  }, [resetCheckPassword, requestLogout])
+  }
 
-  const onSavePassword = React.useCallback(
-    (password: string) => {
-      _setPassword(password)
-      setPasswordConfirm(password)
-      submitNewPassword(true)
-    },
-    [submitNewPassword, _setPassword, setPasswordConfirm]
-  )
+  const onSavePassword = (password: string) => {
+    _setPassword(password)
+    setPasswordConfirm(password)
+    submitNewPassword(true)
+  }
 
   const onLogout = useSafeSubmit(_onLogout, false)
 
@@ -70,7 +67,6 @@ const LogoutContainer = () => {
     setLoggingOut(true)
   }
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return hasRandomPW === undefined ? (
@@ -148,7 +144,7 @@ const LogoutContainer = () => {
       }}
       onClose={onCancel}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
         {Kb.Styles.isMobile && (
           <Kb.Text style={styles.headerText} type="Header">
             Do you know your password?
@@ -158,15 +154,16 @@ const LogoutContainer = () => {
           You will need it to sign back in.
         </Kb.Text>
         <Kb.RoundedBox>
-          <Kb.PlainInput
+          <Kb.Input3
             keyboardType={keyboardType}
             onEnterKeyDown={() => {
               checkPasswordIsCorrect ? logOut() : onCheckPassword(password)
             }}
             onChangeText={setPassword}
             placeholder="Your password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             value={password}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         <Kb.Checkbox
@@ -197,7 +194,6 @@ const styles = Kb.Styles.styleSheetCreate(
           Kb.Styles.globalMargins.small
         ),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
       },
       headerText: {
         marginBottom: Kb.Styles.globalMargins.small,

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as C from '@/constants'
+import type {StaticScreenProps} from '@react-navigation/core'
 
 const Contact = React.lazy(async () => import('./contact-restricted'))
-type OwnProps = C.ViewPropsToPageProps<typeof Contact>
+type OwnProps = StaticScreenProps<React.ComponentProps<typeof Contact>>
 
 const Screen = (p: OwnProps) => <Contact {...p.route.params} />
 

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ModalTitle} from './common'
@@ -67,7 +67,7 @@ const EditTeamDescription = (props: Props) => {
       allowOverflow={true}
     >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Team description"
           onChangeText={setDescription}
           value={description}
@@ -87,11 +87,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
-  },
-  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
-  title: {
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

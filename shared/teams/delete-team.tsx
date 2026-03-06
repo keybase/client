@@ -6,8 +6,8 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
@@ -27,9 +27,9 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
   const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
-  const _onDelete = React.useCallback(() => {
+  const _onDelete = () => {
     deleteTeam(teamID)
-  }, [deleteTeam, teamID])
+  }
   const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
 
   const [checks, setChecks] = React.useState({

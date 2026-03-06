@@ -53,7 +53,7 @@ type mdIDJournalEntry struct {
 }
 
 func makeMdIDJournal(codec kbfscodec.Codec, dir string) (mdIDJournal, error) {
-	j, err := makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
+	j, err := makeDiskJournal(codec, dir, reflect.TypeFor[mdIDJournalEntry]())
 	if err != nil {
 		return mdIDJournal{}, err
 	}

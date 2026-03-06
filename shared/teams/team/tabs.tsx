@@ -1,8 +1,8 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type TeamTabsProps = {
@@ -45,7 +45,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         {Kb.Styles.isMobile ? (
           <Kb.ScrollView
             horizontal={true}
@@ -57,7 +57,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         ) : (
           tabContent
         )}
-      </Kb.Box>
+      </Kb.Box2>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
   )
@@ -71,13 +71,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   container: {backgroundColor: Kb.Styles.globalColors.white},
-  inlineProgressIndicator: {
-    height: 17,
-    position: 'absolute',
-    right: Kb.Styles.globalMargins.small,
-    top: Kb.Styles.globalMargins.small,
-    width: 17,
-  },
   tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {

@@ -394,7 +394,7 @@ func (t *UIThreadLoader) waitForOnline(ctx context.Context) (err error) {
 		}
 	}()
 	// wait at most a second, and then charge forward
-	for i := 0; i < 40; i++ {
+	for range 40 {
 		if !t.IsOffline(ctx) {
 			return nil
 		}

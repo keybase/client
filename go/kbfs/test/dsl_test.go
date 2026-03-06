@@ -77,7 +77,6 @@ func runTestOverMetadataVers(
 	t *testing.T, f func(t *testing.T, ver kbfsmd.MetadataVer),
 ) {
 	for _, ver := range testMetadataVers {
-		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
 			// Don't do t.Parallel() for now, as FUSE DSL
 			// tests might not like it.
@@ -92,7 +91,6 @@ func runBenchmarkOverMetadataVers(
 	b *testing.B, f func(b *testing.B, ver kbfsmd.MetadataVer),
 ) {
 	for _, ver := range testMetadataVers {
-		ver := ver // capture range variable.
 		b.Run(ver.String(), func(b *testing.B) {
 			f(b, ver)
 		})
@@ -199,7 +197,7 @@ func (o *opt) makeStallers() (
 
 func ntimesString(n int, s string) string {
 	var bs bytes.Buffer
-	for i := 0; i < n; i++ {
+	for range n {
 		bs.WriteString(s)
 	}
 	return bs.String()
@@ -277,11 +275,11 @@ func team(teamName kbname.NormalizedUsername, writers string,
 			o.teams = make(teamMap)
 		}
 		var writerNames, readerNames []kbname.NormalizedUsername
-		for _, w := range strings.Split(writers, ",") {
+		for w := range strings.SplitSeq(writers, ",") {
 			writerNames = append(writerNames, kbname.NormalizedUsername(w))
 		}
 		if readers != "" {
-			for _, r := range strings.Split(readers, ",") {
+			for r := range strings.SplitSeq(readers, ",") {
 				readerNames = append(readerNames, kbname.NormalizedUsername(r))
 			}
 		}
@@ -299,12 +297,12 @@ func implicitTeam(writers string, readers string) optionOp {
 		}
 
 		var writerNames, readerNames []kbname.NormalizedUsername
-		for _, w := range strings.Split(writers, ",") {
+		for w := range strings.SplitSeq(writers, ",") {
 			writerNames = append(writerNames, kbname.NormalizedUsername(w))
 		}
 		isPublic := false
 		if readers != "" {
-			for _, r := range strings.Split(readers, ",") {
+			for r := range strings.SplitSeq(readers, ",") {
 				readerNames = append(readerNames, kbname.NormalizedUsername(r))
 			}
 			isPublic = len(readerNames) == 1 && readers == "public"
@@ -1358,5 +1356,5 @@ func crnameEsc(path string, user username) string {
 
 type silentBenchmark struct{ *testing.B }
 
-func (silentBenchmark) Log(args ...interface{})                 {}
-func (silentBenchmark) Logf(format string, args ...interface{}) {}
+func (silentBenchmark) Log(args ...any)                 {}
+func (silentBenchmark) Logf(format string, args ...any) {}

@@ -45,7 +45,7 @@ func (i rankedSearchItem) Score(query string) (score float64) {
 	if i.item.IsDemoted && query != name {
 		return 0
 	}
-	for _, qtok := range strings.Split(query, " ") {
+	for qtok := range strings.SplitSeq(query, " ") {
 		score += ScoreName(name, qtok)
 		if i.item.Description != nil {
 			score += ScoreDescription(*i.item.Description, qtok)
@@ -94,7 +94,7 @@ func ScoreName(name, qtok string) (score float64) {
 
 func ScoreDescription(desc, qtok string) (score float64) {
 	desc = strings.ToLower(desc)
-	for _, dtok := range strings.Split(desc, " ") {
+	for dtok := range strings.SplitSeq(desc, " ") {
 		if dtok == qtok {
 			score += 25
 		}

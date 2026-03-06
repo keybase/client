@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   canBack?: boolean
@@ -61,7 +61,8 @@ export const MobileSendToChat = (props: Props) => {
     text && dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
-        props: {
+        name: 'chatAttachmentGetTitles',
+        params: {
           conversationIDKey,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
@@ -70,7 +71,6 @@ export const MobileSendToChat = (props: Props) => {
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,
         },
-        selected: 'chatAttachmentGetTitles',
       })
     } else {
       clearModals()
@@ -159,10 +159,9 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             dropdownButtonStyle={desktopStyles.dropdown}
             onSelect={props.onSelect}
           />
-          <Kb.LabeledInput
+          <Kb.Input3
             placeholder="Title"
             value={props.title}
-            style={desktopStyles.input}
             onChangeText={props.setTitle}
           />
         </Kb.Box2>
@@ -203,9 +202,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       header: {
         paddingTop: Kb.Styles.globalMargins.mediumLarge,
-      },
-      input: {
-        width: '100%',
       },
       pathItem: {
         marginTop: Kb.Styles.globalMargins.mediumLarge,

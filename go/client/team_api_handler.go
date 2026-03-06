@@ -474,7 +474,7 @@ func (t *teamAPIHandler) requireOptionsV1(c Call) error {
 	return nil
 }
 
-func (t *teamAPIHandler) encodeResult(call Call, result interface{}, w io.Writer) error {
+func (t *teamAPIHandler) encodeResult(call Call, result any, w io.Writer) error {
 	return encodeResult(call, result, w, t.indent)
 }
 

@@ -1,8 +1,8 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import type {AllowedColors} from '@/common-adapters/text'
+import type {AllowedColors} from '@/common-adapters/text.shared'
 import SelectableSmallTeam from './selectable-small-team'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   filter?: string
@@ -18,7 +18,7 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? Kb.Styles.globalColors.blue
     : Kb.Styles.isPhone
-      ? Kb.Styles.globalColors.fastBlank
+      ? undefined
       : Kb.Styles.globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isSelected

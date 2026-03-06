@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import logger from '@/logger'
-import {Video as AVVideo, ResizeMode} from 'expo-av'
+import {useVideoPlayer, VideoView} from 'expo-video'
 import type {Props} from './video'
 
 export const Video = (props: Props) => {
@@ -16,16 +16,6 @@ export const Video = (props: Props) => {
     setPlaying(autoPlay)
   }
 
-  const vidRef = React.useRef<AVVideo>(null)
-
-  const _onClick = React.useCallback(() => {
-    if (onClick) {
-      onClick()
-      return
-    }
-    setPlaying(p => !p)
-  }, [setPlaying, onClick])
-
   /*
     The video library thinks any URI that doesn't start with /https?:// to be an asset bundled
     with the app, and will straight crash of that is not true. Solution here is if we somehow end up with a
@@ -33,26 +23,53 @@ export const Video = (props: Props) => {
     send the library down the crasher path.
     */
   const uri = url.length > 0 ? url : 'https://'
-  const source = {
-    uri: `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`,
+  const sourceUri = `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`
+
+  const player = useVideoPlayer(sourceUri, p => {
+    p.loop = true
+    p.muted = true
+    if (autoPlay) {
+      p.play()
+    }
+  })
+
+  React.useEffect(() => {
+    if (playing) {
+      player.play()
+    } else {
+      player.pause()
+    }
+  }, [player, playing])
+
+  // Handle errors
+  React.useEffect(() => {
+    const sub = player.addListener('statusChange', ({status, error}) => {
+      if (status === 'error' && error) {
+        logger.error(`Error loading vid: ${JSON.stringify(error)}`)
+      }
+    })
+    return () => sub.remove()
+  }, [player])
+
+  const _onClick = () => {
+    if (onClick) {
+      onClick()
+      return
+    }
+    setPlaying(p => !p)
   }
+
   return (
     <Kb.ClickableBox onClick={_onClick} style={Kb.Styles.collapseStyles([style, styles.container])}>
-      <AVVideo
-        ref={vidRef}
-        source={source}
-        onError={e => {
-          logger.error(`Error loading vid: ${JSON.stringify(e)}`)
-        }}
-        resizeMode={ResizeMode.CONTAIN}
+      <VideoView
+        player={player}
+        nativeControls={false}
+        contentFit="contain"
         style={Kb.Styles.collapseStyles([styles.player, style])}
-        isLooping={true}
-        isMuted={true}
-        shouldPlay={playing}
       />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 }

@@ -1,0 +1,34 @@
+appId: keybase.ios
+
+---
+
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: "true"
+
+- extendedWaitUntil:
+    visible:
+      text: "Chats"
+    timeout: 60000
+
+- runFlow: ../subflows/navigate-to-chat.yaml
+
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          id: "inboxList"
+          direction: UP
+          duration: 150
+
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          id: "inboxList"
+          direction: DOWN
+          duration: 150
+
+# Press Home to trigger app background → flushes profiler data
+- pressKey: Home

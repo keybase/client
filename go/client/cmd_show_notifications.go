@@ -94,7 +94,7 @@ func newNotificationDisplay(g *libkb.GlobalContext) *notificationDisplay {
 	return &notificationDisplay{Contextified: libkb.NewContextified(g)}
 }
 
-func (d *notificationDisplay) printf(fmt string, args ...interface{}) error {
+func (d *notificationDisplay) printf(fmt string, args ...any) error {
 	_, err := d.G().UI.GetTerminalUI().Printf(fmt, args...)
 	return err
 }

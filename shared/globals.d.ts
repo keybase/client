@@ -34,8 +34,8 @@ declare global {
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var rpcOnGo: undefined | ((b: unknown) => void)
-  var rpcOnJs: undefined | ((b: unknown) => void)
+  var rpcOnGo: undefined | ((msg: unknown) => void)
+  var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
   // RN
   var __turboModuleProxy: unknown
 }

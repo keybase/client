@@ -5,7 +5,7 @@ package mounter
 
 // Log is the logging interface for this package
 type Log interface {
-	Debug(s string, args ...interface{})
-	Info(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
+	Debug(s string, args ...any)
+	Info(s string, args ...any)
+	Errorf(s string, args ...any)
 }

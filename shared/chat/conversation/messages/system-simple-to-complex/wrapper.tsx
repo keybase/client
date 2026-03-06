@@ -1,9 +1,8 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemSimpleToComplexType from './container'
 
-const WrapperSystemSimpleToComplex = React.memo(function WrapperSystemSimpleToComplex(p: Props) {
+function WrapperSystemSimpleToComplex(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
@@ -19,6 +18,6 @@ const WrapperSystemSimpleToComplex = React.memo(function WrapperSystemSimpleToCo
       <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperSystemSimpleToComplex

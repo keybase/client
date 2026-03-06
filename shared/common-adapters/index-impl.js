@@ -40,15 +40,6 @@ module.exports = {
   get Box2Animated() {
     return require('./box').Box2Animated
   },
-  get Box2Div() {
-    return require('./box').Box2Div
-  },
-  get Box2Measure() {
-    return require('./box').Box2Measure
-  },
-  get Box2View() {
-    return require('./box').Box2View
-  },
   get BoxGrow() {
     return require('./box-grow').default
   },
@@ -147,8 +138,14 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
-  get Image2() {
-    return require('./image2').default
+  get Icon2() {
+    return require('./icon2').default
+  },
+  get IconButton() {
+    return require('./button').IconButton
+  },
+  get Image() {
+    return require('./image').default
   },
   get InfoNote() {
     return require('./info-note').default
@@ -156,26 +153,17 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input2() {
-    return require('./input2').Input2
+  get Input3() {
+    return require('./input3').default
   },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
-  get LabeledInput() {
-    return require('./labeled-input').default
-  },
   get List() {
     return require('./list').default
   },
-  get List2() {
-    return require('./list2').default
-  },
   get ListItem() {
     return require('./list-item').default
-  },
-  get ListItem2() {
-    return require('./list-item2').default
   },
   get LoadingLine() {
     return require('./loading-line').default
@@ -204,9 +192,6 @@ module.exports = {
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
   },
-  get NewInput() {
-    return require('./new-input').default
-  },
   get Overlay() {
     return require('./overlay').default
   },
@@ -215,9 +200,6 @@ module.exports = {
   },
   get Placeholder() {
     return require('./placeholder').default
-  },
-  get PlainInput() {
-    return require('./plain-input').default
   },
   get PlatformIcon() {
     return require('./platform-icon').default
@@ -294,9 +276,6 @@ module.exports = {
   get Text() {
     return require('./text').default
   },
-  get Text2() {
-    return require('./text2').Text2
-  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
@@ -324,14 +303,17 @@ module.exports = {
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },
-  get largeListItem2Height() {
-    return require('./list-item2').largeHeight
+  get largeListItemHeight() {
+    return require('./list-item').largeHeight
   },
-  get smallListItem2Height() {
-    return require('./list-item2').smallHeight
+  get smallListItemHeight() {
+    return require('./list-item').smallHeight
   },
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
+  },
+  get useClickURL() {
+    return require('./text-url').useClickURL
   },
   get useHotKey() {
     return require('./hot-key').useHotKey

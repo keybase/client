@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -78,6 +78,7 @@ export const CreateChannelsModal = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        flex={1}
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
@@ -91,7 +92,7 @@ export const CreateChannelsModal = (props: Props) => {
             onClear={() => onClear(idx)}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
@@ -114,12 +115,12 @@ type ChannelInputProps =
 
 const ChannelInput = (props: ChannelInputProps) => {
   if (props.isGeneral) {
-    return <Kb.NewInput value="#general" disabled={true} containerStyle={styles.inputGeneral} />
+    return <Kb.Input3 value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
   return (
-    <Kb.NewInput
+    <Kb.Input3
       value={props.value}
-      onChangeText={text => props.onChange(cleanChannelname(text))}
+      onChangeText={(text: string) => props.onChange(cleanChannelname(text))}
       decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
       placeholder="channel"
       prefix="#"
@@ -144,7 +145,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       body: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-        flex: 1,
       },
       input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},

@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build linux || freebsd || netbsd || openbsd
-// +build linux freebsd netbsd openbsd
 
 package install
 

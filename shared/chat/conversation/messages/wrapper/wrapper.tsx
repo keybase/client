@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {MessageContext, useOrdinal} from '../ids-context'
@@ -13,8 +13,7 @@ import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
-import {useCurrentUserState} from '@/constants/current-user'
-// import {useDebugLayout} from '@/util/debug-react'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type Props = {
   ordinal: T.Chat.Ordinal
@@ -140,9 +139,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
 export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<typeof useMessageData>) => {
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return messageShowsPopup(type) && shouldShowPopup
-  }, [shouldShowPopup, type])
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
     shouldShow,
@@ -156,9 +155,9 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const data = useMessageData(ordinal)
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return messageShowsPopup(type) && shouldShowPopup
-  }, [shouldShowPopup, type])
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     ordinal,
     shouldShow,
@@ -228,13 +227,13 @@ const NormalWrapper = ({
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   return (
-    <Kb.Box2 direction="vertical" style={style} fullWidth={!Kb.Styles.isMobile}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={style} fullWidth={!Kb.Styles.isMobile}>
       {children}
     </Kb.Box2>
   )
 }
 
-const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
+function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
@@ -262,24 +261,9 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
     children
   )
 
-  // uncomment to debug sizing issues
-  // const dump = Container.useEvent(() => p)
-  // const debugLayout = useDebugLayout()
-  // content = (
-  //   <Kb.Box2
-  //     key="TEMP"
-  //     direction="vertical"
-  //     onLayout={debugLayout}
-  //     alignItems="flex-start"
-  //     alignSelf="flex-start"
-  //   >
-  //     {content}
-  //   </Kb.Box2>
-  // )
-
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
         <NormalWrapper style={styles.background}>
           {content}
           <BottomSide
@@ -305,7 +289,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
       />
     </LongPressable>
   )
-})
+}
 
 // Author
 enum EditCancelRetryType {
@@ -315,7 +299,7 @@ enum EditCancelRetryType {
   EDIT_CANCEL,
   RETRY_CANCEL,
 }
-const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
+function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = useOrdinal()
   const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = Chat.useChatContext(
@@ -339,15 +323,15 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       }
     })
   )
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     messageDelete(ordinal)
-  }, [messageDelete, ordinal])
-  const onEdit = React.useCallback(() => {
+  }
+  const onEdit = () => {
     setEditing(ordinal)
-  }, [setEditing, ordinal])
-  const onRetry = React.useCallback(() => {
+  }
+  const onRetry = () => {
     outboxID && messageRetry(outboxID)
-  }, [messageRetry, outboxID])
+  }
 
   const cancel =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
@@ -390,7 +374,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       {cancel}
     </Kb.Text>
   )
-})
+}
 
 type BProps = {
   showPopup: () => void
@@ -402,7 +386,7 @@ type BProps = {
   ecrType: EditCancelRetryType
 }
 // reactions
-const BottomSide = React.memo(function BottomSide(p: BProps) {
+function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
 
@@ -429,7 +413,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       {desktopReactionsPopup}
     </>
   )
-})
+}
 
 // Exploding, ... , sending, tombstone
 type RProps = {
@@ -442,7 +426,7 @@ type RProps = {
   shouldShowPopup: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
 }
-const RightSide = React.memo(function RightSide(p: RProps) {
+function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
@@ -481,15 +465,15 @@ const RightSide = React.memo(function RightSide(p: RProps) {
           'tooltip-left'
         )}
       >
-        <Kb.Box style={styles.ellipsis}>
+        <Kb.Box2 direction="vertical" style={styles.ellipsis}>
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     )
 
   const visibleItems =
     hasVisibleItems || menu ? (
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
@@ -505,7 +489,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         {revokedIcon}
         {coinsIcon}
         {bot}
-      </Kb.Box2Measure>
+      </Kb.Box2>
     ) : null
 
   return (
@@ -514,9 +498,9 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       {sendIndicator}
     </>
   )
-})
+}
 
-export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
+export function WrapperMessage(p: WMProps) {
   const {ordinal, bottomChildren, children, messageData: mdataProp} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
@@ -556,10 +540,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     you,
   }
 
-  const messageContext = React.useMemo(
-    () => ({canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}),
-    [ordinal, showCenteredHighlight, canFixOverdraw]
-  )
+  const messageContext = {canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}
 
   return (
     <MessageContext.Provider value={messageContext}>
@@ -569,16 +550,14 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
       </Kb.Styles.CanFixOverdrawContext.Provider>
     </MessageContext.Provider>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       background: {
         alignSelf: 'stretch',
-        flexGrow: 1,
         flexShrink: 1,
-        position: 'relative',
       },
       ellipsis: Kb.Styles.platformStyles({
         isElectron: {paddingTop: 2},
@@ -617,29 +596,12 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
-      highlighted: {
-        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
-      },
-      menuButtons: Kb.Styles.platformStyles({
-        common: {
-          alignSelf: 'flex-start',
-          flexShrink: 0,
-          justifyContent: 'flex-end',
-          overflow: 'hidden',
-        },
-        isElectron: {height: 20},
-        isMobile: {height: 24},
-      }),
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
-        flexGrow: 1,
         flexShrink: 1,
         paddingLeft: Kb.Styles.isMobile ? 48 : 56,
         paddingRight: 4,
-        position: 'relative',
       },
-      moreActionsTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
-      paddingLeftTiny: {paddingLeft: Kb.Styles.globalMargins.tiny},
       rightSide: Kb.Styles.platformStyles({
         common: {
           borderRadius: Kb.Styles.borderRadius,
@@ -662,16 +624,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {minHeight: 14},
-      }),
-      sendIndicatorPlaceholder: {
-        height: 20,
-        width: 20,
-      },
-      timestamp: Kb.Styles.platformStyles({
-        isElectron: {
-          flexShrink: 0,
-          lineHeight: 19,
-        },
       }),
     }) as const
 )

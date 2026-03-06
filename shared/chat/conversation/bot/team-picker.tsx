@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {useBotsState} from '@/constants/bots'
+import {useBotsState} from '@/stores/bots'
 
 type Props = {botUsername: string}
 
@@ -43,8 +43,8 @@ const BotTeamPicker = (props: Props) => {
   const onSelect = (convID: T.RPCChat.ConversationID) => {
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername, conversationIDKey},
     })
   }
 
@@ -100,10 +100,10 @@ const BotTeamPicker = (props: Props) => {
               {error}
             </Kb.Text>
           ) : (
-            <Kb.List2
+            <Kb.List
               indexAsKey={true}
               items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
           )}

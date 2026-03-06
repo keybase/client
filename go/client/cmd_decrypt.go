@@ -73,7 +73,7 @@ func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltpackEncryptedMe
 		return
 	}
 	out := c.G().UI.GetTerminalUI().ErrorWriter()
-	prnt := func(s string, args ...interface{}) {
+	prnt := func(s string, args ...any) {
 		fmt.Fprintf(out, s, args...)
 	}
 	if len(info.Devices) > 0 {

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Picker} from '@react-native-picker/picker'
-import {TouchableWithoutFeedback, Modal} from 'react-native'
+import {View, TouchableWithoutFeedback, Modal} from 'react-native'
 
 /*
  * A dropdown on iOS and Android.
@@ -39,17 +39,18 @@ const Dropdown = (props: Props) => {
   const [value, setValue] = React.useState(_value || pickItemValue)
   const showingPick = !value
 
-  const selected = React.useCallback(
-    (v: string) => {
-      if (v === _value) return
-      if (v === otherItemValue) {
-        onOther()
-      } else {
-        onClick(v)
-      }
-    },
-    [onOther, onClick, _value]
-  )
+  const propsRef = React.useRef({_value, onClick, onOther})
+  React.useEffect(() => {
+    propsRef.current = {_value, onClick, onOther}
+  }, [_value, onClick, onOther])
+  const [selected] = React.useState(() => (v: string) => {
+    if (v === propsRef.current._value) return
+    if (v === otherItemValue) {
+      propsRef.current.onOther()
+    } else {
+      propsRef.current.onClick(v)
+    }
+  })
 
   const showModal = (show: boolean) => {
     setModalVisible(show)
@@ -99,30 +100,30 @@ const Dropdown = (props: Props) => {
   if (Kb.Styles.isIOS) {
     return (
       <TouchableWithoutFeedback onPress={() => showModal(true)}>
-        <Kb.Box style={styles.container}>
+        <View style={styles.container}>
           <Modal
             animationType="slide"
             transparent={true}
             visible={modalVisible}
             onRequestClose={() => showModal(false)}
           >
-            <Kb.Box style={styles.pickerContainer}>
+            <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" flex={1} style={styles.pickerContainer}>
               <TouchableWithoutFeedback onPress={() => showModal(false)}>
-                <Kb.Box style={{flex: 1}} />
+                <View style={{flex: 1}} />
               </TouchableWithoutFeedback>
               {picker}
-            </Kb.Box>
+            </Kb.Box2>
           </Modal>
           {labelAndCaret}
-        </Kb.Box>
+        </View>
       </TouchableWithoutFeedback>
     )
   } else {
     return (
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
         {labelAndCaret}
         {picker}
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
@@ -138,8 +139,10 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: Kb.Styles.borderRadius,
         borderWidth: 1,
         height: 48,
+        maxWidth: '100%',
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
+        width: '100%',
       },
       icon: {width: 10},
       item: {color: Kb.Styles.globalColors.black},
@@ -162,8 +165,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       pickerContainer: {
         backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
-        flex: 1,
-        justifyContent: 'flex-end',
       },
     }) as const
 )

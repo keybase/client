@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '@/common-adapters/badge'
-import Box, {Box2} from '@/common-adapters/box'
+import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import Meta from '@/common-adapters/meta'
@@ -17,7 +17,6 @@ import noop from 'lodash/noop'
 
 const Kb = {
   Badge,
-  Box,
   Box2,
   Divider,
   Icon,
@@ -62,7 +61,7 @@ const MenuRow = (props: MenuRowProps) => (
         gap={props.icon ? 'small' : undefined}
       >
         {props.icon || props.isSelected ? (
-          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.iconContainer}>
+          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" justifyContent="center" style={styles.iconContainer}>
             {props.isSelected && (
               <Kb.Icon
                 type="iconfont-check"
@@ -94,7 +93,7 @@ const MenuRow = (props: MenuRowProps) => (
             fullHeight={true}
             fullWidth={true}
             alignItems="center"
-            style={{justifyContent: 'center'}}
+            justifyContent="center"
           >
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Text type="Body" style={Styles.collapseStyles([styleRowText(props), props.style])}>
@@ -158,7 +157,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
   const close = (
     <>
       <Kb.Divider style={styles.divider} />
-      <Kb.Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
         <MenuRow
           title={props.closeText || 'Close'}
           index={0}
@@ -168,7 +167,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
           textColor={props.textColor}
           backgroundColor={props.backgroundColor}
         />
-      </Kb.Box>
+      </Kb.Box2>
     </>
   )
 
@@ -207,7 +206,9 @@ const MenuLayout = (props: MenuLayoutProps) => {
           props.backgroundColor && {backgroundColor: props.backgroundColor},
         ])}
       >
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
           style={Styles.collapseStyles([
             styles.menuBox,
             firstIsUnWrapped && styles.firstIsUnWrapped,
@@ -224,7 +225,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
             {items}
           </ScrollView>
           {close}
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.SafeAreaView>
     </SafeAreaProvider>
   )
@@ -262,7 +263,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       firstIsUnWrapped: {paddingTop: 0},
-      flexOne: {flex: 1},
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
         height: Styles.globalMargins.tiny,
@@ -274,7 +274,6 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
-        justifyContent: 'center',
         width: 20,
       },
       itemContainer: {
@@ -290,16 +289,12 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
       },
       menuBox: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
         backgroundColor: Styles.globalColors.white,
         justifyContent: 'flex-end',
         paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.xsmall,
       },
       menuGroup: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
         justifyContent: 'flex-end',
       },
       progressIndicator: {

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {colors, darkColors} from '@/styles/colors'
 import {WebView} from 'react-native-webview'
@@ -10,15 +9,13 @@ const GiphySearch = () => {
   const p = useHooks()
   const source = {uri: p.galleryURL}
   const darkMode = useColorScheme() === 'dark'
-  const injectedJavaScript = React.useMemo(() => {
-    return `
+  const injectedJavaScript = `
 (function() {
     window.document.querySelector("body").style.backgroundColor = "${
       darkMode ? darkColors.white : colors.white
     }";
 })();
 `
-  }, [darkMode])
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>

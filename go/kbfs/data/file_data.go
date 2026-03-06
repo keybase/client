@@ -182,10 +182,7 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 
 		if nextByte >= lastByteInBlock {
 			if nextIPtrOff > 0 {
-				fill := int64(nextIPtrOff) - nextByte
-				if fill > toRead {
-					fill = toRead
-				}
+				fill := min(int64(nextIPtrOff)-nextByte, toRead)
 				fd.tree.vlog.CLogf(
 					ctx, libkb.VLog1, "Read from hole: nextByte=%d "+
 						"lastByteInBlock=%d fill=%d", nextByte, lastByteInBlock,
@@ -224,10 +221,7 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 	if nRead < n && nextBlockOff > 0 {
 		toRead := n - nRead
 		nextByte := nRead + int64(startOff)
-		fill := int64(nextBlockOff) - nextByte
-		if fill > toRead {
-			fill = toRead
-		}
+		fill := min(int64(nextBlockOff)-nextByte, toRead)
 		fd.tree.vlog.CLogf(
 			ctx, libkb.VLog1, "Read from hole at end of file: nextByte=%d "+
 				"fill=%d", nextByte, fill)

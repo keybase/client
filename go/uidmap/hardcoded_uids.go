@@ -48,7 +48,7 @@ func usernameAtSortedIndex(i int) string {
 func initUsernameSort() {
 	findInit()
 	usernameSortOrder = make([]uint16, len(lengths))
-	for i := 0; i < len(lengths); i++ {
+	for i := range len(lengths) {
 		usernameSortOrder[i] = uint16(i) //nolint:gosec // G115: Hardcoded username list is small and bounded, safe to convert
 	}
 	sort.SliceStable(usernameSortOrder, func(i, j int) bool {

@@ -1,10 +1,15 @@
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
 
 type OwnProps = {
   username: string
   width: number
+}
+
+const followSizeToStyle = {
+  64: {bottom: 0, left: 44, position: 'absolute'} as const,
 }
 
 const Container = (ownProps: OwnProps) => {
@@ -15,6 +20,11 @@ const Container = (ownProps: OwnProps) => {
   const fullname = _fullname || ''
   const onClick = () => _onClick(username)
   const username = _username
+  const following = useFollowerState(s => (username ? s.following.has(username) : false))
+  const followsYou = useFollowerState(s => (username ? s.followers.has(username) : false))
+  const followIconType = followsYou === following
+    ? (followsYou ? ('icon-mutual-follow-21' as const) : undefined)
+    : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
 
   return (
     <Kb.ClickableBox onClick={onClick} style={{width: width}}>
@@ -23,7 +33,9 @@ const Container = (ownProps: OwnProps) => {
         style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
         centerChildren={true}
       >
-        <Kb.Avatar size={64} username={username} style={styles.avatar} showFollowingStatus={true} />
+        <Kb.Avatar size={64} username={username} style={styles.avatar}>
+          {!!followIconType && <Kb.Icon type={followIconType} style={followSizeToStyle[64]} />}
+        </Kb.Avatar>
         <Kb.ConnectedUsernames
           type={Kb.Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
           usernames={username}
@@ -32,9 +44,9 @@ const Container = (ownProps: OwnProps) => {
           colorFollowing={true}
           lineClamp={1}
         />
-        <Kb.Text2 type="BodySmall" lineClamp={1} style={styles.fullname}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
           {fullname}
-        </Kb.Text2>
+        </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -54,7 +66,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 80,
       wordBreak: 'break-all',
     },
-    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
 }))
 

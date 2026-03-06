@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {usePWState} from '@/constants/settings-password'
+import {usePWState} from '@/stores/settings-password'
 
 type Props = {
   error: string
@@ -47,7 +47,6 @@ export const UpdatePassword = (props: Props) => {
 
   const canSubmit = () => !errorSaving && password.length >= 8 && password === passwordConfirm
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
   const notification = props.error
     ? props.error
@@ -129,24 +128,26 @@ export const UpdatePassword = (props: Props) => {
         centerChildren={!Kb.Styles.isTablet}
         direction="vertical"
         fullHeight={true}
+        flex={1}
         style={styles.container}
       >
         <Kb.Text type="Body" style={styles.bodyText} center={true}>
           A password is required for you to sign out and sign back in.
         </Kb.Text>
         <Kb.RoundedBox side="top">
-          <Kb.PlainInput
+          <Kb.Input3
             placeholder="New password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             keyboardType={keyboardType}
             value={password}
             onChangeText={handlePasswordChange}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         <Kb.RoundedBox side="bottom">
-          <Kb.PlainInput
+          <Kb.Input3
             placeholder="Confirm password"
-            type={inputType}
+            secureTextEntry={!showTyping}
             keyboardType={keyboardType}
             value={passwordConfirm}
             onChangeText={handlePasswordConfirmChange}
@@ -155,6 +156,7 @@ export const UpdatePassword = (props: Props) => {
                 props.onSave(password)
               }
             }}
+            hideBorder={true}
           />
         </Kb.RoundedBox>
         {typeof hintText === 'string' ? (
@@ -192,12 +194,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
         padding: Kb.Styles.globalMargins.small,
-      },
-      headerText: {
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
       },
       passwordBackground: Kb.Styles.platformStyles({
         isTablet: {

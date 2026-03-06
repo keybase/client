@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
   className?: string
@@ -17,7 +16,7 @@ export type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
+function ReactButtonContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const {onLongPress, style, emoji, className} = p
   const me = useCurrentUserState(s => s.username)
@@ -36,16 +35,16 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   )
 
   const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     toggleMessageReaction(ordinal, emoji || '')
-  }, [toggleMessageReaction, emoji, ordinal])
+  }
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onOpenEmojiPicker = React.useCallback(() => {
+  const onOpenEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-      selected: 'chatChooseEmoji',
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
     }))
-  }, [navigateAppend, ordinal])
+  }
 
   const text = decorated.length ? decorated : emoji
   return emoji ? (
@@ -104,7 +103,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
 const markdownOverride: StyleOverride = Kb.Styles.isMobile
   ? {
@@ -152,23 +151,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {...Kb.Styles.transition('border-color', 'background-color', 'box-shadow')},
       }),
-      containerInner: {
-        alignItems: 'center',
-        height: 24,
-      },
       count: {
         color: Kb.Styles.globalColors.black_50,
         position: 'relative',
       },
       countActive: {color: Kb.Styles.globalColors.blueDark},
-      emoji: {height: 25},
-      emojiContainer: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.desktopStyles.boxShadow,
-          borderRadius: 4,
-          marginRight: Kb.Styles.globalMargins.small,
-        },
-      }),
       emojiIconWrapper: Kb.Styles.platformStyles({
         isElectron: {position: 'absolute'},
         isMobile: {marginTop: 2},

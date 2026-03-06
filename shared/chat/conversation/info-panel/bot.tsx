@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
-import {useUsersState} from '@/constants/users'
+import {getFeaturedSorted, useBotsState} from '@/stores/bots'
+import {useUsersState} from '@/stores/users'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -42,7 +42,6 @@ const AddToChannel = (props: AddToChannelProps) => {
       disabled={!settings}
       type="Dim"
       mode="Secondary"
-      icon="iconfont-new"
       tooltip="Add to this channel"
       onClick={e => {
         e.preventDefault()
@@ -57,7 +56,9 @@ const AddToChannel = (props: AddToChannelProps) => {
         }
       }}
       waitingKey={C.waitingKeyChatBotAdd}
-    />
+    >
+      <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
+    </Kb.WaitingButton>
   )
 }
 
@@ -115,7 +116,7 @@ export const Bot = (props: BotProps) => {
     </Kb.Box2>
   )
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
@@ -125,7 +126,7 @@ export const Bot = (props: BotProps) => {
       style={{backgroundColor: Kb.Styles.globalColors.white}}
       action={
         showTeamAdd ? (
-          <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
+          <Kb.IconButton type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
         ) : showChannelAdd && conversationIDKey ? (
           <AddToChannel conversationIDKey={conversationIDKey} username={botUsername} />
         ) : null
@@ -150,7 +151,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      addButton: {marginLeft: Kb.Styles.globalMargins.tiny},
       botHeaders: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginLeft: Kb.Styles.globalMargins.small,
@@ -165,27 +165,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      divider: Kb.Styles.platformStyles({
-        common: {marginTop: Kb.Styles.globalMargins.tiny},
-        isElectron: {marginLeft: 56},
-        isMobile: {marginLeft: 81},
-      }),
       listItemContainer: {paddingRight: Kb.Styles.globalMargins.tiny},
-      row: {
-        alignItems: 'center',
-        flex: 1,
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
-      rowContainer: Kb.Styles.platformStyles({
-        common: {
-          minHeight: 48,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
-        },
-      }),
     }) as const
 )
 
@@ -260,12 +240,12 @@ const BotTab = (props: Props) => {
   const navigateAppend = Chat.useChatNavigateAppend()
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const onBotAdd = () => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
+    navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
   }
   const onBotSelect = (username: string) => {
     navigateAppend(conversationIDKey => ({
-      props: {botUsername: username, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: username, conversationIDKey},
     }))
   }
   const loadNextBotPage = useBotsState(s => s.dispatch.loadNextBotPage)

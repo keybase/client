@@ -7,6 +7,7 @@ package libgit
 import (
 	"context"
 	"os"
+	"slices"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -265,14 +266,11 @@ func (am *AutogitManager) clearInvalidatedBrowsers(
 		// have one entry (since only one repo is updated in a single
 		// metadata update), so iterating here should be cheaper than
 		// making a map.
-		for _, nodeID := range repoNodeIDs {
-			if rootNodeID == nodeID {
-				am.log.CDebugf(
-					context.TODO(), "Invalidating browser for %s",
-					v.repoFS.Root())
-				am.browserCache.Remove(k)
-				break
-			}
+		if slices.Contains(repoNodeIDs, rootNodeID) {
+			am.log.CDebugf(
+				context.TODO(), "Invalidating browser for %s",
+				v.repoFS.Root())
+			am.browserCache.Remove(k)
 		}
 	}
 }
@@ -285,7 +283,6 @@ func (am *AutogitManager) BatchChanges(
 	nodes, repoNodeIDs := am.getNodesToInvalidate(affectedNodeIDs)
 	go am.clearInvalidatedBrowsers(repoNodeIDs)
 	for _, node := range nodes {
-		node := node
 		go func() {
 			ctx := libkbfs.CtxWithRandomIDReplayable(
 				context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)

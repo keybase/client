@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const Container = () => {
   const error = useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
@@ -76,7 +76,7 @@ const Container = () => {
       containerStyle={styles.container}
       headerStyle={styles.container}
       header={
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.headerContainer}>
           <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={onBack}>
             Back
           </Kb.Text>
@@ -106,7 +106,6 @@ const styles = Kb.Styles.styleSheetCreate(
       headerContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         backgroundColor: Kb.Styles.globalColors.blue,
-        position: 'relative',
       },
       headerText: {color: Kb.Styles.globalColors.black_50},
     }) as const

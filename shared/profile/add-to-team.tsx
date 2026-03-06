@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
@@ -36,14 +36,7 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
-  const loadTeamList = React.useCallback(() => {
-    getTeamProfileAddList(them)
-  }, [getTeamProfileAddList, them])
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => {
-    navigateUp()
-    resetTeamProfileAddList()
-  }, [navigateUp, resetTeamProfileAddList])
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const _teamNameToRole = [...teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
@@ -56,15 +49,17 @@ const Container = (ownProps: OwnProps) => {
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
   const [sendNotification, setSendNotification] = React.useState(true)
 
-  const ownerDisabledReason = React.useMemo(
-    () => getOwnerDisabledReason(selectedTeams, _teamNameToRole),
-    [selectedTeams, _teamNameToRole]
-  )
+  const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, _teamNameToRole)
 
   React.useEffect(() => {
     clearAddUserToTeamsResults()
-    loadTeamList()
-  }, [clearAddUserToTeamsResults, loadTeamList])
+    getTeamProfileAddList(them)
+  }, [clearAddUserToTeamsResults, getTeamProfileAddList, them])
+
+  const onBack = () => {
+    navigateUp()
+    resetTeamProfileAddList()
+  }
 
   const onSave = () => {
     onAddToTeams(selectedRole, [...selectedTeams])
@@ -108,14 +103,12 @@ const Container = (ownProps: OwnProps) => {
 
   React.useEffect(() => {
     if (addUserToTeamsState === 'succeeded') {
-      // If we succeeded, close the modal
-      onBack()
+      navigateUp()
+      resetTeamProfileAddList()
     } else if (addUserToTeamsState === 'failed') {
-      // If we failed, reload the team list -- some teams might have succeeded
-      // and should be updated.
-      loadTeamList()
+      getTeamProfileAddList(them)
     }
-  }, [addUserToTeamsState, onBack, loadTeamList])
+  }, [addUserToTeamsState, navigateUp, resetTeamProfileAddList, getTeamProfileAddList, them])
 
   const selectedTeamCount = selectedTeams.size
 
@@ -266,7 +259,7 @@ const TeamRow = (props: RowProps) => {
     <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-        <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
+        <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
           <Kb.Avatar
             isTeam={true}
             size={Kb.Styles.isMobile ? 48 : 32}
@@ -376,11 +369,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.xsmall,
           paddingRight: Kb.Styles.globalMargins.tiny,
         },
-      }),
-      wrapper: Kb.Styles.platformStyles({
-        common: {},
-        isElectron: {maxHeight: '80%'},
-        isMobile: {flexGrow: 1},
       }),
     }) as const
 )

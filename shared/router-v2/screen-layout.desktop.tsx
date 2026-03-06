@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, ModalType} from '@/constants/types/router2'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, ModalType} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
@@ -15,33 +15,27 @@ const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, n
   // window around to count
   const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
   const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
-  const onMouseDown = React.useCallback(
-    (e: React.MouseEvent) => {
-      const {screenX, screenY, target} = e.nativeEvent
-      if (target !== backgroundRef.current) {
-        return
-      }
-      setMouseDownX(screenX)
-      setMouseDownY(screenY)
-    },
-    [setMouseDownX, setMouseDownY]
-  )
-  const onMouseUp = React.useCallback(
-    (e: React.MouseEvent) => {
-      const {screenX, screenY, target} = e.nativeEvent
-      if (target !== backgroundRef.current) {
-        return
-      }
-      const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
-      const dismiss = delta < mouseDistanceThreshold
-      setMouseDownX(mouseResetValue)
-      setMouseDownY(mouseResetValue)
-      if (dismiss && !noClose) {
-        navigation.pop()
-      }
-    },
-    [setMouseDownX, setMouseDownY, mouseDownX, mouseDownY, noClose, navigation]
-  )
+  const onMouseDown = (e: React.MouseEvent) => {
+    const {screenX, screenY, target} = e.nativeEvent
+    if (target !== backgroundRef.current) {
+      return
+    }
+    setMouseDownX(screenX)
+    setMouseDownY(screenY)
+  }
+  const onMouseUp = (e: React.MouseEvent) => {
+    const {screenX, screenY, target} = e.nativeEvent
+    if (target !== backgroundRef.current) {
+      return
+    }
+    const delta = Math.abs(screenX - mouseDownX) + Math.abs(screenY - mouseDownY)
+    const dismiss = delta < mouseDistanceThreshold
+    setMouseDownX(mouseResetValue)
+    setMouseDownY(mouseResetValue)
+    if (dismiss && !noClose) {
+      navigation.pop()
+    }
+  }
 
   return [backgroundRef, onMouseUp, onMouseDown] as const
 }
@@ -69,19 +63,17 @@ const ModalWrapper = (p: ModalWrapperProps) => {
 
   const [topMostModal, setTopMostModal] = React.useState(true)
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setTopMostModal(true)
-      return () => {
-        setTopMostModal(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setTopMostModal(true)
+    return () => {
+      setTopMostModal(false)
+    }
+  })
 
   if (modal2) {
     return (
       <EscapeHandler onESC={topMostModal ? () => navigation.pop() : undefined}>
-        <Kb.Box2Div
+        <Kb.Box2
           key="background"
           direction="horizontal"
           ref={backgroundRef}
@@ -110,7 +102,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
               )}
             </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2Div>
+        </Kb.Box2>
       </EscapeHandler>
     )
   } else {

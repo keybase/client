@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import clamp from 'lodash/clamp'
 import type {Props} from '.'
 import {ModalTitle} from '@/teams/common'
 import KB2 from '@/util/electron.desktop'
@@ -49,10 +48,10 @@ const getCropCoordinates = (c: Crop) => {
   const maxY = height / scale
   const windowScaled = Math.round(AVATAR_CONTAINER_SIZE / scale)
   let x0 = x / scale
-  x0 = clamp(Math.round(x0), 0, maxX)
+  x0 = Math.min(Math.max(Math.round(x0), 0), maxX)
   const x1 = Math.min(x0 + windowScaled, maxX)
   let y0 = y / scale
-  y0 = clamp(Math.round(y0), 0, maxY)
+  y0 = Math.min(Math.max(Math.round(y0), 0), maxY)
   const y1 = Math.min(y0 + windowScaled, maxY)
   return {x0, x1, y0, y1}
 }
@@ -166,11 +165,11 @@ const EditAvatar = (_p: Props) => {
         ])}
       >
         {type === 'team' && createdTeam && !wizard && (
-          <Kb.Box style={styles.createdBanner}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createdBanner}>
             <Kb.Text type="BodySmallSemibold" negative={true}>
               Hoorah! Your team {teamname} was created.
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
         <Kb.Text center={true} type="Body" style={styles.instructions}>
           Drag and drop a {type} avatar or{' '}
@@ -179,7 +178,7 @@ const EditAvatar = (_p: Props) => {
           </Kb.Text>{' '}
           for one.
         </Kb.Text>
-        <Kb.Box
+        <Kb.ClickableBox
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
           style={{
@@ -211,7 +210,7 @@ const EditAvatar = (_p: Props) => {
               type="iconfont-camera"
             />
           )}
-        </Kb.Box>
+        </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
     </Kb.Modal>

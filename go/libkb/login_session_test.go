@@ -32,7 +32,7 @@ type FakeAPI struct{}
 
 func (a *FakeAPI) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
 	decoder := json.NewDecoder(bytes.NewBufferString(fakeResponse))
-	var obj interface{}
+	var obj any
 	decoder.UseNumber()
 	err := decoder.Decode(&obj)
 	if err != nil {

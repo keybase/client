@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 
 const HeaderNewChatButton = () => {
@@ -12,45 +11,38 @@ const HeaderNewChatButton = () => {
       (s.inboxLayout.bigTeams || []).length === 0
   )
 
-  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
-  const onNewChat = React.useCallback(() => {
-    appendNewChatBuilder()
-  }, [appendNewChatBuilder])
-  const content = React.useMemo(() => {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        style={styles.rainbowButtonContainer}
-        tooltip={`(${C.shortcutSymbol}N)`}
-        className="tooltip-right"
-      >
-        <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
-          <Kb.Box style={styles.gradientRed} />
-          <Kb.Box style={styles.gradientOrange} />
-          <Kb.Box style={styles.gradientYellow} />
-          <Kb.Box style={styles.gradientGreen} />
-        </Kb.Box2>
-        <Kb.Button
-          label="New chat"
-          mode="Primary"
-          onClick={onNewChat}
-          small={true}
-          style={styles.rainbowButton}
-          type="Default"
-        />
+  const onNewChat = C.useRouterState(s => s.appendNewChatBuilder)
+
+  if (hide) return null
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={styles.rainbowButtonContainer}
+      tooltip={`(${C.shortcutSymbol}N)`}
+      className="tooltip-right"
+    >
+      <Kb.Box2 direction="vertical" style={styles.gradientContainer} pointerEvents="none">
+        <Kb.Box2 direction="vertical" style={styles.gradientRed} />
+        <Kb.Box2 direction="vertical" flex={1} style={styles.gradientOrange} />
+        <Kb.Box2 direction="vertical" flex={1} style={styles.gradientYellow} />
+        <Kb.Box2 direction="vertical" style={styles.gradientGreen} />
       </Kb.Box2>
-    )
-  }, [onNewChat])
-  return hide ? null : content
+      <Kb.Button
+        label="New chat"
+        mode="Primary"
+        onClick={onNewChat}
+        small={true}
+        style={styles.rainbowButton}
+        type="Default"
+      />
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: {
-        marginLeft: Kb.Styles.globalMargins.small,
-        marginRight: Kb.Styles.globalMargins.small,
-      },
       gradientContainer: Kb.Styles.platformStyles({
         isElectron: {
           height: '100%',
@@ -73,7 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
+      gradientOrange: {backgroundColor: '#FFAC3D'},
       gradientRed: Kb.Styles.platformStyles({
         common: {
           backgroundColor: '#FF5D5D',
@@ -82,11 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-      gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
-      newMeta: {
-        alignSelf: 'center',
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
+      gradientYellow: {backgroundColor: '#FFF75A'},
       rainbowButton: Kb.Styles.platformStyles({
         common: {
           margin: 2,

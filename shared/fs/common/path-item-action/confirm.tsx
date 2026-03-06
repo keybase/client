@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -22,13 +21,10 @@ const Container = (ownProps: OwnProps) => {
       return {_pathItemActionMenu, download, setPathItemActionMenuView, size}
     })
   )
-  const _confirm = React.useCallback(
-    ({view, previousView}: typeof _pathItemActionMenu) => {
-      download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
-      setPathItemActionMenuView(previousView)
-    },
-    [setPathItemActionMenuView, download, path]
-  )
+  const _confirm = ({view, previousView}: typeof _pathItemActionMenu) => {
+    download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
+    setPathItemActionMenuView(previousView)
+  }
   const action =
     _pathItemActionMenu.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
       ? 'save-media'
@@ -85,16 +81,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       confirmTextBox: {
         padding: Kb.Styles.globalMargins.medium,
-      },
-      menuRowText: {
-        color: Kb.Styles.globalColors.blueDark,
-      },
-      menuRowTextDisabled: {
-        color: Kb.Styles.globalColors.blueDark,
-        opacity: 0.6,
-      },
-      progressIndicator: {
-        marginRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

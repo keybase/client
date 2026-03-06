@@ -126,8 +126,13 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 	if !ok {
 		return 0, io.EOF
 	}
-	lc.buf.Write(msg)
-	return lc.buf.Read(b)
+	// Copy directly from message to caller's buffer, only buffering leftovers.
+	// Most messages fit in the read buffer, so this saves one full copy.
+	n = copy(b, msg)
+	if n < len(msg) {
+		lc.buf.Write(msg[n:])
+	}
+	return n, nil
 }
 
 // Write writes data to the connection.

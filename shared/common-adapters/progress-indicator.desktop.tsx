@@ -1,5 +1,4 @@
 import Animation from './animation'
-import * as React from 'react'
 import type {Props} from './progress-indicator'
 import * as Styles from '@/styles'
 
@@ -7,7 +6,7 @@ const Kb = {
   Animation,
 }
 
-const ProgressIndicator = React.memo(function ProgressIndicator({white, style, type}: Props) {
+function ProgressIndicator({white, style, type}: Props) {
   return (
     <Kb.Animation
       animationType={white ? 'spinnerWhite' : 'spinner'}
@@ -19,7 +18,7 @@ const ProgressIndicator = React.memo(function ProgressIndicator({white, style, t
       ])}
     />
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   huge: {

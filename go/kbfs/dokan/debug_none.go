@@ -3,11 +3,10 @@
 // license that can be found in the LICENSE file.
 
 //go:build !debug
-// +build !debug
 
 package dokan
 
 const isDebug = false //nolint
 
-func debug(...interface{})          {} // nolint
-func debugf(string, ...interface{}) {} // nolint
+func debug(...any)          {} // nolint
+func debugf(string, ...any) {} // nolint
