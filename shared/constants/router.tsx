@@ -265,11 +265,22 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (!rs?.key) return
 
   if (isSplit) {
-    // Desktop/tablet split view: switch to chat tab and update chatRoot params.
-    // navigateAppend with replace uses setParams when the screen is already visible,
-    // which avoids remounting the navigator tree.
-    switchTab('chatTab' as Tabs.AppTab)
-    navigateAppend({name: 'chatRoot', params: {conversationIDKey}}, true)
+    // Desktop/tablet: reset the tab navigator state to switch to chatTab with chatRoot params.
+    // All tab stacks share the same screen config, so navigate('chatRoot') would target the
+    // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
+    // A single reset on the tab navigator atomically switches tabs and sets params.
+    const tabNavState = rs.routes?.[0]?.state
+    if (!tabNavState?.key) return
+    const chatTabIndex = tabNavState.routes.findIndex(r => r.name === Tabs.chatTab)
+    if (chatTabIndex < 0) return
+    const updatedRoutes = tabNavState.routes.map((route, i) => {
+      if (i !== chatTabIndex) return route
+      return {...route, state: {...(route.state ?? {}), index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]}}
+    })
+    n.dispatch({
+      ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
+      target: tabNavState.key,
+    })
   } else {
     // Phone: full reset to build the chat → conversation stack
     const nextState = {
