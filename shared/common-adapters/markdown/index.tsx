@@ -15,7 +15,6 @@ import {
 } from './react'
 import type * as T from '@/constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
-import isArray from 'lodash/isArray'
 import {ErrorBoundary} from 'react-error-boundary'
 
 const SimpleMarkdown = SM.default
@@ -387,7 +386,7 @@ const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
       continue // ignore newline
     }
     const c = node['content'] as Array<{type: string}> | string
-    if (!isArray(c) || c.some(n => n.type !== 'emoji' && n.type !== 'newline')) {
+    if (!Array.isArray(c) || c.some(n => n.type !== 'emoji' && n.type !== 'newline')) {
       return false // non-emoji, done
     }
 
