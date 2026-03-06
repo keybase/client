@@ -170,20 +170,20 @@ const rules: {[type: string]: SM.ParserRule} = {
     // ours: Everything in the quote has to be preceded by >
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
-    match: (source: string, state: State, prevCapture: string): SM.Capture | null => {
-      if ((state['blockQuoteRecursionLevel'] ?? 0) > 6) {
+    match: (() => {
+      const blockQuoteRegex = /^( *>(?:[^\n](?!```))+\n?)+/
+      const emptyLookbehind = /^$|\n *$/
+      return (source: string, state: State, prevCapture: string): SM.Capture | null => {
+        if ((state['blockQuoteRecursionLevel'] ?? 0) > 6) {
+          return null
+        }
+        const match = blockQuoteRegex.exec(source)
+        if (match && emptyLookbehind.test(prevCapture)) {
+          return match
+        }
         return null
       }
-      const regex = /^( *>(?:[^\n](?!```))+\n?)+/
-      // make sure the look behind is empty
-      const emptyLookbehind = /^$|\n *$/
-
-      const match = regex.exec(source)
-      if (match && emptyLookbehind.test(prevCapture)) {
-        return match
-      }
-      return null
-    },
+    })(),
     parse: (capture: SM.Capture, nestedParse: SM.Parser, state: State) => {
       const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
       const oldBlockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
@@ -301,9 +301,7 @@ const rules: {[type: string]: SM.ParserRule} = {
     },
   },
   serviceDecoration: {
-    match: (source: string, state: State, prevCapture: string) => {
-      return serviceDecorationMatcher(source, state, prevCapture)
-    },
+    match: serviceDecorationMatcher,
     order: 1,
     parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => ({
       content: capture[1],
@@ -373,9 +371,7 @@ const serviceOnlyRules: {[type: string]: SM.ParserRule} = {
     },
   },
   serviceDecoration: {
-    match: (source: string, state: State, prevCapture: string) => {
-      return serviceDecorationMatcher(source, state, prevCapture)
-    },
+    match: serviceDecorationMatcher,
     order: 1,
     parse: (capture: SM.Capture, _nestedParse: SM.Parser, _state: State) => ({
       content: capture[1],
