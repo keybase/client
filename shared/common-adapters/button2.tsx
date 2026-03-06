@@ -215,7 +215,7 @@ const Button2Desktop = (props: FullProps) => {
 }
 
 const Button2Native = (props: FullProps) => {
-  const {Pressable, Text: RNText} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
+  const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
   const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style} = props
   const unclickable = disabled || waiting
   const isPrimary = mode === 'Primary'
@@ -243,8 +243,8 @@ const Button2Native = (props: FullProps) => {
   const fontWeight = '600' as const
   const fontSize = 16
 
-  return (
-    <Pressable style={Styles.castStyleNative(containerStyle)} onPress={handlePress} accessible={true} accessibilityRole="button">
+  const inner = (
+    <>
       {children}
       {!!label && (
         <RNText
@@ -256,6 +256,17 @@ const Button2Native = (props: FullProps) => {
         </RNText>
       )}
       {!!waiting && <Progress small={small} white={whiteSpinner} />}
+    </>
+  )
+
+  // Use View when no click handler so touches pass through to parent
+  if (!handlePress) {
+    return <View style={Styles.castStyleNative(containerStyle)}>{inner}</View>
+  }
+
+  return (
+    <Pressable style={Styles.castStyleNative(containerStyle)} onPress={handlePress} accessible={true} accessibilityRole="button">
+      {inner}
     </Pressable>
   )
 }
