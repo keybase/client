@@ -20,8 +20,16 @@ function TeamsDivider(props: Props) {
     hiddenCount += hiddenCountDelta ?? 0
   }
 
-  // Read badge count from store
-  const badgeCount = Chat.useChatState(s => Math.max(0, s.smallTeamBadgeCount))
+  // Read badge count, subtracting visible small team badges so we only count hidden ones
+  const badgeCount = Chat.useChatState(s => {
+    let visibleBadges = 0
+    for (const row of s.inboxRows) {
+      if (row.type === 'small') {
+        visibleBadges += Chat.getConvoState(row.conversationIDKey).badge
+      }
+    }
+    return Math.max(0, s.smallTeamBadgeCount - visibleBadges)
+  })
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
