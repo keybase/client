@@ -5,7 +5,6 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
-import trim from 'lodash/trim'
 import {RPCError} from '@/util/errors'
 import {isValidUsername} from '@/util/simple-validators'
 import {navigateAppend, navigateUp} from '@/constants/router'
@@ -141,7 +140,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
 
   const dispatch: State['dispatch'] = {
     checkDeviceName: _devicename => {
-      const devicename = trim(_devicename)
+      const devicename = _devicename.trim()
       set(s => {
         s.devicename = devicename
         s.devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''

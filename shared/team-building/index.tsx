@@ -9,7 +9,6 @@ import Input from './input'
 import PhoneSearch from './phone-search'
 import TeamBox from './team-box'
 import logger from '@/logger'
-import trim from 'lodash/trim'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
@@ -87,7 +86,7 @@ const TeamBuilding = (p: OwnProps) => {
   const userRecs = TB.useTBContext(s => s.userRecs)
 
   const userResults: ReadonlyArray<T.TB.User> | undefined = searchResults
-    .get(trim(searchString))
+    .get(searchString.trim())
     ?.get(selectedService)
 
   const teamSoFar = deriveTeamSoFar(_teamSoFar)
