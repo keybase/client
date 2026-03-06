@@ -25,7 +25,6 @@ const AddButton = (props: AddButtonProps) => (
     label={`Add ${props.kind}`}
     small={true}
     disabled={props.disabled}
-    className="tooltip-top-right"
     tooltip={props.disabled ? `You're already at the maximum ${props.kind}s` : undefined}
   />
 )
@@ -240,8 +239,8 @@ const AccountSettings = () => {
               onClick={onAddPhone}
               label="Add a new number"
               small={true}
-              backgroundColor="yellow"
-              style={styles.topButton}
+              style={Kb.Styles.collapseStyles([styles.topButton, styles.primaryOnYellow])}
+              labelStyle={styles.primaryOnYellowLabel}
             />
           </Kb.Banner>
         )}
@@ -283,6 +282,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
   },
+  primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
+  primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
   progress: {
     height: 16,
     width: 16,

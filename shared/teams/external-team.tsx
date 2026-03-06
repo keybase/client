@@ -209,7 +209,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
           </Kb.Box2>
         </Kb.Box2>
       }
-      action={<Kb.Button type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
+      action={<Kb.IconButton type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
       onlyShowActionOnHover="fade"
     />
   )

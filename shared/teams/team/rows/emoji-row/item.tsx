@@ -104,7 +104,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
             >
               {popup}
-              <Kb.Button
+              <Kb.IconButton
                 icon="iconfont-ellipsis"
                 mode="Secondary"
                 type="Dim"

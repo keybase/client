@@ -61,9 +61,6 @@ module.exports = {
   get Button() {
     return require('./button').default
   },
-  get Button2() {
-    return require('./button2').default
-  },
   get ButtonBar() {
     return require('./button-bar').default
   },
@@ -157,7 +154,7 @@ module.exports = {
     return require('./icon2').default
   },
   get IconButton() {
-    return require('./button2').IconButton
+    return require('./button').IconButton
   },
   get Image() {
     return require('./image').default

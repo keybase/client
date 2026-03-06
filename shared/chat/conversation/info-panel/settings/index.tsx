@@ -101,9 +101,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             onClick={onLeaveConversation}
             style={styles.smallButton}
             waiting={spinnerForLeave}
-            icon="iconfont-leave"
-            iconColor={Kb.Styles.globalColors.blue}
-          />
+          >
+            <Kb.Icon2 type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
+          </Kb.Button>
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -112,9 +112,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label="Backup channel"
             onClick={onArchive}
-            icon="iconfont-folder-downloads"
-            iconColor={Kb.Styles.globalColors.black}
-          />
+          >
+            <Kb.Icon2 type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+          </Kb.Button>
         </Kb.Box2>
         {entityType !== 'channel' &&
           (ignored ? (
@@ -124,9 +124,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Unhide this conversation"
                 onClick={onUnhideConv}
-                icon="iconfont-unhide"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon2 type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+              </Kb.Button>
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -135,9 +135,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Hide this conversation"
                 onClick={onHideConv}
-                icon="iconfont-unhide"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon2 type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+              </Kb.Button>
             </Kb.Box2>
           ))}
         <RetentionPicker
@@ -167,9 +167,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Primary"
                 label="Block"
                 onClick={onShowBlockConversationDialog}
-                icon="iconfont-remove"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon2 type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
+              </Kb.Button>
             )}
           </Kb.Box2>
         ) : null}

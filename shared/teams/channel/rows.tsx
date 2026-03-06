@@ -218,7 +218,7 @@ const ChannelMemberRow = (props: Props) => {
       style={yourOperations.manageMembers ? styles.mobileMarginsHack : undefined}
     >
       {popup}
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-chat"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -226,7 +226,7 @@ const ChannelMemberRow = (props: Props) => {
         small={true}
         tooltip="Open chat"
       />
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"

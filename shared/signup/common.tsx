@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {type Props as ButtonProps} from '@/common-adapters/button'
+import {type ButtonProps} from '@/common-adapters/button'
 import openURL from '@/util/open-url'
 import {useConfigState} from '@/stores/config'
 

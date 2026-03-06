@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
-import Button, {type Props as ButtonProps} from './button'
+import Button, {type ButtonProps} from './button'
 import Text from './text'
 import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
@@ -164,7 +164,6 @@ const CopyText = (props: Props) => {
           type={props.buttonType || 'Default'}
           style={styles.button}
           onClick={copy}
-          labelContainerStyle={styles.buttonLabelContainer}
         >
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
@@ -203,9 +202,6 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
       }),
-      buttonLabelContainer: {
-        height: undefined,
-      },
       container: Styles.platformStyles({
         common: {
           alignItems: 'center',

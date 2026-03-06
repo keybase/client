@@ -42,13 +42,14 @@ function TeamsDivider(props: Props) {
     >
       {reallyShow && (
         <Kb.Button
-          badgeNumber={badgeCount}
           label={`+${hiddenCount} more`}
           onClick={smallTeamsExpanded ? loadMore : toggle}
           small={true}
           style={styles.button}
           type="Dim"
-        />
+        >
+          {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} />}
+        </Kb.Button>
       )}
       {!reallyShow && (
         <Kb.Text type="BodySmallSemibold" style={styles.dividerText}>

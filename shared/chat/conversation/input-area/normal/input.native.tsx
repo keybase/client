@@ -286,7 +286,6 @@ const Buttons = function Buttons(p: ButtonsProps) {
           onClick={onSubmit}
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
-          labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
           style={isExploding ? styles.explodingSendBtn : styles.sendBtn}
         />
       )}
@@ -711,7 +710,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.black,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      explodingSendBtnLabel: {color: Kb.Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,

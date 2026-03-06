@@ -64,7 +64,7 @@ export const Splash = (p: SplashProps) => {
       {!!failed && <Kb.Text type="BodySmall">({failed})</Kb.Text>}
       {onRetry && (
         <Kb.ButtonBar>
-          <Kb.Button2 label="Reload" onClick={onRetry} />
+          <Kb.Button label="Reload" onClick={onRetry} />
         </Kb.ButtonBar>
       )}
       {(onRetry || showFeedback) && allowFeedback && <Feedback onFeedback={onFeedback} />}
@@ -75,7 +75,7 @@ export const Splash = (p: SplashProps) => {
 const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
   onFeedback ? (
     <Kb.ButtonBar>
-      <Kb.Button2 type="Dim" label="Send us feedback" onClick={onFeedback} />
+      <Kb.Button type="Dim" label="Send us feedback" onClick={onFeedback} />
     </Kb.ButtonBar>
   ) : (
     <Kb.Text type="BodySmall">

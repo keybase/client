@@ -60,7 +60,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           key={0}
           label="Copy secret key"
           onClick={onCopy}
-          type="Wallet"
+          type="Default"
           ref={attachmentRef}
           waiting={loading}
           disabled={waiting}

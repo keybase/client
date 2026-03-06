@@ -134,7 +134,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             />
           )}
           {!!menuItems.length && (
-            <Kb.Button
+            <Kb.IconButton
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"

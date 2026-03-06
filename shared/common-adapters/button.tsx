@@ -1,429 +1,297 @@
 import './button.css'
-import type * as React from 'react'
+import * as React from 'react'
+import type {Pressable as PressableType, Text as RNTextType, View as ViewType} from 'react-native'
 import * as Styles from '@/styles'
-import Badge from './badge'
-import ClickableBox from './clickable-box'
-import Icon, {type SizeType} from './icon'
-import Text from './text'
-import type {StylesTextCrossPlatform} from './text.shared'
-import WithTooltip from './with-tooltip'
-import type {IconType} from './icon.constants-gen'
-import {Box2} from './box'
-import type {MeasureRef} from './measure-ref'
 import type AnimationType from './animation'
+import type {MeasureRef} from './measure-ref'
+import type {IconType} from './icon.constants-gen'
+import type {default as WithTooltipType} from './with-tooltip'
+import type {default as Icon2Comp} from './icon2'
 
-const Kb = {
-  Badge,
-  Box2,
-  ClickableBox,
-  Icon,
-  Text,
-  WithTooltip,
-}
+export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
 
-export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim'
-export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yellow'
-
-// if icon exists, tooltip MUST exist
-type WithIconProps =
-  | {
-      icon?: never
-    }
-  | {
-      icon: IconType
-      iconSizeType?: SizeType
-      iconColor?: Styles.Color
-      tooltip?: string
-      label?: never
-    }
-  | {
-      icon: IconType
-      iconSizeType?: SizeType
-      iconColor?: Styles.Color
-      tooltip?: never
-      label: string
-    }
-
-// Either type or backgroundColor must be set
-type DefaultProps = {
-  backgroundColor?: ButtonColor
-  badgeNumber?: number
+export type ButtonProps = {
   children?: React.ReactNode
-  className?: string
-  disabled?: boolean
-  fullWidth?: boolean
   label?: string
-  labelContainerStyle?: Styles.StylesCrossPlatform
-  labelStyle?: Styles.StylesCrossPlatform
-  mode?: 'Primary' | 'Secondary'
-  narrow?: boolean
   onClick?: (event: React.BaseSyntheticEvent) => void
-  onMouseEnter?: (e: React.MouseEvent) => void
-  onMouseLeave?: (e: React.MouseEvent) => void
-  onMouseDown?: (e: React.MouseEvent) => void
-  small?: boolean
-  style?: Styles.StylesCrossPlatform
-  subLabel?: string
-  subLabelStyle?: Styles.StylesCrossPlatform
-  tooltip?: string
   type?: ButtonType
+  mode?: 'Primary' | 'Secondary'
+  small?: boolean
+  fullWidth?: boolean
+  disabled?: boolean
   waiting?: boolean
-  disabledStopClick?: boolean // if disabled it'll by default let clicks bleed through
+  tooltip?: string
+  style?: Styles.StylesCrossPlatform
+  labelStyle?: Styles.StylesCrossPlatform
 }
 
-export type Props = DefaultProps & WithIconProps
+export const regularHeight = Styles.isMobile ? 40 : 32
+export const smallHeight = Styles.isMobile ? 32 : 28
+
+// Pre-computed container styles for all 8 mode+type combos
+const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
+  common: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    borderRadius: Styles.borderRadius,
+    gap: Styles.globalMargins.xtiny,
+    height: regularHeight,
+    justifyContent: 'center',
+  },
+  isElectron: {
+    cursor: 'pointer',
+    display: 'inline-flex',
+    lineHeight: 'inherit',
+    minWidth: 100,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    position: 'relative' as const,
+    userSelect: 'none' as const,
+  },
+  isMobile: {
+    minWidth: 120,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  isTablet: {alignSelf: 'center'},
+})
+
+const primaryContainers = Styles.styleSheetCreate(() => ({
+  Danger: {...baseContainer, backgroundColor: Styles.globalColors.red},
+  Default: {...baseContainer, backgroundColor: Styles.globalColors.blue},
+  Dim: {...baseContainer, backgroundColor: Styles.globalColors.grey},
+  Success: {...baseContainer, backgroundColor: Styles.globalColors.green},
+}))
+
+const secondaryContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
+  common: baseContainer,
+  isElectron: {backgroundColor: Styles.globalColors.white},
+  isMobile: {
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_20,
+    borderStyle: 'solid' as const,
+    borderWidth: 1,
+  },
+})
+
+// Pre-computed label styles
+const baseLabel: Styles._StylesCrossPlatform = Styles.platformStyles({
+  common: {color: Styles.globalColors.whiteOrWhite, textAlign: 'center'},
+  isElectron: {whiteSpace: 'pre'},
+})
+
+const primaryLabelStyles = {
+  Danger: baseLabel,
+  Default: baseLabel,
+  Dim: {...baseLabel, color: Styles.globalColors.black},
+  Success: baseLabel,
+} as const
+
+const secondaryLabelStyles = {
+  Danger: {...baseLabel, color: Styles.globalColors.redDark},
+  Default: {...baseLabel, color: Styles.globalColors.blueDark},
+  Dim: {...baseLabel, color: Styles.globalColors.black_50},
+  Success: {...baseLabel, color: Styles.globalColors.greenDark},
+} as const
+
+const smallStyle: Styles._StylesCrossPlatform = {
+  borderRadius: Styles.borderRadius,
+  height: smallHeight,
+  minWidth: undefined,
+  paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+  paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+}
+
+const childrenOnlyStyle: Styles._StylesCrossPlatform = {
+  minWidth: undefined,
+  paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+  paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+  width: regularHeight,
+}
+
+const childrenOnlySmallStyle: Styles._StylesCrossPlatform = {
+  width: smallHeight,
+}
+
+const fullWidthStyle: Styles._StylesCrossPlatform = {
+  flexGrow: 1,
+  maxWidth: 460,
+  width: '100%',
+}
+
+const opacity30Style: Styles._StylesCrossPlatform = {opacity: 0.3}
+const opacity0Style: Styles._StylesCrossPlatform = {opacity: 0}
+
+const progressContainerStyle: Styles._StylesCrossPlatform = {
+  ...Styles.globalStyles.fillAbsolute,
+  ...Styles.globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const progressNormal = {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24}
+const progressSmall = {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20}
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}
-  return (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
+  return Styles.isMobile ? (
+    <Animation
+      animationType={white ? 'spinnerWhite' : 'spinner'}
+      style={small ? progressSmall : progressNormal}
+    />
+  ) : (
+    <div style={Styles.castStyleDesktop(progressContainerStyle)}>
       <Animation
         animationType={white ? 'spinnerWhite' : 'spinner'}
-        style={small ? styles.progressSmall : styles.progressNormal}
+        style={small ? progressSmall : progressNormal}
       />
-    </Kb.Box2>
+    </div>
   )
 }
 
-const stopClick = (e: React.BaseSyntheticEvent) => {
-  e.stopPropagation()
-}
+type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
 
-type ModeAndType =
-  | 'PrimaryDefault'
-  | 'PrimarySuccess'
-  | 'PrimaryDanger'
-  | 'PrimaryWallet'
-  | 'PrimaryDim'
-  | 'SecondaryDefault'
-  | 'SecondarySuccess'
-  | 'SecondaryDanger'
-  | 'SecondaryWallet'
-  | 'SecondaryDim'
+const ButtonDesktop = (props: FullProps) => {
+  const {children, label, onClick, ref, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride} = props
+  const unclickable = disabled || waiting
+  const isPrimary = mode === 'Primary'
+  const hasChildrenOnly = !!children && !label
 
-type ModeAndBGColor =
-  | 'Primaryblue'
-  | 'Primaryred'
-  | 'Primarygreen'
-  | 'Primarypurple'
-  | 'Primaryblack'
-  | 'Primaryyellow'
-  | 'Secondary'
+  const container = isPrimary ? primaryContainers[type] : secondaryContainer
+  const labelStyle = isPrimary ? primaryLabelStyles[type] : secondaryLabelStyles[type]
 
-const Button = (props: Props & {ref?: React.Ref<MeasureRef | null>}) => {
-  const {ref} = props
-  const {mode = 'Primary', type = 'Default'} = props
-  const modeAndType = (mode + type) as ModeAndType
-  const modeAndBGColor = (mode + (props.backgroundColor ?? '')) as ModeAndBGColor
-  let containerStyle = props.backgroundColor
-    ? (backgroundColorContainerStyles[mode] as Styles.StylesCrossPlatform)
-    : (containerStyles[modeAndType] as Styles.StylesCrossPlatform)
-  let labelStyle = props.backgroundColor
-    ? (backgroundColorLabelStyles[mode === 'Secondary' ? mode : modeAndBGColor] as StylesTextCrossPlatform)
-    : (labelStyles[modeAndType] as StylesTextCrossPlatform)
+  const needsCollapse = small || fullWidth || unclickable || hasChildrenOnly || style
+  const containerStyle = needsCollapse
+    ? Styles.collapseStyles([
+        container,
+        small && smallStyle,
+        hasChildrenOnly && childrenOnlyStyle,
+        hasChildrenOnly && small && childrenOnlySmallStyle,
+        fullWidth && fullWidthStyle,
+        unclickable && opacity30Style,
+        style,
+      ])
+    : (container as Styles.StylesCrossPlatform)
 
-  if (props.fullWidth) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
-  }
-
-  if (props.small) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.small])
-  }
-
-  if (props.icon && !props.label) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.icon])
-  }
-
-  if (props.narrow) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.narrow])
-  }
-
-  const unclickable = props.disabled || props.waiting
-  if (unclickable) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.opacity30])
-  }
-
-  if (props.waiting) {
-    labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0]) as StylesTextCrossPlatform
-  }
-
-  containerStyle = Styles.collapseStyles([containerStyle, props.style])
-  const {onClick: ponClick} = props
-  const _onClick = (e: React.BaseSyntheticEvent) => {
-    e.stopPropagation()
-    ponClick?.(e)
-  }
-  const onClick = !unclickable && props.onClick ? _onClick : props.disabledStopClick ? stopClick : undefined
-  const whiteSpinner =
-    (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
-    (mode === 'Secondary' && !!props.backgroundColor)
-
-  // Hover border colors
-  const classNames: Array<string> = []
-  if (mode === 'Secondary' && !props.backgroundColor) {
-    // base grey border
-    classNames.push('button__border')
-    if (!unclickable) {
-      // hover effect
-      classNames.push(`button__border_${typeToColorName[type]}`)
-    }
-  }
-
-  // Hover background colors
-  const underlayClassNames: Array<string> = []
-  if (mode === 'Primary' && !unclickable) {
-    underlayClassNames.push(
-      'button__underlay',
-      props.backgroundColor ? `button__underlay_${props.backgroundColor}` : 'button__underlay_black10'
-    )
-  } else if (mode === 'Secondary' && !unclickable) {
-    // default 0.2 opacity + 0.15 here = 0.35 hover
-    underlayClassNames.push(
-      'button__underlay',
-      props.backgroundColor ? 'button__underlay_black' : `button__underlay_${typeToColorName[type]}`
-    )
-  }
-  const underlay =
-    !Styles.isMobile && underlayClassNames.length ? (
-      <Kb.Box2 direction="vertical" className={Styles.classNames(underlayClassNames)} />
-    ) : null
-
-  if (props.className) classNames.push(props.className)
-
-  const content = (
-    <Kb.ClickableBox
-      ref={ref}
-      className={Styles.classNames(classNames)}
-      style={containerStyle}
-      onClick={onClick}
-      onMouseEnter={props.onMouseEnter}
-      onMouseLeave={props.onMouseLeave}
-      onMouseDown={props.onMouseDown}
-      hoverColor={Styles.globalColors.transparent}
-      tooltip={props.tooltip}
-    >
-      {underlay}
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.labelContainer,
-          props.labelContainerStyle,
-        ])}
-      >
-        {!props.waiting && props.children}
-        <Kb.Box2 direction={props.icon && props.label ? 'horizontal' : 'vertical'} centerChildren={true}>
-          {!!props.icon && (
-            <Kb.Icon
-              type={props.icon}
-              color={props.iconColor}
-              sizeType={props.iconSizeType ?? 'Default'}
-              style={Styles.collapseStyles([
-                labelStyle,
-                !!props.label && styles.iconWithLabel,
-                props.labelStyle,
-              ])}
-            />
-          )}
-          {!!props.label && (
-            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
-              {props.label}
-            </Kb.Text>
-          )}
-          {!!props.subLabel && (
-            <Kb.Text
-              type="BodyTiny"
-              style={Styles.collapseStyles([props.waiting && styles.opacity0, props.subLabelStyle])}
-            >
-              {props.subLabel}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-        {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
-        {!!props.waiting && <Progress small={props.small} white={whiteSpinner} />}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+  const className = Styles.classNames(
+    isPrimary ? 'button--primary' : 'button--secondary',
+    `button--type-${type}`,
+    unclickable && 'button--disabled'
   )
-  if (props.disabled && props.tooltip && Styles.isMobile) {
-    return (
-      <Kb.WithTooltip tooltip={props.tooltip} showOnPressMobile={props.disabled}>
-        {content}
-      </Kb.WithTooltip>
-    )
-  }
 
-  return content
+  const handleClick = unclickable
+    ? (e: React.MouseEvent) => e.stopPropagation()
+    : onClick
+      ? (e: React.MouseEvent) => {
+          e.stopPropagation()
+          onClick(e)
+        }
+      : undefined
+
+  const whiteSpinner = isPrimary && type !== 'Dim'
+
+  const divRef = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => ({
+    divRef,
+    measure: () => divRef.current?.getBoundingClientRect(),
+  }), [])
+
+  const btn = (
+    <div className={className} style={Styles.castStyleDesktop(containerStyle)} onClick={handleClick} ref={divRef}>
+      {children}
+      {!!label && (
+        <span className="text_BodySemibold" style={Styles.castStyleDesktop(waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style]) : (labelStyleOverride ? Styles.collapseStyles([labelStyle, labelStyleOverride]) : (labelStyle as Styles.StylesCrossPlatform)))}>
+          {label}
+        </span>
+      )}
+      {!!waiting && <Progress small={small} white={whiteSpinner} />}
+    </div>
+  )
+
+  if (tooltip) {
+    const WithTooltip = (require('./with-tooltip') as {default: typeof WithTooltipType}).default
+    return <WithTooltip tooltip={tooltip}>{btn}</WithTooltip>
+  }
+  return btn
 }
 
-const typeToColorName = {
-  Danger: 'red',
-  Default: 'blue',
-  Dim: 'black',
-  Success: 'green',
-  Wallet: 'purple',
+const ButtonNative = (props: FullProps) => {
+  const {Pressable, Text: RNText, View} = require('react-native') as {Pressable: typeof PressableType; Text: typeof RNTextType; View: typeof ViewType}
+  const {children, label, onClick, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, style, labelStyle: labelStyleOverride} = props
+  const unclickable = disabled || waiting
+  const isPrimary = mode === 'Primary'
+  const hasChildrenOnly = !!children && !label
+
+  const container = isPrimary ? primaryContainers[type] : secondaryContainer
+  const labelStyle = isPrimary ? primaryLabelStyles[type] : secondaryLabelStyles[type]
+
+  const needsCollapse = small || fullWidth || unclickable || hasChildrenOnly || style
+  const containerStyle = needsCollapse
+    ? Styles.collapseStyles([
+        container,
+        small && smallStyle,
+        hasChildrenOnly && childrenOnlyStyle,
+        hasChildrenOnly && small && childrenOnlySmallStyle,
+        fullWidth && fullWidthStyle,
+        unclickable && opacity30Style,
+        style,
+      ])
+    : (container as Styles.StylesCrossPlatform)
+
+  const handlePress = unclickable ? undefined : onClick
+
+  const whiteSpinner = isPrimary && type !== 'Dim'
+  const fontWeight = '600' as const
+  const fontSize = 16
+
+  const inner = (
+    <>
+      {children}
+      {!!label && (
+        <RNText
+          style={Styles.castStyleNative(
+            waiting ? Styles.collapseStyles([labelStyle, labelStyleOverride, opacity0Style, {fontSize, fontWeight}]) : Styles.collapseStyles([labelStyle, labelStyleOverride, {fontSize, fontWeight}])
+          )}
+        >
+          {label}
+        </RNText>
+      )}
+      {!!waiting && <Progress small={small} white={whiteSpinner} />}
+    </>
+  )
+
+  // Use View when no click handler so touches pass through to parent
+  if (!handlePress) {
+    return <View style={Styles.castStyleNative(containerStyle)}>{inner}</View>
+  }
+
+  return (
+    <Pressable style={Styles.castStyleNative(containerStyle)} onPress={handlePress} accessible={true} accessibilityRole="button">
+      {inner}
+    </Pressable>
+  )
 }
 
-export const smallHeight = Styles.isMobile ? 32 : 28
-export const regularHeight = Styles.isMobile ? 40 : 32
-
-const common: () => Styles._StylesCrossPlatform = () =>
-  Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      borderRadius: Styles.borderRadius,
-      height: regularHeight,
-      justifyContent: 'center',
-    },
-    isElectron: {
-      display: 'inline-block',
-      lineHeight: 'inherit',
-      minWidth: 100,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      minWidth: 120,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isTablet: {
-      alignSelf: 'center',
-    },
-  })
-
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: 0,
-  },
-  fullWidth: {
-    flexGrow: 1,
-    maxWidth: 460,
-    width: '100%',
-  },
-  icon: {
-    borderRadius: Styles.borderRadius,
-    minWidth: undefined,
-    paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
-    paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
-    width: regularHeight,
-  },
-  iconWithLabel: {
-    paddingRight: Styles.globalMargins.xtiny,
-  },
-  labelContainer: Styles.platformStyles({
-    common: {height: '100%', position: 'relative'},
-    isElectron: {pointerEvents: 'none'}, // need hover etc. to go through to underlay
-  }),
-  narrow: Styles.platformStyles({
-    isElectron: {
-      minWidth: 50,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isMobile: {
-      minWidth: 80,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  opacity0: {opacity: 0},
-  opacity30: {opacity: 0.3},
-  progressContainer: {...Styles.globalStyles.fillAbsolute},
-  progressNormal: {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24},
-  progressSmall: {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20},
-  small: {
-    borderRadius: Styles.borderRadius,
-    height: smallHeight,
-    minWidth: undefined,
-    paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
-    paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
-  },
-}))
-
-const containerStyles = Styles.styleSheetCreate(() => {
-  const commonSecondaryWhiteBg = Styles.platformStyles({
-    common: common(),
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      transition: 'border 0.3s ease-out',
-    },
-    isMobile: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
-    },
-  })
-
-  return {
-    PrimaryDanger: {...common(), backgroundColor: Styles.globalColors.red},
-    PrimaryDefault: {...common(), backgroundColor: Styles.globalColors.blue},
-    PrimaryDim: {...common(), backgroundColor: Styles.globalColors.grey},
-    PrimarySuccess: {...common(), backgroundColor: Styles.globalColors.green},
-    PrimaryWallet: {...common(), backgroundColor: Styles.globalColors.purple},
-    SecondaryDanger: commonSecondaryWhiteBg,
-    SecondaryDefault: commonSecondaryWhiteBg,
-    SecondaryDim: commonSecondaryWhiteBg,
-    SecondarySuccess: commonSecondaryWhiteBg,
-    SecondaryWallet: commonSecondaryWhiteBg,
-  } as const
-})
-
-const commonLabel = () =>
-  Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.whiteOrWhite,
-      display: 'flex',
-      textAlign: 'center',
-    },
-    isElectron: {userSelect: 'none', whiteSpace: 'pre'},
-    isMobile: {lineHeight: undefined},
-  })
-
-const labelStyles = Styles.styleSheetCreate(() => {
-  const primaryWhiteBgLabel = {
-    ...commonLabel(),
-    color: Styles.globalColors.whiteOrWhite,
-  }
-  return {
-    PrimaryDanger: primaryWhiteBgLabel,
-    PrimaryDefault: primaryWhiteBgLabel,
-    PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
-    PrimarySuccess: primaryWhiteBgLabel,
-    PrimaryWallet: primaryWhiteBgLabel,
-    SecondaryDanger: {...commonLabel(), color: Styles.globalColors.redDark},
-    SecondaryDefault: {...commonLabel(), color: Styles.globalColors.blueDark},
-    SecondaryDim: {...commonLabel(), color: Styles.globalColors.black_50},
-    SecondarySuccess: {...commonLabel(), color: Styles.globalColors.greenDark},
-    SecondaryWallet: {...commonLabel(), color: Styles.globalColors.purpleDark},
-  } as const
-})
-
-// With backgroundColor styles
-const backgroundColorContainerStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      Primary: {...common(), backgroundColor: Styles.globalColors.white},
-      Secondary: Styles.platformStyles({
-        common: {...common(), backgroundColor: Styles.globalColors.black_20},
-        isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
-      }),
-    }) as const
-)
-
-const backgroundColorLabelStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
-      Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
-      Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
-      Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
-      Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
-      Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
-      Secondary: {...commonLabel(), color: Styles.globalColors.white},
-    }) as const
-)
-
+const Button = Styles.isMobile ? ButtonNative : ButtonDesktop
 export default Button
+
+// IconButton — convenience wrapper that renders an Icon as a child
+type IconButtonProps = Omit<ButtonProps, 'label' | 'children'> & {
+  icon: IconType
+  iconColor?: Styles.Color
+}
+
+export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {icon, iconColor, ref, ...rest} = props
+  const Icon2 = (require('./icon2') as {default: typeof Icon2Comp}).default
+  const isPrimary = (rest.mode ?? 'Primary') === 'Primary'
+  const type = rest.type ?? 'Default'
+  const defaultColor = isPrimary
+    ? type === 'Dim' ? Styles.globalColors.black : Styles.globalColors.whiteOrWhite
+    : secondaryLabelStyles[type].color
+  return (
+    <Button ref={ref} {...rest}>
+      <Icon2 type={icon} sizeType="Small" color={iconColor ?? (defaultColor as string)} />
+    </Button>
+  )
+}

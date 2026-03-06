@@ -102,17 +102,18 @@ export const ContactsBanner = (props: {
         <Kb.Box2 direction="horizontal" gap="tiny" style={styles.bannerButtonContainer}>
           <Kb.Button
             label="Import contacts"
-            backgroundColor="blue"
             onClick={onImportContacts}
             small={true}
-            style={styles.importContactsButton}
+            style={Kb.Styles.collapseStyles([styles.importContactsButton, styles.primaryOnBlue])}
+            labelStyle={styles.primaryOnBlueLabel}
           />
           <Kb.Button
             label="Skip"
-            backgroundColor="blue"
             mode="Secondary"
             onClick={onAskForContactsLater}
             small={true}
+            style={styles.secondaryOnBlue}
+            labelStyle={styles.secondaryOnBlueLabel}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -193,5 +194,12 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 64,
         justifyContent: 'flex-start',
       },
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      secondaryOnBlue: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnBlueLabel: {color: Kb.Styles.globalColors.white},
     }) as const
 )

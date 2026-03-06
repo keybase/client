@@ -92,7 +92,7 @@ export const CreateChannelsModal = (props: Props) => {
             onClear={() => onClear(idx)}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding

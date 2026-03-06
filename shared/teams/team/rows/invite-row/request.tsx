@@ -131,7 +131,7 @@ export const TeamRequestRow = (props: Props) => {
               waiting={props.waiting}
             />
           </FloatingRolePicker>
-          <Kb.Button
+          <Kb.IconButton
             mode="Secondary"
             type="Dim"
             small={true}

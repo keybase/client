@@ -582,13 +582,14 @@ const NodeInRow = (props: NodeInRowProps) => {
                     {!(isMe && amLastOwner) && !cantKickOut && (
                       <Kb.WaitingButton
                         mode="Secondary"
-                        icon={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
                         type="Danger"
                         onClick={onKickOut}
                         label={isMe ? 'Leave team' : 'Kick out'}
                         small={true}
                         waitingKey={onKickOutWaitingKey}
-                      />
+                      >
+                        <Kb.Icon2 type={isMe ? 'iconfont-team-leave' : 'iconfont-block'} sizeType="Small" color={Kb.Styles.globalColors.redDark} />
+                      </Kb.WaitingButton>
                     )}
                   </Kb.Box2>
                 )}
@@ -710,7 +711,7 @@ const BlockDropdown = (props: {username: string}) => {
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
+      <Kb.IconButton
         small={true}
         icon="iconfont-ellipsis"
         onClick={showPopup}
