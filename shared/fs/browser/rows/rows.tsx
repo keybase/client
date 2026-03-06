@@ -184,9 +184,9 @@ const styles = Kb.Styles.styleSheetCreate(
 const getRowHeight = (row: RowTypes.RowItem) =>
   row.rowType === RowTypes.RowType.Header ? row.height : normalRowHeight
 
-const _unknownEmptyRowItem: RowTypes.EmptyRowItem = {
+const _unknownEmptyRowItem = {
   key: 'unknown-empty-row-item',
   rowType: RowTypes.RowType.Empty,
-}
+} satisfies RowTypes.EmptyRowItem
 
 export default RowsWithAutoLoad

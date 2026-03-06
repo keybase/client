@@ -91,11 +91,11 @@ export const emptyEmailInviteError = Object.freeze<T.Teams.EmailInviteError>({
   message: '',
 })
 
-const emptyTeamChannelInfo: T.Teams.TeamChannelInfo = {
+const emptyTeamChannelInfo = {
   channelname: '',
   conversationIDKey: '', // would be noConversationIDKey but causes import cycle
   description: '',
-}
+} satisfies T.Teams.TeamChannelInfo
 
 export const getTeamChannelInfo = (
   state: State,
@@ -153,14 +153,14 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   return ret
 }
 
-export const typeToLabel: T.Teams.TypeMap = {
+export const typeToLabel = {
   admin: 'Admin',
   bot: 'Bot',
   owner: 'Owner',
   reader: 'Reader',
   restrictedbot: 'Restricted bot',
   writer: 'Writer',
-}
+} satisfies T.Teams.TypeMap
 
 export const initialTeamSettings = Object.freeze({
   joinAs: T.RPCGen.TeamRole.reader,
@@ -176,16 +176,16 @@ export const addMembersWizardEmptyState: State['addMembersWizard'] = {
   teamID: T.Teams.noTeamID,
 }
 
-export const newTeamWizardEmptyState: State['newTeamWizard'] = {
+export const newTeamWizardEmptyState = {
   addYourself: true,
   description: '',
   isBig: false,
   name: '',
   open: false,
-  openTeamJoinRole: 'reader',
+  openTeamJoinRole: 'reader' as const,
   profileShowcase: false,
-  teamType: 'other',
-}
+  teamType: 'other' as const,
+} satisfies State['newTeamWizard']
 
 export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
 

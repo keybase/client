@@ -77,7 +77,7 @@ const InstallBotPopup = (props: Props) => {
     )
       .filter(c => c.username === botUsername)
       .map(c => c.name)
-    const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
+    const convCommands = {commands, loadError: false} satisfies T.Chat.BotPublicCommands
     return commands.length > 0 ? convCommands : botPublicCommands
   })()
 
