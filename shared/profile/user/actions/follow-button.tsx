@@ -23,21 +23,27 @@ const FollowButton = (props: Props) => {
   const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = props
 
   if (following) {
+    const button = (
+      <Kb.WaitingButton
+        type="Success"
+        mode="Secondary"
+        label={mouseOver ? 'Unfollow' : 'Following'}
+        onClick={onUnfollow}
+        waitingKey={waitingKey}
+        style={props.small ? style : {...styleButton, ...style}}
+        {...otherProps}
+      />
+    )
+    if (Kb.Styles.isMobile) {
+      return button
+    }
     return (
-      <span
-        onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
-        onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
+      <div
+        onMouseEnter={() => setMouseover(true)}
+        onMouseLeave={() => setMouseover(false)}
       >
-        <Kb.WaitingButton
-          type="Success"
-          mode="Secondary"
-          label={mouseOver ? 'Unfollow' : 'Following'}
-          onClick={onUnfollow}
-          waitingKey={waitingKey}
-          style={props.small ? style : {...styleButton, ...style}}
-          {...otherProps}
-        />
-      </span>
+        {button}
+      </div>
     )
   } else {
     return (
