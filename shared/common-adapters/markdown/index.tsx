@@ -139,7 +139,15 @@ const makeTextRegexp = () => {
   )
 }
 // Only allow a small set of characters before a url
-const textMatch = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
+const fullTextRegex = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
+// Simpler text regex when we know there are no URLs, emails, or colons in the source
+const simpleTextRegex = SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s]|[\u00c0-\uffff]|\n|$)/)
+// Quick check: does the source contain anything that needs the full text regex?
+const needsFullTextRegex = /[.@:]/
+const textMatch = (source: string, state: State, prevCapture: string) => {
+  const regex = needsFullTextRegex.test(source) ? fullTextRegex : simpleTextRegex
+  return regex(source, state, prevCapture)
+}
 
 const wrapInParagraph = (parse: SM.Parser, content: string, state: State): Array<SM.SingleASTNode> => {
   const oldInParagraph = state['inParagraph'] as boolean
