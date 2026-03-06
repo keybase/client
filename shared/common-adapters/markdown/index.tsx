@@ -345,6 +345,7 @@ const rules: {[type: string]: SM.ParserRule} = {
 const simpleMarkdownParser = SimpleMarkdown.parserFor(rules)
 
 // Lightweight parser for messages with service decorations but no markdown formatting
+const serviceOnlyTextRegex = SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=\$>kb\$|[\u00c0-\uffff]|:|\n|$)/)
 const serviceOnlyRules: {[type: string]: SM.ParserRule} = {
   emoji: {
     match: SimpleMarkdown.inlineRegex(emojiRegex),
@@ -387,8 +388,8 @@ const serviceOnlyRules: {[type: string]: SM.ParserRule} = {
   },
   text: {
     ...SimpleMarkdown.defaultRules.text,
-    match: (source: string, state: State, _prevCapture: string) =>
-      Styles.isMobile && !state['inParagraph'] ? null : [source],
+    match: (source: string, state: State, prevCapture: string) =>
+      Styles.isMobile && !state['inParagraph'] ? null : serviceOnlyTextRegex(source, state, prevCapture),
   },
 }
 const serviceOnlyMarkdownParser = SimpleMarkdown.parserFor(serviceOnlyRules)
@@ -432,6 +433,8 @@ const isAllEmoji = (ast: Array<SM.SingleASTNode>) => {
 
 const fastMDReg = /[*_`~]/
 const serviceDecorationFastCheck = '$>kb$'
+// Fast check for emoji shortcodes (:name:) or unicode emojis
+const emojiQuickCheck = new RegExp(`:[\\w+-]+:|${emojiRegex.source.replace(/^\^/, '')}`)
 
 type ParseLevel = 'none' | 'serviceOnly' | 'full'
 
@@ -440,6 +443,7 @@ const getParseLevel = (s: string): ParseLevel => {
   if (s.startsWith('>') || s.includes('\n>')) return 'full'
   if (s.includes('!>')) return 'full'
   if (s.includes(serviceDecorationFastCheck)) return 'serviceOnly'
+  if (emojiQuickCheck.test(s)) return 'full'
   return 'none'
 }
 
