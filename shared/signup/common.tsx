@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {type Props as ButtonProps} from '@/common-adapters/button'
+import {type Button2Props} from '@/common-adapters/button2'
 import openURL from '@/util/open-url'
 import {useConfigState} from '@/stores/config'
 
@@ -98,7 +98,7 @@ const Header = (props: HeaderProps) => (
       )}
       {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
       {props.onRightAction && !!props.rightActionLabel && (
-        <Kb.Button
+        <Kb.Button2
           type="Default"
           mode="Secondary"
           small={true}
@@ -120,7 +120,7 @@ type ButtonMeta = {
   disabled?: boolean
   label: string
   onClick: () => void
-  type?: ButtonProps['type']
+  type?: Button2Props['type']
   waiting?: boolean
   waitingKey?: string // makes this a WaitingButton
 }
@@ -240,7 +240,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
                 fullWidth={true}
               />
             ) : (
-              <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+              <Kb.Button2 key={b.label} style={styles.button} {...b} fullWidth={true} />
             )
           )}
         </Kb.ButtonBar>

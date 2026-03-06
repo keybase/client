@@ -261,16 +261,16 @@ const Developer = () => {
         {"Please don't do anything below here unless instructed to by a developer."}
       </Kb.Text>
       <Kb.Divider style={styles.divider} />
-      <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />
+      <Kb.Button2 style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />
       {Kb.Styles.isIOS ? (
-        <Kb.Button
+        <Kb.Button2
           style={styles.developerButtons}
           mode="Secondary"
           label="Clear Logs"
           onClick={onClearLogs}
         />
       ) : null}
-      <Kb.Button
+      <Kb.Button2
         style={styles.developerButtons}
         mode="Secondary"
         label="Enable Detailed Logging"
@@ -278,7 +278,7 @@ const Developer = () => {
       />
 
       {showMakeIcons && (
-        <Kb.Button
+        <Kb.Button2
           style={styles.developerButtons}
           mode="Secondary"
           label="Make Icons"
@@ -287,20 +287,20 @@ const Developer = () => {
       )}
       {showPprofControls && (
         <>
-          <Kb.Button
+          <Kb.Button2
             label="Toggle Runtime Stats"
             onClick={onToggleRuntimeStats}
             mode="Secondary"
             style={styles.developerButtons}
           />
-          <Kb.Button
+          <Kb.Button2
             waiting={traceInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`Trace (${traceDurationSeconds}s)`}
             onClick={() => onTrace(traceDurationSeconds)}
           />
-          <Kb.Button
+          <Kb.Button2
             waiting={processorProfileInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"

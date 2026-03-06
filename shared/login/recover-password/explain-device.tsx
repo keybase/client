@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {ButtonType} from '@/common-adapters/button'
+import type {Button2Type} from '@/common-adapters/button2'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
@@ -30,7 +30,7 @@ const ConnectedExplainDevice = () => {
         {
           label: 'Got it',
           onClick: onComplete,
-          type: 'Default' as ButtonType,
+          type: 'Default' as Button2Type,
         },
       ]}
       noBackground={true}

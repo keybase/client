@@ -37,7 +37,7 @@ export const modalHeaderProps = (
     }
     case 'chat': {
       const rightButton = Kb.Styles.isMobile ? (
-        <Kb.Button
+        <Kb.Button2
           label="Start"
           onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
           small={true}
@@ -49,7 +49,7 @@ export const modalHeaderProps = (
     }
     case 'crypto': {
       const rightButton = Kb.Styles.isMobile ? (
-        <Kb.Button
+        <Kb.Button2
           label={goButtonLabel ?? 'Start'}
           onClick={hasTeamSoFar ? onFinishTeamBuilding : undefined}
           small={true}

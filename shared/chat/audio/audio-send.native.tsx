@@ -46,7 +46,7 @@ const AudioSend = (props: Props) => {
           </Kb.Box2>
           {player}
         </Kb.Box2>
-        <Kb.Button type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
+        <Kb.Button2 type="Default" small={true} style={styles.send} onClick={sendRecording} label="Send" />
       </Kb.Box2>
     </Portal>
   )

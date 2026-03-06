@@ -20,7 +20,7 @@ export const HeaderRightActions = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAdd = () => navigateAppend('deviceAdd')
   return (
-    <Kb.Button
+    <Kb.Button2
       small={true}
       label="Add a device or paper key"
       onClick={onAdd}

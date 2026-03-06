@@ -88,7 +88,7 @@ const TeamRow = (p: RowProps) => {
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (
           <Kb.Box2 direction="vertical">
-            <Kb.Button
+            <Kb.Button2
               label={showcased ? 'Featured' : 'Feature'}
               onClick={() => onPromote(!showcased)}
               small={true}

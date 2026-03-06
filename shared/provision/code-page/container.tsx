@@ -70,7 +70,7 @@ const CodePageContainer = () => {
   }, [defaultTab])
 
   const tabBackground = () => (tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green)
-  const buttonBackground = () => (tab === 'QR' ? 'blue' : 'green')
+  const buttonType = () => (tab === 'QR' ? 'Default' as const : 'Success' as const)
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
 
@@ -189,7 +189,7 @@ const CodePageContainer = () => {
           {tab === 'enterText' && (
             <Kb.WaitingButton
               fullWidth={true}
-              backgroundColor={buttonBackground()}
+              type={buttonType()}
               label="Continue"
               onClick={onSubmitTextCode}
               disabled={!code || waiting}
@@ -200,7 +200,7 @@ const CodePageContainer = () => {
           {tab !== 'enterText' && inModal() && !Kb.Styles.isMobile && (
             <Kb.WaitingButton
               fullWidth={true}
-              backgroundColor={buttonBackground()}
+              type={buttonType()}
               label="Close"
               onClick={onBack}
               onlyDisable={true}

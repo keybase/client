@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
-import type {ButtonType} from '@/common-adapters/button'
+import type {Button2Type} from '@/common-adapters/button2'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
 export type Props = {
@@ -52,7 +52,7 @@ const PromptReset = (props: Props) => {
         {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
-          type: 'Default' as ButtonType,
+          type: 'Default' as Button2Type,
           waitingKey: C.waitingKeyAutoresetEnterPipeline,
         },
       ]}

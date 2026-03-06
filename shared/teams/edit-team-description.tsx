@@ -53,8 +53,8 @@ const EditTeamDescription = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
-            <Kb.Button
+            <Kb.Button2 label="Cancel" onClick={onClose} type="Dim" />
+            <Kb.Button2
               disabled={description === origDescription}
               label="Save"
               onClick={onSave}

@@ -21,7 +21,7 @@ const ConnectedErrorModal = () => {
   return (
     <Kb.Modal
       header={{title: 'Error'}}
-      footer={{content: <Kb.Button label="Back" onClick={onBack} fullWidth={true} />}}
+      footer={{content: <Kb.Button2 label="Back" onClick={onBack} fullWidth={true} />}}
       onClose={onBack}
     >
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>

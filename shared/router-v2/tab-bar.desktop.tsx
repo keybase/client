@@ -108,7 +108,7 @@ const Header = () => {
             }
           />
         </Kb.ClickableBox>
-        <Kb.Button
+        <Kb.Button2
           label="View/Edit profile"
           mode="Secondary"
           onClick={onClickWrapper}

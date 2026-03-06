@@ -25,7 +25,6 @@ const GoButton = (props: Props) => (
     >
       <Kb.WaitingButton
         type="Success"
-        narrow={true}
         label={props.label}
         onClick={props.onClick}
         style={styles.button}
@@ -36,9 +35,10 @@ const GoButton = (props: Props) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {
-    height: '100%',
-  },
+  button: Kb.Styles.platformStyles({
+    isElectron: {height: '100%', minWidth: 50, paddingLeft: Kb.Styles.globalMargins.small, paddingRight: Kb.Styles.globalMargins.small},
+    isMobile: {height: '100%', minWidth: 80, paddingLeft: Kb.Styles.globalMargins.tiny, paddingRight: Kb.Styles.globalMargins.tiny},
+  }),
   container: {
     alignSelf: 'stretch',
     marginBottom: Kb.Styles.globalMargins.tiny,

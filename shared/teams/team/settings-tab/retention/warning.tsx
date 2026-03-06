@@ -70,8 +70,8 @@ const RetentionWarning = (props: Props) => {
           }
         />
         <Kb.ButtonBar>
-          <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
-          <Kb.Button
+          <Kb.Button2 type="Dim" onClick={props.onBack} label="Cancel" />
+          <Kb.Button2
             type="Danger"
             onClick={props.onConfirm}
             label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}

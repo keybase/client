@@ -210,7 +210,7 @@ export const TeamMemberRow = (props: Props) => {
       style={props.youCanManageMembers ? styles.mobileMarginsHack : undefined}
     >
       {popup}
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-chat"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -218,7 +218,7 @@ export const TeamMemberRow = (props: Props) => {
         small={true}
         tooltip="Open chat"
       />
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"

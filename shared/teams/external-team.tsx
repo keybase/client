@@ -148,8 +148,8 @@ const Header = ({info}: ExternalTeamProps) => {
         {/* TODO add activity */}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="tiny" fullWidth={true}>
-        <Kb.Button onClick={onJoin} type="Success" label="Join team" small={true} />
-        <Kb.Button mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
+        <Kb.Button2 onClick={onJoin} type="Success" label="Join team" small={true} />
+        <Kb.Button2 mode="Secondary" label="Share" small={true} ref={popupAnchor} onClick={showPopup} />
         {popup}
       </Kb.Box2>
     </Kb.Box2>
@@ -209,7 +209,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
           </Kb.Box2>
         </Kb.Box2>
       }
-      action={<Kb.Button type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
+      action={<Kb.IconButton type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
       onlyShowActionOnHover="fade"
     />
   )

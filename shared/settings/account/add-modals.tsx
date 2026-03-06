@@ -75,9 +75,9 @@ export const Email = () => {
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             {!Kb.Styles.isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+              <Kb.Button2 type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
-            <Kb.Button
+            <Kb.Button2
               label="Continue"
               fullWidth={true}
               onClick={onContinue}
@@ -193,9 +193,9 @@ export const Phone = () => {
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             {!Kb.Styles.isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+              <Kb.Button2 type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
-            <Kb.Button
+            <Kb.Button2
               label="Continue"
               fullWidth={true}
               onClick={onContinue}
@@ -307,7 +307,7 @@ export const VerifyPhone = () => {
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            <Kb.Button
+            <Kb.Button2
               disabled={disabled}
               type="Success"
               label="Continue"

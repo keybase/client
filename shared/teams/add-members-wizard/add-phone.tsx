@@ -65,7 +65,7 @@ const AddPhone = () => {
       allowOverflow={true}
       footer={{
         content: (
-          <Kb.Button
+          <Kb.Button2
             waiting={waiting}
             fullWidth={true}
             label="Continue"
@@ -95,7 +95,7 @@ const AddPhone = () => {
               onEnterKeyDown={maybeSubmit}
             />
           ))}
-          <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
+          <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>

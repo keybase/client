@@ -10,6 +10,22 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 
+const LocationButton = (props: {disabled: boolean; label: string; onClick: () => void; subLabel?: string; primary?: boolean}) => (
+  <Kb.Button2
+    disabled={props.disabled}
+    fullWidth={true}
+    onClick={props.onClick}
+    mode={props.primary ? 'Primary' : 'Secondary'}
+    type="Default"
+    style={styles.liveButton}
+  >
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="BodySemibold" style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}>{props.label}</Kb.Text>
+      {!!props.subLabel && <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>{props.subLabel}</Kb.Text>}
+    </Kb.Box2>
+  </Kb.Button2>
+)
+
 const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const updateLastCoord = Chat.useChatState(s => s.dispatch.updateLastCoord)
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
@@ -89,46 +105,10 @@ const LocationPopup = () => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Button
-              disabled={locationDenied}
-              fullWidth={true}
-              label="Share location for 15 minutes"
-              onClick={() => onLocationShare('15m')}
-              mode="Secondary"
-              type="Default"
-              style={styles.liveButton}
-              subLabel="Live location"
-            />
-            <Kb.Button
-              disabled={locationDenied}
-              fullWidth={true}
-              label="Share location for 1 hour"
-              onClick={() => onLocationShare('1h')}
-              mode="Secondary"
-              type="Default"
-              style={styles.liveButton}
-              subLabel="Live location"
-            />
-            <Kb.Button
-              disabled={locationDenied}
-              fullWidth={true}
-              onClick={() => onLocationShare('8h')}
-              label="Share location for 8 hours"
-              mode="Secondary"
-              type="Default"
-              style={styles.liveButton}
-              subLabel="Live location"
-            />
-            <Kb.Button
-              disabled={locationDenied}
-              fullWidth={true}
-              label="Send current location"
-              onClick={() => onLocationShare('')}
-              type="Default"
-              style={{height: 53}}
-              subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
-              subLabelStyle={styles.accuracy}
-            />
+            <LocationButton disabled={locationDenied} label="Share location for 15 minutes" onClick={() => onLocationShare('15m')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Share location for 1 hour" onClick={() => onLocationShare('1h')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Share location for 8 hours" onClick={() => onLocationShare('8h')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Send current location" onClick={() => onLocationShare('')} subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined} primary={true} />
           </Kb.Box2>
         ),
       }}
@@ -141,7 +121,7 @@ const LocationPopup = () => {
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Enable location for Keybase to see your current position.
           </Kb.Text>
-          <Kb.Button label="Open settings" onClick={onSettings} />
+          <Kb.Button2 label="Open settings" onClick={onSettings} />
         </Kb.Box2>
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
@@ -154,7 +134,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       accuracy: {
-        color: Kb.Styles.globalColors.white_75,
+        color: Kb.Styles.globalColors.black_50,
       },
       denied: {
         ...Kb.Styles.globalStyles.fillAbsolute,
@@ -165,6 +145,12 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       liveButton: {
         height: 53,
+      },
+      liveButtonLabel: {
+        color: Kb.Styles.globalColors.blueDark,
+      },
+      liveButtonLabelPrimary: {
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
     }) as const
 )

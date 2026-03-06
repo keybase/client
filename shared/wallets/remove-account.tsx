@@ -20,8 +20,8 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const buttons = [
-    <Kb.Button fullWidth={Kb.Styles.isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
-    <Kb.Button
+    <Kb.Button2 fullWidth={Kb.Styles.isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
+    <Kb.Button2
       fullWidth={Kb.Styles.isMobile}
       key={1}
       label="Yes, remove"

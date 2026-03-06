@@ -316,7 +316,7 @@ function EmojiPicker(props: Props) {
           looking for?
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Button mode="Secondary" label="Add custom emoji" small={true} onClick={props.addEmoji} />
+      <Kb.Button2 mode="Secondary" label="Add custom emoji" small={true} onClick={props.addEmoji} />
     </Kb.Box2>
   )
 

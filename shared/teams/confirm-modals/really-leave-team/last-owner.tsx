@@ -15,7 +15,7 @@ const ReallyLeaveTeam = (props: Props) => (
     footer={{
       content: (
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
+          <Kb.Button2
             onClick={props.onBack}
             label="Got it"
             fullWidth={true}

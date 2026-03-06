@@ -93,7 +93,7 @@ const Screen = __DEV__
 
       return (
         <Kb.Box2 direction="vertical" style={{backgroundColor: 'purple'}} fullWidth={true} fullHeight={true}>
-          <Kb.Button mode="Primary" onClick={onSave} label="Save" />
+          <Kb.Button2 mode="Primary" onClick={onSave} label="Save" />
           <div
             id="divToExport"
             style={{

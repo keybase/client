@@ -225,7 +225,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   return (
     <ActionsWrapper>
       {isBigTeam && (
-        <Kb.Button
+        <Kb.Button2
           label="Add to channels"
           mode="Secondary"
           onClick={onAddToChannel}
@@ -233,7 +233,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         />
       )}
       <EditRoleButton teamID={teamID} members={members} />
-      <Kb.Button
+      <Kb.Button2
         label="Remove from team"
         type="Danger"
         onClick={onRemoveFromTeam}
@@ -290,7 +290,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
       // TODO waiting should actually understand we submitted but haven't seen teamLoaded yet, but that requires more plumbing
       waiting={waiting}
     >
-      <Kb.Button
+      <Kb.Button2
         label="Edit role"
         mode="Secondary"
         disabled={disableButton}
@@ -309,7 +309,7 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
 
   return (
     <ActionsWrapper>
-      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Kb.Styles.isMobile} />
+      <Kb.Button2 label="Delete" type="Danger" onClick={onDelete} fullWidth={Kb.Styles.isMobile} />
     </ActionsWrapper>
   )
 }
@@ -340,7 +340,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
 
   return (
     <ActionsWrapper>
-      <Kb.Button
+      <Kb.Button2
         label="Add to channels"
         mode="Secondary"
         onClick={onAddToChannel}
@@ -348,7 +348,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
       />
       <EditRoleButton teamID={teamID} members={members} />
       {channelname !== 'general' && (
-        <Kb.Button
+        <Kb.Button2
           label="Remove from channel"
           type="Danger"
           onClick={onRemoveFromChannel}

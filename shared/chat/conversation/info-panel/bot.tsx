@@ -42,7 +42,6 @@ const AddToChannel = (props: AddToChannelProps) => {
       disabled={!settings}
       type="Dim"
       mode="Secondary"
-      icon="iconfont-new"
       tooltip="Add to this channel"
       onClick={e => {
         e.preventDefault()
@@ -57,7 +56,9 @@ const AddToChannel = (props: AddToChannelProps) => {
         }
       }}
       waitingKey={C.waitingKeyChatBotAdd}
-    />
+    >
+      <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
+    </Kb.WaitingButton>
   )
 }
 
@@ -125,7 +126,7 @@ export const Bot = (props: BotProps) => {
       style={{backgroundColor: Kb.Styles.globalColors.white}}
       action={
         showTeamAdd ? (
-          <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
+          <Kb.IconButton type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
         ) : showChannelAdd && conversationIDKey ? (
           <AddToChannel conversationIDKey={conversationIDKey} username={botUsername} />
         ) : null
@@ -288,7 +289,7 @@ const BotTab = (props: Props) => {
       renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {
           return (
-            <Kb.Button
+            <Kb.Button2
               mode="Secondary"
               type="Default"
               label="Add a bot"
@@ -323,7 +324,7 @@ const BotTab = (props: Props) => {
         }
         if (item === loadMoreBotsButton) {
           return (
-            <Kb.Button
+            <Kb.Button2
               label="Load more"
               mode="Secondary"
               type="Default"

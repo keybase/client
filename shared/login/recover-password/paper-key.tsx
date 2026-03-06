@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type {ButtonType} from '@/common-adapters/button'
+import type {Button2Type} from '@/common-adapters/button2'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
@@ -27,7 +27,7 @@ const PaperKey = () => {
           disabled: !paperKey,
           label: 'Continue',
           onClick: onSubmit,
-          type: 'Default' as ButtonType,
+          type: 'Default' as Button2Type,
           waitingKey: C.waitingKeyRecoverPassword,
         },
       ]}

@@ -54,7 +54,7 @@ const BlockButtons = () => {
         style={styles.waveButton}
       />
       {!team && others.length === 0 ? (
-        <Kb.Button
+        <Kb.Button2
           label="View profile"
           style={styles.button}
           small={true}
@@ -63,7 +63,7 @@ const BlockButtons = () => {
         />
       ) : null}
       {team ? (
-        <Kb.Button
+        <Kb.Button2
           label="View team"
           style={styles.button}
           mode="Secondary"
@@ -71,7 +71,7 @@ const BlockButtons = () => {
           onClick={onViewTeam}
         />
       ) : null}
-      <Kb.Button
+      <Kb.Button2
         label="Block"
         type="Danger"
         mode="Secondary"

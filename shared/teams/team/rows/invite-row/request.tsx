@@ -123,7 +123,7 @@ export const TeamRequestRow = (props: Props) => {
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
           >
-            <Kb.Button
+            <Kb.Button2
               label={approveWord}
               onClick={onAccept}
               small={true}
@@ -131,7 +131,7 @@ export const TeamRequestRow = (props: Props) => {
               waiting={props.waiting}
             />
           </FloatingRolePicker>
-          <Kb.Button
+          <Kb.IconButton
             mode="Secondary"
             type="Dim"
             small={true}

@@ -45,7 +45,7 @@ const ManageContacts = () => {
               {contactsImported && status === 'granted' ? enabledDescription : disabledDescription}
             </Kb.Text>
             <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-              <Kb.Button
+              <Kb.Button2
                 disabled={status === 'denied'}
                 mode="Secondary"
                 label={contactsImported && status === 'granted' ? 'Remove contacts' : 'Import phone contacts'}

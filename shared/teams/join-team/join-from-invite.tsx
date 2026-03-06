@@ -90,7 +90,7 @@ const JoinFromInvite = () => {
         centerChildren={true}
       >
         <Success teamname={teamname} />
-        <Kb.Button type="Dim" label="Close" onClick={onNavUp} style={styles.button} waiting={waiting} />
+        <Kb.Button2 type="Dim" label="Close" onClick={onNavUp} style={styles.button} waiting={waiting} />
       </Kb.Box2>
     ) : (
       <Kb.Box2
@@ -131,14 +131,14 @@ const JoinFromInvite = () => {
           gap="xtiny"
           style={styles.buttonBar}
         >
-          <Kb.Button
+          <Kb.Button2
             type="Success"
             label="Join team"
             onClick={onJoinTeam}
             style={styles.button}
             waiting={waiting}
           />
-          <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
+          <Kb.Button2 type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
@@ -157,7 +157,7 @@ const JoinFromInvite = () => {
         </Kb.Box2>
         {Kb.Styles.isMobile && (
           <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.laterBox}>
-            <Kb.Button label="Later" type="Dim" onClick={onClose} style={styles.button} />
+            <Kb.Button2 label="Later" type="Dim" onClick={onClose} style={styles.button} />
           </Kb.Box2>
         )}
       </Kb.Box2>

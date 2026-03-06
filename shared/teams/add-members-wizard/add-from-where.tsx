@@ -19,7 +19,7 @@ const Skip = () => {
       </Kb.Text>
     )
   } else {
-    return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={onSkip} waiting={waiting} />
+    return <Kb.Button2 mode="Secondary" label="Skip" small={true} onClick={onSkip} waiting={waiting} />
   }
 }
 

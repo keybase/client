@@ -54,7 +54,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
+      <Kb.IconButton
         ref={popupAnchor}
         mode="Secondary"
         type="Dim"

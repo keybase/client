@@ -238,9 +238,9 @@ const ArchiveModal = (p: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar small={true}>
-            {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
-            {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
-            {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
+            {started && <Kb.Button2 type="Default" label="See progress" onClick={onProgress} />}
+            {started && <Kb.Button2 type="Default" label="Close" onClick={onClose} />}
+            {!started && <Kb.Button2 type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
         ),
       }}

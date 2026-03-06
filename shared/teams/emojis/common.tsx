@@ -105,7 +105,7 @@ export const Modal = (props: ModalProps) => {
             gap="small"
             fullWidth={true}
           >
-            <Kb.Button
+            <Kb.Button2
               mode="Primary"
               label={props.footerButtonLabel}
               fullWidth={true}

@@ -260,7 +260,7 @@ const Buttons = function Buttons(p: ButtonsProps) {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.actionContainer}>
       {isEditing && (
-        <Kb.Button
+        <Kb.Button2
           style={styles.editingButton}
           small={true}
           onClick={onCancelEditing}
@@ -280,13 +280,12 @@ const Buttons = function Buttons(p: ButtonsProps) {
         </Kb.Box2>
       )}
       {hasText && (
-        <Kb.Button
+        <Kb.Button2
           type="Default"
           small={true}
           onClick={onSubmit}
           disabled={!hasText}
           label={isEditing ? 'Save' : 'Send'}
-          labelStyle={isExploding ? styles.explodingSendBtnLabel : undefined}
           style={isExploding ? styles.explodingSendBtn : styles.sendBtn}
         />
       )}
@@ -711,7 +710,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.black,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
-      explodingSendBtnLabel: {color: Kb.Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,

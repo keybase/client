@@ -184,7 +184,7 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
         <ChatRow key={c.conversationIDKey} conv={c} httpSrvAddress={httpSrvAddress} httpSrvToken={httpSrvToken} username={username} />
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
-        <Kb.Button label="Open inbox" onClick={openInbox} small={true} mode="Secondary" />
+        <Kb.Button2 label="Open inbox" onClick={openInbox} small={true} mode="Secondary" />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -222,7 +222,7 @@ const FileUpdates = (p: {updates: ReadonlyArray<{path: T.FS.Path; uploading: boo
       ))}
       {p.updates.length > defaultNumFileOptionsShown && !isShowingAll && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.showMoreContainer}>
-          <Kb.Button
+          <Kb.Button2
             label={`+ ${p.updates.length - defaultNumFileOptionsShown} more`}
             onClick={() => setIsShowingAll(true)}
             small={true}
@@ -534,7 +534,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
             </Kb.Text>
             {fullyLoggedOut ? (
               <Kb.ButtonBar direction="row">
-                <Kb.Button label="Log in" onClick={logIn} />
+                <Kb.Button2 label="Log in" onClick={logIn} />
               </Kb.ButtonBar>
             ) : null}
           </Kb.Box2>

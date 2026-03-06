@@ -53,7 +53,7 @@ const CreateChannel = (p: Props) => {
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
+          <Kb.Button2 type="Dim" onClick={props.onBack} label="Cancel" />
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
             onClick={props.onSubmit}

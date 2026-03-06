@@ -204,14 +204,14 @@ const AddToChannels = function AddToChannels(props: Props) {
           : {
               content: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
+                  <Kb.Button2
                     type="Dim"
                     label="Cancel"
                     onClick={onCancel}
                     style={Kb.Styles.globalStyles.flexOne}
                     disabled={waiting}
                   />
-                  <Kb.Button
+                  <Kb.Button2
                     label={
                       numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
                     }
@@ -281,14 +281,15 @@ const HeaderRow = function HeaderRow(p: {
       style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
     >
       <Kb.BoxGrow2 />
-      <Kb.Button
+      <Kb.Button2
         disabled={!canCreate}
         label="Create channel"
         small={true}
         mode="Secondary"
         onClick={onCreate}
-        icon="iconfont-new"
-      />
+      >
+        <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
+      </Kb.Button2>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
@@ -409,24 +410,26 @@ const SelfChannelActions = function SelfChannelActions(p: {
     >
       {popup}
       {
-        <Kb.Button
-          disabled={meta.channelname === 'general'}
-          disabledStopClick={true}
-          type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
-          mode={inChannel ? 'Secondary' : 'Primary'}
-          label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
-          icon={inChannel && !buttonMousedOver ? 'iconfont-check' : undefined}
-          iconSizeType={inChannel && !buttonMousedOver ? 'Tiny' : undefined}
+        <span
           onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
           onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
-          onClick={inChannel ? onLeave : onJoin}
-          small={true}
-          style={styles.joinLeaveButton}
-          waiting={waiting}
-        />
+        >
+          <Kb.Button2
+            disabled={meta.channelname === 'general'}
+            type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
+            mode={inChannel ? 'Secondary' : 'Primary'}
+            label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
+            onClick={inChannel ? onLeave : onJoin}
+            small={true}
+            style={styles.joinLeaveButton}
+            waiting={waiting}
+          >
+            {inChannel && !buttonMousedOver ? <Kb.Icon2 type="iconfont-check" sizeType="Tiny" /> : undefined}
+          </Kb.Button2>
+        </span>
       }
       {canEdit && (
-        <Kb.Button
+        <Kb.IconButton
           icon="iconfont-ellipsis"
           iconColor={Kb.Styles.globalColors.black_50}
           onClick={showPopup}

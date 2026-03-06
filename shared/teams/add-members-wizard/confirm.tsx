@@ -118,7 +118,7 @@ const AddMembersConfirm = () => {
       }}
       footer={{
         content: (
-          <Kb.Button
+          <Kb.Button2
             fullWidth={true}
             label={`Invite ${addingMembers.length} ${noun} & finish`}
             waiting={waiting}
@@ -244,7 +244,7 @@ const AddMoreMembers = () => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button mode="Secondary" small={true} label="Add people" onClick={showPopup} ref={popupAnchor} />
+      <Kb.Button2 mode="Secondary" small={true} label="Add people" onClick={showPopup} ref={popupAnchor} />
       {popup}
     </>
   )

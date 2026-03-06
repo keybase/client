@@ -156,7 +156,7 @@ const ChooseEmoji = Kb.Styles.isMobile
             small: true,
           },
         })
-      return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
+      return <Kb.Button2 mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
       const {onChoose} = props
@@ -183,7 +183,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>
-          <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={showPopup} />
+          <Kb.Button2 mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={showPopup} />
           {popup}
         </>
       )

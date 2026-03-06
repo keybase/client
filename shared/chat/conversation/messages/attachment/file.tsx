@@ -161,7 +161,7 @@ function FileContainer(p: OwnProps) {
         </Kb.Box2>
         {!Kb.Styles.isMobile && isSaltpackFile && operation && (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
-            <Kb.Button
+            <Kb.Button2
               mode="Secondary"
               small={true}
               label={operationTitle}

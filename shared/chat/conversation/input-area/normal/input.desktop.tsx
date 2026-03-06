@@ -561,7 +561,7 @@ const PlatformInput = function PlatformInput(p: Props) {
               />
             )}
             {isEditing && (
-              <Kb.Button
+              <Kb.Button2
                 label="Cancel"
                 onClick={onCancelEditing}
                 small={true}

@@ -98,7 +98,7 @@ const Row = (p: {account: Wallets.Account}) => {
         </Kb.Box2>
         {err ? <Kb.Text type="Body">Error: {err}</Kb.Text> : null}
       </Kb.Box2>
-      <Kb.Button
+      <Kb.Button2
         type="Danger"
         label={isDefault ? "Can't remove default" : 'Remove account'}
         onClick={onRemove}

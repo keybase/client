@@ -52,7 +52,7 @@ const GenericResult = () => {
           {frag}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
-          <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
+          <Kb.Button2 type="Dim" label="Close and reload Profile" onClick={onClose} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.PopupWrapper>

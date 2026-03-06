@@ -176,7 +176,7 @@ const GlobalError = () => {
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.mobileSummaryRow}>
-            <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
+            <Kb.Button2 fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
           </Kb.Box2>
         </Kb.Box2>
         {size === 'Big' && (
@@ -211,7 +211,7 @@ const GlobalError = () => {
         <Kb.Text center={true} type="BodyBig" style={styles.summary}>
           {summary}
         </Kb.Text>
-        <Kb.Button
+        <Kb.Button2
           label="Please tell us"
           onClick={onFeedback}
           small={true}

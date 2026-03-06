@@ -33,14 +33,14 @@ const DeleteHistoryWarning = () => {
           You are about to delete all the messages in this conversation. For everyone.
         </Kb.Text>
         <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
-          <Kb.Button
+          <Kb.Button2
             type="Dim"
             style={styles.button}
             onClick={onCancel}
             label="Cancel"
             fullWidth={Kb.Styles.isMobile}
           />
-          <Kb.Button
+          <Kb.Button2
             type="Danger"
             style={styles.button}
             onClick={onDeleteHistory}

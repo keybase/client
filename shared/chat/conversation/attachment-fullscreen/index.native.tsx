@@ -198,7 +198,7 @@ const Fullscreen = function Fullscreen(p: Props) {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-      <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
+      <Kb.IconButton icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
       {popup}
     </Kb.Box2>
   )

@@ -187,11 +187,11 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Box2>
         </Kb.ClickableBox2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
+          {!Kb.Styles.isMobile && <Kb.Button2 fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
           ) : (
-            <Kb.Button fullWidth={!multiUpload} onClick={onNext} label="Next" />
+            <Kb.Button2 fullWidth={!multiUpload} onClick={onNext} label="Next" />
           )}
           {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
         </Kb.ButtonBar>

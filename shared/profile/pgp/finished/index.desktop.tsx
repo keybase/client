@@ -40,7 +40,7 @@ export const Finished = (props: Props) => {
             </Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Button
+        <Kb.Button2
           onClick={() => props.onDone(shouldStoreKeyOnServer)}
           label={shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
         />

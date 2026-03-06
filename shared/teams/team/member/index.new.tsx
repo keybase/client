@@ -572,7 +572,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (
-                      <Kb.Button
+                      <Kb.Button2
                         mode="Secondary"
                         onClick={onAddToChannels}
                         label={isMe ? 'Join channels' : 'Add to channels'}
@@ -582,13 +582,14 @@ const NodeInRow = (props: NodeInRowProps) => {
                     {!(isMe && amLastOwner) && !cantKickOut && (
                       <Kb.WaitingButton
                         mode="Secondary"
-                        icon={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
                         type="Danger"
                         onClick={onKickOut}
                         label={isMe ? 'Leave team' : 'Kick out'}
                         small={true}
                         waitingKey={onKickOutWaitingKey}
-                      />
+                      >
+                        <Kb.Icon2 type={isMe ? 'iconfont-team-leave' : 'iconfont-block'} sizeType="Small" color={Kb.Styles.globalColors.redDark} />
+                      </Kb.WaitingButton>
                     )}
                   </Kb.Box2>
                 )}
@@ -636,8 +637,8 @@ export const TeamMemberHeader = (props: Props) => {
 
   const buttons = (
     <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Kb.Styles.isPhone ? 'flex-start' : 'flex-end'}>
-      <Kb.Button small={true} label="Chat" onClick={onChat} />
-      <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
+      <Kb.Button2 small={true} label="Chat" onClick={onChat} />
+      <Kb.Button2 small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
       {username !== yourUsername && <BlockDropdown username={username} />}
     </Kb.Box2>
   )
@@ -710,7 +711,7 @@ const BlockDropdown = (props: {username: string}) => {
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
-      <Kb.Button
+      <Kb.IconButton
         small={true}
         icon="iconfont-ellipsis"
         onClick={showPopup}

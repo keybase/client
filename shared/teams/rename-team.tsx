@@ -125,9 +125,9 @@ const Container = (ownProps: OwnProps) => {
         </Kb.Box2>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>
           {!Kb.Styles.isMobile && (
-            <Kb.Button type="Dim" label="Cancel" onClick={onCancel} style={styles.button} />
+            <Kb.Button2 type="Dim" label="Cancel" onClick={onCancel} style={styles.button} />
           )}
-          <Kb.Button
+          <Kb.Button2
             label="Rename"
             onClick={handleRename}
             style={styles.button}

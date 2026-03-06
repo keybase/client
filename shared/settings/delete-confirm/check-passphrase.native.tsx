@@ -91,7 +91,7 @@ const CheckPassphraseMobile = () => {
           style={styles.checkbox}
         />
         {checkPasswordIsCorrect && (
-          <Kb.Button
+          <Kb.Button2
             label="Delete forever"
             onClick={deleteForever}
             type="Danger"

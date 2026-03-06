@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPeopleItem} from '@/util/timestamp'
-import type {Props as ButtonProps} from '@/common-adapters/button'
+import type {Button2Props} from '@/common-adapters/button2'
 
 type NonReactTaskButton = {
   label: string
   onClick: () => void
-  type?: ButtonProps['type']
-  mode?: ButtonProps['mode']
-  waiting?: ButtonProps['waiting']
+  type?: Button2Props['type']
+  mode?: Button2Props['mode']
+  waiting?: Button2Props['waiting']
 }
 
 export type TaskButton = NonReactTaskButton | React.ReactElement
@@ -47,7 +47,7 @@ const PeopleItem = (props: Props) => (
                 {b}
               </Kb.Box2>
             ) : (
-              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
+              <Kb.Button2 key={b.label} small={true} style={styles.button} {...b} />
             )
           )}
       </Kb.Box2>

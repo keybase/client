@@ -24,15 +24,16 @@ export type Button2Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-const regularHeight = Styles.isMobile ? 40 : 32
-const smallHeight = Styles.isMobile ? 32 : 28
+export const regularHeight = Styles.isMobile ? 40 : 32
+export const smallHeight = Styles.isMobile ? 32 : 28
 
 // Pre-computed container styles for all 8 mode+type combos
 const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
   common: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     borderRadius: Styles.borderRadius,
+    gap: Styles.globalMargins.xtiny,
     height: regularHeight,
     justifyContent: 'center',
   },

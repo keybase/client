@@ -40,7 +40,7 @@ const DeviceList = (props: Props) => (
       ))}
     </div>
     <div style={styles.buttonsContainer}>
-      <Kb.Button
+      <Kb.Button2
         type="Dim"
         label="Enter a paper key instead"
         style={styles.enterPaperKey}

@@ -59,7 +59,7 @@ const EditChannel = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.Button
+          <Kb.Button2
             label="Save"
             onClick={onSave}
             fullWidth={true}

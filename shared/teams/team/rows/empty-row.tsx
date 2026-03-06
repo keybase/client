@@ -116,9 +116,9 @@ const EmptyRow = (props: Props) => {
       )}
       <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (
-          <Kb.Button small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
+          <Kb.Button2 small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
         )}
-        <Kb.Button
+        <Kb.Button2
           small={true}
           mode="Secondary"
           label={conversationIDKey ? 'Add people' : buttonLabel[props.type]}

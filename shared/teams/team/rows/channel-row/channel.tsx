@@ -120,7 +120,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       alignSelf="flex-start"
     >
       {popup}
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-edit"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -128,7 +128,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         small={true}
         tooltip="Edit channel"
       />
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"

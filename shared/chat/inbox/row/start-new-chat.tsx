@@ -20,7 +20,7 @@ const StartNewChat = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true} />
+      <Kb.Button2 label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true} />
     </Kb.Box2>
   )
 }

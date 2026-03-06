@@ -120,12 +120,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Activity level={activityLevel} />
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-          {yourOperations.chat && <Kb.Button label="View" onClick={onChat} small={true} />}
+          {yourOperations.chat && <Kb.Button2 label="View" onClick={onChat} small={true} />}
           {yourOperations.editChannelDescription && (
-            <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
+            <Kb.Button2 label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
           {!Kb.Styles.isMobile && (
-            <Kb.Button
+            <Kb.Button2
               label="Add members"
               onClick={onAddMembers}
               small={true}
@@ -134,7 +134,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             />
           )}
           {!!menuItems.length && (
-            <Kb.Button
+            <Kb.IconButton
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"

@@ -123,7 +123,7 @@ const TeamHeader = () => {
         </Kb.Box2>
       )}
       {isPreview && (
-        <Kb.Button
+        <Kb.Button2
           mode="Primary"
           type="Default"
           label="Join channel"
@@ -148,7 +148,7 @@ export const AdhocHeader = () => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-      <Kb.Button
+      <Kb.Button2
         mode="Primary"
         type="Default"
         label="Turn into a team"

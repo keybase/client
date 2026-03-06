@@ -39,15 +39,15 @@ const teamAvatarUrl = (httpSrvAddress: string, httpSrvToken: string, teamname: s
 
 const getButtons = (props: Props) => {
   const buttonClose = (
-    <Kb.Button type="Dim" key="Close" label="Close" onClick={props.onClose} />
+    <Kb.Button2 type="Dim" key="Close" label="Close" onClick={props.onClose} />
   )
   const buttonAccept = (
-    <Kb.Button type="Success" key="Accept" label="Accept" onClick={props.onAccept} />
+    <Kb.Button2 type="Success" key="Accept" label="Accept" onClick={props.onAccept} />
   )
   const buttonChat = (
-    <Kb.Button key="Chat" label="Chat" onClick={props.onChat}>
+    <Kb.Button2 key="Chat" label="Chat" onClick={props.onChat}>
       <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
-    </Kb.Button>
+    </Kb.Button2>
   )
 
   if (props.isYou) {
@@ -64,17 +64,17 @@ const getButtons = (props: Props) => {
         ? [buttonClose, buttonChat]
         : [
             buttonChat,
-            <Kb.Button type="Success" key="Follow" label="Follow" onClick={props.onFollow} />,
+            <Kb.Button2 type="Success" key="Follow" label="Follow" onClick={props.onFollow} />,
           ]
     case 'broken':
       return [
-        <Kb.Button type="Dim" key="Ignore for 24 hours" label="Ignore for 24 hours" onClick={props.onIgnoreFor24Hours} />,
+        <Kb.Button2 type="Dim" key="Ignore for 24 hours" label="Ignore for 24 hours" onClick={props.onIgnoreFor24Hours} />,
         buttonAccept,
       ]
     case 'needsUpgrade':
       return [buttonChat, buttonAccept]
     case 'error':
-      return [<Kb.Button key="Reload" label="Reload" onClick={props.onReload} />]
+      return [<Kb.Button2 key="Reload" label="Reload" onClick={props.onReload} />]
     default:
       break
   }

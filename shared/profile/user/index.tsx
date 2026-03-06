@@ -236,7 +236,7 @@ export type BioTeamProofsProps = {
 const BioTeamProofs = (props: BioTeamProofsProps) => {
   const addIdentity = props.onAddIdentity ? (
     <Kb.ButtonBar style={styles.addIdentityContainer}>
-      <Kb.Button
+      <Kb.Button2
         fullWidth={true}
         onClick={props.onAddIdentity}
         style={styles.addIdentityButton}

@@ -23,7 +23,7 @@ const PerfRow = () => {
       style={styles.perfRow}
       gapStart={true}
     >
-      <Kb.Button
+      <Kb.Button2
         small={true}
         label="PerfLog"
         onClick={() => {

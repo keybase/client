@@ -56,7 +56,7 @@ const AddPeople = (p: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {popup}
-      <Kb.Button
+      <Kb.Button2
         mode="Primary"
         type="Default"
         onClick={directAction || showPopup}

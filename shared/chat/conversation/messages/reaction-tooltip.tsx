@@ -119,13 +119,13 @@ const ReactionTooltip = (p: OwnProps) => {
             />
             {Kb.Styles.isMobile && (
               <Kb.ButtonBar style={styles.addReactionButtonBar}>
-                <Kb.Button mode="Secondary" fullWidth={true} onClick={onAddReaction} label="Add a reaction">
+                <Kb.Button2 mode="Secondary" fullWidth={true} onClick={onAddReaction} label="Add a reaction">
                   <Kb.Icon
                     type="iconfont-reacji"
                     color={Kb.Styles.globalColors.blue}
                     style={styles.addReactionButtonIcon}
                   />
-                </Kb.Button>
+                </Kb.Button2>
               </Kb.ButtonBar>
             )}
           </Kb.Box2>

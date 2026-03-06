@@ -78,13 +78,13 @@ const AddToChannel = (props: Props) => {
           : {
               content: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
+                  <Kb.Button2
                     type="Dim"
                     label="Cancel"
                     onClick={onClose}
                     style={Kb.Styles.globalStyles.flexOne}
                   />
-                  <Kb.Button
+                  <Kb.Button2
                     label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
                     onClick={onAdd}
                     disabled={!toAdd.size}

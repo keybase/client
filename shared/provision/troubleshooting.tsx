@@ -79,7 +79,7 @@ const Troubleshooting = (props: Props) => {
         Kb.Styles.isMobile
           ? undefined
           : {
-              content: <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />,
+              content: <Kb.Button2 label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />,
               hideBorder: true,
             }
       }

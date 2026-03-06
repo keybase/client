@@ -16,7 +16,7 @@ export const useTeamLinkPopup = (teamname: string) => {
             <Kb.Text type="Body">On the web:</Kb.Text>
             <Kb.CopyText text={shareURLWeb} shareSheet={true} />
           </Kb.Box2>
-          {Kb.Styles.isMobile && <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={hidePopup} />}
+          {Kb.Styles.isMobile && <Kb.Button2 type="Dim" label="Close" fullWidth={true} onClick={hidePopup} />}
         </Kb.Box2>
       )
       if (Kb.Styles.isMobile) {

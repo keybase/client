@@ -26,7 +26,7 @@ const ChatPDF = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar small={true}>
-            <Kb.Button type="Default" label="Download" onClick={onDownload} />
+            <Kb.Button2 type="Default" label="Download" onClick={onDownload} />
           </Kb.ButtonBar>
         ),
       }}

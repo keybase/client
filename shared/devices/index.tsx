@@ -113,7 +113,7 @@ function ReloadableDevices() {
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
           {Kb.Styles.isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
-              <Kb.Button label="Add a device or paper key" fullWidth={true} />
+              <Kb.Button2 label="Add a device or paper key" fullWidth={true} />
             </Kb.ClickableBox>
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}

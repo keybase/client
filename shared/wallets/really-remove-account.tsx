@@ -55,17 +55,17 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       containerStyle={styles.background}
       headerStyle={Kb.Styles.collapseStyles([styles.background, styles.header])}
       bottomButtons={[
-        <Kb.Button
+        <Kb.Button2
           fullWidth={Kb.Styles.isMobile}
           key={0}
           label="Copy secret key"
           onClick={onCopy}
-          type="Wallet"
+          type="Default"
           ref={attachmentRef}
           waiting={loading}
           disabled={waiting}
         />,
-        <Kb.Button
+        <Kb.Button2
           fullWidth={Kb.Styles.isMobile}
           key={1}
           label="Finish"

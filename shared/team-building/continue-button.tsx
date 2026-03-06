@@ -7,11 +7,11 @@ export type Props = {
 }
 
 const ContinueButton = (props: Props) => (
-  <Kb.Button fullWidth={true} style={styles.button} onClick={props.onClick} disabled={props.disabled}>
+  <Kb.Button2 fullWidth={true} style={styles.button} onClick={props.onClick} disabled={props.disabled}>
     <Kb.Text type="BodyBig" style={styles.continueText}>
       {props.label}
     </Kb.Text>
-  </Kb.Button>
+  </Kb.Button2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

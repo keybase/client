@@ -58,9 +58,6 @@ module.exports = {
   get BoxGrow2() {
     return require('./box-grow').BoxGrow2
   },
-  get Button() {
-    return require('./button').default
-  },
   get Button2() {
     return require('./button2').default
   },

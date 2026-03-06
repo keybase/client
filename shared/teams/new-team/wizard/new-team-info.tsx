@@ -126,7 +126,7 @@ const NewTeamInfo = () => {
       }}
       footer={{
         content: (
-          <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
+          <Kb.Button2 label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
         ),
       }}
       allowOverflow={true}
