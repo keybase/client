@@ -10,12 +10,22 @@ import {OrangeLineContext} from '../orange-line-context'
 const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
   const id = Chat.useChatContext(s => s.id)
-  // this hook only deals with the active changes, otherwise the rest of the logic is in the store
-  const loadOrangeLine = React.useEffectEvent(() => {
+  // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
+  // This ensures we capture the read position before the Go service processes mark-as-read
+  const savedReadMsgIDRef = React.useRef(Chat.getConvoState(id).meta.readMsgID)
+  const prevIdRef = React.useRef(id)
+  if (prevIdRef.current !== id) {
+    prevIdRef.current = id
+    savedReadMsgIDRef.current = Chat.getConvoState(id).meta.readMsgID
+  }
+
+  const loadOrangeLine = React.useEffectEvent((useSavedReadMsgID?: boolean) => {
     const f = async () => {
       const store = Chat.getConvoState(id)
       const convID = store.getConvID()
-      const readMsgID = store.meta.readMsgID
+      const readMsgID = useSavedReadMsgID
+        ? savedReadMsgIDRef.current
+        : store.meta.readMsgID
       const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
         convID,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -26,10 +36,17 @@ const useOrangeLine = () => {
     C.ignorePromise(f())
   })
 
-  // initial load
+  const loaded = Chat.useChatContext(s => s.loaded)
+
+  // Fire when conversation changes or messages finish loading
+  // Wait for loaded so the Go service has messages in its local cache
+  // On desktop the component doesn't remount on conversation switch, so we depend on id
   React.useEffect(() => {
-    loadOrangeLine()
-  }, [])
+    setOrangeLine(T.Chat.numberToOrdinal(0))
+    if (loaded) {
+      loadOrangeLine(true)
+    }
+  }, [id, loaded])
 
   const {markedAsUnread, maxVisibleMsgID} = Chat.useChatContext(
     C.useShallow(s => {
