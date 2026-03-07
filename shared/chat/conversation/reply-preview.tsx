@@ -62,7 +62,7 @@ const ReplyPreview = () => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />
+          <Kb.Icon2 onClick={onCancel} type="iconfont-remove" style={styles.close} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>

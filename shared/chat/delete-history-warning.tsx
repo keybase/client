@@ -25,7 +25,7 @@ const DeleteHistoryWarning = () => {
           styles.box,
         ])}
       >
-        <Kb.Icon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+        <Kb.ImageIcon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
         <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
           Delete conversation history?
         </Kb.Text>

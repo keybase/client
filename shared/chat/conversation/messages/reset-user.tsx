@@ -21,7 +21,7 @@ const ResetUser = () => {
 
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
-      <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
+      <Kb.ImageIcon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
       <Kb.Box2 direction="vertical" style={styles.textContainer}>
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>

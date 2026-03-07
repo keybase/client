@@ -57,7 +57,7 @@ function RetentionNoticeContainer() {
   return (
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="vertical" style={styles.iconBox}>
-        <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
+        <Kb.Icon2 color={Kb.Styles.globalColors.black_20} fontSize={20} type={iconType} />
       </Kb.Box2>
       {!!explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
