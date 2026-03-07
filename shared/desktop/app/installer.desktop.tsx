@@ -147,11 +147,11 @@ const darwinInstall = (callback: CB) => {
   const handleResults = (err: {code?: number} | null, _: unknown, stdout: string, stderr: string) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
-    const errorTypes = {
+    const errorTypes: ErrorTypes = {
       cli: false,
       fuse: false,
       kbnm: false,
-    } satisfies ErrorTypes
+    }
     if (err) {
       errors.push(`There was an error trying to run the install (${err.code}).`)
     } else if (stdout !== '') {

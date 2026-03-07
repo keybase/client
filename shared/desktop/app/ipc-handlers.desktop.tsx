@@ -34,7 +34,7 @@ const winCheckRPCOwnership = async () => {
   const localAppData = String(env.LOCALAPPDATA)
   const binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
   const args = ['pipeowner', socketPath]
-  const {promise, resolve, reject} = Promise.withResolvers<void>()
+  const {promise, resolve, reject} = Promise.withResolvers<undefined>()
   execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
     if (error) {
       logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -136,7 +136,7 @@ const openInDefaultDirectory = async (openPath: string) => {
 
     return encodeURI('file://' + goodPath).replace(/#/g, '%23')
   }
-  const {promise, resolve, reject} = Promise.withResolvers<void>()
+  const {promise, resolve, reject} = Promise.withResolvers<undefined>()
   // Paths in directories might be symlinks, so resolve using
   // realpath.
   // For example /keybase/private/gabrielh,chris gets redirected to
@@ -157,7 +157,7 @@ const openInDefaultDirectory = async (openPath: string) => {
       .openExternal(url, {activate: true})
       .then(() => {
         logger.info('Opened directory:', openPath)
-        resolve()
+        resolve(undefined)
       })
       .catch((err: unknown) => {
         reject(err)

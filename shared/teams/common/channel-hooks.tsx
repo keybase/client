@@ -44,7 +44,7 @@ export const useAllChannelMetas = (
   }, [getConversations, teamname, teamID])
 
   const [reloadChannels] = React.useState(() => async () => {
-    const {promise, resolve, reject} = Promise.withResolvers<void>()
+    const {promise, resolve, reject} = Promise.withResolvers<undefined>()
     setLoadingChannels(true)
     getConversationsRef.current(
       [
@@ -56,7 +56,7 @@ export const useAllChannelMetas = (
         C.waitingKeyTeamsGetChannels(teamIDRef.current),
       ],
       ({convs}) => {
-        resolve()
+        resolve(undefined)
         if (convs) {
           setChannelMetas(
             new Map(
