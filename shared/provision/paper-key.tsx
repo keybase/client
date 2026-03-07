@@ -61,7 +61,7 @@ export const PaperKey = (props: Props) => {
         gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-          <Kb.Icon type="icon-paper-key-64" />
+          <Kb.ImageIcon type="icon-paper-key-64" />
           <Kb.Text type="Header">{props.hint}</Kb.Text>
         </Kb.Box2>
         <Kb.Input3

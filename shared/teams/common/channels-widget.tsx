@@ -109,7 +109,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
         centerChildren={true}
         style={styles.channelDummyInput}
       >
-        <Kb.Icon type="iconfont-search" color={Kb.Styles.globalColors.black_50} sizeType="Small" />
+        <Kb.Icon2 type="iconfont-search" color={Kb.Styles.globalColors.black_50} sizeType="Small" />
         <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
           Add channels
         </Kb.Text>
@@ -133,7 +133,7 @@ const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
     <Kb.Text type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
     {onRemove && (
-      <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
+      <Kb.Icon2 type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
     )}
   </Kb.Box2>
 )

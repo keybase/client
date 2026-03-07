@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {Box2} from './box'
-import Icon from './icon'
+import Icon2 from './icon2'
 import Text from './text'
 import Button from './button'
 import NativeEmoji from './emoji/native-emoji'
@@ -13,7 +13,7 @@ import logger from '@/logger'
 const Kb = {
   Box2,
   Button,
-  Icon,
+  Icon2,
   NativeEmoji,
   Text,
 }
@@ -79,7 +79,7 @@ const WaveButtonImpl = (props: Props) => {
     <Kb.Box2 direction="vertical" style={Styles.collapseStyles([props.style, styles.outer])}>
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
+          <Kb.Icon2 type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
           <Kb.Text type="BodySmall"> Waved</Kb.Text>
         </Kb.Box2>
       )}

@@ -478,7 +478,7 @@ const NodeInRow = (props: NodeInRowProps) => {
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
             <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.expandIcon])}>
-              <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
+              <Kb.Icon2 type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
@@ -532,11 +532,10 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
                 {expanded && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
-                    <Kb.Icon
+                    <Kb.Icon2
                       type="iconfont-typing"
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
                     />
                     <LastActivity
                       loading={loadingActivity}
@@ -547,11 +546,10 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
                 {expanded && !isSmallTeam && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
-                    <Kb.Icon
+                    <Kb.Icon2
                       type="iconfont-hash"
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"

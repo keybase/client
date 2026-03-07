@@ -16,7 +16,7 @@ const MakeBigTeam = () => {
     <Kb.Modal
       mode="DefaultFullHeight"
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Make it a big team?" />,
       }}
       allowOverflow={true}

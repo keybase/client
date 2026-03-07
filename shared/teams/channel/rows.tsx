@@ -56,7 +56,7 @@ const ChannelMemberRow = (props: Props) => {
   const roleType = teamMemberInfo.type
   const crown = (() => {
     const type = crownIcon(roleType)
-    return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
+    return active && type ? <Kb.Icon2 type={type} style={styles.crownIcon} fontSize={10} /> : null
   })()
   const fullNameLabel =
     fullname && active ? (

@@ -68,7 +68,7 @@ const Container = (ownProps: OwnProps) => {
             Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
           </Kb.Text>
-          <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
+          <Kb.ImageIcon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
             {!!teamname && (
               <Kb.Avatar

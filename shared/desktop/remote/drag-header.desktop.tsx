@@ -28,11 +28,11 @@ const DragHeader = (props: Props) => {
         }
       >
         {props.children}
-        {props.icon && <Kb.Icon type="icon-keybase-logo-24" />}
+        {props.icon && <Kb.ImageIcon type="icon-keybase-logo-24" />}
         <Kb.Text type="Body" style={{flex: 1, paddingLeft: 6}}>
           {props.title}
         </Kb.Text>
-        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
+        {props.onClose && <Kb.Icon2 style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
       </div>
     )
   }
@@ -64,7 +64,7 @@ const DragHeader = (props: Props) => {
           </Kb.Text>
         )}
         {props.children}
-        {props.onClose && <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
+        {props.onClose && <Kb.Icon2 style={styles.closeIcon} type="iconfont-close" onClick={props.onClose} />}
       </div>
     )
   }

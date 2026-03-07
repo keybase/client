@@ -55,7 +55,7 @@ const TurnOnNotifications = () => {
           width: 250,
         }}
       >
-        <Kb.Icon type="illustration-turn-on-notifications" />
+        <Kb.ImageIcon type="illustration-turn-on-notifications" />
       </Kb.Box2>
       <Kb.Text
         type="BodySemibold"

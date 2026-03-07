@@ -79,7 +79,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewTopStyle={styles.background}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
-        <Kb.Icon
+        <Kb.ImageIcon
           type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />
@@ -100,7 +100,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
-          {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
+          {Kb.Styles.isMobile && <Kb.Icon2 type="iconfont-clipboard" color="white" />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

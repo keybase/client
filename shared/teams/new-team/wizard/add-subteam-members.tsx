@@ -77,7 +77,7 @@ const AddSubteamMembers = () => {
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: Kb.Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
             <Kb.Text type="BodyBigLink" onClick={onContinue}>

@@ -9,7 +9,7 @@ import Input3, {type Input3Ref} from './input3'
 import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon2 from './icon2'
 import {usePopup2, type Popup2Parms} from './use-popup'
 import {isIOS, isMobile} from '@/constants/platform'
 import {
@@ -27,7 +27,7 @@ const Kb = {
   ClickableBox,
   FloatingMenu,
   FloatingPicker,
-  Icon,
+  Icon2,
   Input3,
   NativeEmoji,
   ProgressIndicator,
@@ -567,7 +567,7 @@ const PhoneInput = (p: Props) => {
             ref={popupAnchor}
           >
             {renderCountrySelector()}
-            <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
+            <Kb.Icon2 type="iconfont-caret-down" sizeType="Tiny" />
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
@@ -642,7 +642,7 @@ const PhoneInput = (p: Props) => {
             maxLength={17}
             textContentType="telephoneNumber"
           />
-          {onClear && <Kb.Icon type="iconfont-remove" onClick={onClear} style={styles.clearIcon} />}
+          {onClear && <Kb.Icon2 type="iconfont-remove" onClick={onClear} style={styles.clearIcon} />}
         </Kb.Box2>
       </Kb.Box2>
       {popup}

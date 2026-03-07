@@ -190,7 +190,7 @@ const FileInput = (props: FileProps) => {
     >
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
-          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.ImageIcon type={fileIcon} />
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
             {size ? <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text> : null}

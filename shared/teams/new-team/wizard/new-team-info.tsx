@@ -115,7 +115,7 @@ const NewTeamInfo = () => {
               </Kb.Text>
             ) : undefined
           ) : (
-            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
+            <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />
           ),
         title: (
           <ModalTitle

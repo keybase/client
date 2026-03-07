@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>
-    <Kb.Icon type="icon-folder-success-48" />
+    <Kb.ImageIcon type="icon-folder-success-48" />
     <Kb.Box2 direction="vertical">
       <Kb.Text center={true} type="BodySemibold">
         Success!

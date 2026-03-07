@@ -127,7 +127,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       gap="xtiny"
       gapEnd={!Kb.Styles.isMobile}
     >
-      <Kb.Icon type={getIconType(type, iconNumber)} />
+      <Kb.ImageIcon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>

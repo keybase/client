@@ -65,7 +65,7 @@ const Dropdown = (props: Props) => {
         {label(value)}
       </Kb.Text>
       {Kb.Styles.isAndroid ? null : (
-        <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
+        <Kb.Icon2 key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
       )}
     </>
   )
