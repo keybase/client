@@ -14,7 +14,7 @@ const http = require('http')
 const CDP_PORT = 9222
 const TABS = ['people', 'chat', 'files', 'crypto', 'teams', 'git', 'devices', 'settings']
 // Keyboard shortcut numbers for each tab (⌘1 through ⌘8)
-const TAB_KEYS = {people: '1', chat: '2', files: '3', crypto: '4', teams: '5', git: '6', devices: '7', settings: '8'}
+const TAB_KEYS = {chat: '2', crypto: '4', devices: '7', files: '3', git: '6', people: '1', settings: '8', teams: '5'}
 const SETTLE_MS = 1500
 
 const mode = process.argv[2]
@@ -71,16 +71,16 @@ function cdpSend(ws, method, params) {
   })
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms))
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 async function pressKey(ws, key) {
   // Simulate Cmd+<key> via CDP Input.dispatchKeyEvent
   const modifiers = 4 // Meta (Cmd)
   await cdpSend(ws, 'Input.dispatchKeyEvent', {
-    type: 'keyDown', key, code: `Digit${key}`, windowsVirtualKeyCode: 48 + parseInt(key), modifiers,
+    code: `Digit${key}`, key, modifiers, type: 'keyDown', windowsVirtualKeyCode: 48 + parseInt(key),
   })
   await cdpSend(ws, 'Input.dispatchKeyEvent', {
-    type: 'keyUp', key, code: `Digit${key}`, windowsVirtualKeyCode: 48 + parseInt(key), modifiers,
+    code: `Digit${key}`, key, modifiers, type: 'keyUp', windowsVirtualKeyCode: 48 + parseInt(key),
   })
 }
 
