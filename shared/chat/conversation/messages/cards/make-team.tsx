@@ -26,7 +26,7 @@ const MakeTeam = () => {
             >
               Enter a team name
             </Kb.Text>
-            <Kb.Icon
+            <Kb.Icon2
               color={Kb.Styles.globalColors.greenLight}
               sizeType="Tiny"
               type="iconfont-arrow-right"
@@ -36,7 +36,7 @@ const MakeTeam = () => {
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon type="icon-illustration-teams-80" style={styles.image} />
+      <Kb.ImageIcon type="icon-illustration-teams-80" style={styles.image} />
     </Kb.Box2>
   )
 }

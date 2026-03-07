@@ -80,7 +80,7 @@ const Header = (props: HeaderProps) => (
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-arrow-left"
               color={props.negative ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}
               sizeType="Small"

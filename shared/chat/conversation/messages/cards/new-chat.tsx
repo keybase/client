@@ -58,7 +58,7 @@ function NewCard(outerProps: Props) {
             >
               {props.label}
             </Kb.Text>
-            <Kb.Icon
+            <Kb.Icon2
               color={Kb.Styles.globalColors.blueLighter}
               sizeType="Tiny"
               type="iconfont-arrow-right"
@@ -68,7 +68,7 @@ function NewCard(outerProps: Props) {
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon
+      <Kb.ImageIcon
         type={props.icon}
         style={Kb.Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
       />

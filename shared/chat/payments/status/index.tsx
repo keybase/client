@@ -4,7 +4,7 @@ import * as Chat from '@/stores/chat'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
-import Icon from '@/common-adapters/icon'
+import Icon2 from '@/common-adapters/icon2'
 import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
@@ -14,7 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
   Box2,
-  Icon,
+  Icon2,
   Styles,
   Text,
 }
@@ -81,10 +81,9 @@ const PaymentStatus = (props: Props) => {
       {' '}
       <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
         {props.text}{' '}
-        <Kb.Icon
+        <Kb.Icon2
           type={getIcon(props.status)}
           fontSize={12}
-          boxStyle={styles.iconBoxStyle}
           color={statusColor(props.status)}
         />
       </Kb.Text>{' '}
@@ -145,11 +144,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.xtiny,
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      iconBoxStyle: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
-        },
-      }),
       pending: {
         backgroundColor: Kb.Styles.globalColors.greyLight,
         borderRadius: Kb.Styles.globalMargins.xxtiny,

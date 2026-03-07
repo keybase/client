@@ -270,7 +270,7 @@ function EmojiPicker(props: Props) {
               className="emoji-picker-emoji-box"
               style={isActive ? styles.activeBookmark : undefined}
             >
-              <Kb.Icon
+              <Kb.Icon2
                 type={bookmark.iconType}
                 padding="tiny"
                 color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
@@ -307,7 +307,7 @@ function EmojiPicker(props: Props) {
 
   const makeNotFound = () => (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} justifyContent="space-between" style={styles.notFoundContainer}>
-      <Kb.Icon type="icon-empty-emoji-126-96" />
+      <Kb.ImageIcon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall" center={true}>
           Still haven’t found what you’re

@@ -67,7 +67,7 @@ const ConfirmReset = () => {
         alignItems="center"
         style={styles.container}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
+        <Kb.Icon2 type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="Header">Go ahead with reset?</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall" alignItems="flex-start">

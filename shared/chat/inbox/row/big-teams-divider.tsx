@@ -29,12 +29,12 @@ const BigTeamsDivider = (props: Props) => {
         <BigTeamsLabel />
         {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
         <Kb.Box2 direction="horizontal" alignItems="flex-start" justifyContent="center" style={styles.icon}>
-          <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Kb.Styles.isMobile ? 20 : 16} />
+          <Kb.Icon2 type="iconfont-arrow-up" color="inherit" fontSize={Kb.Styles.isMobile ? 20 : 16} />
         </Kb.Box2>
         {onEdit ? (
           <Kb.BoxGrow2>
             <Kb.Box2 fullWidth={true} direction="vertical" alignItems="flex-end" justifyContent="center">
-              <Kb.Icon type="iconfont-ellipsis" fontSize={Kb.Styles.isMobile ? 20 : 16} onClick={onEdit} />
+              <Kb.Icon2 type="iconfont-ellipsis" fontSize={Kb.Styles.isMobile ? 20 : 16} onClick={onEdit} />
             </Kb.Box2>
           </Kb.BoxGrow2>
         ) : null}

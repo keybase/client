@@ -76,7 +76,7 @@ const PromptReset = (props: Props) => {
         gap="medium"
         style={styles.topGap}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
+        <Kb.Icon2 type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have forgotten your password you can reset it here. You will keep your username, but{' '}

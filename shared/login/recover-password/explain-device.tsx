@@ -38,14 +38,14 @@ const ConnectedExplainDevice = () => {
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
-        <Kb.Icon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
-              <Kb.Icon type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
+              <Kb.Icon2 type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
             )}

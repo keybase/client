@@ -53,8 +53,8 @@ export const Splash = (p: SplashProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" style={styles.container} gap="small">
-      <Kb.Icon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
-      <Kb.Icon type="icon-keybase-wordmark-128-48" />
+      <Kb.ImageIcon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
+      <Kb.ImageIcon type="icon-keybase-wordmark-128-48" />
       {!!status && <Kb.Text type="BodySmall">{status}</Kb.Text>}
       {!!failed && (
         <Kb.Text type="BodySmall">

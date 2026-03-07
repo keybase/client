@@ -75,7 +75,7 @@ const ConfirmKickOut = (props: Props) => {
           members.length > 5 && styles.iconContainerMany,
         ])}
       >
-        <Kb.Icon
+        <Kb.Icon2
           type="iconfont-block"
           color={Kb.Styles.globalColors.white}
           fontSize={14}

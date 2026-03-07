@@ -46,7 +46,7 @@ const ReallyLeaveTeam = (props: Props) => (
         >
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Avatar teamname={props.name} size={Kb.Styles.isMobile ? 96 : 64} />
-            <Kb.Icon type="iconfont-leave" style={styles.leaveIcon} />
+            <Kb.Icon2 type="iconfont-leave" style={styles.leaveIcon} />
           </Kb.Box2>
           <Kb.Text type="Header" center={true} style={styles.headerText}>
             {"You can't leave the {props.name} team because you're the only owner."}

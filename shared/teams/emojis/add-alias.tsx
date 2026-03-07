@@ -199,7 +199,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
       {props.chosen ? (
         <Kb.Emoji emoji={props.chosen.renderableEmoji} showTooltip={false} size={singleEmojiWidth} />
       ) : (
-        <Kb.Icon type="iconfont-emoji" fontSize={Kb.Styles.isMobile ? 20 : 16} />
+        <Kb.Icon2 type="iconfont-emoji" fontSize={Kb.Styles.isMobile ? 20 : 16} />
       )}
     </Kb.Box2>
   )
