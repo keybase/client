@@ -8,6 +8,7 @@ import type {AllowedColors} from './text.shared'
 import ProgressIndicator from './progress-indicator'
 import {useHotKey} from './hot-key'
 import Icon, {type IconType} from './icon'
+import Icon2 from './icon2'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
 import type {MeasureRef} from './measure-ref'
@@ -18,6 +19,7 @@ const Kb = {
   ClickableBox,
   ClickableBox2,
   Icon,
+  Icon2,
   Input3,
   ProgressIndicator,
   Text,
@@ -215,7 +217,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     if (Styles.isMobile) {
       return (
         <Kb.ClickableBox2 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10}>
-          <Kb.Icon
+          <Kb.Icon2
             type="iconfont-remove"
             sizeType={iconSizeType()}
             color={iconColor()}
@@ -230,11 +232,10 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
           onMouseDown={cancel}
           style={props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
         >
-          <Kb.Icon
+          <Kb.Icon2
             type="iconfont-remove"
             sizeType={iconSizeType()}
             color={iconColor()}
-            boxStyle={styles.icon}
           />
         </Kb.ClickableBox>
       )

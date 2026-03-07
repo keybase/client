@@ -6,6 +6,8 @@ import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {type IconType} from './icon'
+import Icon2 from './icon2'
+import ImageIcon from './image-icon'
 import Text from './text'
 import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
@@ -111,9 +113,9 @@ const NameWithIcon = (props: NameWithIconProps) => {
           props.avatarStyle,
         ])}
       >
-        {!!followIconType && !!followIconStyle && <Icon type={followIconType} style={followIconStyle} />}
+        {!!followIconType && !!followIconStyle && <ImageIcon type={followIconType} style={followIconStyle} />}
         {!!props.editableIcon && (
-          <Icon
+          <Icon2
             type="iconfont-edit"
             style={teamname ? styles.editTeam : styles.editUser}
           />

@@ -1,9 +1,8 @@
-import * as React from 'react'
 import * as C from '@/constants'
 import {Pressable, Keyboard} from 'react-native'
 import Badge from './badge'
 import {Box2} from './box'
-import Icon from './icon'
+import Icon2 from './icon2'
 import * as Styles from '@/styles'
 import type {Props} from './back-button'
 import noop from 'lodash/noop'
@@ -11,11 +10,10 @@ import noop from 'lodash/noop'
 const Kb = {
   Badge,
   Box2,
-  Icon,
+  Icon2,
 }
 
 function BackButton(props: Props) {
-  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onNavUp = () => {
     // this helps with some timing issues w/ dismissing keyboard avoiding views
@@ -26,8 +24,7 @@ function BackButton(props: Props) {
   return (
     <Pressable onPress={onBack}>
       <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([styles.container, props.style])}>
-        <Kb.Icon
-          fixOverdraw={canFixOverdraw}
+        <Kb.Icon2
           type="iconfont-arrow-left"
           color={props.iconColor}
           style={styles.arrow}

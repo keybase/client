@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
-import Icon from './icon'
+import Icon2 from './icon2'
 import {smallHeight, regularHeight} from './button'
 import {usePopup2, type Popup2Parms} from './use-popup'
 import * as Styles from '@/styles'
@@ -16,7 +16,7 @@ import {useSafeAreaInsets} from './safe-area-view'
 const Kb = {
   Box2,
   ClickableBox,
-  Icon,
+  Icon2,
   Overlay,
   ProgressIndicator,
   ScrollView,
@@ -65,9 +65,8 @@ export const DropdownButton = (props: DropdownButtonProps) => {
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.collapseStyles([styles.selectedBox, selectedBoxStyle])}>
           {loading ? <Kb.ProgressIndicator type="Small" /> : selected}
         </Kb.Box2>
-        <Kb.Icon
+        <Kb.Icon2
           type="iconfont-caret-down"
-          inheritColor={true}
           sizeType="Tiny"
           style={{marginTop: Styles.isMobile ? 2 : -8}}
         />
