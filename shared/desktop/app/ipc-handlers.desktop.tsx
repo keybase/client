@@ -34,22 +34,22 @@ const winCheckRPCOwnership = async () => {
   const localAppData = String(env.LOCALAPPDATA)
   const binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
   const args = ['pipeowner', socketPath]
-  return new Promise<void>((resolve, reject) => {
-    execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
-      if (error) {
-        logger.info(`pipeowner check result: ${stdout.toString()}`)
-        reject(error)
-        return
-      }
-      const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
-      if (result?.isOwner) {
-        resolve(undefined)
-        return
-      }
+  const {promise, resolve, reject} = Promise.withResolvers<void>()
+  execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+    if (error) {
       logger.info(`pipeowner check result: ${stdout.toString()}`)
-      reject(new Error('pipeowner check failed'))
-    })
+      reject(error)
+      return
+    }
+    const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
+    if (result?.isOwner) {
+      resolve(undefined)
+      return
+    }
+    logger.info(`pipeowner check result: ${stdout.toString()}`)
+    reject(new Error('pipeowner check failed'))
   })
+  return promise
 }
 
 // Expose native file picker to components.
@@ -136,36 +136,35 @@ const openInDefaultDirectory = async (openPath: string) => {
 
     return encodeURI('file://' + goodPath).replace(/#/g, '%23')
   }
-  const prom = new Promise<void>((resolve, reject) => {
-    // Paths in directories might be symlinks, so resolve using
-    // realpath.
-    // For example /keybase/private/gabrielh,chris gets redirected to
-    // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
-      if (err) {
-        reject(new Error(`No realpath for ${openPath}`))
-        return
-      }
-      // Convert to URL for openExternal call.
-      // We use openExternal instead of openItem because it
-      // correctly focuses' the Finder, and also uses a newer
-      // native API on macOS.
-      const url = pathToURL(resolvedPath)
-      logger.info('Open URL (directory):', url)
+  const {promise, resolve, reject} = Promise.withResolvers<void>()
+  // Paths in directories might be symlinks, so resolve using
+  // realpath.
+  // For example /keybase/private/gabrielh,chris gets redirected to
+  // /keybase/private/chris,gabrielh.
+  fs.realpath(openPath, (err, resolvedPath) => {
+    if (err) {
+      reject(new Error(`No realpath for ${openPath}`))
+      return
+    }
+    // Convert to URL for openExternal call.
+    // We use openExternal instead of openItem because it
+    // correctly focuses' the Finder, and also uses a newer
+    // native API on macOS.
+    const url = pathToURL(resolvedPath)
+    logger.info('Open URL (directory):', url)
 
-      Electron.shell
-        .openExternal(url, {activate: true})
-        .then(() => {
-          logger.info('Opened directory:', openPath)
-          resolve()
-        })
-        .catch((err: unknown) => {
-          reject(err)
-        })
-    })
+    Electron.shell
+      .openExternal(url, {activate: true})
+      .then(() => {
+        logger.info('Opened directory:', openPath)
+        resolve()
+      })
+      .catch((err: unknown) => {
+        reject(err)
+      })
   })
   try {
-    await prom
+    await promise
     return true
   } catch {
     return false
