@@ -15,6 +15,7 @@ export type IconProps = {
   style?: Styles.StylesCrossPlatform
   className?: string
   hoverColor?: Styles.Color
+  hint?: string
   onClick?: () => void
   padding?: keyof typeof Styles.globalMargins
 }
@@ -29,7 +30,7 @@ const cssVarToColorName = (cssVar: string): string | undefined => {
 }
 
 const IconDesktop = (props: IconProps) => {
-  const {type, color, fontSize, sizeType, style, className, hoverColor, onClick, padding} = props
+  const {type, color, fontSize, sizeType, style, className, hoverColor, hint, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
 
@@ -59,12 +60,12 @@ const IconDesktop = (props: IconProps) => {
     }
     return (
       <div onClick={handleClick} style={styles.clickable as React.CSSProperties}>
-        <span className={cn} style={inlineStyle} />
+        <span className={cn} style={inlineStyle} title={hint} />
       </div>
     )
   }
 
-  return <span className={cn} style={inlineStyle} />
+  return <span className={cn} style={inlineStyle} title={hint} />
 }
 
 const nativeBaseStyle: Styles._StylesCrossPlatform = {
