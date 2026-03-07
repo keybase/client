@@ -161,11 +161,11 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         ],
         cants: [`Can't delete the team`],
         icon: (
-          <Kb.Icon
-            boxStyle={{paddingBottom: 0}}
+          <Kb.Icon2
             style={styles.roleIcon}
             type="iconfont-crown-admin"
             sizeType="Small"
+            color={Kb.Styles.globalColors.black_35}
           />
         ),
       }
@@ -182,11 +182,11 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         cants: [],
         extra: ['A team can have multiple owners'],
         icon: (
-          <Kb.Icon
+          <Kb.Icon2
             style={styles.roleIcon}
-            boxStyle={{paddingBottom: 0}}
             type="iconfont-crown-owner"
             sizeType="Small"
+            color={Kb.Styles.globalColors.yellowDark}
           />
         ),
       }
@@ -240,11 +240,10 @@ const roleAbilities = (
           : undefined),
       }}
     >
-      <Kb.Icon
+      <Kb.Icon2
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
-        style={Kb.Styles.isMobile ? styles.abilityCheck : undefined}
-        boxStyle={!Kb.Styles.isMobile ? styles.abilityCheck : undefined}
+        style={styles.abilityCheck}
         color={canDo ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.black_50}
       />
       <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
@@ -320,10 +319,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       abilityCheck: Kb.Styles.platformStyles({
-        isElectron: {
-          paddingRight: Kb.Styles.globalMargins.xtiny,
-          paddingTop: 6,
-        },
+        isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny, paddingTop: 6},
         isMobile: {paddingRight: Kb.Styles.globalMargins.tiny, paddingTop: 4},
       }),
       canText: {color: Kb.Styles.globalColors.black},

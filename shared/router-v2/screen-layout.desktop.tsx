@@ -92,7 +92,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
             <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
               {children}
               {!modal2ClearCover && !modal2NoClose && (
-                <Kb.Icon
+                <Kb.Icon2
                   type="iconfont-close"
                   onClick={() => navigation.pop()}
                   color={Kb.Styles.globalColors.whiteOrWhite_75}

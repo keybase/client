@@ -128,7 +128,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text type="Header" style={{marginBottom: 27}}>
             New {isTeam ? 'team' : 'personal'} git repository
           </Kb.Text>
-          <Kb.Icon
+          <Kb.IconAuto
             type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={styles.addIcon}
           />

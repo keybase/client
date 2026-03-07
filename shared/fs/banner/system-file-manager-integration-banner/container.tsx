@@ -137,7 +137,7 @@ const Banner = (props: BannerProps) => (
     centerChildren={true}
     style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
   >
-    <Kb.Icon
+    <Kb.IconAuto
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />
@@ -183,7 +183,7 @@ const Banner = (props: BannerProps) => (
     <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
-        <Kb.Icon
+        <Kb.Icon2
           type="iconfont-close"
           onClick={props.onDismiss}
           color={Kb.Styles.globalColors.white_40}

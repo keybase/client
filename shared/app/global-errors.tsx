@@ -159,7 +159,7 @@ const GlobalError = () => {
               onClick={onExpandClick}
             >
               {size !== 'Big' && (
-                <Kb.Icon
+                <Kb.Icon2
                   type="iconfont-caret-right"
                   color={Kb.Styles.globalColors.white_75}
                   sizeType="Tiny"
@@ -168,7 +168,7 @@ const GlobalError = () => {
               {'  '}
               An error occurred.
             </Kb.Text>
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-close"
               onClick={onDismiss}
               color={Kb.Styles.globalColors.white_75}
@@ -219,7 +219,7 @@ const GlobalError = () => {
 
         />
         {summary && (
-          <Kb.Icon
+          <Kb.Icon2
             color={Kb.Styles.globalColors.white_75}
             hoverColor={Kb.Styles.globalColors.white}
             onClick={onDismiss}

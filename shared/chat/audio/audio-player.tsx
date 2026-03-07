@@ -95,7 +95,7 @@ const AudioPlayer = (props: Props) => {
       gap="tiny"
     >
       <Kb.ClickableBox onClick={url ? onClick : undefined} style={{justifyContent: 'center'}}>
-        <Kb.Icon
+        <Kb.Icon2
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
           color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}

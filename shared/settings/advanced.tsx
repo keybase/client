@@ -68,10 +68,9 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
           </Kb.Text>
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-open-browser"
               sizeType="Tiny"
-              boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
@@ -326,7 +325,6 @@ const styles = Kb.Styles.styleSheetCreate(
       developerContainer: {
         paddingBottom: Kb.Styles.globalMargins.medium,
       },
-      displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
       divider: {
         marginTop: Kb.Styles.globalMargins.xsmall,
         width: '100%',

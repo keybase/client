@@ -114,7 +114,7 @@ function Providers({filter, providerClicked, providers}: ProvidersProps) {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        <Kb.Icon
+        <Kb.Icon2
           type="iconfont-arrow-right"
           color={Kb.Styles.globalColors.black_50}
           fontSize={Kb.Styles.isMobile ? 20 : 16}

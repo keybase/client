@@ -67,7 +67,7 @@ const ConnectedEnterUsername = () => {
         >
           <Kb.Box2 direction="vertical" relative={true}>
             <SiteIcon set={serviceIconFull} full={true} style={styles.serviceIconFull} />
-            <Kb.Icon
+            <Kb.IconAuto
               type={unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
               style={styles.serviceProofIcon}
             />
@@ -209,12 +209,13 @@ const Unreachable = (props: {
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
-    <Kb.Icon
-      type="iconfont-proof-broken"
-      color={Kb.Styles.globalColors.red}
-      boxStyle={styles.marginLeftAuto}
-      style={styles.inlineIcon}
-    />
+    <Kb.Box2 direction="vertical" style={styles.marginLeftAuto}>
+      <Kb.Icon2
+        type="iconfont-proof-broken"
+        color={Kb.Styles.globalColors.red}
+        style={styles.inlineIcon}
+      />
+    </Kb.Box2>
   </Kb.Box2>
 )
 

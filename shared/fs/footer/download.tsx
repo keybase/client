@@ -58,7 +58,7 @@ const Download = (props: Props) => {
         gapEnd={true}
       >
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-          <Kb.Icon
+          <Kb.Icon2
             type={dlState.done ? 'iconfont-success' : 'iconfont-download'}
             color={Kb.Styles.globalColors.black_20}
           />
@@ -75,7 +75,7 @@ const Download = (props: Props) => {
           {FS.downloadIsOngoing(dlState) && getProgress(dlState)}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-          <Kb.Icon
+          <Kb.Icon2
             type="iconfont-remove"
             color={Kb.Styles.globalColors.white}
             onClick={!FS.downloadIsOngoing(dlState) ? dismiss : cancel}

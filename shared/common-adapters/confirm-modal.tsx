@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
-import Icon from '@/common-adapters/icon'
+import IconAuto from '@/common-adapters/icon-auto'
 import Modal from './modal'
 import Text from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
@@ -85,13 +85,14 @@ const ConfirmModal = (props: Props) => (
       noShrink={true}
     >
       {props.icon && (
-        <Icon
-          boxStyle={styles.icon}
-          color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
-          fontSize={Styles.isMobile ? 64 : 48}
-          style={styles.icon}
-          type={props.icon}
-        />
+        <Box2 direction="vertical" style={styles.icon}>
+          <IconAuto
+            color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
+            fontSize={Styles.isMobile ? 64 : 48}
+            style={styles.icon}
+            type={props.icon}
+          />
+        </Box2>
       )}
       {props.header && (
         <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>

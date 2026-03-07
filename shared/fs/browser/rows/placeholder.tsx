@@ -12,7 +12,7 @@ const PlaceholderRow = ({type}: PlaceholderProps) => (
     firstItem={true /* we add divider in Rows */}
     statusIcon={<Kb.Box2 direction="vertical" />}
     icon={
-      <Kb.Icon
+      <Kb.IconAuto
         type={type === T.FS.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
         style={rowStyles.pathItemIcon}
       />

@@ -54,10 +54,9 @@ const Desktop = () => {
         ))}
         {downloadIDs.length > 3 && (
           <Kb.WithTooltip tooltip="Open Downloads folder">
-            <Kb.Icon
+            <Kb.Icon2
               style={styles.iconBoxEllipsis}
               type="iconfont-ellipsis"
-              hint="Open downloads folder"
               color={Kb.Styles.globalColors.black_50}
               padding="tiny"
               onClick={openDownloadFolder}
@@ -66,9 +65,8 @@ const Desktop = () => {
         )}
         <Kb.Box2 direction="horizontal" flex={1} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
-          <Kb.Icon
+          <Kb.Icon2
             type="iconfont-folder-downloads"
-            hint="Open downloads folder"
             color={Kb.Styles.globalColors.black_50}
             padding="tiny"
             onClick={openDownloadFolder}

@@ -56,10 +56,9 @@ const EmailPhone = () => {
           find you by phone number or email.{' '}
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-open-browser"
               sizeType="Tiny"
-              boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
@@ -277,7 +276,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contactRows: Kb.Styles.platformStyles({
     isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
   }),
-  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     flexGrow: 1,

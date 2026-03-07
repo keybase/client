@@ -195,7 +195,7 @@ function ExplodingMetaContainer(p: OwnProps) {
       break
     case 'boom':
       children = (
-        <Kb.Icon
+        <Kb.Icon2
           className="explodingTimeIcon"
           type="iconfont-boom"
           color={isParentHighlighted ? Kb.Styles.globalColors.blackOrBlack : Kb.Styles.globalColors.black}

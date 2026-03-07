@@ -274,7 +274,7 @@ const Container = (ownProps: OwnProps) => {
         </Kb.Text>
         <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
-            <Kb.Icon
+            <Kb.Icon2
               type={stateToIcon(state)}
               fontSize={20}
               hoverColor={assertionColorToColor(color)}

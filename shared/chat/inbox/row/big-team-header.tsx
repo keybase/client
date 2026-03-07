@@ -55,9 +55,8 @@ const BigTeamHeader = (props: Props) => {
         ref={popupAnchor}
         style={styles.showMenu}
       >
-        <Kb.Icon
+        <Kb.Icon2
           className="hover_contained_color_black"
-          fixOverdraw={!Kb.Styles.isTablet}
           color={Kb.Styles.globalColors.black_35}
           type="iconfont-gear"
         />

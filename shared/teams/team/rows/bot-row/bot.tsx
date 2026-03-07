@@ -87,7 +87,7 @@ export const TeamBotRow = (props: Props) => {
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
-            <Kb.Icon
+            <Kb.Icon2
               onClick={_onShowMenu}
               style={
                 Kb.Styles.isMobile

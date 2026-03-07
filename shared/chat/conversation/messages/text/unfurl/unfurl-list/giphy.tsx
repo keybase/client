@@ -53,22 +53,21 @@ function UnfurlGiphy(p: {idx: number}) {
             <Kb.Text type="BodySmall">
               Giphy
             </Kb.Text>
-            <Kb.Icon
-              boxStyle={styles.collapseBox}
-              style={styles.collapse}
+            <Kb.Icon2
+              style={Kb.Styles.collapseStyles([styles.collapseBox, styles.collapse])}
               onClick={onToggleCollapse}
               sizeType="Tiny"
               type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
             />
           </Kb.Box2>
           {onClose ? (
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-close"
-
               onClick={onClose}
               className="unfurl-closebox"
               padding="xtiny"
               fontSize={12}
+              color={Kb.Styles.globalColors.black_20}
             />
           ) : null}
         </Kb.Box2>

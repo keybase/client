@@ -35,12 +35,13 @@ const ServiceIcon = (props: IconProps) => {
                 leftRightPadding={0}
               />
             )}
-            <Kb.Icon
-              color={color}
-              fontSize={16}
-              type={serviceIdToIconFont(props.service)}
-              boxStyle={styles.serviceIconBox}
-            />
+            <Kb.Box2 direction="vertical" style={styles.serviceIconBox}>
+              <Kb.Icon2
+                color={color}
+                fontSize={16}
+                type={serviceIdToIconFont(props.service)}
+              />
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (
@@ -118,7 +119,7 @@ const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-      <Kb.Icon
+      <Kb.Icon2
         style={styles.moreNetworkItemIcon}
         color={serviceIdToAccentColor(props.service, isDarkMode)}
         type={serviceIdToIconFont(props.service)}

@@ -78,7 +78,7 @@ function Editing({editID}: Props) {
             waitingKey={C.waitingKeyFSCommitEdit}
             onClick={onSubmit}
           />
-          <Kb.Icon
+          <Kb.Icon2
             onClick={onCancel}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Kb.Styles.globalColors.black_50}

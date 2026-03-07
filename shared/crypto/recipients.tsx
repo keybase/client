@@ -38,14 +38,14 @@ const Recipients = () => {
           />
         )}
         {recipients.length ? (
-          <Kb.Icon
-            type="iconfont-remove"
-            boxStyle={styles.removeRecipients}
-            style={Kb.Styles.isMobile && styles.removeRecipients}
-            color={Kb.Styles.globalColors.black_20}
-            hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
-            onClick={onClearRecipients}
-          />
+          <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
+            <Kb.Icon2
+              type="iconfont-remove"
+              color={Kb.Styles.globalColors.black_20}
+              hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
+              onClick={onClearRecipients}
+            />
+          </Kb.Box2>
         ) : null}
       </Kb.Box2>
       <Kb.Divider />

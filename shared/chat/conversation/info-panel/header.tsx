@@ -107,13 +107,13 @@ const TeamHeader = () => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Icon
-          type="iconfont-gear"
-          onClick={showPopup}
-          ref={popupAnchor}
-          style={styles.gear}
-          fontSize={gearIconSize}
-        />
+        <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.gear}>
+          <Kb.Icon2
+            type="iconfont-gear"
+            onClick={showPopup}
+            fontSize={gearIconSize}
+          />
+        </Kb.Box2>
       </Kb.Box2>
       {!!description && (
         <Kb.Box2 direction="horizontal" style={styles.description}>

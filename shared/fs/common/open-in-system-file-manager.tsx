@@ -13,7 +13,7 @@ function OpenInSystemFileManager({path}: Props) {
   const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
   return (
     <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
-      <Kb.Icon
+      <Kb.Icon2
         type="iconfont-finder"
         padding="tiny"
         onClick={openInSystemFileManager}

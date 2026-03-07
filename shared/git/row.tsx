@@ -102,7 +102,7 @@ function ConnectedRow(ownProps: OwnProps) {
             underlayColor={Kb.Styles.globalColors.transparent}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowTop}>
-              <Kb.Icon
+              <Kb.Icon2
                 type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={styles.iconCaret}
                 sizeType="Tiny"
@@ -225,7 +225,7 @@ function ConnectedRow(ownProps: OwnProps) {
                   label="View files"
                   onClick={onBrowseGitRepo}
                 >
-                  <Kb.Icon
+                  <Kb.Icon2
                     type="iconfont-file"
                     sizeType="Small"
                     color={Kb.Styles.globalColors.black_50}
@@ -239,7 +239,7 @@ function ConnectedRow(ownProps: OwnProps) {
                   label="Archive"
                   onClick={onArchiveGitRepo}
                 >
-                  <Kb.Icon
+                  <Kb.Icon2
                     type="iconfont-mailbox"
                     sizeType="Small"
                     color={Kb.Styles.globalColors.black_50}

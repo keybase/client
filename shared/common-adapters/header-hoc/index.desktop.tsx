@@ -3,12 +3,12 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
-import Icon from '@/common-adapters/icon'
+import Icon2 from '@/common-adapters/icon2'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, Icon, Text}
+const Kb = {BackButton, Box2, Icon2, Text}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -21,10 +21,11 @@ export const HeaderHocHeader = ({
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
-      <Kb.Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+      <Kb.Icon2
+        style={_styleClose}
         type="iconfont-close"
         onClick={onCancel}
+        color={theme === 'dark' ? Styles.globalColors.white_40 : Styles.globalColors.black_20}
       />
     )}
     {title && (
@@ -98,15 +99,6 @@ const _styleClose = Styles.platformStyles({
     top: Styles.globalMargins.small,
   },
 })
-
-const _styleCloseThemed = {
-  dark: {
-    color: Styles.globalColors.white_40,
-  },
-  light: {
-    color: Styles.globalColors.black_20,
-  },
-}
 
 const _titleStyle = {
   bottom: 0,

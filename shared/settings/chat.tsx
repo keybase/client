@@ -308,7 +308,7 @@ const Links = () => {
                     ) : (
                       <Kb.Box2 direction="vertical" relative={true}>
                         <Kb.WithTooltip tooltip="Remove">
-                          <Kb.Icon
+                          <Kb.Icon2
                             onClick={() => toggleUnfurlWhitelist(w)}
                             style={styles.removeIcon}
                             type="iconfont-trash"
