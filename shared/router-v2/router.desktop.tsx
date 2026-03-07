@@ -59,11 +59,11 @@ function AppTabsInner() {
 const AppTabs = () => <AppTabsInner />
 
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
-const loggedOutOptions: NativeStackNavigationOptions = {
+const loggedOutOptions = {
   header: ({navigation}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
-}
+} satisfies NativeStackNavigationOptions
 const loggedOutNav = createNativeStackNavigator({
   initialRouteName: 'login',
   screenOptions: loggedOutOptions,
@@ -80,12 +80,12 @@ const documentTitle = {
   },
 }
 
-const rootScreenOptions: NativeStackNavigationOptions = {
+const rootScreenOptions = {
   headerLeft: () => <HeaderLeftCancel />,
   headerShown: false, // eventually do this after we pull apart modal2 etc
-  presentation: 'transparentModal',
+  presentation: 'transparentModal' as const,
   title: '',
-}
+} satisfies NativeStackNavigationOptions
 
 const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)

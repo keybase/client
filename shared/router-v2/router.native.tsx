@@ -129,9 +129,9 @@ const loggedOutNav = createNativeStackNavigator({
 })
 const LoggedOut = createComponentForStaticNavigation(loggedOutNav, 'LoggedOut')
 
-const rootStackScreenOptions: NativeStackNavigationOptions = {
+const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
-}
+} satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
   presentation: 'modal',

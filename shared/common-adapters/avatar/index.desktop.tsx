@@ -102,8 +102,8 @@ function Avatar(p: Props) {
 
 const clickableStyle = {cursor: 'pointer'} as const
 
-const borderTeamStyle: React.CSSProperties = {
+const borderTeamStyle = {
   boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`,
-}
+} satisfies React.CSSProperties
 
 export default Avatar
