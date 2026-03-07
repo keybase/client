@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import {Box2} from './box'
-import Icon, {type IconType} from './icon'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
 import ImageIcon from './image-icon'
 import {isMobile} from '@/constants/platform'
 
@@ -51,7 +52,7 @@ const Render = ({platform, overlay, style}: Props) => {
   return (
     <Box2 direction="vertical" relative={true} style={style}>
       <ImageIcon type={iconSpec.icon} />
-      <Icon
+      <IconAuto
         type={overlay}
         style={{
           bottom: iconSpec.offsetBottom,

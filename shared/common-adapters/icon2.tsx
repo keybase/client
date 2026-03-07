@@ -13,6 +13,7 @@ export type Icon2Props = {
   sizeType?: SizeType2
   style?: Styles.StylesCrossPlatform
   className?: string
+  hoverColor?: Styles.Color
   onClick?: () => void
   padding?: keyof typeof Styles.globalMargins
 }
@@ -21,8 +22,13 @@ const sizeToFontDesktop = {Big: 24, Bigger: 36, Default: 16, Huge: 48, Small: 12
 const sizeToFontMobile = {Big: 32, Bigger: 48, Default: 20, Huge: 64, Small: 16, Tiny: 10} as const
 const sizeToFont = Styles.isMobile ? sizeToFontMobile : sizeToFontDesktop
 
+const cssVarToColorName = (cssVar: string): string | undefined => {
+  const match = /^var\(--color-(.+)\)$/.exec(cssVar)
+  return match?.[1]
+}
+
 const Icon2Desktop = (props: Icon2Props) => {
-  const {type, color, fontSize, sizeType = 'Default', style, className, onClick, padding} = props
+  const {type, color, fontSize, sizeType = 'Default', style, className, hoverColor, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
 
@@ -39,6 +45,9 @@ const Icon2Desktop = (props: Icon2Props) => {
         ])
       )
     : undefined
+  const hoverColorName = hoverColor ? cssVarToColorName(hoverColor as string) : undefined
+  const hoverClassName = hoverColorName ? `hover_color_${hoverColorName}` : undefined
+  const cn = Styles.classNames('icon', `icon-gen-${type}`, className, hoverClassName)
 
   if (onClick) {
     const handleClick = (e: React.MouseEvent) => {
@@ -47,12 +56,12 @@ const Icon2Desktop = (props: Icon2Props) => {
     }
     return (
       <div onClick={handleClick} style={styles.clickable as React.CSSProperties}>
-        <span className={Styles.classNames('icon', `icon-gen-${type}`, className)} style={inlineStyle} />
+        <span className={cn} style={inlineStyle} />
       </div>
     )
   }
 
-  return <span className={Styles.classNames('icon', `icon-gen-${type}`, className)} style={inlineStyle} />
+  return <span className={cn} style={inlineStyle} />
 }
 
 const nativeBaseStyle: Styles._StylesCrossPlatform = {

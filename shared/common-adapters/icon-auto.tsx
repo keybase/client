@@ -11,6 +11,7 @@ export type IconAutoProps = {
   fontSize?: number
   sizeType?: SizeType2
   className?: string
+  hoverColor?: Styles.Color
   onClick?: () => void
   padding?: keyof typeof Styles.globalMargins
 }

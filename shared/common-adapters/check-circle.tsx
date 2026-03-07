@@ -1,8 +1,8 @@
 import './check-circle.css'
 import * as Styles from '@/styles'
-import Icon from './icon'
+import Icon2 from './icon2'
 
-const Kb = {Icon}
+const Kb = {Icon2}
 
 type Props = {
   color?: Styles.Color
@@ -29,7 +29,7 @@ const CheckCircle = (props: Props) => {
   }
 
   return (
-    <Kb.Icon
+    <Kb.Icon2
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
       onClick={onClick}
       fontSize={props.fontSize}

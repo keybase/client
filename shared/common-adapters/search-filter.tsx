@@ -7,7 +7,8 @@ import Text from './text'
 import type {AllowedColors} from './text.shared'
 import ProgressIndicator from './progress-indicator'
 import {useHotKey} from './hot-key'
-import Icon, {type IconType} from './icon'
+import type {IconType} from './icon.constants-gen'
+import IconAuto from './icon-auto'
 import Icon2 from './icon2'
 import * as Styles from '@/styles'
 import * as Platforms from '@/constants/platform'
@@ -18,8 +19,8 @@ const Kb = {
   Box2,
   ClickableBox,
   ClickableBox2,
-  Icon,
   Icon2,
+  IconAuto,
   Input3,
   ProgressIndicator,
   Text,
@@ -154,12 +155,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     return (
       props.icon &&
       !typing() && (
-        <Kb.Icon
+        <Kb.IconAuto
           type={props.icon}
           sizeType={iconSizeType()}
           color={iconColor()}
-          boxStyle={styles.icon}
-          style={!Styles.isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny}
+          style={Styles.collapseStyles([styles.icon, !Styles.isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny])}
         />
       )
     )

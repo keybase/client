@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
-import Icon from './icon'
+import Icon2 from './icon2'
 import {EscapeHandler} from './key-event-handler.desktop'
 import * as Styles from '@/styles'
 import type {Props} from './popup-dialog'
@@ -8,7 +8,7 @@ import type {Props} from './popup-dialog'
 const Kb = {
   Box2,
   EscapeHandler,
-  Icon,
+  Icon2,
 }
 
 function stopBubbling(ev: React.MouseEvent<HTMLDivElement>) {
@@ -46,7 +46,7 @@ function PopupDialog(p: Props) {
           onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
         >
           {onClose && (
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-close"
               style={Styles.collapseStyles([styles.close, styleClose])}
               color={Styles.globalColors.whiteOrWhite_75}

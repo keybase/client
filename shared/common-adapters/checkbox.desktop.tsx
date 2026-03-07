@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon2 from './icon2'
 import Text from './text'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
@@ -8,7 +8,7 @@ import * as Styles from '@/styles'
 const Kb = {
   Box2,
   ClickableBox,
-  Icon,
+  Icon2,
   Styles,
   Text,
 }
@@ -26,20 +26,21 @@ const Checkbox = (props: Props) => {
         props.disabled || e.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
       }
     >
-      <Kb.Icon
-        boxStyle={Kb.Styles.collapseStyles([
-          styles.checkbox,
-          props.checked && styles.checkboxChecked,
-          props.disabled && styles.checkboxInactive,
-          props.disabled && props.checked && styles.semiTransparent,
-          props.checkboxStyle,
-        ])}
-        type="iconfont-check"
-        style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
-        hoverColor={Kb.Styles.globalColors.white}
-        color={props.checkboxColor ?? Kb.Styles.globalColors.white}
-        fontSize={9}
-      />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([
+        styles.checkbox,
+        props.checked && styles.checkboxChecked,
+        props.disabled && styles.checkboxInactive,
+        props.disabled && props.checked && styles.semiTransparent,
+        props.checkboxStyle,
+      ])}>
+        <Kb.Icon2
+          type="iconfont-check"
+          style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
+          hoverColor={Kb.Styles.globalColors.white}
+          color={props.checkboxColor ?? Kb.Styles.globalColors.white}
+          fontSize={9}
+        />
+      </Kb.Box2>
       <Kb.Box2 direction="vertical">
         {props.labelComponent || (typeof props.label === 'string' ? (
           <Kb.Text type={props.labelType ?? 'Body'}>{props.label}</Kb.Text>

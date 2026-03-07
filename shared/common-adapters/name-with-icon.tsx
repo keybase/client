@@ -5,7 +5,8 @@ import {useTeamsState} from '@/stores/teams'
 import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon, {type IconType} from './icon'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
 import Icon2 from './icon2'
 import ImageIcon from './image-icon'
 import Text from './text'
@@ -124,18 +125,19 @@ const NameWithIcon = (props: NameWithIconProps) => {
     )
   } else if (props.icon) {
     avatarOrIcon = (
-      <Icon
-        boxStyle={props.iconBoxStyle}
-        type={props.icon}
-        style={
-          props.horizontal
-            ? size === 'big'
-              ? styles.hbIconStyle
-              : styles.hIconStyle
-            : {height: adapterProps.iconSize, width: adapterProps.iconSize}
-        }
-        fontSize={props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
-      />
+      <Box2 direction="vertical" style={props.iconBoxStyle}>
+        <IconAuto
+          type={props.icon}
+          style={
+            props.horizontal
+              ? size === 'big'
+                ? styles.hbIconStyle
+                : styles.hIconStyle
+              : {height: adapterProps.iconSize, width: adapterProps.iconSize}
+          }
+          fontSize={props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
+        />
+      </Box2>
     )
   }
   const usernames = [username]
