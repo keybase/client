@@ -46,7 +46,7 @@ const rules = {
   '@typescript-eslint/no-floating-promises': 'error',
   '@typescript-eslint/no-for-in-array': 'error',
   '@typescript-eslint/no-implied-eval': 'error',
-  '@typescript-eslint/no-invalid-void-type': 'error',
+  '@typescript-eslint/no-invalid-void-type': ['error', {allowInGenericTypeArguments: true}],
   '@typescript-eslint/no-loop-func': 'error',
   '@typescript-eslint/no-meaningless-void-operator': 'error',
   '@typescript-eslint/no-misused-new': 'error',
