@@ -223,7 +223,7 @@ function KBFSJob(p: {index: number; id: string}) {
           {job.gitRepo ? (
             <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
           ) : (
-            <Kb.Icon type="icon-folder-32" />
+            <Kb.ImageIcon type="icon-folder-32" />
           )}
           <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="center" flex={1} style={styles.kbfsJobLeft}>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="flex-end">

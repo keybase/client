@@ -46,7 +46,7 @@ const GenericResult = () => {
           <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
             <SiteIcon set={serviceIcon} full={true} />
             <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
-              <Kb.Icon type={iconType} color={Kb.Styles.globalColors.green} />
+              <Kb.ImageIcon type={iconType} />
             </Kb.Box2>
           </Kb.Box2>
           {frag}

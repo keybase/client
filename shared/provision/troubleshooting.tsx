@@ -30,7 +30,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
         style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
         gap="tiny"
       >
-        <Kb.Icon type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
+        <Kb.IconAuto type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"

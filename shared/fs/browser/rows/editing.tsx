@@ -45,7 +45,7 @@ function Editing({editID}: Props) {
       }
       icon={
         <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
-          <Kb.Icon type="icon-folder-32" />
+          <Kb.ImageIcon type="icon-folder-32" />
         </Kb.Box2>
       }
       body={

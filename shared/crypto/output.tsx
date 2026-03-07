@@ -102,7 +102,7 @@ export const SignedSender = (props: SignedSenderProps) => {
           </Kb.Box2>
         ) : (
           <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-            <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
+            <Kb.ImageIcon key="avatar" type="icon-placeholder-secret-user-16" />
             {isSelfSigned ? null : (
               <Kb.Text key="username" type="BodySmallSemibold">
                 Anonymous sender
@@ -412,7 +412,7 @@ export const OperationOutput = (props: OutputProps) => {
           alignItems="center"
           style={styles.fileOutputContainer}
         >
-          {fileIcon ? <Kb.Icon type={fileIcon} sizeType="Huge" /> : null}
+          {fileIcon ? <Kb.ImageIcon type={fileIcon} /> : null}
           <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}

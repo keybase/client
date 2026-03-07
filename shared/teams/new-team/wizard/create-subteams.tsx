@@ -48,7 +48,7 @@ const CreateSubteams = () => {
       backgroundStyle={styles.bg}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.Icon type="icon-illustration-teams-subteams-460-96" />
+        <Kb.ImageIcon type="icon-illustration-teams-subteams-460-96" />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"

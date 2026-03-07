@@ -195,7 +195,7 @@ const Container = (ownProps: OwnProps) => {
               onShowProof={onShowProof}
               isSuggestion={isSuggestion}
             />
-            <Kb.Icon type={stateToDecorationIcon(state)} style={styles.siteIconFullDecoration} />
+            <Kb.ImageIcon type={stateToDecorationIcon(state)} style={styles.siteIconFullDecoration} />
           </Kb.Box2>
           {!!timestamp && (
             <>

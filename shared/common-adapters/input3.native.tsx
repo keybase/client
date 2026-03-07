@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 import Text from './text'
 import {getTextStyle} from './text.styles'
 import {TextInput as NativeTextInput} from 'react-native'
@@ -107,7 +107,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     >
       {!!icon && (
         <Box2 direction="horizontal" style={styles.icon}>
-          <Icon color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
+          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
         </Box2>
       )}
       {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}

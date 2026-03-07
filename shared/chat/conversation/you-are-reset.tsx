@@ -8,7 +8,7 @@ const YouAreReset = () => (
       fullWidth={true}
       flex={1}
     >
-      <Kb.Icon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+      <Kb.ImageIcon type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.box}>
       <Kb.Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>

@@ -3,6 +3,7 @@ import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '@/common-adapters/badge'
 import {Box2} from '@/common-adapters/box'
 import Icon from '@/common-adapters/icon'
+import IconAuto from '@/common-adapters/icon-auto'
 import Text from '@/common-adapters/text'
 import Meta from '@/common-adapters/meta'
 import Divider from '@/common-adapters/divider'
@@ -20,6 +21,7 @@ const Kb = {
   Box2,
   Divider,
   Icon,
+  IconAuto,
   Meta,
   ProgressIndicator,
   SafeAreaView,
@@ -76,7 +78,7 @@ const MenuRow = (props: MenuRowProps) => (
                 <Kb.ProgressIndicator />
               ) : (
                 <>
-                  <Kb.Icon
+                  <Kb.IconAuto
                     color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
                     style={Styles.collapseStyles([{alignSelf: 'center'}, props.iconStyle])}
                     sizeType="Default"

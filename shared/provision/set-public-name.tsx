@@ -71,7 +71,7 @@ const SetPublicName = () => {
       title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
+        <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.Input3
             autoFocus={true}

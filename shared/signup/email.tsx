@@ -99,7 +99,7 @@ export const EnterEmailBody = (props: BodyProps) => (
       fullWidth={true}
       style={Kb.Styles.globalStyles.flexOne}
     >
-      <Kb.Icon type={props.iconType} />
+      <Kb.ImageIcon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.Input3
           autoFocus={true}

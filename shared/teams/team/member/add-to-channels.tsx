@@ -288,7 +288,7 @@ const HeaderRow = function HeaderRow(p: {
         mode="Secondary"
         onClick={onCreate}
       >
-        <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
+        <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
       </Kb.Button>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
@@ -424,7 +424,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
             style={styles.joinLeaveButton}
             waiting={waiting}
           >
-            {inChannel && !buttonMousedOver ? <Kb.Icon2 type="iconfont-check" sizeType="Tiny" /> : undefined}
+            {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
           </Kb.Button>
         </span>
       }

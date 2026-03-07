@@ -71,7 +71,7 @@ const Container = (ownProps: OwnProps) => {
           ) : (
             <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-                <Kb.Icon type="icon-illustration-teams-zen-460-96" />
+                <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" style={styles.container}>
                 <Kb.Text center={true} type="Body">
@@ -104,7 +104,7 @@ const Container = (ownProps: OwnProps) => {
 
 export const Success = (props: {teamname: string}) => (
   <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
-    <Kb.Icon type="icon-illustration-welcome-96" />
+    <Kb.ImageIcon type="icon-illustration-welcome-96" />
     {!!props.teamname && (
       <Kb.Text center={true} type="Header">
         You’ve joined {props.teamname}!

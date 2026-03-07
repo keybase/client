@@ -149,9 +149,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onCopyHere && (
           <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={onCopyHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-copy-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -161,9 +160,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onMoveHere && (
           <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={onMoveHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-move-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>

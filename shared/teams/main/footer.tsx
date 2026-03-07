@@ -13,7 +13,7 @@ const TeamsFooter = (props: {empty: boolean}) => {
             <Kb.Box2 direction="vertical" alignItems="center" gap="tiny" style={styles.empty}>
               <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
               <Kb.Box2 direction="vertical">
-                <Kb.Icon type="icon-dark-empty-lone-wolf-116-96" />
+                <Kb.ImageIcon type="icon-dark-empty-lone-wolf-116-96" />
               </Kb.Box2>
               <Kb.Text type="BodySmall">You are not a part of any team, lone wolf.</Kb.Text>
               <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />

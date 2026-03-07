@@ -80,7 +80,7 @@ const EnterDevicename = (props: Props) => {
         fullWidth={true}
         style={Kb.Styles.globalStyles.flexOne}
       >
-        <Kb.Icon
+        <Kb.ImageIcon
           type={
             Kb.Styles.isMobile
               ? C.isLargeScreen

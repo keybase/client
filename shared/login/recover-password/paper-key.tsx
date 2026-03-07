@@ -44,7 +44,7 @@ const PaperKey = () => {
           gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.Icon type="icon-paper-key-96" />
+            <Kb.ImageIcon type="icon-paper-key-96" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.inputContainer} fullWidth={true}>
             <Kb.Input3

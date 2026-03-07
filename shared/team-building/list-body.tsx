@@ -35,9 +35,7 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Kb.Styles.collapseStyles([
-            {color: Shared.serviceIdToAccentColor(selectedService, isDarkMode)},
-          ])}
+          color={Shared.serviceIdToAccentColor(selectedService, isDarkMode)}
         />
       )}
       {namespace === 'people' ? (

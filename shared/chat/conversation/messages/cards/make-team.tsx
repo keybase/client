@@ -36,7 +36,7 @@ const MakeTeam = () => {
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon type="icon-illustration-teams-80" style={styles.image} />
+      <Kb.ImageIcon type="icon-illustration-teams-80" style={styles.image} />
     </Kb.Box2>
   )
 }

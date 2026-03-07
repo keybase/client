@@ -57,7 +57,7 @@ const AddToChannel = (props: AddToChannelProps) => {
       }}
       waitingKey={C.waitingKeyChatBotAdd}
     >
-      <Kb.Icon2 type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
+      <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
     </Kb.WaitingButton>
   )
 }

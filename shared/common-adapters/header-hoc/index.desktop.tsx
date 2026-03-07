@@ -22,9 +22,10 @@ export const HeaderHocHeader = ({
     {customComponent}
     {onCancel && (
       <Kb.Icon
-        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+        style={_styleClose}
         type="iconfont-close"
         onClick={onCancel}
+        color={theme === 'dark' ? Styles.globalColors.white_40 : Styles.globalColors.black_20}
       />
     )}
     {title && (
@@ -98,15 +99,6 @@ const _styleClose = Styles.platformStyles({
     top: Styles.globalMargins.small,
   },
 })
-
-const _styleCloseThemed = {
-  dark: {
-    color: Styles.globalColors.white_40,
-  },
-  light: {
-    color: Styles.globalColors.black_20,
-  },
-}
 
 const _titleStyle = {
   bottom: 0,

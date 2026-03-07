@@ -14,8 +14,8 @@ type Props = {
 
 const Header = () => (
   <>
-    <Kb.Icon type="icon-teams-channel-64" />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
+    <Kb.ImageIcon type="icon-teams-channel-64" />
+    <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
   </>
 )
 

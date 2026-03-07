@@ -29,7 +29,7 @@ const InstallSecurityPrefs = () => {
           <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
           <Kb.Box2 direction="horizontal">
             <Kb.Box2 direction="vertical" relative={true}>
-              <Kb.Icon style={styles.image} type="illustration-security-preferences" />
+              <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
               <Kb.Box2 direction="horizontal">

@@ -67,7 +67,6 @@ export const DropdownButton = (props: DropdownButtonProps) => {
         </Kb.Box2>
         <Kb.Icon
           type="iconfont-caret-down"
-          inheritColor={true}
           sizeType="Tiny"
           style={{marginTop: Styles.isMobile ? 2 : -8}}
         />

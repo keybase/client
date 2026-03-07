@@ -140,7 +140,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {balanceChange}
         </Kb.Text>
       )}
-      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {showCoinsIcon && <Kb.ImageIcon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = loading ? (

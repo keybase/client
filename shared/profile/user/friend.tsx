@@ -34,7 +34,7 @@ const Container = (ownProps: OwnProps) => {
         centerChildren={true}
       >
         <Kb.Avatar size={64} username={username} style={styles.avatar}>
-          {!!followIconType && <Kb.Icon type={followIconType} style={followSizeToStyle[64]} />}
+          {!!followIconType && <Kb.ImageIcon type={followIconType} style={followSizeToStyle[64]} />}
         </Kb.Avatar>
         <Kb.ConnectedUsernames
           type={Kb.Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}

@@ -7,7 +7,7 @@ import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
-import Icon from './icon'
+import ImageIcon from './image-icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
@@ -16,7 +16,7 @@ const Kb = {
   Box2,
   Button,
   HeaderHocHeader,
-  Icon,
+  ImageIcon,
   ScrollView,
   Text,
 }
@@ -38,7 +38,7 @@ function Reload(props: ReloadProps) {
       {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
       <Kb.ScrollView style={styles.container}>
         <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
-          <Kb.Icon type="icon-illustration-zen-240-180" />
+          <Kb.ImageIcon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
           </Kb.Text>

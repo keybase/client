@@ -72,8 +72,7 @@ const BigTeamChannel = (props: Props) => {
 
   const mutedIcon = isMuted ? (
     <Kb.Box2 direction="vertical" tooltip="Muted conversation">
-      <Kb.Icon
-        fixOverdraw={Kb.Styles.isPhone}
+      <Kb.IconAuto
         color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
         style={styles.muted}
         type={Kb.Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}

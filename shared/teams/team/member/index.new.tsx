@@ -536,7 +536,6 @@ const NodeInRow = (props: NodeInRowProps) => {
                       type="iconfont-typing"
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
                     />
                     <LastActivity
                       loading={loadingActivity}
@@ -551,7 +550,6 @@ const NodeInRow = (props: NodeInRowProps) => {
                       type="iconfont-hash"
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
-                      boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"
@@ -588,7 +586,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                         small={true}
                         waitingKey={onKickOutWaitingKey}
                       >
-                        <Kb.Icon2 type={isMe ? 'iconfont-team-leave' : 'iconfont-block'} sizeType="Small" color={Kb.Styles.globalColors.redDark} />
+                        <Kb.Icon type={isMe ? 'iconfont-team-leave' : 'iconfont-block'} sizeType="Small" color={Kb.Styles.globalColors.redDark} />
                       </Kb.WaitingButton>
                     )}
                   </Kb.Box2>

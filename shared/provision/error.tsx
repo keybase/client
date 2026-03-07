@@ -9,7 +9,7 @@ import {useProvisionState} from '@/stores/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
-    <Kb.Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+    <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
     </Kb.Text>
