@@ -84,7 +84,7 @@ const GiphySearch = () => {
             </Kb.Box2>
           ))}
       </Kb.Box2>
-      <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
+      <Kb.ImageIcon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
     </Kb.Box2>
   )
 }

@@ -84,7 +84,7 @@ const Container = (ownProps: OwnProps) => {
         iconUrl ? (
           <Kb.Image src={iconUrl} style={styles.icon} />
         ) : (
-          <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
+          <Kb.ImageIcon type="icon-keybase-logo-80" style={styles.icon} />
         )
       }
     >

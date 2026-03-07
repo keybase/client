@@ -19,7 +19,7 @@ const DeviceRow = ({device}: {device: Device}) => {
   return (
     <div style={{...Kb.Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
       <div style={styles.iconWrapper}>
-        <Kb.Icon type={icon} style={{height: 22}} />
+        <Kb.ImageIcon type={icon} style={{height: 22}} />
       </div>
       <Kb.Text type="BodySemibold" style={{marginLeft: 16}}>
         {device.name}

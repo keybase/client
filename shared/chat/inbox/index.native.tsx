@@ -27,7 +27,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
       justifyContent="flex-end"
       style={styles.noChatsContainer}
     >
-      <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
+      <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySmall" center={true}>
           All conversations are

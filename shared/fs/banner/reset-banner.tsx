@@ -51,7 +51,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       centerChildren={true}
       style={Kb.Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
     >
-      <Kb.Icon
+      <Kb.IconAuto
         type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
         style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
       />

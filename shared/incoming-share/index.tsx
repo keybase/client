@@ -100,7 +100,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
         type="iconfont-gear"
         padding="tiny"
         onClick={showPopup}
-        colorOverride={isLarge ? Kb.Styles.globalColors.yellow : undefined}
+        color={isLarge ? Kb.Styles.globalColors.yellow : undefined}
       />
       {popup}
     </>

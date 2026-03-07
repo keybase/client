@@ -5,7 +5,7 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import type {IconType} from './icon.constants-gen'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 
 type Props = {
   icon: IconType
@@ -17,7 +17,7 @@ type Props = {
 const Kb = {
   Box2,
   ClickableBox,
-  Icon,
+  IconAuto,
   Text,
 }
 
@@ -33,7 +33,7 @@ const RichButton = (props: Props) => {
       onPressOut={() => setPressing(false)}
       hoverColor={Styles.globalColors.blueLighter_20}
     >
-      <Kb.Icon type={props.icon} style={styles.thumbnail} />
+      <Kb.IconAuto type={props.icon} style={styles.thumbnail} />
 
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} gap="xtiny">
         <Kb.Text

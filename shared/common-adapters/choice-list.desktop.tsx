@@ -1,7 +1,7 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 import './choice-list.css'
@@ -9,7 +9,7 @@ import './choice-list.css'
 const Kb = {
   Box2,
   ClickableBox,
-  Icon,
+  IconAuto,
   Text,
 }
 
@@ -28,7 +28,7 @@ const ChoiceList = ({options}: Props) => {
                 className="cl-icon-container"
               >
                 {typeof op.icon === 'string' ? (
-                  <Kb.Icon style={styles.icon} type={iconType} className="cl-icon" />
+                  <Kb.IconAuto style={styles.icon} type={iconType} className="cl-icon" />
                 ) : (
                   <Kb.Box2 direction="vertical" style={styles.icon} className="cl-icon">
                     {op.icon}

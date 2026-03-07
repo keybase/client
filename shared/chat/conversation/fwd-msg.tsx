@@ -50,7 +50,7 @@ const TeamPicker = (props: Props) => {
 
   let preview: React.ReactNode = (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Kb.Icon type="icon-file-uploading-48" />
+      <Kb.ImageIcon type="icon-file-uploading-48" />
     </Kb.Box2>
   )
 

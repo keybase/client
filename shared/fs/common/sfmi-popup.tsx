@@ -34,7 +34,7 @@ const SFMIPopup = (props: Props) => {
           }}
         >
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
-            <Kb.Icon type="icon-fancy-finder-132-96" />
+            <Kb.ImageIcon type="icon-fancy-finder-132-96" />
           </Kb.Box2>
           <Kb.Text type="BodyBig" style={styles.text}>
             Enable Keybase in {C.fileUIName}?
@@ -67,15 +67,16 @@ const SFMIPopup = (props: Props) => {
     <>
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
-          <Kb.Icon
-            type="iconfont-finder"
-            padding="tiny"
-            fontSize={16}
-            color={Kb.Styles.globalColors.black_50}
-            hoverColor={Kb.Styles.globalColors.black}
-            onClick={showPopup}
-            ref={popupAnchor}
-          />
+          <Kb.Box2 direction="vertical" ref={popupAnchor}>
+            <Kb.Icon
+              type="iconfont-finder"
+              padding="tiny"
+              fontSize={16}
+              color={Kb.Styles.globalColors.black_50}
+              hoverColor={Kb.Styles.globalColors.black}
+              onClick={showPopup}
+            />
+          </Kb.Box2>
         </Kb.WithTooltip>
       ) : (
         <Kb.Button

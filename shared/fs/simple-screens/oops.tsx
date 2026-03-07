@@ -50,7 +50,7 @@ const Explain = (props: Props) => {
 const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.Icon
+      <Kb.IconAuto
         type={C.isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
@@ -71,7 +71,7 @@ const NoAccess = (props: Props) => (
 const NonExistent = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.Icon
+      <Kb.IconAuto
         type={
           C.isMobile
             ? 'icon-fancy-folder-file-inexistant-mobile-188-120'

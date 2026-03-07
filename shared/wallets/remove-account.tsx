@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
       bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
-        <Kb.Icon
+        <Kb.IconAuto
           type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={styles.icon}
         />

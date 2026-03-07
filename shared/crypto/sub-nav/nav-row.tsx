@@ -29,10 +29,10 @@ const NavRow = (props: Props) => {
         type="Small"
         firstItem={true}
         statusIcon={
-          <Kb.Icon
+          <Kb.IconAuto
             type={icon}
             sizeType="Small"
-            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : ''}
+            color={isSelected ? Kb.Styles.globalColors.whiteOrWhite : undefined}
             padding="xtiny"
           />
         }

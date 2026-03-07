@@ -2,7 +2,8 @@ import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Divider from './divider'
-import Icon, {type IconType} from './icon'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import {Box2} from './box'
@@ -13,7 +14,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Divider,
-  Icon,
+  IconAuto,
   ProgressIndicator,
   Text,
 }
@@ -62,7 +63,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
           <Kb.Box2 direction="vertical" style={styles.tabContainer} fullWidth={true}>
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
               {tab.icon ? (
-                <Kb.Icon type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
+                <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
               ) : (
                 <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
               )}

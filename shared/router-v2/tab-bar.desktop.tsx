@@ -309,7 +309,6 @@ function Tab(props: TabProps) {
             className="tab-icon"
             type={Tabs.desktopTabMeta[tab].icon}
             sizeType="Big"
-            skipColor={true}
           />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>

@@ -103,7 +103,7 @@ const EmptyRow = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true} justifyContent="flex-start">
       <Kb.Box2 direction="horizontal">
-        <Kb.Icon type={icon[props.type]} style={styles.iconHeight} />
+        <Kb.ImageIcon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
         {getFirstText(props.type, teamOrChannel, teamOrChannelName, notIn)}

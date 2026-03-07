@@ -121,7 +121,7 @@ const CodePageContainer = () => {
           justifyContent="center"
           style={currentDeviceAlreadyProvisioned ? styles.imageContainerOnLeft : styles.imageContainerOnRight}
         >
-          <Kb.Icon
+          <Kb.ImageIcon
             type={tab === 'QR' ? 'illustration-bg-provisioning-blue' : 'illustration-bg-provisioning-green'}
             style={currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight}
           />
@@ -404,9 +404,8 @@ const Instructions = (p: {
   let content: React.ReactNode
 
   const icon = (
-    <Kb.Icon
+    <Kb.ImageIcon
       type={iconType}
-      sizeType="Default"
       style={Kb.Styles.collapseStyles([
         styles.deviceIcon,
         p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,

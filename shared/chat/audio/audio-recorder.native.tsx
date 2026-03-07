@@ -705,7 +705,7 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
       </Kb.Box2Animated>
       <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, closeStyle]}>
-        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} />
+        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
       </Kb.Box2Animated>
       <AnimatedText
         type="BodySmallPrimaryLink"

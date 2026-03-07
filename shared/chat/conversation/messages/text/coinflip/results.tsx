@@ -191,7 +191,7 @@ type CoinType = {
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
+      <Kb.ImageIcon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">

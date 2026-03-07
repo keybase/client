@@ -74,7 +74,7 @@ const DeleteConfirm = () => {
       header={
         <>
           <Kb.Avatar username={username} size={64} />
-          <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+          <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
         </>
       }
       onCancel={onCancel}

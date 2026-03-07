@@ -307,7 +307,7 @@ function EmojiPicker(props: Props) {
 
   const makeNotFound = () => (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} justifyContent="space-between" style={styles.notFoundContainer}>
-      <Kb.Icon type="icon-empty-emoji-126-96" />
+      <Kb.ImageIcon type="icon-empty-emoji-126-96" />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall" center={true}>
           Still haven’t found what you’re

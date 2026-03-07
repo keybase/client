@@ -4,13 +4,14 @@ import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
 import BoxGrow from '@/common-adapters/box-grow'
 import FloatingMenu from '@/common-adapters/floating-menu'
-import Icon, {type IconType} from '@/common-adapters/icon'
+import IconAuto from '@/common-adapters/icon-auto'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, Icon, Text}
+const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, IconAuto, Text}
 
 type RightAction = {
   label?: string
@@ -140,7 +141,7 @@ const RightActions = (p: {hasTextTitle: boolean; rightAction: RightAction}) => {
 
 const renderAction = (action: RightAction, index: number): React.ReactNode =>
   action.icon ? (
-    <Kb.Icon key={action.label || index} onClick={action.onPress} style={styles.action} type={action.icon} />
+    <Kb.IconAuto key={action.label || index} onClick={action.onPress} style={styles.action} type={action.icon} />
   ) : (
     <Text
       key={action.label}

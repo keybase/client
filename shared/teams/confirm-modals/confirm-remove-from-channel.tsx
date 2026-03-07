@@ -52,9 +52,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Icon
-        boxStyle={members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer}
         type="iconfont-block"
-        style={styles.headerIcon}
+        style={Kb.Styles.collapseStyles([styles.headerIcon, members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer])}
         sizeType="Small"
       />
     </Kb.Box2>

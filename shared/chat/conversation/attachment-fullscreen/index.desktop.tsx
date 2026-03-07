@@ -76,16 +76,13 @@ const Fullscreen = function Fullscreen(p: Props) {
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
             {title}
           </Kb.Markdown>
-          <Kb.Icon
-            ref={popupAnchor}
-            type="iconfont-ellipsis"
-            style={Kb.Styles.platformStyles({
-              common: {marginLeft: Kb.Styles.globalMargins.tiny},
-              isElectron: {cursor: 'pointer'},
-            })}
-            color={Kb.Styles.globalColors.black_50}
-            onClick={showPopup}
-          />
+          <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
+            <Kb.Icon
+              type="iconfont-ellipsis"
+              color={Kb.Styles.globalColors.black_50}
+              onClick={showPopup}
+            />
+          </Kb.Box2>
           {popup}
         </Kb.Box2>
         {path && (
@@ -180,6 +177,9 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         width: '100%',
       },
+      ellipsisContainer: Kb.Styles.platformStyles({
+        isElectron: {cursor: 'pointer', marginLeft: Kb.Styles.globalMargins.tiny},
+      }),
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
         height: 32,

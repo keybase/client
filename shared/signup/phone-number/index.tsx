@@ -24,7 +24,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       fullWidth={true}
       style={styles.container}
     >
-      <Kb.Icon type={props.iconType} />
+      <Kb.ImageIcon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.PhoneInput
           autoFocus={props.autoFocus ?? true}

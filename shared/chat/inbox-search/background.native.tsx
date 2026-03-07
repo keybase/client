@@ -2,9 +2,9 @@ import * as Kb from '@/common-adapters'
 
 const Rover = () => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" />
-    <Kb.Icon style={styles.rover} type="icon-illustration-mars-rover" />
-    <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" />
+    <Kb.ImageIcon style={styles.background} type="icon-illustration-mars-rover-background" />
+    <Kb.ImageIcon style={styles.rover} type="icon-illustration-mars-rover" />
+    <Kb.ImageIcon style={styles.foreground} type="icon-illustration-mars-rover-foreground" />
   </Kb.Box2>
 )
 

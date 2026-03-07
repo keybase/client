@@ -6,7 +6,8 @@ import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import * as AvatarZus from './store'
 import {navToProfile} from '@/constants/router'
-import {iconTypeToImgSet, type IconType} from '../icon'
+import {iconTypeToImgSet} from './icon-to-img-set'
+import type {IconType} from '../icon.constants-gen'
 
 type Props = {
   children?: React.ReactNode
