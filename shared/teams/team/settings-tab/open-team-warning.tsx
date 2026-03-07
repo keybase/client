@@ -36,7 +36,7 @@ const OpenTeamWarning = (props: Props) => {
   return (
     <Wrapper onBack={onCancel}>
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
-        <Kb.Icon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
+        <Kb.ImageIcon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
         </Kb.Text>

@@ -73,10 +73,9 @@ const ResetModalImpl = () => {
             style={styles.textContainer}
             centerChildren={true}
           >
-            <Kb.Icon
+            <Kb.ImageIcon
               type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-              color={Kb.Styles.globalColors.black_20}
-              fontSize={48}
+              style={styles.skullIcon}
             />
             <Kb.Text type="Body" center={true}>
               {msg}
@@ -93,6 +92,10 @@ const ResetModalImpl = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  skullIcon: {
+    height: 48,
+    width: 48,
+  },
   textContainer: Kb.Styles.platformStyles({
     common: {
       paddingLeft: Kb.Styles.globalMargins.small,

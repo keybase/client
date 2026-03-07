@@ -137,7 +137,7 @@ const Banner = (props: BannerProps) => (
     centerChildren={true}
     style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
   >
-    <Kb.Icon
+    <Kb.IconAuto
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />

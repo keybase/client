@@ -300,6 +300,98 @@ InboxRow-big                  1338      900     -33%     362    210
    ```
 4. Review the side-by-side output. Negative percentages for React metrics and positive for FPS indicate improvement.
 
+## Visual Regression Testing (Desktop Screenshots)
+
+Pixel-level comparison of all 8 desktop app tabs between branches to catch visual regressions (color changes, layout shifts, sizing issues).
+
+### Prerequisites
+
+- App running with remote debugging: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+- ImageMagick installed: `brew install imagemagick`
+
+### Workflow
+
+#### Option A: Automated scripts
+
+```bash
+# 1. Check out base branch, start app, take baseline screenshots
+git checkout nojima/HOTPOT-next-670-clean
+# (start app with KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot)
+cd shared && node perf/visual-diff-take.js baseline
+
+# 2. Check out feature branch, rebuild, take current screenshots
+git checkout my-feature-branch
+# (restart app)
+cd shared && node perf/visual-diff-take.js current
+
+# 3. Compare
+cd shared && ./perf/visual-diff-compare.sh
+```
+
+#### Option B: Using Playwright MCP + Claude
+
+1. Start the app: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+2. In Claude, close DevTools tab and select the app tab
+3. Navigate to each tab and take screenshots:
+   - Save baseline set to `/tmp/visual-diff/baseline/`
+   - Save current set to `/tmp/visual-diff/current/`
+4. Run comparison: `./perf/visual-diff-compare.sh`
+
+### Reading Diff Images
+
+The diff images show red pixels where the two screenshots differ. Open them to evaluate:
+
+- **Subpixel noise** (<200px): Scattered faint red dots from font antialiasing — safe to ignore.
+- **Dynamic content**: Avatars, timestamps, badges, and team data change between runs — safe to ignore.
+- **COLOR REGRESSION**: Entire icons or text areas are solid red. This means colors changed (e.g. an icon went from blue to gray). Investigate the component.
+- **SIZE/POSITION REGRESSION**: Red outlines or doubled shapes around elements. Something shifted position or changed size. Common cause: `Box2` adding `alignSelf: 'center'` where the old code used a plain `<div>`.
+- **Rule of thumb**: If the text labels are clean but nearby icons are fully red, it's a real color or position bug, not noise.
+
+### Output
+
+All screenshots go to `/tmp/visual-diff/` (outside the repo):
+
+| Directory | Contents |
+|-----------|----------|
+| `baseline/` | Base branch screenshots (8 PNGs, one per tab) |
+| `current/` | Feature branch screenshots |
+| `diff/` | ImageMagick diff images (red = different pixels) |
+
+Tabs captured: People, Chat, Files, Crypto, Teams, Git, Devices, Settings.
+
+### iOS Simulator Visual Diff
+
+Same methodology but uses Maestro to navigate tabs on the iOS simulator.
+
+#### Prerequisites
+
+- iOS Simulator booted with app running and logged in
+- Maestro installed: `curl -Ls "https://get.maestro.mobile.dev" | bash`
+- ImageMagick installed: `brew install imagemagick`
+
+#### Workflow
+
+```bash
+# 1. Check out base branch, build if needed, take baseline screenshots
+git checkout nojima/HOTPOT-next-670-clean
+cd shared && ./perf/visual-diff-take-ios.sh baseline
+
+# 2. Check out feature branch, rebuild if needed, take current screenshots
+git checkout my-feature-branch
+cd shared && ./perf/visual-diff-take-ios.sh current
+
+# 3. Compare
+cd shared && ./perf/visual-diff-compare-ios.sh
+```
+
+#### Notes
+
+- Maestro navigates: People, Chat, Files, Teams (bottom bar), then More > Crypto, Git, Devices, Settings
+- Screenshots go to `/tmp/visual-diff-ios/{baseline,current,diff}/`
+- iOS subpixel threshold is higher (~500px) due to retina rendering differences
+- The Maestro flow YAML is at `.maestro/visual-diff/visual-diff-tabs.yaml` — edit it to add/remove tabs or adjust wait times
+- Reading diff images: same rules as desktop (see above)
+
 ## Interpreting Results
 
 ### Before/After Comparison

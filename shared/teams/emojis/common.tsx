@@ -81,7 +81,7 @@ export const Modal = (props: ModalProps) => {
             {props.backButtonOnClick && (
               <Kb.Icon
                 type="iconfont-arrow-left"
-                boxStyle={styles.backButton}
+                style={styles.backButton}
                 onClick={props.backButtonOnClick}
               />
             )}
@@ -89,7 +89,7 @@ export const Modal = (props: ModalProps) => {
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
-          <Kb.Icon type={props.bannerImage} noContainer={true} style={styles.bannerImage} />
+          <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
           {!!props.bannerError && (
             <Kb.Banner color="red" style={styles.bannerError}>
               {props.bannerError}

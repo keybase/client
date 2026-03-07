@@ -61,7 +61,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         style={styles.appIconBox}
       >
         <Kb.Icon
-          inheritColor={true}
+          color="inherit"
           onClick={onMinimize}
           style={styles.appIcon}
           type="iconfont-app-minimize"
@@ -73,7 +73,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         style={styles.appIconBox}
       >
         <Kb.Icon
-          inheritColor={true}
+          color="inherit"
           onClick={onToggleMaximizeWindow}
           style={styles.appIcon}
           type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
@@ -85,7 +85,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         style={styles.appIconBox}
       >
         <Kb.Icon
-          inheritColor={true}
+          color="inherit"
           onClick={onCloseWindow}
           style={styles.appIcon}
           type="iconfont-app-close"
@@ -190,12 +190,13 @@ function DesktopHeader(p: Props) {
               onClick={pop}
               style={iconContainerStyle}
             >
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                color={iconColor}
-                className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
-                boxStyle={styles.icon}
-              />
+              <Kb.Box2 direction="vertical" style={styles.icon}>
+                <Kb.Icon
+                  type="iconfont-arrow-left"
+                  color={iconColor}
+                  className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
+                />
+              </Kb.Box2>
             </Kb.ClickableBox>
           )}
           <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">

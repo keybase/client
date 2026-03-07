@@ -194,10 +194,10 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
 const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
   <Kb.ClickableBox className="hover-underline-container" onClick={p.onClick} style={styles.fileFullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
-      <Kb.Icon type="icon-file-16" style={styles.fileIcon} />
+      <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
       {p.uploading && (
         <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
-          <Kb.Icon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
+          <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
         </Kb.Box2>
       )}
       <Filename type="Body" path={p.path} />
@@ -431,14 +431,15 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           : null}
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.hamburgerContainer}>
-        <Kb.Icon
-          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
-          hoverColor={Kb.Styles.globalColors.whiteOrWhite}
-          onClick={showPopup}
-          type="iconfont-nav-2-hamburger"
-          sizeType="Big"
-          ref={popupAnchor}
-        />
+        <Kb.Box2 direction="vertical" ref={popupAnchor}>
+          <Kb.Icon
+            color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
+            hoverColor={Kb.Styles.globalColors.whiteOrWhite}
+            onClick={showPopup}
+            type="iconfont-nav-2-hamburger"
+            sizeType="Big"
+          />
+        </Kb.Box2>
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box2>
       {popup}
@@ -524,10 +525,9 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
           style={styles.loggedOutContainer}
         >
           <Kb.Box2 direction="vertical">
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-keybase-logo-logged-out-64"
               style={styles.logo}
-              color={Kb.Styles.globalColors.yellow}
             />
             <Kb.Text type="Body" style={styles.loggedOutText}>
               {text}

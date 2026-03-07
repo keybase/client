@@ -9,7 +9,7 @@ export default function Import() {
   }
   return (
     <Modal onCancel={onCancel}>
-      <Kb.Icon type="icon-pgp-key-import-48" />
+      <Kb.ImageIcon type="icon-pgp-key-import-48" />
       <Kb.Text style={styleHeader} type="Header">
         Import a PGP key
       </Kb.Text>

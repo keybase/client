@@ -84,7 +84,6 @@ const PaymentStatus = (props: Props) => {
         <Kb.Icon
           type={getIcon(props.status)}
           fontSize={12}
-          boxStyle={styles.iconBoxStyle}
           color={statusColor(props.status)}
         />
       </Kb.Text>{' '}
@@ -145,11 +144,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.xtiny,
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      iconBoxStyle: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
-        },
-      }),
       pending: {
         backgroundColor: Kb.Styles.globalColors.greyLight,
         borderRadius: Kb.Styles.globalMargins.xxtiny,

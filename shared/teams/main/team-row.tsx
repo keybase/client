@@ -53,10 +53,8 @@ const TeamRow = function TeamRow(props: Props) {
       <Kb.Icon
         type={crownIconType}
         sizeType="Tiny"
-        style={Kb.Styles.collapseStyles([
-          styles.crownIcon,
-          teamMeta.role === 'admin' && styles.darkerAdminIcon,
-        ])}
+        color={teamMeta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        style={styles.crownIcon}
       />
     </Kb.Box2>
   ) : null
@@ -254,7 +252,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {bottom: -5, right: -5},
     isMobile: {bottom: -5, right: -5},
   }),
-  darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
   divider: {
     left: 0,
     position: 'absolute',

@@ -79,7 +79,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewTopStyle={styles.background}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
-        <Kb.Icon
+        <Kb.ImageIcon
           type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />

@@ -364,7 +364,7 @@ function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
       <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
         {exploding ? (
           <>
-            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+            <Kb.Icon fontSize={16} type="iconfont-block" />{' '}
           </>
         ) : null}
         {`${failureDescription}. `}
@@ -439,7 +439,7 @@ function RightSide(p: RProps) {
     </Kb.Box2>
   ) : null
 
-  const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
+  const coinsIcon = showCoinsIcon ? <Kb.ImageIcon type="icon-stellar-coins-stacked-16" /> : null
 
   const bot = botname ? (
     <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
@@ -589,12 +589,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       fail: {color: Kb.Styles.globalColors.redDark},
       failExploding: {color: Kb.Styles.globalColors.black_50},
-      failExplodingIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-block',
-          verticalAlign: 'middle',
-        },
-      }),
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {

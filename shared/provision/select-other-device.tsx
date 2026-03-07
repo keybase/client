@@ -79,7 +79,7 @@ const SelectOtherDevice = (props: Props) => {
               type="Small"
               firstItem={true}
               onClick={onResetAccount}
-              icon={<Kb.Icon type="icon-skull-32" />}
+              icon={<Kb.ImageIcon type="icon-skull-32" />}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
                   <Kb.Text type="BodySemibold">I lost all my devices/paper keys</Kb.Text>

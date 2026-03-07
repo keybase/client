@@ -49,7 +49,7 @@ const PushPrompt = () => {
       mobileStyle={styles.background}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
-        <Kb.Icon type="illustration-turn-on-notifications" style={styles.image} />
+        <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
         </Kb.Text>

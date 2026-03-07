@@ -51,6 +51,7 @@ export const TeamMemberRow = (props: Props) => {
   const crown = active && showCrown[roleType] ? (
         <Kb.Icon
           type={('iconfont-crown-' + roleType) as Kb.IconType}
+          color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
           style={styles.crownIcon}
           fontSize={10}
         />

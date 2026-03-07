@@ -35,12 +35,13 @@ const ServiceIcon = (props: IconProps) => {
                 leftRightPadding={0}
               />
             )}
-            <Kb.Icon
-              color={color}
-              fontSize={16}
-              type={serviceIdToIconFont(props.service)}
-              boxStyle={styles.serviceIconBox}
-            />
+            <Kb.Box2 direction="vertical" style={styles.serviceIconBox}>
+              <Kb.Icon
+                color={color}
+                fontSize={16}
+                type={serviceIdToIconFont(props.service)}
+              />
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (

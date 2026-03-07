@@ -73,7 +73,7 @@ export const CreateChannelsModal = (props: Props) => {
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.Icon type="icon-illustration-teams-channels-460-96" />
+        <Kb.ImageIcon type="icon-illustration-teams-channels-460-96" />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"

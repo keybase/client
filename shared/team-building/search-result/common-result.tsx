@@ -4,11 +4,9 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {
   serviceIdToIconFont,
-  serviceIdToAccentColor,
   serviceMapToArray,
   serviceIdToAvatarIcon,
 } from '../shared'
-import {useColorScheme} from 'react-native'
 
 export type ResultProps = {
   bottomRow?: React.ReactNode
@@ -148,7 +146,6 @@ const Avatar = ({
   resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
-  const isDarkMode = useColorScheme() === 'dark'
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
@@ -158,10 +155,9 @@ const Avatar = ({
   }
 
   return (
-    <Kb.Icon
-      fontSize={avatarSize}
+    <Kb.ImageIcon
       type={serviceIdToAvatarIcon(resultForService)}
-      colorOverride={serviceIdToAccentColor(resultForService, isDarkMode)}
+      style={{height: avatarSize, width: avatarSize}}
     />
   )
 }

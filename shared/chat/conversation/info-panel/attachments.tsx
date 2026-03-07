@@ -199,7 +199,7 @@ const MediaThumb = (props: MediaThumbProps) => {
       </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
-          <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
+          <Kb.ImageIcon type="icon-film-64" style={styles.filmIcon} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -221,7 +221,7 @@ const DocViewRow = (props: DocViewRowProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ClickableBox onClick={item.onClick} onLongPress={showPopup}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-          <Kb.Icon type="icon-file-32" style={styles.docIcon} />
+          <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
             <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
             {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}

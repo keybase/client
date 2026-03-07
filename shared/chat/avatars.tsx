@@ -20,7 +20,7 @@ const OverlayIcon = function OverlayIcon(p: {
           : 'icon-addon-lock-22'
         : null
     if (!type) return null
-    return <Kb.Icon type={type} style={styles.mutedIcon} />
+    return <Kb.ImageIcon type={type} style={styles.mutedIcon} />
   }
   const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
   if (!type) return null

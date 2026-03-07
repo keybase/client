@@ -68,7 +68,7 @@ export const Video = (props: Props) => {
         style={Kb.Styles.collapseStyles([styles.player, style])}
       />
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
-        {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
+        {!playing && <Kb.ImageIcon type="icon-play-64" style={styles.playButton} />}
       </Kb.Box2>
     </Kb.ClickableBox>
   )

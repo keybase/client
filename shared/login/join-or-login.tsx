@@ -60,7 +60,7 @@ const Intro = () => {
         centerChildren={true}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Icon type="icon-keybase-logo-64" />
+          <Kb.ImageIcon type="icon-keybase-logo-64" />
           <Kb.Text type="HeaderBig" style={styles.text}>
             Join Keybase
           </Kb.Text>

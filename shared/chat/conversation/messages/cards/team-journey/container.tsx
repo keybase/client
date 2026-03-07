@@ -135,7 +135,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
           <Kb.Box2 direction="horizontal" style={image ? styles.text : undefined} alignSelf="flex-start">
             {textComponent}
           </Kb.Box2>
-          {!!image && <Kb.Icon style={styles.image} type={image} />}
+          {!!image && <Kb.ImageIcon style={styles.image} type={image} />}
         </Kb.Box2>
         <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <Kb.Box2
@@ -210,7 +210,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
       {!Kb.Styles.isMobile && !deactivateButtons && (
-        <Kb.Icon type="iconfont-close" onClick={onDismiss} fontSize={12} />
+        <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} fontSize={12} />
       )}
     </Kb.Box2>
   )

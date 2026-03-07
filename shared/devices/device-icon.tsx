@@ -2,13 +2,11 @@ import type * as Provision from '@/stores/provision'
 import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import type {IconStyle} from '@/common-adapters/icon'
-
 export type Props = {
   current?: boolean
   device: T.Devices.Device | Provision.Device
   size: 32 | 64 | 96
-  style?: IconStyle
+  style?: Kb.Styles.StylesCrossPlatform
 }
 const DeviceIcon = (props: Props) => {
   const defaultIcons = {
@@ -30,6 +28,6 @@ const DeviceIcon = (props: Props) => {
   )[type]
   const icon: Kb.IconType = Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 
-  return <Kb.Icon type={icon} style={props.style} />
+  return <Kb.ImageIcon type={icon} style={props.style} />
 }
 export default DeviceIcon

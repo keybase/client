@@ -107,7 +107,6 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
           type="iconfont-finder"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
-          hint="Open folder"
           onClick={onFinder}
           style={style}
         />
@@ -121,7 +120,6 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
           type="iconfont-download"
           color={Kb.Styles.globalColors.green}
           fontSize={20}
-          hint="Downloading"
           style={style}
         />
       )
@@ -206,8 +204,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   })
   return (
     <Kb.Icon
-      hint="Collapse"
-      style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : undefined}
+      style={isWhite ? styles.collapseLabelWhite : undefined}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
     />

@@ -41,7 +41,7 @@ const RevokeProof = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.contentContainer}>
         <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
-          <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
+          <Kb.ImageIcon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box2>
         <Kb.Text center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
           {platformHandle}

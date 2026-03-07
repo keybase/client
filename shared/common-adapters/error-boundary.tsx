@@ -70,6 +70,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
         {closeOnClick && (
           <Icon
             type="iconfont-close"
+            color={Styles.globalColors.black_20}
             style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
             onClick={closeOnClick}
           />

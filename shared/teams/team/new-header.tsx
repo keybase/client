@@ -53,7 +53,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       fullWidth={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.illustration}>
-        <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
+        <Kb.ImageIcon type="icon-illustration-teams-feature-profile-460-64" />
       </Kb.Box2>
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
       <Kb.Text type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text>

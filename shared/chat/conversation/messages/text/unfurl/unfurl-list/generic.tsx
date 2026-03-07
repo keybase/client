@@ -81,6 +81,7 @@ function UnfurlGeneric(p: {idx: number}) {
           padding="xtiny"
           className="unfurl-closebox"
           fontSize={12}
+          color={Kb.Styles.globalColors.black_20}
         />
       ) : null}
     </Kb.Box2>
@@ -93,8 +94,7 @@ function UnfurlGeneric(p: {idx: number}) {
         <>
           {' '}
           <Kb.Icon
-            boxStyle={styles.collapseBox}
-            noContainer={Kb.Styles.isMobile}
+            style={styles.collapseBox}
             onClick={onToggleCollapse}
             sizeType="Tiny"
             type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}

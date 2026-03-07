@@ -51,7 +51,6 @@ const Container = () => {
           type="iconfont-remove"
           style={styles.close}
           color={textColor(props.displayType)}
-          boxStyle={styles.close}
         />
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} gap="tiny">
           <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
