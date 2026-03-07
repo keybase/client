@@ -85,8 +85,7 @@ function PathStatusIcon(props: Props) {
         props.statusIcon === T.FS.UploadIcon.UploadingStuck ? (
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
-        <Kb.Icon
-          fixOverdraw={true}
+        <Kb.Icon2
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
@@ -95,7 +94,7 @@ function PathStatusIcon(props: Props) {
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon2 type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
     <Kb.Box2 direction="vertical" style={styles.placeholder} />
   )

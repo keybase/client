@@ -20,14 +20,14 @@ const OverlayIcon = function OverlayIcon(p: {
           : 'icon-addon-lock-22'
         : null
     if (!type) return null
-    return <Kb.Icon type={type} style={styles.mutedIcon} />
+    return <Kb.ImageIcon type={type} style={styles.mutedIcon} />
   }
   const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
   if (!type) return null
 
   return (
     <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
-      <Kb.Icon
+      <Kb.Icon2
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
           locked: isLocked,
@@ -37,7 +37,7 @@ const OverlayIcon = function OverlayIcon(p: {
         type={type}
         fontSize={18}
       />
-      <Kb.Icon
+      <Kb.Icon2
         className={Kb.Styles.classNames('overlay-icon', {
           hovered: isHovered,
           locked: isLocked,

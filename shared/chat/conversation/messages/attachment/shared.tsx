@@ -102,12 +102,11 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   switch (state) {
     case 'doneWithPath':
       return Kb.Styles.isMobile ? null : (
-        <Kb.Icon
+        <Kb.Icon2
           className="hover-opacity-full"
           type="iconfont-finder"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
-          hint="Open folder"
           onClick={onFinder}
           style={style}
         />
@@ -116,18 +115,17 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
       return null
     case 'downloading':
       return (
-        <Kb.Icon
+        <Kb.Icon2
           className="hover-opacity-full"
           type="iconfont-download"
           color={Kb.Styles.globalColors.green}
           fontSize={20}
-          hint="Downloading"
           style={style}
         />
       )
     case 'none':
       return (
-        <Kb.Icon
+        <Kb.Icon2
           className="hover-opacity-full"
           type="iconfont-download"
           color={Kb.Styles.globalColors.blue}
@@ -205,8 +203,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
     return isCollapsed
   })
   return (
-    <Kb.Icon
-      hint="Collapse"
+    <Kb.Icon2
       style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : undefined}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}

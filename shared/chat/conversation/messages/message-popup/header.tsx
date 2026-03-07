@@ -61,7 +61,7 @@ const MessagePopupHeader = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-      {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
+      {Kb.Styles.isMobile ? null : <Kb.ImageIcon type={iconName} style={styles.headerIcon} />}
       {Kb.Styles.isMobile ? null : (
         <Kb.Box2 direction="horizontal">
           <Kb.Text

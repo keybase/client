@@ -364,7 +364,7 @@ function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
       <Kb.Text type="BodySmall" style={exploding ? styles.failExploding : styles.fail}>
         {exploding ? (
           <>
-            <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+            <Kb.Icon2 fontSize={16} type="iconfont-block" />{' '}
           </>
         ) : null}
         {`${failureDescription}. `}
@@ -435,15 +435,15 @@ function RightSide(p: RProps) {
 
   const revokedIcon = showRevoked ? (
     <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
-      <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
+      <Kb.Icon2 type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
     </Kb.Box2>
   ) : null
 
-  const coinsIcon = showCoinsIcon ? <Kb.Icon type="icon-stellar-coins-stacked-16" /> : null
+  const coinsIcon = showCoinsIcon ? <Kb.ImageIcon type="icon-stellar-coins-stacked-16" /> : null
 
   const bot = botname ? (
     <Kb.Box2 direction="vertical" tooltip={`Encrypted for @${botname}`} className="tooltip-bottom-left">
-      <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon2 color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
 
@@ -466,7 +466,7 @@ function RightSide(p: RProps) {
         )}
       >
         <Kb.Box2 direction="vertical" style={styles.ellipsis}>
-          <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
+          <Kb.Icon2 type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -589,12 +589,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       fail: {color: Kb.Styles.globalColors.redDark},
       failExploding: {color: Kb.Styles.globalColors.black_50},
-      failExplodingIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-block',
-          verticalAlign: 'middle',
-        },
-      }),
       failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {

@@ -74,7 +74,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
             style={styles.emptyContainer}
           >
             {!Kb.Styles.isMobile && (
-              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
+              <Kb.Icon2 color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
             {namespace === 'chat' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>

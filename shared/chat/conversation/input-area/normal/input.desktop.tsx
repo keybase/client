@@ -252,7 +252,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
             {formatDurationShort(explodingModeSeconds * 1000)}
           </Kb.Text>
         ) : (
-          <Kb.Icon
+          <Kb.Icon2
             className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
             onClick={showPopup}
             padding="xtiny"
@@ -300,7 +300,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
         tooltip="Emoji"
         className="tooltip-top-left"
       >
-        <Kb.Icon
+        <Kb.Icon2
           color={showingPopup ? Kb.Styles.globalColors.black : undefined}
           onClick={showPopup}
           type="iconfont-emoji"
@@ -317,7 +317,7 @@ const GiphyButton = function GiphyButton() {
 
   return (
     <Kb.Box2 direction="vertical" style={styles.icon} tooltip="GIF" className="tooltip-top-left">
-      <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
+      <Kb.Icon2 onClick={onGiphyToggle} type="iconfont-gif" />
     </Kb.Box2>
   )
 }
@@ -361,7 +361,7 @@ const FileButton = function FileButton(p: {
 
   return (
     <Kb.Box2 direction="vertical" style={styles.icon} tooltip="Attachment" className="tooltip-top-left">
-      <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
+      <Kb.Icon2 onClick={filePickerOpen} type="iconfont-attachment" />
       <input type="file" style={styles.hidden} ref={setRef} onChange={pickFile} multiple={true} />
     </Kb.Box2>
   )

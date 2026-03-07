@@ -194,10 +194,10 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
 const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
   <Kb.ClickableBox className="hover-underline-container" onClick={p.onClick} style={styles.fileFullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
-      <Kb.Icon type="icon-file-16" style={styles.fileIcon} />
+      <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
       {p.uploading && (
         <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
-          <Kb.Icon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
+          <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
         </Kb.Box2>
       )}
       <Filename type="Body" path={p.path} />
@@ -524,10 +524,9 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
           style={styles.loggedOutContainer}
         >
           <Kb.Box2 direction="vertical">
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-keybase-logo-logged-out-64"
               style={styles.logo}
-              color={Kb.Styles.globalColors.yellow}
             />
             <Kb.Text type="Body" style={styles.loggedOutText}>
               {text}
@@ -571,7 +570,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
       <Kb.Box2 direction="vertical" relative={true}>
-        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
+        <Kb.Icon2 type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
       <Kb.Text className="title" type="BodySemibold">

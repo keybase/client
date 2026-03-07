@@ -50,7 +50,7 @@ const TeamRow = function TeamRow(props: Props) {
         : undefined
   const crownIcon = crownIconType ? (
     <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
-      <Kb.Icon
+      <Kb.Icon2
         type={crownIconType}
         sizeType="Tiny"
         style={Kb.Styles.collapseStyles([

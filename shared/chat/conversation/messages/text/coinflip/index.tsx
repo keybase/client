@@ -71,7 +71,7 @@ function CoinFlipContainer() {
           {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
-          <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
+          <Kb.Icon2 type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
         )}
       </Kb.Box2>
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (

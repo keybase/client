@@ -17,7 +17,7 @@ const UnfurlPrompt = (p: Props) => {
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      {!Kb.Styles.isMobile && <Kb.Icon type={promptIcon} style={styles.icon} />}
+      {!Kb.Styles.isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
       <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
@@ -40,7 +40,7 @@ const UnfurlPrompt = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-        <Kb.Icon type="iconfont-close" onClick={onNotnow} fontSize={16} padding="xtiny" />
+        <Kb.Icon2 type="iconfont-close" onClick={onNotnow} fontSize={16} padding="xtiny" />
       </Kb.Box2>
     </Kb.Box2>
   )

@@ -231,7 +231,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
     >
       {Chat.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople} justifyContent="center">
-          <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
+          <Kb.Icon2 type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
         <Kb.Avatar username={username} size={32} />

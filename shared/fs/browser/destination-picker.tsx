@@ -138,7 +138,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Kb.Divider key="dheader" />
         {!!onBackUp && (
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
-            <Kb.Icon
+            <Kb.Icon2
               type="iconfont-folder-up"
               color={Kb.Styles.globalColors.black_50}
               fontSize={32}
@@ -149,9 +149,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onCopyHere && (
           <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={onCopyHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-copy-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -161,9 +160,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onMoveHere && (
           <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={onMoveHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-move-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -201,7 +199,7 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p
   return (
     <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
-      <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
+      <Kb.Icon2 type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
       <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder
       </Kb.Text>

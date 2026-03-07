@@ -195,7 +195,7 @@ const Container = (ownProps: OwnProps) => {
               onShowProof={onShowProof}
               isSuggestion={isSuggestion}
             />
-            <Kb.Icon type={stateToDecorationIcon(state)} style={styles.siteIconFullDecoration} />
+            <Kb.ImageIcon type={stateToDecorationIcon(state)} style={styles.siteIconFullDecoration} />
           </Kb.Box2>
           {!!timestamp && (
             <>
@@ -282,7 +282,7 @@ const Container = (ownProps: OwnProps) => {
             />
             {items ? (
               <>
-                <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                <Kb.Icon2 className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
                 {popup}
               </>
             ) : (

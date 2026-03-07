@@ -34,7 +34,7 @@ const SFMIPopup = (props: Props) => {
           }}
         >
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
-            <Kb.Icon type="icon-fancy-finder-132-96" />
+            <Kb.ImageIcon type="icon-fancy-finder-132-96" />
           </Kb.Box2>
           <Kb.Text type="BodyBig" style={styles.text}>
             Enable Keybase in {C.fileUIName}?

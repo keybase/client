@@ -37,7 +37,7 @@ function Editing({editID}: Props) {
       type="Small"
       firstItem={true /* we add divider in Rows */}
       statusIcon={
-        <Kb.Icon
+        <Kb.Icon2
           type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
           sizeType="Small"
           padding="xtiny"
@@ -45,7 +45,7 @@ function Editing({editID}: Props) {
       }
       icon={
         <Kb.Box2 direction="vertical" style={rowStyles.pathItemIcon}>
-          <Kb.Icon type="icon-folder-32" />
+          <Kb.ImageIcon type="icon-folder-32" />
         </Kb.Box2>
       }
       body={
@@ -67,7 +67,7 @@ function Editing({editID}: Props) {
         <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
-              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+              <Kb.Icon2 type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
           <Kb.WaitingButton

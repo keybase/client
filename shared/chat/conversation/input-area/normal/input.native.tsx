@@ -252,7 +252,7 @@ const Buttons = function Buttons(p: ButtonsProps) {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Icon color={undefined} type="iconfont-timer" fixOverdraw={true} />
+        <Kb.Icon2 color={undefined} type="iconfont-timer" />
       )}
     </Kb.ClickableBox>
   )
@@ -269,14 +269,14 @@ const Buttons = function Buttons(p: ButtonsProps) {
         />
       )}
       {explodingIcon}
-      <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" fixOverdraw={true} />
-      <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" fixOverdraw={true} />
+      <Kb.Icon2 padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" />
+      <Kb.Icon2 padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
-          <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
+          <Kb.Icon2 onClick={openFilePicker} padding="tiny" type="iconfont-camera" />
           <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
-          <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
+          <Kb.Icon2 onClick={openMoreMenu} padding="tiny" type="iconfont-add" />
         </Kb.Box2>
       )}
       {hasText && (
@@ -325,16 +325,14 @@ const AnimatedExpand = (() => {
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
           <Animated.View style={[styles.iconTop, topStyle]} pointerEvents="none">
-            <Kb.Icon
-              fixOverdraw={false}
+            <Kb.Icon2
               type="iconfont-arrow-full-up"
               fontSize={18}
               color={Kb.Styles.globalColors.black_35}
             />
           </Animated.View>
           <Animated.View style={[styles.iconBottom, bottomStyle]} pointerEvents="none">
-            <Kb.Icon
-              fixOverdraw={false}
+            <Kb.Icon2
               type="iconfont-arrow-full-up"
               fontSize={18}
               color={Kb.Styles.globalColors.black_35}

@@ -140,7 +140,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {balanceChange}
         </Kb.Text>
       )}
-      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {showCoinsIcon && <Kb.ImageIcon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = loading ? (
@@ -161,7 +161,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
           {!!icon && (
-            <Kb.Icon
+            <Kb.Icon2
               type={icon}
               color={pending ? Kb.Styles.globalColors.purpleOrWhite : Kb.Styles.globalColors.purple}
               fontSize={12}

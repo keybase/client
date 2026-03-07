@@ -57,7 +57,7 @@ const SelfReset = (_: Props) => (
       />
     </Kb.Banner>
     <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.Icon type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+      <Kb.ImageIcon type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
   </Kb.Box2>
 )

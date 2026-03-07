@@ -442,7 +442,7 @@ const SnippetContent = (p: {
 }
 
 const SnippetDecorationIcon = (p: {type: Kb.IconType; color: string}) => (
-  <Kb.Icon
+  <Kb.Icon2
     color={p.color}
     type={p.type}
     fontSize={Kb.Styles.isMobile ? 16 : 12}

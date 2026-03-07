@@ -97,7 +97,7 @@ const Dropdown = (p: DropdownProps) => {
         <Kb.Box2 direction="horizontal" style={styles.label}>
           <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
         </Kb.Box2>
-        <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
+        <Kb.Icon2 type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
       {popup}
       <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />

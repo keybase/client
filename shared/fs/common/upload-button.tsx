@@ -57,7 +57,7 @@ const UploadButton = (props: UploadButtonProps) => {
   return (
     <>
       {C.isMobile ? (
-        <Kb.Icon type="iconfont-upload" padding="tiny" onClick={showPopup} />
+        <Kb.Icon2 type="iconfont-upload" padding="tiny" onClick={showPopup} />
       ) : (
         <Kb.Button onClick={showPopup} label="Upload" ref={popupAnchor} style={props.style} />
       )}

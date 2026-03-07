@@ -22,7 +22,7 @@ export const modalHeaderProps = (
     case 'teams': {
       return {
         hideBorder: true,
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onClose} />,
+        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onClose} />,
         rightButton: Kb.Styles.isMobile ? (
           <Kb.Text
             type="BodyBigLink"

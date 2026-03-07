@@ -45,7 +45,7 @@ const ExplodingPopupHeader = (props: Props) => {
   const [now] = React.useState(() => Date.now())
 
   const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
-  const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
+  const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
     <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
       <Kb.Box2 direction="horizontal">
@@ -118,7 +118,7 @@ const ExplodingPopupHeader = (props: Props) => {
         <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
       ) : (
         <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
-          <Kb.Icon
+          <Kb.Icon2
             type="iconfont-timer"
             fontSize={Kb.Styles.isMobile ? 20 : 16}
             color={Kb.Styles.globalColors.white}

@@ -78,7 +78,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
               style={styles.emptyContainer}
             >
               {!Kb.Styles.isMobile && (
-                <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
+                <Kb.Icon2 color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
               {namespace === 'chat' ? (
                 <Kb.Text type="BodySmall" style={styles.helperText}>
@@ -106,7 +106,7 @@ type UserMatchMentionProps = {
 }
 export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
+    <Kb.Icon2 type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
     <Kb.Text type="BodySmall">
       {"Great! That's "}
       <Kb.ConnectedUsernames

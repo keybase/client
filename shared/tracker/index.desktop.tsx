@@ -46,7 +46,7 @@ const getButtons = (props: Props) => {
   )
   const buttonChat = (
     <Kb.Button key="Chat" label="Chat" onClick={props.onChat}>
-      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon2 type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.Button>
   )
 
@@ -240,7 +240,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
           </Kb.Text>
           <Kb.Text type="Body" style={styles.assertionSite}>@{a.type}</Kb.Text>
         </Kb.Text>
-        <Kb.Icon
+        <Kb.Icon2
           type={stateToIcon(a.state)}
           fontSize={20}
           color={assertionColorToColor(a.color)}
@@ -295,7 +295,7 @@ const Tracker = (props: Props) => {
       </Kb.Text>
       {/* Close button must go after reason text for z-ordering on Linux */}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header} justifyContent="flex-end">
-        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
+        <Kb.Icon2 type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         <Kb.Box2 direction="vertical">

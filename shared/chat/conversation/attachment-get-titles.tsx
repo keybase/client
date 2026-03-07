@@ -132,7 +132,7 @@ const Container = (ownProps: OwnProps) => {
       } else {
         preview = (
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.Icon type="icon-file-uploading-48" />
+            <Kb.ImageIcon type="icon-file-uploading-48" />
           </Kb.Box2>
         )
       }

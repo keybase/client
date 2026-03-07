@@ -120,7 +120,7 @@ function FileContainer(p: OwnProps) {
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
+          <Kb.ImageIcon type={iconType} style={styles.iconStyle} />
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             {fileName === title ? (
               // if the title is the filename, don't try to parse it as markdown
@@ -172,7 +172,7 @@ function FileContainer(p: OwnProps) {
         )}
         {!!arrowColor && (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
-            <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
+            <Kb.Icon2 type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
           </Kb.Box2>
         )}
         {!!progressLabel && (

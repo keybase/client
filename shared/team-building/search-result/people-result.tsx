@@ -80,7 +80,7 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon2 type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 
@@ -147,7 +147,7 @@ const DropdownButton = (p: DropdownProps) => {
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon2 color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}
