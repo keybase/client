@@ -57,6 +57,7 @@ const Desktop = () => {
             <Kb.Icon
               style={styles.iconBoxEllipsis}
               type="iconfont-ellipsis"
+              hint="Open downloads folder"
               color={Kb.Styles.globalColors.black_50}
               padding="tiny"
               onClick={openDownloadFolder}
@@ -67,6 +68,7 @@ const Desktop = () => {
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
+            hint="Open downloads folder"
             color={Kb.Styles.globalColors.black_50}
             padding="tiny"
             onClick={openDownloadFolder}
