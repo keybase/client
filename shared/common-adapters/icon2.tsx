@@ -34,17 +34,15 @@ const Icon2Desktop = (props: Icon2Props) => {
 
   const size = fontSize ?? (meta.gridSize || sizeToFont[sizeType])
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
-  const needsStyle = color || size !== 16 || style || paddingValue
-  const inlineStyle = needsStyle
-    ? Styles.castStyleDesktop(
-        Styles.collapseStyles([
-          color && {color},
-          size !== 16 && {fontSize: size},
-          paddingValue && {padding: paddingValue},
-          style,
-        ])
-      )
-    : undefined
+  const effectiveColor = color || Styles.globalColors.black_50
+  const inlineStyle = Styles.castStyleDesktop(
+    Styles.collapseStyles([
+      {color: effectiveColor},
+      size !== 16 && {fontSize: size},
+      paddingValue && {padding: paddingValue},
+      style,
+    ])
+  )
   const hoverColorName = hoverColor ? cssVarToColorName(hoverColor as string) : undefined
   const hoverClassName = hoverColorName ? `hover_color_${hoverColorName}` : undefined
   const cn = Styles.classNames('icon', `icon-gen-${type}`, className, hoverClassName)
