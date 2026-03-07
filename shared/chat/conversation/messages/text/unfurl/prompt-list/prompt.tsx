@@ -40,7 +40,7 @@ const UnfurlPrompt = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-        <Kb.Icon2 type="iconfont-close" onClick={onNotnow} fontSize={16} padding="xtiny" />
+        <Kb.Icon2 type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onNotnow} fontSize={16} padding="xtiny" />
       </Kb.Box2>
     </Kb.Box2>
   )

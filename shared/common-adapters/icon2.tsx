@@ -28,11 +28,11 @@ const cssVarToColorName = (cssVar: string): string | undefined => {
 }
 
 const Icon2Desktop = (props: Icon2Props) => {
-  const {type, color, fontSize, sizeType = 'Default', style, className, hoverColor, onClick, padding} = props
+  const {type, color, fontSize, sizeType, style, className, hoverColor, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
 
-  const size = fontSize ?? (meta.gridSize || sizeToFont[sizeType])
+  const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
   const effectiveColor = color || Styles.globalColors.black_50
   const inlineStyle = Styles.castStyleDesktop(
@@ -70,18 +70,18 @@ const nativeBaseStyle: Styles._StylesCrossPlatform = {
 
 const Icon2Native = (props: Icon2Props) => {
   const {Text: RNText} = require('react-native') as {Text: typeof RNTextType}
-  const {type, color, fontSize, sizeType = 'Default', style, onClick, padding} = props
+  const {type, color, fontSize, sizeType, style, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
 
   const code = String.fromCharCode(meta.charCode || 0)
-  const size = fontSize ?? (meta.gridSize || sizeToFont[sizeType])
+  const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
 
   const textEl = (
     <RNText
       style={Styles.castStyleNative(
-        Styles.collapseStyles([nativeBaseStyle, {fontSize: size}, color && {color}, style])
+        Styles.collapseStyles([nativeBaseStyle, {color: color || Styles.globalColors.black_50, fontSize: size}, style])
       )}
       allowFontScaling={false}
       suppressHighlighting={true}
@@ -105,8 +105,7 @@ const Icon2Native = (props: Icon2Props) => {
         style={Styles.castStyleNative(
           Styles.collapseStyles([
             nativeBaseStyle,
-            {fontSize: size, padding: paddingValue},
-            color && {color},
+            {color: color || Styles.globalColors.black_50, fontSize: size, padding: paddingValue},
             style,
           ])
         )}

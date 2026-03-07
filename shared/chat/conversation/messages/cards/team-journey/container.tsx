@@ -210,7 +210,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
       {!Kb.Styles.isMobile && !deactivateButtons && (
-        <Kb.Icon2 type="iconfont-close" onClick={onDismiss} fontSize={12} />
+        <Kb.Icon2 type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} fontSize={12} />
       )}
     </Kb.Box2>
   )

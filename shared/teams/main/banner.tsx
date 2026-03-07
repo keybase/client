@@ -26,6 +26,7 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
     <Kb.Box2 direction="vertical" style={styles.closeIconContainer}>
       <Kb.Icon2
         type="iconfont-close"
+        color={Kb.Styles.globalColors.black_20}
         style={{padding: Kb.Styles.globalMargins.xtiny}}
         onClick={onHideChatBanner}
       />

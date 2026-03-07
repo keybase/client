@@ -295,7 +295,7 @@ const Tracker = (props: Props) => {
       </Kb.Text>
       {/* Close button must go after reason text for z-ordering on Linux */}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header} justifyContent="flex-end">
-        <Kb.Icon2 type="iconfont-close" onClick={props.onClose} style={styles.close} />
+        <Kb.Icon2 type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         <Kb.Box2 direction="vertical">

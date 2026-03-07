@@ -201,6 +201,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
             {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon2
                 type={`iconfont-crown-${roleString}` as Kb.IconType}
+                color={roleString === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
                 sizeType="Small"
                 style={styles.crownIcon}
               />

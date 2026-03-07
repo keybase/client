@@ -195,7 +195,7 @@ const ProfileCard = ({
       alignItems="center"
     >
       {!!showClose && (
-        <Kb.Icon2 type="iconfont-close" onClick={() => {}} style={styles.close} padding="tiny" />
+        <Kb.Icon2 type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
         onClick={clickToProfile && openProfile}
