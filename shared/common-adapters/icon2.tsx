@@ -35,9 +35,13 @@ const Icon2Desktop = (props: Icon2Props) => {
   const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
   const effectiveColor = color || Styles.globalColors.black_50
+  // Use CSS class for color when it's a known CSS variable, so external CSS can override it.
+  // Inline styles have higher specificity than CSS classes and break cases like the sidebar tab icons.
+  const colorName = cssVarToColorName(effectiveColor as string)
+  const colorClassName = colorName ? `color_${colorName}` : undefined
   const inlineStyle = Styles.castStyleDesktop(
     Styles.collapseStyles([
-      {color: effectiveColor},
+      !colorClassName && {color: effectiveColor},
       size !== 16 && {fontSize: size},
       paddingValue && {padding: paddingValue},
       style,
@@ -45,7 +49,7 @@ const Icon2Desktop = (props: Icon2Props) => {
   )
   const hoverColorName = hoverColor ? cssVarToColorName(hoverColor as string) : undefined
   const hoverClassName = hoverColorName ? `hover_color_${hoverColorName}` : undefined
-  const cn = Styles.classNames('icon', `icon-gen-${type}`, className, hoverClassName)
+  const cn = Styles.classNames('icon', `icon-gen-${type}`, className, colorClassName, hoverClassName)
 
   if (onClick) {
     const handleClick = (e: React.MouseEvent) => {
