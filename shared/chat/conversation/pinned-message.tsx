@@ -90,7 +90,7 @@ const PinnedMessage = function PinnedMessage() {
           </Kb.Box2>
         ) : (
           <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
-            <Kb.Icon2
+            <Kb.Icon
               onClick={onIconClick}
               type="iconfont-close"
               sizeType="Small"

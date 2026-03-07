@@ -155,7 +155,7 @@ const Header = () => {
             <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
               Hi {username}!
             </Kb.Text>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-arrow-down"
               color={Kb.Styles.globalColors.blueLighter}
               fontSize={12}
@@ -305,7 +305,7 @@ function Tab(props: TabProps) {
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
-          <Kb.Icon2
+          <Kb.Icon
             className="tab-icon"
             type={Tabs.desktopTabMeta[tab].icon}
             sizeType="Big"

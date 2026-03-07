@@ -118,7 +118,7 @@ const ExplodingPopupHeader = (props: Props) => {
         <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
       ) : (
         <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
-          <Kb.Icon2
+          <Kb.Icon
             type="iconfont-timer"
             fontSize={Kb.Styles.isMobile ? 20 : 16}
             color={Kb.Styles.globalColors.white}

@@ -36,7 +36,7 @@ const RetentionWarning = (props: Props) => {
     <Wrapper>
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.iconBoxStyle}>
-          <Kb.Icon2
+          <Kb.Icon
             color={props.exploding ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_20}
             fontSize={48}
             type={props.exploding ? 'iconfont-bomb-solid' : 'iconfont-timer-solid'}

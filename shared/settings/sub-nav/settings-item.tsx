@@ -28,7 +28,7 @@ function SettingsItem(props: SettingsItemProps) {
       {props.iconComponent ? (
         <props.iconComponent />
       ) : props.icon ? (
-        <Kb.Icon2
+        <Kb.Icon
           fontSize={24}
           type={props.icon}
           color={Kb.Styles.globalColors.black_50}

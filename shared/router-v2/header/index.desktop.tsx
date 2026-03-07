@@ -60,7 +60,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onMinimize}
         style={styles.appIconBox}
       >
-        <Kb.Icon2
+        <Kb.Icon
           color="inherit"
           onClick={onMinimize}
           style={styles.appIcon}
@@ -72,7 +72,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onToggleMaximizeWindow}
         style={styles.appIconBox}
       >
-        <Kb.Icon2
+        <Kb.Icon
           color="inherit"
           onClick={onToggleMaximizeWindow}
           style={styles.appIcon}
@@ -84,7 +84,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onCloseWindow}
         style={styles.appIconBox}
       >
-        <Kb.Icon2
+        <Kb.Icon
           color="inherit"
           onClick={onCloseWindow}
           style={styles.appIcon}
@@ -191,7 +191,7 @@ function DesktopHeader(p: Props) {
               style={iconContainerStyle}
             >
               <Kb.Box2 direction="vertical" style={styles.icon}>
-                <Kb.Icon2
+                <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
                   className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}

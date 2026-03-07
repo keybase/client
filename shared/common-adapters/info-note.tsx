@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import {Box2} from './box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import * as Styles from '@/styles'
 
 export type Props = {
@@ -17,7 +17,7 @@ const InfoNote = (props: Props) => (
   >
     <Box2 direction="horizontal" gap="tiny" style={styles.alignCenter}>
       <Box2 direction="vertical" style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
-      <Icon2
+      <Icon
         color={props.color || Styles.globalColors.black_10}
         type="iconfont-info"
         fontSize={Styles.isMobile ? 22 : 16}

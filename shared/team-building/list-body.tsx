@@ -32,7 +32,7 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
       style={styles.emptyContainer}
     >
       {!Kb.Styles.isMobile && (
-        <Kb.Icon2
+        <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
           color={Shared.serviceIdToAccentColor(selectedService, isDarkMode)}

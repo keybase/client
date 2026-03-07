@@ -2,14 +2,14 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
 import Text from './text'
-import Icon2 from './icon2'
+import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 
 const Kb = {
   Box2,
   ClickableBox,
-  Icon2,
+  Icon,
   ProgressIndicator,
   Text,
 }
@@ -31,7 +31,7 @@ const SectionDivider = (props: Props) => {
         props.label
       )}
       {collapsible && (
-        <Kb.Icon2
+        <Kb.Icon
           sizeType="Tiny"
           style={styles.caret}
           type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}

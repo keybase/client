@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import {Pressable, Keyboard} from 'react-native'
 import Badge from './badge'
 import {Box2} from './box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import * as Styles from '@/styles'
 import type {Props} from './back-button'
 import noop from 'lodash/noop'
@@ -10,7 +10,7 @@ import noop from 'lodash/noop'
 const Kb = {
   Badge,
   Box2,
-  Icon2,
+  Icon,
 }
 
 function BackButton(props: Props) {
@@ -24,7 +24,7 @@ function BackButton(props: Props) {
   return (
     <Pressable onPress={onBack}>
       <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([styles.container, props.style])}>
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-arrow-left"
           color={props.iconColor}
           style={styles.arrow}

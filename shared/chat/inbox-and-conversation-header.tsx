@@ -192,7 +192,7 @@ const Header2 = () => {
         </Kb.Box2>
       ) : null}
       {!!muted && (
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-shh"
           style={styles.shhIconStyle}
           color={Kb.Styles.globalColors.black_20}
@@ -216,13 +216,13 @@ const Header2 = () => {
         direction="vertical"
         tooltip={`Search in this chat (${C.shortcutSymbol}F)`}
       >
-        <Kb.Icon2 style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
+        <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
       </Kb.Box2>
       <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Open folder">
-        <Kb.Icon2 style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
+        <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
       </Kb.Box2>
       <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
-        <Kb.Icon2
+        <Kb.Icon
           color={infoPanelShowing ? Kb.Styles.globalColors.blue : undefined}
           style={styles.clickable}
           type="iconfont-info"

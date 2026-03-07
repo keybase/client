@@ -21,7 +21,7 @@ const Arrow = (props: ArrowProps) => {
       }}
       style={styles.circle}
     >
-      <Kb.Icon2
+      <Kb.Icon
         type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
         color={Kb.Styles.globalColors.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
@@ -77,7 +77,7 @@ const Fullscreen = function Fullscreen(p: Props) {
             {title}
           </Kb.Markdown>
           <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-ellipsis"
               color={Kb.Styles.globalColors.black_50}
               onClick={showPopup}

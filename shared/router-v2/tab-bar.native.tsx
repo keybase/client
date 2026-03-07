@@ -41,7 +41,7 @@ export function TabBarIcon(props: {
         C.isTablet ? {minHeight: 50} : {minHeight: 40, minWidth: screenWidth / tabs.length},
       ]}
     >
-      <Kb.Icon2
+      <Kb.Icon
         type={data.icon}
         fontSize={32}
         style={styles.tab}

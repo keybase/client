@@ -108,7 +108,7 @@ const AddMembersConfirm = () => {
       mode="DefaultFullHeight"
       header={{
         leftButton: fromNewTeamWizard ? (
-          <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />
+          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
         ) : (
           <Kb.Text type="BodyBigLink" onClick={onLeave}>
             Cancel
@@ -418,7 +418,7 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
             />
           </FloatingRolePicker>
         )}
-        <Kb.Icon2 type="iconfont-remove" sizeType="Small" onClick={onRemove} />
+        <Kb.Icon type="iconfont-remove" sizeType="Small" onClick={onRemove} />
       </Kb.Box2>
     </Kb.Box2>
   )

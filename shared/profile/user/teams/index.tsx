@@ -59,7 +59,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-        {!!onEdit && <Kb.Icon2 type="iconfont-edit" onClick={onEdit} />}
+        {!!onEdit && <Kb.Icon type="iconfont-edit" onClick={onEdit} />}
       </Kb.Box2>
       {!!onEdit && !teamShowcase.length && <ShowcaseTeamsOffer onEdit={onEdit} />}
       {teamShowcase.map(t => (

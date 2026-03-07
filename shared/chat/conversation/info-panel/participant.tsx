@@ -16,7 +16,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
       {(isAdmin || isOwner) && (
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xxtiny">
           <Kb.Text type="BodySmall">(</Kb.Text>
-          <Kb.Icon2
+          <Kb.Icon
             color={isOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
             fontSize={10}
             type="iconfont-crown-owner"

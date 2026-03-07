@@ -3,11 +3,11 @@ import * as Chat from '@/stores/chat'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
 import WaitingButton from '@/common-adapters/waiting-button'
-import Icon2 from '@/common-adapters/icon2'
+import Icon from '@/common-adapters/icon'
 
 // pulled in from common-adapters/profile-card
 const Kb = {
-  Icon2,
+  Icon,
   WaitingButton,
 }
 
@@ -35,7 +35,7 @@ const ChatButton = ({small, style, username, afterClick}: Props) => {
       small={small}
       style={style}
     >
-      <Kb.Icon2 type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 }

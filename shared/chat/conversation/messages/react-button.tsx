@@ -94,7 +94,7 @@ function ReactButtonContainer(p: OwnProps) {
       ])}
     >
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-reacji"
           color={Kb.Styles.globalColors.black_50}
           fontSize={18}

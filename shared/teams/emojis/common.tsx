@@ -37,7 +37,7 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
         />
         {onRemove && (
           <Kb.ClickableBox onClick={onRemove} style={styles.removeBox}>
-            <Kb.Icon2 type="iconfont-remove" />
+            <Kb.Icon type="iconfont-remove" />
           </Kb.ClickableBox>
         )}
       </Kb.Box2>
@@ -79,7 +79,7 @@ export const Modal = (props: ModalProps) => {
         {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
             {props.backButtonOnClick && (
-              <Kb.Icon2
+              <Kb.Icon
                 type="iconfont-arrow-left"
                 style={styles.backButton}
                 onClick={props.backButtonOnClick}

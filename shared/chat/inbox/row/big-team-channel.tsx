@@ -23,7 +23,7 @@ const BigTeamChannel = (props: Props) => {
     case T.RPCChat.SnippetDecoration.pendingMessage:
       outboxTooltip = 'Sending...'
       outboxIcon = (
-        <Kb.Icon2
+        <Kb.Icon
           style={styles.icon}
           sizeType="Small"
           type={'iconfont-hourglass'}
@@ -34,7 +34,7 @@ const BigTeamChannel = (props: Props) => {
     case T.RPCChat.SnippetDecoration.failedPendingMessage:
       outboxTooltip = 'Message failed to send'
       outboxIcon = (
-        <Kb.Icon2
+        <Kb.Icon
           style={styles.icon}
           type={'iconfont-exclamation'}
           color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
@@ -81,7 +81,7 @@ const BigTeamChannel = (props: Props) => {
   ) : null
 
   const draftIcon = hasDraft ? (
-    <Kb.Icon2
+    <Kb.Icon
       type="iconfont-edit"
       style={styles.icon}
       sizeType="Small"

@@ -10,7 +10,7 @@ const StartNewChat = (props: Props) => {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
         <Kb.ClickableBox2 style={styles.clickableBox} onClick={props.onNewChat}>
-          <Kb.Icon2 type="iconfont-compose" style={styles.iconCompose} />
+          <Kb.Icon type="iconfont-compose" style={styles.iconCompose} />
           <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
           </Kb.Text>

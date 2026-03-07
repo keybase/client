@@ -197,7 +197,7 @@ const ServicesIcons = (props: {
             key={serviceName}
             tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
           >
-            <Kb.Icon2 sizeType="Small" type={serviceIdToIconFont(serviceName)} style={iconStyle} />
+            <Kb.Icon sizeType="Small" type={serviceIdToIconFont(serviceName)} style={iconStyle} />
           </Kb.Box2>
         )
       })}

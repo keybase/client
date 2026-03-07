@@ -212,12 +212,12 @@ const RetentionPicker = (p: Props) => {
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
-        <Kb.Icon2 type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
+        <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
-          <Kb.Icon2 color={Kb.Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
+          <Kb.Icon color={Kb.Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
@@ -342,7 +342,7 @@ const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.Ret
     text = 'Never auto-delete'
   }
   return [
-    timer ? <Kb.Icon2 color={Kb.Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
+    timer ? <Kb.Icon color={Kb.Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,

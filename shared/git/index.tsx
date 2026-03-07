@@ -88,7 +88,7 @@ const Container = (ownProps: OwnProps) => {
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-new"
               style={{marginRight: Kb.Styles.globalMargins.tiny}}
               color={Kb.Styles.globalColors.blue}

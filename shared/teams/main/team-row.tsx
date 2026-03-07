@@ -50,7 +50,7 @@ const TeamRow = function TeamRow(props: Props) {
         : undefined
   const crownIcon = crownIconType ? (
     <Kb.Box2 direction="vertical" style={styles.crownIconBox} centerChildren={true}>
-      <Kb.Icon2
+      <Kb.Icon
         type={crownIconType}
         sizeType="Tiny"
         color={teamMeta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}

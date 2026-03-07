@@ -219,7 +219,7 @@ const DropdownButton = (p: DropdownProps) => {
     <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon2 color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}

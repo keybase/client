@@ -68,7 +68,7 @@ const SFMIPopup = (props: Props) => {
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
           <Kb.Box2 direction="vertical" ref={popupAnchor}>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-finder"
               padding="tiny"
               fontSize={16}

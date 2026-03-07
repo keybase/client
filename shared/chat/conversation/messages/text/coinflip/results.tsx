@@ -159,7 +159,7 @@ const Card = (props: CardType) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
-      <Kb.Icon2
+      <Kb.Icon
         fontSize={Kb.Styles.isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}

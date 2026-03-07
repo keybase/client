@@ -72,11 +72,11 @@ function EmojiRowContainer(p: OwnProps) {
           style={styles.iconContainer}
           tooltip="React"
         >
-          <Kb.Icon2 className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
+          <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
         </Kb.ClickableBox>
         {!!onReply && (
           <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
-            <Kb.Icon2 className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
+            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
           </Kb.ClickableBox>
         )}
         {!!onForward && (
@@ -86,7 +86,7 @@ function EmojiRowContainer(p: OwnProps) {
             style={styles.iconContainer}
             tooltip="Forward"
           >
-            <Kb.Icon2 className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
+            <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
           </Kb.ClickableBox>
         )}
       </Kb.Box2>

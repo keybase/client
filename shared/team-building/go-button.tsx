@@ -12,7 +12,7 @@ const GoButton = (props: Props) => (
     <Kb.WithTooltip
       tooltip={
         <Kb.Box2 direction="horizontal">
-          <Kb.Icon2
+          <Kb.Icon
             type="iconfont-return"
             sizeType="Small"
             color={Kb.Styles.globalColors.white}

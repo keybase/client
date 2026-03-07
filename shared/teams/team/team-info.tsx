@@ -53,7 +53,7 @@ const TeamInfo = (props: Props) => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: Kb.Styles.isMobile ? <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} /> : undefined,
+        leftButton: Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
         title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
       }}
       footer={{
@@ -88,7 +88,7 @@ const TeamInfo = (props: Props) => {
           size={96}
           style={styles.avatar}
         >
-          <Kb.Icon2 type="iconfont-edit" style={styles.editTeamAvatar} />
+          <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
         </Kb.Avatar>
         {isSubteam ? (
           <Kb.Input3

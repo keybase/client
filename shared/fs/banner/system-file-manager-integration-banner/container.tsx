@@ -183,7 +183,7 @@ const Banner = (props: BannerProps) => (
     <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-close"
           onClick={props.onDismiss}
           color={Kb.Styles.globalColors.white_40}

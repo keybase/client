@@ -16,7 +16,7 @@ function ReplyIcon({progress}: {progress: Reanimated.SharedValue<number>}) {
   })
   return (
     <Reanimated.default.View style={[styles.reply, as]}>
-      <Kb.Icon2 type="iconfont-reply" style={styles.replyIcon} />
+      <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
     </Reanimated.default.View>
   )
 }

@@ -3,12 +3,12 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
-import Icon2 from '@/common-adapters/icon2'
+import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, Icon2, Text}
+const Kb = {BackButton, Box2, Icon, Text}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -21,7 +21,7 @@ export const HeaderHocHeader = ({
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {onCancel && (
-      <Kb.Icon2
+      <Kb.Icon
         style={_styleClose}
         type="iconfont-close"
         onClick={onCancel}

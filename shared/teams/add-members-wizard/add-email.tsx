@@ -51,7 +51,7 @@ const AddEmail = (props: Props) => {
   return (
     <Kb.Modal
       header={{
-        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Email list" />,
       }}
       allowOverflow={true}

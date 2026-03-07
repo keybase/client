@@ -58,7 +58,7 @@ const ActionButton = (props: {
 }
 
 const AddButton = () => (
-  <Kb.Icon2
+  <Kb.Icon
     className="hover_contained_color_blue"
     type="iconfont-circle"
     fontSize={actionButtonSize}
@@ -67,7 +67,7 @@ const AddButton = () => (
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon2 type="iconfont-success" fontSize={actionButtonSize} color={Kb.Styles.globalColors.blue} />
+  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Kb.Styles.globalColors.blue} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

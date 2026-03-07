@@ -138,7 +138,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         <Kb.Divider key="dheader" />
         {!!onBackUp && (
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-folder-up"
               color={Kb.Styles.globalColors.black_50}
               fontSize={32}
@@ -199,7 +199,7 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p
   return (
     <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
-      <Kb.Icon2 type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
+      <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
       <Kb.Text type="BodyBig" style={styles.newFolderText}>
         Create new folder
       </Kb.Text>

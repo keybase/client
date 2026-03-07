@@ -172,7 +172,7 @@ function FileContainer(p: OwnProps) {
         )}
         {!!arrowColor && (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
-            <Kb.Icon2 type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
+            <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
           </Kb.Box2>
         )}
         {!!progressLabel && (

@@ -109,7 +109,7 @@ const AvatarUploadWrapper = (p: Props) => {
           style={Kb.Styles.collapseStyles([styles.placeholder, getImageStyle()])}
           onClick={onChooseNewAvatar}
         >
-          <Kb.Icon2 type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
         </Kb.ClickableBox>
       )
     }
@@ -134,7 +134,7 @@ const AvatarUploadWrapper = (p: Props) => {
           ) : null
         }
         header={{
-          leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
           rightButton: wizard ? (
             <Kb.Text type="BodyBigLink" onClick={onSkip}>
               Skip

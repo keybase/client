@@ -53,8 +53,8 @@ export const HeaderAreaRight = () => {
       gap="small"
       style={Kb.Styles.collapseStyles([styles.headerRight, {opacity: pendingWaiting ? 0 : 1}])}
     >
-      <Kb.Icon2 type="iconfont-search" onClick={onToggleThreadSearch} />
-      <Kb.Icon2 type="iconfont-info" onClick={onShowInfoPanel} />
+      <Kb.Icon type="iconfont-search" onClick={onToggleThreadSearch} />
+      <Kb.Icon type="iconfont-info" onClick={onShowInfoPanel} />
     </Kb.Box2>
   )
 }
@@ -139,7 +139,7 @@ const ShhIcon = function ShhIcon() {
     mute(false)
   }
   return isMuted ? (
-    <Kb.Icon2
+    <Kb.Icon
       type="iconfont-shh"
       style={styles.shhIcon}
       color={shhIconColor}

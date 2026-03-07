@@ -432,7 +432,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.hamburgerContainer}>
         <Kb.Box2 direction="vertical" ref={popupAnchor}>
-          <Kb.Icon2
+          <Kb.Icon
             color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
             hoverColor={Kb.Styles.globalColors.whiteOrWhite}
             onClick={showPopup}
@@ -571,7 +571,7 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
       <Kb.Box2 direction="vertical" relative={true}>
-        <Kb.Icon2 type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
+        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box2>
       <Kb.Text className="title" type="BodySemibold">
@@ -605,7 +605,7 @@ const BadgeIcon = (p: {tab: Tabs; countMap: {[tab: string]: number}; openApp: (t
 
   return (
     <Kb.Box2 direction="vertical" style={styles.badgeIconContainer}>
-      <Kb.Icon2
+      <Kb.Icon
         color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
         hoverColor={Kb.Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}

@@ -32,7 +32,7 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
         <Kb.Text type="BodyBig">Create a team</Kb.Text>
         <Kb.Box2 direction="vertical" relative={true}>
           <Kb.Avatar isTeam={true} size={96} />
-          <Kb.Icon2 type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
+          <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -94,7 +94,7 @@ const SortHeader = () => {
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
-          <Kb.Icon2 type="iconfont-arrow-full-down" />
+          <Kb.Icon type="iconfont-arrow-full-down" />
           <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>

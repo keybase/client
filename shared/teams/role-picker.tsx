@@ -161,7 +161,7 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         ],
         cants: [`Can't delete the team`],
         icon: (
-          <Kb.Icon2
+          <Kb.Icon
             style={styles.roleIcon}
             type="iconfont-crown-admin"
             sizeType="Small"
@@ -182,7 +182,7 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         cants: [],
         extra: ['A team can have multiple owners'],
         icon: (
-          <Kb.Icon2
+          <Kb.Icon
             style={styles.roleIcon}
             type="iconfont-crown-owner"
             sizeType="Small"
@@ -240,7 +240,7 @@ const roleAbilities = (
           : undefined),
       }}
     >
-      <Kb.Icon2
+      <Kb.Icon
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
         style={styles.abilityCheck}

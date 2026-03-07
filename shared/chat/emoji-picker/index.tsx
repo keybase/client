@@ -270,7 +270,7 @@ function EmojiPicker(props: Props) {
               className="emoji-picker-emoji-box"
               style={isActive ? styles.activeBookmark : undefined}
             >
-              <Kb.Icon2
+              <Kb.Icon
                 type={bookmark.iconType}
                 padding="tiny"
                 color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}

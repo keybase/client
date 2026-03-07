@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import Button, {type ButtonProps} from './button'
 import Text from './text'
 import type {LineClampType, TextType} from './text.shared'
@@ -14,7 +14,7 @@ import {useConfigState} from '@/stores/config'
 const Kb = {
   Box2,
   Button,
-  Icon2,
+  Icon,
   Text,
   Toast,
 }
@@ -137,7 +137,7 @@ const CopyText = (props: Props) => {
       ])}
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
-        {Styles.isMobile && <Kb.Icon2 type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
+        {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
         <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Kb.Text>
@@ -165,7 +165,7 @@ const CopyText = (props: Props) => {
           style={styles.button}
           onClick={copy}
         >
-          <Kb.Icon2
+          <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}
           />

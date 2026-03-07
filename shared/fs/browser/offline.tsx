@@ -13,7 +13,7 @@ const OfflineFolder = (props: Props) => (
   <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="stretch">
     <TopBar path={props.path} />
     <Kb.Box2 direction="vertical" flex={1} style={styles.emptyContainer} fullWidth={true} centerChildren={true}>
-      <Kb.Icon2
+      <Kb.Icon
         type={props.syncEnabled ? 'iconfont-clock' : 'iconfont-cloud'}
         sizeType="Huge"
         color={Kb.Styles.globalColors.black_10}

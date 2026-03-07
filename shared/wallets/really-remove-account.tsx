@@ -100,7 +100,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
-          {Kb.Styles.isMobile && <Kb.Icon2 type="iconfont-clipboard" color="white" />}
+          {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

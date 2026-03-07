@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import Text from './text'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
@@ -8,7 +8,7 @@ import * as Styles from '@/styles'
 const Kb = {
   Box2,
   ClickableBox,
-  Icon2,
+  Icon,
   Styles,
   Text,
 }
@@ -33,7 +33,7 @@ const Checkbox = (props: Props) => {
         props.disabled && props.checked && styles.semiTransparent,
         props.checkboxStyle,
       ])) as React.CSSProperties}>
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-check"
           style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
           hoverColor={Kb.Styles.globalColors.white}

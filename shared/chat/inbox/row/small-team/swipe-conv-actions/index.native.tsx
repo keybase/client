@@ -37,7 +37,7 @@ const Action = (p: {
   return (
     <Reanimated.default.View style={[styles.action, as]}>
       <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
-        <Kb.Icon2 type={iconType} color={Kb.Styles.globalColors.white} />
+        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>

@@ -127,7 +127,7 @@ const ServiceIcon = function ServiceIcon(props: IconProps) {
               leftRightPadding={0}
             />
           )}
-          <Kb.Icon2 fontSize={18} type={serviceIdToIconFont(service)} color={color} />
+          <Kb.Icon fontSize={18} type={serviceIdToIconFont(service)} color={color} />
         </Kb.Box2>
         <AnimatedBox2 direction="vertical" style={[styles.labelContainer, animatedOpacity]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>

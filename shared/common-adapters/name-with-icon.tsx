@@ -7,7 +7,7 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
-import Icon2 from './icon2'
+import Icon from './icon'
 import ImageIcon from './image-icon'
 import Text from './text'
 import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
@@ -116,7 +116,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       >
         {!!followIconType && !!followIconStyle && <ImageIcon type={followIconType} style={followIconStyle} />}
         {!!props.editableIcon && (
-          <Icon2
+          <Icon
             type="iconfont-edit"
             style={teamname ? styles.editTeam : styles.editUser}
           />

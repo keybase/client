@@ -210,7 +210,7 @@ const Unreachable = (props: {
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.marginLeftAuto}>
-      <Kb.Icon2
+      <Kb.Icon
         type="iconfont-proof-broken"
         color={Kb.Styles.globalColors.red}
         style={styles.inlineIcon}

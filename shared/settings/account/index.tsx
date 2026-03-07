@@ -56,7 +56,7 @@ const EmailPhone = () => {
           find you by phone number or email.{' '}
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
               color={Kb.Styles.globalColors.blueDark}

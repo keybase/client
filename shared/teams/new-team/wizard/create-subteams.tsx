@@ -40,7 +40,7 @@ const CreateSubteams = () => {
   return (
     <Kb.Modal
       header={{
-        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create subteams" />,
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
@@ -64,7 +64,7 @@ const CreateSubteams = () => {
           <Kb.Input3
             value={value}
             onChangeText={(text: string) => setSubteam(idx, cleanSubteamName(text))}
-            decoration={<Kb.Icon2 type="iconfont-remove" onClick={() => onClear(idx)} />}
+            decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}
             placeholder="subteam"
             prefix={`${teamname}.`}
             containerStyle={styles.input}

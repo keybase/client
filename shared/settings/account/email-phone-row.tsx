@@ -153,7 +153,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
             ref={popupAnchor}
             style={styles.gearIconContainer}
           >
-            <Kb.Icon2 className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
+            <Kb.Icon className="hover_contained_color_black" type="iconfont-gear" style={styles.gearIcon} />
             {gearIconBadge}
           </Kb.ClickableBox>
           {popup}

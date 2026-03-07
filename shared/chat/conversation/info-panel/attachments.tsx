@@ -182,7 +182,7 @@ const MediaThumb = (props: MediaThumbProps) => {
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
             <Kb.Box2 direction="vertical" centerChildren={true} style={styles.audioBackground}>
-              <Kb.Icon2
+              <Kb.Icon
                 type="iconfont-mic"
                 style={{marginLeft: 2}}
                 color={Kb.Styles.globalColors.whiteOrWhite}

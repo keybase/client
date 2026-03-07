@@ -21,7 +21,7 @@ const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
     <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
-      <Kb.Icon2
+      <Kb.Icon
         type="iconfont-leave"
         color={Kb.Styles.globalColors.white}
         fontSize={14}

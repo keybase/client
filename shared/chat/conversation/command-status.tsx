@@ -46,7 +46,7 @@ const Container = () => {
         style={Kb.Styles.collapseStyles([bkgColor(props.displayType), styles.container])}
         gap="xsmall"
       >
-        <Kb.Icon2
+        <Kb.Icon
           onClick={props.onCancel}
           type="iconfont-remove"
           style={styles.close}

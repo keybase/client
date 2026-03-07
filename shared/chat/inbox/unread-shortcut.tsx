@@ -15,7 +15,7 @@ const UnreadShortcut = (props: Props) => (
       fullWidth={true}
       style={styles.unreadShortcut}
     >
-      <Kb.Icon2 type="iconfont-arrow-down" sizeType="Small" color={Kb.Styles.globalColors.white} />
+      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Kb.Styles.globalColors.white} />
       <Kb.Text negative={true} type="BodySmallSemibold">
         {props.unreadCount} unread {pluralize('message', props.unreadCount)}
       </Kb.Text>

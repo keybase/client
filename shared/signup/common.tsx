@@ -37,7 +37,7 @@ export const InfoIcon = (props: InfoIconProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}>
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-question-mark"
           onClick={props.invisible ? undefined : showPopup}
           style={Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}})}
@@ -77,7 +77,7 @@ const Header = (props: HeaderProps) => (
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-arrow-left"
               color={props.negative ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}
               sizeType="Small"

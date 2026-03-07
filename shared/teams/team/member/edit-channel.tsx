@@ -54,7 +54,7 @@ const EditChannel = (props: Props) => {
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
-        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title={`#${oldName}`} />,
       }}
       footer={{

@@ -1,16 +1,18 @@
 import './icon.css'
 import * as Styles from '@/styles'
+import {getMultsMap} from './icon.shared'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
+export type {IconType} from './icon.constants-gen'
 import type {Text as RNTextType, Pressable as PressableType} from 'react-native'
 
-export type SizeType2 = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
+export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
-export type Icon2Props = {
+export type IconProps = {
   type: IconType
   color?: Styles.Color
   fontSize?: number
-  sizeType?: SizeType2
+  sizeType?: SizeType
   style?: Styles.StylesCrossPlatform
   className?: string
   hoverColor?: Styles.Color
@@ -27,7 +29,7 @@ const cssVarToColorName = (cssVar: string): string | undefined => {
   return match?.[1]
 }
 
-const Icon2Desktop = (props: Icon2Props) => {
+const IconDesktop = (props: IconProps) => {
   const {type, color, fontSize, sizeType, style, className, hoverColor, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null
@@ -72,7 +74,7 @@ const nativeBaseStyle: Styles._StylesCrossPlatform = {
   fontWeight: 'normal' as const,
 }
 
-const Icon2Native = (props: Icon2Props) => {
+const IconNative = (props: IconProps) => {
   const {Text: RNText} = require('react-native') as {Text: typeof RNTextType}
   const {type, color, fontSize, sizeType, style, onClick, padding} = props
   const meta = iconMeta[type]
@@ -127,5 +129,42 @@ const Icon2Native = (props: Icon2Props) => {
 const clickable = {cursor: 'pointer'} as const
 const styles = {clickable}
 
-const Icon2 = Styles.isMobile ? Icon2Native : Icon2Desktop
-export default Icon2
+const Icon = Styles.isMobile ? IconNative : IconDesktop
+export default Icon
+
+function iconTypeToImgSetDesktop(imgMap: {[key: string]: IconType}, targetSize: number) {
+  const {getAssetPath} = require('@/constants/platform.desktop') as {getAssetPath: (...a: Array<string>) => string}
+  const multsMap = getMultsMap(imgMap, targetSize)
+  const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
+  const sets = keys
+    .map(mult => {
+      const m = multsMap[mult]
+      if (!m) return null
+      const img: string = imgMap[m] as string
+      if (!img) return null
+      const url = getAssetPath('images', 'icons', img)
+      return `url('${url}.png') ${mult}x`
+    })
+    .filter(Boolean)
+    .join(', ')
+  return sets ? `-webkit-image-set(${sets})` : ''
+}
+
+function iconTypeToImgSetNative(imgMap: {[key: string]: IconType}, targetSize: number) {
+  const multsMap = getMultsMap(imgMap, targetSize)
+  const idealMults = [2, 3, 1] as const
+  for (const mult of idealMults) {
+    if (multsMap[mult]) {
+      const size = multsMap[mult]
+      if (!size) return null
+      const icon = imgMap[size]
+      if (!icon) return null
+      return iconMeta[icon].require
+    }
+  }
+  return null
+}
+
+export const iconTypeToImgSet: (imgMap: {[key: string]: IconType}, targetSize: number) => string = (
+  Styles.isMobile ? iconTypeToImgSetNative : iconTypeToImgSetDesktop
+) as any

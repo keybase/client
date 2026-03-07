@@ -27,7 +27,7 @@ const OverlayIcon = function OverlayIcon(p: {
 
   return (
     <Kb.Box2 direction="vertical" style={styles.mutedIcon}>
-      <Kb.Icon2
+      <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', 'stroked', {
           hovered: isHovered,
           locked: isLocked,
@@ -37,7 +37,7 @@ const OverlayIcon = function OverlayIcon(p: {
         type={type}
         fontSize={18}
       />
-      <Kb.Icon2
+      <Kb.Icon
         className={Kb.Styles.classNames('overlay-icon', {
           hovered: isHovered,
           locked: isLocked,

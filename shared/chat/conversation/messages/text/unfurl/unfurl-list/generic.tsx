@@ -74,7 +74,7 @@ function UnfurlGeneric(p: {idx: number}) {
         </Kb.Text>
       </Kb.BoxGrow>
       {onClose ? (
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-close"
           onClick={onClose}
           style={styles.closeBox}
@@ -93,7 +93,7 @@ function UnfurlGeneric(p: {idx: number}) {
       {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
         <>
           {' '}
-          <Kb.Icon2
+          <Kb.Icon
             style={styles.collapseBox}
             onClick={onToggleCollapse}
             sizeType="Tiny"

@@ -3,7 +3,7 @@ import type {MenuLayoutProps, MenuItem} from '.'
 import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from '@/common-adapters/divider'
-import Icon2 from '@/common-adapters/icon2'
+import Icon from '@/common-adapters/icon'
 import IconAuto from '@/common-adapters/icon-auto'
 import Text from '@/common-adapters/text'
 import Meta from '@/common-adapters/meta'
@@ -64,7 +64,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
             {item.decoration}
             {item.isBadged && <Badge badgeStyle={Styles.collapseStyles([styles.badge, styles.iconBadge])} />}
             {item.isSelected && (
-              <Icon2
+              <Icon
                 type="iconfont-check"
                 color={Styles.globalColors.blue}
                 fontSize={16}

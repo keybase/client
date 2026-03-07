@@ -5,7 +5,7 @@ const QRScanNotAuthorized = () => {
   const onOpenSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   return (
     <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.container} gap="tiny">
-      <Kb.Icon2 type="iconfont-camera" color={Kb.Styles.globalColors.white_40} />
+      <Kb.Icon type="iconfont-camera" color={Kb.Styles.globalColors.white_40} />
       <Kb.Text center={true} type="BodyTiny" style={styles.text}>
         You need to allow access to the camera.
       </Kb.Text>

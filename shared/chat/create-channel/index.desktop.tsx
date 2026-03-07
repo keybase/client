@@ -26,7 +26,7 @@ const CreateChannel = (p: Props) => {
       )}
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.box}>
         <Kb.ClickableBox style={styles.back} onClick={props.onBack}>
-          <Kb.Icon2 style={styles.backIcon} type="iconfont-arrow-left" />
+          <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
           <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>

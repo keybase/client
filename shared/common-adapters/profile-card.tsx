@@ -10,7 +10,7 @@ import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon'
 import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
-import Icon2 from './icon2'
+import Icon from './icon'
 import Meta from './meta'
 import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
@@ -31,7 +31,7 @@ const Kb = {
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
-  Icon2,
+  Icon,
   Meta,
   ProgressIndicator,
   Text,
@@ -102,12 +102,12 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             showOnPressMobile={true}
             containerStyle={styles.iconContainer}
           >
-            <Kb.Icon2
+            <Kb.Icon
               type={Platforms.serviceIdToIcon(serviceId)}
               color={assertion.state === 'valid' ? Styles.globalColors.black : Styles.globalColors.black_20}
             />
             {assertion.state !== 'valid' && (
-              <Kb.Icon2
+              <Kb.Icon
                 fontSize={Styles.isMobile ? 12 : 10}
                 style={styles.brokenBadge}
                 type="iconfont-proof-broken"
@@ -195,7 +195,7 @@ const ProfileCard = ({
       alignItems="center"
     >
       {!!showClose && (
-        <Kb.Icon2 type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
+        <Kb.Icon type="iconfont-close" color={Styles.globalColors.black_20} onClick={() => {}} style={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
         onClick={clickToProfile && openProfile}

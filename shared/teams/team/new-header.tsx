@@ -125,7 +125,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         onEditAvatar && styles.clickable,
       ])}
     >
-      {!!onEditAvatar && <Kb.Icon2 type="iconfont-edit" style={styles.editTeamAvatar} />}
+      {!!onEditAvatar && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
     </Kb.Avatar>
   )
 
@@ -147,7 +147,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text type="Header" lineClamp={3} style={styles.header} selectable={true}>
             {meta.teamname}
           </Kb.Text>
-          {!!onRename && <Kb.Icon2 type="iconfont-edit" onClick={onRename} />}
+          {!!onRename && <Kb.Icon type="iconfont-edit" onClick={onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
           <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
@@ -156,7 +156,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
       {
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-start">
           {(meta.role === 'admin' || meta.role === 'owner') && (
-            <Kb.Icon2
+            <Kb.Icon
               color={
                 meta.role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35
               }
@@ -210,7 +210,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />
           <Kb.Button mode="Secondary" small={true} ref={tmpopupAnchor} onClick={tmshowPopup}>
-            <Kb.Icon2 type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
+            <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
           {tmpopup}
         </Kb.Box2>

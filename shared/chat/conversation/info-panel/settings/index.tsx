@@ -102,7 +102,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             style={styles.smallButton}
             waiting={spinnerForLeave}
           >
-            <Kb.Icon2 type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
+            <Kb.Icon type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
           </Kb.Button>
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
@@ -113,7 +113,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             label="Backup channel"
             onClick={onArchive}
           >
-            <Kb.Icon2 type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+            <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
           </Kb.Button>
         </Kb.Box2>
         {entityType !== 'channel' &&
@@ -125,7 +125,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 label="Unhide this conversation"
                 onClick={onUnhideConv}
               >
-                <Kb.Icon2 type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
               </Kb.Button>
             </Kb.Box2>
           ) : (
@@ -136,7 +136,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 label="Hide this conversation"
                 onClick={onHideConv}
               >
-                <Kb.Icon2 type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
               </Kb.Button>
             </Kb.Box2>
           ))}
@@ -168,7 +168,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 label="Block"
                 onClick={onShowBlockConversationDialog}
               >
-                <Kb.Icon2 type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
+                <Kb.Icon type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
               </Kb.Button>
             )}
           </Kb.Box2>

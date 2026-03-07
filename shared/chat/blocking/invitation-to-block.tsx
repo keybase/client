@@ -94,7 +94,7 @@ const BlockButtons = () => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon2 style={styles.dismissIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} />
+        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -106,7 +106,7 @@ const BlockButtons = () => {
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
       {buttonRow}
-      <Kb.Icon2 type="iconfont-remove" onClick={onDismiss} />
+      <Kb.Icon type="iconfont-remove" onClick={onDismiss} />
     </Kb.Box2>
   )
 }

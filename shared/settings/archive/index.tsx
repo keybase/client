@@ -88,13 +88,13 @@ function ChatJob(p: {index: number; id: string}) {
     let pauseOrResume: React.ReactNode
     if (isPaused || isErr) {
       pauseOrResume = Kb.Styles.isMobile ? (
-        <Kb.Icon2 type="iconfont-play" onClick={onResume} />
+        <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
         <Kb.Button label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
       )
     } else if (job.status === T.RPCChat.ArchiveChatJobStatus.running) {
       pauseOrResume = Kb.Styles.isMobile ? (
-        <Kb.Icon2 type="iconfont-pause" onClick={onPause} />
+        <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
         <Kb.Button label="Pause" onClick={onPause} small={true} />
       )
@@ -104,7 +104,7 @@ function ChatJob(p: {index: number; id: string}) {
       <Kb.Box2 direction="horizontal" style={styles.action} gap="tiny">
         {pauseOrResume}
         {Kb.Styles.isMobile ? (
-          <Kb.Icon2 color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
+          <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
         ) : (
           <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
         )}
@@ -119,7 +119,7 @@ function ChatJob(p: {index: number; id: string}) {
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
           <Kb.Box2 direction="vertical" style={{padding: Kb.Styles.isMobile ? 4 : 8, width: 32}}>
-            <Kb.Icon2 type="iconfont-chat" />
+            <Kb.Icon type="iconfont-chat" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.jobLeft} gap="xtiny">
             {sub}
@@ -127,7 +127,7 @@ function ChatJob(p: {index: number; id: string}) {
           </Kb.Box2>
           {errorStr && (
             <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true} containerStyle={styles.errorTip}>
-              <Kb.Icon2 type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
           {actions}
@@ -221,7 +221,7 @@ function KBFSJob(p: {index: number; id: string}) {
           ref={popupAnchor}
         >
           {job.gitRepo ? (
-            <Kb.Icon2 type="iconfont-nav-2-git" fontSize={32} />
+            <Kb.Icon type="iconfont-nav-2-git" fontSize={32} />
           ) : (
             <Kb.ImageIcon type="icon-folder-32" />
           )}
@@ -252,12 +252,12 @@ function KBFSJob(p: {index: number; id: string}) {
               <Kb.Box2 direction="horizontal" style={{flex: 1}} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>
-                  <Kb.Icon2 type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
+                  <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
                 </Kb.WithTooltip>
               )}
               {!C.isMobile && revisionBehindStr && (
                 <Kb.WithTooltip tooltip={revisionBehindStr}>
-                  <Kb.Icon2
+                  <Kb.Icon
                     type="iconfont-exclamation"
                     color={Kb.Styles.globalColors.yellowDark}
                     fontSize={14}
@@ -271,9 +271,9 @@ function KBFSJob(p: {index: number; id: string}) {
             {C.isMobile ? (
               <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
                 {job.phase === 'Done' ? (
-                  <Kb.Icon2 onClick={showPopup} type="iconfont-ellipsis" />
+                  <Kb.Icon onClick={showPopup} type="iconfont-ellipsis" />
                 ) : (
-                  <Kb.Icon2
+                  <Kb.Icon
                     color={Kb.Styles.globalColors.red}
                     type="iconfont-remove"
                     onClick={onCancelOrDismiss}

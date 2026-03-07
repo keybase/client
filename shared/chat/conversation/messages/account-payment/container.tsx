@@ -161,7 +161,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
           {!!icon && (
-            <Kb.Icon2
+            <Kb.Icon
               type={icon}
               color={pending ? Kb.Styles.globalColors.purpleOrWhite : Kb.Styles.globalColors.purple}
               fontSize={12}

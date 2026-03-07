@@ -28,7 +28,7 @@ const Activity = (p: Props) => {
       fullWidth={Kb.Styles.isMobile}
       style={style}
     >
-      <Kb.Icon2
+      <Kb.Icon
         type={activityToIcon[level]}
         color={level === 'active' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black_50}
         sizeType="Small"

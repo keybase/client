@@ -63,7 +63,7 @@ const ErrorMessage = () => {
       gapStart={true}
       centerChildren={true}
     >
-      <Kb.Icon2 color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
       <Kb.Text center={true} style={styles.errorText} type="Header">
         {createConversationErrorHeader}
       </Kb.Text>

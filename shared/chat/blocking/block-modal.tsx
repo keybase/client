@@ -60,7 +60,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
         position={Kb.Styles.isMobile ? 'bottom center' : 'top center'}
         multiline={true}
       >
-        <Kb.Icon2 type="iconfont-question-mark" color="grey" />
+        <Kb.Icon type="iconfont-question-mark" color="grey" />
       </Kb.WithTooltip>
     )}
   </Kb.Box2>
@@ -402,7 +402,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
         Cancel
       </Kb.Text>
     ) : undefined,
-    title: <Kb.Icon2 type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
+    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
   }
 
   if (loadingWaiting) {

@@ -197,7 +197,7 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
     <>
       {showingPopup && popup}
       <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.icon}>
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-gear"
           className="conversation-gear"
           onClick={showPopup}
@@ -442,7 +442,7 @@ const SnippetContent = (p: {
 }
 
 const SnippetDecorationIcon = (p: {type: Kb.IconType; color: string}) => (
-  <Kb.Icon2
+  <Kb.Icon
     color={p.color}
     type={p.type}
     fontSize={Kb.Styles.isMobile ? 16 : 12}

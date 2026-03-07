@@ -138,9 +138,6 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
-  get Icon2() {
-    return require('./icon2').default
-  },
   get IconAuto() {
     return require('./icon-auto').default
   },
@@ -314,9 +311,6 @@ module.exports = {
   },
   get smallListItemHeight() {
     return require('./list-item').smallHeight
-  },
-  get urlsToImgSet() {
-    return require('./icon').urlsToImgSet
   },
   get useClickURL() {
     return require('./text-url').useClickURL

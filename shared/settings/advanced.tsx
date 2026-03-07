@@ -68,7 +68,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
           </Kb.Text>
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
               color={Kb.Styles.globalColors.blueDark}

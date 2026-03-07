@@ -96,7 +96,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   return (
     <>
-      <Kb.Icon2
+      <Kb.Icon
         type="iconfont-gear"
         padding="tiny"
         onClick={showPopup}
@@ -178,7 +178,7 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
     : {
         content: (
           <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
-            <Kb.Icon2 type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
+            <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
             <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
           </Kb.ClickableBox>
         ),

@@ -50,7 +50,7 @@ const AddFromWhere = () => {
       }
       header={{
         leftButton: newTeam ? (
-          <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />
+          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
         ) : Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel

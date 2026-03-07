@@ -78,7 +78,7 @@ const Waiting = (props: Props) => {
         centerChildren={true}
         style={styles.topGap}
       >
-        <Kb.Icon2
+        <Kb.Icon
           type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
           color={Kb.Styles.globalColors.black}
           fontSize={24}

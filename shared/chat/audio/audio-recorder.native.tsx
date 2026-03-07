@@ -237,12 +237,12 @@ const useIconAndOverlay = (p: {
     <View>
       <GestureDetector gesture={gesture}>
         <Kb.Box2 direction="vertical" collapsable={false}>
-          <Kb.Icon2 type="iconfont-mic" style={styles.iconStyle} />
+          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
         </Kb.Box2>
       </GestureDetector>
     </View>
   ) : (
-    <Kb.Icon2 type="iconfont-mic" style={styles.iconStyle} />
+    <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
   )
 
   const durationStyle = useAnimatedStyle(() => ({
@@ -570,7 +570,7 @@ const InnerCircle = (props: {
   return (
     <Animated.View style={[styles.innerCircleStyle, circleStyle]}>
       <Animated.View style={[iconStyle]}>
-        <Kb.Icon2 type="iconfont-stop" color={Kb.Styles.globalColors.whiteOrWhite} onClick={stageRecording} />
+        <Kb.Icon type="iconfont-stop" color={Kb.Styles.globalColors.whiteOrWhite} onClick={stageRecording} />
       </Animated.View>
     </Animated.View>
   )
@@ -624,13 +624,13 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
         direction="vertical"
         style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
       >
-        <Kb.Icon2 type="iconfont-arrow-up" sizeType="Tiny" />
+        <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
       </Kb.Box2Animated>
       <Kb.Box2Animated
         direction="vertical"
         style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}
       >
-        <Kb.Icon2 type="iconfont-lock" />
+        <Kb.Icon type="iconfont-lock" />
       </Kb.Box2Animated>
     </>
   )
@@ -702,10 +702,10 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
   return (
     <>
       <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, arrowStyle]}>
-        <Kb.Icon2 sizeType="Tiny" type={'iconfont-arrow-left'} />
+        <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
       </Kb.Box2Animated>
       <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, closeStyle]}>
-        <Kb.Icon2 sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
+        <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
       </Kb.Box2Animated>
       <AnimatedText
         type="BodySmallPrimaryLink"
@@ -732,7 +732,7 @@ const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: 
   }))
   return (
     <Animated.View style={[styles.sendRecordingButtonStyle, buttonStyle]}>
-      <Kb.Icon2
+      <Kb.Icon
         padding="tiny"
         color={Kb.Styles.globalColors.whiteOrWhite}
         onClick={sendRecording}

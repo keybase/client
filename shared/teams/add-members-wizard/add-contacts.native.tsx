@@ -65,7 +65,7 @@ const AddContacts = () => {
       noScrollView={true}
       header={{
         hideBorder: true,
-        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: (
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Text

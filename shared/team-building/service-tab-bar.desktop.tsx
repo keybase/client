@@ -36,7 +36,7 @@ const ServiceIcon = (props: IconProps) => {
               />
             )}
             <Kb.Box2 direction="vertical" style={styles.serviceIconBox}>
-              <Kb.Icon2
+              <Kb.Icon
                 color={color}
                 fontSize={16}
                 type={serviceIdToIconFont(props.service)}
@@ -119,7 +119,7 @@ const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
-      <Kb.Icon2
+      <Kb.Icon
         style={styles.moreNetworkItemIcon}
         color={serviceIdToAccentColor(props.service, isDarkMode)}
         type={serviceIdToIconFont(props.service)}

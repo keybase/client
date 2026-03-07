@@ -45,7 +45,7 @@ const ConnectedExplainDevice = () => {
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
-              <Kb.Icon2 type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
+              <Kb.Icon type="iconfont-nav-2-hamburger" color={Kb.Styles.globalColors.black} />
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
             )}

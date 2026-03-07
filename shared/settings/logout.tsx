@@ -116,7 +116,7 @@ const LogoutContainer = () => {
                   style={styles.logoutContainer}
                   className="hover-underline-container"
                 >
-                  <Kb.Icon2 type="iconfont-leave" />
+                  <Kb.Icon type="iconfont-leave" />
                   <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
                     Just sign out
                   </Kb.Text>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
-import Icon2 from './icon2'
+import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
 
@@ -68,7 +68,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
           </ScrollView>
         </Box2>
         {closeOnClick && (
-          <Icon2
+          <Icon
             type="iconfont-close"
             color={Styles.globalColors.black_20}
             style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}

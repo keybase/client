@@ -26,7 +26,7 @@ const MakeTeam = () => {
             >
               Enter a team name
             </Kb.Text>
-            <Kb.Icon2
+            <Kb.Icon
               color={Kb.Styles.globalColors.greenLight}
               sizeType="Tiny"
               type="iconfont-arrow-right"

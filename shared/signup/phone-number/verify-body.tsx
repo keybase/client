@@ -49,7 +49,7 @@ const VerifyBody = (props: BodyProps) => {
             (props.resendWaiting || resendDisabled) && styles.opacity30,
           ])}
         >
-          <Kb.Icon2
+          <Kb.Icon
             type="iconfont-reload"
             color={Kb.Styles.globalColors.white}
             style={styles.iconVerticalAlign}

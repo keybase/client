@@ -68,7 +68,7 @@ export const ContactRestricted = (props: Props) => {
         style={styles.container}
         noShrink={true}
       >
-        <Kb.Icon2 type="iconfont-warning" sizeType="Huge" color={Kb.Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-warning" sizeType="Huge" color={Kb.Styles.globalColors.black_20} />
         <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
           {header}
         </Kb.Text>

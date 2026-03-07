@@ -137,7 +137,7 @@ function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
 
   const ownerAdminTooltipIcon = allowCrown ? (
     <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-      <Kb.Icon2
+      <Kb.Icon
         color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
@@ -147,7 +147,7 @@ function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
 
   const botIcon = authorIsBot ? (
     <Kb.Box2 direction="vertical" tooltip="Bot">
-      <Kb.Icon2 fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.Box2>
   ) : null
 

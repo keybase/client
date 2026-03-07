@@ -225,12 +225,12 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
                 <Kb.Text type="BodySmall" style={styles.results}>
                   {noResults ? 'No results' : `${selectedIndex + 1} of ${hits.length}`}
                 </Kb.Text>
-                <Kb.Icon2
+                <Kb.Icon
                   color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
                   onClick={!noResults ? onUp : undefined}
                   type="iconfont-arrow-up"
                 />
-                <Kb.Icon2
+                <Kb.Icon
                   color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
                   onClick={!noResults ? onDown : undefined}
                   type="iconfont-arrow-down"
@@ -304,12 +304,12 @@ const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny">
-          <Kb.Icon2
+          <Kb.Icon
             color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
             onClick={onUp}
             type="iconfont-arrow-up"
           />
-          <Kb.Icon2
+          <Kb.Icon
             color={numHits > 0 ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
             onClick={onDown}
             type="iconfont-arrow-down"

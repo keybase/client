@@ -55,7 +55,7 @@ const BigTeamHeader = (props: Props) => {
         ref={popupAnchor}
         style={styles.showMenu}
       >
-        <Kb.Icon2
+        <Kb.Icon
           className="hover_contained_color_black"
           color={Kb.Styles.globalColors.black_35}
           type="iconfont-gear"

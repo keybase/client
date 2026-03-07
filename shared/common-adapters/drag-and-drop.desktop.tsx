@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import Text from './text'
 import logger from '@/logger'
 import type {Props} from './drag-and-drop'
@@ -70,9 +70,9 @@ const DragAndDrop = (props: Props) => {
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
         {props.rejectReason ? (
-          <Icon2 type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
+          <Icon type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
         ) : (
-          <Icon2 type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
+          <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
         )}
         {props.rejectReason ? (
           <Text type="Header">{props.rejectReason}</Text>

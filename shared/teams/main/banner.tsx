@@ -24,7 +24,7 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.closeIconContainer}>
-      <Kb.Icon2
+      <Kb.Icon
         type="iconfont-close"
         color={Kb.Styles.globalColors.black_20}
         style={{padding: Kb.Styles.globalMargins.xtiny}}

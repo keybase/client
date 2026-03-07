@@ -65,7 +65,7 @@ export const CreateChannelsModal = (props: Props) => {
       banners={props.banners}
       backgroundStyle={styles.background}
       header={{
-        leftButton: <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} />,
+        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,
       }}
       mode="DefaultFullHeight"
@@ -121,7 +121,7 @@ const ChannelInput = (props: ChannelInputProps) => {
     <Kb.Input3
       value={props.value}
       onChangeText={(text: string) => props.onChange(cleanChannelname(text))}
-      decoration={<Kb.Icon2 type="iconfont-remove" onClick={props.onClear} />}
+      decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
       placeholder="channel"
       prefix="#"
       containerStyle={styles.input}

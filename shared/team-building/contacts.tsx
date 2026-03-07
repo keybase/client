@@ -144,12 +144,12 @@ export const ContactsImportButton = () => {
         style={styles.importContactsContainer}
       >
         <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
-          <Kb.Icon2 type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
+          <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
         </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
-        <Kb.Icon2 type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )

@@ -49,7 +49,7 @@ export const TeamMemberRow = (props: Props) => {
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
   const crown = active && showCrown[roleType] ? (
-        <Kb.Icon2
+        <Kb.Icon
           type={('iconfont-crown-' + roleType) as Kb.IconType}
           color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
           style={styles.crownIcon}

@@ -1,9 +1,9 @@
+import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import IconAuto from '@/common-adapters/icon-auto'
-import type {IconStyle} from '@/common-adapters/icon'
 
 type Props = {
-  style?: IconStyle
+  style?: Styles.StylesCrossPlatform
   uploadIcon: T.FS.UploadIcon
 }
 

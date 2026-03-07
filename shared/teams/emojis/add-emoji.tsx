@@ -260,7 +260,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <Kb.Icon2 type="iconfont-emoji" fontSize={48} color={Kb.Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-emoji" fontSize={48} color={Kb.Styles.globalColors.black_10} />
         </Kb.Box2>
       )}
       <Kb.Text type="BodySmall">Maximum 256KB per image.</Kb.Text>
@@ -301,7 +301,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
   item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
       <Kb.ClickableBox onClick={item.add} style={styles.addEmojiIconContainer}>
-        <Kb.Icon2 type="iconfont-new" color={Kb.Styles.globalColors.blue} />
+        <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} />
       </Kb.ClickableBox>
     </Kb.Box2>
   ) : (

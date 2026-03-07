@@ -58,7 +58,7 @@ function NewCard(outerProps: Props) {
             >
               {props.label}
             </Kb.Text>
-            <Kb.Icon2
+            <Kb.Icon
               color={Kb.Styles.globalColors.blueLighter}
               sizeType="Tiny"
               type="iconfont-arrow-right"

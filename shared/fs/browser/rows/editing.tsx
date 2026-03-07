@@ -37,7 +37,7 @@ function Editing({editID}: Props) {
       type="Small"
       firstItem={true /* we add divider in Rows */}
       statusIcon={
-        <Kb.Icon2
+        <Kb.Icon
           type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
           sizeType="Small"
           padding="xtiny"
@@ -67,7 +67,7 @@ function Editing({editID}: Props) {
         <Kb.Box2 direction="horizontal" alignItems="center" key="right" style={styles.rightBox} justifyContent="flex-end">
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
-              <Kb.Icon2 type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
+              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
           <Kb.WaitingButton
@@ -78,7 +78,7 @@ function Editing({editID}: Props) {
             waitingKey={C.waitingKeyFSCommitEdit}
             onClick={onSubmit}
           />
-          <Kb.Icon2
+          <Kb.Icon
             onClick={onCancel}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Kb.Styles.globalColors.black_50}

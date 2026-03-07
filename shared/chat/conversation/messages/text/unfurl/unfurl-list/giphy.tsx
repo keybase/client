@@ -53,7 +53,7 @@ function UnfurlGiphy(p: {idx: number}) {
             <Kb.Text type="BodySmall">
               Giphy
             </Kb.Text>
-            <Kb.Icon2
+            <Kb.Icon
               style={Kb.Styles.collapseStyles([styles.collapseBox, styles.collapse])}
               onClick={onToggleCollapse}
               sizeType="Tiny"
@@ -61,7 +61,7 @@ function UnfurlGiphy(p: {idx: number}) {
             />
           </Kb.Box2>
           {onClose ? (
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-close"
               onClick={onClose}
               className="unfurl-closebox"

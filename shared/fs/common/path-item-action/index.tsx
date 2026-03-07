@@ -43,7 +43,7 @@ function IconClickable(props: ICProps) {
   return (
     <Kb.WithTooltip tooltip="More actions">
       <Kb.Box2 direction="vertical" ref={measureRef}>
-        <Kb.Icon2
+        <Kb.Icon
           type="iconfont-ellipsis"
           color={actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
           hoverColor={actionIconWhite ? undefined : Kb.Styles.globalColors.black}

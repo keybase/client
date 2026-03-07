@@ -39,7 +39,7 @@ const Recipients = () => {
         )}
         {recipients.length ? (
           <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
-            <Kb.Icon2
+            <Kb.Icon
               type="iconfont-remove"
               color={Kb.Styles.globalColors.black_20}
               hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
-import Icon2 from './icon2'
+import Icon from './icon'
 import Text from './text'
 import * as Styles from '@/styles'
 
@@ -112,7 +112,7 @@ export const Banner = (props: BannerProps) => (
     </Box2>
     {!!props.onClose && (
       <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
-        <Icon2
+        <Icon
           padding="xtiny"
           sizeType="Small"
           type="iconfont-close"

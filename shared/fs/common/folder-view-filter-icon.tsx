@@ -13,7 +13,7 @@ type Props = {
 
 const FolderViewFilterIcon = (props: Props) =>
   FS.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
-    <Kb.Icon2 type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
+    <Kb.Icon type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
   ) : null
 
 type OwnProps = Omit<Props, 'pathItem'>

@@ -436,13 +436,13 @@ const Instructions = (p: {
           gap="xtiny"
           style={Kb.Styles.globalStyles.flexWrap}
         >
-          <Kb.Icon2
+          <Kb.Icon
             type="iconfont-nav-2-hamburger"
             color={Kb.Styles.globalColors.white}
             sizeType="Default"
             style={styles.hamburger}
           />
-          <Kb.Icon2 type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text type={textType} style={styles.instructions}>
             Devices
           </Kb.Text>

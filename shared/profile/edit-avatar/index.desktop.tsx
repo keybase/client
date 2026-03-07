@@ -117,7 +117,7 @@ const EditAvatar = (_p: Props) => {
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
-        leftButton: wizard || showBack ? <Kb.Icon2 type="iconfont-arrow-left" onClick={onBack} /> : null,
+        leftButton: wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null,
         rightButton: wizard ? (
           <Kb.Button
             label="Skip"
@@ -202,7 +202,7 @@ const EditAvatar = (_p: Props) => {
             boxCacheKey="avatar"
           />
           {!loading && (
-            <Kb.Icon2
+            <Kb.Icon
               className="icon"
               color={Kb.Styles.globalColors.greyDark}
               fontSize={48}
