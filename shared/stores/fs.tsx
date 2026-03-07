@@ -18,13 +18,13 @@ import * as Constants from '@/constants/fs'
 
 export * from '@/constants/fs'
 
-const tlfSyncEnabled: T.FS.TlfSyncEnabled = {
+const tlfSyncEnabled = {
   mode: T.FS.TlfSyncMode.Enabled,
-}
+} satisfies T.FS.TlfSyncEnabled
 
-const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
+const tlfSyncDisabled = {
   mode: T.FS.TlfSyncMode.Disabled,
-}
+} satisfies T.FS.TlfSyncDisabled
 
 const makeTlfSyncPartial = ({
   enabledPaths,
@@ -475,13 +475,13 @@ export interface State extends Store {
   getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
 
-const emptyPrefetchInProgress: T.FS.PrefetchInProgress = {
+const emptyPrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
   state: T.FS.PrefetchState.InProgress,
-}
+} satisfies T.FS.PrefetchInProgress
 
 const getPrefetchStatusFromRPC = (
   prefetchStatus: T.RPCGen.PrefetchStatus,

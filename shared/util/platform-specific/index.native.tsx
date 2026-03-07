@@ -82,16 +82,16 @@ export const showShareActionSheet = async (options: {
   mimeType: string
 }) => {
   if (isIOS) {
-    return new Promise((resolve, reject) => {
-      ActionSheetIOS.showShareActionSheetWithOptions(
-        {
-          message: options.message,
-          url: options.filePath,
-        },
-        reject,
-        resolve
-      )
-    })
+    const {promise, resolve, reject} = Promise.withResolvers()
+    ActionSheetIOS.showShareActionSheetWithOptions(
+      {
+        message: options.message,
+        url: options.filePath,
+      },
+      reject,
+      resolve
+    )
+    return promise
   } else {
     if (!options.filePath && options.message) {
       try {

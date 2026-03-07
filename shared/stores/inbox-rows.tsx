@@ -33,10 +33,10 @@ export type InboxRowSmall = {
   youNeedToRekey: boolean
 }
 
-const defaultInboxRowBig: InboxRowBig = {
+const defaultInboxRowBig = {
   channelname: '', hasBadge: false, hasDraft: false, hasUnread: false,
   isError: false, isMuted: false, snippetDecoration: 0,
-}
+} satisfies InboxRowBig
 
 const defaultInboxRowSmall: InboxRowSmall = {
   draft: '', hasBadge: false, hasResetUsers: false, hasUnread: false,

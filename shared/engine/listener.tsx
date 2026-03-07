@@ -48,93 +48,94 @@ async function listener(p: {
   }
   waitingKey?: WaitingKey
 }) {
-  return new Promise((resolve, reject) => {
-    const {method, params, waitingKey} = p
-    const incomingCallMap = p.incomingCallMap || {}
-    const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
+  const {promise, resolve, reject} = Promise.withResolvers()
+  const {method, params, waitingKey} = p
+  const incomingCallMap = p.incomingCallMap || {}
+  const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
 
-    // custom and normal incomingCallMaps
-    const bothCallMaps = [
-      ...Object.keys(incomingCallMap).map(method => ({custom: false, method})),
-      ...Object.keys(customResponseIncomingCallMap).map(method => ({custom: true, method})),
-    ]
+  // custom and normal incomingCallMaps
+  const bothCallMaps = [
+    ...Object.keys(incomingCallMap).map(method => ({custom: false, method})),
+    ...Object.keys(customResponseIncomingCallMap).map(method => ({custom: true, method})),
+  ]
 
-    // Waiting on the server
-    if (waitingKey) {
-      getEngine().dispatchWaitingAction(waitingKey, true)
-    }
+  // Waiting on the server
+  if (waitingKey) {
+    getEngine().dispatchWaitingAction(waitingKey, true)
+  }
 
-    const callMap = bothCallMaps.reduce((map: {[key: string]: unknown}, {method, custom}) => {
-      map[method] = (params: unknown, _response: CommonResponseHandler) => {
-        // No longer waiting on the server
-        if (waitingKey) {
-          getEngine().dispatchWaitingAction(waitingKey, false)
-        }
-
-        let response = makeWaitingResponse(_response, waitingKey)
-
-        if (__DEV__) {
-          if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
-            throw new Error('Invalid method in both incomingCallMap and customResponseIncomingCallMap ')
-          }
-        }
-
-        if (!custom) {
-          if (response) {
-            response.result?.()
-            response = undefined
-          }
-        }
-
-        setTimeout(() => {
-          const invokeAndDispatch = wrapErrors(async () => {
-            if (response) {
-              const cb = customResponseIncomingCallMap[method]
-              await cb?.(params, response)
-            } else {
-              const cb = incomingCallMap[method]
-              await cb?.(params)
-            }
-          }, method)
-
-          invokeAndDispatch()
-            .then(() => {})
-            .catch(() => {})
-        }, 5)
+  const callMap = bothCallMaps.reduce((map: {[key: string]: unknown}, {method, custom}) => {
+    map[method] = (params: unknown, _response: CommonResponseHandler) => {
+      // No longer waiting on the server
+      if (waitingKey) {
+        getEngine().dispatchWaitingAction(waitingKey, false)
       }
-      return map
-    }, {})
 
-    // Make the actual call
-    let outstandingIntervalID: ReturnType<typeof setInterval>
-    if (printOutstandingRPCs) {
-      outstandingIntervalID = setInterval(() => {
-        console.log('Engine/Listener with a still-alive eventChannel for method:', method)
-      }, 2000)
+      let response = makeWaitingResponse(_response, waitingKey)
+
+      if (__DEV__) {
+        if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
+          throw new Error('Invalid method in both incomingCallMap and customResponseIncomingCallMap ')
+        }
+      }
+
+      if (!custom) {
+        if (response) {
+          response.result?.()
+          response = undefined
+        }
+      }
+
+      setTimeout(() => {
+        const invokeAndDispatch = wrapErrors(async () => {
+          if (response) {
+            const cb = customResponseIncomingCallMap[method]
+            await cb?.(params, response)
+          } else {
+            const cb = incomingCallMap[method]
+            await cb?.(params)
+          }
+        }, method)
+
+        invokeAndDispatch()
+          .then(() => {})
+          .catch(() => {})
+      }, 5)
     }
+    return map
+  }, {})
 
-    getEngine()._rpcOutgoing({
-      callback: (error?: RPCError, params?: unknown) => {
-        if (printOutstandingRPCs) {
-          clearInterval(outstandingIntervalID)
-        }
+  // Make the actual call
+  let outstandingIntervalID: ReturnType<typeof setInterval>
+  if (printOutstandingRPCs) {
+    outstandingIntervalID = setInterval(() => {
+      console.log('Engine/Listener with a still-alive eventChannel for method:', method)
+    }, 2000)
+  }
 
-        if (waitingKey) {
-          // No longer waiting
-          getEngine().dispatchWaitingAction(waitingKey, false, error instanceof RPCError ? error : undefined)
-        }
+  getEngine()._rpcOutgoing({
+    callback: (error?: RPCError, params?: unknown) => {
+      if (printOutstandingRPCs) {
+        clearInterval(outstandingIntervalID)
+      }
 
-        if (error) {
-          reject(error)
-        } else {
-          resolve(params)
-        }
-      },
-      incomingCallMap: callMap,
-      method,
-      params,
-    })
+      if (waitingKey) {
+        // No longer waiting
+        getEngine().dispatchWaitingAction(waitingKey, false, error instanceof RPCError ? error : undefined)
+      }
+
+      if (error) {
+        reject(error)
+      } else {
+        resolve(params)
+      }
+    },
+    incomingCallMap: callMap,
+    method,
+    params,
   })
+
+  return promise
 }
 
 export default listener

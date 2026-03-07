@@ -7,11 +7,11 @@ export type MessageContextValue = {
   ordinal: T.Chat.Ordinal
 }
 
-const defaultValue: MessageContextValue = {
+const defaultValue = {
   canFixOverdraw: true,
   isHighlighted: false,
   ordinal: T.Chat.numberToOrdinal(0),
-}
+} satisfies MessageContextValue
 
 export const MessageContext = React.createContext<MessageContextValue>(defaultValue)
 

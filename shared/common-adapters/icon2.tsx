@@ -34,11 +34,11 @@ const Icon2Desktop = (props: Icon2Props) => {
   return <span className={`icon icon-gen-${type}`} style={inlineStyle} />
 }
 
-const nativeBaseStyle: Styles._StylesCrossPlatform = {
+const nativeBaseStyle = {
   color: Styles.globalColors.black_50,
   fontFamily: 'kb',
   fontWeight: 'normal' as const,
-}
+} satisfies Styles._StylesCrossPlatform
 
 const Icon2Native = (props: Icon2Props) => {
   const {Text: RNText} = require('react-native') as {Text: typeof RNTextType}

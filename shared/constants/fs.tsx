@@ -3,13 +3,13 @@ import {isLinux, isMobile} from '@/constants/platform'
 import {navigateAppend} from '@/constants/router'
 
 // Prefetch Constants
-const prefetchNotStarted: T.FS.PrefetchNotStarted = {
+const prefetchNotStarted = {
   state: T.FS.PrefetchState.NotStarted,
-}
+} satisfies T.FS.PrefetchNotStarted
 
-const prefetchComplete: T.FS.PrefetchComplete = {
+const prefetchComplete = {
   state: T.FS.PrefetchState.Complete,
-}
+} satisfies T.FS.PrefetchComplete
 
 export {prefetchNotStarted, prefetchComplete}
 
@@ -33,34 +33,34 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const emptyFolder: T.FS.FolderPathItem = {
+export const emptyFolder = {
   ...pathItemMetadataDefault,
-  children: new Set(),
+  children: new Set<string>(),
   progress: T.FS.ProgressType.Pending,
   type: T.FS.PathType.Folder,
-}
+} satisfies T.FS.FolderPathItem
 
-export const emptyFile: T.FS.FilePathItem = {
+export const emptyFile = {
   ...pathItemMetadataDefault,
   type: T.FS.PathType.File,
-}
+} satisfies T.FS.FilePathItem
 
-export const emptySymlink: T.FS.SymlinkPathItem = {
+export const emptySymlink = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: T.FS.PathType.Symlink,
-}
+} satisfies T.FS.SymlinkPathItem
 
-export const unknownPathItem: T.FS.UnknownPathItem = {
+export const unknownPathItem = {
   ...pathItemMetadataDefault,
   type: T.FS.PathType.Unknown,
-}
+} satisfies T.FS.UnknownPathItem
 
 // Factory Functions
 export const unknownTlf = (() => {
-  const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
+  const tlfSyncDisabled = {
     mode: T.FS.TlfSyncMode.Disabled,
-  }
+  } satisfies T.FS.TlfSyncDisabled
   const makeConflictStateNormalView = ({
     localViewTlfPaths,
     resolvingConflict,
@@ -105,119 +105,119 @@ export const unknownTlf = (() => {
 })()
 
 // Empty/Default Objects
-export const emptyNewFolder: T.FS.Edit = {
+export const emptyNewFolder = {
   error: undefined,
   name: 'New Folder',
   originalName: 'New Folder',
   parentPath: T.FS.stringToPath('/keybase'),
   type: T.FS.EditType.NewFolder,
-}
+} satisfies T.FS.Edit
 
-export const emptySyncingFoldersProgress: T.FS.SyncingFoldersProgress = {
+export const emptySyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
-}
+} satisfies T.FS.SyncingFoldersProgress
 
-export const emptyOverallSyncStatus: T.FS.OverallSyncStatus = {
+export const emptyOverallSyncStatus = {
   diskSpaceStatus: T.FS.DiskSpaceStatus.Ok,
   showingBanner: false,
   syncingFoldersProgress: emptySyncingFoldersProgress,
-}
+} satisfies T.FS.OverallSyncStatus
 
-export const defaultPathUserSetting: T.FS.PathUserSetting = {
+export const defaultPathUserSetting = {
   sort: T.FS.SortSetting.NameAsc,
-}
+} satisfies T.FS.PathUserSetting
 
-export const defaultTlfListPathUserSetting: T.FS.PathUserSetting = {
+export const defaultTlfListPathUserSetting = {
   sort: T.FS.SortSetting.TimeAsc,
-}
+} satisfies T.FS.PathUserSetting
 
-export const emptyDownloadState: T.FS.DownloadState = {
+export const emptyDownloadState = {
   canceled: false,
   done: false,
   endEstimate: 0,
   error: '',
   localPath: '',
   progress: 0,
-}
+} satisfies T.FS.DownloadState
 
-export const emptyDownloadInfo: T.FS.DownloadInfo = {
+export const emptyDownloadInfo = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
   startTime: 0,
-}
+} satisfies T.FS.DownloadInfo
 
-export const emptyPathItemActionMenu: T.FS.PathItemActionMenu = {
+export const emptyPathItemActionMenu = {
   downloadID: undefined,
   downloadIntent: undefined,
   previousView: T.FS.PathItemActionMenuView.Root,
   view: T.FS.PathItemActionMenuView.Root,
-}
+} satisfies T.FS.PathItemActionMenu
 
-export const emptySettings: T.FS.Settings = {
+export const emptySettings = {
   isLoading: false,
   loaded: false,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
   syncOnCellular: false,
-}
+} satisfies T.FS.Settings
 
-export const emptyPathInfo: T.FS.PathInfo = {
+export const emptyPathInfo = {
   deeplinkPath: '',
   platformAfterMountPath: '',
-}
+} satisfies T.FS.PathInfo
 
-export const emptyFileContext: T.FS.FileContext = {
+export const emptyFileContext = {
   contentType: '',
   url: '',
   viewType: T.RPCGen.GUIViewType.default,
-}
+} satisfies T.FS.FileContext
 
 // Driver Status Constants
-export const driverStatusUnknown: T.FS.DriverStatusUnknown = {
+export const driverStatusUnknown = {
   type: T.FS.DriverStatusType.Unknown,
-} as const
+} as const satisfies T.FS.DriverStatusUnknown
 
-export const emptyDriverStatusEnabled: T.FS.DriverStatusEnabled = {
+export const emptyDriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: undefined,
   isDisabling: false,
   type: T.FS.DriverStatusType.Enabled,
-} as const
+} as const satisfies T.FS.DriverStatusEnabled
 
-export const emptyDriverStatusDisabled: T.FS.DriverStatusDisabled = {
+export const emptyDriverStatusDisabled = {
   isEnabling: false,
   kextPermissionError: false,
   type: T.FS.DriverStatusType.Disabled,
-} as const
+} as const satisfies T.FS.DriverStatusDisabled
 
 export const defaultDriverStatus: T.FS.DriverStatus = isLinux ? emptyDriverStatusEnabled : driverStatusUnknown
 
-export const unknownKbfsDaemonStatus: T.FS.KbfsDaemonStatus = {
+export const unknownKbfsDaemonStatus = {
   onlineStatus: T.FS.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: T.FS.KbfsDaemonRpcStatus.Waiting,
-}
+} satisfies T.FS.KbfsDaemonStatus
 
 // Parsed Path Constants
-const parsedPathRoot: T.FS.ParsedPathRoot = {kind: T.FS.PathKind.Root}
+const parsedPathRoot = {kind: T.FS.PathKind.Root} satisfies T.FS.ParsedPathRoot
 
-const parsedPathPrivateList: T.FS.ParsedPathTlfList = {
+const parsedPathPrivateList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Private,
-}
+} satisfies T.FS.ParsedPathTlfList
 
-const parsedPathPublicList: T.FS.ParsedPathTlfList = {
+const parsedPathPublicList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Public,
-}
+} satisfies T.FS.ParsedPathTlfList
 
-const parsedPathTeamList: T.FS.ParsedPathTlfList = {
+const parsedPathTeamList = {
   kind: T.FS.PathKind.TlfList,
   tlfType: T.FS.TlfType.Team,
-}
+} satisfies T.FS.ParsedPathTlfList
 
 // Conversion Functions
 export const pathToRPCPath = (
