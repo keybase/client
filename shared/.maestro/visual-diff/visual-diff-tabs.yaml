@@ -1,0 +1,104 @@
+appId: keybase.ios
+
+---
+
+# Visual diff: navigate to each tab and take a screenshot.
+# Run via: maestro test --output /tmp/visual-diff-ios/<mode> .maestro/visual-diff/visual-diff-tabs.yaml
+#
+# Note: "More" sub-items have accessibility labels like ", Crypto" (with leading comma+space
+# from icon+text concatenation), so we match with regex.
+# Sub-screen items have composite labels like "Encrypt, Encrypt to anyone..."
+# Use swipe RIGHT from screen edge to go back (iOS back gesture).
+
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Chat"
+    timeout: 60000
+
+# --- Bottom bar tabs ---
+
+- tapOn:
+    text: "People"
+- assertVisible:
+    text: "People"
+- takeScreenshot: people
+
+- tapOn:
+    text: "Chat"
+- assertVisible:
+    text: "Chat"
+- takeScreenshot: chat
+
+- tapOn:
+    text: "Files"
+- assertVisible:
+    text: "Files"
+- takeScreenshot: files
+
+- tapOn:
+    text: "Teams"
+- assertVisible:
+    text: "Teams"
+- takeScreenshot: teams
+
+# --- "More" menu tabs ---
+
+- tapOn:
+    text: "More"
+- extendedWaitUntil:
+    visible:
+      text: ".*Crypto"
+    timeout: 30000
+
+- tapOn:
+    text: ".*Crypto"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      text: "Encrypt,.*"
+    timeout: 10000
+- takeScreenshot: crypto
+- swipe:
+    start: "1%, 50%"
+    end: "80%, 50%"
+    duration: 400
+
+- extendedWaitUntil:
+    visible:
+      text: ".*Git"
+    timeout: 10000
+
+- tapOn:
+    text: ".*Git"
+    retryTapIfNoChange: false
+- takeScreenshot: git
+- swipe:
+    start: "1%, 50%"
+    end: "80%, 50%"
+    duration: 400
+
+- extendedWaitUntil:
+    visible:
+      text: ".*Devices"
+    timeout: 10000
+
+- tapOn:
+    text: ".*Devices"
+    retryTapIfNoChange: false
+- takeScreenshot: devices
+- swipe:
+    start: "1%, 50%"
+    end: "80%, 50%"
+    duration: 400
+
+- extendedWaitUntil:
+    visible:
+      text: "Account"
+    timeout: 10000
+
+- tapOn:
+    text: "Account"
+    retryTapIfNoChange: false
+- takeScreenshot: settings

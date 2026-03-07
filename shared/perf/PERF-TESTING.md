@@ -359,6 +359,39 @@ All screenshots go to `/tmp/visual-diff/` (outside the repo):
 
 Tabs captured: People, Chat, Files, Crypto, Teams, Git, Devices, Settings.
 
+### iOS Simulator Visual Diff
+
+Same methodology but uses Maestro to navigate tabs on the iOS simulator.
+
+#### Prerequisites
+
+- iOS Simulator booted with app running and logged in
+- Maestro installed: `curl -Ls "https://get.maestro.mobile.dev" | bash`
+- ImageMagick installed: `brew install imagemagick`
+
+#### Workflow
+
+```bash
+# 1. Check out base branch, build if needed, take baseline screenshots
+git checkout nojima/HOTPOT-next-670-clean
+cd shared && ./perf/visual-diff-take-ios.sh baseline
+
+# 2. Check out feature branch, rebuild if needed, take current screenshots
+git checkout my-feature-branch
+cd shared && ./perf/visual-diff-take-ios.sh current
+
+# 3. Compare
+cd shared && ./perf/visual-diff-compare-ios.sh
+```
+
+#### Notes
+
+- Maestro navigates: People, Chat, Files, Teams (bottom bar), then More > Crypto, Git, Devices, Settings
+- Screenshots go to `/tmp/visual-diff-ios/{baseline,current,diff}/`
+- iOS subpixel threshold is higher (~500px) due to retina rendering differences
+- The Maestro flow YAML is at `.maestro/visual-diff/visual-diff-tabs.yaml` — edit it to add/remove tabs or adjust wait times
+- Reading diff images: same rules as desktop (see above)
+
 ## Interpreting Results
 
 ### Before/After Comparison
