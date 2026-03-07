@@ -10,7 +10,7 @@ import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 type ItemHeight = React.ComponentProps<typeof Kb.List<T.RPCGen.ProcessedContact>>['itemHeight']
-const itemHeight: ItemHeight = {height: 96, type: 'fixed'}
+const itemHeight = {height: 96, type: 'fixed' as const} satisfies ItemHeight
 
 type FollowProps = {
   username: string

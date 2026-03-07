@@ -81,7 +81,7 @@ const HttpAvatar = (p: {
   const src = `http://${p.httpSrvAddress}/av?typ=${typ}&name=${p.name}&format=square_192&mode=${isDarkMode ? 'dark' : 'light'}&token=${p.httpSrvToken}&count=0`
   return <img src={src} width={p.size} height={p.size} style={{...avatarStyle, ...p.style}} loading="lazy" />
 }
-const avatarStyle: React.CSSProperties = {borderRadius: '50%', flexShrink: 0}
+const avatarStyle = {borderRadius: '50%', flexShrink: 0} satisfies React.CSSProperties
 
 const ArrowTick = () => {
   const isDarkMode = useColorScheme() === 'dark'
