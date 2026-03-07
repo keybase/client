@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import Icon from './icon'
+import Icon2 from './icon2'
 import Text from './text'
 import type {Props} from './back-button'
 
 const Kb = {
-  Icon,
+  Icon2,
   Text,
 }
 
@@ -28,7 +28,7 @@ function BackButton(props: Props) {
       }
       onClick={_onClick}
     >
-      <Kb.Icon
+      <Kb.Icon2
         type="iconfont-arrow-left"
         style={props.disabled ? styles.disabledIcon : styles.icon}
         color={props.iconColor}

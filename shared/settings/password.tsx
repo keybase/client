@@ -63,7 +63,7 @@ export const UpdatePassword = (props: Props) => {
     errorSaving
   ) : password.length >= 8 && passwordConfirm.length >= 8 ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
-      <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
+      <Kb.Icon2 type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
       <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
     </Kb.Box2>
   ) : (

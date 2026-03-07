@@ -27,7 +27,7 @@ const About = () => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" style={styles.container}>
-      <Kb.Icon type="icon-keybase-logo-64" />
+      <Kb.ImageIcon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
         <Kb.Text center={true} type="Body">
           You are running version{' '}

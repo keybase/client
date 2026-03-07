@@ -42,7 +42,7 @@ const TeamMenu = (props: Props) => {
       metaTwo={
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
           {(role === 'admin' || role === 'owner') && (
-            <Kb.Icon
+            <Kb.Icon2
               color={role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
               fontSize={10}
               type="iconfont-crown-owner"

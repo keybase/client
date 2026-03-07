@@ -109,7 +109,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
 const Header = (props: {teamname: string}) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
   </>
 )
 

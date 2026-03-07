@@ -137,7 +137,7 @@ function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
 
   const ownerAdminTooltipIcon = allowCrown ? (
     <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-      <Kb.Icon
+      <Kb.Icon2
         color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
