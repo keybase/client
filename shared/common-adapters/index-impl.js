@@ -141,6 +141,9 @@ module.exports = {
   get Icon2() {
     return require('./icon2').default
   },
+  get IconAuto() {
+    return require('./icon-auto').default
+  },
   get IconButton() {
     return require('./button').IconButton
   },

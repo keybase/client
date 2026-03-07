@@ -7,11 +7,12 @@ import type {Image as RNImageType} from 'react-native'
 export type ImageIconProps = {
   type: IconType
   style?: Styles.StylesCrossPlatform
+  className?: string
   allowLazy?: boolean
 }
 
 const ImageIconDesktop = (props: ImageIconProps) => {
-  const {type, style, allowLazy = true} = props
+  const {type, style, className, allowLazy = true} = props
   const {getAssetPath} = require('@/constants/platform.desktop') as {
     getAssetPath: (...a: Array<string>) => string
   }
@@ -31,6 +32,7 @@ const ImageIconDesktop = (props: ImageIconProps) => {
     <img
       loading={allowLazy ? 'lazy' : undefined}
       draggable={false}
+      className={className}
       style={style as React.CSSProperties}
       srcSet={srcSet}
     />

@@ -392,7 +392,7 @@ const Task = (props: Props) => (
   <PeopleItem
     format="multi"
     badged={props.badged}
-    icon={<Kb.Icon type={props.icon} />}
+    icon={<Kb.IconAuto type={props.icon} />}
     buttons={props.buttons}
   >
     <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
