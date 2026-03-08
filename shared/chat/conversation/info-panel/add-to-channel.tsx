@@ -115,6 +115,7 @@ const AddToChannel = (props: Props) => {
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
         <Kb.List
+          keyProperty="username"
           items={membersFiltered}
           renderItem={(idx, item) => {
             const alreadyIn = participants.includes(item.username)

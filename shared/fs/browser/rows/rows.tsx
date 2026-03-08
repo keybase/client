@@ -125,6 +125,7 @@ function Rows(props: Props & {listKey: string}) {
     <Kb.BoxGrow>
       <Kb.List
         key={listKey}
+        keyProperty="key"
         items={items}
         bounces={true}
         itemHeight={{

@@ -189,7 +189,7 @@ const Teams = function Teams(p: Props) {
     <PerfProfiler id="TeamsList">
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.BoxGrow>
-          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} testID="teamsList" />
+          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" testID="teamsList" />
         </Kb.BoxGrow>
       </Kb.Box2>
     </PerfProfiler>

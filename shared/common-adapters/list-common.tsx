@@ -2,7 +2,7 @@ import {smallHeight, largeHeight} from './list-item'
 import type {Props} from './list'
 
 export function useListProps<T>(p: Props<T>) {
-  const {items, renderItem, itemHeight, onEndReached, keyProperty, indexAsKey, estimatedItemHeight, extraData: extraDataProp, selectedIndex} = p
+  const {items, renderItem, itemHeight, onEndReached, keyProperty, estimatedItemHeight, extraData: extraDataProp, selectedIndex} = p
 
   const legendRenderItem = ({item, index}: {item: T; index: number}) => {
     return renderItem(index, item)
@@ -10,9 +10,7 @@ export function useListProps<T>(p: Props<T>) {
 
   const keyExtractor = keyProperty
     ? (item: T, _index: number) => String((item as Record<string, unknown>)[keyProperty])
-    : indexAsKey
-      ? (_item: T, index: number) => String(index)
-      : undefined
+    : (_item: T, index: number) => String(index)
 
   const getFixedItemSize =
     itemHeight.type === 'fixed'
