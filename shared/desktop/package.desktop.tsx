@@ -189,15 +189,15 @@ async function startPack() {
   try {
     if (TEMP_SKIP_BUILD) {
     } else {
-      const {promise, resolve, reject} = Promise.withResolvers<webpack.Stats | undefined>()
-      webpack(webpackConfig, (err, stats: webpack.Stats | undefined) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(stats)
-        }
+      const stats = await new Promise<webpack.Stats | undefined>((resolve, reject) => {
+        webpack(webpackConfig, (err, stats: webpack.Stats | undefined) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(stats)
+          }
+        })
       })
-      const stats = await promise
 
       if (stats?.hasErrors()) {
         console.error(stats.toJson('errors-only').errors)

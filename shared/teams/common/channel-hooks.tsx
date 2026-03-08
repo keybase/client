@@ -43,44 +43,44 @@ export const useAllChannelMetas = (
     teamIDRef.current = teamID
   }, [getConversations, teamname, teamID])
 
-  const [reloadChannels] = React.useState(() => async () => {
-    const {promise, resolve, reject} = Promise.withResolvers<undefined>()
-    setLoadingChannels(true)
-    getConversationsRef.current(
-      [
-        {
-          membersType: T.RPCChat.ConversationMembersType.team,
-          tlfName: teamnameRef.current,
-          topicType: T.RPCChat.TopicType.chat,
-        },
-        C.waitingKeyTeamsGetChannels(teamIDRef.current),
-      ],
-      ({convs}) => {
-        resolve(undefined)
-        if (convs) {
-          setChannelMetas(
-            new Map(
-              convs
-                .map(conv => Chat.inboxUIItemToConversationMeta(conv))
-                .reduce((arr, a) => {
-                  if (a) {
-                    arr.push([a.conversationIDKey, a])
-                  }
-                  return arr
-                }, new Array<[string, T.Chat.ConversationMeta]>())
-            )
-          )
-        }
+  const [reloadChannels] = React.useState(() => async () =>
+      new Promise<void>((resolve, reject) => {
+        setLoadingChannels(true)
+        getConversationsRef.current(
+          [
+            {
+              membersType: T.RPCChat.ConversationMembersType.team,
+              tlfName: teamnameRef.current,
+              topicType: T.RPCChat.TopicType.chat,
+            },
+            C.waitingKeyTeamsGetChannels(teamIDRef.current),
+          ],
+          ({convs}) => {
+            resolve()
+            if (convs) {
+              setChannelMetas(
+                new Map(
+                  convs
+                    .map(conv => Chat.inboxUIItemToConversationMeta(conv))
+                    .reduce((arr, a) => {
+                      if (a) {
+                        arr.push([a.conversationIDKey, a])
+                      }
+                      return arr
+                    }, new Array<[string, T.Chat.ConversationMeta]>())
+                )
+              )
+            }
 
-        setLoadingChannels(false)
-      },
-      error => {
-        setLoadingChannels(false)
-        reject(error)
-      }
-    )
-    return promise
-  })
+            setLoadingChannels(false)
+          },
+          error => {
+            setLoadingChannels(false)
+            reject(error)
+          }
+        )
+      })
+  )
 
   React.useEffect(() => {
     if (!dontCallRPC) {
