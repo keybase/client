@@ -31,14 +31,14 @@ export type Props = {
   youCanManageMembers: boolean
 }
 
-const showCrown: T.Teams.BoolTypeMap = {
+const showCrown = {
   admin: true,
   bot: false,
   owner: true,
   reader: false,
   restrictedbot: false,
   writer: false,
-}
+} satisfies T.Teams.BoolTypeMap
 
 // NOTE the controls for reset and deleted users (and the chat button) are
 // duplicated here because the desktop & mobile layouts differ significantly. If

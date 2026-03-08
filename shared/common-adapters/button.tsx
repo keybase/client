@@ -94,40 +94,40 @@ const secondaryLabelStyles = {
   Success: {...baseLabel, color: Styles.globalColors.greenDark},
 } as const
 
-const smallStyle: Styles._StylesCrossPlatform = {
+const smallStyle = {
   borderRadius: Styles.borderRadius,
   height: smallHeight,
   minWidth: undefined,
   paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
   paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
-}
+} satisfies Styles._StylesCrossPlatform
 
-const childrenOnlyStyle: Styles._StylesCrossPlatform = {
+const childrenOnlyStyle = {
   minWidth: undefined,
   paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
   paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
   width: regularHeight,
-}
+} satisfies Styles._StylesCrossPlatform
 
-const childrenOnlySmallStyle: Styles._StylesCrossPlatform = {
+const childrenOnlySmallStyle = {
   width: smallHeight,
-}
+} satisfies Styles._StylesCrossPlatform
 
-const fullWidthStyle: Styles._StylesCrossPlatform = {
+const fullWidthStyle = {
   flexGrow: 1,
   maxWidth: 460,
   width: '100%',
-}
+} satisfies Styles._StylesCrossPlatform
 
-const opacity30Style: Styles._StylesCrossPlatform = {opacity: 0.3}
-const opacity0Style: Styles._StylesCrossPlatform = {opacity: 0}
+const opacity30Style = {opacity: 0.3} satisfies Styles._StylesCrossPlatform
+const opacity0Style = {opacity: 0} satisfies Styles._StylesCrossPlatform
 
-const progressContainerStyle: Styles._StylesCrossPlatform = {
+const progressContainerStyle = {
   ...Styles.globalStyles.fillAbsolute,
   ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+} satisfies Styles._StylesCrossPlatform
 
 const progressNormal = {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24}
 const progressSmall = {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20}

@@ -86,7 +86,7 @@ const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device =>
     type: T.Devices.stringToDeviceType(d.device.type),
   })
 
-export const emptyDevice: T.Devices.Device = {
+export const emptyDevice = {
   created: 0,
   currentDevice: false,
   deviceID: T.Devices.stringToDeviceID(''),
@@ -94,7 +94,7 @@ export const emptyDevice: T.Devices.Device = {
   lastUsed: 0,
   name: '',
   type: T.Devices.stringToDeviceType('desktop'),
-}
+} satisfies T.Devices.Device
 
 const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? {...emptyDevice, ...d} : emptyDevice

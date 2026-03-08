@@ -76,11 +76,11 @@ type ReportOptionsProps = {
   showIncludeTranscript: boolean
 }
 const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...'] as const
-const defaultReport: ReportSettings = {
+const defaultReport = {
   extraNotes: '',
   includeTranscript: true,
   reason: reasons[0],
-}
+} satisfies ReportSettings
 const ReportOptions = (props: ReportOptionsProps) => {
   const {showIncludeTranscript} = props
   return (
