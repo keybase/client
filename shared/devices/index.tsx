@@ -119,7 +119,7 @@ function ReloadableDevices() {
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
           {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
           <Kb.BoxGrow2>
-            <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} />
+            <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
         </Kb.Box2>
       </NewContext.Provider>

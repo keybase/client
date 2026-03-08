@@ -141,7 +141,7 @@ function Providers({filter, providerClicked, providers}: ProvidersProps) {
 
   return (
     <Kb.BoxGrow2>
-      <Kb.List items={items} renderItem={_renderItem} itemHeight={_itemHeight} />
+      <Kb.List items={items} renderItem={_renderItem} itemHeight={_itemHeight} keyProperty="key" />
     </Kb.BoxGrow2>
   )
 }

@@ -118,6 +118,7 @@ const AddSubteamMembers = () => {
         </Kb.Box2>
         <Kb.BoxGrow>
           <Kb.List
+            keyProperty="username"
             items={filteredMembers}
             renderItem={renderItem}
             itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
