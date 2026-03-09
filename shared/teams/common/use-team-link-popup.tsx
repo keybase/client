@@ -20,7 +20,7 @@ export const useTeamLinkPopup = (teamname: string) => {
         </Kb.Box2>
       )
       if (Kb.Styles.isMobile) {
-        return <Kb.MobilePopup>{content}</Kb.MobilePopup>
+        return <Kb.MobilePopup onDismiss={hidePopup}>{content}</Kb.MobilePopup>
       }
       return (
         <Kb.Overlay position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>

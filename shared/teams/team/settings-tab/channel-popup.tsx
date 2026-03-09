@@ -45,7 +45,7 @@ const ChannelPopup = (props: Props) => {
 
   const onAdd = () => onComplete(selected)
   return (
-    <Kb.MobilePopup overlayStyle={Kb.Styles.globalStyles.fullHeight}>
+    <Kb.MobilePopup onDismiss={onCancel} snapPoints={['90%']}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
