@@ -12,11 +12,11 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as T from '@/constants/types'
 import {Alert} from 'react-native'
-import {LegendList, type LegendListRef, type ViewToken} from '@legendapp/list/react-native'
+import type {LegendListRef} from '@/common-adapters'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import {useInboxState} from './use-inbox-state'
-import {type RowItem, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
+import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -64,17 +64,20 @@ function Inbox(p: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
-  const getFixedItemSize = (item: RowItem): number => {
-    switch (item.type) {
-      case 'small': return RowSizes.smallRowHeight
-      case 'big': return RowSizes.bigRowHeight
-      case 'bigHeader': return RowSizes.bigHeaderHeight
-      case 'divider': return RowSizes.dividerHeight(item.showButton)
-      case 'teamBuilder': return 120
-    }
+  const itemHeight = {
+    getSize: (item: RowItem) => {
+      switch (item.type) {
+        case 'small': return RowSizes.smallRowHeight
+        case 'big': return RowSizes.bigRowHeight
+        case 'bigHeader': return RowSizes.bigHeaderHeight
+        case 'divider': return RowSizes.dividerHeight(item.showButton)
+        case 'teamBuilder': return 120
+      }
+    },
+    type: 'perItem' as const,
   }
 
-  const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
+  const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
@@ -96,7 +99,7 @@ function Inbox(p: InboxProps) {
     return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
   }
 
-  const onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
+  const onViewChanged = (data: ViewableItemsData) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
     applyUnreadAndFloating()
@@ -147,19 +150,18 @@ function Inbox(p: InboxProps) {
             <InboxSearch header={HeadComponent} />
           </Kb.Box2>
         ) : (
-          <LegendList
+          <Kb.List
             testID="inboxList"
             ListHeaderComponent={HeadComponent}
-            data={rows}
-            estimatedItemSize={64}
+            items={rows}
+            itemHeight={itemHeight}
+            estimatedItemHeight={64}
             getItemType={getItemType}
-            getFixedItemSize={getFixedItemSize}
             recycleItems={true}
             keyExtractor={keyExtractor}
             keyboardShouldPersistTaps="handled"
             onViewableItemsChanged={onViewChanged}
             viewabilityConfig={viewabilityConfig}
-            overScrollMode="never"
             ref={listRef}
             renderItem={renderItem}
             drawDistance={250}

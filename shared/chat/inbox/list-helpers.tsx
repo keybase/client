@@ -7,7 +7,7 @@ export type RowItem = ChatInboxRowItem
 
 // Minimal shape that both @legendapp/list/react and @legendapp/list/react-native ViewToken satisfy
 export type ViewableItem = {index: number; item: RowItem}
-export type ViewableItemsData = {viewableItems: Array<ViewableItem>; changed: Array<ViewableItem>}
+export type ViewableItemsData = {viewableItems: ReadonlyArray<ViewableItem>; changed: ReadonlyArray<ViewableItem>}
 
 export const viewabilityConfig = {
   minimumViewTime: 100,

@@ -51,7 +51,7 @@ export {default as ImageIcon} from './image-icon'
 export {default as InfoNote} from './info-note'
 export {default as Input3, type Input3Ref, type Input3Props} from './input3'
 export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-export {default as List} from './list'
+export {default as List, type LegendListRef} from './list'
 export {default as LoadingLine} from './loading-line'
 export {
   default as ListItem,

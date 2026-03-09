@@ -4,13 +4,14 @@ import {LegendList} from '@legendapp/list/react-native'
 import type {Props} from './list'
 import {useListProps} from './list-common'
 
-function List<T>(p: Props<T>) {
-  const {empty, ...listProps} = useListProps(p)
+function List<T>({ref, ...p}: Props<T>) {
+  const {empty, ...listProps} = useListProps(p as Props<T>)
   if (empty) return null
 
   return (
     <View style={styles.outerView}>
       <LegendList
+        ref={ref as any}
         {...listProps}
         testID={p.testID}
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}

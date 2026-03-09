@@ -4,14 +4,14 @@ import {LegendList} from '@legendapp/list/react'
 import type {Props} from './list'
 import {useListProps} from './list-common'
 
-function List<T>(p: Props<T>) {
-  const {empty, ...listProps} = useListProps(p)
-  const {style, desktopRef} = p
+function List<T>({ref, ...p}: Props<T>) {
+  const {empty, ...listProps} = useListProps(p as Props<T>)
+  const {style} = p
   if (empty) return null
 
   return (
     <LegendList
-      ref={desktopRef as any}
+      ref={ref as any}
       {...listProps}
       style={
         {
