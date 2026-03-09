@@ -13,17 +13,6 @@ type Props = {
   onBack: () => void
 }
 
-const Wrapper = ({children}: {children: React.ReactNode}) =>
-  Kb.Styles.isMobile ? (
-    <Kb.ScrollView
-      style={{...Kb.Styles.globalStyles.fillAbsolute, ...Kb.Styles.globalStyles.flexBoxColumn}}
-      contentContainerStyle={styles.scrollContainer}
-      children={children}
-    />
-  ) : (
-    <Kb.PopupDialog children={children} />
-  )
-
 const RetentionWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
 
@@ -33,7 +22,7 @@ const RetentionWarning = (props: Props) => {
   }
   const convType: string = getConvType(props.entityType)
   return (
-    <Wrapper>
+    <Kb.Modal2 popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.iconBoxStyle}>
           <Kb.Icon
@@ -79,7 +68,7 @@ const RetentionWarning = (props: Props) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Wrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -115,6 +104,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginBottom: Kb.Styles.globalMargins.small,
     },
   }),
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.large,
@@ -133,10 +123,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   headerStyle: {marginBottom: Kb.Styles.globalMargins.small},
   iconBoxStyle: {marginBottom: 20},
   label: {flexShrink: 1},
-  scrollContainer: {
-    ...Kb.Styles.globalStyles.flexBoxCenter,
-    flex: 1,
-  },
 }))
 
 type OwnProps = {

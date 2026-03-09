@@ -8,17 +8,6 @@ type Props = {
   teamname: string
 }
 
-const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
-  Kb.Styles.isMobile ? (
-    <Kb.ScrollView
-      style={{...Kb.Styles.globalStyles.fillAbsolute, ...Kb.Styles.globalStyles.flexBoxColumn}}
-      contentContainerStyle={styles.scrollContainer}
-      children={children}
-    />
-  ) : (
-    <Kb.PopupDialog onClose={onBack} children={children} />
-  )
-
 const OpenTeamWarning = (props: Props) => {
   const isOpenTeam = props.isOpenTeam
   const teamname = props.teamname
@@ -34,7 +23,7 @@ const OpenTeamWarning = (props: Props) => {
   const onCancel = () => clearModals()
 
   return (
-    <Wrapper onBack={onCancel}>
+    <Kb.Modal2 onClose={onCancel} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
         <Kb.ImageIcon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
@@ -71,7 +60,7 @@ const OpenTeamWarning = (props: Props) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Wrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -85,6 +74,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginBottom: Kb.Styles.globalMargins.small,
     },
   }),
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.large,
@@ -103,10 +93,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   headerStyle: {marginBottom: Kb.Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
   label: {flexShrink: 1},
-  scrollContainer: {
-    ...Kb.Styles.globalStyles.flexBoxCenter,
-    flex: 1,
-  },
 }))
 
 export default OpenTeamWarning

@@ -70,7 +70,7 @@ const Fullscreen = function Fullscreen(p: Props) {
   } as StyleOverride
 
   return (
-    <Kb.PopupDialog onClose={onClose} fill={true}>
+    <Kb.Modal2 onClose={onClose} noScrollView={true} popupStyleContainer={styles.containerFill} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
           <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
@@ -144,7 +144,7 @@ const Fullscreen = function Fullscreen(p: Props) {
           )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupDialog>
+    </Kb.Modal2>
   )
 }
 
@@ -171,6 +171,8 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 36,
         },
       }),
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
+      containerFill: {height: '100%', width: '100%'},
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,

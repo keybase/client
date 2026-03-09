@@ -6,7 +6,7 @@ import useHook from './hooks'
 const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
-    <Kb.PopupDialog onClose={props.onBack} styleCover={styles.cover} styleContainer={styles.container}>
+    <Kb.Modal2 onClose={props.onBack} noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.boxTop}>
         <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
         <Kb.Text type="BodySmallSemibold" style={{marginTop: Kb.Styles.globalMargins.xtiny}}>
@@ -61,7 +61,7 @@ const CreateChannel = (p: Props) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.PopupDialog>
+    </Kb.Modal2>
   )
 }
 
@@ -88,14 +88,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.medium,
       },
       buttonBar: {alignItems: 'center'},
-      container: {
-        maxHeight: 520,
-        width: 400,
-      },
-      cover: {
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
+      clipContainer: Kb.Styles.platformStyles({isElectron: {maxHeight: 520, overflow: 'hidden', width: 400}}),
     }) as const
 )
 

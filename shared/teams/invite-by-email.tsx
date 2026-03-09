@@ -58,7 +58,7 @@ const Container = (ownProps: OwnProps) => {
   const onInvite = () => _onInvite(invitees, role)
 
   return (
-    <Kb.PopupDialog onClose={onClose} styleCover={styles.cover} styleContainer={styles.container}>
+    <Kb.Modal2 onClose={onClose} noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2
           direction="vertical"
@@ -115,7 +115,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupDialog>
+    </Kb.Modal2>
   )
 }
 
@@ -134,19 +134,7 @@ const _makeDropdownItem = (item: string) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignSelf: 'center',
-      backgroundColor: Kb.Styles.globalColors.white,
-      borderRadius: 5,
-    },
-    isElectron: {...Kb.Styles.desktopStyles.boxShadow},
-  }),
-  cover: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',

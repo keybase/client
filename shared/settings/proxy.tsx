@@ -167,30 +167,25 @@ const ProxySettingsComponent = (props: Props) => {
 }
 
 const ProxySettingsPopup = (props: Props) => {
-  if (Kb.Styles.isMobile) {
-    return (
-      <Kb.HeaderHocWrapper onBack={props.onBack}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
-            <ProxySettingsComponent {...props} />
-          </Kb.Box2>
-        </Kb.Box2>
-      </Kb.HeaderHocWrapper>
-    )
-  }
   return (
-    <Kb.PopupDialog>
+    <Kb.Modal2
+      onClose={props.onBack}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={props.onBack}>Cancel</Kb.Text>} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
-        <Kb.BackButton onClick={props.onBack} />
+        {!Kb.Styles.isMobile && <Kb.BackButton onClick={props.onBack} />}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
           <ProxySettingsComponent {...props} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupDialog>
+    </Kb.Modal2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   popupBox: {
     minHeight: '40%',
     padding: Kb.Styles.globalMargins.small,

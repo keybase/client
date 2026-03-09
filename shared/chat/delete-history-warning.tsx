@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import MaybePopup from './maybe-popup'
 
 const DeleteHistoryWarning = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -16,8 +15,12 @@ const DeleteHistoryWarning = () => {
   }
 
   return (
-    <MaybePopup onClose={onCancel}>
-      {Kb.Styles.isMobile && <Kb.HeaderHocHeader onCancel={onCancel} />}
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([
@@ -49,7 +52,7 @@ const DeleteHistoryWarning = () => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </MaybePopup>
+    </Kb.Modal2>
   )
 }
 
@@ -79,6 +82,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       padding: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: 40,
