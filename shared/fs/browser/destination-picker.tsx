@@ -118,7 +118,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         hideBorder: true,
         leftButton: makeLeftButton(onCancel, onBack),
@@ -191,7 +191,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

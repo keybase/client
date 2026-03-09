@@ -49,7 +49,7 @@ const AddEmail = (props: Props) => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Email list" />,
@@ -102,7 +102,7 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

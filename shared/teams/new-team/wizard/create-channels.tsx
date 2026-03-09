@@ -61,7 +61,7 @@ export const CreateChannelsModal = (props: Props) => {
   )
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       banners={props.banners}
       backgroundStyle={styles.background}
       header={{
@@ -100,7 +100,7 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

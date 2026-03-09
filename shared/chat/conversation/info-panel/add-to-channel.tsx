@@ -57,7 +57,7 @@ const AddToChannel = (props: Props) => {
   const loading = !allMembers.length
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         hideBorder: Kb.Styles.isMobile,
         leftButton: Kb.Styles.isMobile ? (
@@ -165,7 +165,7 @@ const AddToChannel = (props: Props) => {
           style={styles.list}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

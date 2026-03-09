@@ -61,7 +61,7 @@ const AddContacts = () => {
   const noneSelected = selectedPhones.size + selectedEmails.size === 0
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       noScrollView={true}
       header={{
         hideBorder: true,
@@ -107,7 +107,7 @@ const AddContacts = () => {
         selectedPhones={selectedPhones}
       />
       <EnableContactsPopup noAccess={noAccessPermanent} onClose={onBack} />
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

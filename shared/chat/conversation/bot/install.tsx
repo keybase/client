@@ -429,7 +429,7 @@ const InstallBotPopup = (props: Props) => {
   const backButton = Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
   const enabled = !!conversationIDKey
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={!Kb.Styles.isMobile ? onClose : undefined}
       header={{
         leftButton: channelPickerScreen ? (
@@ -488,7 +488,7 @@ const InstallBotPopup = (props: Props) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

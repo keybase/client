@@ -43,7 +43,7 @@ const ResetModalImpl = () => {
         top: 0,
       }}
     >
-      <Kb.Modal
+      <Kb.Modal2
         header={{title: 'Account reset initiated'}}
         footer={{
           content: (
@@ -86,7 +86,7 @@ const ResetModalImpl = () => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Modal>
+      </Kb.Modal2>
     </Kb.SafeAreaView>
   )
 }

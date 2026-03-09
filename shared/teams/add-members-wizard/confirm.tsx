@@ -103,7 +103,7 @@ const AddMembersConfirm = () => {
       }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
@@ -164,7 +164,7 @@ const AddMembersConfirm = () => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

@@ -61,7 +61,7 @@ export const Email = () => {
     addEmail(emailTrimmed, searchable)
   }
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
@@ -120,7 +120,7 @@ export const Email = () => {
           <Kb.BannerParagraph bannerColor="red" content={emailError} />
         </Kb.Banner>
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 export const Phone = () => {
@@ -179,7 +179,7 @@ export const Phone = () => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
@@ -237,7 +237,7 @@ export const Phone = () => {
           <Kb.BannerParagraph bannerColor="red" content={error} />
         </Kb.Banner>
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 export const VerifyPhone = () => {
@@ -288,7 +288,7 @@ export const VerifyPhone = () => {
 
   const displayPhone = e164ToDisplay(pendingVerification)
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onClose}
       header={{
         hideBorder: true,
@@ -345,7 +345,7 @@ export const VerifyPhone = () => {
           <Kb.BannerParagraph bannerColor="red" content={error} />
         </Kb.Banner>
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

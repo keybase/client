@@ -40,7 +40,7 @@ const EditTeamDescription = (props: Props) => {
   }, [waiting])
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="Default"
       banners={
         error ? (
@@ -78,7 +78,7 @@ const EditTeamDescription = (props: Props) => {
           autoFocus={true}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

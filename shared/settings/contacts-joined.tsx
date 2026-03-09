@@ -82,7 +82,7 @@ const ContactsJoinedModal = () => {
   const nav = useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         hideBorder: true,
         leftButton: (
@@ -96,7 +96,7 @@ const ContactsJoinedModal = () => {
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
       <Kb.List items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

@@ -25,7 +25,7 @@ const MobileSendToChatRoutable = (props: Props) => {
   const onBack = () => navigateUp()
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       noScrollView={true}
       onClose={canBack ? onBack : onCancel}
       header={{
@@ -47,7 +47,7 @@ const MobileSendToChatRoutable = (props: Props) => {
         sendPaths={sendPaths}
         text={text}
       />
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

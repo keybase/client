@@ -56,7 +56,7 @@ const AddPhone = () => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
@@ -98,7 +98,7 @@ const AddPhone = () => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

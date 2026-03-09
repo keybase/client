@@ -103,7 +103,7 @@ const NewTeamInfo = () => {
     })
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       onClose={parentName ? onClose : undefined} // This is the first page of the process for subteams only
       header={{
@@ -226,7 +226,7 @@ const NewTeamInfo = () => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

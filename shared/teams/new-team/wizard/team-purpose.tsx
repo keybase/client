@@ -11,7 +11,7 @@ const TeamPurpose = () => {
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
@@ -60,7 +60,7 @@ const TeamPurpose = () => {
           title="Other/You're not sure"
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

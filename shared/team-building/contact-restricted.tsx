@@ -40,7 +40,7 @@ export const ContactRestricted = (props: Props) => {
     default:
   }
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onBack}
       header={
         Kb.Styles.isMobile
@@ -93,7 +93,7 @@ export const ContactRestricted = (props: Props) => {
           {description}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

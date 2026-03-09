@@ -71,7 +71,7 @@ export const UpdatePassword = (props: Props) => {
   )
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       backgroundStyle={styles.passwordBackground}
       banners={
         <>
@@ -173,7 +173,7 @@ export const UpdatePassword = (props: Props) => {
           style={styles.checkbox}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

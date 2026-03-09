@@ -232,7 +232,7 @@ const ArchiveModal = (p: Props) => {
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Backup', onClose)
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="Wide"
       header={modalHeader}
       footer={{
@@ -258,7 +258,7 @@ const ArchiveModal = (p: Props) => {
           ? null
           : output}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

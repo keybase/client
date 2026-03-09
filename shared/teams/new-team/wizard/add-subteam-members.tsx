@@ -73,7 +73,7 @@ const AddSubteamMembers = () => {
     )
   }
   return (
-    <Kb.Modal
+    <Kb.Modal2
       allowOverflow={true}
       mode="DefaultFullHeight"
       header={{
@@ -125,7 +125,7 @@ const AddSubteamMembers = () => {
           />
         </Kb.BoxGrow>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

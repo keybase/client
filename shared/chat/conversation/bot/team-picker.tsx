@@ -70,7 +70,7 @@ const BotTeamPicker = (props: Props) => {
     )
   }
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onClose}
       header={{
         leftButton: Kb.Styles.isMobile ? (
@@ -109,7 +109,7 @@ const BotTeamPicker = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

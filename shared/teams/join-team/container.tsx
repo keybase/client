@@ -31,7 +31,7 @@ const Container = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       banners={
         errorText ? (
           <Kb.Banner key="red" color="red">
@@ -98,7 +98,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
         </Kb.Box2>
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

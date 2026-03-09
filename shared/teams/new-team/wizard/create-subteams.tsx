@@ -38,7 +38,7 @@ const CreateSubteams = () => {
     : 'Continue without subteams'
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create subteams" />,
@@ -74,7 +74,7 @@ const CreateSubteams = () => {
         ))}
         <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

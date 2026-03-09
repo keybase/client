@@ -198,7 +198,7 @@ const TeamPicker = (props: Props) => {
     )
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       noScrollView={true}
       onClose={onClose}
       header={{
@@ -211,7 +211,7 @@ const TeamPicker = (props: Props) => {
       }}
     >
       {content}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

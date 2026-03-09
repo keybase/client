@@ -93,7 +93,7 @@ const LocationPopup = () => {
     ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
@@ -126,7 +126,7 @@ const LocationPopup = () => {
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

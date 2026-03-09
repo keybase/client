@@ -251,13 +251,13 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   }
 
   return (
-    <Kb.Modal noScrollView={true} header={header} footer={footer}>
+    <Kb.Modal2 noScrollView={true} header={header} footer={footer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 
@@ -274,7 +274,7 @@ const IncomingShareError = () => {
   const onCancel = () => clearModals()
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
@@ -287,7 +287,7 @@ const IncomingShareError = () => {
         <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
         <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

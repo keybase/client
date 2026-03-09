@@ -70,9 +70,9 @@ const LogoutContainer = () => {
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return hasRandomPW === undefined ? (
-    <Kb.Modal onClose={onCancel}>
+    <Kb.Modal2 onClose={onCancel}>
       <Kb.ProgressIndicator style={styles.progress} type="Huge" />
-    </Kb.Modal>
+    </Kb.Modal2>
   ) : hasRandomPW ? (
     <UpdatePassword
       error=""
@@ -85,7 +85,7 @@ const LogoutContainer = () => {
       waitingForResponse={waitingForResponse}
     />
   ) : (
-    <Kb.Modal
+    <Kb.Modal2
       backgroundStyle={styles.logoutBackground}
       banners={
         <>
@@ -173,7 +173,7 @@ const LogoutContainer = () => {
           style={styles.checkbox}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

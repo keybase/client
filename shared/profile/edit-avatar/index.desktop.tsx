@@ -113,7 +113,7 @@ const EditAvatar = (_p: Props) => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
@@ -213,7 +213,7 @@ const EditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

@@ -33,7 +33,7 @@ const ConfirmReset = () => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={Kb.Styles.isMobile ? {title: 'Account reset'} : undefined}
       fullscreen={true}
       footer={{
@@ -116,7 +116,7 @@ const ConfirmReset = () => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

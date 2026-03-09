@@ -19,7 +19,7 @@ const ConnectedErrorModal = () => {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{title: 'Error'}}
       footer={{content: <Kb.Button label="Back" onClick={onBack} fullWidth={true} />}}
       onClose={onBack}
@@ -29,7 +29,7 @@ const ConnectedErrorModal = () => {
           {error}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 export default ConnectedErrorModal

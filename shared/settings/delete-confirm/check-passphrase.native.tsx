@@ -27,7 +27,7 @@ const CheckPassphraseMobile = () => {
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       banners={
         <>
           {checkPasswordIsCorrect === false ? (
@@ -100,7 +100,7 @@ const CheckPassphraseMobile = () => {
           />
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

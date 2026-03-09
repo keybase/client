@@ -64,7 +64,7 @@ const Troubleshooting = (props: Props) => {
   }-64` as Kb.IconType
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onBack}
       header={{
         hideBorder: false,
@@ -118,7 +118,7 @@ const Troubleshooting = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 export default Troubleshooting

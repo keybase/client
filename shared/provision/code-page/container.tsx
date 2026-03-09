@@ -255,7 +255,7 @@ const CodePageContainer = () => {
   const content = body()
   if (inModal()) {
     return (
-      <Kb.Modal
+      <Kb.Modal2
         header={header()}
         footer={footer()}
         onClose={onBack}
@@ -263,7 +263,7 @@ const CodePageContainer = () => {
         mobileStyle={{backgroundColor: tabBackground()}}
       >
         {content}
-      </Kb.Modal>
+      </Kb.Modal2>
     )
   }
   return content

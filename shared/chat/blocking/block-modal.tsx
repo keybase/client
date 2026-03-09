@@ -407,11 +407,11 @@ const Container = function BlockModal(ownProps: OwnProps) {
 
   if (loadingWaiting) {
     return (
-      <Kb.Modal mode="Default" header={header}>
+      <Kb.Modal2 mode="Default" header={header}>
         <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
           <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
         </Kb.Box2>
-      </Kb.Modal>
+      </Kb.Modal2>
     )
   }
 
@@ -471,7 +471,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   }
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="Default"
       popupStyleContainer={styles.popupStyleContainer}
       onClose={onClose}
@@ -502,7 +502,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
               )
         }
       />
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

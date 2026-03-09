@@ -134,7 +134,7 @@ const SearchBotPopup = (props: Props) => {
     title: 'Users',
   } satisfies Section
   return (
-    <Kb.Modal
+    <Kb.Modal2
       onClose={onClose}
       noScrollView={true}
       header={{
@@ -163,7 +163,7 @@ const SearchBotPopup = (props: Props) => {
           style={{flexGrow: 1}}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

@@ -35,7 +35,7 @@ export const CreateNewTeam = (props: Props) => {
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       banners={
         <>
           {!isSubteam ? (
@@ -94,7 +94,7 @@ export const CreateNewTeam = (props: Props) => {
           <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

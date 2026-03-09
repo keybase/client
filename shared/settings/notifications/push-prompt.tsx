@@ -15,7 +15,7 @@ const PushPrompt = () => {
     clearModals()
   }
   return (
-    <Kb.Modal
+    <Kb.Modal2
       header={{
         hideBorder: true,
         rightButton: (
@@ -58,7 +58,7 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

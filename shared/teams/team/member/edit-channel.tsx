@@ -50,7 +50,7 @@ const EditChannel = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsUpdateChannelName(teamID))
 
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       onClose={onClose}
       header={{
@@ -95,7 +95,7 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

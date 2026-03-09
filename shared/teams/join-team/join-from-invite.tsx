@@ -160,9 +160,9 @@ const JoinFromInvite = () => {
     )
 
   return (
-    <Kb.Modal mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
+    <Kb.Modal2 mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
       {body}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

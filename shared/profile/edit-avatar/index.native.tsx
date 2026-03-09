@@ -125,7 +125,7 @@ const AvatarUploadWrapper = (p: Props) => {
 
   if (type === 'team') {
     return (
-      <Kb.Modal
+      <Kb.Modal2
         banners={
           error ? (
             <Kb.Banner key="err" color="red">
@@ -169,7 +169,7 @@ const AvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-      </Kb.Modal>
+      </Kb.Modal2>
     )
   }
   return (

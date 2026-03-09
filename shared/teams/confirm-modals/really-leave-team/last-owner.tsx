@@ -8,7 +8,7 @@ type Props = {
 }
 
 const ReallyLeaveTeam = (props: Props) => (
-  <Kb.Modal
+  <Kb.Modal2
     mode="Wide"
     onClose={props.onBack}
     header={{hideBorder: true}}
@@ -61,7 +61,7 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-  </Kb.Modal>
+  </Kb.Modal2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

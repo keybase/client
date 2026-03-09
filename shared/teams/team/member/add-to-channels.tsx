@@ -177,7 +177,7 @@ const AddToChannels = function AddToChannels(props: Props) {
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       header={{
         hideBorder: Kb.Styles.isMobile,
@@ -257,7 +257,7 @@ const AddToChannels = function AddToChannels(props: Props) {
           </Kb.BoxGrow2>
         </Kb.Box2>
       )}
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

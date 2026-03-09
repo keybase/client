@@ -49,7 +49,7 @@ const TeamInfo = (props: Props) => {
       params: {sendChatNotification: true, showBack: true, teamID},
     })
   return (
-    <Kb.Modal
+    <Kb.Modal2
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
@@ -125,7 +125,7 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 

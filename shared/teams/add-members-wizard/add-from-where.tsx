@@ -38,7 +38,7 @@ const AddFromWhere = () => {
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
   const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
   return (
-    <Kb.Modal
+    <Kb.Modal2
       allowOverflow={true}
       onClose={newTeam ? undefined : onClose} // Only show the close button if we're not coming from the new team wizard
       banners={
@@ -103,7 +103,7 @@ const AddFromWhere = () => {
           onClick={onContinuePhone}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </Kb.Modal2>
   )
 }
 
