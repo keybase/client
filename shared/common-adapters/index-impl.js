@@ -181,7 +181,7 @@ module.exports = {
     return require('./mobile-popup').default
   },
   get Modal() {
-    return require('./modal').default
+    return require('./modal2').default
   },
   get Modal2() {
     return require('./modal2').default
@@ -190,7 +190,7 @@ module.exports = {
     return require('./modal2').ModalHeader
   },
   get ModalHeader() {
-    return require('./modal').Header
+    return require('./modal2').ModalHeader
   },
   get NameWithIcon() {
     return require('./name-with-icon').default
@@ -210,14 +210,8 @@ module.exports = {
   get PlatformIcon() {
     return require('./platform-icon').default
   },
-  get PopupDialog() {
-    return require('./popup-dialog').default
-  },
   get PopupHeaderText() {
     return require('./popup-header-text').default
-  },
-  get PopupWrapper() {
-    return require('./header-or-popup').PopupWrapper
   },
   get ProfileCard() {
     return require('./profile-card').default
@@ -328,7 +322,7 @@ module.exports = {
     return require('./modal2').useModalHeaderTitleAndCancel
   },
   get useModalHeaderTitleAndCancel() {
-    return require('./modal').useModalHeaderTitleAndCancel
+    return require('./modal2').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
     return require('./use-popup').usePopup2
