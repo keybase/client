@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 export type {IconType} from './icon.constants-gen'
-import type {Text as RNTextType, Pressable as PressableType} from 'react-native'
+import type {Text as RNTextType} from 'react-native'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
@@ -84,46 +84,23 @@ const IconNative = (props: IconProps) => {
   const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
 
-  const textEl = (
+  return (
     <RNText
       style={Styles.castStyleNative(
-        Styles.collapseStyles([nativeBaseStyle, {color: color || Styles.globalColors.black_50, fontSize: size}, style])
+        Styles.collapseStyles([
+          nativeBaseStyle,
+          {color: color || Styles.globalColors.black_50, fontSize: size},
+          paddingValue && {padding: paddingValue},
+          style,
+        ])
       )}
       allowFontScaling={false}
       suppressHighlighting={true}
+      onPress={onClick}
     >
       {code}
     </RNText>
   )
-
-  if (onClick) {
-    const {Pressable} = require('react-native') as {Pressable: typeof PressableType}
-    return (
-      <Pressable onPress={onClick} style={paddingValue ? {padding: paddingValue} : undefined}>
-        {textEl}
-      </Pressable>
-    )
-  }
-
-  if (paddingValue) {
-    return (
-      <RNText
-        style={Styles.castStyleNative(
-          Styles.collapseStyles([
-            nativeBaseStyle,
-            {color: color || Styles.globalColors.black_50, fontSize: size, padding: paddingValue},
-            style,
-          ])
-        )}
-        allowFontScaling={false}
-        suppressHighlighting={true}
-      >
-        {code}
-      </RNText>
-    )
-  }
-
-  return textEl
 }
 
 const clickable = {cursor: 'pointer'} as const
