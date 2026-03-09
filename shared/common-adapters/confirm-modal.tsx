@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
 import IconAuto from '@/common-adapters/icon-auto'
-import Modal from './modal'
+import Modal2 from './modal2'
 import Text from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -27,7 +27,8 @@ export type Props = {
 }
 
 const ConfirmModal = (props: Props) => (
-  <Modal
+  <Modal2
+    onClose={props.onCancel}
     header={
       Styles.isMobile && props.onCancel
         ? {
@@ -76,6 +77,7 @@ const ConfirmModal = (props: Props) => (
     }}
     mode="Wide"
   >
+
     <Box2
       alignItems="center"
       direction="vertical"
@@ -113,7 +115,7 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-  </Modal>
+  </Modal2>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
