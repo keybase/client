@@ -10,13 +10,12 @@ import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 
 type Props = {
-  firstItem: boolean
   showChat?: boolean // default true
   teamID: T.Teams.TeamID
 }
 
 const TeamRow = function TeamRow(props: Props) {
-  const {firstItem, showChat = true, teamID} = props
+  const {showChat = true, teamID} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const data = useTeamsState(
     C.useShallow(s => {
@@ -64,7 +63,7 @@ const TeamRow = function TeamRow(props: Props) {
       <>
         <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row} alignItems="center">
-            {!firstItem && <Kb.Divider style={styles.divider} />}
+            <Kb.Divider style={styles.divider} />
             <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
               <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
                 <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
@@ -122,7 +121,7 @@ const TeamRow = function TeamRow(props: Props) {
     <>
       <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
         <Kb.Box2 className="teamRow" direction="horizontal" fullWidth={true} style={styles.row} alignItems="center">
-          {!firstItem && <Kb.Divider style={styles.divider} />}
+          <Kb.Divider style={styles.divider} />
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
             <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
               <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />

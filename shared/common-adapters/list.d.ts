@@ -49,6 +49,9 @@ export type Props<Item> = {
   extraData?: unknown
   desktopRef?: React.Ref<LegendListRef>
   testID?: string
+  ListHeaderComponent?: React.ComponentType<unknown> | React.ReactElement | null
+  ListFooterComponent?: React.ComponentType<unknown> | React.ReactElement | null
+  recycleItems?: boolean
 }
 
 export declare function List<Item>(p: Props<Item>): React.ReactNode

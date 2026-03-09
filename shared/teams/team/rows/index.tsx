@@ -257,8 +257,8 @@ export const useSubteamsSections = (
   }
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
-    renderItem: ({item, index}: {item: Item; index: number}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} firstItem={index === 0} /> : null,
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} /> : null,
   } as const)
 
   if (details.subteams.size) {

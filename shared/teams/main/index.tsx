@@ -1,7 +1,5 @@
-import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
 import {useTeamsState} from '@/stores/teams'
@@ -14,8 +12,6 @@ type DeletedTeam = {
 
 export type Props = {
   deletedTeams: ReadonlyArray<DeletedTeam>
-  onHideChatBanner: () => void
-  onReadMore: () => void
   onCreateTeam: () => void
   onJoinTeam: () => void
   teams: ReadonlyArray<T.Teams.TeamMeta>
@@ -103,93 +99,53 @@ const SortHeader = () => {
   )
 }
 
-type Row = {key: React.Key} & (
-  | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
-  | {team: DeletedTeam; type: 'deletedTeam'}
-  | {team: T.Teams.TeamMeta; type: 'team'}
-)
+const teamRowHeight = Kb.Styles.isMobile ? 72 : 48
+const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 
-const getRowHeight = (item: Row | undefined): number => {
-  switch (item?.type) {
-    case '_buttons':
-      return Kb.Styles.isMobile ? 180 : 160
-    case '_sortHeader':
-      return Kb.Styles.isMobile ? 44 : 36
-    case 'deletedTeam':
-      return 50
-    case 'team':
-      return Kb.Styles.isMobile ? 72 : 48
-    case '_footer':
-      return 56
-    default:
-      return 48
-  }
-}
+type TeamItem = T.Teams.TeamMeta
 
 const Teams = function Teams(p: Props) {
-  const {deletedTeams, teams, onReadMore, onCreateTeam, onHideChatBanner, onJoinTeam} = p
+  const {deletedTeams, teams, onCreateTeam, onJoinTeam} = p
 
-  const items = [
-        {key: '_buttons', type: '_buttons'},
-        {key: '_sortHeader', type: '_sortHeader'},
-        ...deletedTeams.map(
-          dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam'}) as const
-        ),
-        ...teams.map(team => ({key: team.id, team, type: 'team'}) as const),
-        {key: '_footer', type: '_footer'},
-      ] as const
+  const listHeader = (
+    <>
+      <TeamBigButtons onCreateTeam={onCreateTeam} onJoinTeam={onJoinTeam} empty={teams.length === 0} />
+      <SortHeader />
+      {deletedTeams.map(dt => (
+        <Kb.Banner color="blue" key={'deletedTeamBannerFor' + dt.teamName}>
+          <Kb.BannerParagraph
+            bannerColor="blue"
+            content={`The ${dt.teamName} team was deleted by ${dt.deletedBy}.`}
+          />
+        </Kb.Banner>
+      ))}
+    </>
+  )
 
-  const itemHeight = {
-      getItemLayout: (index: number, item?: Row) => {
-        const length = getRowHeight(item)
-        let offset = 0
-        for (let i = 0; i < index; i++) {
-          offset += getRowHeight(items[i])
-        }
-        return {index, length, offset}
-      },
-      type: 'variable' as const,
-    }
+  const listFooter = <TeamsFooter empty={teams.length === 0} />
 
-  const renderItem = (index: number, item: Row) => {
-      switch (item.type) {
-        case '_banner':
-          return <Banner onReadMore={onReadMore} onHideChatBanner={onHideChatBanner} />
-        case '_footer':
-          return <TeamsFooter empty={teams.length === 0} />
-        case '_buttons':
-          return (
-            <TeamBigButtons onCreateTeam={onCreateTeam} onJoinTeam={onJoinTeam} empty={teams.length === 0} />
-          )
-        case '_sortHeader':
-          return <SortHeader />
-        case 'deletedTeam': {
-          const {deletedBy, teamName} = item.team
-          return (
-            <Kb.Banner color="blue" key={'deletedTeamBannerFor' + teamName}>
-              <Kb.BannerParagraph
-                bannerColor="blue"
-                content={`The ${teamName} team was deleted by ${deletedBy}.`}
-              />
-            </Kb.Banner>
-          )
-        }
-        case 'team': {
-          const team = item.team
-          return (
-            <PerfProfiler id="TeamRow">
-              <TeamRowNew firstItem={index === 2} showChat={!Kb.Styles.isMobile} teamID={team.id} />
-            </PerfProfiler>
-          )
-        }
-      }
-    }
+  const renderItem = (_index: number, item: TeamItem) => {
+    return (
+      <PerfProfiler id="TeamRow">
+        <TeamRowNew showChat={!Kb.Styles.isMobile} teamID={item.id} />
+      </PerfProfiler>
+    )
+  }
 
   return (
     <PerfProfiler id="TeamsList">
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.BoxGrow>
-          <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" testID="teamsList" />
+          <Kb.List
+            items={teams}
+            renderItem={renderItem}
+            itemHeight={teamRowItemHeight}
+            keyProperty="id"
+            testID="teamsList"
+            ListHeaderComponent={listHeader}
+            ListFooterComponent={listFooter}
+            recycleItems={true}
+          />
         </Kb.BoxGrow>
       </Kb.Box2>
     </PerfProfiler>

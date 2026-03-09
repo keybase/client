@@ -3,11 +3,9 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Main from './main'
-import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/stores/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -68,14 +66,6 @@ const Connected = () => {
   const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
   const {getTeams, launchNewTeamWizardOrModal} = data
 
-  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
-  const onHideChatBanner = () => {
-    updateGregorCategory('sawChatBanner', 'true')
-  }
-  const onReadMore = () => {
-    openURL('https://keybase.io/blog/introducing-keybase-teams')
-  }
-
   const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter)
 
   // subscribe to teams changes
@@ -93,8 +83,6 @@ const Connected = () => {
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         deletedTeams={deletedTeams}
-        onHideChatBanner={onHideChatBanner}
-        onReadMore={onReadMore}
         teams={teams}
       />
     </Kb.Reloadable>

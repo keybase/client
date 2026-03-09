@@ -2,7 +2,7 @@ import {smallHeight, largeHeight} from './list-item'
 import type {Props} from './list'
 
 export function useListProps<T>(p: Props<T>) {
-  const {items, renderItem, itemHeight, onEndReached, keyProperty, estimatedItemHeight, extraData: extraDataProp, selectedIndex} = p
+  const {items, renderItem, itemHeight, onEndReached, keyProperty, estimatedItemHeight, extraData: extraDataProp, selectedIndex, ListHeaderComponent, ListFooterComponent, recycleItems: recycleItemsOverride} = p
 
   const legendRenderItem = ({item, index}: {item: T; index: number}) => {
     return renderItem(index, item)
@@ -29,9 +29,11 @@ export function useListProps<T>(p: Props<T>) {
         ? (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
         : 48)
 
-  const recycleItems = itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto'
+  const recycleItems = recycleItemsOverride ?? (itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto')
 
   return {
+    ListFooterComponent,
+    ListHeaderComponent,
     data: items as T[],
     empty: items.length === 0,
     estimatedItemSize,
