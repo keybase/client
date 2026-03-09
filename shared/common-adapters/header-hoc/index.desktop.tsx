@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
@@ -72,10 +71,6 @@ const LeftAction = ({
     ) : null}
   </Kb.Box2>
 )
-
-export const HeaderHocWrapper = (props: Props & {children: React.ReactNode}): React.ReactNode => {
-  return props.children
-}
 
 const _headerStyle = {
   flexShrink: 0,

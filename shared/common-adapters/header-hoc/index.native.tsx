@@ -2,16 +2,13 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
-import BoxGrow from '@/common-adapters/box-grow'
-import FloatingMenu from '@/common-adapters/floating-menu'
 import IconAuto from '@/common-adapters/icon-auto'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import SafeAreaView, {SafeAreaViewTop} from '@/common-adapters/safe-area-view'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
 import type {Props, LeftActionProps} from '.'
 
-const Kb = {BackButton, Box2, BoxGrow, FloatingMenu, IconAuto, Text}
+const Kb = {BackButton, Box2, IconAuto, Text}
 
 type RightAction = {
   label?: string
@@ -152,19 +149,6 @@ const renderAction = (action: RightAction, index: number): React.ReactNode =>
       {action.label}
     </Text>
   )
-
-/** TODO likely deprecate this **/
-export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skipHeader?: boolean}) => {
-  const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle, skipHeader} = props
-  return (
-    <Kb.Box2 direction="vertical" fullHeight={true} relative={true}>
-      {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
-      {!skipHeader && <HeaderHocHeader {...props} />}
-      <Kb.BoxGrow>{children}</Kb.BoxGrow>
-      {!!customSafeAreaBottomStyle && <SafeAreaView style={customSafeAreaBottomStyle} />}
-    </Kb.Box2>
-  )
-}
 
 // If layout is changed here, please make sure the Files header is updated as
 // well to match this. fs/nav-header/mobile-header.js
