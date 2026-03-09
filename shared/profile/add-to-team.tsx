@@ -114,6 +114,7 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Modal2
+      bare={true}
       header={
         Kb.Styles.isMobile
           ? {

@@ -32,6 +32,7 @@ type FooterProps = {
 
 type Props = {
   allowOverflow?: boolean // desktop only
+  bare?: boolean // skip PopupDialog/BoxGrow/ScrollView wrapping — for use inside router modal2 screens
   banners?: React.ReactNode
   children: React.ReactNode
   header?: HeaderProps
@@ -84,7 +85,9 @@ const Modal2Inner = (props: Props) => {
 }
 
 const Modal2 = (props: Props) =>
-  Styles.isMobile || props.fullscreen ? (
+  props.bare ? (
+    <Modal2Bare {...props} />
+  ) : Styles.isMobile || props.fullscreen ? (
     <Kb.BoxGrow>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
         <Modal2Inner {...props} />
@@ -107,6 +110,18 @@ const Modal2 = (props: Props) =>
       <Modal2Inner {...props} />
     </PopupDialog>
   )
+
+const Modal2Bare = (props: Props) => {
+  const {footer, header, banners, children} = props
+  return (
+    <>
+      {header ? <Header2 {...header} /> : null}
+      {banners ? banners : null}
+      {children}
+      {!!footer && <Footer {...footer} wide={true} fullscreen={false} />}
+    </>
+  )
+}
 
 export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void): HeaderProps => ({
   leftButton: (

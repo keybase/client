@@ -247,6 +247,7 @@ const TeamBuilding = (p: OwnProps) => {
 
   return (
     <Kb.Modal2
+      bare={true}
       header={modalHeaderProps({
         goButtonLabel,
         hasTeamSoFar: teamSoFar.length > 0,
