@@ -126,9 +126,6 @@ module.exports = {
   get HeaderHocHeader() {
     return require('./header-hoc').HeaderHocHeader
   },
-  get HeaderHocWrapper() {
-    return require('./header-hoc').HeaderHocWrapper
-  },
   get HeaderLeftBlank() {
     return require('./header-hoc').HeaderLeftBlank
   },

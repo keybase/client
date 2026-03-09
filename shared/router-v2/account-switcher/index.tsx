@@ -62,14 +62,25 @@ const Container = () => {
   }
 
   return (
-    <Kb.HeaderHocWrapper
-      leftAction="cancel"
-      onCancel={props.onCancel}
-      // else right isn't pushed over, will address in nav5
-      title=" "
-      rightActionLabel="Sign out"
-      onRightAction={props.onSignOut}
-      rightActionColor="red"
+    <Kb.Modal2
+      bare={true}
+      header={
+        Kb.Styles.isMobile
+          ? {
+              leftButton: (
+                <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
+                  Cancel
+                </Kb.Text>
+              ),
+              rightButton: (
+                <Kb.Text type="BodyBigLink" onClick={props.onSignOut} style={styles.signOut}>
+                  Sign out
+                </Kb.Text>
+              ),
+              title: ' ',
+            }
+          : undefined
+      }
     >
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
@@ -85,7 +96,7 @@ const Container = () => {
           {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.HeaderHocWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -213,6 +224,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {wordBreak: 'break-all'},
   }),
   progressIndicator: {bottom: 0, position: 'absolute', right: 0},
+  signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {
     paddingLeft: Kb.Styles.globalMargins.small,
