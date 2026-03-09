@@ -66,7 +66,12 @@ const Container = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title="Rename subteam">
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>, title: 'Rename subteam'} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
           <Kb.Avatar teamname={teamname} size={Kb.Styles.isMobile ? 64 : 48} />
@@ -136,7 +141,7 @@ const Container = (ownProps: OwnProps) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -163,6 +168,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
       },
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: Kb.Styles.platformStyles({
         isElectron: {
           height: 480,

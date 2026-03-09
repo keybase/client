@@ -38,7 +38,12 @@ const Container = () => {
   }
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title={title}>
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>, title} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.ScrollView>
         <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
           {Kb.Styles.isMobile ? null : (
@@ -85,13 +90,14 @@ const Container = () => {
           {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
 const maxBio = 255
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {

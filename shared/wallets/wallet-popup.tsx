@@ -27,20 +27,36 @@ type WalletPopupProps = {
 
 const WalletPopup = (props: WalletPopupProps) => {
   const onBack = props.backButtonType === 'back' ? props.onExit : undefined // Displays back button on desktop
+  const onClose =
+    props.onCancel ??
+    (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined)
+  const cancelText = props.backButtonType === 'close' ? 'Close' : 'Cancel'
+  const headerTitleComponent = props.headerTitle ? (
+    <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
+  ) : undefined
+
+  const mobileHeader = Kb.Styles.isMobile
+    ? {
+        leftButton: onClose ? (
+          <Kb.Text type="BodyBigLink" onClick={onClose}>
+            {cancelText}
+          </Kb.Text>
+        ) : undefined,
+        ...(headerTitleComponent ? {titleComponent: headerTitleComponent} : {}),
+      }
+    : undefined
+
   return (
-    <Kb.PopupWrapper
-      customCancelText={props.backButtonType === 'close' ? 'Close' : ''}
-      customComponent={
-        props.headerTitle && <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
-      }
-      customSafeAreaBottomStyle={props.safeAreaViewBottomStyle}
-      customSafeAreaTopStyle={props.safeAreaViewTopStyle}
-      onCancel={
-        props.onCancel ??
-        (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined)
-      }
-      styleClipContainer={styles.popup}
+    <Kb.Modal2
+      onClose={onClose}
+      header={mobileHeader}
+      mode="DefaultFullHeight"
+      noScrollView={true}
+      mobileStyle={props.safeAreaViewTopStyle}
     >
+      {!!props.safeAreaViewTopStyle && Kb.Styles.isMobile && (
+        <Kb.SafeAreaViewTop style={props.safeAreaViewTopStyle} />
+      )}
       {onBack && !Kb.Styles.isMobile && (
         <Kb.HeaderHocHeader onBack={onBack} headerStyle={styles.headerStyle} />
       )}
@@ -78,7 +94,10 @@ const WalletPopup = (props: WalletPopupProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+      {!!props.safeAreaViewBottomStyle && Kb.Styles.isMobile && (
+        <Kb.SafeAreaView style={props.safeAreaViewBottomStyle} />
+      )}
+    </Kb.Modal2>
   )
 }
 
@@ -120,7 +139,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  popup: Kb.Styles.platformStyles({isElectron: {height: '560px', overflow: 'hidden'}}),
   scrollView: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,

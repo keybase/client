@@ -108,7 +108,7 @@ const DesktopSendToChat = (props: Props) => {
     Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
-    <Kb.PopupWrapper>
+    <Kb.Modal2 noScrollView={true}>
       <DesktopSendToChatRender
         enabled={conversationIDKey !== Chat.noConversationIDKey}
         convName={convName}
@@ -121,7 +121,7 @@ const DesktopSendToChat = (props: Props) => {
         onSelect={onSelect}
         onCancel={onCancel}
       />
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 

@@ -34,7 +34,7 @@ const GenericResult = () => {
     )
   }
   return (
-    <Kb.PopupWrapper>
+    <Kb.Modal2 noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2
           direction="vertical"
@@ -55,7 +55,7 @@ const GenericResult = () => {
           <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -65,6 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(
       bottomContainer: {
         height: 80,
       },
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: Kb.Styles.platformStyles({
         isElectron: {
           height: 485,

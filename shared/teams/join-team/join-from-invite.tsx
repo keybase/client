@@ -159,9 +159,7 @@ const JoinFromInvite = () => {
       </Kb.Box2>
     )
 
-  return Kb.Styles.isMobile ? (
-    <Kb.MobilePopup overlayStyle={styles.mobileOverlay}>{body}</Kb.MobilePopup>
-  ) : (
+  return (
     <Kb.Modal mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
       {body}
     </Kb.Modal>
@@ -206,9 +204,6 @@ const styles = Kb.Styles.styleSheetCreate(
       meta: {
         bottom: -7,
         position: 'absolute',
-      },
-      mobileOverlay: {
-        height: 392,
       },
     }) as const
 )

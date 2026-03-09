@@ -186,6 +186,9 @@ module.exports = {
   get Modal2() {
     return require('./modal2').default
   },
+  get Modal2Header() {
+    return require('./modal2').ModalHeader
+  },
   get ModalHeader() {
     return require('./modal').Header
   },
@@ -320,6 +323,9 @@ module.exports = {
   },
   get useInterval() {
     return require('./use-timers').useInterval
+  },
+  get useModal2HeaderTitleAndCancel() {
+    return require('./modal2').useModalHeaderTitleAndCancel
   },
   get useModalHeaderTitleAndCancel() {
     return require('./modal').useModalHeaderTitleAndCancel

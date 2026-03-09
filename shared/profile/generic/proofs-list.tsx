@@ -31,7 +31,12 @@ const Container = () => {
   const [filter, setFilter] = React.useState('')
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           {!Kb.Styles.isMobile && (
@@ -61,7 +66,7 @@ const Container = () => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -162,6 +167,7 @@ const rightColumnStyle = Kb.Styles.platformStyles({
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: Kb.Styles.platformStyles({
         isElectron: {
           borderRadius: 4,

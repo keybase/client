@@ -32,7 +32,7 @@ const SelectChannel = (ownProps: OwnProps) => {
 
   // TODO: this modal could use a little bit of love
   return (
-    <Kb.PopupWrapper>
+    <Kb.Modal2 noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
@@ -54,11 +54,12 @@ const SelectChannel = (ownProps: OwnProps) => {
           <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: {
     width: Kb.Styles.isMobile ? '100%' : 300,
   },

@@ -56,7 +56,12 @@ const ConnectedEnterUsername = () => {
   }, [waiting, error, navigateAppend])
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!unreachable && !Kb.Styles.isMobile && <Kb.BackButton onClick={onBack} style={styles.backButton} />}
         <Kb.Box2
@@ -136,7 +141,7 @@ const ConnectedEnterUsername = () => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -237,6 +242,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
 

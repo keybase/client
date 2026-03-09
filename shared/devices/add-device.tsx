@@ -42,7 +42,12 @@ export default function AddDevice(ownProps: OwnProps) {
   }
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
+      noScrollView={true}
+      popupStyleClipContainer={styles.clipContainer}
+    >
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2
           direction="vertical"
@@ -84,7 +89,7 @@ export default function AddDevice(ownProps: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
@@ -136,6 +141,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: {padding: Kb.Styles.globalMargins.small},
   deviceOption: Kb.Styles.platformStyles({
     common: {

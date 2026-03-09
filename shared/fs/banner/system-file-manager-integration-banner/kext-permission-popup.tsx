@@ -20,7 +20,7 @@ const InstallSecurityPrefs = () => {
   }, [driverStatus, onCancel])
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <Kb.Modal2 onClose={onCancel} noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
       <>
         <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
           <Kb.Text type="HeaderBig" style={styles.title}>
@@ -63,13 +63,14 @@ const InstallSecurityPrefs = () => {
           </Kb.Box2>
         )}
       </>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: {
         maxWidth: 700,
         minWidth: 700,

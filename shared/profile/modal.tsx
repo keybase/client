@@ -8,7 +8,12 @@ type Props = React.PropsWithChildren<{
 }>
 
 const Modal = ({children, onCancel, skipButton, title}: Props) => (
-  <Kb.PopupWrapper onCancel={onCancel} title={title}>
+  <Kb.Modal2
+    onClose={onCancel}
+    header={Kb.Styles.isMobile && title ? {leftButton: onCancel ? <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text> : undefined, title} : undefined}
+    noScrollView={true}
+    popupStyleClipContainer={styles.clipContainer}
+  >
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="center" justifyContent="space-around">
@@ -21,7 +26,7 @@ const Modal = ({children, onCancel, skipButton, title}: Props) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-  </Kb.PopupWrapper>
+  </Kb.Modal2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -31,6 +36,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 0,
         padding: Kb.Styles.isMobile ? undefined : Kb.Styles.globalMargins.medium,
       },
+      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: {
         minHeight: Kb.Styles.isMobile ? undefined : 450,
         padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.medium,

@@ -66,7 +66,11 @@ export const Modal = (props: ModalProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
+    <Kb.Modal2
+      onClose={onCancel}
+      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>, title: props.title} : undefined}
+      noScrollView={true}
+    >
       <Kb.Box2
         direction="vertical"
         fullHeight={Kb.Styles.isMobile}
@@ -116,7 +120,7 @@ export const Modal = (props: ModalProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </Kb.Modal2>
   )
 }
 
