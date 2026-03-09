@@ -64,7 +64,7 @@ function Inbox(p: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
-  const itemHeight = React.useMemo(() => ({
+  const itemHeight = {
     getSize: (item: RowItem) => {
       switch (item.type) {
         case 'small': return RowSizes.smallRowHeight
@@ -75,7 +75,7 @@ function Inbox(p: InboxProps) {
       }
     },
     type: 'perItem' as const,
-  }), [])
+  }
 
   const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     const row = item

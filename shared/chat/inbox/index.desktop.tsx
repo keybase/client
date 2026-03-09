@@ -200,10 +200,10 @@ function Inbox(props: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
-  const itemHeight = React.useMemo(() => ({
+  const itemHeight = {
     getSize: (item: RowItem) => getRowHeight(item.type, item.type === 'divider' && item.showButton),
     type: 'perItem' as const,
-  }), [])
+  }
 
   const onViewChanged = (data: ViewableItemsData) => {
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
