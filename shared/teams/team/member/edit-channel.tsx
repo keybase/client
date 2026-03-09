@@ -27,8 +27,6 @@ const EditChannel = (props: Props) => {
   const [description, setDescription] = React.useState(oldDescription)
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => clearModals()
 
   const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
   const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
@@ -50,27 +48,11 @@ const EditChannel = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsUpdateChannelName(teamID))
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      onClose={onClose}
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title={`#${oldName}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={oldName === name && description === oldDescription}
-            waiting={waiting}
-          />
-        ),
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title={`#${oldName}`} />}
+      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Input3
           autoFocus={true}
@@ -95,7 +77,18 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button
+            label="Save"
+            onClick={onSave}
+            fullWidth={true}
+            disabled={oldName === name && description === oldDescription}
+            waiting={waiting}
+          />
+        }
+      />
+    </>
   )
 }
 

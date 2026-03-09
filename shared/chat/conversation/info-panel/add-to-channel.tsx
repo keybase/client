@@ -57,54 +57,30 @@ const AddToChannel = (props: Props) => {
   const loading = !allMembers.length
 
   return (
-    <Kb.Modal2
-      header={{
-        hideBorder: Kb.Styles.isMobile,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton: Kb.Styles.isMobile && toAdd.size && (
-          <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
-            Add
-          </Kb.Text>
-        ),
-        title: title({channelname, teamID}),
-      }}
-      footer={
-        Kb.Styles.isMobile
-          ? undefined
-          : {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
-                    type="Dim"
-                    label="Cancel"
-                    onClick={onClose}
-                    style={Kb.Styles.globalStyles.flexOne}
-                  />
-                  <Kb.Button
-                    label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
-                    onClick={onAdd}
-                    disabled={!toAdd.size}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    waiting={waiting}
-                  />
-                </Kb.Box2>
-              ),
-            }
-      }
-      onClose={onClose}
-      allowOverflow={true}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      <Kb.ModalHeader
+        hideBorder={Kb.Styles.isMobile}
+        leftButton={
+          Kb.Styles.isMobile ? (
+            <Kb.Text type="BodyBigLink" onClick={onClose}>
+              Cancel
+            </Kb.Text>
+          ) : undefined
+        }
+        rightButton={
+          Kb.Styles.isMobile && toAdd.size ? (
+            <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
+              Add
+            </Kb.Text>
+          ) : undefined
+        }
+        title={title({channelname, teamID})}
+      />
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
         size="full-width"
@@ -165,7 +141,28 @@ const AddToChannel = (props: Props) => {
           style={styles.list}
         />
       </Kb.Box2>
-    </Kb.Modal2>
+      {Kb.Styles.isMobile ? null : (
+        <Kb.ModalFooter
+          content={
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kb.Button
+                type="Dim"
+                label="Cancel"
+                onClick={onClose}
+                style={Kb.Styles.globalStyles.flexOne}
+              />
+              <Kb.Button
+                label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+                onClick={onAdd}
+                disabled={!toAdd.size}
+                style={Kb.Styles.globalStyles.flexOne}
+                waiting={waiting}
+              />
+            </Kb.Box2>
+          }
+        />
+      )}
+    </>
   )
 }
 

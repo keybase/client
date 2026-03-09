@@ -49,38 +49,18 @@ const TeamInfo = (props: Props) => {
       params: {sendChatNotification: true, showBack: true, teamID},
     })
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      onClose={onBack}
-      header={{
-        leftButton: Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
-        title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={saveDisabled}
-            waiting={waiting}
-          />
-        ),
-      }}
-      banners={
-        <>
-          {Object.keys(errors).map(k =>
-            errors[k as keyof typeof errors] ? (
-              <Kb.Banner color="red" key={k}>
-                {errors[k as keyof typeof errors] ?? ''}
-              </Kb.Banner>
-            ) : null
-          )}
-        </>
-      }
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined}
+        title={<ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />}
+      />
+      {Object.keys(errors).map(k =>
+        errors[k as keyof typeof errors] ? (
+          <Kb.Banner color="red" key={k}>
+            {errors[k as keyof typeof errors] ?? ''}
+          </Kb.Banner>
+        ) : null
+      )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Avatar
           onClick={onEditAvatar}
@@ -125,7 +105,18 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button
+            label="Save"
+            onClick={onSave}
+            fullWidth={true}
+            disabled={saveDisabled}
+            waiting={waiting}
+          />
+        }
+      />
+    </>
   )
 }
 

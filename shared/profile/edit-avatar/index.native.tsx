@@ -125,41 +125,26 @@ const AvatarUploadWrapper = (p: Props) => {
 
   if (type === 'team') {
     return (
-      <Kb.Modal2
-        banners={
-          error ? (
-            <Kb.Banner key="err" color="red">
-              <Kb.Text type="Body">{error}</Kb.Text>
-            </Kb.Banner>
-          ) : null
-        }
-        header={{
-          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-          rightButton: wizard ? (
+      <>
+        <Kb.ModalHeader
+          leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+          rightButton={wizard ? (
             <Kb.Text type="BodyBigLink" onClick={onSkip}>
               Skip
             </Kb.Text>
-          ) : undefined,
-
-          title: (
+          ) : undefined}
+          title={
             <ModalTitle
               teamID={teamID ?? ''}
               title={selectedImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
             />
-          ),
-        }}
-        footer={{
-          content: (
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={wizard ? 'Continue' : 'Save'}
-              onClick={onSave}
-              disabled={!selectedImage}
-              waitingKey={waitingKey}
-            />
-          ),
-        }}
-      >
+          }
+        />
+        {error ? (
+          <Kb.Banner key="err" color="red">
+            <Kb.Text type="Body">{error}</Kb.Text>
+          </Kb.Banner>
+        ) : null}
         <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
@@ -169,7 +154,18 @@ const AvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-      </Kb.Modal2>
+        <Kb.ModalFooter
+          content={
+            <Kb.WaitingButton
+              fullWidth={true}
+              label={wizard ? 'Continue' : 'Save'}
+              onClick={onSave}
+              disabled={!selectedImage}
+              waitingKey={waitingKey}
+            />
+          }
+        />
+      </>
     )
   }
   return (

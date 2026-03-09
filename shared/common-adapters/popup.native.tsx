@@ -7,12 +7,7 @@ import {
   type BottomSheetBackdropProps,
 } from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
-
-type Props = {
-  children: React.ReactNode
-  onDismiss?: () => void
-  snapPoints?: Array<string | number>
-}
+import type {PopupProps} from './popup'
 
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
@@ -22,8 +17,8 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
-const MobilePopup = (props: Props) => {
-  const {children, onDismiss, snapPoints} = props
+function Popup(props: PopupProps) {
+  const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
   const shownRef = React.useRef(false)
 
@@ -55,7 +50,7 @@ const MobilePopup = (props: Props) => {
       handleIndicatorStyle={styles.handleIndicatorStyle}
       style={styles.modalStyle}
       backdropComponent={Backdrop}
-      onDismiss={onDismiss}
+      onDismiss={onHidden}
     >
       <BottomSheetView>{children}</BottomSheetView>
     </BottomSheetModal>
@@ -80,4 +75,4 @@ const styles = Styles.styleSheetCreate(
     }) as const
 )
 
-export default MobilePopup
+export default Popup

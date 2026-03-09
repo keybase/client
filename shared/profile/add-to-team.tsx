@@ -113,35 +113,10 @@ const Container = (ownProps: OwnProps) => {
   const selectedTeamCount = selectedTeams.size
 
   return (
-    <Kb.Modal2
-      bare={true}
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: (
-                <Kb.Text type="BodyBigLink" onClick={onBack}>
-                  Cancel
-                </Kb.Text>
-              ),
-            }
-          : undefined
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
-            <Kb.WaitingButton
-              disabled={selectedTeamCount === 0}
-              fullWidth={Kb.Styles.isMobile}
-              style={styles.addButton}
-              onClick={onSave}
-              label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-              waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
-            />
-          </Kb.ButtonBar>
-        ),
-      }}
-    >
+    <>
+      {Kb.Styles.isMobile && (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onBack}>Cancel</Kb.Text>} />
+      )}
       <Kb.Box2 direction="vertical" style={styles.container} gap="xsmall" gapStart={true}>
         {addUserToTeamsState === 'failed' && (
           <Kb.Box2
@@ -223,7 +198,22 @@ const Container = (ownProps: OwnProps) => {
           </FloatingRolePicker>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
+            <Kb.WaitingButton
+              disabled={selectedTeamCount === 0}
+              fullWidth={Kb.Styles.isMobile}
+              style={styles.addButton}
+              onClick={onSave}
+              label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+              waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
+            />
+          </Kb.ButtonBar>
+        }
+      />
+    </>
   )
 }
 

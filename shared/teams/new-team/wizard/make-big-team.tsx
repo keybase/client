@@ -13,15 +13,11 @@ const MakeBigTeam = () => {
   const teamID = T.Teams.newTeamWizardTeamID
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Make it a big team?" />,
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title="Make it a big team?" />}
+      />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -42,7 +38,7 @@ const MakeBigTeam = () => {
           title="No, keep it a simple conversation for now"
         />
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 

@@ -40,18 +40,29 @@ const EditTeamDescription = (props: Props) => {
   }, [waiting])
 
   return (
-    <Kb.Modal2
-      mode="Default"
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-      onClose={onClose}
-      footer={{
-        content: (
+    <>
+      <Kb.ModalHeader title={<ModalTitle teamID={teamID} title="Edit team description" />} />
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+          <Kb.Input3
+            placeholder="Team description"
+            onChangeText={setDescription}
+            value={description}
+            multiline={true}
+            rowsMin={3}
+            rowsMax={3}
+            maxLength={280}
+            autoFocus={true}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ModalFooter
+        content={
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
             <Kb.Button
@@ -61,24 +72,9 @@ const EditTeamDescription = (props: Props) => {
               waiting={waiting}
             />
           </Kb.ButtonBar>
-        ),
-      }}
-      header={{title: <ModalTitle teamID={teamID} title="Edit team description" />}}
-      allowOverflow={true}
-    >
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-        <Kb.Input3
-          placeholder="Team description"
-          onChangeText={setDescription}
-          value={description}
-          multiline={true}
-          rowsMin={3}
-          rowsMax={3}
-          maxLength={280}
-          autoFocus={true}
-        />
-      </Kb.Box2>
-    </Kb.Modal2>
+        }
+      />
+    </>
   )
 }
 

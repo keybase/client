@@ -43,27 +43,13 @@ const ResetModalImpl = () => {
         top: 0,
       }}
     >
-      <Kb.Modal2
-        header={{title: 'Account reset initiated'}}
-        footer={{
-          content: (
-            <Kb.WaitingButton
-              type="Danger"
-              fullWidth={true}
-              onClick={onCancelReset}
-              waitingKey={C.waitingKeyAutoresetCancel}
-              label="Cancel account reset"
-            />
-          ),
-        }}
-        banners={
-          error ? (
-            <Kb.Banner color="red" key="errors">
-              <Kb.BannerParagraph bannerColor="red" content={error} />
-            </Kb.Banner>
-          ) : null
-        }
-      >
+      <>
+        <Kb.ModalHeader title="Account reset initiated" />
+        {error ? (
+          <Kb.Banner color="red" key="errors">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null}
         <Kb.Box2 fullWidth={true} direction="vertical">
           <Kb.Box2
             gap="small"
@@ -81,12 +67,23 @@ const ResetModalImpl = () => {
               {msg}
             </Kb.Text>
             <Kb.Text type="Body" center={true}>
-              But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
+              {"But... it looks like you're already logged in. Congrats! You should cancel the reset, since "}
               clearly you have access to your devices.
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Modal2>
+        <Kb.ModalFooter
+          content={
+            <Kb.WaitingButton
+              type="Danger"
+              fullWidth={true}
+              onClick={onCancelReset}
+              waitingKey={C.waitingKeyAutoresetCancel}
+              label="Cancel account reset"
+            />
+          }
+        />
+      </>
     </Kb.SafeAreaView>
   )
 }

@@ -245,20 +245,27 @@ const TeamBuilding = (p: OwnProps) => {
   // If there are no filterServices or if the filterServices has a phone
   const showContactsBanner = Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
+  const headerProps = modalHeaderProps({
+    goButtonLabel,
+    hasTeamSoFar: teamSoFar.length > 0,
+    namespace,
+    onClose,
+    onFinishTeamBuilding,
+    teamID,
+    title,
+  })
+
   return (
-    <Kb.Modal2
-      bare={true}
-      header={modalHeaderProps({
-        goButtonLabel,
-        hasTeamSoFar: teamSoFar.length > 0,
-        namespace,
-        onClose,
-        onFinishTeamBuilding,
-        teamID,
-        title,
-      })}
-    >
-      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
+    <>
+      {headerProps ? (
+        <Kb.ModalHeader
+          hideBorder={headerProps.hideBorder}
+          leftButton={headerProps.leftButton}
+          rightButton={headerProps.rightButton}
+          title={headerProps.title}
+        />
+      ) : null}
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {teamBox}
         {errorBanner}
         {(namespace !== 'people' || Kb.Styles.isMobile) && (
@@ -278,13 +285,17 @@ const TeamBuilding = (p: OwnProps) => {
         )}
         {content}
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      container: Kb.Styles.platformStyles({
+        common: {...Kb.Styles.globalStyles.flexOne},
+        isElectron: {minHeight: 500},
+      }),
       waiting: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.black_20,
@@ -293,7 +304,7 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 48,
         width: 48,
       },
-    }) as const
+    })
 )
 
 export default TeamBuilding

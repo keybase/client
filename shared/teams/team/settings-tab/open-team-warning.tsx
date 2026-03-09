@@ -23,44 +23,42 @@ const OpenTeamWarning = (props: Props) => {
   const onCancel = () => clearModals()
 
   return (
-    <Kb.Modal2 onClose={onCancel} popupStyleClipContainer={styles.clipContainer}>
-      <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
-        <Kb.ImageIcon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
-        <Kb.Text center={true} type="Header" style={styles.headerStyle}>
-          Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
-        </Kb.Text>
-        <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
-          You are about to make this team{' '}
-          {isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
-        </Kb.Text>
-        <Kb.Checkbox
-          checked={enabled}
-          onCheck={setEnabled}
-          style={styles.checkboxStyle}
-          label=""
-          labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
-              <Kb.Text type="Body">
-                I understand that{' '}
-                {isOpenTeam
-                  ? 'anyone will be able to join this team.'
-                  : 'members will only be able to join through adds or invites.'}
-              </Kb.Text>
-              <Kb.Text type="BodySmall">Subteams will not be affected.</Kb.Text>
-            </Kb.Box2>
-          }
+    <Kb.Box2 direction="vertical" alignItems="center" style={styles.container}>
+      <Kb.ImageIcon type={'icon-illustration-teams-216'} style={styles.iconStyle} />
+      <Kb.Text center={true} type="Header" style={styles.headerStyle}>
+        Make {teamname} into {isOpenTeam ? 'an open' : 'a closed'} team?
+      </Kb.Text>
+      <Kb.Text center={true} type="Body" style={styles.bodyStyle}>
+        You are about to make this team{' '}
+        {isOpenTeam ? 'publicly visible. Anyone will be able to join this team.' : 'private.'}
+      </Kb.Text>
+      <Kb.Checkbox
+        checked={enabled}
+        onCheck={setEnabled}
+        style={styles.checkboxStyle}
+        label=""
+        labelComponent={
+          <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.label}>
+            <Kb.Text type="Body">
+              I understand that{' '}
+              {isOpenTeam
+                ? 'anyone will be able to join this team.'
+                : 'members will only be able to join through adds or invites.'}
+            </Kb.Text>
+            <Kb.Text type="BodySmall">Subteams will not be affected.</Kb.Text>
+          </Kb.Box2>
+        }
+      />
+      <Kb.ButtonBar>
+        <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
+        <Kb.Button
+          type="Danger"
+          onClick={onConfirm}
+          label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
+          disabled={!enabled}
         />
-        <Kb.ButtonBar>
-          <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
-          <Kb.Button
-            type="Danger"
-            onClick={onConfirm}
-            label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
-            disabled={!enabled}
-          />
-        </Kb.ButtonBar>
-      </Kb.Box2>
-    </Kb.Modal2>
+      </Kb.ButtonBar>
+    </Kb.Box2>
   )
 }
 
@@ -74,7 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginBottom: Kb.Styles.globalMargins.small,
     },
   }),
-  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: Kb.Styles.platformStyles({
     common: {
       paddingBottom: Kb.Styles.globalMargins.large,

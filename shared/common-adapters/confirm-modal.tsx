@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
 import IconAuto from '@/common-adapters/icon-auto'
-import Modal2 from './modal2'
+import {ModalHeader, ModalFooter} from './modal2'
 import Text from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -27,57 +27,21 @@ export type Props = {
 }
 
 const ConfirmModal = (props: Props) => (
-  <Modal2
-    onClose={props.onCancel}
-    header={
-      Styles.isMobile && props.onCancel
-        ? {
-            leftButton: (
-              <Text type="BodyBigLink" onClick={props.onCancel}>
-                Cancel
-              </Text>
-            ),
-          }
-        : undefined
-    }
-    banners={
-      props.error ? (
-        <Banner key="error" color="red">
-          <BannerParagraph bannerColor="red" content={props.error} />
-        </Banner>
-      ) : null
-    }
-    footer={{
-      content: (
-        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!Styles.isMobile && (
-            <WaitingButton
-              key="cancel"
-              disabled={!props.onCancel || props.waiting}
-              type="Dim"
-              label="Cancel"
-              onClick={props.onCancel}
-              style={styles.button}
-              waitingKey={props.waitingKey}
-            />
-          )}
-          <WaitingButton
-            key="confirm"
-            disabled={props.onConfirmDeactivated || !props.onConfirm}
-            type="Danger"
-            label={props.confirmText || 'Confirm'}
-            onClick={props.onConfirm}
-            style={styles.button}
-            waitingKey={props.waitingKey}
-            waiting={props.waiting}
-          />
-        </ButtonBar>
-      ),
-      hideBorder: Styles.isMobile,
-    }}
-    mode="Wide"
-  >
-
+  <>
+    {Styles.isMobile && props.onCancel ? (
+      <ModalHeader
+        leftButton={
+          <Text type="BodyBigLink" onClick={props.onCancel}>
+            Cancel
+          </Text>
+        }
+      />
+    ) : null}
+    {props.error ? (
+      <Banner key="error" color="red">
+        <BannerParagraph bannerColor="red" content={props.error} />
+      </Banner>
+    ) : null}
     <Box2
       alignItems="center"
       direction="vertical"
@@ -115,7 +79,35 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-  </Modal2>
+    <ModalFooter
+      content={
+        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+          {!Styles.isMobile && (
+            <WaitingButton
+              key="cancel"
+              disabled={!props.onCancel || props.waiting}
+              type="Dim"
+              label="Cancel"
+              onClick={props.onCancel}
+              style={styles.button}
+              waitingKey={props.waitingKey}
+            />
+          )}
+          <WaitingButton
+            key="confirm"
+            disabled={props.onConfirmDeactivated || !props.onConfirm}
+            type="Danger"
+            label={props.confirmText || 'Confirm'}
+            onClick={props.onConfirm}
+            style={styles.button}
+            waitingKey={props.waitingKey}
+            waiting={props.waiting}
+          />
+        </ButtonBar>
+      }
+      hideBorder={Styles.isMobile}
+    />
+  </>
 )
 
 const styles = Styles.styleSheetCreate(() => ({

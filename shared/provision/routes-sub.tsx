@@ -6,10 +6,7 @@ export const newRoutes = {
   codePage: {
     screen: React.lazy(async () => import('./code-page/container')),
   },
-  error: {
-    getOptions: {modal2: true},
-    screen: React.lazy(async () => import('./error')),
-  },
+  error: {screen: React.lazy(async () => import('./error'))},
   forgotUsername: {
     screen: React.lazy(async () => import('./forgot-username')),
   },

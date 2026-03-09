@@ -7,11 +7,9 @@ const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace
   const common = {
     headerLeft: undefined,
-    modal2: true,
     modal2AvoidTabs: false,
     modal2ClearCover: false,
     modal2Style: {alignSelf: 'center'} as const,
-    modal2Type: 'DefaultFullHeight',
   } as const
 
   return namespace === 'people'
@@ -25,7 +23,6 @@ const getOptions = ({route}: OwnProps) => {
           paddingRight: Kb.Styles.globalMargins.xsmall,
           paddingTop: Kb.Styles.globalMargins.mediumLarge,
         } as const,
-        modal2Type: 'DefaultFullWidth',
       } as const)
     : common
 }

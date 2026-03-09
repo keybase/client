@@ -159,11 +159,7 @@ const JoinFromInvite = () => {
       </Kb.Box2>
     )
 
-  return (
-    <Kb.Modal2 mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
-      {body}
-    </Kb.Modal2>
-  )
+  return body
 }
 
 const styles = Kb.Styles.styleSheetCreate(

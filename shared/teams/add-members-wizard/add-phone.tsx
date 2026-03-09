@@ -56,32 +56,16 @@ const AddPhone = () => {
   }
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Phone list" />,
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.Button
-            waiting={waiting}
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-          />
-        ),
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title="Phone list" />}
+      />
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">
@@ -98,7 +82,18 @@ const AddPhone = () => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button
+            waiting={waiting}
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+          />
+        }
+      />
+    </>
   )
 }
 

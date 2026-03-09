@@ -81,10 +81,7 @@ export const newModalRoutes = {
     })
   ),
   chatNewChat,
-  chatPDF: Chat.makeChatScreen(
-    React.lazy(async () => import('./pdf')),
-    {getOptions: C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'}}
-  ),
+  chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf'))),
   chatSearchBots: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),
     {canBeNullConvoID: true}

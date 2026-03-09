@@ -62,26 +62,22 @@ const Container = () => {
   }
 
   return (
-    <Kb.Modal2
-      bare={true}
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: (
-                <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
-                  Cancel
-                </Kb.Text>
-              ),
-              rightButton: (
-                <Kb.Text type="BodyBigLink" onClick={props.onSignOut} style={styles.signOut}>
-                  Sign out
-                </Kb.Text>
-              ),
-              title: ' ',
-            }
-          : undefined
-      }
-    >
+    <>
+      {Kb.Styles.isMobile ? (
+        <Kb.ModalHeader
+          leftButton={
+            <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
+              Cancel
+            </Kb.Text>
+          }
+          rightButton={
+            <Kb.Text type="BodyBigLink" onClick={props.onSignOut} style={styles.signOut}>
+              Sign out
+            </Kb.Text>
+          }
+          title=" "
+        />
+      ) : null}
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
           {Kb.Styles.isMobile && <MobileHeader {...props} />}
@@ -96,7 +92,7 @@ const Container = () => {
           {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.Modal2>
+    </>
   )
 }
 

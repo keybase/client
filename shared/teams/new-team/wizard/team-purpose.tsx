@@ -11,20 +11,15 @@ const TeamPurpose = () => {
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      onClose={onBack}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
+    <>
+      <Kb.ModalHeader
+        leftButton={Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Cancel
           </Kb.Text>
-        ) : undefined,
-        title: <ModalTitle teamID={T.Teams.noTeamID} title="New team" />,
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+        ) : undefined}
+        title={<ModalTitle teamID={T.Teams.noTeamID} title="New team" />}
+      />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -60,7 +55,7 @@ const TeamPurpose = () => {
           title="Other/You're not sure"
         />
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 

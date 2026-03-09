@@ -138,7 +138,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
-  const onClose = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = (teamname: string) => {
     leaveTeam(teamname, true, 'chat')
@@ -198,7 +198,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
     }
     newBlocks.forEach(({report}, username) => report && reportUser(username, conversationIDKey, report))
     if (!takingAction) {
-      onClose()
+      navigateUp()
     }
   }
   const [blockTeam, setBlockTeam] = React.useState(true)
@@ -254,10 +254,10 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const lastFinishWaitingRef = React.useRef(finishWaiting)
   React.useEffect(() => {
     if (finishClicked && lastFinishWaitingRef.current && !finishWaiting) {
-      onClose()
+      navigateUp()
     }
     lastFinishWaitingRef.current = finishWaiting
-  }, [finishClicked, onClose, finishWaiting])
+  }, [finishClicked, navigateUp, finishWaiting])
 
   const getBlockFor = (username: string, which: BlockType) => {
     // First get a current setting from a checkbox, if user has checked anything.
@@ -396,9 +396,9 @@ const Container = function BlockModal(ownProps: OwnProps) {
     </>
   )
 
-  const header = {
+  const headerProps = {
     leftButton: Kb.Styles.isMobile ? (
-      <Kb.Text onClick={onClose} type="BodyPrimaryLink">
+      <Kb.Text onClick={navigateUp} type="BodyPrimaryLink">
         Cancel
       </Kb.Text>
     ) : undefined,
@@ -407,11 +407,12 @@ const Container = function BlockModal(ownProps: OwnProps) {
 
   if (loadingWaiting) {
     return (
-      <Kb.Modal2 mode="Default" header={header}>
+      <>
+        <Kb.ModalHeader {...headerProps} />
         <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
           <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
         </Kb.Box2>
-      </Kb.Modal2>
+      </>
     )
   }
 
@@ -471,23 +472,8 @@ const Container = function BlockModal(ownProps: OwnProps) {
   }
 
   return (
-    <Kb.Modal2
-      mode="Default"
-      popupStyleContainer={styles.popupStyleContainer}
-      onClose={onClose}
-      header={header}
-      footer={{
-        content: (
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
-            )}
-            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
-          </Kb.ButtonBar>
-        ),
-      }}
-      noScrollView={true}
-    >
+    <>
+      <Kb.ModalHeader {...headerProps} />
       <Kb.List
         items={items}
         renderItem={renderItem}
@@ -502,7 +488,17 @@ const Container = function BlockModal(ownProps: OwnProps) {
               )
         }
       />
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!Kb.Styles.isMobile && (
+              <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
+            )}
+            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
+          </Kb.ButtonBar>
+        }
+      />
+    </>
   )
 }
 
@@ -549,8 +545,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     padding: Kb.Styles.globalMargins.medium,
   },
-
-  popupStyleContainer: {height: 450},
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},
   shrink: {flexShrink: 1},
 }))

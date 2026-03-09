@@ -25,11 +25,9 @@ const MobileSendToChatRoutable = (props: Props) => {
   const onBack = () => navigateUp()
 
   return (
-    <Kb.Modal2
-      noScrollView={true}
-      onClose={canBack ? onBack : onCancel}
-      header={{
-        leftButton: canBack ? (
+    <>
+      <Kb.ModalHeader
+        leftButton={canBack ? (
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Back
           </Kb.Text>
@@ -37,17 +35,16 @@ const MobileSendToChatRoutable = (props: Props) => {
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
-        ),
-        title: FS.getSharePathArrayDescription(sendPaths || []),
-      }}
-    >
+        )}
+        title={FS.getSharePathArrayDescription(sendPaths || [])}
+      />
       <MobileSendToChat
         canBack={canBack}
         isFromShareExtension={isFromShareExtension}
         sendPaths={sendPaths}
         text={text}
       />
-    </Kb.Modal2>
+    </>
   )
 }
 
@@ -108,20 +105,18 @@ const DesktopSendToChat = (props: Props) => {
     Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
-    <Kb.Modal2 noScrollView={true}>
-      <DesktopSendToChatRender
-        enabled={conversationIDKey !== Chat.noConversationIDKey}
-        convName={convName}
-        // If we ever support sending multiples from desktop this will need to
-        // change.
-        path={sendPaths[0]}
-        title={title}
-        setTitle={setTitle}
-        onSend={onSend}
-        onSelect={onSelect}
-        onCancel={onCancel}
-      />
-    </Kb.Modal2>
+    <DesktopSendToChatRender
+      enabled={conversationIDKey !== Chat.noConversationIDKey}
+      convName={convName}
+      // If we ever support sending multiples from desktop this will need to
+      // change.
+      path={sendPaths[0]}
+      title={title}
+      setTitle={setTitle}
+      onSend={onSend}
+      onSelect={onSelect}
+      onCancel={onCancel}
+    />
   )
 }
 

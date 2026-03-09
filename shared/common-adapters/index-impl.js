@@ -175,16 +175,10 @@ module.exports = {
     return require('./meta').default
   },
   get MobilePopup() {
-    return require('./mobile-popup').default
+    return require('./popup').default
   },
-  get Modal() {
-    return require('./modal2').default
-  },
-  get Modal2() {
-    return require('./modal2').default
-  },
-  get Modal2Header() {
-    return require('./modal2').ModalHeader
+  get ModalFooter() {
+    return require('./modal2').ModalFooter
   },
   get ModalHeader() {
     return require('./modal2').ModalHeader
@@ -196,7 +190,7 @@ module.exports = {
     return require('./emoji/native-emoji').default
   },
   get Overlay() {
-    return require('./overlay').default
+    return require('./popup').default
   },
   get PhoneInput() {
     return require('./phone-input').default
@@ -206,6 +200,9 @@ module.exports = {
   },
   get PlatformIcon() {
     return require('./platform-icon').default
+  },
+  get Popup() {
+    return require('./popup').default
   },
   get PopupHeaderText() {
     return require('./popup-header-text').default
@@ -314,9 +311,6 @@ module.exports = {
   },
   get useInterval() {
     return require('./use-timers').useInterval
-  },
-  get useModal2HeaderTitleAndCancel() {
-    return require('./modal2').useModalHeaderTitleAndCancel
   },
   get useModalHeaderTitleAndCancel() {
     return require('./modal2').useModalHeaderTitleAndCancel

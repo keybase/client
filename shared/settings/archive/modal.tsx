@@ -232,33 +232,33 @@ const ArchiveModal = (p: Props) => {
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Backup', onClose)
   return (
-    <Kb.Modal2
-      mode="Wide"
-      header={modalHeader}
-      footer={{
-        content: (
+    <>
+      <Kb.ModalHeader {...modalHeader} />
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
+          {Kb.Styles.isMobile ? (
+            <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
+          ) : (
+            <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
+          )}
+          <Kb.BoxGrow />
+          {content}
+          <Kb.BoxGrow />
+          {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+            ? null
+            : output}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ModalFooter
+        content={
           <Kb.ButtonBar small={true}>
             {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
             {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
             {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
-        ),
-      }}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
-        {Kb.Styles.isMobile ? (
-          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
-        ) : (
-          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
-        )}
-        <Kb.BoxGrow />
-        {content}
-        <Kb.BoxGrow />
-        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
-          ? null
-          : output}
-      </Kb.Box2>
-    </Kb.Modal2>
+        }
+      />
+    </>
   )
 }
 

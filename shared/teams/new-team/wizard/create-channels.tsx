@@ -61,17 +61,12 @@ export const CreateChannelsModal = (props: Props) => {
   )
 
   return (
-    <Kb.Modal2
-      banners={props.banners}
-      backgroundStyle={styles.background}
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Create channels" />,
-      }}
-      mode="DefaultFullHeight"
-      footer={{content: submitButton}}
-      allowOverflow={true}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title="Create channels" />}
+      />
+      {props.banners}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.ImageIcon type="icon-illustration-teams-channels-460-96" />
       </Kb.Box2>
@@ -100,7 +95,8 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter content={submitButton} />
+    </>
   )
 }
 

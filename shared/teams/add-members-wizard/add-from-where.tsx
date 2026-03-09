@@ -38,35 +38,30 @@ const AddFromWhere = () => {
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
   const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
   return (
-    <Kb.Modal2
-      allowOverflow={true}
-      onClose={newTeam ? undefined : onClose} // Only show the close button if we're not coming from the new team wizard
-      banners={
-        createTeamError ? (
-          <Kb.Banner color="red" key="err">
-            {createTeamError}
-          </Kb.Banner>
-        ) : null
-      }
-      header={{
-        leftButton: newTeam ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton: newTeam ? <Skip /> : undefined,
-        title: (
+    <>
+      <Kb.ModalHeader
+        leftButton={
+          newTeam ? (
+            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
+          ) : Kb.Styles.isMobile ? (
+            <Kb.Text type="BodyBigLink" onClick={onClose}>
+              Cancel
+            </Kb.Text>
+          ) : undefined
+        }
+        rightButton={newTeam ? <Skip /> : undefined}
+        title={
           <ModalTitle
             title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
             teamID={teamID}
           />
-        ),
-      }}
-      mode="DefaultFullHeight"
-      backgroundStyle={styles.bg}
-    >
+        }
+      />
+      {createTeamError ? (
+        <Kb.Banner color="red" key="err">
+          {createTeamError}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
         gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
@@ -103,15 +98,11 @@ const AddFromWhere = () => {
           onClick={onContinuePhone}
         />
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-    isElectron: {borderRadius: 4},
-  }),
   body: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {

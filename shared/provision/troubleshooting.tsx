@@ -64,33 +64,21 @@ const Troubleshooting = (props: Props) => {
   }-64` as Kb.IconType
 
   return (
-    <Kb.Modal2
-      onClose={onBack}
-      header={{
-        hideBorder: false,
-        leftButton: Kb.Styles.isMobile ? (
+    <>
+      <Kb.ModalHeader
+        hideBorder={false}
+        leftButton={Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onBack}>
             Back
           </Kb.Text>
-        ) : null,
-        title: 'Troubleshooting',
-      }}
-      footer={
-        Kb.Styles.isMobile
-          ? undefined
-          : {
-              content: <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />,
-              hideBorder: true,
-            }
-      }
-      mobileStyle={styles.mobileModal}
-      mode="Wide"
-    >
+        ) : null}
+        title="Troubleshooting"
+      />
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
             This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
-            backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
+            {"backup or uninstalled Keybase. Either way, Keybase keys aren't backed up, so this is now a totally"}
             new device.
           </Kb.Text>
           <Kb.Text type="Body" center={true}>
@@ -118,7 +106,13 @@ const Troubleshooting = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+      {!Kb.Styles.isMobile && (
+        <Kb.ModalFooter
+          content={<Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />}
+          hideBorder={true}
+        />
+      )}
+    </>
   )
 }
 export default Troubleshooting
@@ -168,7 +162,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       maxWidth: 188,
     },
   }),
-  mobileModal: {
-    backgroundColor: Kb.Styles.globalColors.white,
-  },
 }))

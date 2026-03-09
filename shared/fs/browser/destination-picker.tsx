@@ -118,16 +118,13 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
   return (
-    <Kb.Modal2
-      header={{
-        hideBorder: true,
-        leftButton: makeLeftButton(onCancel, onBack),
-        rightButton: headerRightButton,
-        title: makeTitle(targetName, parentPath),
-      }}
-      noScrollView={true}
-      mode="Wide"
-    >
+    <>
+      <Kb.ModalHeader
+        hideBorder={true}
+        leftButton={makeLeftButton(onCancel, onBack)}
+        rightButton={headerRightButton}
+        title={makeTitle(targetName, parentPath)}
+      />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
@@ -191,7 +188,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 

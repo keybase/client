@@ -21,7 +21,6 @@ const Container = (ownProps: OwnProps) => {
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onClose = navigateUp
   const _onInvite = (invitees: string, role: T.Teams.TeamRoleType) => {
     inviteToTeamByEmail(invitees, role, teamID, teamname)
   }
@@ -36,11 +35,11 @@ const Container = (ownProps: OwnProps) => {
       if (_malformedEmails.size > 0) {
         setInvitees([..._malformedEmails].join('\n'))
       } else if (!errorMessage) {
-        onClose()
+        navigateUp()
       }
     }
     lastMalformedEmailsRef.current = _malformedEmails
-  }, [_malformedEmails, errorMessage, onClose])
+  }, [_malformedEmails, errorMessage, navigateUp])
 
   React.useEffect(() => {
     return () => {
@@ -58,64 +57,62 @@ const Container = (ownProps: OwnProps) => {
   const onInvite = () => _onInvite(invitees, role)
 
   return (
-    <Kb.Modal2 onClose={onClose} noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        fullWidth={true}
+        style={{margin: Kb.Styles.globalMargins.medium}}
+      >
+        <Kb.Text style={styles.header} type="Header">
+          Invite by email
+        </Kb.Text>
         <Kb.Box2
-          direction="vertical"
+          direction="horizontal"
           alignItems="center"
-          fullWidth={true}
-          style={{margin: Kb.Styles.globalMargins.medium}}
+          style={{margin: Kb.Styles.globalMargins.tiny}}
         >
-          <Kb.Text style={styles.header} type="Header">
-            Invite by email
+          <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
+            Add these team members to {name} as:
           </Kb.Text>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            style={{margin: Kb.Styles.globalMargins.tiny}}
+          <FloatingRolePicker
+            presetRole={role}
+            floatingContainerStyle={styles.floatingRolePicker}
+            onConfirm={onConfirmRolePicker}
+            onCancel={onCancelRolePicker}
+            position="bottom center"
+            open={isRolePickerOpen}
+            disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           >
-            <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
-              Add these team members to {name} as:
-            </Kb.Text>
-            <FloatingRolePicker
-              presetRole={role}
-              floatingContainerStyle={styles.floatingRolePicker}
-              onConfirm={onConfirmRolePicker}
-              onCancel={onCancelRolePicker}
-              position="bottom center"
-              open={isRolePickerOpen}
-              disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-            >
-              <Kb.DropdownButton
-                toggleOpen={onOpenRolePicker}
-                selected={_makeDropdownItem(role)}
-                style={{width: 100}}
-              />
-            </FloatingRolePicker>
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
-            <Kb.Input3
-              autoFocus={true}
-              error={!!errorMessage}
-              multiline={true}
-              onChangeText={setInvitees}
-              placeholder="Enter multiple email addresses, separated by commas"
-              rowsMin={3}
-              rowsMax={8}
-              value={invitees}
+            <Kb.DropdownButton
+              toggleOpen={onOpenRolePicker}
+              selected={_makeDropdownItem(role)}
+              style={{width: 100}}
             />
-            {!!errorMessage && (
-              <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
-                {errorMessage}
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-          <Kb.ButtonBar>
-            <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
-          </Kb.ButtonBar>
+          </FloatingRolePicker>
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
+          <Kb.Input3
+            autoFocus={true}
+            error={!!errorMessage}
+            multiline={true}
+            onChangeText={setInvitees}
+            placeholder="Enter multiple email addresses, separated by commas"
+            rowsMin={3}
+            rowsMax={8}
+            value={invitees}
+          />
+          {!!errorMessage && (
+            <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+              {errorMessage}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        <Kb.ButtonBar>
+          <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
+        </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Modal2>
+    </Kb.Box2>
   )
 }
 
@@ -134,7 +131,6 @@ const _makeDropdownItem = (item: string) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',

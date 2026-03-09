@@ -93,26 +93,15 @@ const LocationPopup = () => {
     ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
   return (
-    <Kb.Modal2
-      header={{
-        leftButton: (
+    <>
+      <Kb.ModalHeader
+        leftButton={
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
-        ),
-        title: 'Location',
-      }}
-      footer={{
-        content: (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <LocationButton disabled={locationDenied} label="Share location for 15 minutes" onClick={() => onLocationShare('15m')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Share location for 1 hour" onClick={() => onLocationShare('1h')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Share location for 8 hours" onClick={() => onLocationShare('8h')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Send current location" onClick={() => onLocationShare('')} subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined} primary={true} />
-          </Kb.Box2>
-        ),
-      }}
-    >
+        }
+        title="Location"
+      />
       {locationDenied ? (
         <Kb.Box2 direction="vertical" style={styles.denied} gap="small" justifyContent="center">
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
@@ -126,7 +115,17 @@ const LocationPopup = () => {
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <LocationButton disabled={locationDenied} label="Share location for 15 minutes" onClick={() => onLocationShare('15m')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Share location for 1 hour" onClick={() => onLocationShare('1h')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Share location for 8 hours" onClick={() => onLocationShare('8h')} subLabel="Live location" />
+            <LocationButton disabled={locationDenied} label="Send current location" onClick={() => onLocationShare('')} subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined} primary={true} />
+          </Kb.Box2>
+        }
+      />
+    </>
   )
 }
 

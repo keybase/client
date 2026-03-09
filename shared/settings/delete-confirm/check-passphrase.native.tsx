@@ -27,49 +27,28 @@ const CheckPassphraseMobile = () => {
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return (
-    <Kb.Modal2
-      banners={
-        <>
-          {checkPasswordIsCorrect === false ? (
-            <Kb.Banner key="errorBanner" color="red">
-              Wrong password. Please try again.
-            </Kb.Banner>
-          ) : null}
-          {checkPasswordIsCorrect === true ? (
-            <Kb.Banner key="successBanner" color="green">
-              Your password is correct.
-            </Kb.Banner>
-          ) : null}
-        </>
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              fullWidth={true}
-              waitingKey={C.waitingKeySettingsCheckPassword}
-              disabled={!!checkPasswordIsCorrect || !password}
-              label="Authorize"
-              onClick={() => onCheckPassword(password)}
-            />
-          </Kb.ButtonBar>
-        ),
-      }}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
+    <>
+      <Kb.ModalHeader
+        leftButton={
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
-        ) : null,
-      }}
-      onClose={onCancel}
-    >
+        }
+      />
+      {checkPasswordIsCorrect === false ? (
+        <Kb.Banner key="errorBanner" color="red">
+          Wrong password. Please try again.
+        </Kb.Banner>
+      ) : null}
+      {checkPasswordIsCorrect === true ? (
+        <Kb.Banner key="successBanner" color="green">
+          Your password is correct.
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
-        {Kb.Styles.isMobile && (
-          <Kb.Text style={styles.headerText} type="Header">
-            Do you know your password?
-          </Kb.Text>
-        )}
+        <Kb.Text style={styles.headerText} type="Header">
+          Do you know your password?
+        </Kb.Text>
         <Kb.Text style={styles.bodyText} type="Body">
           You will need it to delete this account.
         </Kb.Text>
@@ -100,7 +79,20 @@ const CheckPassphraseMobile = () => {
           />
         )}
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
+            <Kb.WaitingButton
+              fullWidth={true}
+              waitingKey={C.waitingKeySettingsCheckPassword}
+              disabled={!!checkPasswordIsCorrect || !password}
+              label="Authorize"
+              onClick={() => onCheckPassword(password)}
+            />
+          </Kb.ButtonBar>
+        }
+      />
+    </>
   )
 }
 

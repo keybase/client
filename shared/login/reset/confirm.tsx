@@ -33,33 +33,13 @@ const ConfirmReset = () => {
   }
 
   return (
-    <Kb.Modal2
-      header={Kb.Styles.isMobile ? {title: 'Account reset'} : undefined}
-      fullscreen={true}
-      footer={{
-        content: (
-          <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              disabled={disabled}
-              label="Yes, reset account"
-              onClick={onContinue}
-              type="Danger"
-              fullWidth={true}
-              waitingKey={C.waitingKeyAutoresetActuallyReset}
-            />
-            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
-          </Kb.ButtonBar>
-        ),
-        style: styles.footer,
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="errors">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      {Kb.Styles.isMobile ? <Kb.ModalHeader title="Account reset" /> : null}
+      {error ? (
+        <Kb.Banner color="red" key="errors">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -116,7 +96,23 @@ const ConfirmReset = () => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
+            <Kb.WaitingButton
+              disabled={disabled}
+              label="Yes, reset account"
+              onClick={onContinue}
+              type="Danger"
+              fullWidth={true}
+              waitingKey={C.waitingKeyAutoresetActuallyReset}
+            />
+            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
+          </Kb.ButtonBar>
+        }
+        style={styles.footer}
+      />
+    </>
   )
 }
 

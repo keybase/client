@@ -67,31 +67,30 @@ export const sharedNewRoutes = {
 }
 
 const sharedNewModalRoutes = {
-  [Settings.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
-  [Settings.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
+  [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout'))),
+  [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password'))),
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
-  settingsAddEmail: {
-    screen: React.lazy(async () => {
+  settingsAddEmail: C.makeScreen(
+    React.lazy(async () => {
       const {Email} = await import('./account/add-modals')
       return {default: Email}
-    }),
-  },
-  settingsAddPhone: {
-    screen: React.lazy(async () => {
+    })
+  ),
+  settingsAddPhone: C.makeScreen(
+    React.lazy(async () => {
       const {Phone} = await import('./account/add-modals')
       return {default: Phone}
-    }),
-  },
-
+    })
+  ),
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
-  settingsVerifyPhone: {
-    screen: React.lazy(async () => {
+  settingsVerifyPhone: C.makeScreen(
+    React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')
       return {default: VerifyPhone}
-    }),
-  },
+    })
+  ),
 }
 
 const WebLinks = React.lazy(async () => import('./web-links'))
@@ -117,12 +116,12 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...sharedNewModalRoutes,
-  checkPassphraseBeforeDeleteAccount: {
-    screen: React.lazy(async () => import('./delete-confirm/check-passphrase')),
-  },
+  checkPassphraseBeforeDeleteAccount: C.makeScreen(
+    React.lazy(async () => import('./delete-confirm/check-passphrase'))
+  ),
   modalFeedback: feedback,
-  settingsContactsJoined: {screen: React.lazy(async () => import('./contacts-joined'))},
-  settingsPushPrompt: {
-    screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
-  },
+  settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
+  settingsPushPrompt: C.isMobile
+    ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')))
+    : {screen: () => <></>},
 }

@@ -115,11 +115,10 @@ const Container = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.Modal2
-      onClose={onClose}
-      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onClose}>Cancel</Kb.Text>} : undefined}
-      noScrollView={true}
-    >
+    <>
+      {Kb.Styles.isMobile && (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onClose}>Cancel</Kb.Text>} />
+      )}
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (
@@ -181,7 +180,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.Modal2>
+    </>
   )
 }
 

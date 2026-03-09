@@ -103,31 +103,19 @@ const AddMembersConfirm = () => {
       }
 
   return (
-    <Kb.Modal2
-      allowOverflow={true}
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: fromNewTeamWizard ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onLeave}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: <ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label={`Invite ${addingMembers.length} ${noun} & finish`}
-            waiting={waiting}
-            onClick={onComplete}
-            disabled={addingMembers.length === 0}
-          />
-        ),
-      }}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={
+          fromNewTeamWizard ? (
+            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
+          ) : (
+            <Kb.Text type="BodyBigLink" onClick={onLeave}>
+              Cancel
+            </Kb.Text>
+          )
+        }
+        title={<ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />}
+      />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers disabledRoles={disabledRoles} />
@@ -164,7 +152,18 @@ const AddMembersConfirm = () => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button
+            fullWidth={true}
+            label={`Invite ${addingMembers.length} ${noun} & finish`}
+            waiting={waiting}
+            onClick={onComplete}
+            disabled={addingMembers.length === 0}
+          />
+        }
+      />
+    </>
   )
 }
 

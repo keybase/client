@@ -38,15 +38,11 @@ const CreateSubteams = () => {
     : 'Continue without subteams'
 
   return (
-    <Kb.Modal2
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Create subteams" />,
-      }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title="Create subteams" />}
+      />
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.ImageIcon type="icon-illustration-teams-subteams-460-96" />
       </Kb.Box2>
@@ -74,7 +70,8 @@ const CreateSubteams = () => {
         ))}
         <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter content={<Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />} />
+    </>
   )
 }
 

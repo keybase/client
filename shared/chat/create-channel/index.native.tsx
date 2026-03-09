@@ -6,56 +6,50 @@ import useHook from './hooks'
 const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
-    <Kb.Modal2
-      bare={true}
-      header={{
-        leftButton: (
+    <>
+      <Kb.ModalHeader
+        leftButton={
           <Kb.Text type="BodyBigLink" onClick={props.onBack}>
             Back
           </Kb.Text>
-        ),
-      }}
-    >
-      <Kb.BoxGrow>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          {!!props.errorText && (
-            <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
-            </Kb.Banner>
-          )}
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.box}>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-              <Kb.Input3
-                autoFocus={true}
-                placeholder="Channel name"
-                value={props.channelname}
-                onChangeText={channelname => props.onChannelnameChange(channelname)}
-              />
-              <Kb.Input3
-                autoCorrect={true}
-                autoFocus={false}
-                autoCapitalize="sentences"
-                multiline={true}
-                rowsMin={1}
-                rowsMax={2}
-                // From go/chat/msgchecker/constants.go#HeadlineMaxLength
-                maxLength={280}
-                placeholder="Add a description or topic..."
-                value={props.description}
-                onChangeText={description => props.onDescriptionChange(description)}
-              />
-            </Kb.Box2>
-            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-              <Kb.WaitingButton
-                waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
-                onClick={props.onSubmit}
-                label="Save"
-              />
-            </Kb.ButtonBar>
-          </Kb.Box2>
+        }
+      />
+      {!!props.errorText && (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
+        </Kb.Banner>
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.box}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+          <Kb.Input3
+            autoFocus={true}
+            placeholder="Channel name"
+            value={props.channelname}
+            onChangeText={channelname => props.onChannelnameChange(channelname)}
+          />
+          <Kb.Input3
+            autoCorrect={true}
+            autoFocus={false}
+            autoCapitalize="sentences"
+            multiline={true}
+            rowsMin={1}
+            rowsMax={2}
+            // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+            maxLength={280}
+            placeholder="Add a description or topic..."
+            value={props.description}
+            onChangeText={description => props.onDescriptionChange(description)}
+          />
         </Kb.Box2>
-      </Kb.BoxGrow>
-    </Kb.Modal2>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton
+            waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
+            onClick={props.onSubmit}
+            label="Save"
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 

@@ -72,30 +72,25 @@ const AddSubteamMembers = () => {
       />
     )
   }
+  const desktopFooter = !Kb.Styles.isMobile ? (
+    <Kb.ModalFooter
+      content={<Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />}
+    />
+  ) : null
+
   return (
-    <Kb.Modal2
-      allowOverflow={true}
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        rightButton: Kb.Styles.isMobile ? (
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        rightButton={Kb.Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
             <Kb.Text type="BodyBigLink" onClick={onContinue}>
               {doneLabel}
             </Kb.Text>
           </Kb.Box2>
-        ) : undefined,
-        title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
-      }}
-      footer={
-        Kb.Styles.isMobile
-          ? undefined
-          : {
-              content: <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />,
-            }
-      }
-      noScrollView={true}
-    >
+        ) : undefined}
+        title={<ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />}
+      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchContainer}>
           <Kb.SearchFilter
@@ -125,7 +120,8 @@ const AddSubteamMembers = () => {
           />
         </Kb.BoxGrow>
       </Kb.Box2>
-    </Kb.Modal2>
+      {desktopFooter}
+    </>
   )
 }
 

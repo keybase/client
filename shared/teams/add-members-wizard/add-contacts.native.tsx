@@ -61,12 +61,11 @@ const AddContacts = () => {
   const noneSelected = selectedPhones.size + selectedEmails.size === 0
 
   return (
-    <Kb.Modal2
-      noScrollView={true}
-      header={{
-        hideBorder: true,
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        rightButton: (
+    <>
+      <Kb.ModalHeader
+        hideBorder={true}
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        rightButton={
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Text
               type="BodyBigLink"
@@ -88,10 +87,9 @@ const AddContacts = () => {
               </Kb.Box2>
             )}
           </Kb.Box2>
-        ),
-        title: <ModalTitle teamID={teamID} title="Add members" />,
-      }}
-    >
+        }
+        title={<ModalTitle teamID={teamID} title="Add members" />}
+      />
       <Kb.SearchFilter
         size="small"
         onChange={setSearch}
@@ -107,7 +105,7 @@ const AddContacts = () => {
         selectedPhones={selectedPhones}
       />
       <EnableContactsPopup noAccess={noAccessPermanent} onClose={onBack} />
-    </Kb.Modal2>
+    </>
   )
 }
 

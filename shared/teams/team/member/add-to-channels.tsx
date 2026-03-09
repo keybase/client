@@ -176,17 +176,41 @@ const AddToChannels = function AddToChannels(props: Props) {
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
+  const desktopFooter = !Kb.Styles.isMobile && mode !== 'self' ? (
+    <Kb.ModalFooter
+      content={
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+          <Kb.Button
+            type="Dim"
+            label="Cancel"
+            onClick={onCancel}
+            style={Kb.Styles.globalStyles.flexOne}
+            disabled={waiting}
+          />
+          <Kb.Button
+            label={
+              numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
+            }
+            onClick={onFinish}
+            disabled={!numSelected}
+            style={Kb.Styles.globalStyles.flexOne}
+            waiting={waiting}
+          />
+        </Kb.Box2>
+      }
+    />
+  ) : null
+
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      header={{
-        hideBorder: Kb.Styles.isMobile,
-        leftButton: Kb.Styles.isMobile ? (
+    <>
+      <Kb.ModalHeader
+        hideBorder={Kb.Styles.isMobile}
+        leftButton={Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
             Cancel
           </Kb.Text>
-        ) : undefined,
-        rightButton:
+        ) : undefined}
+        rightButton={
           Kb.Styles.isMobile && mode === 'others' ? (
             waiting ? (
               <Kb.ProgressIndicator type="Large" />
@@ -195,39 +219,10 @@ const AddToChannels = function AddToChannels(props: Props) {
                 Add
               </Kb.Text>
             )
-          ) : undefined,
-        title: <Common.ModalTitle teamID={teamID} title={title} />,
-      }}
-      footer={
-        Kb.Styles.isMobile || mode === 'self'
-          ? undefined
-          : {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
-                    type="Dim"
-                    label="Cancel"
-                    onClick={onCancel}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    disabled={waiting}
-                  />
-                  <Kb.Button
-                    label={
-                      numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-                    }
-                    onClick={onFinish}
-                    disabled={!numSelected}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    waiting={waiting}
-                  />
-                </Kb.Box2>
-              ),
-            }
-      }
-      allowOverflow={true}
-      noScrollView={true}
-      onClose={onCancel}
-    >
+          ) : undefined
+        }
+        title={<Common.ModalTitle teamID={teamID} title={title} />}
+      />
       {loadingChannels && !channelMetas.size ? (
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
@@ -257,7 +252,8 @@ const AddToChannels = function AddToChannels(props: Props) {
           </Kb.BoxGrow2>
         </Kb.Box2>
       )}
-    </Kb.Modal2>
+      {desktopFooter}
+    </>
   )
 }
 

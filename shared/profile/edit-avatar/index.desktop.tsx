@@ -59,7 +59,7 @@ const getCropCoordinates = (c: Crop) => {
 type Loading = undefined | 'loading' | 'loaded'
 const EditAvatar = (_p: Props) => {
   const p = useHooks(_p)
-  const {onClose, wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
+  const {wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
   const [dropping, setDropping] = React.useState(false)
   const [loading, setLoading] = React.useState<Loading>()
@@ -113,12 +113,10 @@ const EditAvatar = (_p: Props) => {
   }
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      onClose={onClose}
-      header={{
-        leftButton: wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null,
-        rightButton: wizard ? (
+    <>
+      <Kb.ModalHeader
+        leftButton={wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null}
+        rightButton={wizard ? (
           <Kb.Button
             label="Skip"
             mode="Secondary"
@@ -126,36 +124,19 @@ const EditAvatar = (_p: Props) => {
             style={styles.skipButton}
             type="Default"
           />
-        ) : null,
-        title: type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : 'Upload an avatar',
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={wizard ? 'Continue' : 'Save'}
-            onClick={onSave}
-            disabled={loading !== 'loaded'}
-            waitingKey={p.waitingKey}
-          />
-        ),
-      }}
-      banners={
-        <>
-          {error ? (
-            <Kb.Banner color="red" key="propsError">
-              {error}
-            </Kb.Banner>
-          ) : null}
-          {serror ? (
-            <Kb.Banner color="red" key="stateError">
-              The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
-            </Kb.Banner>
-          ) : null}
-        </>
-      }
-    >
+        ) : null}
+        title={type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : 'Upload an avatar'}
+      />
+      {error ? (
+        <Kb.Banner color="red" key="propsError">
+          {error}
+        </Kb.Banner>
+      ) : null}
+      {serror ? (
+        <Kb.Banner color="red" key="stateError">
+          The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+        </Kb.Banner>
+      ) : null}
       <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
@@ -213,7 +194,18 @@ const EditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={loading !== 'loaded'}
+            waitingKey={p.waitingKey}
+          />
+        }
+      />
+    </>
   )
 }
 

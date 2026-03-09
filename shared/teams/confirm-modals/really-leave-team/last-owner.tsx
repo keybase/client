@@ -8,26 +8,8 @@ type Props = {
 }
 
 const ReallyLeaveTeam = (props: Props) => (
-  <Kb.Modal2
-    mode="Wide"
-    onClose={props.onBack}
-    header={{hideBorder: true}}
-    footer={{
-      content: (
-        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            onClick={props.onBack}
-            label="Got it"
-            fullWidth={true}
-            type="Dim"
-            disabled={props.stillLoadingTeam}
-          />
-        </Kb.ButtonBar>
-      ),
-      hideBorder: true,
-      style: styles.footer,
-    }}
-  >
+  <>
+    <Kb.ModalHeader hideBorder={true} />
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
     ) : (
@@ -61,7 +43,22 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-  </Kb.Modal2>
+    <Kb.ModalFooter
+      content={
+        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button
+            onClick={props.onBack}
+            label="Got it"
+            fullWidth={true}
+            type="Dim"
+            disabled={props.stillLoadingTeam}
+          />
+        </Kb.ButtonBar>
+      }
+      hideBorder={true}
+      style={styles.footer}
+    />
+  </>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

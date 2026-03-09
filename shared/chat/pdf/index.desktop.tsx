@@ -19,23 +19,19 @@ const ChatPDF = (props: Props) => {
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   }
   return (
-    <Kb.Modal2
-      bare={true}
-      header={{
-        title: <Kb.Text type="BodyBig">{title}</Kb.Text>,
-      }}
-      footer={{
-        content: (
-          <Kb.ButtonBar small={true}>
-            <Kb.Button type="Default" label="Download" onClick={onDownload} />
-          </Kb.ButtonBar>
-        ),
-      }}
-    >
+    <>
+      <Kb.ModalHeader title={<Kb.Text type="BodyBig">{title}</Kb.Text>} />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <embed src={url} width="100%" height="100%" />
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar small={true}>
+            <Kb.Button type="Default" label="Download" onClick={onDownload} />
+          </Kb.ButtonBar>
+        }
+      />
+    </>
   )
 }
 

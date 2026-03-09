@@ -144,11 +144,10 @@ const Container = (ownProps: OwnProps) => {
   const multiUpload = pathAndInfos.length > 1
 
   return (
-    <Kb.Modal2
-      onClose={onCancel}
-      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
-      noScrollView={true}
-    >
+    <>
+      {Kb.Styles.isMobile ? (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
+      ) : null}
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
@@ -200,7 +199,7 @@ const Container = (ownProps: OwnProps) => {
           {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 

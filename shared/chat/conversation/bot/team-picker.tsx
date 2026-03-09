@@ -70,17 +70,17 @@ const BotTeamPicker = (props: Props) => {
     )
   }
   return (
-    <Kb.Modal2
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: 'Add to team or chat',
-      }}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={
+          Kb.Styles.isMobile ? (
+            <Kb.Text type="BodyBigLink" onClick={onClose}>
+              {'Cancel'}
+            </Kb.Text>
+          ) : undefined
+        }
+        title="Add to team or chat"
+      />
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
@@ -109,7 +109,7 @@ const BotTeamPicker = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 

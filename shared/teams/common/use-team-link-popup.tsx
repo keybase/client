@@ -19,13 +19,10 @@ export const useTeamLinkPopup = (teamname: string) => {
           {Kb.Styles.isMobile && <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={hidePopup} />}
         </Kb.Box2>
       )
-      if (Kb.Styles.isMobile) {
-        return <Kb.MobilePopup onDismiss={hidePopup}>{content}</Kb.MobilePopup>
-      }
       return (
-        <Kb.Overlay position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>
+        <Kb.Popup position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>
           {content}
-        </Kb.Overlay>
+        </Kb.Popup>
       )
     }
 

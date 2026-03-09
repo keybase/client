@@ -32,34 +32,31 @@ const SelectChannel = (ownProps: OwnProps) => {
 
   // TODO: this modal could use a little bit of love
   return (
-    <Kb.Modal2 noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
-            <Kb.Text type="Header">Select a channel</Kb.Text>
-            {channelNames.map(name => (
-              <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
-                <Kb.RadioButton
-                  label={name}
-                  selected={selected === name}
-                  style={styles.radioButton}
-                  onSelect={selected => selected && setSelected(name)}
-                />
-              </Kb.Box2>
-            ))}
-          </Kb.Box2>
-        </Kb.ScrollView>
-        <Kb.ButtonBar>
-          <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
-          <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
-        </Kb.ButtonBar>
-      </Kb.Box2>
-    </Kb.Modal2>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
+          <Kb.Text type="Header">Select a channel</Kb.Text>
+          {channelNames.map(name => (
+            <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
+              <Kb.RadioButton
+                label={name}
+                selected={selected === name}
+                style={styles.radioButton}
+                onSelect={selected => selected && setSelected(name)}
+              />
+            </Kb.Box2>
+          ))}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ButtonBar>
+        <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
+        <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
+      </Kb.ButtonBar>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
   container: {
     width: Kb.Styles.isMobile ? '100%' : 300,
   },

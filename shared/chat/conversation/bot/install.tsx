@@ -429,52 +429,21 @@ const InstallBotPopup = (props: Props) => {
   const backButton = Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
   const enabled = !!conversationIDKey
   return (
-    <Kb.Modal2
-      onClose={!Kb.Styles.isMobile ? onClose : undefined}
-      header={{
-        leftButton: channelPickerScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
-            Back
-          </Kb.Text>
-        ) : Kb.Styles.isMobile || installScreen ? (
-          <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
-            {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: channelPickerScreen ? 'Channels' : '',
-      }}
-      footer={
-        enabled && (!readOnly || showReviewButton)
-          ? {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-                  <Kb.ButtonBar direction="column">
-                    {doneButton}
-                    {editButton}
-                    {saveButton}
-                    {reviewButton}
-                    {installButton}
-                    {removeButton}
-                  </Kb.ButtonBar>
-                  {!!error && (
-                    <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
-                      {'Something went wrong! Please try again, or send '}
-                      <Kb.Text
-                        type="Body"
-                        style={{color: Kb.Styles.globalColors.redDark}}
-                        underline={true}
-                        onClick={onFeedback}
-                      >
-                        {'feedback'}
-                      </Kb.Text>
-                    </Kb.Text>
-                  )}
-                </Kb.Box2>
-              ),
-            }
-          : undefined
-      }
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={
+          channelPickerScreen ? (
+            <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
+              Back
+            </Kb.Text>
+          ) : Kb.Styles.isMobile || installScreen ? (
+            <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
+              {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
+            </Kb.Text>
+          ) : undefined
+        }
+        title={channelPickerScreen ? 'Channels' : ''}
+      />
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
@@ -488,7 +457,36 @@ const InstallBotPopup = (props: Props) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.Modal2>
+      {enabled && (!readOnly || showReviewButton) ? (
+        <Kb.ModalFooter
+          content={
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
+              <Kb.ButtonBar direction="column">
+                {doneButton}
+                {editButton}
+                {saveButton}
+                {reviewButton}
+                {installButton}
+                {removeButton}
+              </Kb.ButtonBar>
+              {!!error && (
+                <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+                  {'Something went wrong! Please try again, or send '}
+                  <Kb.Text
+                    type="Body"
+                    style={{color: Kb.Styles.globalColors.redDark}}
+                    underline={true}
+                    onClick={onFeedback}
+                  >
+                    {'feedback'}
+                  </Kb.Text>
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          }
+        />
+      ) : null}
+    </>
   )
 }
 

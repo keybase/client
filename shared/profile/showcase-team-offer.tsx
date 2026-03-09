@@ -30,12 +30,10 @@ const Container = () => {
 
   useTeamsSubscribe()
   return (
-    <Kb.Modal2
-      onClose={onCancel}
-      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Close</Kb.Text>, title: 'Feature your teams'} : undefined}
-      noScrollView={true}
-      popupStyleClipContainer={styles.clipContainer}
-    >
+    <>
+      {Kb.Styles.isMobile && (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Close</Kb.Text>} title="Feature your teams" />
+      )}
       <Kb.Box2 direction="vertical" style={styles.container}>
         {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>
@@ -57,7 +55,7 @@ const Container = () => {
           ))}
         </Kb.ScrollView>
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 
@@ -136,7 +134,6 @@ const ShowcaseTeamOfferHeader = () => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: Kb.Styles.platformStyles({
         isElectron: {
           maxHeight: 600,

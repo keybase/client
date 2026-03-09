@@ -15,7 +15,7 @@ const ChooseConversation = (props: Props) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Kb.Overlay
+      <Kb.Popup
         attachTo={attachTo}
         onHidden={hidePopup}
         position="center center"
@@ -23,7 +23,7 @@ const ChooseConversation = (props: Props) => {
         visible={true}
       >
         <ConversationList onSelect={onSelect} onDone={hidePopup} />
-      </Kb.Overlay>
+      </Kb.Popup>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

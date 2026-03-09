@@ -103,11 +103,9 @@ const NewTeamInfo = () => {
     })
 
   return (
-    <Kb.Modal2
-      mode="DefaultFullHeight"
-      onClose={parentName ? onClose : undefined} // This is the first page of the process for subteams only
-      header={{
-        leftButton:
+    <>
+      <Kb.ModalHeader
+        leftButton={
           teamWizardState.teamType === 'subteam' ? (
             Kb.Styles.isMobile ? (
               <Kb.Text type="BodyBigLink" onClick={onClose}>
@@ -116,22 +114,15 @@ const NewTeamInfo = () => {
             ) : undefined
           ) : (
             <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-          ),
-        title: (
+          )
+        }
+        title={
           <ModalTitle
             teamID={teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID}
             title={teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'}
           />
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
-        ),
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+        }
+      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
           <Kb.Input3
@@ -226,7 +217,12 @@ const NewTeamInfo = () => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
+        }
+      />
+    </>
   )
 }
 

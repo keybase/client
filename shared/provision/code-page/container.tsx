@@ -165,9 +165,9 @@ const CodePageContainer = () => {
           !currentDeviceAlreadyProvisioned &&
           heyWaitBanner()}
         {!inModal() && troubleshooting && (
-          <Kb.Overlay onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
+          <Kb.Popup onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
             {troubleshootingContent()}
-          </Kb.Overlay>
+          </Kb.Popup>
         )}
       </Kb.Box2>
     )
@@ -254,16 +254,14 @@ const CodePageContainer = () => {
   }
   const content = body()
   if (inModal()) {
+    const h = header()
+    const f = footer()
     return (
-      <Kb.Modal2
-        header={header()}
-        footer={footer()}
-        onClose={onBack}
-        mode="Wide"
-        mobileStyle={{backgroundColor: tabBackground()}}
-      >
+      <>
+        {h ? <Kb.ModalHeader leftButton={h.leftButton} style={h.style} /> : null}
         {content}
-      </Kb.Modal2>
+        <Kb.ModalFooter content={f.content} hideBorder={f.hideBorder} style={f.style} />
+      </>
     )
   }
   return content

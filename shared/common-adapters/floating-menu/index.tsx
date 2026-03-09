@@ -1,27 +1,10 @@
 import * as React from 'react'
-import Overlay from '../overlay'
-import {Box2} from '@/common-adapters/box'
+import Popup from '../popup'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '@/styles'
-import {
-  BottomSheetModal,
-  BottomSheetView,
-  BottomSheetBackdrop,
-  BottomSheetHandle,
-  type BottomSheetHandleProps,
-  type BottomSheetBackdropProps,
-} from '@/common-adapters/bottom-sheet'
-import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
-import {FullWindowOverlay} from 'react-native-screens'
 import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
-
-const Kb = {
-  Box2,
-  Overlay,
-  useSafeAreaInsets,
-}
 
 export type MenuItems = _MenuItems
 
@@ -47,20 +30,6 @@ export type Props = {
   snapPoints?: Array<string | number>
 }
 
-function Backdrop(props: BottomSheetBackdropProps) {
-  return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
-}
-
-function Handle(p: BottomSheetHandleProps) {
-  return <BottomSheetHandle {...p} style={styles.customHandleStyle} />
-}
-
-const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
-  return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
-}
-
-const defaultSnapPoints = ['75%']
-
 type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
 
 const useSafeNavigation: SafeNavigationHook = Styles.isMobile
@@ -68,27 +37,17 @@ const useSafeNavigation: SafeNavigationHook = Styles.isMobile
   : () => null
 
 function FloatingMenu(props: Props) {
-  const {snapPoints, items, visible, onHidden} = props
+  const {items, visible, onHidden} = props
   const isModal = React.useContext(FloatingModalContext)
-  const shownRef = React.useRef(false)
-
-  const bottomRef = React.useRef<BottomSheetModal | null>(null)
 
   const navigation = useSafeNavigation()
 
   React.useEffect(() => {
     const unsub = navigation?.addListener('state', () => {
-      bottomRef.current?.forceClose()
       onHidden()
     })
     return unsub
-  }, [bottomRef, navigation, onHidden])
-
-  React.useEffect(() => {
-    return () => {
-      bottomRef.current?.forceClose()
-    }
-  }, [])
+  }, [navigation, onHidden])
 
   if (!visible && isModal === false) {
     return null
@@ -113,72 +72,22 @@ function FloatingMenu(props: Props) {
     return contents
   }
 
-  if (Styles.isMobile && isModal === 'bottomsheet') {
-    return (
-      <BottomSheetModal
-        backgroundStyle={styles.modalBackground}
-        containerComponent={FullWindow}
-        snapPoints={snapPoints ?? defaultSnapPoints}
-        enableDynamicSizing={true}
-        ref={s => {
-          if (bottomRef.current && bottomRef.current !== s) {
-            // need to workaround this unmounting but not closing the portal
-            bottomRef.current.forceClose()
-          }
-          bottomRef.current = s
-          if (s && !shownRef.current) {
-            shownRef.current = true
-            setTimeout(() => {
-              s.present()
-            }, 100)
-          }
-        }}
-        handleStyle={styles.handleStyle}
-        handleIndicatorStyle={styles.handleIndicatorStyle}
-        style={styles.modalStyle}
-        backdropComponent={Backdrop}
-        handleComponent={Handle}
-        onDismiss={props.onHidden}
-      >
-        <BottomSheetView style={undefined}>{contents}</BottomSheetView>
-      </BottomSheetModal>
-    )
-  }
-
   return (
-    <Kb.Overlay
-      position={props.position}
-      positionFallbacks={props.positionFallbacks}
+    <Popup
+      attachTo={props.attachTo}
       onHidden={onHidden}
       visible={props.visible}
-      attachTo={props.attachTo}
-      remeasureHint={props.remeasureHint}
-      style={props.containerStyle}
+      position={props.position}
+      positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      remeasureHint={props.remeasureHint}
       offset={props.offset}
+      style={props.containerStyle}
+      snapPoints={props.snapPoints}
     >
       {contents}
-    </Kb.Overlay>
+    </Popup>
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      customHandleStyle: {},
-      handleIndicatorStyle: {backgroundColor: Styles.globalColors.black_40},
-      handleStyle: {backgroundColor: Styles.globalColors.black_05_on_white},
-      modalBackground: {backgroundColor: Styles.globalColors.black_05_on_white},
-      modalStyle: Styles.platformStyles({
-        isAndroid: {
-          elevation: 17,
-          shadowColor: Styles.globalColors.black_50OrBlack_40,
-          shadowOffset: {height: 5, width: 0},
-          shadowOpacity: 1,
-          shadowRadius: 10,
-        },
-      }),
-    }) as const
-)
 
 export default FloatingMenu

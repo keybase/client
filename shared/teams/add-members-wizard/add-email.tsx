@@ -49,32 +49,16 @@ const AddEmail = (props: Props) => {
   }
 
   return (
-    <Kb.Modal2
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Email list" />,
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-            waiting={waiting}
-          />
-        ),
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-      mode="DefaultFullHeight"
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
+        title={<ModalTitle teamID={teamID} title="Email list" />}
+      />
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -102,7 +86,18 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.Button
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+            waiting={waiting}
+          />
+        }
+      />
+    </>
   )
 }
 

@@ -34,28 +34,26 @@ const GenericResult = () => {
     )
   }
   return (
-    <Kb.Modal2 noScrollView={true} popupStyleClipContainer={styles.clipContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          alignItems="center"
-          fullWidth={true}
-          style={styles.topContainer}
-        >
-          <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
-            <SiteIcon set={serviceIcon} full={true} />
-            <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
-              <Kb.ImageIcon type={iconType} />
-            </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        alignItems="center"
+        fullWidth={true}
+        style={styles.topContainer}
+      >
+        <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
+          <SiteIcon set={serviceIcon} full={true} />
+          <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
+            <Kb.ImageIcon type={iconType} />
           </Kb.Box2>
-          {frag}
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
-          <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
-        </Kb.Box2>
+        {frag}
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
+        <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -65,7 +63,6 @@ const styles = Kb.Styles.styleSheetCreate(
       bottomContainer: {
         height: 80,
       },
-      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       container: Kb.Styles.platformStyles({
         isElectron: {
           height: 485,

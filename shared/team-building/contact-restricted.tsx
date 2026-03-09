@@ -40,24 +40,10 @@ export const ContactRestricted = (props: Props) => {
     default:
   }
   return (
-    <Kb.Modal2
-      onClose={onBack}
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: <Kb.BackButton onClick={onBack} />,
-            }
-          : undefined
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
-          </Kb.ButtonBar>
-        ),
-        hideBorder: true,
-      }}
-    >
+    <>
+      {Kb.Styles.isMobile ? (
+        <Kb.ModalHeader leftButton={<Kb.BackButton onClick={onBack} />} />
+      ) : null}
       <Kb.Box2
         alignItems="center"
         direction="vertical"
@@ -93,7 +79,15 @@ export const ContactRestricted = (props: Props) => {
           {description}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
+          </Kb.ButtonBar>
+        }
+        hideBorder={true}
+      />
+    </>
   )
 }
 

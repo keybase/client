@@ -15,39 +15,23 @@ const PushPrompt = () => {
     clearModals()
   }
   return (
-    <Kb.Modal2
-      header={{
-        hideBorder: true,
-        rightButton: (
+    <>
+      <Kb.ModalHeader
+        hideBorder={true}
+        rightButton={
           <Kb.ClickableBox onClick={onNoPermissions}>
             <Kb.Text type="BodyBig" negative={true}>
               Skip
             </Kb.Text>
           </Kb.ClickableBox>
-        ),
-        style: styles.header,
-        title: (
+        }
+        style={styles.header}
+        title={
           <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
             Allow notifications
           </Kb.Text>
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.WaitingButton
-            fullWidth={true}
-            onClick={onRequestPermissions}
-            label="Allow notifications"
-            waitingKey={C.waitingKeyPushPermissionsRequesting}
-            style={styles.button}
-            type="Success"
-          />
-        ),
-        hideBorder: true,
-        style: styles.footer,
-      }}
-      mobileStyle={styles.background}
-    >
+        }
+      />
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
         <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
@@ -58,7 +42,21 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.ModalFooter
+        content={
+          <Kb.WaitingButton
+            fullWidth={true}
+            onClick={onRequestPermissions}
+            label="Allow notifications"
+            waitingKey={C.waitingKeyPushPermissionsRequesting}
+            style={styles.button}
+            type="Success"
+          />
+        }
+        hideBorder={true}
+        style={styles.footer}
+      />
+    </>
   )
 }
 

@@ -403,7 +403,7 @@ const Popup = (p: PopupProps) => {
       </Chat.ChatProvider>
     </Kb.FloatingBox>
   ) : (
-    <Kb.Overlay
+    <Kb.Popup
       attachTo={attachRef}
       matchDimension={true}
       position="top center"
@@ -414,6 +414,6 @@ const Popup = (p: PopupProps) => {
       style={suggestionOverlayStyle}
     >
       {children}
-    </Kb.Overlay>
+    </Kb.Popup>
   )
 }

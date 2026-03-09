@@ -23,7 +23,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   }
 
   return showingPopup ? (
-    <Kb.MobilePopup onDismiss={onClosePopup}>
+    <Kb.Popup onHidden={onClosePopup}>
       <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header" style={styles.header}>
@@ -39,7 +39,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
           <Kb.Button label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.MobilePopup>
+    </Kb.Popup>
   ) : null
 }
 

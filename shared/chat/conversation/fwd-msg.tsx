@@ -198,20 +198,19 @@ const TeamPicker = (props: Props) => {
     )
 
   return (
-    <Kb.Modal2
-      noScrollView={true}
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
-      }}
-    >
+    <>
+      <Kb.ModalHeader
+        leftButton={
+          Kb.Styles.isMobile ? (
+            <Kb.Text type="BodyBigLink" onClick={onClose}>
+              {'Cancel'}
+            </Kb.Text>
+          ) : undefined
+        }
+        title={pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'}
+      />
       {content}
-    </Kb.Modal2>
+    </>
   )
 }
 

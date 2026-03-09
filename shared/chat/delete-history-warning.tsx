@@ -15,12 +15,10 @@ const DeleteHistoryWarning = () => {
   }
 
   return (
-    <Kb.Modal2
-      onClose={onCancel}
-      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} : undefined}
-      noScrollView={true}
-      popupStyleClipContainer={styles.clipContainer}
-    >
+    <>
+      {Kb.Styles.isMobile && (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
+      )}
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([
@@ -52,7 +50,7 @@ const DeleteHistoryWarning = () => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 
@@ -82,7 +80,6 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      clipContainer: Kb.Styles.platformStyles({isElectron: {overflow: 'hidden'}}),
       padding: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: 40,

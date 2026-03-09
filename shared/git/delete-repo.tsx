@@ -54,11 +54,10 @@ const Container = (ownProps: OwnProps) => {
     }
   }
   return (
-    <Kb.Modal2
-      onClose={onClose}
-      header={Kb.Styles.isMobile ? {leftButton: <Kb.Text type="BodyBigLink" onClick={onClose}>Cancel</Kb.Text>, title: 'Delete repo?'} : undefined}
-      noScrollView={true}
-    >
+    <>
+      {Kb.Styles.isMobile && (
+        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onClose}>Cancel</Kb.Text>} title="Delete repo?" />
+      )}
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
           {!!error && (
@@ -131,7 +130,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.Modal2>
+    </>
   )
 }
 

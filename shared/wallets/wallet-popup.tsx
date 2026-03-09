@@ -47,13 +47,13 @@ const WalletPopup = (props: WalletPopupProps) => {
     : undefined
 
   return (
-    <Kb.Modal2
-      onClose={onClose}
-      header={mobileHeader}
-      mode="DefaultFullHeight"
-      noScrollView={true}
-      mobileStyle={props.safeAreaViewTopStyle}
-    >
+    <>
+      {mobileHeader ? (
+        <Kb.ModalHeader
+          leftButton={mobileHeader.leftButton}
+          {...(mobileHeader.titleComponent ? {title: mobileHeader.titleComponent} : {})}
+        />
+      ) : null}
       {!!props.safeAreaViewTopStyle && Kb.Styles.isMobile && (
         <Kb.SafeAreaViewTop style={props.safeAreaViewTopStyle} />
       )}
@@ -97,7 +97,7 @@ const WalletPopup = (props: WalletPopupProps) => {
       {!!props.safeAreaViewBottomStyle && Kb.Styles.isMobile && (
         <Kb.SafeAreaView style={props.safeAreaViewBottomStyle} />
       )}
-    </Kb.Modal2>
+    </>
   )
 }
 
