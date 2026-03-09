@@ -27,6 +27,7 @@ export type LayoutOptions = {
   modal2?: boolean
   modal2ClearCover?: boolean
   modal2NoClose?: boolean
+  modalStyle?: Styles.StylesCrossPlatform
   modal2Header?: {
     title?: React.ReactNode
     leftButton?: React.ReactNode

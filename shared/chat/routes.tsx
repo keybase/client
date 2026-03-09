@@ -39,6 +39,8 @@ export const newModalRoutes = {
     {
       getOptions: {
         ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
+        modal2Style: {alignSelf: 'stretch', paddingBottom: 16, paddingLeft: 40, paddingRight: 40, paddingTop: 40},
+        modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
@@ -81,7 +83,9 @@ export const newModalRoutes = {
     })
   ),
   chatNewChat,
-  chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf'))),
+  chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
+    getOptions: {modal2Style: {alignSelf: 'stretch'}, modalStyle: {height: '80%', width: '80%'}},
+  }),
   chatSearchBots: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),
     {canBeNullConvoID: true}

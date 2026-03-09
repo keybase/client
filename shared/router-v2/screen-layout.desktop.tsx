@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
-import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
 import {ModalHeader, ModalFooter} from '@/common-adapters/modal2'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
@@ -50,7 +49,7 @@ type ModalWrapperProps = {
 
 const ModalWrapper = (p: ModalWrapperProps) => {
   const {navigationOptions, navigation, children} = p
-  const {modal2Style, modal2AvoidTabs, modal2 = true, modal2ClearCover, modal2NoClose, modal2Header, modal2Footer} =
+  const {modal2Style, modal2AvoidTabs, modal2 = true, modal2ClearCover, modal2NoClose, modal2Header, modal2Footer, modalStyle} =
     navigationOptions ?? {}
 
   const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, modal2NoClose)
@@ -64,42 +63,53 @@ const ModalWrapper = (p: ModalWrapperProps) => {
     }
   })
 
+  React.useEffect(() => {
+    if (!topMostModal || modal2NoClose || !modal2) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation()
+        navigation.pop()
+      }
+    }
+    window.addEventListener('keydown', handler, true)
+    return () => window.removeEventListener('keydown', handler, true)
+  }, [topMostModal, modal2NoClose, modal2, navigation])
+
   if (modal2) {
     return (
-      <EscapeHandler onESC={topMostModal ? () => navigation.pop() : undefined}>
-        <Kb.Box2
-          key="background"
-          direction="horizontal"
-          ref={backgroundRef}
-          style={Kb.Styles.collapseStyles([
-            styles.modal2Container,
-            modal2ClearCover && styles.modal2ClearCover,
-            !topMostModal && styles.hidden,
-          ])}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
-        >
-          {modal2AvoidTabs && (
-            <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
-          )}
-          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-            <Kb.Box2 direction="vertical" style={styles.modalMode}>
-              {modal2Header ? <ModalHeader {...modal2Header} /> : null}
-              {children}
-              {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
-              {!modal2ClearCover && !modal2NoClose && (
-                <Kb.Icon
-                  type="iconfont-close"
-                  onClick={() => navigation.pop()}
-                  color={Kb.Styles.globalColors.whiteOrWhite_75}
-                  hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
-                  style={styles.modal2CloseIcon}
-                />
-              )}
-            </Kb.Box2>
+      <Kb.Box2
+        key="background"
+        direction="horizontal"
+        fullHeight={true}
+        ref={backgroundRef}
+        style={Kb.Styles.collapseStyles([
+          styles.modal2Container,
+          modal2ClearCover && styles.modal2ClearCover,
+          !topMostModal && styles.hidden,
+        ])}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+      >
+        {modal2AvoidTabs && (
+          <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
+        )}
+        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modal2Style, modal2Style])}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalMode, modalStyle])}>
+            {modal2Header ? <ModalHeader {...modal2Header} /> : null}
+            {children}
+            {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
+            {!modal2ClearCover && !modal2NoClose && (
+              <Kb.Icon
+                type="iconfont-close"
+                onClick={() => navigation.pop()}
+                color={Kb.Styles.globalColors.whiteOrWhite_75}
+                hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
+                style={styles.modal2CloseIcon}
+              />
+            )}
           </Kb.Box2>
         </Kb.Box2>
-      </EscapeHandler>
+      </Kb.Box2>
     )
   } else {
     return (
@@ -129,9 +139,8 @@ type LayoutProps = {
 export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?: GetOptions) => {
   return ({children, route, navigation}: LayoutProps) => {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-    const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
-    let body = suspenseContent
+    let body = children
 
     if (isModal) {
       body = (
@@ -140,6 +149,8 @@ export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?:
         </ModalWrapper>
       )
     }
+
+    body = <React.Suspense>{body}</React.Suspense>
 
     if (wrapInStrict(route.name)) {
       body = <React.StrictMode>{body}</React.StrictMode>
@@ -185,11 +196,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.desktopStyles.boxShadow,
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: Kb.Styles.borderRadius,
-      maxHeight: '90vh',
-      minHeight: 400,
-      minWidth: 400,
+      height: 560,
       pointerEvents: 'auto',
       position: 'relative',
+      width: 400,
     },
   }),
 }))

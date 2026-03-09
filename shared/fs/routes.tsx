@@ -34,6 +34,7 @@ export const newModalRoutes = {
   confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
   destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker'))),
   kextPermission: {
+    getOptions: {modalStyle: {width: 700}},
     screen: React.lazy(
       async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
     ),

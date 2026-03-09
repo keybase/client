@@ -65,7 +65,9 @@ export const newModalRoutes = {
     React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))
   ),
   teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out'))),
-  teamRename: C.makeScreen(React.lazy(async () => import('./rename-team'))),
+  teamRename: C.makeScreen(React.lazy(async () => import('./rename-team')), {
+    getOptions: {modalStyle: {height: 480, width: 560}},
+  }),
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose'))),
   teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info'))),
   teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team'))),

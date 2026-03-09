@@ -23,6 +23,7 @@ const getOptions = ({route}: OwnProps) => {
           paddingRight: Kb.Styles.globalMargins.xsmall,
           paddingTop: Kb.Styles.globalMargins.mediumLarge,
         } as const,
+        modalStyle: {width: '100%'},
       } as const)
     : common
 }
