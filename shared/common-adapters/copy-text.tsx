@@ -183,12 +183,15 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignSelf: 'stretch',
           borderBottomLeftRadius: 0,
+          borderBottomRightRadius: Styles.borderRadius,
           borderTopLeftRadius: 0,
+          borderTopRightRadius: Styles.borderRadius,
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
+          width: undefined,
         },
         isElectron: {
           display: 'flex',
