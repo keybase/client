@@ -7,7 +7,7 @@ import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
-import {LegendList, type LegendListRef} from '@legendapp/list/react'
+import type {LegendListRef} from '@/common-adapters'
 import {createPortal} from 'react-dom'
 import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
@@ -200,9 +200,10 @@ function Inbox(props: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
-  const getFixedItemSize = (item: RowItem): number => {
-    return getRowHeight(item.type, item.type === 'divider' && item.showButton)
-  }
+  const itemHeight = React.useMemo(() => ({
+    getSize: (item: RowItem) => getRowHeight(item.type, item.type === 'divider' && item.showButton),
+    type: 'perItem' as const,
+  }), [])
 
   const onViewChanged = (data: ViewableItemsData) => {
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
@@ -229,7 +230,7 @@ function Inbox(props: InboxProps) {
     }
   }
 
-  const renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
+  const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     if (item.type === 'divider') {
       return (
         <DragLine
@@ -259,12 +260,12 @@ function Inbox(props: InboxProps) {
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
         <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
           {rows.length ? (
-            <LegendList
-              data={rows}
-              estimatedItemSize={56}
+            <Kb.List
+              items={rows}
+              itemHeight={itemHeight}
+              estimatedItemHeight={56}
               extraData={selectedConversationIDKey}
               getItemType={getItemType}
-              getFixedItemSize={getFixedItemSize}
               recycleItems={true}
               keyExtractor={keyExtractor}
               onViewableItemsChanged={onViewChanged}
@@ -272,7 +273,6 @@ function Inbox(props: InboxProps) {
               ref={listRef}
               renderItem={renderItem}
               drawDistance={250}
-              style={styles.legendList}
             />
           ) : null}
         </div>
@@ -374,9 +374,6 @@ const styles = Kb.Styles.styleSheetCreate(
       grabberLineContainer: {
         paddingTop: 1,
         width: Kb.Styles.globalMargins.small,
-      },
-      legendList: {
-        height: '100%',
       },
       list: {
         flex: 1,

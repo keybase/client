@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from './shared'
-import type {LegendListRef} from '@legendapp/list/react'
+import type {LegendListRef} from '@/common-adapters'
 
 const SuggestionList = <I,>(props: Props<I>) => {
   const listRef = React.useRef<LegendListRef>(null)
@@ -38,7 +38,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
     >
-      <Kb.List desktopRef={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} estimatedItemHeight={24} extraData={selectedIndex} />
+      <Kb.List ref={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} estimatedItemHeight={24} extraData={selectedIndex} />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical" justifyContent="center">
