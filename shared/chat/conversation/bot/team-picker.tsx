@@ -35,10 +35,6 @@ const BotTeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => {
-    clearModals()
-  }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelect = (convID: T.RPCChat.ConversationID) => {
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
@@ -71,16 +67,6 @@ const BotTeamPicker = (props: Props) => {
   }
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          Kb.Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={onClose}>
-              {'Cancel'}
-            </Kb.Text>
-          ) : undefined
-        }
-        title="Add to team or chat"
-      />
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter

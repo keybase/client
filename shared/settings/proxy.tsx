@@ -169,9 +169,6 @@ const ProxySettingsComponent = (props: Props) => {
 const ProxySettingsPopup = (props: Props) => {
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={props.onBack}>Cancel</Kb.Text>} />
-      )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
         {!Kb.Styles.isMobile && <Kb.BackButton onClick={props.onBack} />}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>

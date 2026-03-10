@@ -54,7 +54,7 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
   },
   resetConfirm: {
-    getOptions: {gestureEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Account reset'},
     screen: React.lazy(async () => import('./reset/confirm')),
   },
   resetEnterPassword: {screen: React.lazy(async () => import('./reset/password-enter'))},
@@ -68,7 +68,7 @@ export const newModalRoutes = {
     screen: React.lazy(async () => import('../settings/proxy')),
   },
   recoverPasswordErrorModal: {
-    getOptions: {gestureEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
   recoverPasswordSetPassword: {

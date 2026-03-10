@@ -116,9 +116,6 @@ const Container = (ownProps: OwnProps) => {
   }
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onClose}>Cancel</Kb.Text>} />
-      )}
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (

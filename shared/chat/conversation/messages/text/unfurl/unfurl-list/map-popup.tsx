@@ -38,14 +38,6 @@ const UnfurlMapPopup = (props: Props) => {
   const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        }
-        title="Location"
-      />
       <LocationMap mapSrc={mapSrc} height={height} width={width} />
       <Kb.ModalFooter
         content={

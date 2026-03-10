@@ -84,14 +84,6 @@ const LogoutContainer = () => {
     />
   ) : (
     <>
-      <Kb.ModalHeader
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        ) : undefined}
-        title={!Kb.Styles.isMobile ? 'Do you know your password?' : undefined}
-      />
       {checkPasswordIsCorrect === false ? (
         <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
       ) : null}

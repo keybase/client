@@ -49,8 +49,15 @@ type ModalWrapperProps = {
 
 const ModalWrapper = (p: ModalWrapperProps) => {
   const {navigationOptions, navigation, children} = p
-  const {modal2Style, modal2AvoidTabs, modal2 = true, modal2ClearCover, modal2NoClose, modal2Header, modal2Footer, modalStyle} =
+  const {modal2Style, modal2AvoidTabs, modal2 = true, modal2ClearCover, modal2NoClose, modal2Footer, modalStyle} =
     navigationOptions ?? {}
+
+  // Build header from standard React Navigation options
+  const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
+  const headerLeft = navigationOptions?.['headerLeft']
+  const headerRight = navigationOptions?.['headerRight']
+  const headerShown = navigationOptions?.['headerShown'] !== false
+  const hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
 
   const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, modal2NoClose)
 
@@ -76,6 +83,12 @@ const ModalWrapper = (p: ModalWrapperProps) => {
   }, [topMostModal, modal2NoClose, modal2, navigation])
 
   if (modal2) {
+    const titleNode = typeof headerTitle === 'function'
+      ? headerTitle({children: typeof navigationOptions?.['title'] === 'string' ? navigationOptions['title'] : '', tintColor: ''})
+      : headerTitle
+    const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
+    const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
+
     return (
       <Kb.Box2
         key="background"
@@ -95,7 +108,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
         )}
         <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modal2Style, modal2Style])}>
           <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalMode, modalStyle])}>
-            {modal2Header ? <ModalHeader {...modal2Header} /> : null}
+            {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
             {children}
             {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
             {!modal2ClearCover && !modal2NoClose && (

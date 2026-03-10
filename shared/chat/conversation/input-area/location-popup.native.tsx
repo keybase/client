@@ -94,14 +94,6 @@ const LocationPopup = () => {
     : ''
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        }
-        title="Location"
-      />
       {locationDenied ? (
         <Kb.Box2 direction="vertical" style={styles.denied} gap="small" justifyContent="center">
           <Kb.Text center={true} type="Body" style={styles.deniedText}>

@@ -230,10 +230,8 @@ const ArchiveModal = (p: Props) => {
     </Kb.Box2>
   )
 
-  const modalHeader = Kb.useModalHeaderTitleAndCancel('Backup', onClose)
   return (
     <>
-      <Kb.ModalHeader {...modalHeader} />
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
           {Kb.Styles.isMobile ? (

@@ -34,7 +34,6 @@ const ConfirmReset = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile ? <Kb.ModalHeader title="Account reset" /> : null}
       {error ? (
         <Kb.Banner color="red" key="errors">
           <Kb.BannerParagraph bannerColor="red" content={error} />

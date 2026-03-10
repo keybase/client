@@ -49,7 +49,7 @@ export const newModalRoutes = {
   ),
   profileConfirmOrPending: C.makeScreen(React.lazy(async () => import('./confirm-or-pending'))),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
-    getOptions: {modalStyle: {height: 450, width: 350}},
+    getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
   }),
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar'))),
   profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
@@ -64,13 +64,13 @@ export const newModalRoutes = {
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
   profilePostProof: C.makeScreen(React.lazy(async () => import('./post-proof'))),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
-    getOptions: {modalStyle: {height: 485, width: 560}},
+    getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
   }),
   profileProveEnterUsername: C.makeScreen(React.lazy(async () => import('./prove-enter-username'))),
   profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice'))),
   profileProvideInfo: C.makeScreen(React.lazy(async () => import('./pgp/info'))),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke'))),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
-    getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}},
+    getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
   }),
 }

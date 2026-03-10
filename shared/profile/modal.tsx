@@ -4,17 +4,10 @@ import * as Kb from '@/common-adapters'
 type Props = React.PropsWithChildren<{
   onCancel?: () => void
   skipButton?: boolean
-  title?: string
 }>
 
-const Modal = ({children, onCancel, skipButton, title}: Props) => (
+const Modal = ({children, onCancel, skipButton}: Props) => (
   <>
-    {Kb.Styles.isMobile && !!title && (
-      <Kb.ModalHeader
-        leftButton={onCancel ? <Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text> : undefined}
-        title={title}
-      />
-    )}
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="center" justifyContent="space-around">

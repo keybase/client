@@ -13,17 +13,12 @@ const Container = () => {
   const _location = d.location || ''
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
 
   const editProfile = useProfileState(s => s.dispatch.editProfile)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(bio, fullname, location)
     navigateUp()
   }
-
-  const title = 'Edit Profile'
 
   const [bio, setBio] = React.useState(_bio)
   const [fullname, setFullname] = React.useState(_fullname)
@@ -39,9 +34,6 @@ const Container = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} title={title} />
-      )}
       <Kb.ScrollView>
         <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
           {Kb.Styles.isMobile ? null : (

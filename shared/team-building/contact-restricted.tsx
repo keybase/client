@@ -41,9 +41,6 @@ export const ContactRestricted = (props: Props) => {
   }
   return (
     <>
-      {Kb.Styles.isMobile ? (
-        <Kb.ModalHeader leftButton={<Kb.BackButton onClick={onBack} />} />
-      ) : null}
       <Kb.Box2
         alignItems="center"
         direction="vertical"

@@ -16,13 +16,33 @@ type LayoutProps = {
 export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-    const {modal2Header, modal2Footer} = navigationOptions ?? {}
+    const {modal2Footer} = navigationOptions ?? {}
+
+    // Build header from standard React Navigation options (modal screens only —
+    // non-modal screens use React Navigation's native header)
+    let hasHeader = false
+    let titleNode: React.ReactNode = undefined
+    let leftNode: React.ReactNode = undefined
+    let rightNode: React.ReactNode = undefined
+    if (isModal) {
+      const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
+      const headerLeft = navigationOptions?.['headerLeft']
+      const headerRight = navigationOptions?.['headerRight']
+      const headerShown = navigationOptions?.['headerShown'] !== false
+      hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
+
+      titleNode = typeof headerTitle === 'function'
+        ? headerTitle({children: typeof navigationOptions?.['title'] === 'string' ? navigationOptions['title'] : '', tintColor: ''})
+        : headerTitle
+      leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
+      rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
+    }
 
     const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
-    const wrappedContent = modal2Header || modal2Footer ? (
+    const wrappedContent = hasHeader || modal2Footer ? (
       <>
-        {modal2Header ? <ModalHeader {...modal2Header} /> : null}
+        {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
         {suspenseContent}
         {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
       </>

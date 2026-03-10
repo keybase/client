@@ -114,9 +114,6 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onBack}>Cancel</Kb.Text>} />
-      )}
       <Kb.Box2 direction="vertical" style={styles.container} gap="xsmall" gapStart={true}>
         {addUserToTeamsState === 'failed' && (
           <Kb.Box2

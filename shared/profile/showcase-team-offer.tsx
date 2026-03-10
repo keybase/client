@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
@@ -10,30 +11,28 @@ const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
   const you = useCurrentUserState(s => s.username)
   const teamMeta = Teams.useTeamsState(s => s.teamMeta)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    // sadly a little racy, doing this for now
-    setTimeout(() => {
-      useTrackerState.getState().dispatch.load({
-        assertion: you,
-        guiID: C.generateGUIID(),
-        ignoreCache: true,
-        inTracker: false,
-        reason: '',
-      })
-    }, 500)
-    navigateUp()
-  }
 
   const onPromote = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const teams = Teams.sortTeamsByName(teamMeta)
 
+  // Reload tracker profile when modal closes to reflect any showcase changes
+  React.useEffect(() => {
+    return () => {
+      setTimeout(() => {
+        useTrackerState.getState().dispatch.load({
+          assertion: you,
+          guiID: C.generateGUIID(),
+          ignoreCache: true,
+          inTracker: false,
+          reason: '',
+        })
+      }, 500)
+    }
+  }, [you])
+
   useTeamsSubscribe()
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Close</Kb.Text>} title="Feature your teams" />
-      )}
       <Kb.Box2 direction="vertical" style={styles.container}>
         {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>

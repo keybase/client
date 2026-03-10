@@ -71,10 +71,11 @@ export const newModalRoutes = {
   ),
   chatInstallBotPick: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
-    {skipProvider: true}
+    {getOptions: {title: 'Add to team or chat'}, skipProvider: true}
   ),
   chatLocationPreview: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/input-area/location-popup'))
+    React.lazy(async () => import('./conversation/input-area/location-popup')),
+    {getOptions: {title: 'Location'}}
   ),
   chatMessagePopup: Chat.makeChatScreen(
     React.lazy(async () => {
@@ -88,7 +89,7 @@ export const newModalRoutes = {
   }),
   chatSearchBots: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),
-    {canBeNullConvoID: true}
+    {canBeNullConvoID: true, getOptions: {title: 'Add a bot'}}
   ),
   chatSendToChat: Chat.makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
@@ -96,6 +97,7 @@ export const newModalRoutes = {
   ),
   chatShowNewTeamDialog: Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
   chatUnfurlMapPopup: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup'))
+    React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
+    {getOptions: {title: 'Location'}}
   ),
 }

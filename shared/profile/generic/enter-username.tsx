@@ -38,7 +38,6 @@ const ConnectedEnterUsername = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onSubmit = () => submitUsername?.()
   const onSubmit = _platformURL ? () => _platformURL && openURL(_platformURL) : _onSubmit
-  const onCancel = onBack
 
   const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
   const wasWaiting = React.useRef(false)
@@ -57,9 +56,6 @@ const ConnectedEnterUsername = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
-      )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!unreachable && !Kb.Styles.isMobile && <Kb.BackButton onClick={onBack} style={styles.backButton} />}
         <Kb.Box2

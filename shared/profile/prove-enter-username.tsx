@@ -59,7 +59,7 @@ const Container = () => {
   const {headerText, hintText} = pt
 
   return (
-    <Modal onCancel={onCancel} skipButton={true} title={C.isMobile ? headerText : undefined}>
+    <Modal onCancel={onCancel} skipButton={true}>
       {!!errorText && (
         <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
           <Kb.Text center={true} negative={true} type="BodySemibold">

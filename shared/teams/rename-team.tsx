@@ -67,20 +67,9 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader
-          leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>}
-          title="Rename subteam"
-        />
-      )}
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
         <Kb.Avatar teamname={teamname} size={Kb.Styles.isMobile ? 64 : 48} />
         <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
-          {!Kb.Styles.isMobile && (
-            <Kb.Text type="Header" center={true}>
-              Rename {teamname}
-            </Kb.Text>
-          )}
           <Kb.Text type="BodySmall" center={true}>
             Subteam of {prefix}
           </Kb.Text>
@@ -168,11 +157,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.small,
       },
       container: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 480,
-          width: 560,
-        },
-        isMobile: {height: '100%'},
+        common: {flex: 1},
       }),
       error: {color: Kb.Styles.globalColors.redDark},
       inputContainer: {

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -79,18 +78,8 @@ const ContactsJoinedModal = () => {
   const people = useSettingsContactsState(s => s.alreadyOnKeybase)
   const following = useFollowerState(s => s.following)
   const filteredPeople = people.filter(p => !following.has(p.username))
-  const nav = useSafeNavigation()
-  const onClose = () => nav.safeNavigateUp()
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={true}
-        leftButton={
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Done
-          </Kb.Text>
-        }
-      />
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>

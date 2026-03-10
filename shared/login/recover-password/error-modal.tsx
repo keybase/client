@@ -20,7 +20,6 @@ const ConnectedErrorModal = () => {
 
   return (
     <>
-      <Kb.ModalHeader title="Error" />
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
         <Kb.Text type="Body" center={true}>
           {error}

@@ -16,9 +16,6 @@ const DeleteHistoryWarning = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
-      )}
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([

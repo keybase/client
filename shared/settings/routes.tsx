@@ -67,22 +67,28 @@ export const sharedNewRoutes = {
 }
 
 const sharedNewModalRoutes = {
-  [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout'))),
+  [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
+    getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
+  }),
   [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password'))),
-  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
+  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
+    getOptions: {title: 'Backup'},
+  }),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
   settingsAddEmail: C.makeScreen(
     React.lazy(async () => {
       const {Email} = await import('./account/add-modals')
       return {default: Email}
-    })
+    }),
+    {getOptions: C.isMobile ? {title: 'Add email address'} : {title: 'Add an email address'}}
   ),
   settingsAddPhone: C.makeScreen(
     React.lazy(async () => {
       const {Phone} = await import('./account/add-modals')
       return {default: Phone}
-    })
+    }),
+    {getOptions: C.isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
   ),
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
   settingsVerifyPhone: C.makeScreen(

@@ -39,8 +39,12 @@ export const newModalRoutes = {
   contactRestricted,
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
-  teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji'))),
-  teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias'))),
+  teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
+    getOptions: {title: 'Add emoji'},
+  }),
+  teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
+    getOptions: {title: 'Add an alias'},
+  }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels'))),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {
     getOptions: {gestureEnabled: false},
@@ -59,14 +63,16 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container'))),
-  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team'))),
+  teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {
+    getOptions: {title: 'Create a team'},
+  }),
   teamReallyLeaveTeam: C.makeScreen(React.lazy(async () => import('./confirm-modals/really-leave-team'))),
   teamReallyRemoveChannelMember: C.makeScreen(
     React.lazy(async () => import('./confirm-modals/confirm-remove-from-channel'))
   ),
   teamReallyRemoveMember: C.makeScreen(React.lazy(async () => import('./confirm-modals/confirm-kick-out'))),
   teamRename: C.makeScreen(React.lazy(async () => import('./rename-team')), {
-    getOptions: {modalStyle: {height: 480, width: 560}},
+    getOptions: {modalStyle: {height: 480, width: 560}, title: 'Rename subteam'},
   }),
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose'))),
   teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info'))),

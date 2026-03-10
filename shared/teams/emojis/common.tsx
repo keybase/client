@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 
 type AliasInputProps = {
   error?: string
@@ -63,13 +62,8 @@ type ModalProps = {
 }
 
 export const Modal = (props: ModalProps) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} title={props.title} />
-      )}
       <Kb.Box2
         direction="vertical"
         fullHeight={Kb.Styles.isMobile}

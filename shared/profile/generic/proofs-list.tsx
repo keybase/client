@@ -32,9 +32,6 @@ const Container = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
-      )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           {!Kb.Styles.isMobile && (

@@ -62,14 +62,6 @@ export const Email = () => {
   }
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
-            Close
-          </Kb.Text>
-        ) : null}
-        title={Kb.Styles.isMobile ? 'Add email address' : 'Add an email address'}
-      />
       {!!emailError && (
         <Kb.Banner color="red" style={styles.banner}>
           <Kb.BannerParagraph bannerColor="red" content={emailError} />
@@ -177,14 +169,6 @@ export const Phone = () => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
-            Close
-          </Kb.Text>
-        ) : null}
-        title={Kb.Styles.isMobile ? 'Add phone number' : 'Add a phone number'}
-      />
       {!!error && (
         <Kb.Banner color="red" style={styles.banner}>
           <Kb.BannerParagraph bannerColor="red" content={error} />

@@ -32,11 +32,8 @@ export const CreateNewTeam = (props: Props) => {
   const {onClearError} = props
   React.useEffect(() => () => onClearError(), [onClearError])
 
-  const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
-
   return (
     <>
-      <Kb.ModalHeader {...modalHeader} />
       {!isSubteam ? (
         <Kb.Banner color="blue">
           {"For security reasons, team names are unique and can't be changed, so choose carefully."}

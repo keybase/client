@@ -7,13 +7,6 @@ const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-            Back
-          </Kb.Text>
-        }
-      />
       {!!props.errorText && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
