@@ -42,6 +42,7 @@ export const newModalRoutes = {
     React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
+        modalStyle: {height: 560},
         overlayStyle: styles.overlay,
         overlayTransparent: false,
       },

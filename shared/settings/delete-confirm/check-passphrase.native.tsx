@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import {useSettingsState} from '@/stores/settings'
 
 const CheckPassphraseMobile = () => {
@@ -9,29 +8,13 @@ const CheckPassphraseMobile = () => {
   const [showTyping, setShowTyping] = React.useState(false)
 
   const checkPasswordIsCorrect = useSettingsState(s => s.checkPasswordIsCorrect)
-  const nav = useSafeNavigation()
   const checkPassword = useSettingsState(s => s.dispatch.checkPassword)
-  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
   const deleteAccountForever = useSettingsState(s => s.dispatch.deleteAccountForever)
 
   const onCheckPassword = checkPassword
   const deleteForever = () => {
     deleteAccountForever(password)
   }
-
-  const navObj = C.useNav()
-  React.useEffect(() => {
-    navObj.setOptions({
-      headerLeft: () => (
-        <Kb.Text type="BodyBigLink" onClick={() => {
-          resetCheckPassword()
-          nav.safeNavigateUp()
-        }}>
-          Cancel
-        </Kb.Text>
-      ),
-    })
-  }, [navObj, resetCheckPassword, nav])
 
   const waitingKey = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'

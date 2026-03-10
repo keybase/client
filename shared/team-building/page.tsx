@@ -63,6 +63,7 @@ const getOptions = ({route}: OwnProps) => {
   const common = {
     headerLeft: () => <TBHeaderLeft namespace={namespace} />,
     headerRight: () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />,
+    modalStyle: {height: 560} as const,
     overlayAvoidTabs: false,
     overlayStyle: {alignSelf: 'center'} as const,
     overlayTransparent: false,
@@ -73,7 +74,7 @@ const getOptions = ({route}: OwnProps) => {
     return {
       ...common,
       headerShown: Kb.Styles.isMobile,
-      modalStyle: {width: '100%'},
+      modalStyle: {height: 560, width: '100%'},
       overlayAvoidTabs: true,
       overlayStyle: {
         alignSelf: 'flex-start',

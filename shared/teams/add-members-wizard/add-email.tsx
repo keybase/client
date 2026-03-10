@@ -3,7 +3,6 @@ import * as React from 'react'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {ModalTitle} from '../common'
 
 type Props = {
   errorMessage?: string
@@ -16,7 +15,6 @@ const AddEmail = (props: Props) => {
   const [error, setError] = React.useState('')
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
@@ -38,13 +36,6 @@ const AddEmail = (props: Props) => {
       err => setError(err.message)
     )
   }
-
-  const navForHeader = C.useNav()
-  React.useEffect(() => {
-    navForHeader.setOptions({
-      headerTitle: () => <ModalTitle teamID={teamID} title="Email list" />,
-    })
-  }, [navForHeader, teamID])
 
   const maybeSubmit = (evt: React.KeyboardEvent) => {
     if (!disabled && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {

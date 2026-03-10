@@ -1,38 +1,14 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {usePushState} from '@/stores/push'
 
 const PushPrompt = () => {
-  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onRequestPermissions = () => {
     requestPermissions()
     clearModals()
   }
-  const nav = C.useNav()
-  React.useEffect(() => {
-    nav.setOptions({
-      headerLeft: () => null,
-      headerRight: () => (
-        <Kb.ClickableBox onClick={() => {
-          rejectPermissions()
-          clearModals()
-        }}>
-          <Kb.Text type="BodyBig" negative={true}>
-            Skip
-          </Kb.Text>
-        </Kb.ClickableBox>
-      ),
-      headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-      headerTitle: () => (
-        <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
-          Allow notifications
-        </Kb.Text>
-      ),
-    })
-  }, [nav, rejectPermissions, clearModals])
 
   return (
     <>

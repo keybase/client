@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {ModalTitle} from '../common'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -46,14 +45,6 @@ const TeamInfo = (props: Props) => {
       name: 'profileEditAvatar',
       params: {sendChatNotification: true, showBack: true, teamID},
     })
-  const navForHeader = C.useNav()
-  const infoTitle = isSubteam ? 'Edit subteam info' : 'Edit team info'
-  React.useEffect(() => {
-    navForHeader.setOptions({
-      headerTitle: () => <ModalTitle teamID={teamID} title={infoTitle} />,
-    })
-  }, [navForHeader, teamID, infoTitle])
-
   return (
     <>
       {Object.keys(errors).map(k =>

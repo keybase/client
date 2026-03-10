@@ -70,13 +70,6 @@ export const UpdatePassword = (props: Props) => {
     'Password must be at least 8 characters.'
   )
 
-  const nav = C.useNav()
-  React.useEffect(() => {
-    nav.setOptions({
-      title: props.hasRandomPW ? 'Set a password' : 'Change password',
-    })
-  }, [nav, props.hasRandomPW])
-
   return (
     <>
       {notification ? (

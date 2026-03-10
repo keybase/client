@@ -82,7 +82,10 @@ export const newModalRoutes = {
   chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg')), {
     getOptions: {title: 'Forward to team or chat'},
   }),
-  chatInfoPanel: Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),
+  chatInfoPanel: Chat.makeChatScreen(
+    React.lazy(async () => import('./conversation/info-panel')),
+    {getOptions: C.isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
+  ),
   chatInstallBot: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
     {skipProvider: true}

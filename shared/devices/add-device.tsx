@@ -34,21 +34,6 @@ export default function AddDevice(ownProps: OwnProps) {
   const onAddPhone = () => {
     addNewDevice('mobile')
   }
-  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-
-  const nav = C.useNav()
-  React.useEffect(() => {
-    if (Kb.Styles.isMobile) {
-      nav.setOptions({
-        headerLeft: () => <Kb.Text type="BodyBigLink" onClick={() => {
-          cancel?.()
-          navigateUp()
-        }}>Cancel</Kb.Text>,
-      })
-    }
-  }, [nav, cancel, navigateUp])
-
   return (
     <>
       <Kb.ScrollView alwaysBounceVertical={false}>

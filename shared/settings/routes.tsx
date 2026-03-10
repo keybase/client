@@ -1,9 +1,51 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
+import {usePushState} from '@/stores/push'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsState} from '@/stores/settings'
+
+const PushPromptSkipButton = () => {
+  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  return (
+    <Kb.ClickableBox
+      onClick={() => {
+        rejectPermissions()
+        clearModals()
+      }}
+    >
+      <Kb.Text type="BodyBig" negative={true}>
+        Skip
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
+
+const PasswordHeaderTitle = () => {
+  const hasRandomPW = usePWState(s => !!s.randomPW)
+  return <>{hasRandomPW ? 'Set a password' : 'Change password'}</>
+}
+
+const CheckPassphraseCancelButton = () => {
+  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        resetCheckPassword()
+        navigateUp()
+      }}
+    >
+      Cancel
+    </Kb.Text>
+  )
+}
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
@@ -70,7 +112,9 @@ const sharedNewModalRoutes = {
   [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
     getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
   }),
-  [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password'))),
+  [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
+    getOptions: {headerTitle: () => <PasswordHeaderTitle />},
+  }),
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
     getOptions: {title: 'Backup'},
   }),
@@ -123,11 +167,23 @@ export const newRoutes = {
 export const newModalRoutes = {
   ...sharedNewModalRoutes,
   checkPassphraseBeforeDeleteAccount: C.makeScreen(
-    React.lazy(async () => import('./delete-confirm/check-passphrase'))
+    React.lazy(async () => import('./delete-confirm/check-passphrase')),
+    {getOptions: {headerLeft: () => <CheckPassphraseCancelButton />}}
   ),
   modalFeedback: feedback,
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
   settingsPushPrompt: C.isMobile
-    ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')))
+    ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
+        getOptions: {
+          headerLeft: () => null,
+          headerRight: () => <PushPromptSkipButton />,
+          headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+          headerTitle: () => (
+            <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+              Allow notifications
+            </Kb.Text>
+          ),
+        },
+      })
     : {screen: () => <></>},
 }

@@ -3,13 +3,12 @@ import * as React from 'react'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {ModalTitle, usePhoneNumberList} from '../common'
+import {usePhoneNumberList} from '../common'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
@@ -45,13 +44,6 @@ const AddPhone = () => {
       err => setError(err.message)
     )
   }
-
-  const navForHeader = C.useNav()
-  React.useEffect(() => {
-    navForHeader.setOptions({
-      headerTitle: () => <ModalTitle teamID={teamID} title="Phone list" />,
-    })
-  }, [navForHeader, teamID])
 
   const maybeSubmit = (evt?: React.KeyboardEvent) => {
     if (!disabled && evt?.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {

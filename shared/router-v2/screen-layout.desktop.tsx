@@ -177,7 +177,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.desktopStyles.boxShadow,
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: Kb.Styles.borderRadius,
-      height: 560,
+      maxHeight: 560,
       pointerEvents: 'auto',
       position: 'relative',
       width: 400,

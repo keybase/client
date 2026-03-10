@@ -1,12 +1,65 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
+import * as Teams from '@/stores/teams'
 import {ModalTitle} from './common'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import teamsRootGetOptions from './get-options'
+
+const WizardEmailHeaderTitle = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  return <ModalTitle teamID={teamID} title="Email list" />
+}
+
+const WizardPhoneHeaderTitle = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  return <ModalTitle teamID={teamID} title="Phone list" />
+}
+
+const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const isSubteam = teamname.includes('.')
+  return <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />
+}
+
+const AddFromWhereHeaderLeft = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const newTeam = teamID === T.Teams.newTeamWizardTeamID
+  const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  if (newTeam) {
+    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+  }
+  return <Kb.Text type="BodyBigLink" onClick={cancelAddMembersWizard}>Cancel</Kb.Text>
+}
+
+const AddFromWhereSkip = () => {
+  const finishNewTeamWizard = Teams.useTeamsState(s => s.dispatch.finishNewTeamWizard)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
+  if (Kb.Styles.isMobile) {
+    return waiting ? (
+      <Kb.ProgressIndicator />
+    ) : (
+      <Kb.Text type="BodyBigLink" onClick={finishNewTeamWizard}>Skip</Kb.Text>
+    )
+  }
+  return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={finishNewTeamWizard} waiting={waiting} />
+}
+
+const AddFromWhereHeaderRight = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const newTeam = teamID === T.Teams.newTeamWizardTeamID
+  return newTeam ? <AddFromWhereSkip /> : null
+}
+
+const AddFromWhereHeaderTitle = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
+}
 
 export const newRoutes = {
   team: C.makeScreen(
@@ -60,11 +113,17 @@ export const newModalRoutes = {
     getOptions: {headerLeft: HeaderLeftArrow},
   }),
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email')), {
-    getOptions: {headerLeft: HeaderLeftArrow},
+    getOptions: {headerLeft: HeaderLeftArrow, headerTitle: () => <WizardEmailHeaderTitle />},
   }),
-  teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where'))),
+  teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
+    getOptions: {
+      headerLeft: () => <AddFromWhereHeaderLeft />,
+      headerRight: () => <AddFromWhereHeaderRight />,
+      headerTitle: () => <AddFromWhereHeaderTitle />,
+    },
+  }),
   teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone')), {
-    getOptions: {headerLeft: HeaderLeftArrow},
+    getOptions: {headerLeft: HeaderLeftArrow, headerTitle: () => <WizardPhoneHeaderTitle />},
   }),
   teamCreateChannels: C.makeScreen(React.lazy(async () => import('./channel/create-channels')), {
     getOptions: ({route}) => ({
@@ -88,7 +147,7 @@ export const newModalRoutes = {
   teamEditTeamInfo: C.makeScreen(React.lazy(async () => import('./team/team-info')), {
     getOptions: ({route}) => ({
       headerLeft: HeaderLeftArrow,
-      headerTitle: () => <ModalTitle teamID={route.params.teamID} title="Edit team info" />,
+      headerTitle: () => <TeamInfoHeaderTitle teamID={route.params.teamID} />,
     }),
   }),
   teamInviteByContact: C.makeScreen(React.lazy(async () => import('./invite-by-contact/container')), {
