@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '../measure-ref'
 
 export type Popup2Parms = {
   attachTo?: React.RefObject<MeasureRef | null>

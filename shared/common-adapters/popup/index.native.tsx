@@ -1,5 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
+import {Box2} from '../box'
+import {Keyboard} from 'react-native'
+import {Portal} from '../portal.native'
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -7,7 +10,7 @@ import {
   type BottomSheetBackdropProps,
 } from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
-import type {PopupProps} from './popup'
+import type {PopupProps} from '.'
 
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
@@ -17,7 +20,29 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
-function Popup(props: PopupProps) {
+function PopupPositioned(props: PopupProps) {
+  const {hideKeyboard, children, containerStyle} = props
+  const [lastHK, setLastHK] = React.useState(hideKeyboard)
+  if (lastHK !== hideKeyboard) {
+    setLastHK(hideKeyboard)
+    if (hideKeyboard) {
+      Keyboard.dismiss()
+    }
+  }
+  return (
+    <Portal hostName="popup-root">
+      <Box2
+        direction="vertical"
+        pointerEvents="box-none"
+        style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, containerStyle])}
+      >
+        {children}
+      </Box2>
+    </Portal>
+  )
+}
+
+function PopupSheet(props: PopupProps) {
   const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
   const shownRef = React.useRef(false)
@@ -55,6 +80,25 @@ function Popup(props: PopupProps) {
       <BottomSheetView>{children}</BottomSheetView>
     </BottomSheetModal>
   )
+}
+
+function PopupPortal(props: PopupProps) {
+  const {children} = props
+  return (
+    <Portal hostName="popup-root">
+      {children}
+    </Portal>
+  )
+}
+
+function Popup(props: PopupProps) {
+  if (props.attachTo) {
+    return <PopupPositioned {...props} />
+  }
+  if (!props.onHidden) {
+    return <PopupPortal {...props} />
+  }
+  return <PopupSheet {...props} />
 }
 
 const styles = Styles.styleSheetCreate(

@@ -163,7 +163,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       const makePopup = (p: Kb.Popup2Parms) => {
           const {attachTo, hidePopup} = p
           return (
-            <Kb.FloatingBox
+            <Kb.Popup
               attachTo={attachTo}
               containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
               position="bottom left"
@@ -177,7 +177,7 @@ const ChooseEmoji = Kb.Styles.isMobile
                 onDidPick={hidePopup}
                 onlyTeamCustomEmoji={true}
               />
-            </Kb.FloatingBox>
+            </Kb.Popup>
           )
         }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)

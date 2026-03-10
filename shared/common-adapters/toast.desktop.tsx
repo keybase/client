@@ -1,21 +1,16 @@
 import type {Props} from './toast'
-import FloatingBox from './floating-box'
+import Popup from './popup'
 import * as Styles from '@/styles'
 import './toast.css'
-
-const Kb = {
-  FloatingBox,
-}
 
 const positionFallbacks = [] as const
 
 const Toast = (props: Props) => (
-  <Kb.FloatingBox
+  <Popup
     attachTo={props.attachTo}
     propagateOutsideClicks={true}
     position={props.position}
     containerStyle={styles.float}
-    disableEscapeKey={true}
     offset={4}
     positionFallbacks={positionFallbacks}
   >
@@ -25,7 +20,7 @@ const Toast = (props: Props) => (
     >
       {props.children}
     </div>
-  </Kb.FloatingBox>
+  </Popup>
 )
 export default Toast
 

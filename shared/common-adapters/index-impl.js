@@ -23,13 +23,13 @@ module.exports = {
     return require('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return require('./bottom-sheet').BottomSheetBackdrop
+    return require('./popup/bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return require('./bottom-sheet').BottomSheetModal
+    return require('./popup/bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return require('./bottom-sheet').BottomSheetScrollView
+    return require('./popup/bottom-sheet').BottomSheetScrollView
   },
   get Box() {
     return require('./box').default
@@ -111,9 +111,6 @@ module.exports = {
   get ErrorBoundary() {
     return require('./error-boundary').default
   },
-  get FloatingBox() {
-    return require('./floating-box').default
-  },
   get FloatingMenu() {
     return require('./floating-menu').default
   },
@@ -190,7 +187,7 @@ module.exports = {
     return require('./platform-icon').default
   },
   get Popup() {
-    return require('./popup').default
+    return require('./popup/index').default
   },
   get ProfileCard() {
     return require('./profile-card').default
@@ -298,7 +295,7 @@ module.exports = {
     return require('./use-timers').useInterval
   },
   get usePopup2() {
-    return require('./use-popup').usePopup2
+    return require('./popup/use-popup').usePopup2
   },
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets

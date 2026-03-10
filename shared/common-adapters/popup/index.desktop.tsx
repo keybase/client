@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {Box2} from './box'
+import {Box2} from '../box'
 import FloatingBox from './floating-box'
-import Icon from './icon'
-import {EscapeHandler} from './key-event-handler.desktop'
+import Icon from '../icon'
+import {EscapeHandler} from '../key-event-handler.desktop'
 import * as Styles from '@/styles'
-import type {PopupProps} from './popup'
+import type {PopupProps} from '.'
 
 const Kb = {
   Box2,
@@ -24,6 +24,7 @@ function PopupPositioned(props: PopupProps) {
   return (
     <Kb.FloatingBox
       attachTo={props.attachTo}
+      containerStyle={props.containerStyle}
       matchDimension={!!props.matchDimension}
       onHidden={props.onHidden}
       remeasureHint={props.remeasureHint}
@@ -32,9 +33,13 @@ function PopupPositioned(props: PopupProps) {
       propagateOutsideClicks={props.propagateOutsideClicks}
       offset={props.offset}
     >
-      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.positioned, props.style])}>
-        {props.children}
-      </Kb.Box2>
+      {props.onHidden ? (
+        <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.positioned, props.style])}>
+          {props.children}
+        </Kb.Box2>
+      ) : (
+        props.children
+      )}
     </Kb.FloatingBox>
   )
 }
@@ -42,13 +47,13 @@ function PopupPositioned(props: PopupProps) {
 function PopupCentered(props: PopupProps) {
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <Kb.EscapeHandler onESC={props.onHidden}>
+    <Kb.EscapeHandler onESC={props.onHidden ?? (() => {})}>
       <Kb.Box2
         direction="vertical"
         style={Styles.collapseStyles([styles.cover, props.style])}
         onMouseUp={() => {
           if (mouseDownOnCover) {
-            props.onHidden()
+            props.onHidden?.()
           }
         }}
         onMouseDown={() => {

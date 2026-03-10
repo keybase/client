@@ -396,13 +396,7 @@ const Popup = (p: PopupProps) => {
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
-  return Kb.Styles.isMobile ? (
-    <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
-      <Chat.ChatProvider id={conversationIdKey}>
-        <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-      </Chat.ChatProvider>
-    </Kb.FloatingBox>
-  ) : (
+  return (
     <Kb.Popup
       attachTo={attachRef}
       matchDimension={true}
@@ -411,9 +405,16 @@ const Popup = (p: PopupProps) => {
       visible={true}
       propagateOutsideClicks={false}
       onHidden={setInactive}
+      containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {children}
+      {Kb.Styles.isMobile ? (
+        <Chat.ChatProvider id={conversationIdKey}>
+          <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+        </Chat.ChatProvider>
+      ) : (
+        children
+      )}
     </Kb.Popup>
   )
 }

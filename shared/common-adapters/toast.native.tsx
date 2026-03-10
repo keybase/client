@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import FloatingBox from './floating-box'
 import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
+import Popup from './popup'
 import {useTimeout} from './use-timers'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './toast'
@@ -13,8 +13,8 @@ import {useColorScheme} from 'react-native'
 
 const Kb = {
   Box2,
-  FloatingBox,
   KeyboardAvoidingView2,
+  Popup,
 }
 
 const Toast = (props: Props) => {
@@ -70,7 +70,7 @@ const Toast = (props: Props) => {
   const isDarkMode = useColorScheme() === 'dark'
 
   return shouldRender ? (
-    <Kb.FloatingBox>
+    <Kb.Popup>
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="vertical" pointerEvents="none" justifyContent="center" style={styles.wrapper}>
           <NativeAnimated.View
@@ -89,7 +89,7 @@ const Toast = (props: Props) => {
           </NativeAnimated.View>
         </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
-    </Kb.FloatingBox>
+    </Kb.Popup>
   ) : null
 }
 
