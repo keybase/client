@@ -16,7 +16,7 @@ const HeaderAvatar = () => {
 export const newRoutes = {
   peopleRoot: {
     getOptions: {
-      headerLeft: () => <Kb.HeaderLeftBlank />,
+      headerLeft: () => null,
       headerRight: () => <HeaderAvatar />,
       headerTitle: () => <ProfileSearch />,
     },

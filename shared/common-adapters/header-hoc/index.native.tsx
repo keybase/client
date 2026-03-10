@@ -2,101 +2,25 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
-import IconAuto from '@/common-adapters/icon-auto'
-import type {IconType} from '@/common-adapters/icon.constants-gen'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
-import type {Props, LeftActionProps} from '.'
+const Kb = {BackButton, Box2, Text}
 
-const Kb = {BackButton, Box2, IconAuto, Text}
-
-type RightAction = {
-  label?: string
-  icon?: IconType
-  color?: string
-  onPress: () => void
+type LeftActionProps = {
+  badgeNumber?: number
+  disabled?: boolean
+  customCancelText?: string
+  hasTextTitle?: boolean
+  hideBackLabel?: boolean
+  leftAction?: 'back' | 'cancel'
+  leftActionText?: string
+  theme?: 'light' | 'dark'
+  onLeftAction?: () => void
+  customIconColor?: string
+  style?: Styles.StylesCrossPlatform
 }
 
-export const HeaderHocHeader = (props: Props) => {
-  // TODO: remove these after updates are fully integrated
-  const onLeftAction = props.onLeftAction || props.onBack || props.onCancel
-  const leftAction = props.leftAction || (props.onCancel ? 'cancel' : props.onBack ? 'back' : undefined)
-  const rightAction = props.onRightAction
-    ? ({
-        label: props.rightActionLabel,
-        onPress: props.onRightAction,
-      } as RightAction)
-    : undefined
-
-  // This is used to center the title. The magic numbers were calculated from the inspector.
-  const actionWidth = Styles.isIOS ? 38 : 54
-  const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (props.badgeNumber ? 23 : 0)
-  const titlePadding = rightAction ? actionWidth : titlePaddingLeft
-
-  const hasTextTitle = !!props.title && !props.titleComponent
-
-  const header = (
-    <Kb.Box2
-      direction="horizontal"
-      alignItems="center"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.header, props.borderless && styles.borderless, props.headerStyle])}
-    >
-      {props.customComponent}
-      {hasTextTitle && (
-        <Kb.Box2
-          direction="vertical"
-          alignItems="center"
-          style={Styles.collapseStyles([
-            styles.titleContainer,
-            styles.titleTextContainer,
-            Styles.isIOS && {
-              paddingLeft: titlePadding,
-              paddingRight: titlePadding,
-            },
-            Styles.isAndroid && {
-              paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
-              paddingRight: titlePadding,
-            },
-          ])}
-        >
-          <Text type="BodyBig" style={styles.title} lineClamp={1}>
-            {props.title}
-          </Text>
-        </Kb.Box2>
-      )}
-      <LeftAction
-        badgeNumber={props.badgeNumber}
-        customCancelText={props.customCancelText}
-        disabled={false}
-        hasTextTitle={hasTextTitle}
-        hideBackLabel={props.hideBackLabel}
-        leftAction={leftAction}
-        leftActionText={props.leftActionText}
-        onLeftAction={onLeftAction}
-        theme={props.theme}
-      />
-      {props.titleComponent && (
-        <Kb.Box2
-          direction="vertical"
-          alignItems="center"
-          style={Styles.collapseStyles([
-            styles.titleContainer,
-            onLeftAction && styles.titleContainerRightPadding,
-            rightAction && styles.titleContainerLeftPadding,
-          ] as const)}
-        >
-          {props.titleComponent}
-        </Kb.Box2>
-      )}
-      {rightAction && <RightActions hasTextTitle={hasTextTitle} rightAction={rightAction} />}
-    </Kb.Box2>
-  )
-
-  return header
-}
-
-export const LeftAction = (p: LeftActionProps): React.ReactElement => {
+const LeftAction = (p: LeftActionProps): React.ReactElement => {
   const {badgeNumber, disabled, customCancelText, hasTextTitle, hideBackLabel, leftAction} = p
   const {leftActionText, onLeftAction, theme, customIconColor, style} = p
   return (
@@ -127,32 +51,6 @@ export const LeftAction = (p: LeftActionProps): React.ReactElement => {
   )
 }
 
-const RightActions = (p: {hasTextTitle: boolean; rightAction: RightAction}) => {
-  const {hasTextTitle, rightAction} = p
-  return (
-    <Kb.Box2 direction="vertical" alignItems="flex-end" style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-      <Kb.Box2 direction="horizontal" alignSelf="flex-end">{renderAction(rightAction, 0)}</Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
-const renderAction = (action: RightAction, index: number): React.ReactNode =>
-  action.icon ? (
-    <Kb.IconAuto key={action.label || index} onClick={action.onPress} style={styles.action} type={action.icon} />
-  ) : (
-    <Text
-      key={action.label}
-      type="BodyBigLink"
-      style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
-      onClick={action.onPress}
-    >
-      {action.label}
-    </Text>
-  )
-
-// If layout is changed here, please make sure the Files header is updated as
-// well to match this. fs/nav-header/mobile-header.js
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -172,64 +70,15 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
-      borderless: {borderBottomWidth: 0},
       grow: {flexGrow: 1},
-      header: Styles.platformStyles({
-        common: {
-          borderBottomColor: Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
-          justifyContent: 'flex-start',
-        },
-        isAndroid: {
-          backgroundColor: Styles.globalColors.white,
-          height: 56,
-        },
-        isIOS: {height: 44},
-        isTablet: {
-          height: 40 + Styles.headerExtraHeight,
-        },
-      }),
       leftAction: Styles.platformStyles({
         common: {
           flexShrink: 1,
           justifyContent: 'flex-start',
         },
       }),
-      rightActions: Styles.platformStyles({
-        common: {
-          flexShrink: 1,
-          justifyContent: 'flex-end',
-        },
-        isIOS: {paddingRight: Styles.globalMargins.tiny},
-      }),
-      title: {color: Styles.globalColors.black},
-      titleContainer: Styles.platformStyles({
-        common: {
-          flexGrow: 1,
-          flexShrink: 2,
-          justifyContent: 'center',
-        },
-        isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-        },
-      }),
-      titleContainerLeftPadding: Styles.platformStyles({
-        isAndroid: {paddingLeft: Styles.globalMargins.small},
-      }),
-      titleContainerRightPadding: Styles.platformStyles({
-        isAndroid: {paddingRight: Styles.globalMargins.small},
-      }),
-      titleTextContainer: Styles.globalStyles.fillAbsolute,
     }) as const
 )
-
-const noop = () => {}
-function HeaderLeftBlankImpl() {
-  return <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
-}
-export const HeaderLeftBlank = () => <HeaderLeftBlankImpl />
 
 export function HeaderLeftArrow(hp: {
   canGoBack?: boolean

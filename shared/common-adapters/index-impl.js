@@ -120,12 +120,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderHocHeader() {
-    return require('./header-hoc').HeaderHocHeader
-  },
-  get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank
-  },
   get HeaderLeftCancel() {
     return require('./header-hoc').HeaderLeftCancel
   },

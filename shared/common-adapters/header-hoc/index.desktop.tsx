@@ -2,41 +2,24 @@ import * as C from '@/constants'
 import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import {Box2} from '@/common-adapters/box'
-import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
-import type {Props, LeftActionProps} from '.'
+const Kb = {BackButton, Box2, Text}
 
-const Kb = {BackButton, Box2, Icon, Text}
+type LeftActionProps = {
+  badgeNumber?: number
+  disabled?: boolean
+  customCancelText?: string
+  hasTextTitle?: boolean
+  hideBackLabel?: boolean
+  leftAction?: 'back' | 'cancel'
+  leftActionText?: string
+  theme?: 'light' | 'dark'
+  onLeftAction?: () => void
+  customIconColor?: string
+  style?: Styles.StylesCrossPlatform
+}
 
-export const HeaderHocHeader = ({
-  headerStyle,
-  customComponent,
-  title,
-  titleComponent,
-  onCancel,
-  theme = 'light',
-}: Props) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
-    {customComponent}
-    {onCancel && (
-      <Kb.Icon
-        style={_styleClose}
-        type="iconfont-close"
-        onClick={onCancel}
-        color={theme === 'dark' ? Styles.globalColors.white_40 : Styles.globalColors.black_20}
-      />
-    )}
-    {title && (
-      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={_titleStyle}>
-        <Kb.Text type="Header">{title}</Kb.Text>
-      </Kb.Box2>
-    )}
-    {titleComponent}
-  </Kb.Box2>
-)
-
-// TODO use LeftAction above
 const LeftAction = ({
   badgeNumber,
   disabled,
@@ -72,37 +55,6 @@ const LeftAction = ({
   </Kb.Box2>
 )
 
-const _headerStyle = {
-  flexShrink: 0,
-  justifyContent: 'flex-start',
-  minHeight: undefined,
-  paddingLeft: Styles.globalMargins.small,
-  paddingRight: Styles.globalMargins.small,
-  position: 'relative',
-} as const
-
-const _headerStyleThemed = {
-  dark: {backgroundColor: Styles.globalColors.blueDarker2},
-  light: {backgroundColor: Styles.globalColors.white},
-}
-
-const _styleClose = Styles.platformStyles({
-  isElectron: {
-    ...Styles.desktopStyles.clickable,
-    position: 'absolute',
-    right: Styles.globalMargins.small,
-    top: Styles.globalMargins.small,
-  },
-})
-
-const _titleStyle = {
-  bottom: 0,
-  left: 0,
-  position: 'absolute', // This is always centered so we never worry about items to the left/right. If you have overlap or other issues you likely have to fix the content
-  right: 0,
-  top: 0,
-} as const
-
 const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
@@ -131,11 +83,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
 }))
-
-const noop = () => {}
-export const HeaderLeftBlank = () => (
-  <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
-)
 
 export const HeaderLeftArrow = (hp: {
   canGoBack?: boolean

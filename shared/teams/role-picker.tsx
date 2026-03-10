@@ -364,6 +364,20 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 10,
         },
       }),
+      popupHeader: Kb.Styles.platformStyles({
+        common: {
+          borderBottomColor: Kb.Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid' as const,
+          justifyContent: 'space-between',
+        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
+      popupHeaderSide: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+        width: 64,
+      },
       radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
       row: {
@@ -432,7 +446,13 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
               style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
             >
               {Kb.Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
+                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
+                  <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
+                    Cancel
+                  </Kb.Text>
+                  <Kb.Text type="BodyBig">Pick a role</Kb.Text>
+                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
+                </Kb.Box2>
               )}
               {picker}
             </Kb.Box2>
