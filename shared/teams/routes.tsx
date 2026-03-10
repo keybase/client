@@ -5,7 +5,7 @@ import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import {ModalTitle} from './common'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import teamsRootGetOptions from './get-options'
@@ -110,10 +110,10 @@ export const newModalRoutes = {
     getOptions: {gestureEnabled: false},
   }),
   teamAddToTeamContacts: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-contacts')), {
-    getOptions: {headerLeft: HeaderLeftArrow},
+    getOptions: {headerLeft: HeaderLeftButton},
   }),
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email')), {
-    getOptions: {headerLeft: HeaderLeftArrow, headerTitle: () => <WizardEmailHeaderTitle />},
+    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardEmailHeaderTitle />},
   }),
   teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
     getOptions: {
@@ -123,11 +123,11 @@ export const newModalRoutes = {
     },
   }),
   teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone')), {
-    getOptions: {headerLeft: HeaderLeftArrow, headerTitle: () => <WizardPhoneHeaderTitle />},
+    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardPhoneHeaderTitle />},
   }),
   teamCreateChannels: C.makeScreen(React.lazy(async () => import('./channel/create-channels')), {
     getOptions: ({route}) => ({
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={route.params.teamID} title="Create channels" />,
     }),
   }),
@@ -135,7 +135,7 @@ export const newModalRoutes = {
   teamDeleteTeam: C.makeScreen(React.lazy(async () => import('./delete-team'))),
   teamEditChannel: C.makeScreen(React.lazy(async () => import('./team/member/edit-channel')), {
     getOptions: ({route}) => ({
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={route.params.teamID} title={`#${route.params.channelname}`} />,
     }),
   }),
@@ -146,7 +146,7 @@ export const newModalRoutes = {
   }),
   teamEditTeamInfo: C.makeScreen(React.lazy(async () => import('./team/team-info')), {
     getOptions: ({route}) => ({
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <TeamInfoHeaderTitle teamID={route.params.teamID} />,
     }),
   }),
@@ -175,25 +175,25 @@ export const newModalRoutes = {
   teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info'))),
   teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team')), {
     getOptions: {
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Make it a big team?" />,
     },
   }),
   teamWizard5Channels: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-channels')), {
     getOptions: {
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create channels" />,
     },
   }),
   teamWizard6Subteams: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-subteams')), {
     getOptions: {
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create subteams" />,
     },
   }),
   teamWizardSubteamMembers: C.makeScreen(React.lazy(async () => import('./new-team/wizard/add-subteam-members')), {
     getOptions: {
-      headerLeft: HeaderLeftArrow,
+      headerLeft: HeaderLeftButton,
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
     },
   }),

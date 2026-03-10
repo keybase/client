@@ -120,8 +120,8 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderLeftCancel() {
-    return require('./header-hoc').HeaderLeftCancel
+  get HeaderLeftButton() {
+    return require('./header-buttons').HeaderLeftButton
   },
   get Icon() {
     return require('./icon').default

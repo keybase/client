@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 
 const Title = React.lazy(async () => import('./search'))
 
@@ -20,7 +20,7 @@ export const newRoutes = {
         headerLeft: p => {
           return (
             <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-              <HeaderLeftArrowCanGoBack tintColor={p.tintColor} />
+              <HeaderLeftButton autoDetectCanGoBack={true} tintColor={p.tintColor} />
             </Kb.Styles.CanFixOverdrawContext.Provider>
           )
         },

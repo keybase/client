@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {HeaderLeftCancel, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {useProvisionState} from '@/stores/provision'
@@ -31,7 +31,7 @@ export const newRoutes = {
     React.lazy(async () => import('./device-revoke')),
     {
       getOptions: {
-        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel {...p} />,
+        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
         title: '',
       },
     }
