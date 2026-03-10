@@ -100,12 +100,14 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
       onEnterKeyDown={onEnterKeyDown}
     />
   ) : (
-    <Kb.ClickableBox2 onClick={onStartSearch} style={styles.searchPlaceholder}>
-      <Kb.Icon type="iconfont-search" sizeType="Default" color={Kb.Styles.globalColors.black_50} style={styles.searchPlaceholderIcon} />
-      <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
-        {Kb.Styles.isMobile ? 'Search' : `Search (\u2318K)`}
-      </Kb.Text>
-    </Kb.ClickableBox2>
+    <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
+      <Kb.ClickableBox2 onClick={onStartSearch} style={styles.searchPlaceholder}>
+        <Kb.Icon type="iconfont-search" sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'} color={Kb.Styles.globalColors.black_50} style={styles.searchPlaceholderIcon} />
+        <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
+          {Kb.Styles.isMobile ? 'Search' : `Search (\u2318K)`}
+        </Kb.Text>
+      </Kb.ClickableBox2>
+    </Kb.Box2>
   )
   return (
     <Kb.Box2
@@ -150,21 +152,29 @@ const styles = Kb.Styles.styleSheetCreate(
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
-      searchPlaceholder: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          ...Kb.Styles.globalStyles.flexGrow,
-          alignItems: 'center',
-          backgroundColor: Kb.Styles.globalColors.black_10,
-          borderRadius: Kb.Styles.borderRadius,
-          flex: 1,
-          flexShrink: 1,
-          height: 32,
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
-        },
+      searchPlaceholderOuter: Kb.Styles.platformStyles({
+        common: {flex: 1},
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+        isMobile: {
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
+        },
+        isTablet: {paddingLeft: 0, paddingRight: 0},
       }),
+      searchPlaceholder: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexGrow,
+        alignItems: 'center',
+        backgroundColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
+        flex: 1,
+        flexShrink: 1,
+        height: 32,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+      },
       searchPlaceholderIcon: Kb.Styles.platformStyles({
         isElectron: {marginRight: Kb.Styles.globalMargins.tiny, marginTop: 2},
         isMobile: {marginRight: Kb.Styles.globalMargins.tiny},
