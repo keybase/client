@@ -1909,35 +1909,55 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	// If HEAD points to a nonexistent ref, update it to point to the
-	// first successfully-pushed branch.
+	// best successfully-pushed branch (prefer main > master > alphabetical).
+	headUpdated := false
 	head, headErr := repo.Storer.Reference(plumbing.HEAD)
 	if headErr == nil && head.Type() == plumbing.SymbolicReference {
 		_, targetErr := repo.Storer.Reference(head.Target())
 		if targetErr == plumbing.ErrReferenceNotFound {
-			// Find the first successfully-pushed branch ref.
+			var bestBranch plumbing.ReferenceName
 			for refspec := range refspecs {
 				if refspec.IsDelete() {
-					continue // don't point HEAD at a deleted branch
+					continue
 				}
 				dst := refspec.Dst("")
 				if results[dst.String()] != nil {
 					continue // errored
 				}
-				if strings.HasPrefix(dst.String(), "refs/heads/") {
-					newHead := plumbing.NewSymbolicReference(
-						plumbing.HEAD, dst)
-					if setErr := repo.Storer.SetReference(
-						newHead); setErr != nil {
-						r.log.CDebugf(ctx,
-							"Error updating HEAD to %s: %+v",
-							dst, setErr)
-					} else {
-						r.log.CDebugf(ctx,
-							"Updated HEAD to point to %s", dst)
-					}
-					break
+				if !strings.HasPrefix(dst.String(), "refs/heads/") {
+					continue
+				}
+				switch {
+				case dst == "refs/heads/main":
+					bestBranch = dst
+				case dst == "refs/heads/master" && bestBranch != "refs/heads/main":
+					bestBranch = dst
+				case bestBranch == "" || (bestBranch != "refs/heads/main" && bestBranch != "refs/heads/master" && dst < bestBranch):
+					bestBranch = dst
 				}
 			}
+			if bestBranch != "" {
+				newHead := plumbing.NewSymbolicReference(
+					plumbing.HEAD, bestBranch)
+				if setErr := repo.Storer.SetReference(
+					newHead); setErr != nil {
+					r.log.CDebugf(ctx,
+						"Error updating HEAD to %s: %+v",
+						bestBranch, setErr)
+				} else {
+					r.log.CDebugf(ctx,
+						"Updated HEAD to point to %s", bestBranch)
+					headUpdated = true
+				}
+			}
+		}
+	}
+
+	if headUpdated {
+		if journalErr := r.waitForJournal(ctx); journalErr != nil {
+			r.log.CDebugf(ctx,
+				"Error flushing journal after HEAD update: %+v",
+				journalErr)
 		}
 	}
 
