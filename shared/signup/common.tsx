@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type ButtonProps} from '@/common-adapters/button'
 import openURL from '@/util/open-url'
@@ -45,6 +46,57 @@ export const InfoIcon = (props: InfoIconProps) => {
       </Kb.Box2>
       {popup}
     </>
+  )
+}
+
+type ModalHeaderProps = {
+  hideBorder?: boolean
+  leftButton?: React.ReactNode
+  rightButton?: React.ReactNode
+  style?: Kb.Styles.StylesCrossPlatform
+  title?: React.ReactNode
+}
+
+const ModalHeader = (props: ModalHeaderProps) => {
+  const onLayoutSide = (evt: Kb.LayoutEvent) => {
+    const {width} = evt.nativeEvent.layout
+    if (width > widerWidth) {
+      setWiderWidth(width)
+    }
+  }
+  const [widerWidth, setWiderWidth] = React.useState(-1)
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([
+        styles.modalHeader,
+        props.hideBorder && styles.modalHeaderHideBorder,
+        props.style,
+      ])}
+      fullWidth={true}
+    >
+      <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="horizontal" style={styles.modalHeaderLeft}>
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.leftButton && props.leftButton}
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical">
+          {typeof props.title === 'string' ? (
+            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+              {props.title}
+            </Kb.Text>
+          ) : (
+            props.title
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" style={styles.modalHeaderRight}>
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.rightButton && props.rightButton}
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -173,7 +225,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
       />
     )}
     {Kb.Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.ModalHeader
+      <ModalHeader
         leftButton={
           props.onBack ? (
             <Kb.Text type="BodyBigLink" onClick={props.onBack}>
@@ -318,6 +370,27 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       infoIconContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
+      },
+      modalHeader: {
+        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid' as const,
+        minHeight: 48,
+      },
+      modalHeaderHideBorder: {
+        borderBottomWidth: 0,
+      },
+      modalHeaderLeft: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+      },
+      modalHeaderRight: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
       },
       opacityNone: {
         opacity: 0,

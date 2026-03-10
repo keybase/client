@@ -2,7 +2,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {isTablet, isIOS} from '@/constants/platform'
-import {ModalFooter} from '@/common-adapters/modal2'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
 
 const modalOffset = isIOS ? 40 : 0
@@ -23,7 +22,17 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
     const wrappedContent = modalFooter ? (
       <>
         {suspenseContent}
-        <ModalFooter {...modalFooter} wide={false} fullscreen={false} />
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={Kb.Styles.collapseStyles([
+            modalFooter.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter,
+            modalFooter.style,
+          ])}
+        >
+          {modalFooter.content}
+        </Kb.Box2>
       </>
     ) : suspenseContent
 
@@ -53,5 +62,20 @@ const styles = Kb.Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+      }),
     }) as const
 )

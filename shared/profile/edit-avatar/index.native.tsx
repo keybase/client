@@ -160,17 +160,15 @@ const AvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-        <Kb.ModalFooter
-          content={
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={wizard ? 'Continue' : 'Save'}
-              onClick={onSave}
-              disabled={!selectedImage}
-              waitingKey={waitingKey}
-            />
-          }
-        />
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={!selectedImage}
+            waitingKey={waitingKey}
+          />
+        </Kb.Box2>
       </>
     )
   }
@@ -276,6 +274,20 @@ const styles = Kb.Styles.styleSheetCreate(
       flexReallyGrow: {
         flexGrow: 1000,
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       placeholder: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_05,

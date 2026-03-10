@@ -87,9 +87,9 @@ const AddSubteamMembers = () => {
   }, [navForHeader, selectedMembers, setTeamWizardSubteamMembers, startAddMembersWizard, doneLabel])
 
   const desktopFooter = !Kb.Styles.isMobile ? (
-    <Kb.ModalFooter
-      content={<Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />}
-    />
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />
+    </Kb.Box2>
   ) : null
 
   return (
@@ -137,6 +137,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.small,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   noWrap: {
     width: 48, // wide enough for "Done" or "Skip" to fit. workaround modal2 header measurement onmount
   },

@@ -92,8 +92,7 @@ export const Email = () => {
           }
         />
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
@@ -106,9 +105,7 @@ export const Email = () => {
               waiting={waiting}
             />
           </Kb.ButtonBar>
-        }
-        style={styles.footer}
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -198,8 +195,7 @@ export const Phone = () => {
           }
         />
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
@@ -212,9 +208,7 @@ export const Phone = () => {
               waiting={waiting}
             />
           </Kb.ButtonBar>
-        }
-        style={styles.footer}
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -306,8 +300,7 @@ export const VerifyPhone = () => {
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.blueBackground])}>
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             <Kb.Button
               disabled={disabled}
@@ -318,10 +311,7 @@ export const VerifyPhone = () => {
               fullWidth={true}
             />
           </Kb.ButtonBar>
-        }
-        hideBorder={true}
-        style={styles.blueBackground}
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -352,6 +342,31 @@ const styles = Kb.Styles.styleSheetCreate(
       footer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       verifyContainer: {
         ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       },

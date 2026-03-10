@@ -44,7 +44,13 @@ const ResetModalImpl = () => {
       }}
     >
       <>
-        <Kb.ModalHeader title="Account reset initiated" />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+          <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>Account reset initiated</Kb.Text>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          </Kb.Box2>
+        </Kb.Box2>
         {error ? (
           <Kb.Banner color="red" key="errors">
             <Kb.BannerParagraph bannerColor="red" content={error} />
@@ -72,23 +78,41 @@ const ResetModalImpl = () => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.ModalFooter
-          content={
-            <Kb.WaitingButton
-              type="Danger"
-              fullWidth={true}
-              onClick={onCancelReset}
-              waitingKey={C.waitingKeyAutoresetCancel}
-              label="Cancel account reset"
-            />
-          }
-        />
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.WaitingButton
+            type="Danger"
+            fullWidth={true}
+            onClick={onCancelReset}
+            waitingKey={C.waitingKeyAutoresetCancel}
+            label="Cancel account reset"
+          />
+        </Kb.Box2>
       </>
     </Kb.SafeAreaView>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  header: {
+    borderBottomColor: Kb.Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+    minHeight: 48,
+  },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   skullIcon: {
     height: 48,
     width: 48,

@@ -195,21 +195,19 @@ const Container = (ownProps: OwnProps) => {
           </FloatingRolePicker>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
-            <Kb.WaitingButton
-              disabled={selectedTeamCount === 0}
-              fullWidth={Kb.Styles.isMobile}
-              style={styles.addButton}
-              onClick={onSave}
-              label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-              waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
-            />
-          </Kb.ButtonBar>
-        }
-      />
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
+          <Kb.WaitingButton
+            disabled={selectedTeamCount === 0}
+            fullWidth={Kb.Styles.isMobile}
+            style={styles.addButton}
+            onClick={onSave}
+            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+            waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
     </>
   )
 }
@@ -341,6 +339,20 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       teamRow: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',

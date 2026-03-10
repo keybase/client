@@ -76,8 +76,7 @@ export const CreateNewTeam = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Button
             waiting={waiting}
             fullWidth={true}
@@ -85,8 +84,7 @@ export const CreateNewTeam = (props: Props) => {
             onClick={onSubmitCb}
             disabled={disabled}
           />
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -95,6 +93,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     padding: Kb.Styles.globalMargins.small,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

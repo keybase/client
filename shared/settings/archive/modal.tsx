@@ -247,15 +247,13 @@ const ArchiveModal = (p: Props) => {
             : output}
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar small={true}>
             {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
             {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
             {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -265,6 +263,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contentContainer: {
     maxWidth: 400,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   outPath: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blue_30,

@@ -74,8 +74,7 @@ const AddPhone = () => {
           <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Button
             waiting={waiting}
             fullWidth={true}
@@ -83,8 +82,7 @@ const AddPhone = () => {
             onClick={onContinue}
             disabled={disabled}
           />
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -97,6 +95,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
   }),
 }))
 

@@ -151,8 +151,7 @@ const AddToChannel = (props: Props) => {
         />
       </Kb.Box2>
       {Kb.Styles.isMobile ? null : (
-        <Kb.ModalFooter
-          content={
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Button
                 type="Dim"
@@ -168,8 +167,7 @@ const AddToChannel = (props: Props) => {
                 waiting={waiting}
               />
             </Kb.Box2>
-          }
-        />
+        </Kb.Box2>
       )}
     </>
   )
@@ -196,6 +194,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddToChannel

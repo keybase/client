@@ -475,16 +475,14 @@ const Container = function BlockModal(ownProps: OwnProps) {
               )
         }
       />
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             {!Kb.Styles.isMobile && (
               <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
             )}
             <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
           </Kb.ButtonBar>
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -532,6 +530,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     padding: Kb.Styles.globalMargins.medium,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},
   shrink: {flexShrink: 1},
 }))

@@ -2,7 +2,6 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
 import IconAuto from '@/common-adapters/icon-auto'
-import {ModalFooter} from './modal2'
 import Text from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -70,34 +69,31 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-    <ModalFooter
-      content={
-        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!Styles.isMobile && (
-            <WaitingButton
-              key="cancel"
-              disabled={!props.onCancel || props.waiting}
-              type="Dim"
-              label="Cancel"
-              onClick={props.onCancel}
-              style={styles.button}
-              waitingKey={props.waitingKey}
-            />
-          )}
+    <Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.isMobile ? styles.modalFooterNoBorder : styles.modalFooter}>
+      <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+        {!Styles.isMobile && (
           <WaitingButton
-            key="confirm"
-            disabled={props.onConfirmDeactivated || !props.onConfirm}
-            type="Danger"
-            label={props.confirmText || 'Confirm'}
-            onClick={props.onConfirm}
+            key="cancel"
+            disabled={!props.onCancel || props.waiting}
+            type="Dim"
+            label="Cancel"
+            onClick={props.onCancel}
             style={styles.button}
             waitingKey={props.waitingKey}
-            waiting={props.waiting}
           />
-        </ButtonBar>
-      }
-      hideBorder={Styles.isMobile}
-    />
+        )}
+        <WaitingButton
+          key="confirm"
+          disabled={props.onConfirmDeactivated || !props.onConfirm}
+          type="Danger"
+          label={props.confirmText || 'Confirm'}
+          onClick={props.onConfirm}
+          style={styles.button}
+          waitingKey={props.waitingKey}
+          waiting={props.waiting}
+        />
+      </ButtonBar>
+    </Box2>
   </>
 )
 
@@ -114,6 +110,31 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
+  modalFooter: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  modalFooterNoBorder: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   text: {
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,

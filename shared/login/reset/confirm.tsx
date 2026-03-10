@@ -95,22 +95,19 @@ const ConfirmReset = () => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
-          <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              disabled={disabled}
-              label="Yes, reset account"
-              onClick={onContinue}
-              type="Danger"
-              fullWidth={true}
-              waitingKey={C.waitingKeyAutoresetActuallyReset}
-            />
-            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
-          </Kb.ButtonBar>
-        }
-        style={styles.footer}
-      />
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+        <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton
+            disabled={disabled}
+            label="Yes, reset account"
+            onClick={onContinue}
+            type="Danger"
+            fullWidth={true}
+            waitingKey={C.waitingKeyAutoresetActuallyReset}
+          />
+          <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
     </>
   )
 }
@@ -131,6 +128,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: Kb.Styles.platformStyles({
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

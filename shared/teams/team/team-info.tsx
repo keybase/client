@@ -98,8 +98,7 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Button
             label="Save"
             onClick={onSave}
@@ -107,8 +106,7 @@ const TeamInfo = (props: Props) => {
             disabled={saveDisabled}
             waiting={waiting}
           />
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -140,6 +138,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   faded: {opacity: 0.5},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 

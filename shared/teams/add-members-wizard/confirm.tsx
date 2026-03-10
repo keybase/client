@@ -153,8 +153,7 @@ const AddMembersConfirm = () => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Button
             fullWidth={true}
             label={`Invite ${addingMembers.length} ${noun} & finish`}
@@ -162,8 +161,7 @@ const AddMembersConfirm = () => {
             onClick={onComplete}
             disabled={addingMembers.length === 0}
           />
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -528,6 +526,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
   memberPill: {width: 0},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddMembersConfirm

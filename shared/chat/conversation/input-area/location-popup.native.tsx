@@ -107,16 +107,14 @@ const LocationPopup = () => {
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <LocationButton disabled={locationDenied} label="Share location for 15 minutes" onClick={() => onLocationShare('15m')} subLabel="Live location" />
             <LocationButton disabled={locationDenied} label="Share location for 1 hour" onClick={() => onLocationShare('1h')} subLabel="Live location" />
             <LocationButton disabled={locationDenied} label="Share location for 8 hours" onClick={() => onLocationShare('8h')} subLabel="Live location" />
             <LocationButton disabled={locationDenied} label="Send current location" onClick={() => onLocationShare('')} subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined} primary={true} />
           </Kb.Box2>
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -143,6 +141,20 @@ const styles = Kb.Styles.styleSheetCreate(
       liveButtonLabelPrimary: {
         color: Kb.Styles.globalColors.whiteOrWhite,
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
     }) as const
 )
 

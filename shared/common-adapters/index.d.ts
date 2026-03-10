@@ -61,7 +61,6 @@ export {default as Markdown} from './markdown'
 
 export {default as Meta} from './meta'
 export {default as MobilePopup} from './popup'
-export {ModalHeader, ModalFooter, useModalHeaderTitleAndCancel} from './modal2'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon'
 export {default as Overlay} from './popup'

@@ -192,17 +192,15 @@ const EditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-      <Kb.ModalFooter
-        content={
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={wizard ? 'Continue' : 'Save'}
-            onClick={onSave}
-            disabled={loading !== 'loaded'}
-            waitingKey={p.waitingKey}
-          />
-        }
-      />
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.WaitingButton
+          fullWidth={true}
+          label={wizard ? 'Continue' : 'Save'}
+          onClick={onSave}
+          disabled={loading !== 'loaded'}
+          waitingKey={p.waitingKey}
+        />
+      </Kb.Box2>
     </>
   )
 }
@@ -255,6 +253,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: '50%',
   },
   instructions: {maxWidth: 200},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
   skipButton: {minWidth: 60},
 }))

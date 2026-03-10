@@ -77,8 +77,7 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-      <Kb.ModalFooter
-        content={
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Button
             fullWidth={true}
             label="Continue"
@@ -86,8 +85,7 @@ const AddEmail = (props: Props) => {
             disabled={disabled}
             waiting={waiting}
           />
-        }
-      />
+      </Kb.Box2>
     </>
   )
 }
@@ -102,6 +100,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   errorText: {color: Kb.Styles.globalColors.redDark},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddEmail

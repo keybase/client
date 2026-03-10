@@ -65,15 +65,19 @@ const Troubleshooting = (props: Props) => {
 
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={false}
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onBack}>
-            Back
-          </Kb.Text>
-        ) : null}
-        title="Troubleshooting"
-      />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+        <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+          <Kb.Box2 direction="horizontal" style={styles.headerSide}>
+            {Kb.Styles.isMobile ? (
+              <Kb.Text type="BodySemiboldLink" onClick={onBack}>
+                Back
+              </Kb.Text>
+            ) : null}
+          </Kb.Box2>
+          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>Troubleshooting</Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.headerSide} />
+        </Kb.Box2>
+      </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
@@ -107,10 +111,9 @@ const Troubleshooting = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {!Kb.Styles.isMobile && (
-        <Kb.ModalFooter
-          content={<Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />}
-          hideBorder={true}
-        />
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooterNoBorder}>
+          <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />
+        </Kb.Box2>
       )}
     </>
   )
@@ -160,6 +163,28 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       maxWidth: 188,
+    },
+  }),
+  header: {
+    borderBottomColor: Kb.Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+    minHeight: 48,
+  },
+  headerSide: {
+    flex: 1,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+    paddingRight: Kb.Styles.globalMargins.xsmall,
+  },
+  modalFooterNoBorder: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

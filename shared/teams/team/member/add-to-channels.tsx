@@ -177,28 +177,26 @@ const AddToChannels = function AddToChannels(props: Props) {
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   const desktopFooter = !Kb.Styles.isMobile && mode !== 'self' ? (
-    <Kb.ModalFooter
-      content={
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-          <Kb.Button
-            type="Dim"
-            label="Cancel"
-            onClick={onCancel}
-            style={Kb.Styles.globalStyles.flexOne}
-            disabled={waiting}
-          />
-          <Kb.Button
-            label={
-              numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-            }
-            onClick={onFinish}
-            disabled={!numSelected}
-            style={Kb.Styles.globalStyles.flexOne}
-            waiting={waiting}
-          />
-        </Kb.Box2>
-      }
-    />
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Button
+          type="Dim"
+          label="Cancel"
+          onClick={onCancel}
+          style={Kb.Styles.globalStyles.flexOne}
+          disabled={waiting}
+        />
+        <Kb.Button
+          label={
+            numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
+          }
+          onClick={onFinish}
+          disabled={!numSelected}
+          style={Kb.Styles.globalStyles.flexOne}
+          waiting={waiting}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
   ) : null
 
   const navForHeader = C.useNav()
@@ -604,6 +602,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   joinLeaveButton: {width: 63},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),

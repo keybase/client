@@ -177,12 +177,6 @@ module.exports = {
   get MobilePopup() {
     return require('./popup').default
   },
-  get ModalFooter() {
-    return require('./modal2').ModalFooter
-  },
-  get ModalHeader() {
-    return require('./modal2').ModalHeader
-  },
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
@@ -311,9 +305,6 @@ module.exports = {
   },
   get useInterval() {
     return require('./use-timers').useInterval
-  },
-  get useModalHeaderTitleAndCancel() {
-    return require('./modal2').useModalHeaderTitleAndCancel
   },
   get usePopup2() {
     return require('./use-popup').usePopup2

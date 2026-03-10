@@ -1,10 +1,37 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
-import {ModalHeader, ModalFooter} from '@/common-adapters/modal2'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type ModalHeaderProps = {
+  title?: React.ReactNode
+  leftButton?: React.ReactNode
+  rightButton?: React.ReactNode
+}
+
+const ModalHeader = (props: ModalHeaderProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+      <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
+        {!!props.leftButton && props.leftButton}
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical">
+        {typeof props.title === 'string' ? (
+          <Kb.Text type="Header" lineClamp={1} center={true}>
+            {props.title}
+          </Kb.Text>
+        ) : (
+          props.title
+        )}
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" style={styles.headerRight}>
+        {!!props.rightButton && props.rightButton}
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
@@ -109,7 +136,19 @@ const ModalWrapper = (p: ModalWrapperProps) => {
         <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalBox, modalStyle])}>
           {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
           {children}
-          {modalFooter ? <ModalFooter {...modalFooter} wide={false} fullscreen={false} /> : null}
+          {modalFooter ? (
+            <Kb.Box2
+              direction="vertical"
+              centerChildren={true}
+              fullWidth={true}
+              style={Kb.Styles.collapseStyles([
+                modalFooter.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter,
+                modalFooter.style,
+              ])}
+            >
+              {modalFooter.content}
+            </Kb.Box2>
+          ) : null}
           {!overlayTransparent && !overlayNoClose && (
             <Kb.Icon
               type="iconfont-close"
@@ -171,6 +210,24 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: 0,
     },
   }),
+  header: {
+    borderBottomColor: Kb.Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+    minHeight: 48,
+  },
+  headerLeft: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+    paddingRight: Kb.Styles.globalMargins.xsmall,
+  },
+  headerRight: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+    paddingRight: Kb.Styles.globalMargins.xsmall,
+  },
   hidden: {display: 'none'},
   modalBox: Kb.Styles.platformStyles({
     isElectron: {
@@ -181,6 +238,31 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       pointerEvents: 'auto',
       position: 'relative',
       width: 400,
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  modalFooterNoBorder: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
   overlayAvoidTabs: Kb.Styles.platformStyles({
