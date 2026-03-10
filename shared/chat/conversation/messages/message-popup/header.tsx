@@ -115,12 +115,9 @@ const MessagePopupHeader = (props: Props) => {
           direction="vertical"
           style={Kb.Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.blue}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderText}>
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         </Kb.Box2>
       )}
       <Kb.Divider
@@ -157,6 +154,14 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {marginTop: 0},
         isMobile: {marginTop: Kb.Styles.globalMargins.small},
       }),
+      popupHeaderText: {
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
       revokedAtContainerLast: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,

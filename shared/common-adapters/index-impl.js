@@ -174,17 +174,11 @@ module.exports = {
   get Meta() {
     return require('./meta').default
   },
-  get MobilePopup() {
-    return require('./popup').default
-  },
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
-  },
-  get Overlay() {
-    return require('./popup').default
   },
   get PhoneInput() {
     return require('./phone-input').default
@@ -197,9 +191,6 @@ module.exports = {
   },
   get Popup() {
     return require('./popup').default
-  },
-  get PopupHeaderText() {
-    return require('./popup-header-text').default
   },
   get ProfileCard() {
     return require('./profile-card').default
