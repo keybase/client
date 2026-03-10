@@ -74,36 +74,32 @@ function ConversationFilterInput(ownProps: OwnProps) {
     }
   }, [isSearching])
 
-  // On mobile, SearchFilter is re-mounted when toggling isSearching
-  // (see chat/inbox/index.native.tsx). To avoid keyboard flicker, render
-  // a simple placeholder that triggers search on tap when not searching.
-  const searchInput =
-    Kb.Styles.isMobile && !isSearching ? (
-      <Kb.ClickableBox2 onClick={onStartSearch} style={Kb.Styles.collapseStyles([styles.searchBox, styles.searchPlaceholder])}>
-        <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} gap="tiny">
-          <Kb.Icon type="iconfont-search" sizeType="Small" color={Kb.Styles.globalColors.black_50} />
-          <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>Search</Kb.Text>
-        </Kb.Box2>
+  const searchInput = isSearching ? (
+    <Kb.SearchFilter
+      ref={inputRef}
+      size="full-width"
+      style={styles.searchBox}
+      icon="iconfont-search"
+      placeholderText="Search"
+      showXOverride={true}
+      value={filter}
+      valueControlled={true}
+      focusOnMount={Kb.Styles.isMobile}
+      onChange={onChange}
+      onCancel={onStopSearch}
+      onKeyDown={onKeyDown}
+      onEnterKeyDown={onEnterKeyDown}
+    />
+  ) : (
+    <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
+      <Kb.ClickableBox2 onClick={onStartSearch} style={styles.searchPlaceholder}>
+        <Kb.Icon type="iconfont-search" sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'} color={Kb.Styles.globalColors.black_50} style={styles.searchPlaceholderIcon} />
+        <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
+          {Kb.Styles.isMobile ? 'Search' : 'Search (\u2318K)'}
+        </Kb.Text>
       </Kb.ClickableBox2>
-    ) : (
-      <Kb.SearchFilter
-        ref={inputRef}
-        size="full-width"
-        style={styles.searchBox}
-        icon="iconfont-search"
-        placeholderText="Search"
-        hotkey="k"
-        showXOverride={isSearching ? true : undefined}
-        value={filter}
-        valueControlled={true}
-        focusOnMount={Kb.Styles.isMobile && isSearching}
-        onChange={onChange}
-        onCancel={onStopSearch}
-        onFocus={onStartSearch}
-        onKeyDown={onKeyDown}
-        onEnterKeyDown={onEnterKeyDown}
-      />
-    )
+    </Kb.Box2>
+  )
   return (
     <Kb.Box2
       direction="horizontal"
@@ -148,15 +144,32 @@ const styles = Kb.Styles.styleSheetCreate(
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
       searchPlaceholder: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexGrow,
+        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
+        flex: 1,
+        flexShrink: 1,
         height: 32,
-        justifyContent: 'center',
-        marginBottom: Kb.Styles.globalMargins.tiny,
-        marginTop: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.xsmall,
       },
+      searchPlaceholderIcon: Kb.Styles.platformStyles({
+        isElectron: {marginRight: Kb.Styles.globalMargins.tiny, marginTop: 2},
+        isMobile: {marginRight: Kb.Styles.globalMargins.tiny},
+      }),
+      searchPlaceholderOuter: Kb.Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+        isMobile: {
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
+        },
+        isTablet: {paddingLeft: 0, paddingRight: 0},
+      }),
       searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
