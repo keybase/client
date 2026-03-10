@@ -40,7 +40,7 @@ const PlainInput = React.memo(
     const {growAndScroll, multiline, onFocus: _onFocus, selectTextOnFocus, onChangeText} = p
     const {maxBytes, globalCaptureKeypress, onBlur, onClick, style, resize, maxLength} = p
     const {rowsMin, rowsMax, textType, padding, flexable = true, type} = p
-    const {autoFocus, allowKeyboardEvents, placeholder, spellCheck, disabled, value, className} = p
+    const {autoFocus, allowKeyboardEvents, placeholder, spellCheck, disabled, value, className, tabIndex} = p
     const inputRef = React.useRef<NativeTextRef>(null)
     const isComposingIMERef = React.useRef(false)
     const mountedRef = React.useRef(true)
@@ -216,6 +216,7 @@ const PlainInput = React.memo(
         placeholder,
         ref: inputRef,
         spellCheck,
+        tabIndex,
         value,
         ...(maxLength ? {maxLength} : {}),
         ...(disabled ? {readOnly: true} : {}),

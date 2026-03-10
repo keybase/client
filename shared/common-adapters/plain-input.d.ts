@@ -98,6 +98,7 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
   spellCheck?: boolean
+  tabIndex?: number // desktop only
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean
