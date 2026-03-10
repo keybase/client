@@ -1878,7 +1878,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 
 	// If HEAD points to a nonexistent ref, update it to point to the
-	// best successfully-pushed branch (prefer main > master > alphabetical).
+	// best available branch in the repo (prefer main > master > alphabetical).
 	// This must happen before waitForJournal so the HEAD update is
 	// included in the same flush.
 	head, headErr := repo.Storer.Reference(plumbing.HEAD)
@@ -1886,21 +1886,24 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, targetErr := repo.Storer.Reference(head.Target())
 		if targetErr == plumbing.ErrReferenceNotFound {
 			var bestBranch plumbing.ReferenceName
-			// Iterate over args (not the refspecs map) for
-			// deterministic branch selection.
-			for _, push := range args {
-				refspec := gogitcfg.RefSpec(push[0])
-				if refspec.IsDelete() {
-					continue
+			allRefs, refsErr := repo.References()
+			if refsErr == nil {
+				for {
+					ref, nextErr := allRefs.Next()
+					if errors.Cause(nextErr) == io.EOF {
+						break
+					}
+					if nextErr != nil {
+						break
+					}
+					if ref.Type() != plumbing.HashReference {
+						continue
+					}
+					if !strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+						continue
+					}
+					bestBranch = bestBranchFromCandidates(bestBranch, ref.Name())
 				}
-				dst := refspec.Dst("")
-				if results[dst.String()] != nil {
-					continue // errored
-				}
-				if !strings.HasPrefix(dst.String(), "refs/heads/") {
-					continue
-				}
-				bestBranch = bestBranchFromCandidates(bestBranch, dst)
 			}
 			if bestBranch != "" {
 				newHead := plumbing.NewSymbolicReference(
