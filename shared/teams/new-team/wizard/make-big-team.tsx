@@ -1,23 +1,12 @@
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
-import {ModalTitle} from '@/teams/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamsState} from '@/stores/teams'
 
 const MakeBigTeam = () => {
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamSize = useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
   const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 
-  const teamID = T.Teams.newTeamWizardTeamID
-
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-        title={<ModalTitle teamID={teamID} title="Make it a big team?" />}
-      />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -43,7 +32,6 @@ const MakeBigTeam = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

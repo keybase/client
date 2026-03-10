@@ -134,7 +134,9 @@ const rootStackScreenOptions = {
 } satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftCancel2 />,
+  headerShown: true,
   presentation: 'modal',
+  title: '',
 } as const
 
 const useIsLoggedIn = () => useConfigState(s => s.loggedIn)

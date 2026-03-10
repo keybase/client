@@ -36,16 +36,21 @@ export default function AddDevice(ownProps: OwnProps) {
   }
   const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    cancel?.()
-    navigateUp()
-  }
+
+  const nav = C.useNav()
+  React.useEffect(() => {
+    if (Kb.Styles.isMobile) {
+      nav.setOptions({
+        headerLeft: () => <Kb.Text type="BodyBigLink" onClick={() => {
+          cancel?.()
+          navigateUp()
+        }}>Cancel</Kb.Text>,
+      })
+    }
+  }, [nav, cancel, navigateUp])
 
   return (
     <>
-      {Kb.Styles.isMobile && (
-        <Kb.ModalHeader leftButton={<Kb.Text type="BodyBigLink" onClick={onCancel}>Cancel</Kb.Text>} />
-      )}
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2
           direction="vertical"

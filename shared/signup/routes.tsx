@@ -1,6 +1,44 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
+import {useSignupState} from '@/stores/signup'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {usePushState} from '@/stores/push'
+
+const EmailSkipButton = () => {
+  const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        setJustSignedUpEmail(C.noEmail)
+        showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+      }}
+    >
+      Skip
+    </Kb.Text>
+  )
+}
+
+const PhoneSkipButton = () => {
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        clearPhoneNumberAdd()
+        navigateAppend('signupEnterEmail', true)
+      }}
+    >
+      Skip
+    </Kb.Text>
+  )
+}
 
 export const newRoutes = {
   signupEnterDevicename: {screen: React.lazy(async () => import('./device-name'))},
@@ -24,8 +62,17 @@ export const newRoutes = {
 
 // Some screens in signup show up after we've actually signed up
 export const newModalRoutes = {
-  signupEnterEmail: {screen: React.lazy(async () => import('./email'))},
-  signupEnterPhoneNumber: {screen: React.lazy(async () => import('./phone-number'))},
-  signupSendFeedbackLoggedIn: {screen: React.lazy(async () => import('./feedback'))},
+  signupEnterEmail: {
+    getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
+    screen: React.lazy(async () => import('./email')),
+  },
+  signupEnterPhoneNumber: {
+    getOptions: {headerLeft: () => null, headerRight: () => <PhoneSkipButton />, title: 'Your phone number'},
+    screen: React.lazy(async () => import('./phone-number')),
+  },
+  signupSendFeedbackLoggedIn: {
+    getOptions: {title: 'Send feedback'},
+    screen: React.lazy(async () => import('./feedback')),
+  },
   signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify'))},
 }

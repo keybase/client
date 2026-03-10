@@ -257,30 +257,32 @@ export const VerifyPhone = () => {
   const onResend = () => {
     resendVerificationForPhone(pendingVerification)
   }
-  const onClose = () => {
-    clearPhoneNumberAdd()
-    clearModals()
-  }
   const onContinue = () => verifyPhoneNumber(pendingVerification, code)
   const disabled = !code
 
   const displayPhone = e164ToDisplay(pendingVerification)
+  const navObj = C.useNav()
+  React.useEffect(() => {
+    navObj.setOptions({
+      headerLeft: Kb.Styles.isMobile ? () => (
+        <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
+          <Kb.BackButton onClick={() => {
+            clearPhoneNumberAdd()
+            clearModals()
+          }} iconColor={Kb.Styles.globalColors.white} />
+        </Kb.Styles.CanFixOverdrawContext.Provider>
+      ) : undefined,
+      headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+      headerTitle: () => (
+        <Kb.Text type="BodySmall" negative={true} center={true}>
+          {displayPhone || 'Unknown number'}
+        </Kb.Text>
+      ),
+    })
+  }, [navObj, displayPhone, clearPhoneNumberAdd, clearModals])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={true}
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-            <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
-          </Kb.Styles.CanFixOverdrawContext.Provider>
-        ) : null}
-        style={styles.blueBackground}
-        title={
-          <Kb.Text type="BodySmall" negative={true} center={true}>
-            {displayPhone || 'Unknown number'}
-          </Kb.Text>
-        }
-      />
       {!!error && (
         <Kb.Banner color="red" style={styles.banner}>
           <Kb.BannerParagraph bannerColor="red" content={error} />

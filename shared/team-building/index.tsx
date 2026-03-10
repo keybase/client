@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as TB from '@/stores/team-building'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -13,7 +12,6 @@ import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
-import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '@/common-adapters/reanimated'
 
 const deriveTeamSoFar = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.SelectedUser> =>
@@ -146,10 +144,6 @@ const TeamBuilding = (p: OwnProps) => {
       }
     }
 
-  const title = Teams.useTeamsState(s =>
-    namespace === 'teams' ? `Add to ${Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
-  )
-
   const waitingForCreate = C.Waiting.useAnyWaiting(C.waitingKeyChatCreating)
 
   const offset = useSharedValue(0)
@@ -245,26 +239,9 @@ const TeamBuilding = (p: OwnProps) => {
   // If there are no filterServices or if the filterServices has a phone
   const showContactsBanner = Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
-  const headerProps = modalHeaderProps({
-    goButtonLabel,
-    hasTeamSoFar: teamSoFar.length > 0,
-    namespace,
-    onClose,
-    onFinishTeamBuilding,
-    teamID,
-    title,
-  })
 
   return (
     <>
-      {headerProps ? (
-        <Kb.ModalHeader
-          hideBorder={headerProps.hideBorder}
-          leftButton={headerProps.leftButton}
-          rightButton={headerProps.rightButton}
-          title={headerProps.title}
-        />
-      ) : null}
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {teamBox}
         {errorBanner}

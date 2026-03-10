@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
@@ -58,10 +59,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     }))
   )
   const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
-  const headerRightButton =
-    destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? (
-      <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
-    ) : undefined
+  const incomingShareSource = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? destPicker.source.source : undefined
 
   const nav = useSafeNavigation()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -117,14 +115,18 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsPathMetadata(parentPath)
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
+
+  const navObj = C.useNav()
+  React.useEffect(() => {
+    navObj.setOptions({
+      headerLeft: () => makeLeftButton(onCancel, onBack),
+      headerRight: incomingShareSource ? () => <OriginalOrCompressedButton incomingShareItems={incomingShareSource} /> : undefined,
+      headerTitle: () => makeTitle(targetName, parentPath),
+    })
+  }, [navObj, onCancel, onBack, incomingShareSource, targetName, parentPath])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={true}
-        leftButton={makeLeftButton(onCancel, onBack)}
-        rightButton={headerRightButton}
-        title={makeTitle(targetName, parentPath)}
-      />
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">

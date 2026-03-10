@@ -59,6 +59,7 @@ const ConnectedEnterEmail = () => {
       onRightAction={onSkip}
       title="Your email address"
       showHeaderInfoicon={true}
+      skipMobileHeader={true}
     >
       <EnterEmailBody
         onChangeEmail={onChangeEmail}

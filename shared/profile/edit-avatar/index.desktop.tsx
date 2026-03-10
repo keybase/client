@@ -112,21 +112,19 @@ const EditAvatar = (_p: Props) => {
     C.ignorePromise(f())
   }
 
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      headerLeft: () => (wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null),
+      headerRight: () => (wizard ? (
+        <Kb.Button label="Skip" mode="Secondary" onClick={onSkip} style={styles.skipButton} type="Default" />
+      ) : null),
+      headerTitle: () => (type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>),
+    })
+  }, [nav, wizard, showBack, onBack, onSkip, type, teamID])
+
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null}
-        rightButton={wizard ? (
-          <Kb.Button
-            label="Skip"
-            mode="Secondary"
-            onClick={onSkip}
-            style={styles.skipButton}
-            type="Default"
-          />
-        ) : null}
-        title={type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : 'Upload an avatar'}
-      />
       {error ? (
         <Kb.Banner color="red" key="propsError">
           {error}

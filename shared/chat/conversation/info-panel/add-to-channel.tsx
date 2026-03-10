@@ -56,26 +56,35 @@ const AddToChannel = (props: Props) => {
 
   const loading = !allMembers.length
 
+  const navObj = C.useNav()
+  React.useEffect(() => {
+    const handleAdd = () => {
+      setWaiting(true)
+      addToChannel(
+        [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+        () => {
+          setWaiting(false)
+          loadTeamChannelList(teamID)
+          nav.safeNavigateUp()
+        },
+        (e: {message: string}) => {
+          setError(e.message)
+          setWaiting(false)
+        }
+      )
+    }
+    navObj.setOptions({
+      headerRight: Kb.Styles.isMobile && toAdd.size ? () => (
+        <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : handleAdd}>
+          Add
+        </Kb.Text>
+      ) : undefined,
+      headerTitle: () => <>{title({channelname, teamID})}</>,
+    })
+  }, [navObj, channelname, teamID, toAdd, toAdd.size, waiting, addToChannel, conversationIDKey, loadTeamChannelList, nav])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={Kb.Styles.isMobile}
-        leftButton={
-          Kb.Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={onClose}>
-              Cancel
-            </Kb.Text>
-          ) : undefined
-        }
-        rightButton={
-          Kb.Styles.isMobile && toAdd.size ? (
-            <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
-              Add
-            </Kb.Text>
-          ) : undefined
-        }
-        title={title({channelname, teamID})}
-      />
       {error ? (
         <Kb.Banner color="red" key="err">
           {error}

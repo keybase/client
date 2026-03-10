@@ -4,12 +4,10 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
-  const nav = useSafeNavigation()
   const {teamID} = props
   const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
@@ -34,7 +32,6 @@ const TeamInfo = (props: Props) => {
 
   const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
   const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
-  const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {
       renameTeam(teamname, parentTeamNameWithDot + newName)
@@ -43,17 +40,22 @@ const TeamInfo = (props: Props) => {
       editTeamDescription(teamID, description)
     }
   }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEditAvatar = () =>
-    nav.safeNavigateAppend({
+    navigateAppend({
       name: 'profileEditAvatar',
       params: {sendChatNotification: true, showBack: true, teamID},
     })
+  const navForHeader = C.useNav()
+  const infoTitle = isSubteam ? 'Edit subteam info' : 'Edit team info'
+  React.useEffect(() => {
+    navForHeader.setOptions({
+      headerTitle: () => <ModalTitle teamID={teamID} title={infoTitle} />,
+    })
+  }, [navForHeader, teamID, infoTitle])
+
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined}
-        title={<ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />}
-      />
       {Object.keys(errors).map(k =>
         errors[k as keyof typeof errors] ? (
           <Kb.Banner color="red" key={k}>
@@ -125,7 +127,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     marginRight: Kb.Styles.globalMargins.tiny,
   },
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

@@ -3,9 +3,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 
 export const newRoutes = {
-  codePage: {
-    screen: React.lazy(async () => import('./code-page/container')),
-  },
+  codePage: {screen: React.lazy(async () => import('./code-page/container'))},
   error: {screen: React.lazy(async () => import('./error'))},
   forgotUsername: {
     screen: React.lazy(async () => import('./forgot-username')),

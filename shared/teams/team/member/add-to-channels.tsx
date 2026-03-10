@@ -201,28 +201,44 @@ const AddToChannels = function AddToChannels(props: Props) {
     />
   ) : null
 
+  const navForHeader = C.useNav()
+  React.useEffect(() => {
+    const handleFinish = () => {
+      if (!selected.size) {
+        nav.safeNavigateUp()
+        return
+      }
+      setWaiting(true)
+      submit(
+        [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
+        () => {
+          setWaiting(false)
+          nav.safeNavigateUp()
+        },
+        error => {
+          console.error(error)
+          setWaiting(false)
+        }
+      )
+    }
+    navForHeader.setOptions({
+      headerRight:
+        mode === 'others'
+          ? () =>
+              waiting ? (
+                <Kb.ProgressIndicator type="Large" />
+              ) : (
+                <Kb.Text type="BodyBigLink" onClick={handleFinish} style={!numSelected && styles.disabled}>
+                  Add
+                </Kb.Text>
+              )
+          : undefined,
+      headerTitle: () => <Common.ModalTitle teamID={teamID} title={title} />,
+    })
+  }, [navForHeader, mode, waiting, selected, submit, usernames, nav, numSelected, teamID, title])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={Kb.Styles.isMobile}
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
-            Cancel
-          </Kb.Text>
-        ) : undefined}
-        rightButton={
-          Kb.Styles.isMobile && mode === 'others' ? (
-            waiting ? (
-              <Kb.ProgressIndicator type="Large" />
-            ) : (
-              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
-                Add
-              </Kb.Text>
-            )
-          ) : undefined
-        }
-        title={<Common.ModalTitle teamID={teamID} title={title} />}
-      />
       {loadingChannels && !channelMetas.size ? (
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />

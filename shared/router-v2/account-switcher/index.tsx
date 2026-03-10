@@ -63,21 +63,6 @@ const Container = () => {
 
   return (
     <>
-      {Kb.Styles.isMobile ? (
-        <Kb.ModalHeader
-          leftButton={
-            <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
-              Cancel
-            </Kb.Text>
-          }
-          rightButton={
-            <Kb.Text type="BodyBigLink" onClick={props.onSignOut} style={styles.signOut}>
-              Sign out
-            </Kb.Text>
-          }
-          title=" "
-        />
-      ) : null}
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
           {Kb.Styles.isMobile && <MobileHeader {...props} />}

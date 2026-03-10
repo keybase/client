@@ -1,12 +1,23 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
 import chatNewChat from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
+import {useConfigState} from '@/stores/config'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
-
 const Convo = React.lazy(async () => import('./conversation/container'))
+
+const PDFShareButton = ({url}: {url?: string}) => {
+  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
+  return (
+    <Kb.Icon
+      type="iconfont-share"
+      onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')}
+    />
+  )
+}
 
 export const newRoutes = {
   chatConversation: Chat.makeChatScreen(Convo, {
@@ -46,10 +57,15 @@ export const newModalRoutes = {
     }
   ),
   chatAttachmentGetTitles: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/attachment-get-titles'))
+    React.lazy(async () => import('./conversation/attachment-get-titles')),
+    {getOptions: {headerShown: false}}
   ),
-  chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal'))),
-  chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container'))),
+  chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
+    getOptions: {headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />},
+  }),
+  chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container')), {
+    getOptions: {headerShown: false},
+  }),
   chatConfirmNavigateExternal: Chat.makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
     {skipProvider: true}
@@ -63,7 +79,9 @@ export const newModalRoutes = {
     {skipProvider: true}
   ),
   chatDeleteHistoryWarning: Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
-  chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg'))),
+  chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg')), {
+    getOptions: {title: 'Forward to team or chat'},
+  }),
   chatInfoPanel: Chat.makeChatScreen(React.lazy(async () => import('./conversation/info-panel'))),
   chatInstallBot: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
@@ -85,7 +103,12 @@ export const newModalRoutes = {
   ),
   chatNewChat,
   chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
-    getOptions: {modal2Style: {alignSelf: 'stretch'}, modalStyle: {height: '80%', width: '80%'}},
+    getOptions: p => ({
+      headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+      modal2Style: {alignSelf: 'stretch'},
+      modalStyle: {height: '80%', width: '80%'},
+      title: 'PDF',
+    }),
   }),
   chatSearchBots: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/search')),

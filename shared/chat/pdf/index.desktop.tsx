@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import type {Props} from '.'
 import {useFSState} from '@/stores/fs'
 
@@ -18,9 +19,16 @@ const ChatPDF = (props: Props) => {
     message && attachmentDownload(message.ordinal)
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   }
+
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      headerTitle: () => <Kb.Text type="BodyBig">{title}</Kb.Text>,
+    })
+  }, [nav, title])
+
   return (
     <>
-      <Kb.ModalHeader title={<Kb.Text type="BodyBig">{title}</Kb.Text>} />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <embed src={url} width="100%" height="100%" />
       </Kb.Box2>

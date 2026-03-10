@@ -30,19 +30,16 @@ const Container = (ownProps: OwnProps) => {
     onJoinTeam(name)
   }
 
+  const navForHeader = C.useNav()
+  React.useEffect(() => {
+    navForHeader.setOptions({
+      headerLeft: success ? () => null : undefined,
+      title: success ? 'Request sent' : 'Join a team',
+    })
+  }, [navForHeader, success])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={success}
-        leftButton={
-          Kb.Styles.isMobile && !success ? (
-            <Kb.Text type="BodyBigLink" onClick={onBack}>
-              Cancel
-            </Kb.Text>
-          ) : undefined
-        }
-        title={success ? 'Request sent' : 'Join a team'}
-      />
       {errorText ? (
         <Kb.Banner key="red" color="red">
           <Kb.BannerParagraph bannerColor="red" content={errorText} />

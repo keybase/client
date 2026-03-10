@@ -31,10 +31,12 @@ const InfoPanelConnector = (ownProps: Props) => {
 
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = Chat.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
-  const onCancel = () => {
-    showInfoPanel(false, undefined)
-    clearAttachmentView()
-  }
+  React.useEffect(() => {
+    return () => {
+      showInfoPanel(false, undefined)
+      clearAttachmentView()
+    }
+  }, [showInfoPanel, clearAttachmentView])
   const onGoToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
@@ -134,9 +136,6 @@ const InfoPanelConnector = (ownProps: Props) => {
   } else {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        {Kb.Styles.isMobile && (
-          <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" customCancelText="Done" />
-        )}
         {sectionList}
       </Kb.Box2>
     )

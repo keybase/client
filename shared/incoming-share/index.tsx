@@ -145,11 +145,7 @@ const useHeader = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return {
-    leftButton: (
-      <Kb.Text type="BodyBigLink" onClick={onCancel}>
-        Cancel
-      </Kb.Text>
-    ),
+    onCancel,
     rightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
     title: (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
@@ -242,6 +238,19 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   const header = useHeader(props.incomingShareItems)
   const footer = useFooter(props.incomingShareItems)
 
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      headerLeft: () => (
+        <Kb.Text type="BodyBigLink" onClick={header.onCancel}>
+          Cancel
+        </Kb.Text>
+      ),
+      headerRight: () => header.rightButton,
+      headerTitle: () => header.title,
+    })
+  }, [nav, header.onCancel, header.rightButton, header.title])
+
   if (canDirectNav) {
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
@@ -252,11 +261,6 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={header.leftButton}
-        rightButton={header.rightButton}
-        title={header.title}
-      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
@@ -277,22 +281,12 @@ const IncomingShareError = () => {
       params: {feedback: `iOS share failure`},
     })
   }
-  const onCancel = () => clearModals()
 
   return (
-    <>
-      <Kb.ModalHeader
-        leftButton={
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        }
-      />
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
-        <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
-        <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
+      <Kb.Text type="BodySmall">Whoops! Something went wrong.</Kb.Text>
+      <Kb.Button label="Please let us know" onClick={erroredSendFeedback} />
+    </Kb.Box2>
   )
 }
 

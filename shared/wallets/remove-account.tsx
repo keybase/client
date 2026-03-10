@@ -33,9 +33,6 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <WalletPopup
-      onExit={onClose}
-      backButtonType="cancel"
-      headerStyle={styles.header}
       bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
@@ -65,7 +62,6 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},
     isElectron: {marginTop: Kb.Styles.globalMargins.medium},

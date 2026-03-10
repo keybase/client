@@ -33,7 +33,7 @@ export const newRoutes = {
 export const newModalRoutes = {
   ...provisionNewRoutes,
   deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device')), {
-    getOptions: {modalStyle: {width: 620}},
+    getOptions: {modalStyle: {width: 620}, title: 'Add a device'},
   }),
   devicePaperKey: {
     getOptions: {gestureEnabled: false, modal2NoClose: true},

@@ -11,7 +11,7 @@ import useHooks from './hooks'
 const AvatarUploadWrapper = (p: Props) => {
   const props = useHooks(p)
   const {image, error: _error, onSave: _onSave, type} = props
-  const {onBack, wizard, waitingKey, onClose, onSkip, teamID} = props
+  const {onBack, wizard, waitingKey, onSkip, teamID} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
   const nav = useSafeNavigation()
@@ -123,23 +123,29 @@ const AvatarUploadWrapper = (p: Props) => {
     ) : null
   }
 
+  const navObj = C.useNav()
+  React.useEffect(() => {
+    if (type === 'team') {
+      navObj.setOptions({
+        headerLeft: () => <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
+        headerRight: wizard ? () => (
+          <Kb.Text type="BodyBigLink" onClick={onSkip}>
+            Skip
+          </Kb.Text>
+        ) : undefined,
+        headerTitle: () => (
+          <ModalTitle
+            teamID={teamID ?? ''}
+            title={selectedImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
+          />
+        ),
+      })
+    }
+  }, [navObj, type, onBack, wizard, onSkip, teamID, selectedImage])
+
   if (type === 'team') {
     return (
       <>
-        <Kb.ModalHeader
-          leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-          rightButton={wizard ? (
-            <Kb.Text type="BodyBigLink" onClick={onSkip}>
-              Skip
-            </Kb.Text>
-          ) : undefined}
-          title={
-            <ModalTitle
-              teamID={teamID ?? ''}
-              title={selectedImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
-            />
-          }
-        />
         {error ? (
           <Kb.Banner key="err" color="red">
             <Kb.Text type="Body">{error}</Kb.Text>
@@ -169,8 +175,7 @@ const AvatarUploadWrapper = (p: Props) => {
     )
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader onCancel={onClose} title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+    <>
       {error ? (
         <Kb.Banner color="red">
           <Kb.Text type="Body">{error}</Kb.Text>
@@ -188,7 +193,7 @@ const AvatarUploadWrapper = (p: Props) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </>
   )
 }
 

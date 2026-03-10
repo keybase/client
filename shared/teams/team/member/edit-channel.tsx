@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
@@ -26,8 +25,6 @@ const EditChannel = (props: Props) => {
 
   const [description, setDescription] = React.useState(oldDescription)
 
-  const onBack = () => nav.safeNavigateUp()
-
   const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
   const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
 
@@ -49,10 +46,6 @@ const EditChannel = (props: Props) => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-        title={<ModalTitle teamID={teamID} title={`#${oldName}`} />}
-      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Input3
           autoFocus={true}
@@ -93,7 +86,6 @@ const EditChannel = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

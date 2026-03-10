@@ -20,31 +20,32 @@ type Props = {
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => navigateUp()
+
+  const nav = C.useNav()
+  React.useEffect(() => {
+    const leftButton = canBack ? (
+      <Kb.Text type="BodyBigLink" onClick={navigateUp}>
+        Back
+      </Kb.Text>
+    ) : (
+      <Kb.Text type="BodyBigLink" onClick={clearModals}>
+        Cancel
+      </Kb.Text>
+    )
+    nav.setOptions({
+      headerLeft: () => leftButton,
+      title: FS.getSharePathArrayDescription(sendPaths || []),
+    })
+  }, [nav, canBack, navigateUp, clearModals, sendPaths])
 
   return (
-    <>
-      <Kb.ModalHeader
-        leftButton={canBack ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Back
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        )}
-        title={FS.getSharePathArrayDescription(sendPaths || [])}
-      />
-      <MobileSendToChat
-        canBack={canBack}
-        isFromShareExtension={isFromShareExtension}
-        sendPaths={sendPaths}
-        text={text}
-      />
-    </>
+    <MobileSendToChat
+      canBack={canBack}
+      isFromShareExtension={isFromShareExtension}
+      sendPaths={sendPaths}
+      text={text}
+    />
   )
 }
 

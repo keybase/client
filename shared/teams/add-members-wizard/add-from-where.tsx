@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
@@ -30,33 +31,34 @@ const AddFromWhere = () => {
   const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  const onClose = () => cancelAddMembersWizard()
-  const onBack = () => nav.safeNavigateUp()
   const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
   const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
   const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
-  return (
-    <>
-      <Kb.ModalHeader
-        leftButton={
-          newTeam ? (
-            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-          ) : Kb.Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={onClose}>
+
+  const navForHeader = C.useNav()
+  React.useEffect(() => {
+    navForHeader.setOptions({
+      headerLeft: newTeam
+        ? () => <Kb.Icon type="iconfont-arrow-left" onClick={() => nav.safeNavigateUp()} />
+        : () => (
+            <Kb.Text type="BodyBigLink" onClick={() => cancelAddMembersWizard()}>
               Cancel
             </Kb.Text>
-          ) : undefined
-        }
-        rightButton={newTeam ? <Skip /> : undefined}
-        title={
-          <ModalTitle
-            title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
-            teamID={teamID}
-          />
-        }
-      />
+          ),
+      headerRight: newTeam ? () => <Skip /> : undefined,
+      headerTitle: () => (
+        <ModalTitle
+          title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
+          teamID={teamID}
+        />
+      ),
+    })
+  }, [navForHeader, newTeam, nav, cancelAddMembersWizard, teamID])
+
+  return (
+    <>
       {createTeamError ? (
         <Kb.Banner color="red" key="err">
           {createTeamError}

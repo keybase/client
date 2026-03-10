@@ -86,9 +86,7 @@ const NewTeamInfo = () => {
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
-  const onBack = () => nav.safeNavigateUp()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => clearModals()
 
   const setTeamWizardNameDescription = useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
@@ -102,27 +100,25 @@ const NewTeamInfo = () => {
       teamname,
     })
 
+  const navForHeader = C.useNav()
+  const infoTitle = teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
+  const infoTeamID = teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID
+  const isSubteam = teamWizardState.teamType === 'subteam'
+  React.useEffect(() => {
+    navForHeader.setOptions({
+      headerLeft: isSubteam
+        ? () => (
+            <Kb.Text type="BodyBigLink" onClick={() => clearModals()}>
+              Cancel
+            </Kb.Text>
+          )
+        : () => <Kb.Icon type="iconfont-arrow-left" onClick={() => nav.safeNavigateUp()} />,
+      headerTitle: () => <ModalTitle teamID={infoTeamID} title={infoTitle} />,
+    })
+  }, [navForHeader, isSubteam, nav, clearModals, infoTeamID, infoTitle])
+
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          teamWizardState.teamType === 'subteam' ? (
-            Kb.Styles.isMobile ? (
-              <Kb.Text type="BodyBigLink" onClick={onClose}>
-                Cancel
-              </Kb.Text>
-            ) : undefined
-          ) : (
-            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-          )
-        }
-        title={
-          <ModalTitle
-            teamID={teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID}
-            title={teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'}
-          />
-        }
-      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
           <Kb.Input3
@@ -227,7 +223,6 @@ const NewTeamInfo = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   biggerOnTheInside: {height: 100},
   body: Kb.Styles.platformStyles({
     common: {

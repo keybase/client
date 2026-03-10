@@ -60,8 +60,6 @@ const AddMembersConfirm = () => {
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
-  const onLeave = () => cancelAddMembersWizard()
-  const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -102,20 +100,23 @@ const AddMembersConfirm = () => {
         )
       }
 
-  return (
-    <>
-      <Kb.ModalHeader
-        leftButton={
-          fromNewTeamWizard ? (
-            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-          ) : (
-            <Kb.Text type="BodyBigLink" onClick={onLeave}>
+  const nav = C.useNav()
+  const confirmTitle = `Inviting ${addingMembers.length} ${noun}`
+  React.useEffect(() => {
+    nav.setOptions({
+      headerLeft: fromNewTeamWizard
+        ? () => <Kb.Icon type="iconfont-arrow-left" onClick={() => navUpToScreen('teamAddToTeamFromWhere')} />
+        : () => (
+            <Kb.Text type="BodyBigLink" onClick={() => cancelAddMembersWizard()}>
               Cancel
             </Kb.Text>
-          )
-        }
-        title={<ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />}
-      />
+          ),
+      headerTitle: () => <ModalTitle teamID={teamID} title={confirmTitle} />,
+    })
+  }, [nav, fromNewTeamWizard, navUpToScreen, cancelAddMembersWizard, teamID, confirmTitle])
+
+  return (
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers disabledRoles={disabledRoles} />

@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {ModalTitle} from '../common'
 
@@ -15,8 +14,6 @@ const waitingKey = 'emailLookup'
 const AddEmail = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
   const [error, setError] = React.useState('')
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const teamID = useTeamsState(s => s.addMembersWizard.teamID)
@@ -42,6 +39,13 @@ const AddEmail = (props: Props) => {
     )
   }
 
+  const navForHeader = C.useNav()
+  React.useEffect(() => {
+    navForHeader.setOptions({
+      headerTitle: () => <ModalTitle teamID={teamID} title="Email list" />,
+    })
+  }, [navForHeader, teamID])
+
   const maybeSubmit = (evt: React.KeyboardEvent) => {
     if (!disabled && evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
       onContinue()
@@ -50,10 +54,6 @@ const AddEmail = (props: Props) => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-        title={<ModalTitle teamID={teamID} title="Email list" />}
-      />
       {error ? (
         <Kb.Banner color="red" key="err">
           {error}

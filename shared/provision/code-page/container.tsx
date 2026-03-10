@@ -75,19 +75,6 @@ const CodePageContainer = () => {
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
 
-  const header = () => {
-    return Kb.Styles.isMobile
-      ? {
-          leftButton: (
-            <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
-              {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-            </Kb.Text>
-          ),
-          style: {backgroundColor: tabBackground()},
-        }
-      : undefined
-  }
-
   const body = () => {
     let content: React.ReactNode = null
     switch (tab) {
@@ -247,6 +234,22 @@ const CodePageContainer = () => {
   // We're in a modal unless this is a desktop being newly provisioned.
   const inModal = () => currentDeviceType !== 'desktop' || currentDeviceAlreadyProvisioned
 
+  const nav = C.useNav()
+  const isInModal = inModal()
+  const tabBg = tabBackground()
+  React.useEffect(() => {
+    if (isInModal && Kb.Styles.isMobile) {
+      nav.setOptions({
+        headerLeft: () => (
+          <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
+            {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
+          </Kb.Text>
+        ),
+        headerStyle: {backgroundColor: tabBg},
+      })
+    }
+  }, [nav, isInModal, tabBg, onBack, currentDeviceAlreadyProvisioned])
+
   // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
   // When we're on desktop being newly provisioned, it's in this._body()
   if (Kb.Styles.isMobile && troubleshooting) {
@@ -254,11 +257,9 @@ const CodePageContainer = () => {
   }
   const content = body()
   if (inModal()) {
-    const h = header()
     const f = footer()
     return (
       <>
-        {h ? <Kb.ModalHeader leftButton={h.leftButton} style={h.style} /> : null}
         {content}
         <Kb.ModalFooter content={f.content} hideBorder={f.hideBorder} style={f.style} />
       </>

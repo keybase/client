@@ -197,21 +197,14 @@ const TeamPicker = (props: Props) => {
       </Kb.Box2>
     )
 
-  return (
-    <>
-      <Kb.ModalHeader
-        leftButton={
-          Kb.Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={onClose}>
-              {'Cancel'}
-            </Kb.Text>
-          ) : undefined
-        }
-        title={pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'}
-      />
-      {content}
-    </>
-  )
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
+    })
+  }, [nav, pickerState])
+
+  return content
 }
 
 const styles = Kb.Styles.styleSheetCreate(

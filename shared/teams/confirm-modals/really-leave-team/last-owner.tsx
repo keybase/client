@@ -9,7 +9,6 @@ type Props = {
 
 const ReallyLeaveTeam = (props: Props) => (
   <>
-    <Kb.ModalHeader hideBorder={true} />
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
     ) : (

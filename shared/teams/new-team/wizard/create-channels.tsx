@@ -1,10 +1,8 @@
 import * as React from 'react'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {ModalTitle} from '@/teams/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
@@ -21,8 +19,6 @@ const CreateChannel = () => {
 
 export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const nav = useSafeNavigation()
-  const teamID = props.teamID || T.Teams.newTeamWizardTeamID
   const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
@@ -42,7 +38,6 @@ export const CreateChannelsModal = (props: Props) => {
   const setTeamWizardChannels = useTeamsState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
-  const onBack = () => nav.safeNavigateUp()
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
@@ -62,10 +57,6 @@ export const CreateChannelsModal = (props: Props) => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-        title={<ModalTitle teamID={teamID} title="Create channels" />}
-      />
       {props.banners}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
         <Kb.ImageIcon type="icon-illustration-teams-channels-460-96" />
@@ -134,7 +125,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: 47},
         isTablet: {alignSelf: 'flex-start'},
       }),
-      background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       banner: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
         isElectron: {overflowX: 'hidden'},

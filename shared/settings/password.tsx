@@ -70,18 +70,15 @@ export const UpdatePassword = (props: Props) => {
     'Password must be at least 8 characters.'
   )
 
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      title: props.hasRandomPW ? 'Set a password' : 'Change password',
+    })
+  }, [nav, props.hasRandomPW])
+
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          Kb.Styles.isMobile && props.onCancel ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
-              Cancel
-            </Kb.Text>
-          ) : undefined
-        }
-        title={props.hasRandomPW ? 'Set a password' : 'Change password'}
-      />
       {notification ? (
         <Kb.Banner color="yellow">
           <Kb.BannerParagraph bannerColor="yellow" content={notification} />

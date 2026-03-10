@@ -4,7 +4,6 @@ import type * as T from '@/constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import {getE164} from '@/util/phone-numbers'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
@@ -51,16 +50,15 @@ const TeamInviteByContact = (props: Props) => {
 
   useTeamDetailsSubscribe(teamID)
 
-  const nav = useSafeNavigation()
-
   const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 
   const loadingInvites = Teams.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
   const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
-  const onBack = () => {
-    nav.safeNavigateUp()
-    resetErrorInEmailInvite()
-  }
+  React.useEffect(() => {
+    return () => {
+      resetErrorInEmailInvite()
+    }
+  }, [resetErrorInEmailInvite])
 
   const onRoleChange = (role: T.Teams.TeamRoleType) => {
       setSelectedRole(role)
@@ -122,7 +120,6 @@ const TeamInviteByContact = (props: Props) => {
     <InviteByContact
       errorMessage={errorMessage}
       listItems={listItems}
-      onBack={onBack}
       onRoleChange={onRoleChange}
       selectedRole={selectedRole}
       teamName={teamname}

@@ -1,19 +1,16 @@
+import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {ModalTitle} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const AddSubteamMembers = () => {
-  const nav = useSafeNavigation()
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
-  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardSubteamMembers = Teams.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
   const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
@@ -72,6 +69,23 @@ const AddSubteamMembers = () => {
       />
     )
   }
+  const navForHeader = C.useNav()
+  React.useEffect(() => {
+    const handleContinue = () =>
+      selectedMembers.size
+        ? setTeamWizardSubteamMembers([...selectedMembers])
+        : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
+    navForHeader.setOptions({
+      headerRight: () => (
+        <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
+          <Kb.Text type="BodyBigLink" onClick={handleContinue}>
+            {doneLabel}
+          </Kb.Text>
+        </Kb.Box2>
+      ),
+    })
+  }, [navForHeader, selectedMembers, setTeamWizardSubteamMembers, startAddMembersWizard, doneLabel])
+
   const desktopFooter = !Kb.Styles.isMobile ? (
     <Kb.ModalFooter
       content={<Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />}
@@ -80,17 +94,6 @@ const AddSubteamMembers = () => {
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={<Kb.Icon type="iconfont-arrow-left" onClick={onBack} />}
-        rightButton={Kb.Styles.isMobile ? (
-          <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
-            <Kb.Text type="BodyBigLink" onClick={onContinue}>
-              {doneLabel}
-            </Kb.Text>
-          </Kb.Box2>
-        ) : undefined}
-        title={<ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />}
-      />
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} overflow="hidden">
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchContainer}>
           <Kb.SearchFilter

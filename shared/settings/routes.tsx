@@ -95,7 +95,7 @@ const sharedNewModalRoutes = {
     React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')
       return {default: VerifyPhone}
-    })
+    }),
   ),
 }
 

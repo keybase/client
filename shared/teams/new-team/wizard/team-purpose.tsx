@@ -1,25 +1,13 @@
 import * as Kb from '@/common-adapters'
-import {ModalTitle} from '@/teams/common'
-import * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import type * as T from '@/constants/types'
 import {useTeamsState} from '@/stores/teams'
 
 const TeamPurpose = () => {
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamType = useTeamsState(s => s.dispatch.setTeamWizardTeamType)
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Cancel
-          </Kb.Text>
-        ) : undefined}
-        title={<ModalTitle teamID={T.Teams.noTeamID} title="New team" />}
-      />
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -60,10 +48,6 @@ const TeamPurpose = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-    isElectron: {borderRadius: 4},
-  }),
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),

@@ -104,18 +104,8 @@ const InstallBotPopup = (props: Props) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
-  const onClose = () => {
-    Kb.Styles.isMobile ? navigateUp() : clearModals()
-  }
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
-  }
-  const onLeftAction = () => {
-    if (installScreen) {
-      setInstallScreen(false)
-    } else {
-      onClose()
-    }
   }
   const onInstall = () => {
     if (!conversationIDKey) {
@@ -426,24 +416,33 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
-  const backButton = Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
+  const nav = C.useNav()
+  React.useEffect(() => {
+    const handleLeftAction = () => {
+      if (installScreen) {
+        setInstallScreen(false)
+      } else {
+        Kb.Styles.isMobile ? navigateUp() : clearModals()
+      }
+    }
+    const leftButton = channelPickerScreen ? (
+      <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
+        Back
+      </Kb.Text>
+    ) : Kb.Styles.isMobile || installScreen ? (
+      <Kb.Text type="BodyBigLink" onClick={handleLeftAction}>
+        {installScreen ? (Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />) : inTeam || readOnly ? 'Close' : 'Cancel'}
+      </Kb.Text>
+    ) : undefined
+    nav.setOptions({
+      headerLeft: leftButton ? () => leftButton : undefined,
+      title: channelPickerScreen ? 'Channels' : '',
+    })
+  }, [nav, channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
+
   const enabled = !!conversationIDKey
   return (
     <>
-      <Kb.ModalHeader
-        leftButton={
-          channelPickerScreen ? (
-            <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
-              Back
-            </Kb.Text>
-          ) : Kb.Styles.isMobile || installScreen ? (
-            <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
-              {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
-            </Kb.Text>
-          ) : undefined
-        }
-        title={channelPickerScreen ? 'Channels' : ''}
-      />
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}

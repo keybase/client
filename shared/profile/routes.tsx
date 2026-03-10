@@ -51,7 +51,11 @@ export const newModalRoutes = {
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
     getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
   }),
-  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar'))),
+  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
+    getOptions: ({route}) => ({
+      title: route.params.teamID ? '' : C.isIOS ? 'Zoom and pan' : 'Upload avatar',
+    }),
+  }),
   profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
   profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
   profileGenericEnterUsername: C.makeScreen(React.lazy(async () => import('./generic/enter-username')), {

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {isTablet, isIOS} from '@/constants/platform'
-import {ModalHeader, ModalFooter} from '@/common-adapters/modal2'
+import {ModalFooter} from '@/common-adapters/modal2'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
 
 const modalOffset = isIOS ? 40 : 0
@@ -18,33 +18,12 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
     const {modal2Footer} = navigationOptions ?? {}
 
-    // Build header from standard React Navigation options (modal screens only —
-    // non-modal screens use React Navigation's native header)
-    let hasHeader = false
-    let titleNode: React.ReactNode = undefined
-    let leftNode: React.ReactNode = undefined
-    let rightNode: React.ReactNode = undefined
-    if (isModal) {
-      const headerTitle = navigationOptions?.['headerTitle'] ?? navigationOptions?.['title']
-      const headerLeft = navigationOptions?.['headerLeft']
-      const headerRight = navigationOptions?.['headerRight']
-      const headerShown = navigationOptions?.['headerShown'] !== false
-      hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
-
-      titleNode = typeof headerTitle === 'function'
-        ? headerTitle({children: typeof navigationOptions?.['title'] === 'string' ? navigationOptions['title'] : '', tintColor: ''})
-        : headerTitle
-      leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
-      rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
-    }
-
     const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
-    const wrappedContent = hasHeader || modal2Footer ? (
+    const wrappedContent = modal2Footer ? (
       <>
-        {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
         {suspenseContent}
-        {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
+        <ModalFooter {...modal2Footer} wide={false} fullscreen={false} />
       </>
     ) : suspenseContent
 

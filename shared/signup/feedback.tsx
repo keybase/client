@@ -32,6 +32,7 @@ const SignupFeedback = () => {
       onBack={onBack}
       showHeaderInfoicon={false}
       showHeaderInfoiconRow={!loggedOut}
+      skipMobileHeader={true}
     >
       <FeedbackForm
         sendError=""

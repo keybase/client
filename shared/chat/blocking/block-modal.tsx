@@ -396,23 +396,11 @@ const Container = function BlockModal(ownProps: OwnProps) {
     </>
   )
 
-  const headerProps = {
-    leftButton: Kb.Styles.isMobile ? (
-      <Kb.Text onClick={navigateUp} type="BodyPrimaryLink">
-        Cancel
-      </Kb.Text>
-    ) : undefined,
-    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
-  }
-
   if (loadingWaiting) {
     return (
-      <>
-        <Kb.ModalHeader {...headerProps} />
-        <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
-          <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-        </Kb.Box2>
-      </>
+      <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
+        <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
+      </Kb.Box2>
     )
   }
 
@@ -473,7 +461,6 @@ const Container = function BlockModal(ownProps: OwnProps) {
 
   return (
     <>
-      <Kb.ModalHeader {...headerProps} />
       <Kb.List
         items={items}
         renderItem={renderItem}

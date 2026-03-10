@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {usePushState} from '@/stores/push'
 
@@ -6,32 +7,35 @@ const PushPrompt = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onNoPermissions = () => {
-    rejectPermissions()
-    clearModals()
-  }
   const onRequestPermissions = () => {
     requestPermissions()
     clearModals()
   }
+  const nav = C.useNav()
+  React.useEffect(() => {
+    nav.setOptions({
+      headerLeft: () => null,
+      headerRight: () => (
+        <Kb.ClickableBox onClick={() => {
+          rejectPermissions()
+          clearModals()
+        }}>
+          <Kb.Text type="BodyBig" negative={true}>
+            Skip
+          </Kb.Text>
+        </Kb.ClickableBox>
+      ),
+      headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+      headerTitle: () => (
+        <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+          Allow notifications
+        </Kb.Text>
+      ),
+    })
+  }, [nav, rejectPermissions, clearModals])
+
   return (
     <>
-      <Kb.ModalHeader
-        hideBorder={true}
-        rightButton={
-          <Kb.ClickableBox onClick={onNoPermissions}>
-            <Kb.Text type="BodyBig" negative={true}>
-              Skip
-            </Kb.Text>
-          </Kb.ClickableBox>
-        }
-        style={styles.header}
-        title={
-          <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
-            Allow notifications
-          </Kb.Text>
-        }
-      />
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
         <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
@@ -63,7 +67,6 @@ const PushPrompt = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      background: {backgroundColor: Kb.Styles.globalColors.blue},
       button: Kb.Styles.platformStyles({
         common: {
           maxHeight: 40,
@@ -79,10 +82,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       footer: {
         backgroundColor: Kb.Styles.globalColors.blue,
-      },
-      header: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        color: Kb.Styles.globalColors.white,
       },
       image: Kb.Styles.platformStyles({
         isTablet: {
