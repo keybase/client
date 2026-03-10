@@ -152,17 +152,6 @@ const styles = Kb.Styles.styleSheetCreate(
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
-      searchPlaceholderOuter: Kb.Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-        isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.tiny,
-        },
-        isTablet: {paddingLeft: 0, paddingRight: 0},
-      }),
       searchPlaceholder: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         ...Kb.Styles.globalStyles.flexGrow,
@@ -178,6 +167,17 @@ const styles = Kb.Styles.styleSheetCreate(
       searchPlaceholderIcon: Kb.Styles.platformStyles({
         isElectron: {marginRight: Kb.Styles.globalMargins.tiny, marginTop: 2},
         isMobile: {marginRight: Kb.Styles.globalMargins.tiny},
+      }),
+      searchPlaceholderOuter: Kb.Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+        isMobile: {
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
+        },
+        isTablet: {paddingLeft: 0, paddingRight: 0},
       }),
       searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
