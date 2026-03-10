@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import {getConvoState} from './convostate'
+// deferred require to break import cycle: convostate -> inbox-rows -> convostate
+import type {getConvoState as GetConvoStateT} from './convostate'
 import {useCurrentUserState} from './current-user'
 import {shallowEqual} from '@/constants/utils'
 
@@ -99,6 +100,7 @@ export const flushInboxRowUpdates = () => {
 
   const you = useCurrentUserState.getState().username
 
+  const {getConvoState} = require('./convostate') as {getConvoState: typeof GetConvoStateT}
   useInboxRowsState.setState(s => {
     for (const id of ids) {
       const cs = getConvoState(id)
