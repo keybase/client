@@ -29,7 +29,8 @@ export const newModalRoutes = {
     React.lazy(async () => {
       const {BarePreview} = await import('./filepreview')
       return {default: BarePreview}
-    })
+    }),
+    {getOptions: {headerShown: false}}
   ),
   confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
   destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker'))),

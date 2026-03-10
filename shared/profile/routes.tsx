@@ -8,7 +8,7 @@ const Title = React.lazy(async () => import('./search'))
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      modal2: {width: Kb.Styles.isMobile ? undefined : 500},
+      overlay: {width: Kb.Styles.isMobile ? undefined : 500},
     }) as const
 )
 
@@ -42,8 +42,8 @@ export const newModalRoutes = {
     React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
-        modal2ClearCover: false,
-        modal2Style: styles.modal2,
+        overlayStyle: styles.overlay,
+        overlayTransparent: false,
       },
     }
   ),

@@ -36,7 +36,7 @@ export const newModalRoutes = {
     getOptions: {modalStyle: {width: 620}, title: 'Add a device'},
   }),
   devicePaperKey: {
-    getOptions: {gestureEnabled: false, modal2NoClose: true},
+    getOptions: {gestureEnabled: false, overlayNoClose: true},
     screen: React.lazy(async () => import('./paper-key')),
   },
 }

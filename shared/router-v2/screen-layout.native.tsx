@@ -16,14 +16,14 @@ type LayoutProps = {
 export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
-    const {modal2Footer} = navigationOptions ?? {}
+    const {modalFooter} = navigationOptions ?? {}
 
     const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
-    const wrappedContent = modal2Footer ? (
+    const wrappedContent = modalFooter ? (
       <>
         {suspenseContent}
-        <ModalFooter {...modal2Footer} wide={false} fullscreen={false} />
+        <ModalFooter {...modalFooter} wide={false} fullscreen={false} />
       </>
     ) : suspenseContent
 

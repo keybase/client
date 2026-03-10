@@ -49,7 +49,7 @@ type ModalWrapperProps = {
 
 const ModalWrapper = (p: ModalWrapperProps) => {
   const {navigationOptions, navigation, children} = p
-  const {modal2Style, modal2AvoidTabs, modal2 = true, modal2ClearCover, modal2NoClose, modal2Footer, modalStyle} =
+  const {overlayStyle, overlayAvoidTabs, overlayTransparent, overlayNoClose, modalFooter, modalStyle} =
     navigationOptions ?? {}
 
   // Build header from standard React Navigation options
@@ -59,7 +59,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
   const headerShown = navigationOptions?.['headerShown'] !== false
   const hasHeader = headerShown && !!(headerTitle || headerLeft || headerRight)
 
-  const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, modal2NoClose)
+  const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, overlayNoClose)
 
   const [topMostModal, setTopMostModal] = React.useState(true)
 
@@ -71,7 +71,7 @@ const ModalWrapper = (p: ModalWrapperProps) => {
   })
 
   React.useEffect(() => {
-    if (!topMostModal || modal2NoClose || !modal2) return
+    if (!topMostModal || overlayNoClose) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopImmediatePropagation()
@@ -80,61 +80,49 @@ const ModalWrapper = (p: ModalWrapperProps) => {
     }
     window.addEventListener('keydown', handler, true)
     return () => window.removeEventListener('keydown', handler, true)
-  }, [topMostModal, modal2NoClose, modal2, navigation])
+  }, [topMostModal, overlayNoClose, navigation])
 
-  if (modal2) {
-    const titleNode = typeof headerTitle === 'function'
-      ? headerTitle({children: typeof navigationOptions?.['title'] === 'string' ? navigationOptions['title'] : '', tintColor: ''})
-      : headerTitle
-    const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
-    const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
+  const titleNode = typeof headerTitle === 'function'
+    ? headerTitle({children: typeof navigationOptions?.['title'] === 'string' ? navigationOptions['title'] : '', tintColor: ''})
+    : headerTitle
+  const leftNode = typeof headerLeft === 'function' ? headerLeft({canGoBack: true}) : undefined
+  const rightNode = typeof headerRight === 'function' ? headerRight({tintColor: ''}) : undefined
 
-    return (
-      <Kb.Box2
-        key="background"
-        direction="horizontal"
-        fullHeight={true}
-        ref={backgroundRef}
-        style={Kb.Styles.collapseStyles([
-          styles.modal2Container,
-          modal2ClearCover && styles.modal2ClearCover,
-          !topMostModal && styles.hidden,
-        ])}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-      >
-        {modal2AvoidTabs && (
-          <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
-        )}
-        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modal2Style, modal2Style])}>
-          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalMode, modalStyle])}>
-            {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
-            {children}
-            {modal2Footer ? <ModalFooter {...modal2Footer} wide={false} fullscreen={false} /> : null}
-            {!modal2ClearCover && !modal2NoClose && (
-              <Kb.Icon
-                type="iconfont-close"
-                onClick={() => navigation.pop()}
-                color={Kb.Styles.globalColors.whiteOrWhite_75}
-                hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
-                style={styles.modal2CloseIcon}
-              />
-            )}
-          </Kb.Box2>
+  return (
+    <Kb.Box2
+      key="background"
+      direction="horizontal"
+      fullHeight={true}
+      ref={backgroundRef}
+      style={Kb.Styles.collapseStyles([
+        styles.overlayContainer,
+        overlayTransparent && styles.overlayTransparent,
+        !topMostModal && styles.hidden,
+      ])}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+    >
+      {overlayAvoidTabs && (
+        <Kb.Box2 direction="vertical" className="tab-container" style={styles.overlayAvoidTabs} />
+      )}
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.overlayStyle, overlayStyle])}>
+        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modalBox, modalStyle])}>
+          {hasHeader ? <ModalHeader title={titleNode} leftButton={leftNode} rightButton={rightNode} /> : null}
+          {children}
+          {modalFooter ? <ModalFooter {...modalFooter} wide={false} fullscreen={false} /> : null}
+          {!overlayTransparent && !overlayNoClose && (
+            <Kb.Icon
+              type="iconfont-close"
+              onClick={() => navigation.pop()}
+              color={Kb.Styles.globalColors.whiteOrWhite_75}
+              hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
+              style={styles.closeIcon}
+            />
+          )}
         </Kb.Box2>
       </Kb.Box2>
-    )
-  } else {
-    return (
-      <Kb.Box2
-        key="background"
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.modalContainer, !topMostModal && styles.hidden])}
-      >
-        {children}
-      </Kb.Box2>
-    )
-  }
+    </Kb.Box2>
+  )
 }
 
 const wrapInStrict = (_route: string) => {
@@ -174,16 +162,7 @@ export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?:
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  hidden: {display: 'none'},
-  modal2AvoidTabs: Kb.Styles.platformStyles({
-    isElectron: {
-      backgroundColor: undefined,
-      height: 0,
-      pointerEvents: 'none',
-    },
-  }),
-  modal2ClearCover: {backgroundColor: undefined},
-  modal2CloseIcon: Kb.Styles.platformStyles({
+  closeIcon: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'pointer',
       padding: Kb.Styles.globalMargins.tiny,
@@ -192,19 +171,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: 0,
     },
   }),
-  modal2Container: {
-    ...Kb.Styles.globalStyles.fillAbsolute,
-  },
-  modal2Style: Kb.Styles.platformStyles({
-    isElectron: {flexGrow: 1, pointerEvents: 'none'},
-  }),
-  modalContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      alignSelf: 'normal',
-    },
-  }),
-  modalMode: Kb.Styles.platformStyles({
+  hidden: {display: 'none'},
+  modalBox: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.desktopStyles.boxShadow,
       backgroundColor: Kb.Styles.globalColors.white,
@@ -215,4 +183,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: 400,
     },
   }),
+  overlayAvoidTabs: Kb.Styles.platformStyles({
+    isElectron: {
+      backgroundColor: undefined,
+      height: 0,
+      pointerEvents: 'none',
+    },
+  }),
+  overlayContainer: {
+    ...Kb.Styles.globalStyles.fillAbsolute,
+  },
+  overlayStyle: Kb.Styles.platformStyles({
+    isElectron: {flexGrow: 1, pointerEvents: 'none'},
+  }),
+  overlayTransparent: {backgroundColor: undefined},
 }))

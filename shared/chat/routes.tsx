@@ -51,8 +51,8 @@ export const newModalRoutes = {
       getOptions: {
         ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
         headerShown: false,
-        modal2Style: {alignSelf: 'stretch', paddingBottom: 16, paddingLeft: 40, paddingRight: 40, paddingTop: 40},
         modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
+        overlayStyle: {alignSelf: 'stretch', paddingBottom: 16, paddingLeft: 40, paddingRight: 40, paddingTop: 40},
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
@@ -105,8 +105,8 @@ export const newModalRoutes = {
   chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
     getOptions: p => ({
       headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-      modal2Style: {alignSelf: 'stretch'},
       modalStyle: {height: '80%', width: '80%'},
+      overlayStyle: {alignSelf: 'stretch'},
       title: 'PDF',
     }),
   }),

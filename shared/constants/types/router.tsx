@@ -22,13 +22,12 @@ export type ScreenComponentProps = {
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
   safeAreaStyle?: Styles.StylesCrossPlatform
-  modal2Style?: Styles.StylesCrossPlatform
-  modal2AvoidTabs?: boolean
-  modal2?: boolean
-  modal2ClearCover?: boolean
-  modal2NoClose?: boolean
+  overlayStyle?: Styles.StylesCrossPlatform
+  overlayAvoidTabs?: boolean
+  overlayTransparent?: boolean
+  overlayNoClose?: boolean
   modalStyle?: Styles.StylesCrossPlatform
-  modal2Header?: {
+  modalHeader?: {
     title?: React.ReactNode
     leftButton?: React.ReactNode
     rightButton?: React.ReactNode
@@ -37,7 +36,7 @@ export type LayoutOptions = {
     icon?: React.ReactNode
     style?: Styles.StylesCrossPlatform
   }
-  modal2Footer?: {
+  modalFooter?: {
     content: React.ReactNode
     hideBorder?: boolean
     style?: Styles.StylesCrossPlatform
