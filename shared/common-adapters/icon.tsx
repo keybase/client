@@ -53,19 +53,17 @@ const IconDesktop = (props: IconProps) => {
   const hoverClassName = hoverColorName ? `hover_color_${hoverColorName}` : undefined
   const cn = Styles.classNames('icon', `icon-gen-${type}`, className, colorClassName, hoverClassName)
 
-  if (onClick) {
-    const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onClick()
-    }
-    return (
-      <div onClick={handleClick} style={styles.clickable as React.CSSProperties}>
-        <span className={cn} style={inlineStyle} title={hint} />
-      </div>
-    )
-  }
+  const handleClick = onClick
+    ? (e: React.MouseEvent) => {
+        e.stopPropagation()
+        onClick()
+      }
+    : undefined
+  const finalStyle = onClick
+    ? ({...inlineStyle, cursor: 'pointer'} as React.CSSProperties)
+    : inlineStyle
 
-  return <span className={cn} style={inlineStyle} title={hint} />
+  return <span className={cn} style={finalStyle} onClick={handleClick} title={hint} />
 }
 
 const nativeBaseStyle: Styles._StylesCrossPlatform = {
@@ -102,9 +100,6 @@ const IconNative = (props: IconProps) => {
     </RNText>
   )
 }
-
-const clickable = {cursor: 'pointer'} as const
-const styles = {clickable}
 
 const Icon = Styles.isMobile ? IconNative : IconDesktop
 export default Icon

@@ -76,11 +76,7 @@ const Fullscreen = function Fullscreen(p: Props) {
           {title}
         </Kb.Markdown>
         <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
-          <Kb.Icon
-            type="iconfont-ellipsis"
-            color={Kb.Styles.globalColors.black_50}
-            onClick={showPopup}
-          />
+          <Kb.Icon type="iconfont-ellipsis" color={Kb.Styles.globalColors.black_50} onClick={showPopup} padding="small" />
         </Kb.Box2>
         {popup}
       </Kb.Box2>
@@ -169,15 +165,16 @@ const styles = Kb.Styles.styleSheetCreate(
           width: 36,
         },
       }),
+      // Opt out of the Electron titlebar drag region so the icon gets cursor/click events
+      ellipsisContainer: Kb.Styles.platformStyles({
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+      }),
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
         height: '100%',
         width: '100%',
       },
-      ellipsisContainer: Kb.Styles.platformStyles({
-        isElectron: {cursor: 'pointer', marginLeft: Kb.Styles.globalMargins.tiny},
-      }),
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {
         height: 32,
