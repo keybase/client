@@ -238,10 +238,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {flexShrink: 1},
       }),
       containerOuter: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 560,
-          width: 400,
-        },
+        isElectron: {height: '100%', overflow: 'hidden'},
         isMobile: {flexGrow: 1, flexShrink: 1},
       }),
       filename: Kb.Styles.platformStyles({

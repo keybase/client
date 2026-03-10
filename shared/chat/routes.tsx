@@ -58,7 +58,8 @@ export const newModalRoutes = {
     }
   ),
   chatAttachmentGetTitles: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/attachment-get-titles'))
+    React.lazy(async () => import('./conversation/attachment-get-titles')),
+    {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
   ),
   chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
     getOptions: {headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />},
