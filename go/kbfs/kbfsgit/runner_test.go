@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 type testErrput struct {
@@ -156,7 +157,7 @@ func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
 	gitExec(t, dotgit, gitDir, "init")
 
 	if branch != "" {
-		gitExec(t, dotgit, gitDir, "checkout", "-b", branch)
+		gitExec(t, dotgit, gitDir, "checkout", "-B", branch)
 	}
 
 	gitExec(t, dotgit, gitDir, "add", filename)
@@ -1312,6 +1313,16 @@ func TestRunnerListNonMasterDefault(t *testing.T) {
 
 	testPush(ctx, t, config, gitDir,
 		"refs/heads/main:refs/heads/main")
+
+	// Verify the underlying KBFS repo HEAD symref was actually updated.
+	fs, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
+	require.NoError(t, err)
+	storage, err := libgit.NewGitConfigWithoutRemotesStorer(fs)
+	require.NoError(t, err)
+	headRef, err := storage.Reference(plumbing.HEAD)
+	require.NoError(t, err)
+	require.Equal(t, plumbing.SymbolicReference, headRef.Type())
+	require.Equal(t, plumbing.ReferenceName("refs/heads/main"), headRef.Target())
 
 	// List refs and verify HEAD points to refs/heads/main.
 	heads := testListAndGetHeads(ctx, t, config, gitDir,

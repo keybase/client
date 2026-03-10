@@ -687,6 +687,21 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 // Lists the refs, one per line, in the format "<value> <name> [<attr>
 // …​]". The value may be a hex sha1 hash, "@<dest>" for a symref, or
 // "?" to indicate that the helper could not get the value of the
+// bestBranchFromCandidates selects the best branch for HEAD from a set of
+// candidate branch names (prefer main > master > alphabetically first).
+func bestBranchFromCandidates(best plumbing.ReferenceName, candidate plumbing.ReferenceName) plumbing.ReferenceName {
+	switch {
+	case candidate == "refs/heads/main":
+		return candidate
+	case candidate == "refs/heads/master" && best != "refs/heads/main":
+		return candidate
+	case best == "" || (best != "refs/heads/main" && best != "refs/heads/master" && candidate < best):
+		return candidate
+	default:
+		return best
+	}
+}
+
 // ref. A space-separated list of attributes follows the name;
 // unrecognized attributes are ignored. The list ends with a blank
 // line.
@@ -736,14 +751,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 			hashRefNames[ref.Name()] = true
 			// Track best branch for fallback HEAD.
 			if strings.HasPrefix(ref.Name().String(), "refs/heads/") {
-				switch {
-				case ref.Name() == "refs/heads/main":
-					bestBranch = ref.Name()
-				case ref.Name() == "refs/heads/master" && bestBranch != "refs/heads/main":
-					bestBranch = ref.Name()
-				case bestBranch == "" || (bestBranch != "refs/heads/main" && bestBranch != "refs/heads/master" && ref.Name() < bestBranch):
-					bestBranch = ref.Name()
-				}
+				bestBranch = bestBranchFromCandidates(bestBranch, ref.Name())
 			}
 		case plumbing.SymbolicReference:
 			value = "@" + ref.Target().String()
@@ -1869,6 +1877,47 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return nil, err
 	}
 
+	// If HEAD points to a nonexistent ref, update it to point to the
+	// best successfully-pushed branch (prefer main > master > alphabetical).
+	// This must happen before waitForJournal so the HEAD update is
+	// included in the same flush.
+	head, headErr := repo.Storer.Reference(plumbing.HEAD)
+	if headErr == nil && head.Type() == plumbing.SymbolicReference {
+		_, targetErr := repo.Storer.Reference(head.Target())
+		if targetErr == plumbing.ErrReferenceNotFound {
+			var bestBranch plumbing.ReferenceName
+			// Iterate over args (not the refspecs map) for
+			// deterministic branch selection.
+			for _, push := range args {
+				refspec := gogitcfg.RefSpec(push[0])
+				if refspec.IsDelete() {
+					continue
+				}
+				dst := refspec.Dst("")
+				if results[dst.String()] != nil {
+					continue // errored
+				}
+				if !strings.HasPrefix(dst.String(), "refs/heads/") {
+					continue
+				}
+				bestBranch = bestBranchFromCandidates(bestBranch, dst)
+			}
+			if bestBranch != "" {
+				newHead := plumbing.NewSymbolicReference(
+					plumbing.HEAD, bestBranch)
+				if setErr := repo.Storer.SetReference(
+					newHead); setErr != nil {
+					r.log.CDebugf(ctx,
+						"Error updating HEAD to %s: %+v",
+						bestBranch, setErr)
+				} else {
+					r.log.CDebugf(ctx,
+						"Updated HEAD to point to %s", bestBranch)
+				}
+			}
+		}
+	}
+
 	err = r.waitForJournal(ctx)
 	if err != nil {
 		return nil, err
@@ -1905,59 +1954,6 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			keybase1.GitPushType_DEFAULT, "", commits)
 		if err != nil {
 			return nil, err
-		}
-	}
-
-	// If HEAD points to a nonexistent ref, update it to point to the
-	// best successfully-pushed branch (prefer main > master > alphabetical).
-	headUpdated := false
-	head, headErr := repo.Storer.Reference(plumbing.HEAD)
-	if headErr == nil && head.Type() == plumbing.SymbolicReference {
-		_, targetErr := repo.Storer.Reference(head.Target())
-		if targetErr == plumbing.ErrReferenceNotFound {
-			var bestBranch plumbing.ReferenceName
-			for refspec := range refspecs {
-				if refspec.IsDelete() {
-					continue
-				}
-				dst := refspec.Dst("")
-				if results[dst.String()] != nil {
-					continue // errored
-				}
-				if !strings.HasPrefix(dst.String(), "refs/heads/") {
-					continue
-				}
-				switch {
-				case dst == "refs/heads/main":
-					bestBranch = dst
-				case dst == "refs/heads/master" && bestBranch != "refs/heads/main":
-					bestBranch = dst
-				case bestBranch == "" || (bestBranch != "refs/heads/main" && bestBranch != "refs/heads/master" && dst < bestBranch):
-					bestBranch = dst
-				}
-			}
-			if bestBranch != "" {
-				newHead := plumbing.NewSymbolicReference(
-					plumbing.HEAD, bestBranch)
-				if setErr := repo.Storer.SetReference(
-					newHead); setErr != nil {
-					r.log.CDebugf(ctx,
-						"Error updating HEAD to %s: %+v",
-						bestBranch, setErr)
-				} else {
-					r.log.CDebugf(ctx,
-						"Updated HEAD to point to %s", bestBranch)
-					headUpdated = true
-				}
-			}
-		}
-	}
-
-	if headUpdated {
-		if journalErr := r.waitForJournal(ctx); journalErr != nil {
-			r.log.CDebugf(ctx,
-				"Error flushing journal after HEAD update: %+v",
-				journalErr)
 		}
 	}
 
