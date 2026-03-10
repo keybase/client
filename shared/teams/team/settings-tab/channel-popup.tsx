@@ -76,6 +76,7 @@ const ChannelPopup = (props: Props) => {
           itemHeight={{height: 48, type: 'fixed'}}
           items={channelsFiltered}
           keyProperty="conversationIDKey"
+          extraData={selected}
           renderItem={(_, channel) => {
             const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
             const onClick = disabled ? undefined : () => onSelect(channel)

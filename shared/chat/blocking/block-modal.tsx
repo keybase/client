@@ -414,7 +414,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const topStuffHeight =
     120 +
     (!!adderUsername && getShouldReport(adderUsername)
-      ? reasons.length * 18 + 54 + 40
+      ? reasons.length * 18 + 54 + 40 + 20
       : 0) +
     (otherUsernames?.length ? 41 : 0)
   // Each username row is 2 checkboxes (40px each) + 1px divider = 81px
@@ -465,6 +465,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
         items={items}
         renderItem={renderItem}
         indexAsKey={true}
+        extraData={newBlocks}
         itemHeight={itemHeight}
         style={
           Kb.Styles.isMobile
@@ -499,7 +500,7 @@ const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
       : 0) +
     (expanded
       ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
-        reasons.length * 18 + 54 + 40
+        reasons.length * 18 + 54 + 40 + 20
       : 0),
 })
 

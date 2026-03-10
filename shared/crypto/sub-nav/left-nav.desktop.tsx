@@ -47,6 +47,7 @@ const SubNav = (props: Props) => {
             items={getRows()}
             renderItem={renderItem}
             keyProperty="key"
+            extraData={props.selected}
             style={styles.list}
             itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
           />

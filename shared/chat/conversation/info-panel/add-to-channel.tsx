@@ -102,6 +102,7 @@ const AddToChannel = (props: Props) => {
         <Kb.List
           keyProperty="username"
           items={membersFiltered}
+          extraData={toAdd}
           renderItem={(idx, item) => {
             const alreadyIn = participants.includes(item.username)
             const onCheck = () => {
