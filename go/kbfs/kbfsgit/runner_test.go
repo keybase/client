@@ -1289,3 +1289,32 @@ func TestRunnerLFS(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, lfsData, buf)
 }
+
+// Test that when only a non-master branch (e.g. "main") is pushed,
+// HEAD correctly points to that branch instead of the nonexistent
+// "refs/heads/master".
+func TestRunnerListNonMasterDefault(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	gitDir, err := os.MkdirTemp(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer func() { _ = os.RemoveAll(gitDir) }()
+
+	makeLocalRepoWithOneFile(t, gitDir, "foo", "hello", "main")
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	testPush(ctx, t, config, gitDir,
+		"refs/heads/main:refs/heads/main")
+
+	// List refs and verify HEAD points to refs/heads/main.
+	heads := testListAndGetHeads(ctx, t, config, gitDir,
+		[]string{"refs/heads/main", "HEAD"})
+	require.Equal(t, "@refs/heads/main", heads[1])
+}

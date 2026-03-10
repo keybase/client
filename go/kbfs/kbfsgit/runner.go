@@ -709,8 +709,16 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		return err
 	}
 
-	var symRefs []string
+	type symRefInfo struct {
+		name   plumbing.ReferenceName
+		target plumbing.ReferenceName
+	}
+	var symRefs []symRefInfo
+	hashRefNames := make(map[plumbing.ReferenceName]bool)
 	hashesSeen := false
+	// Track the best fallback branch for HEAD in case its target
+	// doesn't exist (prefer main > master > alphabetically first).
+	var bestBranch plumbing.ReferenceName
 	for {
 		ref, err := refs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -725,6 +733,18 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		case plumbing.HashReference:
 			value = ref.Hash().String()
 			hashesSeen = true
+			hashRefNames[ref.Name()] = true
+			// Track best branch for fallback HEAD.
+			if strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+				switch {
+				case ref.Name() == "refs/heads/main":
+					bestBranch = ref.Name()
+				case ref.Name() == "refs/heads/master" && bestBranch != "refs/heads/main":
+					bestBranch = ref.Name()
+				case bestBranch == "" || (bestBranch != "refs/heads/main" && bestBranch != "refs/heads/master" && ref.Name() < bestBranch):
+					bestBranch = ref.Name()
+				}
+			}
 		case plumbing.SymbolicReference:
 			value = "@" + ref.Target().String()
 		default:
@@ -737,7 +757,10 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 			// cloning an empty repo will result in an error because
 			// the HEAD symbolic ref points to a ref that doesn't
 			// exist.
-			symRefs = append(symRefs, refStr)
+			symRefs = append(symRefs, symRefInfo{
+				name:   ref.Name(),
+				target: ref.Target(),
+			})
 			continue
 		}
 		r.log.CDebugf(ctx, "Listing ref %s", refStr)
@@ -748,7 +771,23 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	}
 
 	if hashesSeen && !forPush {
-		for _, refStr := range symRefs {
+		for _, sr := range symRefs {
+			target := sr.target
+			// If the symref target doesn't exist among hash refs,
+			// rewrite it to point to the best available branch.
+			if !hashRefNames[target] {
+				if bestBranch == "" {
+					r.log.CDebugf(ctx,
+						"Skipping symref %s -> %s (no branches available)",
+						sr.name, target)
+					continue
+				}
+				r.log.CDebugf(ctx,
+					"Rewriting symref %s from %s to %s",
+					sr.name, target, bestBranch)
+				target = bestBranch
+			}
+			refStr := "@" + target.String() + " " + sr.name.String() + "\n"
 			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
 			_, err = r.output.Write([]byte(refStr))
 			if err != nil {
@@ -1866,6 +1905,39 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			keybase1.GitPushType_DEFAULT, "", commits)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	// If HEAD points to a nonexistent ref, update it to point to the
+	// first successfully-pushed branch.
+	head, headErr := repo.Storer.Reference(plumbing.HEAD)
+	if headErr == nil && head.Type() == plumbing.SymbolicReference {
+		_, targetErr := repo.Storer.Reference(head.Target())
+		if targetErr == plumbing.ErrReferenceNotFound {
+			// Find the first successfully-pushed branch ref.
+			for refspec := range refspecs {
+				if refspec.IsDelete() {
+					continue // don't point HEAD at a deleted branch
+				}
+				dst := refspec.Dst("")
+				if results[dst.String()] != nil {
+					continue // errored
+				}
+				if strings.HasPrefix(dst.String(), "refs/heads/") {
+					newHead := plumbing.NewSymbolicReference(
+						plumbing.HEAD, dst)
+					if setErr := repo.Storer.SetReference(
+						newHead); setErr != nil {
+						r.log.CDebugf(ctx,
+							"Error updating HEAD to %s: %+v",
+							dst, setErr)
+					} else {
+						r.log.CDebugf(ctx,
+							"Updated HEAD to point to %s", dst)
+					}
+					break
+				}
+			}
 		}
 	}
 

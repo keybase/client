@@ -73,6 +73,7 @@ func NewBrowser(
 	}
 
 	const masterBranch = "refs/heads/master"
+	branchWasEmpty := gitBranchName == ""
 	if gitBranchName == "" {
 		gitBranchName = masterBranch
 	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
@@ -98,9 +99,19 @@ func NewBrowser(
 		return nil, err
 	}
 
+	// If no branch was specified, try to resolve HEAD to find the
+	// default branch instead of hardcoding master.
+	if branchWasEmpty {
+		headRef, headErr := repo.Reference(plumbing.HEAD, false)
+		if headErr == nil && headRef.Type() == plumbing.SymbolicReference {
+			gitBranchName = headRef.Target()
+		}
+	}
+
 	ref, err := repo.Reference(gitBranchName, true)
-	if err == plumbing.ErrReferenceNotFound && gitBranchName == masterBranch {
-		// This branch has no commits, so pretend it's empty.
+	if err == plumbing.ErrReferenceNotFound && (gitBranchName == masterBranch || branchWasEmpty) {
+		// This branch has no commits (or HEAD points to a
+		// nonexistent ref), so pretend it's empty.
 		return &Browser{
 			root:        string(gitBranchName),
 			sharedCache: sharedCache,
