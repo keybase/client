@@ -75,6 +75,7 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     appendNewChatBuilder()
   }, [appendNewChatBuilder])
   Kb.useHotKey('mod+n', onHotKeys)
+  Kb.useHotKey('mod+k', onStartSearch)
 
   React.useEffect(() => {
     if (isSearching) {
@@ -82,28 +83,29 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     }
   }, [isSearching])
 
-  const searchInput = (
+  const searchInput = isSearching ? (
     <Kb.SearchFilter
       ref={inputRef}
       size="full-width"
       style={styles.searchBox}
       icon="iconfont-search"
       placeholderText="Search"
-      hotkey="k"
-      showXOverride={isSearching ? true : undefined}
+      showXOverride={true}
       value={filter}
       valueControlled={true}
-      // On mobile SearchFilter is re-mounted when toggling isSearching. (See chat/inbox/index.native.tsx:render's use of isSearching)
-      // Simple props would cause the keyboard to appear and then disappear on dismount.
-      // Take care instead to only launch the keyboard from the isSearching=true mountpoint.
-      dummyInput={Kb.Styles.isMobile && !isSearching}
-      focusOnMount={Kb.Styles.isMobile && isSearching}
+      focusOnMount={Kb.Styles.isMobile}
       onChange={onChange}
       onCancel={onStopSearch}
-      onFocus={onStartSearch}
       onKeyDown={onKeyDown}
       onEnterKeyDown={onEnterKeyDown}
     />
+  ) : (
+    <Kb.ClickableBox2 onClick={onStartSearch} style={styles.searchPlaceholder}>
+      <Kb.Icon type="iconfont-search" sizeType="Default" color={Kb.Styles.globalColors.black_50} style={styles.searchPlaceholderIcon} />
+      <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
+        {Kb.Styles.isMobile ? 'Search' : `Search (\u2318K)`}
+      </Kb.Text>
+    </Kb.ClickableBox2>
   )
   return (
     <Kb.Box2
@@ -148,6 +150,26 @@ const styles = Kb.Styles.styleSheetCreate(
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
+      searchPlaceholder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexGrow,
+          alignItems: 'center',
+          backgroundColor: Kb.Styles.globalColors.black_10,
+          borderRadius: Kb.Styles.borderRadius,
+          flex: 1,
+          flexShrink: 1,
+          height: 32,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+        },
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+      }),
+      searchPlaceholderIcon: Kb.Styles.platformStyles({
+        isElectron: {marginRight: Kb.Styles.globalMargins.tiny, marginTop: 2},
+        isMobile: {marginRight: Kb.Styles.globalMargins.tiny},
+      }),
+      searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )

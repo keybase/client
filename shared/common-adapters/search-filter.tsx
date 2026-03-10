@@ -57,7 +57,6 @@ type Props = {
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
   onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
-  tabIndex?: number // desktop only
   measureRef?: React.RefObject<MeasureRef | null>
 }
 
@@ -202,7 +201,6 @@ const SearchFilter = React.forwardRef<SearchFilterRef, Props>(function SearchFil
         onKeyUp={props.onKeyUp}
         onKeyPress={props.onKeyPress}
         onEnterKeyDown={props.onEnterKeyDown}
-        tabIndex={props.tabIndex}
         ref={inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
