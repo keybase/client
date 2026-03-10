@@ -50,6 +50,7 @@ export const newModalRoutes = {
     {
       getOptions: {
         ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
+        headerShown: false,
         modal2Style: {alignSelf: 'stretch', paddingBottom: 16, paddingLeft: 40, paddingRight: 40, paddingTop: 40},
         modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
         safeAreaStyle: {backgroundColor: 'black'}, // true black
@@ -57,8 +58,7 @@ export const newModalRoutes = {
     }
   ),
   chatAttachmentGetTitles: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/attachment-get-titles')),
-    {getOptions: {headerShown: false}}
+    React.lazy(async () => import('./conversation/attachment-get-titles'))
   ),
   chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
     getOptions: {headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />},
