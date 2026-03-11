@@ -45,9 +45,6 @@ const tabRoutes = routes
 
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
-  animation: 'simple_push',
-  animationDuration: 250,
-  orientation: 'portrait',
 } as const
 
 const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false)
