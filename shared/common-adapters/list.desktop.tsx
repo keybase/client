@@ -16,6 +16,7 @@ function List<T>({ref, ...p}: Props<T>) {
       style={
         {
           height: '100%',
+          outline: 'none',
           overflowY: 'auto',
           scrollbarGutter: 'stable',
           width: '100%',
