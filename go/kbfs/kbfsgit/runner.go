@@ -784,24 +784,24 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 			target := sr.target
 			// If the symref target doesn't exist among hash refs,
 			// rewrite it to point to the best available branch,
-			// but only for HEAD. Other symrefs are left as-is.
+			// but only for HEAD. Other symrefs are emitted as-is.
 			if !hashRefNames[target] {
-				if sr.name != plumbing.HEAD {
+				if sr.name == plumbing.HEAD {
+					if bestBranch == "" {
+						r.log.CDebugf(ctx,
+							"Skipping HEAD symref %s -> %s (no branches available)",
+							sr.name, target)
+						continue
+					}
 					r.log.CDebugf(ctx,
-						"Skipping non-HEAD symref %s -> %s (unknown target)",
-						sr.name, target)
-					continue
-				}
-				if bestBranch == "" {
+						"Rewriting HEAD symref from %s to %s",
+						target, bestBranch)
+					target = bestBranch
+				} else {
 					r.log.CDebugf(ctx,
-						"Skipping HEAD symref %s -> %s (no branches available)",
+						"Emitting non-HEAD symref %s -> %s with unknown target",
 						sr.name, target)
-					continue
 				}
-				r.log.CDebugf(ctx,
-					"Rewriting HEAD symref from %s to %s",
-					target, bestBranch)
-				target = bestBranch
 			}
 			refStr := "@" + target.String() + " " + sr.name.String() + "\n"
 			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
