@@ -59,7 +59,8 @@ var _ billy.Filesystem = (*Browser)(nil)
 // NewBrowser makes a new Browser instance, browsing the given branch
 // of the given repo.  If `gitBranchName` is empty, HEAD is resolved
 // to determine the default branch; if HEAD is missing or points to a
-// nonexistent ref, the repo is treated as empty.  If `gitBranchName`
+// nonexistent ref, NewBrowser falls back to "refs/heads/master" if it
+// exists, otherwise the repo is treated as empty.  If `gitBranchName`
 // is not empty but doesn't begin with "refs/", then "refs/heads/" is
 // prepended to it.
 func NewBrowser(
