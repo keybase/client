@@ -177,7 +177,7 @@ const ChannelHeader = () => {
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
-          size={smallTeam ? 16 : (12 as 16) /* not really allowed a one off */}
+          size={16}
         />
         <Kb.Text
           type={textType}
