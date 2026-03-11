@@ -270,8 +270,8 @@ const ConversationList = function ConversationList() {
 
   return (
     <Kb.ErrorBoundary>
-      <SetRecycleTypeContext.Provider value={setRecycleType}>
-        <ForceListRedrawContext.Provider value={forceListRedraw}>
+      <SetRecycleTypeContext value={setRecycleType}>
+        <ForceListRedrawContext value={forceListRedraw}>
           <PerfProfiler id="MessageList">
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
             <List
@@ -306,8 +306,8 @@ const ConversationList = function ConversationList() {
             {debugWhichList}
           </Kb.Box2>
           </PerfProfiler>
-        </ForceListRedrawContext.Provider>
-      </SetRecycleTypeContext.Provider>
+        </ForceListRedrawContext>
+      </SetRecycleTypeContext>
     </Kb.ErrorBoundary>
   )
 }

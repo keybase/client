@@ -513,8 +513,6 @@ export function WrapperMessage(p: WMProps) {
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
-  const canFixOverdraw = !showCenteredHighlight && !isEditing
-
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
     botname,
@@ -540,15 +538,13 @@ export function WrapperMessage(p: WMProps) {
     you,
   }
 
-  const messageContext = {canFixOverdraw, isHighlighted: showCenteredHighlight, ordinal}
+  const messageContext = {isHighlighted: showCenteredHighlight, ordinal}
 
   return (
-    <MessageContext.Provider value={messageContext}>
-      <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-        <TextAndSiblings {...tsprops} />
-        {popup}
-      </Kb.Styles.CanFixOverdrawContext.Provider>
-    </MessageContext.Provider>
+    <MessageContext value={messageContext}>
+      <TextAndSiblings {...tsprops} />
+      {popup}
+    </MessageContext>
   )
 }
 

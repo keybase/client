@@ -21,8 +21,7 @@ const LeftNav = (props: Props) => {
     navigate(Settings.settingsLogOutTab)
   }
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <Kb.ScrollView style={styles.container}>
+    <Kb.ScrollView style={styles.container}>
         {Kb.Styles.isTablet && (
           <>
             <SettingsItem
@@ -135,8 +134,7 @@ const LeftNav = (props: Props) => {
         {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
         <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={onSignout} />
-      </Kb.ScrollView>
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+    </Kb.ScrollView>
   )
 }
 

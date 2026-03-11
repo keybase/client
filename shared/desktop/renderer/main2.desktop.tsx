@@ -6,7 +6,6 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '@/actions/remote-gen'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
-import {CanFixOverdrawContext} from '@/styles'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
@@ -110,7 +109,7 @@ const Root = ({children}: {children: React.ReactNode}) => {
   useDarkHookup()
   return (
     <GlobalKeyEventHandler>
-      <CanFixOverdrawContext.Provider value={true}>{children}</CanFixOverdrawContext.Provider>
+      {children}
     </GlobalKeyEventHandler>
   )
 }

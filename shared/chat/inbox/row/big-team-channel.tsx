@@ -90,36 +90,34 @@ const BigTeamChannel = (props: Props) => {
   ) : null
 
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={!Kb.Styles.isTablet}>
-      <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
-        <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
+    <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
+        <Kb.Box2
+          className="hover_background_color_blueGreyDark"
+          direction="horizontal"
+          fullWidth={!Kb.Styles.isMobile}
+          style={Kb.Styles.collapseStyles([
+            styles.channelBackground,
+            selected && styles.selectedChannelBackground,
+          ])}
+        >
+          {name}
+          {mutedIcon}
           <Kb.Box2
-            className="hover_background_color_blueGreyDark"
             direction="horizontal"
-            fullWidth={!Kb.Styles.isMobile}
-            style={Kb.Styles.collapseStyles([
-              styles.channelBackground,
-              selected && styles.selectedChannelBackground,
-            ])}
+            alignSelf="center"
+            alignItems="center"
+            justifyContent="flex-end"
+            flex={1}
+            tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
           >
-            {name}
-            {mutedIcon}
-            <Kb.Box2
-              direction="horizontal"
-              alignSelf="center"
-              alignItems="center"
-              justifyContent="flex-end"
-              flex={1}
-              tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
-            >
-              {draftIcon}
-              {outboxIcon}
-              {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
-            </Kb.Box2>
+            {draftIcon}
+            {outboxIcon}
+            {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox2>
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+      </Kb.Box2>
+    </Kb.ClickableBox2>
   )
 }
 

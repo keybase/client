@@ -162,8 +162,7 @@ const Team = (props: Props) => {
   }
 
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={Kb.Styles.isMobile}
@@ -178,8 +177,7 @@ const Team = (props: Props) => {
           }
           teamID={teamID}
         />
-      </Kb.Box2>
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+    </Kb.Box2>
   )
 }
 

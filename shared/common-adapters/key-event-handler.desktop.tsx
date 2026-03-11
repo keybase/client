@@ -80,7 +80,7 @@ const GlobalKeyEventHandler = (props: GlobalProps) => {
     setStack(prevStack => prevStack.filter(handler => handler !== receiver))
   }
 
-  return <KeyEventContext.Provider value={{add, remove}}>{props.children}</KeyEventContext.Provider>
+  return <KeyEventContext value={{add, remove}}>{props.children}</KeyEventContext>
 }
 
 type EscapeHandlerProps = {
