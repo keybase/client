@@ -9,7 +9,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
-import {ModalTitle, ChannelsWidget} from '../common'
+import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -34,7 +34,6 @@ const AddMembersConfirm = () => {
       const newTeamWizErr = teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined
       return {
         addMembersWizard: s.addMembersWizard,
-        cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
         finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
@@ -43,7 +42,7 @@ const AddMembersConfirm = () => {
       }
     })
   )
-  const {addMembersWizard, cancelAddMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
+  const {addMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
   const {isInTeam, isSubteam, newTeamWizErr} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
@@ -59,7 +58,6 @@ const AddMembersConfirm = () => {
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -99,21 +97,6 @@ const AddMembersConfirm = () => {
           }
         )
       }
-
-  const nav = C.useNav()
-  const confirmTitle = `Inviting ${addingMembers.length} ${noun}`
-  React.useEffect(() => {
-    nav.setOptions({
-      headerLeft: fromNewTeamWizard
-        ? () => <Kb.Icon type="iconfont-arrow-left" onClick={() => navUpToScreen('teamAddToTeamFromWhere')} />
-        : () => (
-            <Kb.Text type="BodyBigLink" onClick={() => cancelAddMembersWizard()}>
-              Cancel
-            </Kb.Text>
-          ),
-      headerTitle: () => <ModalTitle teamID={teamID} title={confirmTitle} />,
-    })
-  }, [nav, fromNewTeamWizard, navUpToScreen, cancelAddMembersWizard, teamID, confirmTitle])
 
   return (
     <>
@@ -521,6 +504,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   body: {
+    flex: 1,
     padding: Kb.Styles.globalMargins.small,
   },
   flexDefinitelyShrink: {flexShrink: 100},

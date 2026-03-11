@@ -73,6 +73,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
         Kb.Styles.globalMargins.xlarge
       ),
       borderBottomRadius: 4,
+      flex: 1,
     },
     isMobile: {
       ...Kb.Styles.globalStyles.flexOne,

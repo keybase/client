@@ -26,6 +26,32 @@ const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   return <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />
 }
 
+const ConfirmHeaderTitle = () => {
+  const {teamID, count} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      teamID: s.addMembersWizard.teamID,
+      count: s.addMembersWizard.addingMembers.length,
+    }))
+  )
+  const noun = count === 1 ? 'person' : 'people'
+  return <ModalTitle teamID={teamID} title={`Inviting ${count} ${noun}`} />
+}
+
+const ConfirmHeaderLeft = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const newTeam = teamID === T.Teams.newTeamWizardTeamID
+  const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  if (newTeam) {
+    return <Kb.Icon type="iconfont-arrow-left" onClick={() => navUpToScreen('teamAddToTeamFromWhere')} />
+  }
+  return (
+    <Kb.Text type="BodyBigLink" onClick={cancelAddMembersWizard}>
+      Cancel
+    </Kb.Text>
+  )
+}
+
 const AddFromWhereHeaderLeft = () => {
   const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
@@ -107,23 +133,29 @@ export const newModalRoutes = {
     }),
   }),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {
-    getOptions: {gestureEnabled: false},
+    getOptions: {
+      gestureEnabled: false,
+      headerLeft: () => <ConfirmHeaderLeft />,
+      headerTitle: () => <ConfirmHeaderTitle />,
+      modalStyle: {height: 560},
+    },
   }),
   teamAddToTeamContacts: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-contacts')), {
-    getOptions: {headerLeft: HeaderLeftButton},
+    getOptions: {headerLeft: HeaderLeftButton, modalStyle: {height: 560}},
   }),
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email')), {
-    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardEmailHeaderTitle />},
+    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardEmailHeaderTitle />, modalStyle: {height: 560}},
   }),
   teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
     getOptions: {
       headerLeft: () => <AddFromWhereHeaderLeft />,
       headerRight: () => <AddFromWhereHeaderRight />,
       headerTitle: () => <AddFromWhereHeaderTitle />,
+      modalStyle: {height: 560},
     },
   }),
   teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone')), {
-    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardPhoneHeaderTitle />},
+    getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardPhoneHeaderTitle />, modalStyle: {height: 560}},
   }),
   teamCreateChannels: C.makeScreen(React.lazy(async () => import('./channel/create-channels')), {
     getOptions: ({route}) => ({
