@@ -40,11 +40,23 @@ const TeamInfo = (props: Props) => {
     }
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onEditAvatar = () =>
     navigateAppend({
       name: 'profileEditAvatar',
       params: {sendChatNotification: true, showBack: true, teamID},
     })
+
+  const wasWaitingRef = React.useRef(waiting)
+  React.useEffect(() => {
+    if (!waiting && wasWaitingRef.current && !errors.desc && !errors.rename) {
+      navigateUp()
+    }
+  }, [waiting, navigateUp, errors.desc, errors.rename])
+  React.useEffect(() => {
+    wasWaitingRef.current = waiting
+  }, [waiting])
+
   return (
     <>
       {Object.keys(errors).map(k =>
