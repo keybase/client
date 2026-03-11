@@ -129,7 +129,6 @@ const ConnectedEnterPhoneNumber = () => {
       onRightAction={onSkip}
       title="Your phone number"
       showHeaderInfoicon={true}
-      skipMobileHeader={true}
     >
       <EnterPhoneNumberBody
         autoFocus={!Kb.Styles.isMobile}

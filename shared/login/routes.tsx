@@ -19,21 +19,22 @@ const headerRightActions = () => (
 
 const recoverPasswordGetOptions = {
   headerBottomStyle: {height: undefined},
-  headerLeft: undefined, // no back button
   headerRightActions,
+  title: 'Recover password',
 }
 
 export const newRoutes = {
   feedback: settingsRoutes[settingsFeedbackTab],
-  login: {screen: React.lazy(async () => import('.'))},
+  login: {getOptions: {headerShown: false}, screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
+    getOptions: {title: 'Recover password'},
     screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
     getOptions: {
       gestureEnabled: false,
-      headerLeft: undefined, // no back button
       headerRightActions,
+      title: 'Recover password',
     },
     screen: React.lazy(async () => import('./recover-password/error')),
   },
@@ -57,14 +58,23 @@ export const newRoutes = {
     getOptions: {gestureEnabled: false, title: 'Account reset'},
     screen: React.lazy(async () => import('./reset/confirm')),
   },
-  resetEnterPassword: {screen: React.lazy(async () => import('./reset/password-enter'))},
-  resetKnowPassword: {screen: React.lazy(async () => import('./reset/password-known'))},
-  resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting'))),
+  resetEnterPassword: {
+    getOptions: {title: 'Account reset'},
+    screen: React.lazy(async () => import('./reset/password-enter')),
+  },
+  resetKnowPassword: {
+    getOptions: {title: 'Account reset'},
+    screen: React.lazy(async () => import('./reset/password-known')),
+  },
+  resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting')), {
+    getOptions: {title: 'Account reset'},
+  }),
   ...provisionRoutes,
   ...signupRoutes,
 }
 export const newModalRoutes = {
   proxySettingsModal: {
+    getOptions: {title: 'Proxy settings'},
     screen: React.lazy(async () => import('../settings/proxy')),
   },
   recoverPasswordErrorModal: {
@@ -72,7 +82,7 @@ export const newModalRoutes = {
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
   recoverPasswordSetPassword: {
-    getOptions: {gestureEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Set password'},
     screen: React.lazy(async () => import('./recover-password/password')),
   },
 }

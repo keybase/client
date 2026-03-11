@@ -119,7 +119,6 @@ function AppTabs() {
 
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
-  headerShown: false,
 } as const
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
 const loggedOutNav = createNativeStackNavigator({

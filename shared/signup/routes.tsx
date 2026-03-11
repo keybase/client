@@ -41,7 +41,10 @@ const PhoneSkipButton = () => {
 }
 
 export const newRoutes = {
-  signupEnterDevicename: {screen: React.lazy(async () => import('./device-name'))},
+  signupEnterDevicename: {
+    getOptions: {title: 'Name this device'},
+    screen: React.lazy(async () => import('./device-name')),
+  },
   signupEnterUsername: {
     getOptions: {
       headerBottomStyle: {height: undefined},
@@ -54,10 +57,14 @@ export const newRoutes = {
           <InfoIcon />
         </Kb.Box2>
       ),
+      title: 'Create account',
     },
     screen: React.lazy(async () => import('./username')),
   },
-  signupSendFeedbackLoggedOut: {screen: React.lazy(async () => import('./feedback'))},
+  signupSendFeedbackLoggedOut: {
+    getOptions: {title: 'Send feedback'},
+    screen: React.lazy(async () => import('./feedback')),
+  },
 }
 
 // Some screens in signup show up after we've actually signed up
@@ -74,5 +81,8 @@ export const newModalRoutes = {
     getOptions: {title: 'Send feedback'},
     screen: React.lazy(async () => import('./feedback')),
   },
-  signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify'))},
+  signupVerifyPhoneNumber: {
+    getOptions: {title: 'Verify phone number'},
+    screen: React.lazy(async () => import('./phone-number/verify')),
+  },
 }

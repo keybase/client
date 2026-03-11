@@ -17,7 +17,6 @@ const KnowPassword = () => {
       title="Account reset"
       noBackground={true}
       onBack={onCancel}
-      leftActionText="Cancel"
       banners={
         error ? (
           <Kb.Banner color="red">

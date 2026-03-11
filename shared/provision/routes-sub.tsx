@@ -19,22 +19,34 @@ export const newRoutes = {
   codePage: C.makeScreen(React.lazy(async () => import('./code-page/container')), {
     getOptions: {
       headerLeft: () => <CodePageHeaderLeft />,
+      title: '',
     },
   }),
-  error: {screen: React.lazy(async () => import('./error'))},
+  error: {getOptions: {title: 'Error'}, screen: React.lazy(async () => import('./error'))},
   forgotUsername: {
+    getOptions: {title: 'Recover username'},
     screen: React.lazy(async () => import('./forgot-username')),
   },
   // gpgSign,
   paperkey: {
+    getOptions: {title: 'Enter paper key'},
     screen: React.lazy(async () => import('./paper-key')),
   },
   password: {
+    getOptions: {title: 'Enter password'},
     screen: React.lazy(async () => import('./password')),
   },
-  selectOtherDevice: {screen: React.lazy(async () => import('./select-other-device-connected'))},
-  setPublicName: {screen: React.lazy(async () => import('./set-public-name'))},
-  username: C.makeScreen(React.lazy(async () => import('./username-or-email'))),
+  selectOtherDevice: {
+    getOptions: {title: 'Authorize this device'},
+    screen: React.lazy(async () => import('./select-other-device-connected')),
+  },
+  setPublicName: {
+    getOptions: {title: 'Name this device'},
+    screen: React.lazy(async () => import('./set-public-name')),
+  },
+  username: C.makeScreen(React.lazy(async () => import('./username-or-email')), {
+    getOptions: {title: 'Log in'},
+  }),
 }
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
