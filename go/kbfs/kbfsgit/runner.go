@@ -682,11 +682,6 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		r.printStageEndIfNeeded)
 }
 
-// handleList: From https://git-scm.com/docs/git-remote-helpers
-//
-// Lists the refs, one per line, in the format "<value> <name> [<attr>
-// …​]". The value may be a hex sha1 hash, "@<dest>" for a symref, or
-// "?" to indicate that the helper could not get the value of the
 // bestBranchFromCandidates selects the best branch for HEAD from a set of
 // candidate branch names (prefer main > master > alphabetically first).
 func bestBranchFromCandidates(best plumbing.ReferenceName, candidate plumbing.ReferenceName) plumbing.ReferenceName {
@@ -702,6 +697,11 @@ func bestBranchFromCandidates(best plumbing.ReferenceName, candidate plumbing.Re
 	}
 }
 
+// handleList: From https://git-scm.com/docs/git-remote-helpers
+//
+// Lists the refs, one per line, in the format "<value> <name> [<attr>
+// …​]". The value may be a hex sha1 hash, "@<dest>" for a symref, or
+// "?" to indicate that the helper could not get the value of the
 // ref. A space-separated list of attributes follows the name;
 // unrecognized attributes are ignored. The list ends with a blank
 // line.
@@ -723,6 +723,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	defer refs.Close()
 
 	type symRefInfo struct {
 		name   plumbing.ReferenceName
@@ -1888,6 +1889,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			var bestBranch plumbing.ReferenceName
 			allRefs, refsErr := repo.References()
 			if refsErr == nil {
+				defer allRefs.Close()
 				for {
 					ref, nextErr := allRefs.Next()
 					if errors.Cause(nextErr) == io.EOF {
