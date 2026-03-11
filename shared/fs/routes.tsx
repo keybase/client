@@ -34,13 +34,15 @@ const DestPickerHeaderRight = () => {
 }
 
 const DestPickerHeaderTitle = ({index}: {index: number}) => {
-  const {targetName, parentPath} = useFSState(s => {
-    const dp = s.destinationPicker
-    return {
-      parentPath: getDestPickerParentPath(dp, index),
-      targetName: FS.getDestinationPickerPathName(dp),
-    }
-  })
+  const {targetName, parentPath} = useFSState(
+    C.useShallow(s => {
+      const dp = s.destinationPicker
+      return {
+        parentPath: getDestPickerParentPath(dp, index),
+        targetName: FS.getDestinationPickerPathName(dp),
+      }
+    })
+  )
   if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
@@ -93,6 +95,7 @@ export const newModalRoutes = {
       headerLeft: () => <DestPickerHeaderLeft />,
       headerRight: () => <DestPickerHeaderRight />,
       headerTitle: () => <DestPickerHeaderTitle index={route.params.index} />,
+      modalStyle: {height: 560, width: 560},
     }),
   }),
   kextPermission: {

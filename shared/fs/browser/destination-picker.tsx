@@ -12,93 +12,65 @@ import * as FS from '@/stores/fs'
 
 type OwnProps = {index: number}
 
-const getIndex = (ownProps: OwnProps) => ownProps.index
-const getDestinationParentPath = (dp: T.FS.DestinationPicker, ownProps: OwnProps): T.FS.Path =>
-  dp.destinationParentPath[getIndex(ownProps)] ||
+const getParentPath = (dp: T.FS.DestinationPicker, index: number): T.FS.Path =>
+  dp.destinationParentPath[index] ||
   (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
     ? T.FS.getPathParent(dp.source.path)
     : T.FS.stringToPath('/keybase'))
 
-const canWrite = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-  T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
-  FS.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
-
-const canCopy = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
-  if (!canWrite(dp, pathItems, ownProps)) {
-    return false
-  }
-  if (dp.source.type === T.FS.DestinationPickerSource.IncomingShare) {
-    return true
-  }
-  if (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy) {
-    const source: T.FS.MoveOrCopySource = dp.source
-    return getDestinationParentPath(dp, ownProps) !== T.FS.getPathParent(source.path)
-  }
-  return undefined
-}
-
-const canMove = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-  canCopy(dp, pathItems, ownProps) &&
-  dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-  FS.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
-
 const canBackUp = C.isMobile
-  ? (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
-      T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
+  ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const {destPicker, pathItems, newFolderRow, moveOrCopy} = useFSState(
-    C.useShallow(s => ({
-      destPicker: s.destinationPicker,
-      moveOrCopy: s.dispatch.moveOrCopy,
-      newFolderRow: s.dispatch.newFolderRow,
-      pathItems: s.pathItems,
-    }))
+  const index = ownProps.index
+  const {parentPath, isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
+    C.useShallow(s => {
+      const dp = s.destinationPicker
+      const pp = getParentPath(dp, index)
+      const pathItem = FS.getPathItem(s.pathItems, pp)
+      const writable = T.FS.getPathLevel(pp) > 2 && pathItem.writable
+      const isShareSource = dp.source.type === T.FS.DestinationPickerSource.IncomingShare
+      const isMoveOrCopy = dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
+      const copyable = writable && (isShareSource || (isMoveOrCopy && pp !== T.FS.getPathParent(dp.source.path)))
+      const movable = copyable && isMoveOrCopy && FS.pathsInSameTlf(dp.source.path, pp)
+      return {
+        isCopyable: copyable,
+        isMovable: movable,
+        isShare: isShareSource,
+        isWritable: writable,
+        moveOrCopy: s.dispatch.moveOrCopy,
+        newFolderRow: s.dispatch.newFolderRow,
+        parentPath: pp,
+      }
+    })
   )
-  const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
 
   const nav = useSafeNavigation()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const dispatchProps = {
-    _onBackUp: (currentPath: T.FS.Path) =>
-      FS.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
-    _onCopyHere: (destinationParentPath: T.FS.Path) => {
-      moveOrCopy(destinationParentPath, 'copy')
-      clearModals()
-      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
-    },
-    _onMoveHere: (destinationParentPath: T.FS.Path) => {
-      moveOrCopy(destinationParentPath, 'move')
-      clearModals()
-      nav.safeNavigateAppend({name: 'fsRoot', params: {path: destinationParentPath}})
-    },
-    _onNewFolder: (destinationParentPath: T.FS.Path) => {
-      newFolderRow(destinationParentPath)
-    },
-    onCancel: () => {
-      clearModals()
-    },
-  }
-
-  const index = getIndex(ownProps)
-  const showHeaderBackInsteadOfCancel = isShare // && index > 0
   const onBackUp =
-    isShare || !canBackUp(destPicker, ownProps)
+    isShare || !canBackUp(parentPath)
       ? undefined
-      : () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps))
-  const onCancel = showHeaderBackInsteadOfCancel ? undefined : dispatchProps.onCancel
-  const onCopyHere = canCopy(destPicker, pathItems, ownProps)
-    ? () => dispatchProps._onCopyHere(getDestinationParentPath(destPicker, ownProps))
+      : () => FS.makeActionsForDestinationPickerOpen(index + 1, T.FS.getPathParent(parentPath))
+  const onCancel = isShare ? undefined : () => clearModals()
+  const onCopyHere = isCopyable
+    ? () => {
+        moveOrCopy(parentPath, 'copy')
+        clearModals()
+        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+      }
     : undefined
-  const onMoveHere = canMove(destPicker, pathItems, ownProps)
-    ? () => dispatchProps._onMoveHere(getDestinationParentPath(destPicker, ownProps))
+  const onMoveHere = isMovable
+    ? () => {
+        moveOrCopy(parentPath, 'move')
+        clearModals()
+        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+      }
     : undefined
   const onNewFolder =
-    canWrite(destPicker, pathItems, ownProps) && !isShare
-      ? () => dispatchProps._onNewFolder(getDestinationParentPath(destPicker, ownProps))
+    isWritable && !isShare
+      ? () => newFolderRow(parentPath)
       : undefined
-  const parentPath = getDestinationParentPath(destPicker, ownProps)
 
   FsCommon.useFsPathMetadata(parentPath)
   FsCommon.useFsTlfs()

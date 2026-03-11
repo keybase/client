@@ -30,7 +30,7 @@ const PushPromptSkipButton = () => {
 
 const PasswordHeaderTitle = () => {
   const hasRandomPW = usePWState(s => !!s.randomPW)
-  return <>{hasRandomPW ? 'Set a password' : 'Change password'}</>
+  return <Kb.Text type="BodyBig">{hasRandomPW ? 'Set a password' : 'Change password'}</Kb.Text>
 }
 
 const CheckPassphraseCancelButton = () => {
