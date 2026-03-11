@@ -111,9 +111,13 @@ func NewBrowser(
 	}
 
 	ref, err := repo.Reference(gitBranchName, true)
+	if err == plumbing.ErrReferenceNotFound && branchWasEmpty && gitBranchName != masterBranch {
+		// HEAD points to a nonexistent ref; fall back to master.
+		gitBranchName = masterBranch
+		ref, err = repo.Reference(gitBranchName, true)
+	}
 	if err == plumbing.ErrReferenceNotFound && (gitBranchName == masterBranch || branchWasEmpty) {
-		// This branch has no commits (or HEAD points to a
-		// nonexistent ref), so pretend it's empty.
+		// No commits on this branch, so pretend it's empty.
 		return &Browser{
 			root:        string(gitBranchName),
 			sharedCache: sharedCache,
