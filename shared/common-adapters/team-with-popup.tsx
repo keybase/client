@@ -47,7 +47,7 @@ const TeamWithPopup = (props: Props) => {
       <TeamDetailsSubscriber teamID={props.teamID} />
       <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
         <TeamInfo
-          attachTo={popupRef}
+          attachTo={Styles.isMobile ? undefined : popupRef}
           description={description}
           inTeam={isMember}
           isOpen={isOpen}

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {isMobile} from '@/styles'
 import type {MeasureRef} from '../measure-ref'
 
 export type Popup2Parms = {
@@ -14,7 +15,7 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   const wasMakePopupRef = React.useRef<(p: Popup2Parms) => React.ReactElement | null>(makePopup)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
   const popupAnchor = React.useRef<MeasureRef>(null)
-  const attachTo = popupAnchor
+  const attachTo = isMobile ? undefined : popupAnchor
   const lastToggle = React.useRef(0)
 
   const [hidePopup] = React.useState(() => () => {

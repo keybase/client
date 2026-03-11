@@ -82,7 +82,7 @@ const UnknownMention = (props: Props) => {
 
   const popups = (
     <UnknownMentionPopup
-      attachTo={mentionRef}
+      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
       onHidden={handleMouseLeave}
       onResolve={onResolve}
       text={text}

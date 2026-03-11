@@ -99,7 +99,7 @@ export const TeamBotRow = (props: Props) => {
             />
           )}
           <BotMenu
-            attachTo={popupAnchor}
+            attachTo={Kb.Styles.isMobile ? undefined : popupAnchor}
             canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}
