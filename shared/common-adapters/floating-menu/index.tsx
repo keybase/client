@@ -3,7 +3,6 @@ import Popup from '../popup'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '@/styles'
-import {FloatingModalContext} from './context'
 import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
 
 export type MenuItems = _MenuItems
@@ -17,6 +16,7 @@ export type Props = {
   header?: React.ReactNode
   items: ReadonlyArray<_MenuItems[number]>
   listStyle?: object
+  mode?: 'modal' | 'bottomsheet'
   onHidden: () => void
   position?: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
@@ -37,8 +37,7 @@ const useSafeNavigation: SafeNavigationHook = Styles.isMobile
   : () => null
 
 function FloatingMenu(props: Props) {
-  const {items, visible, onHidden} = props
-  const isModal = React.useContext(FloatingModalContext)
+  const {items, visible, onHidden, mode} = props
 
   const navigation = useSafeNavigation()
 
@@ -49,13 +48,13 @@ function FloatingMenu(props: Props) {
     return unsub
   }, [navigation, onHidden])
 
-  if (!visible && isModal === false) {
+  if (!visible && !mode) {
     return null
   }
 
   const contents = (
     <MenuLayout
-      isModal={isModal}
+      isModal={mode ?? false}
       header={props.header}
       onHidden={props.onHidden}
       items={items}
@@ -68,13 +67,13 @@ function FloatingMenu(props: Props) {
     />
   )
 
-  if (isModal === true) {
+  if (mode === 'modal') {
     return contents
   }
 
   return (
     <Popup
-      attachTo={isModal === 'bottomsheet' && Styles.isMobile ? undefined : props.attachTo}
+      attachTo={mode === 'bottomsheet' && Styles.isMobile ? undefined : props.attachTo}
       onHidden={onHidden}
       visible={props.visible}
       position={props.position}

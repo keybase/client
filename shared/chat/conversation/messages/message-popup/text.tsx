@@ -11,6 +11,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  mode?: 'modal' | 'bottomsheet'
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
@@ -21,7 +22,7 @@ type OwnProps = {
 const emptyMessage = Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
-  const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
+  const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
   const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m ?? emptyMessage
@@ -235,6 +236,7 @@ const PopText = (ownProps: OwnProps) => {
       closeOnSelect={true}
       header={header}
       items={items}
+      mode={mode}
       onHidden={onHidden}
       position={position}
       containerStyle={style}

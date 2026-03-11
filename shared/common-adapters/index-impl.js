@@ -114,9 +114,6 @@ module.exports = {
   get FloatingMenu() {
     return require('./floating-menu').default
   },
-  get FloatingModalContext() {
-    return require('./floating-menu/context').FloatingModalContext
-  },
   get FloatingPicker() {
     return require('./floating-picker').default
   },
