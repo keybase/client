@@ -36,6 +36,7 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
@@ -103,12 +104,12 @@ const Container = (ownProps: OwnProps) => {
 
   React.useEffect(() => {
     if (addUserToTeamsState === 'succeeded') {
-      navigateUp()
+      clearModals()
       resetTeamProfileAddList()
     } else if (addUserToTeamsState === 'failed') {
       getTeamProfileAddList(them)
     }
-  }, [addUserToTeamsState, navigateUp, resetTeamProfileAddList, getTeamProfileAddList, them])
+  }, [addUserToTeamsState, clearModals, resetTeamProfileAddList, getTeamProfileAddList, them])
 
   const selectedTeamCount = selectedTeams.size
 
