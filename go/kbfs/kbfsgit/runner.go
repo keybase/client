@@ -783,17 +783,24 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		for _, sr := range symRefs {
 			target := sr.target
 			// If the symref target doesn't exist among hash refs,
-			// rewrite it to point to the best available branch.
+			// rewrite it to point to the best available branch,
+			// but only for HEAD. Other symrefs are left as-is.
 			if !hashRefNames[target] {
+				if sr.name != plumbing.HEAD {
+					r.log.CDebugf(ctx,
+						"Skipping non-HEAD symref %s -> %s (unknown target)",
+						sr.name, target)
+					continue
+				}
 				if bestBranch == "" {
 					r.log.CDebugf(ctx,
-						"Skipping symref %s -> %s (no branches available)",
+						"Skipping HEAD symref %s -> %s (no branches available)",
 						sr.name, target)
 					continue
 				}
 				r.log.CDebugf(ctx,
-					"Rewriting symref %s from %s to %s",
-					sr.name, target, bestBranch)
+					"Rewriting HEAD symref from %s to %s",
+					target, bestBranch)
 				target = bestBranch
 			}
 			refStr := "@" + target.String() + " " + sr.name.String() + "\n"
@@ -1880,6 +1887,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 
 	// If HEAD points to a nonexistent ref, update it to point to the
 	// best available branch in the repo (prefer main > master > alphabetical).
+	// We intentionally repair HEAD even when the target was explicitly
+	// deleted in this batch, because a broken HEAD causes clone failures.
 	// This must happen before waitForJournal so the HEAD update is
 	// included in the same flush.
 	head, headErr := repo.Storer.Reference(plumbing.HEAD)
