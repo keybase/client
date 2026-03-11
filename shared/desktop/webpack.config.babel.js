@@ -259,7 +259,7 @@ const config = (_, {mode}) => {
         : "'self'"
     };
     connect-src http://127.0.0.1:* ${
-      htmlWebpackPlugin.options.isDev ? 'ws://localhost:4000 http://localhost:4000 ws://localhost:8097' : ''
+      htmlWebpackPlugin.options.isDev ? 'webpack: ws://localhost:4000 http://localhost:4000 ws://localhost:8097' : ''
     };
         ">
     </head>
