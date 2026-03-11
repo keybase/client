@@ -32,13 +32,17 @@ const SuggestionList = <I,>(props: Props<I>) => {
     return null
   }
 
+  const maxHeight = 224
+  const estimatedItemHeight = 24
+  const listHeight = Math.min(props.items.length * estimatedItemHeight, maxHeight)
+
   return (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
+      style={Kb.Styles.collapseStyles([styles.listContainer, {height: listHeight}, props.style])}
     >
-      <Kb.List ref={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} estimatedItemHeight={24} extraData={selectedIndex} />
+      <Kb.List ref={listRef} renderItem={itemRenderer} items={props.items} itemHeight={itemHeight} estimatedItemHeight={estimatedItemHeight} extraData={selectedIndex} />
       {props.suggestBotCommandsUpdateStatus &&
       props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical" justifyContent="center">
@@ -59,7 +63,6 @@ const styles = Kb.Styles.styleSheetCreate(
       listContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderRadius: 4,
-        maxHeight: 224,
       },
     }) as const
 )
