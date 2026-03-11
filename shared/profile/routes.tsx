@@ -20,7 +20,7 @@ const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: 
   if (wizard || showBack) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
   }
-  return null
+  return <HeaderLeftButton mode="cancel" />
 }
 
 const EditAvatarHeaderRight = ({wizard}: {wizard?: boolean}) => {
