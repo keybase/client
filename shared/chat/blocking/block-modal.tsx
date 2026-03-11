@@ -138,7 +138,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
-  const onClose = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = (teamname: string) => {
     leaveTeam(teamname, true, 'chat')
@@ -198,7 +198,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
     }
     newBlocks.forEach(({report}, username) => report && reportUser(username, conversationIDKey, report))
     if (!takingAction) {
-      onClose()
+      navigateUp()
     }
   }
   const [blockTeam, setBlockTeam] = React.useState(true)
@@ -254,10 +254,10 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const lastFinishWaitingRef = React.useRef(finishWaiting)
   React.useEffect(() => {
     if (finishClicked && lastFinishWaitingRef.current && !finishWaiting) {
-      onClose()
+      navigateUp()
     }
     lastFinishWaitingRef.current = finishWaiting
-  }, [finishClicked, onClose, finishWaiting])
+  }, [finishClicked, navigateUp, finishWaiting])
 
   const getBlockFor = (username: string, which: BlockType) => {
     // First get a current setting from a checkbox, if user has checked anything.
@@ -396,22 +396,11 @@ const Container = function BlockModal(ownProps: OwnProps) {
     </>
   )
 
-  const header = {
-    leftButton: Kb.Styles.isMobile ? (
-      <Kb.Text onClick={onClose} type="BodyPrimaryLink">
-        Cancel
-      </Kb.Text>
-    ) : undefined,
-    title: <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
-  }
-
   if (loadingWaiting) {
     return (
-      <Kb.Modal mode="Default" header={header}>
-        <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
-          <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
-        </Kb.Box2>
-      </Kb.Modal>
+      <Kb.Box2 direction="vertical" style={styles.loadingAnimationBox}>
+        <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
+      </Kb.Box2>
     )
   }
 
@@ -425,7 +414,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const topStuffHeight =
     120 +
     (!!adderUsername && getShouldReport(adderUsername)
-      ? reasons.length * 18 + 54 + 40
+      ? reasons.length * 18 + 54 + 40 + 20
       : 0) +
     (otherUsernames?.length ? 41 : 0)
   // Each username row is 2 checkboxes (40px each) + 1px divider = 81px
@@ -471,27 +460,12 @@ const Container = function BlockModal(ownProps: OwnProps) {
   }
 
   return (
-    <Kb.Modal
-      mode="Default"
-      popupStyleContainer={styles.popupStyleContainer}
-      onClose={onClose}
-      header={header}
-      footer={{
-        content: (
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button fullWidth={true} label="Cancel" onClick={onClose} type="Dim" />
-            )}
-            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
-          </Kb.ButtonBar>
-        ),
-      }}
-      noScrollView={true}
-    >
+    <>
       <Kb.List
         items={items}
         renderItem={renderItem}
         indexAsKey={true}
+        extraData={newBlocks}
         itemHeight={itemHeight}
         style={
           Kb.Styles.isMobile
@@ -502,7 +476,15 @@ const Container = function BlockModal(ownProps: OwnProps) {
               )
         }
       />
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            {!Kb.Styles.isMobile && (
+              <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
+            )}
+            <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />
+          </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -518,7 +500,7 @@ const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
       : 0) +
     (expanded
       ? // When you expand the report menu, every option gets an 18px row + 54px for the extra notes + 40px transcript
-        reasons.length * 18 + 54 + 40
+        reasons.length * 18 + 54 + 40 + 20
       : 0),
 })
 
@@ -549,8 +531,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     padding: Kb.Styles.globalMargins.medium,
   },
-
-  popupStyleContainer: {height: 450},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},
   shrink: {flexShrink: 1},
 }))

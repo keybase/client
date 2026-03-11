@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type {RPCError} from './errors'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> =
@@ -12,16 +13,19 @@ function useRPC<
   RET = RPCPromiseType<C>,
   ARGS extends Array<any> = Parameters<C>,
 >(call: C) {
-  const submit = (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-    const called = call(...args) as Promise<RET>
-    called
-      .then((result: RET) => {
-        setResult(result)
-      })
-      .catch((error: RPCError) => {
-        setError(error)
-      })
-  }
+  const submit = React.useMemo(
+    () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+      const called = call(...args) as Promise<RET>
+      called
+        .then((result: RET) => {
+          setResult(result)
+        })
+        .catch((error: RPCError) => {
+          setError(error)
+        })
+    },
+    [call]
+  )
   return submit
 }
 

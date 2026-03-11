@@ -4,11 +4,10 @@ import * as Kb from '@/common-adapters'
 type Props = React.PropsWithChildren<{
   onCancel?: () => void
   skipButton?: boolean
-  title?: string
 }>
 
-const Modal = ({children, onCancel, skipButton, title}: Props) => (
-  <Kb.PopupWrapper onCancel={onCancel} title={title}>
+const Modal = ({children, onCancel, skipButton}: Props) => (
+  <>
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" flex={1} fullWidth={true} alignItems="center" justifyContent="space-around">
@@ -21,7 +20,7 @@ const Modal = ({children, onCancel, skipButton, title}: Props) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-  </Kb.PopupWrapper>
+  </>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

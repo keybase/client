@@ -19,17 +19,28 @@ export type ScreenComponentProps = {
   route: {params: any}
   navigation: NativeStackNavigationProp<KBRootParamList>
 }
-export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
-
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
   safeAreaStyle?: Styles.StylesCrossPlatform
-  modal2Style?: Styles.StylesCrossPlatform
-  modal2AvoidTabs?: boolean
-  modal2?: boolean
-  modal2ClearCover?: boolean
-  modal2NoClose?: boolean
-  modal2Type?: ModalType
+  overlayStyle?: Styles.StylesCrossPlatform
+  overlayAvoidTabs?: boolean
+  overlayTransparent?: boolean
+  overlayNoClose?: boolean
+  modalStyle?: Styles.StylesCrossPlatform
+  modalHeader?: {
+    title?: React.ReactNode
+    leftButton?: React.ReactNode
+    rightButton?: React.ReactNode
+    subTitle?: React.ReactNode
+    hideBorder?: boolean
+    icon?: React.ReactNode
+    style?: Styles.StylesCrossPlatform
+  }
+  modalFooter?: {
+    content: React.ReactNode
+    hideBorder?: boolean
+    style?: Styles.StylesCrossPlatform
+  }
   headerBottomStyle?: Styles.StylesCrossPlatform
   headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
 }

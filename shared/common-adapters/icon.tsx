@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 export type {IconType} from './icon.constants-gen'
-import type {Text as RNTextType, Pressable as PressableType} from 'react-native'
+import type {Text as RNTextType} from 'react-native'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
@@ -53,19 +53,17 @@ const IconDesktop = (props: IconProps) => {
   const hoverClassName = hoverColorName ? `hover_color_${hoverColorName}` : undefined
   const cn = Styles.classNames('icon', `icon-gen-${type}`, className, colorClassName, hoverClassName)
 
-  if (onClick) {
-    const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onClick()
-    }
-    return (
-      <div onClick={handleClick} style={styles.clickable as React.CSSProperties}>
-        <span className={cn} style={inlineStyle} title={hint} />
-      </div>
-    )
-  }
+  const handleClick = onClick
+    ? (e: React.MouseEvent) => {
+        e.stopPropagation()
+        onClick()
+      }
+    : undefined
+  const finalStyle = onClick
+    ? ({...inlineStyle, cursor: 'pointer'} as React.CSSProperties)
+    : inlineStyle
 
-  return <span className={cn} style={inlineStyle} title={hint} />
+  return <span className={cn} style={finalStyle} onClick={handleClick} title={hint} />
 }
 
 const nativeBaseStyle: Styles._StylesCrossPlatform = {
@@ -84,50 +82,24 @@ const IconNative = (props: IconProps) => {
   const size = fontSize ?? sizeToFont[sizeType ?? 'Default']
   const paddingValue = padding ? Styles.globalMargins[padding] : undefined
 
-  const textEl = (
+  return (
     <RNText
       style={Styles.castStyleNative(
-        Styles.collapseStyles([nativeBaseStyle, {color: color || Styles.globalColors.black_50, fontSize: size}, style])
+        Styles.collapseStyles([
+          nativeBaseStyle,
+          {color: color || Styles.globalColors.black_50, fontSize: size},
+          paddingValue && {padding: paddingValue},
+          style,
+        ])
       )}
       allowFontScaling={false}
       suppressHighlighting={true}
+      onPress={onClick}
     >
       {code}
     </RNText>
   )
-
-  if (onClick) {
-    const {Pressable} = require('react-native') as {Pressable: typeof PressableType}
-    return (
-      <Pressable onPress={onClick} style={paddingValue ? {padding: paddingValue} : undefined}>
-        {textEl}
-      </Pressable>
-    )
-  }
-
-  if (paddingValue) {
-    return (
-      <RNText
-        style={Styles.castStyleNative(
-          Styles.collapseStyles([
-            nativeBaseStyle,
-            {color: color || Styles.globalColors.black_50, fontSize: size, padding: paddingValue},
-            style,
-          ])
-        )}
-        allowFontScaling={false}
-        suppressHighlighting={true}
-      >
-        {code}
-      </RNText>
-    )
-  }
-
-  return textEl
 }
-
-const clickable = {cursor: 'pointer'} as const
-const styles = {clickable}
 
 const Icon = Styles.isMobile ? IconNative : IconDesktop
 export default Icon

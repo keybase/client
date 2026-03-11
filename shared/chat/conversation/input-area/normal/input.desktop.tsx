@@ -283,9 +283,9 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Kb.Overlay attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
+      <Kb.Popup attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
         <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
-      </Kb.Overlay>
+      </Kb.Popup>
     )
   }
 

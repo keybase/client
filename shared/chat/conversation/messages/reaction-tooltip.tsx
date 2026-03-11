@@ -82,7 +82,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }))
 
   return (
-    <Kb.Overlay
+    <Kb.Popup
       attachTo={attachmentRef}
       onHidden={onHidden}
       position="top center"
@@ -131,7 +131,7 @@ const ReactionTooltip = (p: OwnProps) => {
           </Kb.Box2>
         </MessageContext>
       </Chat.ChatProvider>
-    </Kb.Overlay>
+    </Kb.Popup>
   )
 }
 

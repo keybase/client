@@ -9,7 +9,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
-import {ModalTitle, ChannelsWidget} from '../common'
+import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -34,7 +34,6 @@ const AddMembersConfirm = () => {
       const newTeamWizErr = teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined
       return {
         addMembersWizard: s.addMembersWizard,
-        cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
         finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
@@ -43,7 +42,7 @@ const AddMembersConfirm = () => {
       }
     })
   )
-  const {addMembersWizard, cancelAddMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
+  const {addMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
   const {isInTeam, isSubteam, newTeamWizErr} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
@@ -59,9 +58,6 @@ const AddMembersConfirm = () => {
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
-  const onLeave = () => cancelAddMembersWizard()
-  const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -103,31 +99,7 @@ const AddMembersConfirm = () => {
       }
 
   return (
-    <Kb.Modal
-      allowOverflow={true}
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: fromNewTeamWizard ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onLeave}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: <ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label={`Invite ${addingMembers.length} ${noun} & finish`}
-            waiting={waiting}
-            onClick={onComplete}
-            disabled={addingMembers.length === 0}
-          />
-        ),
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers disabledRoles={disabledRoles} />
@@ -164,7 +136,16 @@ const AddMembersConfirm = () => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            fullWidth={true}
+            label={`Invite ${addingMembers.length} ${noun} & finish`}
+            waiting={waiting}
+            onClick={onComplete}
+            disabled={addingMembers.length === 0}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -523,11 +504,26 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   body: {
+    flex: 1,
     padding: Kb.Styles.globalMargins.small,
   },
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
   memberPill: {width: 0},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddMembersConfirm

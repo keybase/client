@@ -17,7 +17,7 @@ const deviceSmallHeight = Kb.Styles.isMobile ? 56 : 48
 // "or" text with padding (~36) + ListItem Small
 const resetHeight = 36 + deviceSmallHeight
 // Header text with padding
-const headerHeight = Kb.Styles.isMobile ? 80 : 60
+const headerHeight = Kb.Styles.isMobile ? 80 : 90
 
 const getItemHeight = (item: Item | undefined): number => {
   switch (item?.type) {

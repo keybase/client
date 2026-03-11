@@ -188,7 +188,6 @@ const styles = Kb.Styles.styleSheetCreate(
           height: gearIconSize,
           paddingLeft: 16,
           paddingRight: 16,
-          width: gearIconSize,
         },
         isMobile: {width: gearIconSize + 32},
       }),

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type ButtonProps} from '@/common-adapters/button'
 import openURL from '@/util/open-url'
@@ -129,7 +130,6 @@ type SignupScreenProps = {
   negativeHeader?: boolean
   noBackground?: boolean
   onBack?: () => void
-  skipMobileHeader?: boolean
   headerStyle?: Kb.Styles.StylesCrossPlatform
   containerStyle?: Kb.Styles.StylesCrossPlatform
   contentContainerStyle?: Kb.Styles.StylesCrossPlatform
@@ -140,8 +140,6 @@ type SignupScreenProps = {
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
   onRightAction?: () => void
-  leftAction?: 'back' | 'cancel'
-  leftActionText?: string
   showHeaderInfoicon?: boolean
   showHeaderInfoiconRow?: boolean
 }
@@ -170,26 +168,6 @@ export const SignupScreen = (props: SignupScreenProps) => (
         rightActionComponent={props.rightActionComponent}
         rightActionLabel={props.rightActionLabel}
         onRightAction={props.onRightAction}
-      />
-    )}
-    {Kb.Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.ModalHeader
-        leftButton={
-          props.onBack ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-              {(props.leftActionText ?? 'Back') || (props.leftAction ?? 'cancel')}
-            </Kb.Text>
-          ) : null
-        }
-        rightButton={
-          props.onRightAction ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
-              {props.rightActionLabel || props.rightActionComponent}
-            </Kb.Text>
-          ) : null
-        }
-        style={props.headerStyle}
-        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
       />
     )}
     {Kb.Styles.isMobile && props.header}

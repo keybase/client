@@ -1,29 +1,12 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import {useConfigState} from '@/stores/config'
 
 const ChatPDF = (props: Props) => {
-  const {ordinal, url} = props
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
-  const title = message?.title || message?.fileName || 'PDF'
+  const {url} = props
   const [error, setError] = React.useState('')
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => navigateUp()
-  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
-  const onShare = () => {
-    showShareActionSheet?.(url ?? '', '', 'application/pdf')
-  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader
-        title={title}
-        onBack={onBack}
-        rightActionIcon="iconfont-share"
-        onRightAction={onShare}
-      />
       {url && !error ? (
         <Kb.WebView
           originWhitelist={['*']}

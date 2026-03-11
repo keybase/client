@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import {HeaderHocHeader} from './header-hoc'
+import BackButton from './back-button'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
@@ -13,9 +13,9 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 
 const Kb = {
+  BackButton,
   Box2,
   Button,
-  HeaderHocHeader,
   ImageIcon,
   ScrollView,
   Text,
@@ -35,7 +35,15 @@ function Reload(props: ReloadProps) {
   const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
-      {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
+      {Styles.isMobile && props.onBack && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.header}>
+          <Kb.BackButton onClick={props.onBack} />
+          <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>
+            {props.title && <Kb.Text type="BodyBig">{props.title}</Kb.Text>}
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" style={styles.headerSide} />
+        </Kb.Box2>
+      )}
       <Kb.ScrollView style={styles.container}>
         <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
           <Kb.ImageIcon type="icon-illustration-zen-240-180" />
@@ -125,6 +133,16 @@ const styles = Styles.styleSheetCreate(
         common: {flexGrow: 1},
         isElectron: {wordBreak: 'break-all'},
       }),
+      header: Styles.platformStyles({
+        common: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid' as const,
+        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
+      headerSide: {width: 44},
       reload: {
         maxHeight: '100%',
         maxWidth: '100%',

@@ -31,16 +31,49 @@ const Container = (ownProps: OwnProps) => {
   }
 
   return (
-    <Kb.Modal
-      banners={
-        errorText ? (
-          <Kb.Banner key="red" color="red">
-            <Kb.BannerParagraph bannerColor="red" content={errorText} />
-          </Kb.Banner>
-        ) : null
-      }
-      footer={{
-        content: (
+    <>
+      {errorText ? (
+        <Kb.Banner key="red" color="red">
+          <Kb.BannerParagraph bannerColor="red" content={errorText} />
+        </Kb.Banner>
+      ) : null}
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        {success ? (
+          <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
+            {open ? (
+              <Success teamname={successTeamName} />
+            ) : (
+              <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true}>
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
+                  <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
+                </Kb.Box2>
+                <Kb.Box2 direction="vertical" style={styles.container}>
+                  <Kb.Text center={true} type="Body">
+                    Your request was sent to the admins of{' '}
+                    {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
+                    {"Hang tight, you'll get notified as soon as you're let in."}
+                  </Kb.Text>
+                </Kb.Box2>
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
+            <Kb.RoundedBox>
+              <Kb.Input3
+                autoFocus={true}
+                onChangeText={setName}
+                onEnterKeyDown={onSubmit}
+                placeholder="Token or team name"
+                value={name}
+                hideBorder={true}
+              />
+            </Kb.RoundedBox>
+            <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
+          </Kb.Box2>
+        )}
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
@@ -50,55 +83,8 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={C.waitingKeyTeamsJoinTeam}
             />
           </Kb.ButtonBar>
-        ),
-      }}
-      header={{
-        hideBorder: success,
-        leftButton:
-          Kb.Styles.isMobile && !success ? (
-            <Kb.Text type="BodyBigLink" onClick={onBack}>
-              Cancel
-            </Kb.Text>
-          ) : null,
-        title: success ? 'Request sent' : 'Join a team',
-      }}
-      onClose={onBack}
-    >
-      {success ? (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
-          {open ? (
-            <Success teamname={successTeamName} />
-          ) : (
-            <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true}>
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-                <Kb.ImageIcon type="icon-illustration-teams-zen-460-96" />
-              </Kb.Box2>
-              <Kb.Box2 direction="vertical" style={styles.container}>
-                <Kb.Text center={true} type="Body">
-                  Your request was sent to the admins of{' '}
-                  {successTeamName ? <Kb.Text type="BodySemibold">{successTeamName}</Kb.Text> : 'the team'}.
-                  {"Hang tight, you'll get notified as soon as you're let in."}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
-          <Kb.RoundedBox>
-            <Kb.Input3
-              autoFocus={true}
-              onChangeText={setName}
-              onEnterKeyDown={onSubmit}
-              placeholder="Token or team name"
-              value={name}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
-        </Kb.Box2>
-      )}
-    </Kb.Modal>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -125,6 +111,20 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
     }) as const
 )
 

@@ -30,7 +30,7 @@ function useAutocompleter<U>(
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
-        <Kb.Overlay
+        <Kb.Popup
           attachTo={attachTo}
           onHidden={hidePopup}
           matchDimension={true}
@@ -55,7 +55,7 @@ function useAutocompleter<U>(
               </Kb.Box2>
             </Kb.ClickableBox>
           ))}
-        </Kb.Overlay>
+        </Kb.Popup>
       )
     }
 

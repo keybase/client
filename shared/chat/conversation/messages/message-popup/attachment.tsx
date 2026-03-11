@@ -9,6 +9,7 @@ import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  mode?: 'modal' | 'bottomsheet'
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
@@ -19,7 +20,7 @@ type OwnProps = {
 const emptyMessage = Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
-  const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
+  const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
   const message = Chat.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : emptyMessage
@@ -147,6 +148,7 @@ const PopAttach = (ownProps: OwnProps) => {
       attachTo={attachTo}
       header={header}
       items={items}
+      mode={mode}
       onHidden={onHidden}
       closeOnSelect={true}
       position={position}

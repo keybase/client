@@ -10,7 +10,7 @@ import * as Common from './common.native'
 import logger from '@/logger'
 import {StatusBar, View} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
-import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
@@ -45,9 +45,6 @@ const tabRoutes = routes
 
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
-  animation: 'simple_push',
-  animationDuration: 250,
-  orientation: 'portrait',
 } as const
 
 const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false)
@@ -119,7 +116,6 @@ function AppTabs() {
 
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
-  headerShown: false,
 } as const
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
 const loggedOutNav = createNativeStackNavigator({
@@ -133,8 +129,10 @@ const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
 } satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
-  headerLeft: () => <HeaderLeftCancel2 />,
+  headerLeft: () => <HeaderLeftButton mode="cancel" />,
+  headerShown: true,
   presentation: 'modal',
+  title: '',
 } as const
 
 const useIsLoggedIn = () => useConfigState(s => s.loggedIn)

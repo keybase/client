@@ -6,6 +6,7 @@ import type {Position, StylesCrossPlatform} from '@/styles'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  mode?: 'modal' | 'bottomsheet'
   onHidden: () => void
   ordinal: T.Chat.Ordinal
   position: Position
@@ -14,7 +15,7 @@ type OwnProps = {
 }
 
 const JourneyCard = (ownProps: OwnProps) => {
-  const {ordinal, attachTo, onHidden, style, visible, position} = ownProps
+  const {ordinal, attachTo, mode, onHidden, style, visible, position} = ownProps
   const cardType = Chat.useChatContext(
     s => s.messageMap.get(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
   )
@@ -31,6 +32,7 @@ const JourneyCard = (ownProps: OwnProps) => {
       attachTo={attachTo}
       closeOnSelect={true}
       items={items}
+      mode={mode}
       onHidden={onHidden}
       position={position}
       containerStyle={style}

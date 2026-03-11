@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import {Keyboard} from 'react-native'
-import {Portal} from '../portal.native'
+import {Portal} from '../../portal.native'
 import type {Props} from '.'
 
 const Kb = {

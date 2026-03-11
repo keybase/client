@@ -103,7 +103,7 @@ const PinnedMessage = function PinnedMessage() {
   )
   const popup = (
     <UnpinPrompt
-      attachTo={closeref}
+      attachTo={Kb.Styles.isMobile ? undefined : closeref}
       onHidden={() => setShowPopup(false)}
       onUnpin={onDismiss}
       visible={showPopup}

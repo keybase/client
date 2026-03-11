@@ -3,6 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
@@ -197,22 +198,14 @@ const TeamPicker = (props: Props) => {
       </Kb.Box2>
     )
 
-  return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
-      }}
-    >
-      {content}
-    </Kb.Modal>
-  )
+  React.useEffect(() => {
+    useModalHeaderState.setState({title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'})
+    return () => {
+      useModalHeaderState.setState({title: ''})
+    }
+  }, [pickerState])
+
+  return content
 }
 
 const styles = Kb.Styles.styleSheetCreate(

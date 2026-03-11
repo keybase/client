@@ -144,7 +144,7 @@ const Container = (ownProps: OwnProps) => {
   const multiUpload = pathAndInfos.length > 1
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <>
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
@@ -196,7 +196,7 @@ const Container = (ownProps: OwnProps) => {
           {multiUpload ? <Kb.WaitingButton onClick={onSubmit} label="Send All" /> : null}
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -238,10 +238,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {flexShrink: 1},
       }),
       containerOuter: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 560,
-          width: 400,
-        },
+        isElectron: {height: '100%', overflow: 'hidden'},
         isMobile: {flexGrow: 1, flexShrink: 1},
       }),
       filename: Kb.Styles.platformStyles({

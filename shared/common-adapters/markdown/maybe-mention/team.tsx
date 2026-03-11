@@ -94,7 +94,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const popups = (
     <TeamInfo
-      attachTo={mentionRef}
+      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
       description={description}
       inTeam={inTeam}
       isOpen={isOpen}

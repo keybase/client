@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
 // import {DebugChatDumpContext} from '@/constants/chat/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -93,7 +93,7 @@ export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
   const badgeNumber = useBackBadge()
-  return <HeaderLeftArrow badgeNumber={badgeNumber} {...p} />
+  return <HeaderLeftButton badgeNumber={badgeNumber} {...p} />
 }
 
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
@@ -177,7 +177,7 @@ const ChannelHeader = () => {
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
-          size={smallTeam ? 16 : (12 as 16) /* not really allowed a one off */}
+          size={16}
         />
         <Kb.Text
           type={textType}

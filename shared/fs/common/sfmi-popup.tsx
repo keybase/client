@@ -26,7 +26,7 @@ const SFMIPopup = (props: Props) => {
     const {attachTo, hidePopup} = p
 
     return (
-      <Kb.Overlay style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
+      <Kb.Popup style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
         <Kb.ClickableBox
           style={styles.container}
           onClick={e => {
@@ -55,7 +55,7 @@ const SFMIPopup = (props: Props) => {
             />
           </Kb.Box2>
         </Kb.ClickableBox>
-      </Kb.Overlay>
+      </Kb.Popup>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

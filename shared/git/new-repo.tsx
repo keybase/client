@@ -115,7 +115,7 @@ const Container = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.PopupWrapper onCancel={onClose}>
+    <>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (
@@ -177,7 +177,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 

@@ -5,7 +5,6 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
-import {e164ToDisplay} from '@/util/phone-numbers'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
@@ -61,42 +60,19 @@ export const Email = () => {
     addEmail(emailTrimmed, searchable)
   }
   return (
-    <Kb.Modal
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
-            Close
-          </Kb.Text>
-        ) : null,
-        title: Kb.Styles.isMobile ? 'Add email address' : 'Add an email address',
-      }}
-      footer={{
-        content: (
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-            )}
-            <Kb.Button
-              label="Continue"
-              fullWidth={true}
-              onClick={onContinue}
-              disabled={disabled}
-              waiting={waiting}
-            />
-          </Kb.ButtonBar>
-        ),
-        style: styles.footer,
-      }}
-      mode="Wide"
-    >
+    <>
+      {!!emailError && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={emailError} />
+        </Kb.Banner>
+      )}
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
         flex={1}
-          relative={true}
+        relative={true}
         style={styles.body}
       >
         <EnterEmailBody
@@ -115,12 +91,21 @@ export const Email = () => {
           }
         />
       </Kb.Box2>
-      {!!emailError && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError} />
-        </Kb.Banner>
-      )}
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+            {!Kb.Styles.isMobile && (
+              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+            )}
+            <Kb.Button
+              label="Continue"
+              fullWidth={true}
+              onClick={onContinue}
+              disabled={disabled}
+              waiting={waiting}
+            />
+          </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 export const Phone = () => {
@@ -179,42 +164,19 @@ export const Phone = () => {
   }
 
   return (
-    <Kb.Modal
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
-            Close
-          </Kb.Text>
-        ) : null,
-        title: Kb.Styles.isMobile ? 'Add phone number' : 'Add a phone number',
-      }}
-      footer={{
-        content: (
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-            )}
-            <Kb.Button
-              label="Continue"
-              fullWidth={true}
-              onClick={onContinue}
-              disabled={disabled}
-              waiting={waiting}
-            />
-          </Kb.ButtonBar>
-        ),
-        style: styles.footer,
-      }}
-      mode="Wide"
-    >
+    <>
+      {!!error && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      )}
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
         fullWidth={true}
         fullHeight={true}
         flex={1}
-          relative={true}
+        relative={true}
         style={styles.body}
       >
         <EnterPhoneNumberBody
@@ -232,12 +194,21 @@ export const Phone = () => {
           }
         />
       </Kb.Box2>
-      {!!error && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      )}
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+            {!Kb.Styles.isMobile && (
+              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+            )}
+            <Kb.Button
+              label="Continue"
+              fullWidth={true}
+              onClick={onContinue}
+              disabled={disabled}
+              waiting={waiting}
+            />
+          </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 export const VerifyPhone = () => {
@@ -279,47 +250,16 @@ export const VerifyPhone = () => {
   const onResend = () => {
     resendVerificationForPhone(pendingVerification)
   }
-  const onClose = () => {
-    clearPhoneNumberAdd()
-    clearModals()
-  }
   const onContinue = () => verifyPhoneNumber(pendingVerification, code)
   const disabled = !code
 
-  const displayPhone = e164ToDisplay(pendingVerification)
   return (
-    <Kb.Modal
-      onClose={onClose}
-      header={{
-        hideBorder: true,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
-        ) : null,
-        style: styles.blueBackground,
-        title: (
-          <Kb.Text type="BodySmall" negative={true} center={true}>
-            {displayPhone || 'Unknown number'}
-          </Kb.Text>
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            <Kb.Button
-              disabled={disabled}
-              type="Success"
-              label="Continue"
-              onClick={onContinue}
-              waiting={verifyWaiting}
-              fullWidth={true}
-            />
-          </Kb.ButtonBar>
-        ),
-        hideBorder: true,
-        style: styles.blueBackground,
-      }}
-      mode="Wide"
-    >
+    <>
+      {!!error && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      )}
       <Kb.Box2
         direction="vertical"
         style={Kb.Styles.collapseStyles([
@@ -338,12 +278,19 @@ export const VerifyPhone = () => {
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>
-      {!!error && (
-        <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      )}
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.blueBackground])}>
+          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+            <Kb.Button
+              disabled={disabled}
+              type="Success"
+              label="Continue"
+              onClick={onContinue}
+              waiting={verifyWaiting}
+              fullWidth={true}
+            />
+          </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -373,6 +320,31 @@ const styles = Kb.Styles.styleSheetCreate(
       footer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       verifyContainer: {
         ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       },

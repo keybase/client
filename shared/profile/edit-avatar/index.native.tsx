@@ -3,15 +3,15 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props} from '.'
 import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
-import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
+import {useModalHeaderState} from '@/stores/modal-header'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
   const props = useHooks(p)
   const {image, error: _error, onSave: _onSave, type} = props
-  const {onBack, wizard, waitingKey, onClose, onSkip, teamID} = props
+  const {wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
   const nav = useSafeNavigation()
@@ -123,44 +123,24 @@ const AvatarUploadWrapper = (p: Props) => {
     ) : null
   }
 
+  React.useEffect(() => {
+    if (type === 'team') {
+      useModalHeaderState.setState({editAvatarHasImage: !!selectedImage})
+    }
+    return () => {
+      useModalHeaderState.setState({editAvatarHasImage: false})
+    }
+  }, [type, selectedImage])
+
   if (type === 'team') {
     return (
-      <Kb.Modal
-        banners={
-          error ? (
-            <Kb.Banner key="err" color="red">
-              <Kb.Text type="Body">{error}</Kb.Text>
-            </Kb.Banner>
-          ) : null
-        }
-        header={{
-          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-          rightButton: wizard ? (
-            <Kb.Text type="BodyBigLink" onClick={onSkip}>
-              Skip
-            </Kb.Text>
-          ) : undefined,
-
-          title: (
-            <ModalTitle
-              teamID={teamID ?? ''}
-              title={selectedImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
-            />
-          ),
-        }}
-        footer={{
-          content: (
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={wizard ? 'Continue' : 'Save'}
-              onClick={onSave}
-              disabled={!selectedImage}
-              waitingKey={waitingKey}
-            />
-          ),
-        }}
-      >
-        <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
+      <>
+        {error ? (
+          <Kb.Banner key="err" color="red">
+            <Kb.Text type="Body">{error}</Kb.Text>
+          </Kb.Banner>
+        ) : null}
+        <Kb.Box2 direction="vertical" style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
@@ -169,12 +149,20 @@ const AvatarUploadWrapper = (p: Props) => {
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-      </Kb.Modal>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={!selectedImage}
+            waitingKey={waitingKey}
+          />
+        </Kb.Box2>
+      </>
     )
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader onCancel={onClose} title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+    <>
       {error ? (
         <Kb.Banner color="red">
           <Kb.Text type="Body">{error}</Kb.Text>
@@ -192,7 +180,7 @@ const AvatarUploadWrapper = (p: Props) => {
           />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </>
   )
 }
 
@@ -275,6 +263,20 @@ const styles = Kb.Styles.styleSheetCreate(
       flexReallyGrow: {
         flexGrow: 1000,
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       placeholder: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_05,
@@ -287,6 +289,7 @@ const styles = Kb.Styles.styleSheetCreate(
       wizardContainer: {
         ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flex: 1,
       },
     }) as const
 )

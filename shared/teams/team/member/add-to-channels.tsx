@@ -9,6 +9,7 @@ import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -176,58 +177,62 @@ const AddToChannels = function AddToChannels(props: Props) {
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
-  return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      header={{
-        hideBorder: Kb.Styles.isMobile,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton:
-          Kb.Styles.isMobile && mode === 'others' ? (
-            waiting ? (
-              <Kb.ProgressIndicator type="Large" />
-            ) : (
-              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
-                Add
-              </Kb.Text>
-            )
-          ) : undefined,
-        title: <Common.ModalTitle teamID={teamID} title={title} />,
-      }}
-      footer={
-        Kb.Styles.isMobile || mode === 'self'
-          ? undefined
-          : {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
-                    type="Dim"
-                    label="Cancel"
-                    onClick={onCancel}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    disabled={waiting}
-                  />
-                  <Kb.Button
-                    label={
-                      numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-                    }
-                    onClick={onFinish}
-                    disabled={!numSelected}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    waiting={waiting}
-                  />
-                </Kb.Box2>
-              ),
-            }
+  const desktopFooter = !Kb.Styles.isMobile && mode !== 'self' ? (
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Button
+          type="Dim"
+          label="Cancel"
+          onClick={onCancel}
+          style={Kb.Styles.globalStyles.flexOne}
+          disabled={waiting}
+        />
+        <Kb.Button
+          label={
+            numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
+          }
+          onClick={onFinish}
+          disabled={!numSelected}
+          style={Kb.Styles.globalStyles.flexOne}
+          waiting={waiting}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  ) : null
+
+  React.useEffect(() => {
+    if (mode !== 'others') return
+    const handleFinish = () => {
+      if (!selected.size) {
+        nav.safeNavigateUp()
+        return
       }
-      allowOverflow={true}
-      noScrollView={true}
-      onClose={onCancel}
-    >
+      setWaiting(true)
+      submit(
+        [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
+        () => {
+          setWaiting(false)
+          nav.safeNavigateUp()
+        },
+        error => {
+          console.error(error)
+          setWaiting(false)
+        }
+      )
+    }
+    useModalHeaderState.setState({
+      actionEnabled: numSelected > 0,
+      actionWaiting: waiting,
+      onAction: handleFinish,
+      title,
+    })
+    return () => {
+      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+    }
+  }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
+
+  return (
+    <>
       {loadingChannels && !channelMetas.size ? (
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
@@ -257,7 +262,8 @@ const AddToChannels = function AddToChannels(props: Props) {
           </Kb.BoxGrow2>
         </Kb.Box2>
       )}
-    </Kb.Modal>
+      {desktopFooter}
+    </>
   )
 }
 
@@ -592,6 +598,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   joinLeaveButton: {width: 63},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),

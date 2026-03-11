@@ -33,7 +33,7 @@ const Arrow = (props: ArrowProps) => {
 const Fullscreen = function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
   const {message, ordinal, path, title, progress, previewPath} = data
-  const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
+  const {progressLabel, onNextAttachment, onPreviousAttachment} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
   const {fullWidth, fullHeight} = data
 
@@ -70,81 +70,80 @@ const Fullscreen = function Fullscreen(p: Props) {
   } as StyleOverride
 
   return (
-    <Kb.PopupDialog onClose={onClose} fill={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
-          <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
-            {title}
-          </Kb.Markdown>
-          <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
-            <Kb.Icon
-              type="iconfont-ellipsis"
-              color={Kb.Styles.globalColors.black_50}
-              onClick={showPopup}
-            />
-          </Kb.Box2>
-          {popup}
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
+        <Kb.Markdown lineClamp={2} style={Kb.Styles.globalStyles.flexOne} styleOverride={titleOverride}>
+          {title}
+        </Kb.Markdown>
+        <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.ellipsisContainer}>
+          <Kb.Icon
+            type="iconfont-ellipsis"
+            color={Kb.Styles.globalColors.black_50}
+            onClick={showPopup}
+            padding="small"
+          />
         </Kb.Box2>
-        {path && (
-          <Kb.BoxGrow>
-            <Kb.ClickableBox style={styles.contentsFit} key={path}>
-              {!isZoomed ? <Arrow left={true} onClick={onPreviousAttachment} /> : undefined}
-              <Kb.Box2
-                direction="vertical"
-                fullWidth={true}
-                fullHeight={true}
-                style={Kb.Styles.globalStyles.flexGrow}
-                key={path}
-              >
-                {isVideo ? (
-                  <video
-                    autoPlay={true}
-                    style={Kb.Styles.castStyleDesktop(styles.videoFit)}
-                    controlsList="nodownload nofullscreen noremoteplayback"
-                    controls={true}
-                    ref={vidRef}
-                  >
-                    <source src={path} />
-                  </video>
-                ) : (
-                  <Kb.ZoomableImage src={imgSrc} onIsZoomed={onIsZoomed} forceDims={forceDims} />
-                )}
-              </Kb.Box2>
-              {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
-            </Kb.ClickableBox>
-          </Kb.BoxGrow>
-        )}
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
-          {!!progressLabel && (
-            <Kb.Text
-              type="BodySmall"
-              style={{color: Kb.Styles.globalColors.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
-            >
-              {progressLabel}
-            </Kb.Text>
-          )}
-          {!!progressLabel && <Kb.ProgressBar ratio={progress} />}
-          {!progressLabel && onDownloadAttachment && !isDownloadError && (
-            <Kb.Text type="BodySmall" style={styles.link} onClick={onDownloadAttachment}>
-              Download
-            </Kb.Text>
-          )}
-          {!progressLabel && onDownloadAttachment && isDownloadError && (
-            <Kb.Text type="BodySmall" style={styles.error} onClick={onDownloadAttachment}>
-              Failed to download.{' '}
-              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownloadAttachment}>
-                Retry
-              </Kb.Text>
-            </Kb.Text>
-          )}
-          {onShowInFinder && (
-            <Kb.Text type="BodySmall" style={styles.link} onClick={onShowInFinder}>
-              Show in {Kb.Styles.fileUIName}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
+        {popup}
       </Kb.Box2>
-    </Kb.PopupDialog>
+      {path && (
+        <Kb.BoxGrow>
+          <Kb.ClickableBox style={styles.contentsFit} key={path}>
+            {!isZoomed ? <Arrow left={true} onClick={onPreviousAttachment} /> : undefined}
+            <Kb.Box2
+              direction="vertical"
+              fullWidth={true}
+              fullHeight={true}
+              style={Kb.Styles.globalStyles.flexGrow}
+              key={path}
+            >
+              {isVideo ? (
+                <video
+                  autoPlay={true}
+                  style={Kb.Styles.castStyleDesktop(styles.videoFit)}
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  controls={true}
+                  ref={vidRef}
+                >
+                  <source src={path} />
+                </video>
+              ) : (
+                <Kb.ZoomableImage src={imgSrc} onIsZoomed={onIsZoomed} forceDims={forceDims} />
+              )}
+            </Kb.Box2>
+            {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
+          </Kb.ClickableBox>
+        </Kb.BoxGrow>
+      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
+        {!!progressLabel && (
+          <Kb.Text
+            type="BodySmall"
+            style={{color: Kb.Styles.globalColors.black_50, marginRight: Kb.Styles.globalMargins.tiny}}
+          >
+            {progressLabel}
+          </Kb.Text>
+        )}
+        {!!progressLabel && <Kb.ProgressBar ratio={progress} />}
+        {!progressLabel && onDownloadAttachment && !isDownloadError && (
+          <Kb.Text type="BodySmall" style={styles.link} onClick={onDownloadAttachment}>
+            Download
+          </Kb.Text>
+        )}
+        {!progressLabel && onDownloadAttachment && isDownloadError && (
+          <Kb.Text type="BodySmall" style={styles.error} onClick={onDownloadAttachment}>
+            Failed to download.{' '}
+            <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownloadAttachment}>
+              Retry
+            </Kb.Text>
+          </Kb.Text>
+        )}
+        {onShowInFinder && (
+          <Kb.Text type="BodySmall" style={styles.link} onClick={onShowInFinder}>
+            Show in {Kb.Styles.fileUIName}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -177,8 +176,9 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         width: '100%',
       },
+      // Opt out of the Electron titlebar drag region so the icon gets cursor/click events
       ellipsisContainer: Kb.Styles.platformStyles({
-        isElectron: {cursor: 'pointer', marginLeft: Kb.Styles.globalMargins.tiny},
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: {

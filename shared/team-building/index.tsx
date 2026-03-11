@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as TB from '@/stores/team-building'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -13,7 +12,6 @@ import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
-import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '@/common-adapters/reanimated'
 
 const deriveTeamSoFar = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.SelectedUser> =>
@@ -146,10 +144,6 @@ const TeamBuilding = (p: OwnProps) => {
       }
     }
 
-  const title = Teams.useTeamsState(s =>
-    namespace === 'teams' ? `Add to ${Teams.getTeamMeta(s, teamID ?? '').teamname}` : (p.title ?? '')
-  )
-
   const waitingForCreate = C.Waiting.useAnyWaiting(C.waitingKeyChatCreating)
 
   const offset = useSharedValue(0)
@@ -245,19 +239,10 @@ const TeamBuilding = (p: OwnProps) => {
   // If there are no filterServices or if the filterServices has a phone
   const showContactsBanner = Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
+
   return (
-    <Kb.Modal2
-      header={modalHeaderProps({
-        goButtonLabel,
-        hasTeamSoFar: teamSoFar.length > 0,
-        namespace,
-        onClose,
-        onFinishTeamBuilding,
-        teamID,
-        title,
-      })}
-    >
-      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
+    <>
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {teamBox}
         {errorBanner}
         {(namespace !== 'people' || Kb.Styles.isMobile) && (
@@ -277,13 +262,17 @@ const TeamBuilding = (p: OwnProps) => {
         )}
         {content}
       </Kb.Box2>
-    </Kb.Modal2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      container: Kb.Styles.platformStyles({
+        common: {...Kb.Styles.globalStyles.flexOne},
+        isElectron: {minHeight: 500},
+      }),
       waiting: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.black_20,
@@ -292,7 +281,7 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 48,
         width: 48,
       },
-    }) as const
+    })
 )
 
 export default TeamBuilding

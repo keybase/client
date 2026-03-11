@@ -62,15 +62,7 @@ const Container = () => {
   }
 
   return (
-    <Kb.HeaderHocWrapper
-      leftAction="cancel"
-      onCancel={props.onCancel}
-      // else right isn't pushed over, will address in nav5
-      title=" "
-      rightActionLabel="Sign out"
-      onRightAction={props.onSignOut}
-      rightActionColor="red"
-    >
+    <>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
           {Kb.Styles.isMobile && <MobileHeader {...props} />}
@@ -85,7 +77,7 @@ const Container = () => {
           {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.HeaderHocWrapper>
+    </>
   )
 }
 
@@ -213,6 +205,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {wordBreak: 'break-all'},
   }),
   progressIndicator: {bottom: 0, position: 'absolute', right: 0},
+  signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {
     paddingLeft: Kb.Styles.globalMargins.small,

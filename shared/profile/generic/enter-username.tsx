@@ -38,7 +38,6 @@ const ConnectedEnterUsername = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onSubmit = () => submitUsername?.()
   const onSubmit = _platformURL ? () => _platformURL && openURL(_platformURL) : _onSubmit
-  const onCancel = onBack
 
   const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
   const wasWaiting = React.useRef(false)
@@ -56,7 +55,7 @@ const ConnectedEnterUsername = () => {
   }, [waiting, error, navigateAppend])
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!unreachable && !Kb.Styles.isMobile && <Kb.BackButton onClick={onBack} style={styles.backButton} />}
         <Kb.Box2
@@ -136,7 +135,7 @@ const ConnectedEnterUsername = () => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -238,7 +237,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
       colorRed: {color: Kb.Styles.globalColors.redDark},
-      container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
+      container: {},
 
       inlineIcon: {
         position: 'relative',

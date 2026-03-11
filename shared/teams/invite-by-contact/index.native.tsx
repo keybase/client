@@ -49,7 +49,6 @@ const contactRow = (_: number, props: ContactRowProps) => {
 }
 
 export type InviteByContactProps = {
-  onBack: () => void
   selectedRole: T.Teams.TeamRoleType
   onRoleChange: (newRole: T.Teams.TeamRoleType) => void
   teamName: string
@@ -84,7 +83,6 @@ export const InviteByContact = (props: InviteByContactProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader onBack={props.onBack} title="Invite contacts" />
       {!!props.errorMessage && (
         <Kb.Box2 direction="horizontal" style={styles.errorMessageContainer} fullWidth={true} justifyContent="center">
           <Kb.Text center={true} type="BodySemibold" negative={true}>

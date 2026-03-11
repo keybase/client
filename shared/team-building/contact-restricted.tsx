@@ -40,24 +40,7 @@ export const ContactRestricted = (props: Props) => {
     default:
   }
   return (
-    <Kb.Modal
-      onClose={onBack}
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: <Kb.BackButton onClick={onBack} />,
-            }
-          : undefined
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
-          </Kb.ButtonBar>
-        ),
-        hideBorder: true,
-      }}
-    >
+    <>
       <Kb.Box2
         alignItems="center"
         direction="vertical"
@@ -93,7 +76,12 @@ export const ContactRestricted = (props: Props) => {
           {description}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -110,6 +98,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium),
       flex: 1,
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
   text: {

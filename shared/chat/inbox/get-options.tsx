@@ -5,7 +5,7 @@ import {HeaderNewChatButton} from './new-chat-button'
 const buttonWidth = 132
 export default {
   freezeOnBlur: false, // let it render even if not visible
-  headerLeft: () => <Kb.HeaderLeftBlank />,
+  headerLeft: () => null,
   headerLeftContainerStyle: {
     ...Common.defaultNavigationOptions.headerLeftContainerStyle,
     minWidth: buttonWidth,

@@ -15,11 +15,29 @@ type LayoutProps = {
 export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
+    const {modalFooter} = navigationOptions ?? {}
 
     const suspenseContent = <React.Suspense>{children}</React.Suspense>
 
+    const wrappedContent = modalFooter ? (
+      <>
+        {suspenseContent}
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={Kb.Styles.collapseStyles([
+            modalFooter.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter,
+            modalFooter.style,
+          ])}
+        >
+          {modalFooter.content}
+        </Kb.Box2>
+      </>
+    ) : suspenseContent
+
     if (!isModal && !isLoggedOut) {
-      return suspenseContent
+      return wrappedContent
     }
 
     return (
@@ -28,7 +46,7 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
           <Kb.SafeAreaView
             style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
           >
-            {suspenseContent}
+            {wrappedContent}
           </Kb.SafeAreaView>
         </Kb.KeyboardAvoidingView2>
       </SafeAreaProvider>
@@ -44,5 +62,20 @@ const styles = Kb.Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+      }),
     }) as const
 )

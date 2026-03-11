@@ -71,12 +71,6 @@ const TeamBox = (props: Props) => {
     prevLastRef.current = last
   }, [prevLastRef, last])
 
-  const addMorePrompt = props.teamSoFar.length === 1 && (
-    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
-      {`Keep adding people, or click ${props.goButtonLabel ?? 'Start'} when done.`}
-    </Kb.Text>
-  )
-
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
@@ -87,7 +81,6 @@ const TeamBox = (props: Props) => {
           contentContainerStyle={styles.scrollContent}
         >
           <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-          {addMorePrompt}
         </Kb.ScrollView>
       </Kb.Box2>
     </Kb.Box2>
@@ -103,7 +96,6 @@ const TeamBox = (props: Props) => {
         >
           <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-            {addMorePrompt}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
@@ -123,7 +115,6 @@ const TeamBox = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
       bubbles: Kb.Styles.platformStyles({
         isElectron: {
           overflow: 'hidden',

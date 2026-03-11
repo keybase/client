@@ -75,19 +75,6 @@ const CodePageContainer = () => {
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
 
-  const header = () => {
-    return Kb.Styles.isMobile
-      ? {
-          leftButton: (
-            <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
-              {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-            </Kb.Text>
-          ),
-          style: {backgroundColor: tabBackground()},
-        }
-      : undefined
-  }
-
   const body = () => {
     let content: React.ReactNode = null
     switch (tab) {
@@ -165,9 +152,9 @@ const CodePageContainer = () => {
           !currentDeviceAlreadyProvisioned &&
           heyWaitBanner()}
         {!inModal() && troubleshooting && (
-          <Kb.Overlay onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
+          <Kb.Popup onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
             {troubleshootingContent()}
-          </Kb.Overlay>
+          </Kb.Popup>
         )}
       </Kb.Box2>
     )
@@ -254,16 +241,12 @@ const CodePageContainer = () => {
   }
   const content = body()
   if (inModal()) {
+    const f = footer()
     return (
-      <Kb.Modal
-        header={header()}
-        footer={footer()}
-        onClose={onBack}
-        mode="Wide"
-        mobileStyle={{backgroundColor: tabBackground()}}
-      >
+      <>
         {content}
-      </Kb.Modal>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([f.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter, f.style])}>{f.content}</Kb.Box2>
+      </>
     )
   }
   return content
@@ -583,6 +566,31 @@ const styles = Kb.Styles.styleSheetCreate(
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
       instructionsUpper: {marginBottom: Kb.Styles.globalMargins.tiny},
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
       primaryOnColor: {backgroundColor: Kb.Styles.globalColors.white},
       primaryOnGreenLabel: {color: Kb.Styles.globalColors.greenDark},

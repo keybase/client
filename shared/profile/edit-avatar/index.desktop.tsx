@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type {Props} from '.'
-import {ModalTitle} from '@/teams/common'
 import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
 import useHooks from './hooks'
@@ -59,7 +57,7 @@ const getCropCoordinates = (c: Crop) => {
 type Loading = undefined | 'loading' | 'loaded'
 const EditAvatar = (_p: Props) => {
   const p = useHooks(_p)
-  const {onClose, wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
+  const {wizard, type, error, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
   const [dropping, setDropping] = React.useState(false)
   const [loading, setLoading] = React.useState<Loading>()
@@ -92,7 +90,7 @@ const EditAvatar = (_p: Props) => {
         setImageSource(img)
       }
     }
-    C.ignorePromise(f())
+    void f()
   }
   const filePickerOpen = () => {
     fileRef.current?.click()
@@ -109,53 +107,21 @@ const EditAvatar = (_p: Props) => {
         fileRef.current.value = ''
       }
     }
-    C.ignorePromise(f())
+    void f()
   }
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={onClose}
-      header={{
-        leftButton: wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null,
-        rightButton: wizard ? (
-          <Kb.Button
-            label="Skip"
-            mode="Secondary"
-            onClick={onSkip}
-            style={styles.skipButton}
-            type="Default"
-          />
-        ) : null,
-        title: type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : 'Upload an avatar',
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={wizard ? 'Continue' : 'Save'}
-            onClick={onSave}
-            disabled={loading !== 'loaded'}
-            waitingKey={p.waitingKey}
-          />
-        ),
-      }}
-      banners={
-        <>
-          {error ? (
-            <Kb.Banner color="red" key="propsError">
-              {error}
-            </Kb.Banner>
-          ) : null}
-          {serror ? (
-            <Kb.Banner color="red" key="stateError">
-              The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
-            </Kb.Banner>
-          ) : null}
-        </>
-      }
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="propsError">
+          {error}
+        </Kb.Banner>
+      ) : null}
+      {serror ? (
+        <Kb.Banner color="red" key="stateError">
+          The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+        </Kb.Banner>
+      ) : null}
       <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
@@ -213,7 +179,16 @@ const EditAvatar = (_p: Props) => {
         </Kb.ClickableBox>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
       </div>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.WaitingButton
+          fullWidth={true}
+          label={wizard ? 'Continue' : 'Save'}
+          onClick={onSave}
+          disabled={loading !== 'loaded'}
+          waitingKey={p.waitingKey}
+        />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -265,8 +240,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: '50%',
   },
   instructions: {maxWidth: 200},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
-  skipButton: {minWidth: 60},
 }))
 
 export default EditAvatar

@@ -4,6 +4,20 @@ import {useState as useRecoverState} from '@/stores/recover-password'
 import {useConfigState} from '@/stores/config'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   padding: {
     padding: Kb.Styles.globalMargins.small,
   },
@@ -19,17 +33,16 @@ const ConnectedErrorModal = () => {
   }
 
   return (
-    <Kb.Modal
-      header={{title: 'Error'}}
-      footer={{content: <Kb.Button label="Back" onClick={onBack} fullWidth={true} />}}
-      onClose={onBack}
-    >
+    <>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
         <Kb.Text type="Body" center={true}>
           {error}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Button label="Back" onClick={onBack} fullWidth={true} />
+      </Kb.Box2>
+    </>
   )
 }
 export default ConnectedErrorModal

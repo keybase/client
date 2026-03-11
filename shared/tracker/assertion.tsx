@@ -136,12 +136,9 @@ const Container = (ownProps: OwnProps) => {
     if (metas.find(m => m.label === 'unreachable')) {
       return {
         header: (
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.red}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderTextRed}>
             Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         ),
         items: [
           {onClick: onShowProof, title: 'View proof'},
@@ -164,12 +161,9 @@ const Container = (ownProps: OwnProps) => {
       }
       return {
         header: pendingMessage ? (
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.blue}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.popupHeaderTextBlue}>
             {pendingMessage}
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         ) : null,
         items: [onRevoke],
       }
@@ -557,6 +551,22 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.small,
       },
       metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      popupHeaderTextBlue: {
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
+      popupHeaderTextRed: {
+        backgroundColor: Kb.Styles.globalColors.red,
+        color: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
       site: {color: Kb.Styles.globalColors.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
       statusContainer: Kb.Styles.platformStyles({

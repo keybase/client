@@ -85,13 +85,9 @@ const ExplodingPopupHeader = (props: Props) => {
           {formatTimeForPopup(timestamp)}
         </Kb.Text>
         {deviceRevokedAt ? (
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.blue}
-            style={styles.revokedAt}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.popupHeaderText, styles.revokedAt])}>
             Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         ) : null}
       </Kb.Box2>
     </Kb.Box2>
@@ -168,6 +164,14 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 200,
         },
       }),
+      popupHeaderText: {
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
       revokedAt: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,

@@ -340,10 +340,12 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordEndRef.current = Date.now()
 
-    try {
-      await recorder.stop()
-    } catch (e) {
-      console.log('Recording stopping fail', e)
+    if (recordStartRef.current > 0) {
+      try {
+        await recorder.stop()
+      } catch (e) {
+        console.log('Recording stopping fail', e)
+      }
     }
   }
 

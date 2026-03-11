@@ -115,7 +115,7 @@ export const TeamRequestRow = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-            floatingContainerStyle={styles.floatingRolePicker}
+
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
             onCancel={props.onCancelRolePicker}
@@ -158,12 +158,6 @@ const styleCharm = {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   bg: {backgroundColor: Kb.Styles.globalColors.white},
   disabled: {backgroundColor: Kb.Styles.globalColors.white, opacity: 0.4},
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
   ignoreButton: {marginLeft: Kb.Styles.globalMargins.xtiny},
   letInButton: {
     backgroundColor: Kb.Styles.globalColors.green,

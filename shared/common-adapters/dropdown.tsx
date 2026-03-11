@@ -3,11 +3,11 @@ import {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
-import Overlay from './overlay'
+import Popup from './popup'
 import ScrollView from './scroll-view'
 import Icon from './icon'
 import {smallHeight, regularHeight} from './button'
-import {usePopup2, type Popup2Parms} from './use-popup'
+import {usePopup2, type Popup2Parms} from './popup/use-popup'
 import * as Styles from '@/styles'
 import './dropdown.css'
 import type {MeasureRef} from './measure-ref'
@@ -17,7 +17,7 @@ const Kb = {
   Box2,
   ClickableBox,
   Icon,
-  Overlay,
+  Popup,
   ProgressIndicator,
   ScrollView,
   Text,
@@ -96,7 +96,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const makePopup = (p: Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Kb.Overlay
+      <Kb.Popup
         style={Styles.collapseStyles([styles.overlay, overlayStyle])}
         attachTo={attachTo}
         visible={true}
@@ -127,7 +127,7 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
             </Kb.ClickableBox>
           ))}
         </Kb.ScrollView>
-      </Kb.Overlay>
+      </Kb.Popup>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

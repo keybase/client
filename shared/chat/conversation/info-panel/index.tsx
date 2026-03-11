@@ -31,10 +31,17 @@ const InfoPanelConnector = (ownProps: Props) => {
 
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = Chat.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
-  const onCancel = () => {
-    showInfoPanel(false, undefined)
-    clearAttachmentView()
-  }
+  React.useEffect(() => {
+    return () => {
+      // Only call showInfoPanel(false) on mobile where the panel is a separate route.
+      // On desktop the panel is inline and this cleanup fires during StrictMode
+      // double-effect, which immediately hides the panel.
+      if (Kb.Styles.isMobile) {
+        showInfoPanel(false, undefined)
+      }
+      clearAttachmentView()
+    }
+  }, [showInfoPanel, clearAttachmentView])
   const onGoToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
@@ -134,9 +141,6 @@ const InfoPanelConnector = (ownProps: Props) => {
   } else {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        {Kb.Styles.isMobile && (
-          <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" customCancelText="Done" />
-        )}
         {sectionList}
       </Kb.Box2>
     )

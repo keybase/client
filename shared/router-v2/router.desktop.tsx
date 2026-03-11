@@ -7,7 +7,7 @@ import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
 import Header from './header/index.desktop'
-import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createLinkingConfig} from './linking'
@@ -81,7 +81,7 @@ const documentTitle = {
 }
 
 const rootScreenOptions = {
-  headerLeft: () => <HeaderLeftCancel />,
+  headerLeft: () => <HeaderLeftButton mode="cancel" />,
   headerShown: false, // eventually do this after we pull apart modal2 etc
   presentation: 'transparentModal' as const,
   title: '',

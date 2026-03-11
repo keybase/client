@@ -84,7 +84,6 @@ const AddAliasModal = (props: Props) => {
   return (
     <Modal
       bannerImage="icon-illustration-emoji-alias-460-96"
-      title="Add an alias"
       desktopHeight={395}
       footerButtonLabel="Add an alias"
       footerButtonOnClick={alias.length > 2 ? doAddAlias : undefined}
@@ -163,7 +162,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       const makePopup = (p: Kb.Popup2Parms) => {
           const {attachTo, hidePopup} = p
           return (
-            <Kb.FloatingBox
+            <Kb.Popup
               attachTo={attachTo}
               containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
               position="bottom left"
@@ -177,7 +176,7 @@ const ChooseEmoji = Kb.Styles.isMobile
                 onDidPick={hidePopup}
                 onlyTeamCustomEmoji={true}
               />
-            </Kb.FloatingBox>
+            </Kb.Popup>
           )
         }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)

@@ -29,7 +29,7 @@ export type _InnerMenuItem = MenuItem | 'Divider' | undefined
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
-  isModal: boolean | 'bottomsheet'
+  isModal: false | 'modal' | 'bottomsheet'
   backgroundColor?: Styles.Color
   items: ReadonlyArray<_InnerMenuItem>
   header?: React.ReactNode

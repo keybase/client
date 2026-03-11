@@ -87,7 +87,6 @@ const Container = () => {
         </Kb.Box2>
       }
       negativeHeader={true}
-      skipMobileHeader={true}
       showHeaderInfoicon={true}
     >
       <VerifyBody onChangeCode={onChangeCode} code={code} onResend={onResend} resendWaiting={resendWaiting} />

@@ -3,14 +3,14 @@ import * as Styles from '@/styles'
 import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
-import Overlay from './overlay'
+import Popup from './popup'
 import Text from './text'
 import type {Props} from './floating-picker'
 
 const Kb = {
   Box2,
-  Overlay,
   Picker,
+  Popup,
   SafeAreaView,
   Text,
 }
@@ -59,7 +59,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
   }
 
   return (
-    <Kb.Overlay
+    <Kb.Popup
       key={
         // Android bug: after selecting a new value (e.g. in
         // set-explode-popup), it flips to the new value, then back to the old
@@ -92,7 +92,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
         />
         <Kb.SafeAreaView style={styles.safeArea} />
       </Kb.Box2>
-    </Kb.Overlay>
+    </Kb.Popup>
   )
 }
 

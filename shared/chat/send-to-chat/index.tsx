@@ -7,7 +7,6 @@ import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -19,35 +18,14 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => navigateUp()
 
   return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={canBack ? onBack : onCancel}
-      header={{
-        leftButton: canBack ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Back
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: FS.getSharePathArrayDescription(sendPaths || []),
-      }}
-    >
-      <MobileSendToChat
-        canBack={canBack}
-        isFromShareExtension={isFromShareExtension}
-        sendPaths={sendPaths}
-        text={text}
-      />
-    </Kb.Modal>
+    <MobileSendToChat
+      canBack={canBack}
+      isFromShareExtension={isFromShareExtension}
+      sendPaths={sendPaths}
+      text={text}
+    />
   )
 }
 
@@ -108,20 +86,18 @@ const DesktopSendToChat = (props: Props) => {
     Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
-    <Kb.PopupWrapper>
-      <DesktopSendToChatRender
-        enabled={conversationIDKey !== Chat.noConversationIDKey}
-        convName={convName}
-        // If we ever support sending multiples from desktop this will need to
-        // change.
-        path={sendPaths[0]}
-        title={title}
-        setTitle={setTitle}
-        onSend={onSend}
-        onSelect={onSelect}
-        onCancel={onCancel}
-      />
-    </Kb.PopupWrapper>
+    <DesktopSendToChatRender
+      enabled={conversationIDKey !== Chat.noConversationIDKey}
+      convName={convName}
+      // If we ever support sending multiples from desktop this will need to
+      // change.
+      path={sendPaths[0]}
+      title={title}
+      setTitle={setTitle}
+      onSend={onSend}
+      onSelect={onSelect}
+      onCancel={onCancel}
+    />
   )
 }
 

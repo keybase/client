@@ -1,14 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -27,7 +25,6 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
-  const nav = useSafeNavigation()
   const teamWizardState = useTeamsState(s => s.newTeamWizard)
   const parentName = useTeamsState(s =>
     teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
@@ -86,10 +83,6 @@ const NewTeamInfo = () => {
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
-  const onBack = () => nav.safeNavigateUp()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => clearModals()
-
   const setTeamWizardNameDescription = useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
   const onContinue = () =>
@@ -103,35 +96,7 @@ const NewTeamInfo = () => {
     })
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={parentName ? onClose : undefined} // This is the first page of the process for subteams only
-      header={{
-        leftButton:
-          teamWizardState.teamType === 'subteam' ? (
-            Kb.Styles.isMobile ? (
-              <Kb.Text type="BodyBigLink" onClick={onClose}>
-                Cancel
-              </Kb.Text>
-            ) : undefined
-          ) : (
-            <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-          ),
-        title: (
-          <ModalTitle
-            teamID={teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID}
-            title={teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'}
-          />
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
-        ),
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         {parentName ? (
           <Kb.Input3
@@ -191,7 +156,7 @@ const NewTeamInfo = () => {
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
                     presetRole={realRole}
-                    floatingContainerStyle={styles.floatingRolePicker}
+
                     onConfirm={role => {
                       setRealRole(role)
                       setRolePickerIsOpen(false)
@@ -226,12 +191,14 @@ const NewTeamInfo = () => {
           labelSubtitle="Your profile will mention this team. Team description and number of members will be public."
         />
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Button label="Continue" onClick={onContinue} fullWidth={true} disabled={continueDisabled} />
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   biggerOnTheInside: {height: 100},
   body: Kb.Styles.platformStyles({
     common: {
@@ -243,10 +210,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   extraLineText: {
     height: 36,
   },
-  floatingRolePicker: Kb.Styles.platformStyles({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
     isElectron: {
-      position: 'relative',
-      top: -20,
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),

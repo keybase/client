@@ -23,15 +23,14 @@ const SetExplodePopup = (p: Props) => {
   }))
 
   return (
-    <Kb.FloatingModalContext value="bottomsheet">
-      <Kb.FloatingMenu
-        header={<Prompt />}
-        closeOnSelect={true}
-        items={items}
-        onHidden={props.onHidden}
-        visible={props.visible}
-      />
-    </Kb.FloatingModalContext>
+    <Kb.FloatingMenu
+      header={<Prompt />}
+      closeOnSelect={true}
+      items={items}
+      mode="bottomsheet"
+      onHidden={props.onHidden}
+      visible={props.visible}
+    />
   )
 }
 

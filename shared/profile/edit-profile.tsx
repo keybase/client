@@ -13,17 +13,12 @@ const Container = () => {
   const _location = d.location || ''
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
 
   const editProfile = useProfileState(s => s.dispatch.editProfile)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(bio, fullname, location)
     navigateUp()
   }
-
-  const title = 'Edit Profile'
 
   const [bio, setBio] = React.useState(_bio)
   const [fullname, setFullname] = React.useState(_fullname)
@@ -38,14 +33,9 @@ const Container = () => {
   }
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title={title}>
+    <>
       <Kb.ScrollView>
         <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-          {Kb.Styles.isMobile ? null : (
-            <Kb.Text type="Header" style={styles.header}>
-              Edit Profile
-            </Kb.Text>
-          )}
           <Kb.RoundedBox side="top">
             <Kb.Input3
               value={fullname}
@@ -85,7 +75,7 @@ const Container = () => {
           {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -95,12 +85,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {
-      height: 450,
       width: 350,
     },
   }),
   gap: {minHeight: Kb.Styles.globalMargins.small},
-  header: {marginBottom: Kb.Styles.globalMargins.small},
 }))
 
 export default Container

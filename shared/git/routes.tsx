@@ -21,7 +21,11 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo'))),
-  gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo'))),
+  gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo')), {
+    getOptions: {title: 'Delete repo?'},
+  }),
+  gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo')), {
+    getOptions: {title: 'New repository'},
+  }),
   gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
 }

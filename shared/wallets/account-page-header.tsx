@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 // And account name / title like this on mobile:
 //    account-name
 //       title
-// To be used as customComponent in HeaderHoc
 
 type Props = {
   accountName?: string

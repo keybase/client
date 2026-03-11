@@ -7,6 +7,8 @@ import {AliasInput, Modal} from './common'
 import {pickImages} from '@/util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 import {useEmojiState} from './use-emoji'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
 
 const {getPathForFile} = KB2.functions
@@ -162,9 +164,30 @@ export const AddEmojiModal = (props: Props) => {
       .catch(() => {})
   }
 
-  return !emojisToAdd.length ? (
+  const hasEmojis = emojisToAdd.length > 0
+  const navigation = useNavigation()
+  React.useEffect(() => {
+    if (!Kb.Styles.isMobile) return
+    if (hasEmojis) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <HeaderLeftButton
+            onPress={() => {
+              clearErrors()
+              clearFiles()
+            }}
+          />
+        ),
+      })
+    } else {
+      navigation.setOptions({
+        headerLeft: () => <HeaderLeftButton mode="cancel" />,
+      })
+    }
+  }, [hasEmojis, navigation, clearErrors, clearFiles])
+
+  return !hasEmojis ? (
     <Modal
-      title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel={Kb.Styles.isMobile ? 'Choose Images' : undefined}
@@ -174,17 +197,12 @@ export const AddEmojiModal = (props: Props) => {
     </Modal>
   ) : (
     <Modal
-      title="Add emoji"
       bannerError={bannerError}
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
-      backButtonOnClick={() => {
-        clearErrors()
-        clearFiles()
-      }}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>

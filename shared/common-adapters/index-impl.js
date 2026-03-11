@@ -23,13 +23,13 @@ module.exports = {
     return require('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return require('./bottom-sheet').BottomSheetBackdrop
+    return require('./popup/bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return require('./bottom-sheet').BottomSheetModal
+    return require('./popup/bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return require('./bottom-sheet').BottomSheetScrollView
+    return require('./popup/bottom-sheet').BottomSheetScrollView
   },
   get Box() {
     return require('./box').default
@@ -111,29 +111,14 @@ module.exports = {
   get ErrorBoundary() {
     return require('./error-boundary').default
   },
-  get FloatingBox() {
-    return require('./floating-box').default
-  },
   get FloatingMenu() {
     return require('./floating-menu').default
-  },
-  get FloatingModalContext() {
-    return require('./floating-menu/context').FloatingModalContext
   },
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderHocHeader() {
-    return require('./header-hoc').HeaderHocHeader
-  },
-  get HeaderHocWrapper() {
-    return require('./header-hoc').HeaderHocWrapper
-  },
-  get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank
-  },
-  get HeaderLeftCancel() {
-    return require('./header-hoc').HeaderLeftCancel
+  get HeaderLeftButton() {
+    return require('./header-buttons').HeaderLeftButton
   },
   get Icon() {
     return require('./icon').default
@@ -177,26 +162,11 @@ module.exports = {
   get Meta() {
     return require('./meta').default
   },
-  get MobilePopup() {
-    return require('./mobile-popup').default
-  },
-  get Modal() {
-    return require('./modal').default
-  },
-  get Modal2() {
-    return require('./modal2').default
-  },
-  get ModalHeader() {
-    return require('./modal').Header
-  },
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
-  },
-  get Overlay() {
-    return require('./overlay').default
   },
   get PhoneInput() {
     return require('./phone-input').default
@@ -207,14 +177,8 @@ module.exports = {
   get PlatformIcon() {
     return require('./platform-icon').default
   },
-  get PopupDialog() {
-    return require('./popup-dialog').default
-  },
-  get PopupHeaderText() {
-    return require('./popup-header-text').default
-  },
-  get PopupWrapper() {
-    return require('./header-or-popup').PopupWrapper
+  get Popup() {
+    return require('./popup/index').default
   },
   get ProfileCard() {
     return require('./profile-card').default
@@ -321,11 +285,8 @@ module.exports = {
   get useInterval() {
     return require('./use-timers').useInterval
   },
-  get useModalHeaderTitleAndCancel() {
-    return require('./modal').useModalHeaderTitleAndCancel
-  },
   get usePopup2() {
-    return require('./use-popup').usePopup2
+    return require('./popup/use-popup').usePopup2
   },
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets

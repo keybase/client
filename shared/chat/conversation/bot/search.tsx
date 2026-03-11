@@ -38,15 +38,7 @@ const SearchBotPopup = (props: Props) => {
   const {botSearchResults, featuredBotsMap, getFeaturedBots} = botsState
   const {searchFeaturedAndUsers, setSearchFeaturedAndUsersResults} = botsState
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
-  const onClose = () => {
-    clearModals()
-  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
@@ -134,18 +126,7 @@ const SearchBotPopup = (props: Props) => {
     title: 'Users',
   } satisfies Section
   return (
-    <Kb.Modal
-      onClose={onClose}
-      noScrollView={true}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: 'Add a bot',
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
           <Kb.SearchFilter
@@ -163,7 +144,7 @@ const SearchBotPopup = (props: Props) => {
           style={{flexGrow: 1}}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 

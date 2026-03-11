@@ -230,35 +230,31 @@ const ArchiveModal = (p: Props) => {
     </Kb.Box2>
   )
 
-  const modalHeader = Kb.useModalHeaderTitleAndCancel('Backup', onClose)
   return (
-    <Kb.Modal
-      mode="Wide"
-      header={modalHeader}
-      footer={{
-        content: (
+    <>
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
+          {Kb.Styles.isMobile ? (
+            <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
+          ) : (
+            <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
+          )}
+          <Kb.BoxGrow />
+          {content}
+          <Kb.BoxGrow />
+          {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+            ? null
+            : output}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar small={true}>
             {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
             {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
             {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
-        ),
-      }}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
-        {Kb.Styles.isMobile ? (
-          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
-        ) : (
-          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
-        )}
-        <Kb.BoxGrow />
-        {content}
-        <Kb.BoxGrow />
-        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
-          ? null
-          : output}
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
@@ -267,6 +263,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contentContainer: {
     maxWidth: 400,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   outPath: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blue_30,

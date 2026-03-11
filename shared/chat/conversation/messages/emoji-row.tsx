@@ -91,7 +91,7 @@ function EmojiRowContainer(p: OwnProps) {
         )}
       </Kb.Box2>
       {showingPicker && (
-        <Kb.FloatingBox
+        <Kb.Popup
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
           position="top right"
@@ -99,7 +99,7 @@ function EmojiRowContainer(p: OwnProps) {
           propagateOutsideClicks={false}
         >
           <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
-        </Kb.FloatingBox>
+        </Kb.Popup>
       )}
     </Kb.Box2>
   )

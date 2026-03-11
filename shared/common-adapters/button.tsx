@@ -134,17 +134,18 @@ const progressSmall = {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}
-  return Styles.isMobile ? (
-    <Animation
-      animationType={white ? 'spinnerWhite' : 'spinner'}
-      style={small ? progressSmall : progressNormal}
-    />
-  ) : (
+  const animStyle = small ? progressSmall : progressNormal
+  if (Styles.isMobile) {
+    const {View} = require('react-native') as {View: typeof ViewType}
+    return (
+      <View style={Styles.castStyleNative(progressContainerStyle)}>
+        <Animation animationType={white ? 'spinnerWhite' : 'spinner'} style={animStyle} />
+      </View>
+    )
+  }
+  return (
     <div style={Styles.castStyleDesktop(progressContainerStyle)}>
-      <Animation
-        animationType={white ? 'spinnerWhite' : 'spinner'}
-        style={small ? progressSmall : progressNormal}
-      />
+      <Animation animationType={white ? 'spinnerWhite' : 'spinner'} style={animStyle} />
     </div>
   )
 }

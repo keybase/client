@@ -330,11 +330,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
-          borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Kb.Styles.globalColors.black_20OrBlack}`,
           minHeight: 350,
           width: 310,
         },
@@ -364,6 +359,20 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 10,
         },
       }),
+      popupHeader: Kb.Styles.platformStyles({
+        common: {
+          borderBottomColor: Kb.Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid' as const,
+          justifyContent: 'space-between',
+        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
+      popupHeaderSide: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+        width: 64,
+      },
       radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
       row: {
@@ -402,7 +411,6 @@ const styles = Kb.Styles.styleSheetCreate(
 export type FloatingProps<T extends boolean> = {
   position?: Kb.Styles.Position
   children?: React.ReactNode
-  floatingContainerStyle?: Kb.Styles.StylesCrossPlatform
   open: boolean
 } & Props<T>
 
@@ -410,7 +418,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   props: FloatingProps<IncludeSetIndividually>
 ) {
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
-  const {position, children, open, floatingContainerStyle, onCancel, ...rest} = props
+  const {position, children, open, onCancel, ...rest} = props
   const picker = (
     <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
   )
@@ -419,25 +427,31 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
       {children}
       <Kb.Box2 direction="vertical" ref={popupAnchor} />
       {open && (
-        <Kb.FloatingBox
+        <Kb.Popup
           attachTo={popupAnchor}
           position={position || 'top center'}
-          onHidden={onCancel}
+          onHidden={onCancel ?? (() => {})}
           hideKeyboard={true}
         >
           <Kb.SafeAreaView>
             <Kb.Box2
               direction="vertical"
               fullHeight={Kb.Styles.isMobile}
-              style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+              style={styles.opaqueContainer}
             >
               {Kb.Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
+                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
+                  <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
+                    Cancel
+                  </Kb.Text>
+                  <Kb.Text type="BodyBig">Pick a role</Kb.Text>
+                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
+                </Kb.Box2>
               )}
               {picker}
             </Kb.Box2>
           </Kb.SafeAreaView>
-        </Kb.FloatingBox>
+        </Kb.Popup>
       )}
     </>
   )

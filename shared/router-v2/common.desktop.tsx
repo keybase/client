@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Header from './header/index.desktop'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {TabActions} from '@react-navigation/core'
 import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 
@@ -16,7 +16,7 @@ export const defaultNavigationOptions = {
   header: (p: object) => <Header {...(p as any)} />,
   headerBackTitle: 'temp',
   headerBackVisible: true,
-  headerLeft: (p: object) => <HeaderLeftArrow {...p} />,
+  headerLeft: (p: object) => <HeaderLeftButton {...p} />,
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,

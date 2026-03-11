@@ -23,9 +23,6 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
   const removeAccount = useWalletsState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
@@ -50,10 +47,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   }
   return (
     <WalletPopup
-      onExit={onCancel}
-      backButtonType="cancel"
       containerStyle={styles.background}
-      headerStyle={Kb.Styles.collapseStyles([styles.background, styles.header])}
       bottomButtons={[
         <Kb.Button
           fullWidth={Kb.Styles.isMobile}
@@ -115,7 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   background: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.yellow},
   }),
-  header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},
     isElectron: {marginTop: Kb.Styles.globalMargins.medium},

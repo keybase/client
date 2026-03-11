@@ -66,7 +66,6 @@ const PromptReset = (props: Props) => {
       onBack={onBack}
       noBackground={true}
       title={title}
-      leftActionText="Cancel"
     >
       <Kb.Box2
         alignItems="center"

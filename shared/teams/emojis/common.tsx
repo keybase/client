@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 
 type AliasInputProps = {
   error?: string
@@ -51,7 +50,6 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
 }
 
 type ModalProps = {
-  backButtonOnClick?: () => void
   bannerImage: Kb.IconType
   bannerError?: string
   children: React.ReactNode
@@ -59,14 +57,11 @@ type ModalProps = {
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
-  title: string
 }
 
 export const Modal = (props: ModalProps) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
   return (
-    <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
+    <>
       <Kb.Box2
         direction="vertical"
         fullHeight={Kb.Styles.isMobile}
@@ -76,18 +71,6 @@ export const Modal = (props: ModalProps) => {
           !Kb.Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
         ])}
       >
-        {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
-            {props.backButtonOnClick && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                style={styles.backButton}
-                onClick={props.backButtonOnClick}
-              />
-            )}
-            <Kb.Text type="Header">{props.title}</Kb.Text>
-          </Kb.Box2>
-        )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
           <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
           {!!props.bannerError && (
@@ -116,7 +99,7 @@ export const Modal = (props: ModalProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -151,10 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: Kb.Styles.globalMargins.large + 3 * Kb.Styles.globalMargins.xxtiny,
     },
   }),
-  backButton: {
-    left: Kb.Styles.globalMargins.xsmall,
-    position: 'absolute',
-  },
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
   },
@@ -189,11 +168,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       padding: Kb.Styles.globalMargins.small,
-    },
-  }),
-  headerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      height: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
     },
   }),
   removeBox: {
