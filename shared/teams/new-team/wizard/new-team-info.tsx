@@ -1,14 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -27,7 +25,6 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
-  const nav = useSafeNavigation()
   const teamWizardState = useTeamsState(s => s.newTeamWizard)
   const parentName = useTeamsState(s =>
     teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
@@ -86,8 +83,6 @@ const NewTeamInfo = () => {
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-
   const setTeamWizardNameDescription = useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
   const onContinue = () =>
@@ -99,23 +94,6 @@ const NewTeamInfo = () => {
       profileShowcase: showcase,
       teamname,
     })
-
-  const navForHeader = C.useNav()
-  const infoTitle = teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
-  const infoTeamID = teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID
-  const isSubteam = teamWizardState.teamType === 'subteam'
-  React.useEffect(() => {
-    navForHeader.setOptions({
-      headerLeft: isSubteam
-        ? () => (
-            <Kb.Text type="BodyBigLink" onClick={() => clearModals()}>
-              Cancel
-            </Kb.Text>
-          )
-        : () => <Kb.Icon type="iconfont-arrow-left" onClick={() => nav.safeNavigateUp()} />,
-      headerTitle: () => <ModalTitle teamID={infoTeamID} title={infoTitle} />,
-    })
-  }, [navForHeader, isSubteam, nav, clearModals, infoTeamID, infoTitle])
 
   return (
     <>

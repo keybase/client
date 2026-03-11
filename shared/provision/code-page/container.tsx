@@ -234,22 +234,6 @@ const CodePageContainer = () => {
   // We're in a modal unless this is a desktop being newly provisioned.
   const inModal = () => currentDeviceType !== 'desktop' || currentDeviceAlreadyProvisioned
 
-  const nav = C.useNav()
-  const isInModal = inModal()
-  const tabBg = tabBackground()
-  React.useEffect(() => {
-    if (isInModal && Kb.Styles.isMobile) {
-      nav.setOptions({
-        headerLeft: () => (
-          <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
-            {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-          </Kb.Text>
-        ),
-        headerStyle: {backgroundColor: tabBg},
-      })
-    }
-  }, [nav, isInModal, tabBg, onBack, currentDeviceAlreadyProvisioned])
-
   // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
   // When we're on desktop being newly provisioned, it's in this._body()
   if (Kb.Styles.isMobile && troubleshooting) {

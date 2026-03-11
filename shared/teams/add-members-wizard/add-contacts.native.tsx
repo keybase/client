@@ -4,13 +4,13 @@ import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {ModalTitle} from '../common'
-import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
+import ContactsList, {useContacts, EnableContactsPopup} from '../common/contacts-list.native'
+import {useModalHeaderState} from '@/stores/modal-header'
+import type {Contact} from '../common/contacts-list.native'
 
 const AddContacts = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -34,7 +34,6 @@ const AddContacts = () => {
 
   const noneSelected = selectedPhones.size + selectedEmails.size === 0
 
-  const navForHeader = C.useNav()
   React.useEffect(() => {
     const onDone = () => {
       if (waiting) {
@@ -60,33 +59,16 @@ const AddContacts = () => {
         }
       )
     }
-    navForHeader.setOptions({
-      headerRight: () => (
-        <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
-          <Kb.Text
-            type="BodyBigLink"
-            onClick={onDone}
-            style={Kb.Styles.collapseStyles([
-              noneSelected && Kb.Styles.globalStyles.opacity0,
-              waiting && styles.opacity40,
-            ])}
-          >
-            Done
-          </Kb.Text>
-          {waiting && (
-            <Kb.Box2
-              direction="horizontal"
-              centerChildren={true}
-              style={Kb.Styles.globalStyles.fillAbsolute}
-            >
-              <Kb.ProgressIndicator />
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      ),
-      headerTitle: () => <ModalTitle teamID={teamID} title="Add members" />,
+    useModalHeaderState.setState({
+      actionEnabled: !noneSelected,
+      actionWaiting: waiting,
+      onAction: onDone,
+      title: 'Add members',
     })
-  }, [navForHeader, waiting, selectedEmails, selectedPhones, toAssertionsRPC, addMembersWizardPushMembers, noneSelected, teamID])
+    return () => {
+      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+    }
+  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, addMembersWizardPushMembers, noneSelected])
 
   return (
     <>
@@ -108,9 +90,5 @@ const AddContacts = () => {
     </>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  opacity40: {opacity: 0.4},
-}))
 
 export default AddContacts

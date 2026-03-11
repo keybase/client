@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
@@ -8,7 +7,6 @@ import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
 import Rows from './rows/rows-container'
-import {OriginalOrCompressedButton} from '@/incoming-share'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -59,11 +57,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     }))
   )
   const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
-  const incomingShareSource = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? destPicker.source.source : undefined
 
   const nav = useSafeNavigation()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {
     _onBackUp: (currentPath: T.FS.Path) =>
       FS.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
@@ -80,9 +76,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     _onNewFolder: (destinationParentPath: T.FS.Path) => {
       newFolderRow(destinationParentPath)
     },
-    onBack: () => {
-      navigateUp()
-    },
     onCancel: () => {
       clearModals()
     },
@@ -90,11 +83,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const index = getIndex(ownProps)
   const showHeaderBackInsteadOfCancel = isShare // && index > 0
-  const targetName = FS.getDestinationPickerPathName(destPicker)
-  // If we are are dealing with incoming share, the first view is root,
-  // so rely on the header back button instead of showing a separate row
-  // for going to parent directory.
-  const onBack = showHeaderBackInsteadOfCancel ? dispatchProps.onBack : undefined
   const onBackUp =
     isShare || !canBackUp(destPicker, ownProps)
       ? undefined
@@ -115,15 +103,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsPathMetadata(parentPath)
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
-
-  const navObj = C.useNav()
-  React.useEffect(() => {
-    navObj.setOptions({
-      headerLeft: () => makeLeftButton(onCancel, onBack),
-      headerRight: incomingShareSource ? () => <OriginalOrCompressedButton incomingShareItems={incomingShareSource} /> : undefined,
-      headerTitle: () => makeTitle(targetName, parentPath),
-    })
-  }, [navObj, onCancel, onBack, incomingShareSource, targetName, parentPath])
 
   return (
     <>
@@ -206,50 +185,6 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
   )
 }
 
-const makeLeftButton = (onCancel?: () => void, onBack?: () => void) => {
-  if (!Kb.Styles.isMobile) {
-    return undefined
-  }
-  if (onCancel) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onCancel}>
-        Cancel
-      </Kb.Text>
-    )
-  }
-  if (onBack) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onBack}>
-        Back
-      </Kb.Text>
-    )
-  }
-  return undefined
-}
-
-const makeTitle = (targetName: string, parentPath: T.FS.Path) => {
-  if (Kb.Styles.isMobile) {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        <FsCommon.Filename type="BodyTiny" filename={targetName} />
-        <Kb.Text type="BodyBig">Save in...</Kb.Text>
-      </Kb.Box2>
-    )
-  }
-  return (
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
-      <Kb.Text type="Header" style={{flexShrink: 0}}>
-        {'Move or Copy "'}
-      </Kb.Text>
-      <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
-      <FsCommon.Filename type="Header" filename={targetName} />
-      <Kb.Text type="Header" style={{flexShrink: 0}}>
-        {'"'}
-      </Kb.Text>
-    </Kb.Box2>
-  )
-}
-
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -269,7 +204,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 48,
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
-      desktopHeader: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10),
       footer: Kb.Styles.platformStyles({
         common: {
           height: 64,

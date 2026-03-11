@@ -3,13 +3,13 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FsCommon from '@/fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/stores/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {useFSState} from '@/stores/fs'
 import {useRouterState} from '@/stores/router'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -107,53 +107,25 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   )
 }
 
-const getContentDescription = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
+export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.IncomingShareItem>): string => {
   if (items.length === 0) {
-    return undefined
+    return ''
   }
   if (items.length > 1) {
-    return items.some(({type}) => type !== items[0]?.type) ? (
-      <Kb.Text type="BodyTiny">{items.length} items</Kb.Text>
-    ) : (
-      <Kb.Text type="BodyTiny">
-        {items.length} {incomingShareTypeToString(items[0]!.type, false, true)}
-      </Kb.Text>
-    )
+    return items.some(({type}) => type !== items[0]?.type)
+      ? `${items.length} items`
+      : `${items.length} ${incomingShareTypeToString(items[0]!.type, false, true)}`
   }
 
   const item = items[0]
-  if (!item) return undefined
+  if (!item) return ''
 
   if (item.content) {
-    return (
-      <Kb.Text type="BodyTiny" lineClamp={1}>
-        {item.content}
-      </Kb.Text>
-    )
+    return item.content
   }
 
-  // If it's a URL, originalPath is not populated.
   const name = item.originalPath && T.FS.getLocalPathName(item.originalPath)
-  return name ? (
-    <FsCommon.Filename type="BodyTiny" filename={name} />
-  ) : (
-    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(item.type, false, false)}</Kb.Text>
-  )
-}
-
-const useHeader = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
-  return {
-    onCancel,
-    rightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
-    title: (
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        {getContentDescription(incomingShareItems)}
-        <Kb.Text type="BodyBig">Share to...</Kb.Text>
-      </Kb.Box2>
-    ),
-  }
+  return name || `1 ${incomingShareTypeToString(item.type, false, false)}`
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
@@ -235,21 +207,19 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 
-  const header = useHeader(props.incomingShareItems)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const footer = useFooter(props.incomingShareItems)
 
-  const nav = C.useNav()
   React.useEffect(() => {
-    nav.setOptions({
-      headerLeft: () => (
-        <Kb.Text type="BodyBigLink" onClick={header.onCancel}>
-          Cancel
-        </Kb.Text>
-      ),
-      headerRight: () => header.rightButton,
-      headerTitle: () => header.title,
+    useModalHeaderState.setState({
+      data: props.incomingShareItems,
+      onAction: clearModals,
+      title: getContentDescriptionText(props.incomingShareItems),
     })
-  }, [nav, header.onCancel, header.rightButton, header.title])
+    return () => {
+      useModalHeaderState.setState({data: undefined, onAction: undefined, title: ''})
+    }
+  }, [props.incomingShareItems, clearModals])
 
   if (canDirectNav) {
     return (

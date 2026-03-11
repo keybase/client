@@ -5,7 +5,6 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
-import {e164ToDisplay} from '@/util/phone-numbers'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
@@ -253,27 +252,6 @@ export const VerifyPhone = () => {
   }
   const onContinue = () => verifyPhoneNumber(pendingVerification, code)
   const disabled = !code
-
-  const displayPhone = e164ToDisplay(pendingVerification)
-  const navObj = C.useNav()
-  React.useEffect(() => {
-    navObj.setOptions({
-      headerLeft: Kb.Styles.isMobile ? () => (
-        <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-          <Kb.BackButton onClick={() => {
-            clearPhoneNumberAdd()
-            clearModals()
-          }} iconColor={Kb.Styles.globalColors.white} />
-        </Kb.Styles.CanFixOverdrawContext.Provider>
-      ) : undefined,
-      headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-      headerTitle: () => (
-        <Kb.Text type="BodySmall" negative={true} center={true}>
-          {displayPhone || 'Unknown number'}
-        </Kb.Text>
-      ),
-    })
-  }, [navObj, displayPhone, clearPhoneNumberAdd, clearModals])
 
   return (
     <>

@@ -29,14 +29,13 @@ export function enumKeys<T extends Record<string, string | number>>(enumeration:
 
 export const useNav = () => {
   const na = useNavigation()
-  const {canGoBack, setOptions} = na
+  const {canGoBack} = na
   const pop: undefined | (() => void) = canGoBack() ? na.goBack : undefined
   const navigate: (n: RouteKeys) => void = na.navigate
   return {
     canGoBack,
     navigate,
     pop,
-    setOptions,
   }
 }
 

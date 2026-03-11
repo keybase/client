@@ -3,6 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
@@ -197,12 +198,12 @@ const TeamPicker = (props: Props) => {
       </Kb.Box2>
     )
 
-  const nav = C.useNav()
   React.useEffect(() => {
-    nav.setOptions({
-      title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
-    })
-  }, [nav, pickerState])
+    useModalHeaderState.setState({title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'})
+    return () => {
+      useModalHeaderState.setState({title: ''})
+    }
+  }, [pickerState])
 
   return content
 }

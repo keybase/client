@@ -2,9 +2,13 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
+import * as FS from '@/constants/fs'
+import type * as T from '@/constants/types'
 import chatNewChat from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import {useConfigState} from '@/stores/config'
+import {useModalHeaderState} from '@/stores/modal-header'
+import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 const Convo = React.lazy(async () => import('./conversation/container'))
@@ -17,6 +21,69 @@ const PDFShareButton = ({url}: {url?: string}) => {
       onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')}
     />
   )
+}
+
+const PDFHeaderTitle = () => {
+  const title = useModalHeaderState(s => s.title)
+  return <Kb.Text type="BodyBig">{title || 'PDF'}</Kb.Text>
+}
+
+const FwdMsgHeaderTitle = () => {
+  const title = useModalHeaderState(s => s.title)
+  return <>{title || 'Forward to team or chat'}</>
+}
+
+const BotInstallHeaderTitle = () => {
+  const subScreen = useModalHeaderState(s => s.botSubScreen)
+  return <>{subScreen === 'channels' ? 'Channels' : ''}</>
+}
+
+const BotInstallHeaderLeft = () => {
+  const {subScreen, inTeam, readOnly, onAction} = useModalHeaderState(
+    C.useShallow(s => ({inTeam: s.botInTeam, onAction: s.onAction, readOnly: s.botReadOnly, subScreen: s.botSubScreen}))
+  )
+  if (subScreen === 'channels') {
+    return <Kb.Text type="BodyBigLink" onClick={onAction}>Back</Kb.Text>
+  }
+  if (Kb.Styles.isMobile || subScreen === 'install') {
+    const label = subScreen === 'install'
+      ? (Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />)
+      : inTeam || readOnly ? 'Close' : 'Cancel'
+    return <Kb.Text type="BodyBigLink" onClick={onAction}>{label}</Kb.Text>
+  }
+  return null
+}
+
+const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const title = useModalHeaderState(s => s.title)
+  const displayTitle = title || 'Add to channel'
+  if (Kb.Styles.isMobile) return <>{displayTitle}</>
+  return <ModalTitle teamID={teamID} title={displayTitle} />
+}
+
+const AddToChannelHeaderRight = () => {
+  const {enabled, waiting, onAction} = useModalHeaderState(
+    C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
+  )
+  if (!Kb.Styles.isMobile) return null
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={!waiting && enabled ? onAction : undefined}
+      style={!enabled ? {opacity: 0.4} : undefined}
+    >
+      Add
+    </Kb.Text>
+  )
+}
+
+const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  if (canBack) {
+    return <Kb.Text type="BodyBigLink" onClick={navigateUp}>Back</Kb.Text>
+  }
+  return <Kb.Text type="BodyBigLink" onClick={clearModals}>Cancel</Kb.Text>
 }
 
 export const newRoutes = {
@@ -43,7 +110,13 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   chatAddToChannel: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/info-panel/add-to-channel'))
+    React.lazy(async () => import('./conversation/info-panel/add-to-channel')),
+    {
+      getOptions: ({route}) => ({
+        headerRight: () => <AddToChannelHeaderRight />,
+        headerTitle: () => <AddToChannelHeaderTitle teamID={route.params.teamID} />,
+      }),
+    }
   ),
   chatAttachmentFullscreen: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-fullscreen/screen')),
@@ -81,7 +154,7 @@ export const newModalRoutes = {
   ),
   chatDeleteHistoryWarning: Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
   chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg')), {
-    getOptions: {title: 'Forward to team or chat'},
+    getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
   }),
   chatInfoPanel: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel')),
@@ -89,7 +162,13 @@ export const newModalRoutes = {
   ),
   chatInstallBot: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
-    {skipProvider: true}
+    {
+      getOptions: {
+        headerLeft: () => <BotInstallHeaderLeft />,
+        headerTitle: () => <BotInstallHeaderTitle />,
+      },
+      skipProvider: true,
+    }
   ),
   chatInstallBotPick: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
@@ -109,9 +188,9 @@ export const newModalRoutes = {
   chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
     getOptions: p => ({
       headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+      headerTitle: () => <PDFHeaderTitle />,
       modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
       overlayStyle: {alignSelf: 'stretch'},
-      title: 'PDF',
     }),
   }),
   chatSearchBots: Chat.makeChatScreen(
@@ -120,7 +199,13 @@ export const newModalRoutes = {
   ),
   chatSendToChat: Chat.makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
-    {skipProvider: true}
+    {
+      getOptions: ({route}) => ({
+        headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />,
+        title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
+      }),
+      skipProvider: true,
+    }
   ),
   chatShowNewTeamDialog: Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
   chatUnfurlMapPopup: Chat.makeChatScreen(

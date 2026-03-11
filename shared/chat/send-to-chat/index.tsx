@@ -7,7 +7,6 @@ import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -19,25 +18,6 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-
-  const nav = C.useNav()
-  React.useEffect(() => {
-    const leftButton = canBack ? (
-      <Kb.Text type="BodyBigLink" onClick={navigateUp}>
-        Back
-      </Kb.Text>
-    ) : (
-      <Kb.Text type="BodyBigLink" onClick={clearModals}>
-        Cancel
-      </Kb.Text>
-    )
-    nav.setOptions({
-      headerLeft: () => leftButton,
-      title: FS.getSharePathArrayDescription(sendPaths || []),
-    })
-  }, [nav, canBack, navigateUp, clearModals, sendPaths])
 
   return (
     <MobileSendToChat

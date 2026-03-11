@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import type {Props} from '.'
-import {ModalTitle} from '@/teams/common'
 import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
 import useHooks from './hooks'
@@ -59,7 +57,7 @@ const getCropCoordinates = (c: Crop) => {
 type Loading = undefined | 'loading' | 'loaded'
 const EditAvatar = (_p: Props) => {
   const p = useHooks(_p)
-  const {wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
+  const {wizard, type, error, createdTeam, teamname} = p
   const [serror, setSerror] = React.useState(false)
   const [dropping, setDropping] = React.useState(false)
   const [loading, setLoading] = React.useState<Loading>()
@@ -92,7 +90,7 @@ const EditAvatar = (_p: Props) => {
         setImageSource(img)
       }
     }
-    C.ignorePromise(f())
+    void f()
   }
   const filePickerOpen = () => {
     fileRef.current?.click()
@@ -109,19 +107,8 @@ const EditAvatar = (_p: Props) => {
         fileRef.current.value = ''
       }
     }
-    C.ignorePromise(f())
+    void f()
   }
-
-  const nav = C.useNav()
-  React.useEffect(() => {
-    nav.setOptions({
-      headerLeft: () => (wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null),
-      headerRight: () => (wizard ? (
-        <Kb.Button label="Skip" mode="Secondary" onClick={onSkip} style={styles.skipButton} type="Default" />
-      ) : null),
-      headerTitle: () => (type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>),
-    })
-  }, [nav, wizard, showBack, onBack, onSkip, type, teamID])
 
   return (
     <>
@@ -268,7 +255,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
-  skipButton: {minWidth: 60},
 }))
 
 export default EditAvatar

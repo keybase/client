@@ -8,6 +8,8 @@ import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
@@ -44,6 +46,32 @@ const CheckPassphraseCancelButton = () => {
     >
       Cancel
     </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderTitle = () => {
+  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
+  const displayPhone = e164ToDisplay(pendingVerification)
+  return (
+    <Kb.Text type="BodySmall" negative={true} center={true}>
+      {displayPhone || 'Unknown number'}
+    </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderLeft = () => {
+  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  return (
+    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
+      <Kb.BackButton
+        onClick={() => {
+          clearPhoneNumberAdd()
+          clearModals()
+        }}
+        iconColor={Kb.Styles.globalColors.white}
+      />
+    </Kb.Styles.CanFixOverdrawContext.Provider>
   )
 }
 
@@ -140,6 +168,13 @@ const sharedNewModalRoutes = {
       const {VerifyPhone} = await import('./account/add-modals')
       return {default: VerifyPhone}
     }),
+    {
+      getOptions: {
+        headerLeft: Kb.Styles.isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
+        headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+        headerTitle: () => <VerifyPhoneHeaderTitle />,
+      },
+    }
   ),
 }
 

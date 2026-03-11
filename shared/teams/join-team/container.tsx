@@ -30,14 +30,6 @@ const Container = (ownProps: OwnProps) => {
     onJoinTeam(name)
   }
 
-  const navForHeader = C.useNav()
-  React.useEffect(() => {
-    navForHeader.setOptions({
-      headerLeft: success ? () => null : undefined,
-      title: success ? 'Request sent' : 'Join a team',
-    })
-  }, [navForHeader, success])
-
   return (
     <>
       {errorText ? (

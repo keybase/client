@@ -3,11 +3,12 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
-import {ModalTitle, useChannelParticipants} from '@/teams/common'
+import {useChannelParticipants} from '@/teams/common'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -56,7 +57,6 @@ const AddToChannel = (props: Props) => {
 
   const loading = !allMembers.length
 
-  const navObj = C.useNav()
   React.useEffect(() => {
     const handleAdd = () => {
       setWaiting(true)
@@ -73,15 +73,16 @@ const AddToChannel = (props: Props) => {
         }
       )
     }
-    navObj.setOptions({
-      headerRight: Kb.Styles.isMobile && toAdd.size ? () => (
-        <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : handleAdd}>
-          Add
-        </Kb.Text>
-      ) : undefined,
-      headerTitle: () => <>{title({channelname, teamID})}</>,
+    useModalHeaderState.setState({
+      actionEnabled: toAdd.size > 0,
+      actionWaiting: waiting,
+      onAction: handleAdd,
+      title: `Add to #${channelname}`,
     })
-  }, [navObj, channelname, teamID, toAdd, toAdd.size, waiting, addToChannel, conversationIDKey, loadTeamChannelList, nav])
+    return () => {
+      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+    }
+  }, [channelname, teamID, toAdd, toAdd.size, waiting, addToChannel, conversationIDKey, loadTeamChannelList, nav])
 
   return (
     <>
@@ -173,13 +174,6 @@ const AddToChannel = (props: Props) => {
     </>
   )
 }
-
-const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
-  Kb.Styles.isMobile ? (
-    `Add to #${channelname}`
-  ) : (
-    <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
-  )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {

@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as Teams from '@/stores/teams'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {ModalTitle} from '@/teams/common'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 const Title = React.lazy(async () => import('./search'))
 
@@ -11,6 +14,34 @@ const styles = Kb.Styles.styleSheetCreate(
       overlay: {width: Kb.Styles.isMobile ? undefined : 500},
     }) as const
 )
+
+const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  if (wizard || showBack) {
+    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+  }
+  return null
+}
+
+const EditAvatarHeaderRight = ({wizard}: {wizard?: boolean}) => {
+  const setTeamWizardAvatar = Teams.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const onSkip = () => setTeamWizardAvatar()
+  if (!wizard) return null
+  if (Kb.Styles.isMobile) {
+    return <Kb.Text type="BodyBigLink" onClick={onSkip}>Skip</Kb.Text>
+  }
+  return <Kb.Button label="Skip" mode="Secondary" onClick={onSkip} style={skipButtonStyle} type="Default" />
+}
+const skipButtonStyle = {minWidth: 60}
+
+const EditAvatarHeaderTitle = ({teamID, wizard}: {teamID?: string; wizard?: boolean}) => {
+  const hasImage = useModalHeaderState(s => s.editAvatarHasImage)
+  if (teamID) {
+    const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
+    return <ModalTitle teamID={teamID} title={title} />
+  }
+  return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
+}
 
 export const newRoutes = {
   profile: C.makeScreen(
@@ -54,7 +85,9 @@ export const newModalRoutes = {
   }),
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
     getOptions: ({route}) => ({
-      title: route.params.teamID ? '' : C.isIOS ? 'Zoom and pan' : 'Upload avatar',
+      headerLeft: () => <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />,
+      headerRight: () => <EditAvatarHeaderRight wizard={route.params.wizard} />,
+      headerTitle: () => <EditAvatarHeaderTitle teamID={route.params.teamID} wizard={route.params.wizard} />,
     }),
   }),
   profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),

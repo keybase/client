@@ -1,9 +1,26 @@
 // this is loaded up by login/routes and device/routes
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import {useCurrentUserState} from '@/stores/current-user'
+
+const CodePageHeaderLeft = () => {
+  const currentDeviceAlreadyProvisioned = useCurrentUserState(s => !!s.deviceName)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  if (!Kb.Styles.isMobile) return null
+  return (
+    <Kb.Text type="BodyBig" onClick={navigateUp}>
+      {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
+    </Kb.Text>
+  )
+}
 
 export const newRoutes = {
-  codePage: {screen: React.lazy(async () => import('./code-page/container'))},
+  codePage: C.makeScreen(React.lazy(async () => import('./code-page/container')), {
+    getOptions: {
+      headerLeft: () => <CodePageHeaderLeft />,
+    },
+  }),
   error: {screen: React.lazy(async () => import('./error'))},
   forgotUsername: {
     screen: React.lazy(async () => import('./forgot-username')),

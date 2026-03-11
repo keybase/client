@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -6,6 +5,7 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 const AddSubteamMembers = () => {
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
@@ -69,22 +69,21 @@ const AddSubteamMembers = () => {
       />
     )
   }
-  const navForHeader = C.useNav()
+
   React.useEffect(() => {
     const handleContinue = () =>
       selectedMembers.size
         ? setTeamWizardSubteamMembers([...selectedMembers])
         : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
-    navForHeader.setOptions({
-      headerRight: () => (
-        <Kb.Box2 direction="horizontal" style={styles.noWrap} justifyContent="flex-end">
-          <Kb.Text type="BodyBigLink" onClick={handleContinue}>
-            {doneLabel}
-          </Kb.Text>
-        </Kb.Box2>
-      ),
+    useModalHeaderState.setState({
+      actionEnabled: true,
+      onAction: handleContinue,
+      title: doneLabel,
     })
-  }, [navForHeader, selectedMembers, setTeamWizardSubteamMembers, startAddMembersWizard, doneLabel])
+    return () => {
+      useModalHeaderState.setState({actionEnabled: false, onAction: undefined, title: ''})
+    }
+  }, [selectedMembers, setTeamWizardSubteamMembers, startAddMembersWizard, doneLabel])
 
   const desktopFooter = !Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
@@ -151,9 +150,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       overflow: 'hidden',
     },
   }),
-  noWrap: {
-    width: 48, // wide enough for "Done" or "Skip" to fit. workaround modal2 header measurement onmount
-  },
   search: {
     borderRadius: 4,
   },

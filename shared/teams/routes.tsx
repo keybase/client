@@ -8,7 +8,75 @@ import {ModalTitle} from './common'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
+import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
+
+const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
+  const title = useModalHeaderState(s => s.title)
+  return <ModalTitle teamID={teamID} title={title || 'Browse all channels'} />
+}
+
+const AddToChannelsHeaderRight = () => {
+  const {enabled, waiting, onAction} = useModalHeaderState(
+    C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
+  )
+  if (!onAction) return null
+  if (waiting) return <Kb.ProgressIndicator type="Large" />
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={onAction}
+      style={!enabled ? {opacity: 0.4} : undefined}
+    >
+      Add
+    </Kb.Text>
+  )
+}
+
+const SubteamMembersHeaderRight = () => {
+  const {onAction, title} = useModalHeaderState(
+    C.useShallow(s => ({onAction: s.onAction, title: s.title}))
+  )
+  if (!Kb.Styles.isMobile) return null
+  return (
+    <Kb.Box2 direction="horizontal" style={{width: 48}} justifyContent="flex-end">
+      <Kb.Text type="BodyBigLink" onClick={onAction}>
+        {title || 'Skip'}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+const AddContactsHeaderTitle = () => {
+  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  return <ModalTitle teamID={teamID} title="Add members" />
+}
+
+const AddContactsHeaderRight = () => {
+  const {enabled, waiting, onAction} = useModalHeaderState(
+    C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
+  )
+  return (
+    <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
+      <Kb.Text
+        type="BodyBigLink"
+        onClick={!waiting && enabled ? onAction : undefined}
+        style={!enabled ? {opacity: 0} : waiting ? {opacity: 0.4} : undefined}
+      >
+        Done
+      </Kb.Text>
+      {waiting && (
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          style={Kb.Styles.globalStyles.fillAbsolute}
+        >
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
 
 const WizardEmailHeaderTitle = () => {
   const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
@@ -27,10 +95,10 @@ const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
 }
 
 const ConfirmHeaderTitle = () => {
-  const {teamID, count} = Teams.useTeamsState(
+  const {count, teamID} = Teams.useTeamsState(
     C.useShallow(s => ({
-      teamID: s.addMembersWizard.teamID,
       count: s.addMembersWizard.addingMembers.length,
+      teamID: s.addMembersWizard.teamID,
     }))
   )
   const noun = count === 1 ? 'person' : 'people'
@@ -87,6 +155,43 @@ const AddFromWhereHeaderTitle = () => {
   return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
 }
 
+const JoinTeamHeaderTitle = () => {
+  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
+  return <>{success ? 'Request sent' : 'Join a team'}</>
+}
+
+const JoinTeamHeaderLeft = () => {
+  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
+  if (success) return null
+  return <HeaderLeftButton />
+}
+
+const NewTeamInfoHeaderTitle = () => {
+  const {teamType, parentTeamID} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      parentTeamID: s.newTeamWizard.parentTeamID,
+      teamType: s.newTeamWizard.teamType,
+    }))
+  )
+  const title = teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
+  const teamID = parentTeamID ?? T.Teams.newTeamWizardTeamID
+  return <ModalTitle teamID={teamID} title={title} />
+}
+
+const NewTeamInfoHeaderLeft = () => {
+  const isSubteam = Teams.useTeamsState(s => s.newTeamWizard.teamType === 'subteam')
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  if (isSubteam) {
+    return (
+      <Kb.Text type="BodyBigLink" onClick={clearModals}>
+        Cancel
+      </Kb.Text>
+    )
+  }
+  return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+}
+
 export const newRoutes = {
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
@@ -129,7 +234,8 @@ export const newModalRoutes = {
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {
     getOptions: ({route}) => ({
-      headerTitle: () => <ModalTitle teamID={route.params.teamID} title="Browse all channels" />,
+      headerRight: () => <AddToChannelsHeaderRight />,
+      headerTitle: () => <AddToChannelsHeaderTitle teamID={route.params.teamID} />,
     }),
   }),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {
@@ -141,7 +247,12 @@ export const newModalRoutes = {
     },
   }),
   teamAddToTeamContacts: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-contacts')), {
-    getOptions: {headerLeft: HeaderLeftButton, modalStyle: {height: 560}},
+    getOptions: {
+      headerLeft: HeaderLeftButton,
+      headerRight: () => <AddContactsHeaderRight />,
+      headerTitle: () => <AddContactsHeaderTitle />,
+      modalStyle: {height: 560},
+    },
   }),
   teamAddToTeamEmail: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-email')), {
     getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardEmailHeaderTitle />, modalStyle: {height: 560}},
@@ -188,7 +299,10 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
-    getOptions: {title: 'Join a team'},
+    getOptions: {
+      headerLeft: () => <JoinTeamHeaderLeft />,
+      headerTitle: () => <JoinTeamHeaderTitle />,
+    },
   }),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {
     getOptions: {title: 'Create a team'},
@@ -204,7 +318,12 @@ export const newModalRoutes = {
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose')), {
     getOptions: {headerTitle: () => <ModalTitle teamID={T.Teams.noTeamID} title="New team" />},
   }),
-  teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info'))),
+  teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info')), {
+    getOptions: {
+      headerLeft: () => <NewTeamInfoHeaderLeft />,
+      headerTitle: () => <NewTeamInfoHeaderTitle />,
+    },
+  }),
   teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team')), {
     getOptions: {
       headerLeft: HeaderLeftButton,
@@ -226,6 +345,7 @@ export const newModalRoutes = {
   teamWizardSubteamMembers: C.makeScreen(React.lazy(async () => import('./new-team/wizard/add-subteam-members')), {
     getOptions: {
       headerLeft: HeaderLeftButton,
+      headerRight: () => <SubteamMembersHeaderRight />,
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
     },
   }),

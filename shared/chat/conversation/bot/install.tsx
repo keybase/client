@@ -3,6 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
+import {useModalHeaderState} from '@/stores/modal-header'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
@@ -416,29 +417,27 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
-  const nav = C.useNav()
   React.useEffect(() => {
-    const handleLeftAction = () => {
-      if (installScreen) {
+    const handleBack = () => {
+      if (channelPickerScreen) {
+        setChannelPickerScreen(false)
+      } else if (installScreen) {
         setInstallScreen(false)
       } else {
         Kb.Styles.isMobile ? navigateUp() : clearModals()
       }
     }
-    const leftButton = channelPickerScreen ? (
-      <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
-        Back
-      </Kb.Text>
-    ) : Kb.Styles.isMobile || installScreen ? (
-      <Kb.Text type="BodyBigLink" onClick={handleLeftAction}>
-        {installScreen ? (Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />) : inTeam || readOnly ? 'Close' : 'Cancel'}
-      </Kb.Text>
-    ) : undefined
-    nav.setOptions({
-      headerLeft: leftButton ? () => leftButton : undefined,
+    useModalHeaderState.setState({
+      botInTeam: !!inTeam,
+      botReadOnly: readOnly,
+      botSubScreen: channelPickerScreen ? 'channels' : installScreen ? 'install' : '',
+      onAction: handleBack,
       title: channelPickerScreen ? 'Channels' : '',
     })
-  }, [nav, channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
+    return () => {
+      useModalHeaderState.setState({botInTeam: false, botReadOnly: false, botSubScreen: '', onAction: undefined, title: ''})
+    }
+  }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
 
   const enabled = !!conversationIDKey
   return (

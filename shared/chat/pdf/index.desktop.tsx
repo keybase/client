@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {useFSState} from '@/stores/fs'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 const ChatPDF = (props: Props) => {
   const {ordinal} = props
@@ -20,12 +21,12 @@ const ChatPDF = (props: Props) => {
     openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
   }
 
-  const nav = C.useNav()
   React.useEffect(() => {
-    nav.setOptions({
-      headerTitle: () => <Kb.Text type="BodyBig">{title}</Kb.Text>,
-    })
-  }, [nav, title])
+    useModalHeaderState.setState({title})
+    return () => {
+      useModalHeaderState.setState({title: ''})
+    }
+  }, [title])
 
   return (
     <>
