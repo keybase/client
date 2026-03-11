@@ -50,7 +50,6 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
 }
 
 type ModalProps = {
-  backButtonOnClick?: () => void
   bannerImage: Kb.IconType
   bannerError?: string
   children: React.ReactNode
@@ -58,7 +57,6 @@ type ModalProps = {
   footerButtonLabel?: string
   footerButtonOnClick?: () => void
   footerButtonWaiting?: boolean
-  title: string
 }
 
 export const Modal = (props: ModalProps) => {
@@ -73,18 +71,6 @@ export const Modal = (props: ModalProps) => {
           !Kb.Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
         ])}
       >
-        {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.headerContainer}>
-            {props.backButtonOnClick && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                style={styles.backButton}
-                onClick={props.backButtonOnClick}
-              />
-            )}
-            <Kb.Text type="Header">{props.title}</Kb.Text>
-          </Kb.Box2>
-        )}
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
           <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
           {!!props.bannerError && (
@@ -148,10 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: Kb.Styles.globalMargins.large + 3 * Kb.Styles.globalMargins.xxtiny,
     },
   }),
-  backButton: {
-    left: Kb.Styles.globalMargins.xsmall,
-    position: 'absolute',
-  },
   bannerContainer: {
     height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.mediumLarge,
   },
@@ -186,11 +168,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       padding: Kb.Styles.globalMargins.small,
-    },
-  }),
-  headerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      height: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
     },
   }),
   removeBox: {

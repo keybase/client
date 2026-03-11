@@ -84,7 +84,6 @@ const AddAliasModal = (props: Props) => {
   return (
     <Modal
       bannerImage="icon-illustration-emoji-alias-460-96"
-      title="Add an alias"
       desktopHeight={395}
       footerButtonLabel="Add an alias"
       footerButtonOnClick={alias.length > 2 ? doAddAlias : undefined}
