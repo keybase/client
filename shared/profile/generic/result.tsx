@@ -63,12 +63,7 @@ const styles = Kb.Styles.styleSheetCreate(
       bottomContainer: {
         height: 80,
       },
-      container: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 485,
-          width: 560,
-        },
-      }),
+      container: {},
       iconBadgeContainer: {
         bottom: -5,
         position: 'absolute',

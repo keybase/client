@@ -33,12 +33,7 @@ const Container = () => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mobileFlex}>
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          {!Kb.Styles.isMobile && (
-            <Kb.Text center={true} type="Header" style={styles.header}>
-              Prove your...
-            </Kb.Text>
-          )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Input3
             icon="iconfont-search"
             autoFocus={true}
@@ -163,14 +158,12 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: Kb.Styles.platformStyles({
+        common: {flex: 1},
         isElectron: {
           borderRadius: 4,
-          height: 485,
           overflow: 'hidden',
-          width: 560,
         },
         isMobile: {
-          flex: 1,
           width: '100%',
         },
       }),
@@ -182,10 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(
         justifyContent: 'flex-start',
       },
       description: {...rightColumnStyle},
-      header: {
-        color: Kb.Styles.globalColors.black,
-        marginTop: Kb.Styles.globalMargins.tiny,
-      },
       icon: {
         height: 32,
         marginLeft: Kb.Styles.globalMargins.small,
@@ -204,13 +193,8 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
         width: 'auto',
       },
-      listContainer: Kb.Styles.platformStyles({
-        common: {flex: 1},
-        isElectron: {maxHeight: 560 - 48},
-      }),
-      mobileFlex: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
+      listContainer: {flex: 1},
+      mobileFlex: {flex: 1},
       new: {
         marginRight: Kb.Styles.globalMargins.xtiny,
         marginTop: 1,

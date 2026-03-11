@@ -116,11 +116,6 @@ const TeamRow = (p: RowProps) => {
 
 const ShowcaseTeamOfferHeader = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
-    {!Kb.Styles.isMobile && (
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerText}>
-        <Kb.Text type="Header">{"Feature the teams you're in"}</Kb.Text>
-      </Kb.Box2>
-    )}
     <Kb.InfoNote containerStyle={styles.noteContainer}>
       <Kb.Text center={true} style={styles.noteText} type="BodySmall">
         Featuring a team will encourage others to ask to join. The team&apos;s description and number of
@@ -133,12 +128,7 @@ const ShowcaseTeamOfferHeader = () => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Kb.Styles.platformStyles({
-        isElectron: {
-          maxHeight: 600,
-          maxWidth: 600,
-        },
-      }),
+      container: {},
       headerContainer: Kb.Styles.platformStyles({
         isElectron: {
           paddingLeft: Kb.Styles.globalMargins.small,
@@ -146,7 +136,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.mediumLarge,
         },
       }),
-      headerText: {marginBottom: Kb.Styles.globalMargins.xsmall},
       membershipText: Kb.Styles.platformStyles({
         common: {color: Kb.Styles.globalColors.black_50},
         isElectron: {textAlign: 'right'},

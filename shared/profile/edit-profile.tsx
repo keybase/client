@@ -36,11 +36,6 @@ const Container = () => {
     <>
       <Kb.ScrollView>
         <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-          {Kb.Styles.isMobile ? null : (
-            <Kb.Text type="Header" style={styles.header}>
-              Edit Profile
-            </Kb.Text>
-          )}
           <Kb.RoundedBox side="top">
             <Kb.Input3
               value={fullname}
@@ -90,12 +85,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {padding: Kb.Styles.globalMargins.small},
     isElectron: {
-      height: 450,
       width: 350,
     },
   }),
   gap: {minHeight: Kb.Styles.globalMargins.small},
-  header: {marginBottom: Kb.Styles.globalMargins.small},
 }))
 
 export default Container

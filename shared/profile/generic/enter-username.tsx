@@ -237,7 +237,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
       colorRed: {color: Kb.Styles.globalColors.redDark},
-      container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
+      container: {},
 
       inlineIcon: {
         position: 'relative',
