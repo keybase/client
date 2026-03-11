@@ -733,6 +733,7 @@ const styles = Styles.styleSheetCreate(
       },
       prefixContainer: {
         flexGrow: 0,
+        minWidth: 70,
       },
       prefixInput: {
         textAlign: 'right',
