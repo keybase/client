@@ -183,7 +183,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Text>
           <FloatingRolePicker
             presetRole={selectedRole}
-            floatingContainerStyle={styles.floatingRolePicker}
+
             footerComponent={footerComponent}
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
@@ -328,12 +328,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {maxHeight: '100%'},
       }),
       divider: {marginLeft: 69},
-      floatingRolePicker: Kb.Styles.platformStyles({
-        isElectron: {
-          bottom: -32,
-          position: 'relative',
-        },
-      }),
       meta: {
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,

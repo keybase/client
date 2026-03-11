@@ -77,7 +77,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Text>
           <FloatingRolePicker
             presetRole={role}
-            floatingContainerStyle={styles.floatingRolePicker}
+
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
             position="bottom center"
@@ -131,12 +131,6 @@ const _makeDropdownItem = (item: string) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
   header: {padding: Kb.Styles.globalMargins.tiny},
 }))
 

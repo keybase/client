@@ -470,7 +470,6 @@ const NodeInRow = (props: NodeInRowProps) => {
         position="top right"
         open={open}
         disabledRoles={disabledRoles}
-        floatingContainerStyle={styles.floatingContainerStyle}
       />
       <Kb.ClickableBox onClick={() => setExpanded(!expanded)}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={!expanded && styles.rowCollapsedFixedHeight}>
@@ -745,12 +744,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 64,
       padding: 0,
       width: 10 + Kb.Styles.globalMargins.small * 2, // 16px side paddings
-    },
-  }),
-  floatingContainerStyle: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      right: Kb.Styles.globalMargins.tiny,
     },
   }),
   headerContainer: Kb.Styles.platformStyles({

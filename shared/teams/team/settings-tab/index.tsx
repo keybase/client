@@ -138,7 +138,7 @@ const OpenTeam = (props: {
                 Anyone will be able to join immediately. Users will join as
               </Kb.Text>
               <FloatingRolePicker
-                floatingContainerStyle={styles.floatingRolePicker}
+
                 onConfirm={props.onConfirmRolePicker}
                 onCancel={props.onCancelRolePicker}
                 position="bottom center"
@@ -298,12 +298,6 @@ export const Settings = (p: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -20,
-    },
-  }),
   grey: {color: Kb.Styles.globalColors.black_50},
   joinAs: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},

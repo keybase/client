@@ -330,11 +330,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
-          borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Kb.Styles.globalColors.black_20OrBlack}`,
           minHeight: 350,
           width: 310,
         },
@@ -416,7 +411,6 @@ const styles = Kb.Styles.styleSheetCreate(
 export type FloatingProps<T extends boolean> = {
   position?: Kb.Styles.Position
   children?: React.ReactNode
-  floatingContainerStyle?: Kb.Styles.StylesCrossPlatform
   open: boolean
 } & Props<T>
 
@@ -424,7 +418,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   props: FloatingProps<IncludeSetIndividually>
 ) {
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
-  const {position, children, open, floatingContainerStyle, onCancel, ...rest} = props
+  const {position, children, open, onCancel, ...rest} = props
   const picker = (
     <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
   )
@@ -443,7 +437,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
             <Kb.Box2
               direction="vertical"
               fullHeight={Kb.Styles.isMobile}
-              style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+              style={styles.opaqueContainer}
             >
               {Kb.Styles.isMobile && (
                 <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>

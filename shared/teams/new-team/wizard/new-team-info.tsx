@@ -156,7 +156,7 @@ const NewTeamInfo = () => {
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
                     presetRole={realRole}
-                    floatingContainerStyle={styles.floatingRolePicker}
+
                     onConfirm={role => {
                       setRealRole(role)
                       setRolePickerIsOpen(false)
@@ -210,12 +210,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   extraLineText: {
     height: 36,
   },
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -20,
-    },
-  }),
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
