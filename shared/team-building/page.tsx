@@ -30,13 +30,10 @@ const TBHeaderRight = ({namespace, goButtonLabel}: {namespace: T.TB.AllowedNames
   const onFinish = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
   if (!Kb.Styles.isMobile) return null
   if (namespace === 'teams') {
+    if (!hasTeamSoFar) return null
     return (
-      <Kb.Text
-        type="BodyBigLink"
-        onClick={hasTeamSoFar ? onFinish : undefined}
-        style={!hasTeamSoFar && styles.hide}
-      >
-        Done
+      <Kb.Text type="BodyBigLink" onClick={onFinish}>
+        Add
       </Kb.Text>
     )
   }
