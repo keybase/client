@@ -2,8 +2,9 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/core'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import {createTBStore, TBProvider} from '@/stores/team-building'
+import {createTBStore, TBProvider, useTBContext} from '@/stores/team-building'
 
 // Header components that read directly from the TB store (outside TBProvider context)
 const TBHeaderLeft = ({namespace}: {namespace: T.TB.AllowedNamespace}) => {
@@ -48,6 +49,43 @@ const TBHeaderRight = ({namespace, goButtonLabel}: {namespace: T.TB.AllowedNames
       />
     )
   }
+  return null
+}
+
+// Updates the nav header right button from inside TBProvider context,
+// ensuring re-renders when teamSoFar changes on mobile.
+const HeaderRightUpdater = ({namespace, goButtonLabel}: {namespace: T.TB.AllowedNamespace; goButtonLabel?: string}) => {
+  const nav = useNavigation()
+  const hasTeamSoFar = useTBContext(s => s.teamSoFar.size > 0)
+  const finishTeamBuilding = useTBContext(s => s.dispatch.finishTeamBuilding)
+  const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
+  React.useEffect(() => {
+    if (!Kb.Styles.isMobile) return
+    const onFinish = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
+    if (namespace === 'teams') {
+      nav.setOptions({
+        headerRight: hasTeamSoFar
+          ? () => (
+              <Kb.Text type="BodyBigLink" onClick={onFinish}>
+                Add
+              </Kb.Text>
+            )
+          : () => null,
+      })
+    } else if (namespace === 'chat' || namespace === 'crypto') {
+      nav.setOptions({
+        headerRight: () => (
+          <Kb.Button
+            label={goButtonLabel ?? 'Start'}
+            onClick={hasTeamSoFar ? onFinish : undefined}
+            small={true}
+            type="Success"
+            style={!hasTeamSoFar && styles.hide}
+          />
+        ),
+      })
+    }
+  }, [nav, namespace, hasTeamSoFar, finishTeamBuilding, finishedTeamBuilding, goButtonLabel])
   return null
 }
 
@@ -100,6 +138,7 @@ type OwnProps = StaticScreenProps<React.ComponentProps<typeof Building>>
 
 const Screen = (p: OwnProps) => (
   <TBProvider namespace={p.route.params.namespace}>
+    <HeaderRightUpdater namespace={p.route.params.namespace} goButtonLabel={p.route.params.goButtonLabel} />
     <Building {...p.route.params} />
   </TBProvider>
 )
