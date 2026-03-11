@@ -86,7 +86,7 @@ export const MessagePopupModal = (p: ModalProps) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
     return pop ? (
-      <Kb.FloatingModalContext.Provider value={true}>
+      <Kb.FloatingModalContext value={true}>
         <MessagePopup
           ordinal={ordinal}
           key="popup"
@@ -95,7 +95,7 @@ export const MessagePopupModal = (p: ModalProps) => {
           position="top right"
           visible={true}
         />
-      </Kb.FloatingModalContext.Provider>
+      </Kb.FloatingModalContext>
     ) : null
   }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
@@ -121,7 +121,7 @@ export const useMessagePopup = (p: {
     const {attachTo, hidePopup} = p
     return (shouldShow?.() ?? true) ? (
       <Chat.ChatProvider id={conversationIDKey}>
-        <Kb.FloatingModalContext.Provider value="bottomsheet">
+        <Kb.FloatingModalContext value="bottomsheet">
           <MessagePopup
             ordinal={ordinal}
             key="popup"
@@ -131,7 +131,7 @@ export const useMessagePopup = (p: {
             style={style}
             visible={true}
           />
-        </Kb.FloatingModalContext.Provider>
+        </Kb.FloatingModalContext>
       </Chat.ChatProvider>
     ) : null
   }

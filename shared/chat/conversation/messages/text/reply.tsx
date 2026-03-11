@@ -142,9 +142,9 @@ function Reply() {
   const showImage = !!replyTo.previewURL
 
   return (
-    <ReplyToContext.Provider value={replyTo}>
+    <ReplyToContext value={replyTo}>
       <ReplyStructure isDeleted={isDeleted} showImage={showImage} showEdited={showEdited} onClick={onClick} />
-    </ReplyToContext.Provider>
+    </ReplyToContext>
   )
 }
 

@@ -19,9 +19,7 @@ export const newRoutes = {
       getOptions: {
         headerLeft: p => {
           return (
-            <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-              <HeaderLeftArrowCanGoBack tintColor={p.tintColor} />
-            </Kb.Styles.CanFixOverdrawContext.Provider>
+            <HeaderLeftArrowCanGoBack tintColor={p.tintColor} />
           )
         },
         headerShown: true,

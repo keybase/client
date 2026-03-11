@@ -49,9 +49,9 @@ const Conversation = function Conversation() {
       </Kb.Box2>
       <InvitationToBlock />
       <Banner />
-      <MaxInputAreaContext.Provider value={maxInputArea}>
+      <MaxInputAreaContext value={maxInputArea}>
         <InputArea />
-      </MaxInputAreaContext.Provider>
+      </MaxInputAreaContext>
     </Kb.BoxGrow>
   )
 

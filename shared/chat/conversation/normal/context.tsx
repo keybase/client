@@ -16,7 +16,7 @@ export const FocusProvider = function FocusProvider({children}: {children: React
     inputRef.current?.focus()
   }
   const value = {focusInput, setInputRef}
-  return <FocusContext.Provider value={value}>{children}</FocusContext.Provider>
+  return <FocusContext value={value}>{children}</FocusContext>
 }
 
 type ScrollType = {
@@ -51,5 +51,5 @@ export const ScrollProvider = function ScrollProvider({children}: {children: Rea
     scrollRef.current?.scrollToBottom()
   }
   const value = {scrollDown, scrollToBottom, scrollUp, setScrollRef}
-  return <ScrollContext.Provider value={value}>{children}</ScrollContext.Provider>
+  return <ScrollContext value={value}>{children}</ScrollContext>
 }

@@ -293,9 +293,7 @@ export const VerifyPhone = () => {
       header={{
         hideBorder: true,
         leftButton: Kb.Styles.isMobile ? (
-          <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-            <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
-          </Kb.Styles.CanFixOverdrawContext.Provider>
+          <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
         ) : null,
         style: styles.blueBackground,
         title: (

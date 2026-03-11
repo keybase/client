@@ -520,11 +520,11 @@ const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
 export function TBProvider({children, ...props}: TBProviderProps) {
-  return <Context.Provider value={createTBStore(props.namespace)}>{children}</Context.Provider>
+  return <Context value={createTBStore(props.namespace)}>{children}</Context>
 }
 
 export function useTBContext<T>(selector: (state: State) => T): T {
   const store = React.useContext(Context)
-  if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
+  if (!store) throw new Error('Missing TeambuildingContext in the tree')
   return useStore(store, selector)
 }

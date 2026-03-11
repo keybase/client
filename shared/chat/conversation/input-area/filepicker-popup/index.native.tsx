@@ -68,7 +68,7 @@ const FilePickerPopup = (p: Props) => {
 
   const header = <Prompt />
   return (
-    <Kb.FloatingModalContext.Provider value="bottomsheet">
+    <Kb.FloatingModalContext value="bottomsheet">
       <Kb.FloatingMenu
         header={header}
         attachTo={p.attachTo}
@@ -77,7 +77,7 @@ const FilePickerPopup = (p: Props) => {
         visible={p.visible}
         closeOnSelect={true}
       />
-    </Kb.FloatingModalContext.Provider>
+    </Kb.FloatingModalContext>
   )
 }
 

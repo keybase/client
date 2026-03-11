@@ -3464,7 +3464,7 @@ export function ChatProvider({canBeNull, children, ...props}: ConvoProviderProps
       throw new Error('No convo id in provider')
     }
   }
-  return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
+  return <Context value={createConvoStore(props.id)}>{children}</Context>
 }
 
 export function useHasContext() {
@@ -3476,7 +3476,7 @@ export function useHasContext() {
 export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
   if (!store) {
-    throw new Error('Missing ConvoContext.Provider in the tree')
+    throw new Error('Missing ConvoContext in the tree')
   }
   return useStore(store, selector)
 }

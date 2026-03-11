@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/actions/remote-gen'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
-import {CanFixOverdrawContext} from '@/styles'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
@@ -57,7 +56,7 @@ function RemoteComponentLoader<P>(p: Props<P>) {
     <div id="RemoteComponentRoot" style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}>
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
         <GlobalKeyEventHandler>
-          <CanFixOverdrawContext.Provider value={true}>{p.child(value)}</CanFixOverdrawContext.Provider>
+          {p.child(value)}
         </GlobalKeyEventHandler>
       </ErrorBoundary>
     </div>

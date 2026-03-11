@@ -69,7 +69,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const messageContext = {canFixOverdraw: false, isHighlighted: false, ordinal}
+  const messageContext = {isHighlighted: false, ordinal}
   if (!visible) {
     return null
   }
@@ -92,7 +92,7 @@ const ReactionTooltip = (p: OwnProps) => {
     >
       {/* need context since this uses a portal... */}
       <Chat.ChatProvider id={conversationIDKey}>
-        <MessageContext.Provider value={messageContext}>
+        <MessageContext value={messageContext}>
           <Kb.Box2
             onMouseLeave={onMouseLeave}
             onMouseOver={onMouseOver}
@@ -129,7 +129,7 @@ const ReactionTooltip = (p: OwnProps) => {
               </Kb.ButtonBar>
             )}
           </Kb.Box2>
-        </MessageContext.Provider>
+        </MessageContext>
       </Chat.ChatProvider>
     </Kb.Overlay>
   )
