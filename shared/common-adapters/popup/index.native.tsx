@@ -12,6 +12,8 @@ import {
 import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from '.'
 
+const defaultSnapPoints = ['75%']
+
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 }
@@ -67,8 +69,8 @@ function PopupSheet(props: PopupProps) {
           }, 100)
         }
       }}
-      enableDynamicSizing={!snapPoints}
-      snapPoints={snapPoints}
+      enableDynamicSizing={true}
+      snapPoints={snapPoints ?? defaultSnapPoints}
       backgroundStyle={styles.modalBackground}
       containerComponent={FullWindow}
       handleStyle={styles.handleStyle}
