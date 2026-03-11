@@ -74,7 +74,7 @@ function FloatingMenu(props: Props) {
 
   return (
     <Popup
-      attachTo={isModal === 'bottomsheet' ? undefined : props.attachTo}
+      attachTo={isModal === 'bottomsheet' && Styles.isMobile ? undefined : props.attachTo}
       onHidden={onHidden}
       visible={props.visible}
       position={props.position}
