@@ -276,7 +276,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.fillAbsolute,
   },
   overlayStyle: Kb.Styles.platformStyles({
-    isElectron: {flexGrow: 1, pointerEvents: 'none'},
+    isElectron: {alignItems: 'center', flexGrow: 1, justifyContent: 'center', pointerEvents: 'none'},
   }),
   overlayTransparent: {backgroundColor: undefined},
 }))

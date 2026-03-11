@@ -109,7 +109,7 @@ export const newModalRoutes = {
   chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
     getOptions: p => ({
       headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-      modalStyle: {height: '80%', width: '80%'},
+      modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
       overlayStyle: {alignSelf: 'stretch'},
       title: 'PDF',
     }),
