@@ -128,7 +128,7 @@ const ShowcaseTeamOfferHeader = () => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {},
+      container: {flex: 1, overflow: 'hidden'},
       headerContainer: Kb.Styles.platformStyles({
         isElectron: {
           paddingLeft: Kb.Styles.globalMargins.small,
