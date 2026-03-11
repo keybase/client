@@ -31,9 +31,9 @@ public class ShareViewController: UIViewController {
     while let r = responder {
       if r.responds(to: sel) {
         let imp = r.method(for: sel)
-        typealias Func = @convention(c) (AnyObject, Selector, URL, [UIApplication.OpenExternalURLOptionsKey: Any], ((Bool) -> Void)?) -> Void
+        typealias Func = @convention(c) (AnyObject, Selector, URL, AnyObject?, ((Bool) -> Void)?) -> Void
         let f = unsafeBitCast(imp, to: Func.self)
-        f(r, sel, url, [:], nil)
+        f(r, sel, url, nil, nil)
         return
       }
       responder = r.next
