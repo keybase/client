@@ -86,13 +86,13 @@ const useOrangeLine = () => {
 const NormalWrapper = function NormalWrapper() {
   const orangeLine = useOrangeLine()
   return (
-    <OrangeLineContext.Provider value={orangeLine}>
+    <OrangeLineContext value={orangeLine}>
       <FocusProvider>
         <ScrollProvider>
           <Normal />
         </ScrollProvider>
       </FocusProvider>
-    </OrangeLineContext.Provider>
+    </OrangeLineContext>
   )
 }
 export default NormalWrapper

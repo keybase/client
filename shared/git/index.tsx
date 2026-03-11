@@ -97,7 +97,7 @@ const Container = (ownProps: OwnProps) => {
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
         )}
-        <NewContext.Provider value={badged}>
+        <NewContext value={badged}>
           <Kb.SectionList
             keyExtractor={item => item}
             extraData={expandedSet}
@@ -118,7 +118,7 @@ const Container = (ownProps: OwnProps) => {
               {data: teams, loading: loading, title: 'Team'},
             ]}
           />
-        </NewContext.Provider>
+        </NewContext>
         {popup}
       </Kb.Box2>
     </Kb.Reloadable>

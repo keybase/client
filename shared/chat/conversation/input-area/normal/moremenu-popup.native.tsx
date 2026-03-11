@@ -53,9 +53,9 @@ const MoreMenuPopup = (props: Props) => {
     },
   ]
   return (
-    <Kb.FloatingModalContext.Provider value="bottomsheet">
+    <Kb.FloatingModalContext value="bottomsheet">
       <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
-    </Kb.FloatingModalContext.Provider>
+    </Kb.FloatingModalContext>
   )
 }
 

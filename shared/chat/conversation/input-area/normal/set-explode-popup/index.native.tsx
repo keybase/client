@@ -23,7 +23,7 @@ const SetExplodePopup = (p: Props) => {
   }))
 
   return (
-    <Kb.FloatingModalContext.Provider value="bottomsheet">
+    <Kb.FloatingModalContext value="bottomsheet">
       <Kb.FloatingMenu
         header={<Prompt />}
         closeOnSelect={true}
@@ -31,7 +31,7 @@ const SetExplodePopup = (p: Props) => {
         onHidden={props.onHidden}
         visible={props.visible}
       />
-    </Kb.FloatingModalContext.Provider>
+    </Kb.FloatingModalContext>
   )
 }
 

@@ -159,10 +159,8 @@ const Keybase = () => {
           <PortalProvider>
             <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
               <StoreHelper>
-                <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
-                  <Main />
-                  {unmountAll}
-                </Kb.Styles.CanFixOverdrawContext.Provider>
+                <Main />
+                {unmountAll}
               </StoreHelper>
             </SafeAreaProvider>
           </PortalProvider>

@@ -139,7 +139,6 @@ export type {
   _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
-export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const undynamicColor: (col: string) => string
 // add file:// if its a pure path
 export declare const normalizePath: (p: string) => string

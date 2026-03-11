@@ -109,7 +109,7 @@ function ReloadableDevices() {
       reloadOnMount={true}
       title=""
     >
-      <NewContext.Provider value={badged}>
+      <NewContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
           {Kb.Styles.isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
@@ -122,7 +122,7 @@ function ReloadableDevices() {
             <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
         </Kb.Box2>
-      </NewContext.Provider>
+      </NewContext>
     </Kb.Reloadable>
   )
 }
