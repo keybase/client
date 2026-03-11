@@ -140,7 +140,7 @@ const AvatarUploadWrapper = (p: Props) => {
             <Kb.Text type="Body">{error}</Kb.Text>
           </Kb.Banner>
         ) : null}
-        <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
+        <Kb.Box2 direction="vertical" style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
           <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
@@ -289,6 +289,7 @@ const styles = Kb.Styles.styleSheetCreate(
       wizardContainer: {
         ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flex: 1,
       },
     }) as const
 )

@@ -38,7 +38,10 @@ const EditAvatarHeaderTitle = ({teamID, wizard}: {teamID?: string; wizard?: bool
   const hasImage = useModalHeaderState(s => s.editAvatarHasImage)
   if (teamID) {
     const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-    return <ModalTitle teamID={teamID} title={title} />
+    if (Kb.Styles.isMobile) {
+      return <ModalTitle teamID={teamID} title={title} />
+    }
+    return <Kb.Text type="BodyBig">{title}</Kb.Text>
   }
   return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
 }
