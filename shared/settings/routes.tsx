@@ -63,15 +63,13 @@ const VerifyPhoneHeaderLeft = () => {
   const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <Kb.BackButton
-        onClick={() => {
-          clearPhoneNumberAdd()
-          clearModals()
-        }}
-        iconColor={Kb.Styles.globalColors.white}
-      />
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+    <Kb.BackButton
+      onClick={() => {
+        clearPhoneNumberAdd()
+        clearModals()
+      }}
+      iconColor={Kb.Styles.globalColors.white}
+    />
   )
 }
 
