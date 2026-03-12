@@ -3182,7 +3182,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               get().id
             }`
           )
-          return
+          continue
         }
         set(s => {
           const m = s.messageMap.get(targetOrdinal)
