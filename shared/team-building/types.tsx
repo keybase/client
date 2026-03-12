@@ -57,7 +57,6 @@ export type Props = {
   searchResults: Array<SearchResult> | undefined
   searchString: string
   selectedService: T.TB.ServiceIdWithContact
-  serviceResultCount: {[K in T.TB.ServiceIdWithContact]?: number | undefined}
   showServiceResultCount: boolean
   teamBuildingSearchResults: T.TB.SearchResults
   teamID: T.Teams.TeamID | undefined
