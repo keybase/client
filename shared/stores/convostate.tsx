@@ -592,38 +592,33 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     s.separatorMap = sm
   }
 
-  const messageUnchanged = (
+  const mergeMessage = (
     existing: Z.WritableDraft<T.Chat.Message>,
     incoming: Z.WritableDraft<T.Chat.Message>
-  ): boolean => {
-    if (existing.id !== incoming.id || existing.type !== incoming.type) return false
-    if (existing.type === 'placeholder') return false
-    // Common mutable fields
-    if (existing.exploded !== incoming.exploded) return false
-    if (existing.submitState !== incoming.submitState) return false
-    if (existing.isCollapsed !== incoming.isCollapsed) return false
-    if (existing.isEditable !== incoming.isEditable) return false
-    if (existing.isDeleteable !== incoming.isDeleteable) return false
-    if ((existing.reactions?.size ?? 0) !== (incoming.reactions?.size ?? 0)) return false
-    if ((existing.unfurls?.size ?? 0) !== (incoming.unfurls?.size ?? 0)) return false
-    if (existing.unfurls && incoming.unfurls) {
-      for (const [key, eu] of existing.unfurls) {
-        const iu = incoming.unfurls.get(key)
-        if (!iu || eu.isCollapsed !== iu.isCollapsed) return false
+  ) => {
+    for (const [key, val] of Object.entries(incoming) as Array<[string, unknown]>) {
+      const cur = (existing as Record<string, unknown>)[key]
+      if (val instanceof HiddenString) {
+        if (!val.equals(cur as HiddenString)) {
+          ;(existing as Record<string, unknown>)[key] = val
+        }
+      } else if (val instanceof Map) {
+        if (cur instanceof Map) {
+          for (const k of (cur as Map<unknown, unknown>).keys()) {
+            if (!(val as Map<unknown, unknown>).has(k)) {
+              ;(cur as Map<unknown, unknown>).delete(k)
+            }
+          }
+          for (const [k, v] of val as Map<unknown, unknown>) {
+            ;(cur as Map<unknown, unknown>).set(k, v)
+          }
+        } else {
+          ;(existing as Record<string, unknown>)[key] = val
+        }
+      } else {
+        ;(existing as Record<string, unknown>)[key] = val
       }
     }
-    // Type-specific content
-    if (existing.type === 'text' && incoming.type === 'text') {
-      if (existing.text.stringValue() !== incoming.text.stringValue()) return false
-      if (existing.decoratedText?.stringValue() !== incoming.decoratedText?.stringValue()) return false
-      if (existing.inlinePaymentSuccessful !== incoming.inlinePaymentSuccessful) return false
-    }
-    if (existing.type === 'attachment' && incoming.type === 'attachment') {
-      if (existing.title !== incoming.title) return false
-      if (existing.transferProgress !== incoming.transferProgress) return false
-      if (existing.transferState !== incoming.transferState) return false
-    }
-    return true
   }
 
   const desktopNotification = (author: string, body: string) => {
@@ -720,9 +715,12 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             m.ordinal = mapOrdinal
           }
 
-          // Preserve existing reference if content hasn't changed
           const existingMsg = s.messageMap.get(mapOrdinal)
-          if (existingMsg && messageUnchanged(existingMsg, m)) {
+          if (existingMsg && existingMsg.type === m.type) {
+            mergeMessage(existingMsg, m)
+            if (m.type !== 'text') {
+              s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
+            }
             continue
           }
 

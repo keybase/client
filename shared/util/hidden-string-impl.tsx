@@ -18,6 +18,10 @@ class HiddenString {
     return this[valueKey]
   }
 
+  equals(other: HiddenString) {
+    return this[valueKey] === other[valueKey]
+  }
+
   toString() {
     return '[HiddenString]'
   }
