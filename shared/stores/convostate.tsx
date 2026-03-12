@@ -596,11 +596,15 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     existing: Z.WritableDraft<T.Chat.Message>,
     incoming: Z.WritableDraft<T.Chat.Message>
   ) => {
-    for (const [key, val] of Object.entries(incoming) as Array<[string, unknown]>) {
-      const cur = (existing as Record<string, unknown>)[key]
+    const existingRecord = existing as Record<string, unknown>
+    const incomingRecord = incoming as Record<string, unknown>
+    const allKeys = new Set([...Object.keys(existingRecord), ...Object.keys(incomingRecord)])
+    for (const key of allKeys) {
+      const val = incomingRecord[key]
+      const cur = existingRecord[key]
       if (val instanceof HiddenString) {
         if (!(cur instanceof HiddenString) || !val.equals(cur)) {
-          ;(existing as Record<string, unknown>)[key] = val
+          existingRecord[key] = val
         }
       } else if (val instanceof Map) {
         if (cur instanceof Map) {
@@ -613,10 +617,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             ;(cur as Map<unknown, unknown>).set(k, v)
           }
         } else {
-          ;(existing as Record<string, unknown>)[key] = val
+          existingRecord[key] = val
         }
       } else {
-        ;(existing as Record<string, unknown>)[key] = val
+        // covers: incoming has a value (set it), incoming lacks the key (val is undefined, clears it)
+        existingRecord[key] = val
       }
     }
   }
