@@ -12,9 +12,9 @@ const ConnectedEnterUsername = () => {
   const checkUsername = useSignupState(s => s.dispatch.checkUsername)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const restartSignup = useSignupState(s => s.dispatch.restartSignup)
+  const resetState = useSignupState(s => s.dispatch.resetState)
   const onBack = () => {
-    restartSignup()
+    resetState()
     navigateUp()
   }
   const onContinue = checkUsername
