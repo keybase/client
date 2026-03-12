@@ -606,7 +606,7 @@ export const getTeamRowBadgeCount = (
   teamIDToResetUsers: Store['teamIDToResetUsers'],
   teamID: T.Teams.TeamID
 ) => {
-  return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
+  return (newTeamRequests.get(teamID)?.size ?? 0) + (teamIDToResetUsers.get(teamID)?.size ?? 0)
 }
 
 export const canShowcase = (state: State, teamID: T.Teams.TeamID) => {
@@ -677,7 +677,7 @@ export const ratchetTeamVersion = (newVersion: T.Teams.TeamVersion, oldVersion?:
       }
     : newVersion
 
-export const dedupAddingMembeers = (
+export const dedupAddingMembers = (
   _existing: ReadonlyArray<T.Teams.AddingMember>,
   toAdds: ReadonlyArray<T.Teams.AddingMember>
 ) => {
@@ -691,7 +691,7 @@ export const dedupAddingMembeers = (
 }
 
 export const coerceAssertionRole = (mem: T.Teams.AddingMember): T.Teams.AddingMember => {
-  if (mem.assertion.includes('@') && ['admin, owner'].includes(mem.role)) {
+  if (mem.assertion.includes('@') && ['admin', 'owner'].includes(mem.role)) {
     return {...mem, role: 'writer'}
   }
   return mem
@@ -1095,7 +1095,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           // - Coerce assertion role (ensures it's no higher than 'writer' for
           //   non-usernames).
           const filteredMembers = members.filter(m => !assertionsInTeam.has(m.assertion))
-          s.addMembersWizard.addingMembers = dedupAddingMembeers(
+          s.addMembersWizard.addingMembers = dedupAddingMembers(
             s.addMembersWizard.addingMembers,
             filteredMembers.map(coerceAssertionRole)
           )
@@ -2366,8 +2366,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
     },
     onGregorPushState: items => {
-      let sawChatBanner = false as boolean
-      let sawSubteamsBanner = false as boolean
+      let sawChatBanner = false
+      let sawSubteamsBanner = false
       let chosenChannels: undefined | (typeof items)[0]
       const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
       items.forEach(i => {
