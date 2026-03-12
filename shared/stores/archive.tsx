@@ -4,7 +4,7 @@ import {ignorePromise} from '@/constants/utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
-import {uint8ArrayToHex} from 'uint8array-extras'
+import {makeUUID} from '@/util/uuid'
 import {fsCacheDir, isAndroid, isMobile} from '@/constants/platform'
 
 type ChatJob = {
@@ -176,8 +176,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
 
   const startChatArchive = (query: T.RPCChat.GetInboxLocalQuery | null, outPath: string) => {
     const f = async () => {
-      const jobID = crypto.getRandomValues(new Uint8Array(8))
-      const id = uint8ArrayToHex(jobID)
+      const id = makeUUID()
       const actualOutPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbchat-${id}` : '')
       try {
         await T.RPCChat.localArchiveChatRpcPromise({
