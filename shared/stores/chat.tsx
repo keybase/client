@@ -503,9 +503,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   const dispatch: State['dispatch'] = {
     badgesUpdated: b => {
       if (!b) return
-      // clear all first
-      for (const [, cs] of chatStores) {
-        cs.getState().dispatch.badgesUpdated(0)
+      const badgedConvIDs = new Set(b.conversations?.map(c => T.Chat.conversationIDToKey(c.convID)) ?? [])
+      for (const [id, cs] of chatStores) {
+        if (!badgedConvIDs.has(id) && cs.getState().badge > 0) {
+          cs.getState().dispatch.badgesUpdated(0)
+        }
       }
       b.conversations?.forEach(c => {
         const id = T.Chat.conversationIDToKey(c.convID)
@@ -1127,7 +1129,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
           const selectedConversation = Common.getSelectedConversation()
-          let loadMore = false as boolean
+          let loadMore = false
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
             if (meta) {
@@ -1165,7 +1167,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           throw new Error('onChatThreadStale invalid enum')
         }
       }
-      let loadMore = false as boolean
+      let loadMore = false
       const selectedConversation = Common.getSelectedConversation()
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
@@ -1465,11 +1467,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               }
             })
             get().dispatch.defer.onTeamsUpdateTeamRetentionPolicy(metas)
+          } else {
+            logger.error(
+              'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+            )
           }
-          // this is a more serious problem, but we don't need to bug the user about it
-          logger.error(
-            'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
-          )
           break
         }
         case EngineGen.keybase1NotifyBadgesBadgeState: {
@@ -1502,7 +1504,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
-      let added = false as boolean
+      let added = false
       const usernameToFullname: {[username: string]: string} = {}
       inboxUIItems.forEach(inboxUIItem => {
         const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
@@ -1797,7 +1799,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       ignorePromise(f())
     },
     queueMetaToRequest: ids => {
-      let added = false as boolean
+      let added = false
       untrustedConversationIDKeys(ids).forEach(k => {
         if (!metaQueue.has(k)) {
           added = true
@@ -1983,7 +1985,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
 
-          if (!isEqual(s.inboxLayout, layout)) {
+          const layoutChanged = !isEqual(s.inboxLayout, layout)
+          if (layoutChanged) {
             s.inboxLayout = T.castDraft(layout)
           }
           s.inboxHasLoaded = !!layout
@@ -2013,10 +2016,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             // Flush inbox row updates synchronously to prevent flash of empty content
             flushInboxRowUpdates()
           }
-          // Rebuild inbox rows
-          applyInboxRowsResult(s, buildInboxRows(
-            layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
-          ))
+          if (layoutChanged) {
+            applyInboxRowsResult(s, buildInboxRows(
+              layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
+            ))
+          }
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
