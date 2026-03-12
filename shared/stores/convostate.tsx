@@ -461,8 +461,57 @@ export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
   }
 }
 
+const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
+
+const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
+  switch (reason) {
+    case 'extension':
+    case 'push':
+      return T.RPCChat.GetThreadReason.push
+    case 'foregrounding':
+      return T.RPCChat.GetThreadReason.foreground
+    default:
+      return T.RPCChat.GetThreadReason.general
+  }
+}
+
+const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
+  (arr, key) => {
+    switch (key) {
+      case 'none':
+      case 'edit': // daemon filters this out for us so we can ignore
+      case 'delete':
+      case 'attachmentuploaded':
+      case 'reaction':
+      case 'unfurl':
+      case 'tlfname':
+        break
+      default:
+        {
+          const val = T.RPCChat.MessageType[key]
+          if (typeof val === 'number') {
+            arr.push(val)
+          }
+        }
+        break
+    }
+
+    return arr
+  },
+  []
+)
+
 const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const defer = convoDeferImpl ?? stubDefer
+  const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+  const getCurrentUser = () => {
+    const s = useCurrentUserState.getState()
+    return {username: s.username, devicename: s.deviceName}
+  }
 
   const closeBotModal = () => {
     clearModals()
@@ -492,35 +541,26 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           m.transferErrMsg = undefined
           m.transferProgress = 1
           m.transferState = undefined
-          updateAttachmentViewTransfered(messageID, path)
         }
       })
+      updateAttachmentViewTransfered(messageID, path)
       return rpcRes.filePath
     } catch (error) {
+      const errMsg = error instanceof RPCError
+        ? (error.message || 'Error downloading attachment')
+        : 'Error downloading attachment'
+      if (error instanceof RPCError) logger.info(`downloadAttachment error: ${error.message}`)
       set(s => {
-        if (error instanceof RPCError) {
-          logger.info(`downloadAttachment error: ${error.message}`)
-          const m = s.messageMap.get(ordinal)
-          if (m?.type === 'attachment') {
-            m.downloadPath = ''
-            m.fileURLCached = true // assume we have this on the service now
-            m.transferErrMsg = error.message || 'Error downloading attachment'
-            m.transferProgress = 0
-            m.transferState = undefined
-            updateAttachmentViewTransfered(messageID, '')
-          }
-        } else {
-          const m = s.messageMap.get(ordinal)
-          if (m?.type === 'attachment') {
-            m.downloadPath = ''
-            m.fileURLCached = true // assume we have this on the service now
-            m.transferErrMsg = 'Error downloading attachment'
-            m.transferProgress = 0
-            m.transferState = undefined
-            updateAttachmentViewTransfered(messageID, '')
-          }
+        const m = s.messageMap.get(ordinal)
+        if (m?.type === 'attachment') {
+          m.downloadPath = ''
+          m.fileURLCached = true // assume we have this on the service now
+          m.transferErrMsg = errMsg
+          m.transferProgress = 0
+          m.transferState = undefined
         }
       })
+      updateAttachmentViewTransfered(messageID, '')
       return false
     }
   }
@@ -1596,9 +1636,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
               'chat.1.chatUi.chatLoadGalleryHit': (
                 hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
               ) => {
-                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-                const username = useCurrentUserState.getState().username
-                const devicename = useCurrentUserState.getState().deviceName
+                const {username, devicename} = getCurrentUser()
                 const m = Message.uiMessageToMessage(
                   conversationIDKey,
                   hit.message,
@@ -1735,9 +1773,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             })
           }
 
-          const username = useCurrentUserState.getState().username
-          const devicename = useCurrentUserState.getState().deviceName
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+          const {username, devicename} = getCurrentUser()
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
 
           const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
@@ -1887,9 +1923,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         })
 
         if (result.message) {
-          const devicename = useCurrentUserState.getState().deviceName
-          const username = useCurrentUserState.getState().username
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+          const {username, devicename} = getCurrentUser()
           const goodMessage = Message.uiMessageToMessage(
             get().id,
             result.message,
@@ -2179,22 +2213,17 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     messageRetry: outboxID => {
       const ordinal = get().pendingOutboxToOrdinal.get(outboxID)
-      let good = true as boolean
+      if (!ordinal || !get().messageMap.get(ordinal)) return
       set(s => {
-        const m = ordinal ? s.messageMap.get(ordinal) : undefined
-        good = !!m
+        const m = s.messageMap.get(ordinal)
         if (m) {
           m.errorReason = undefined
           m.submitState = 'pending'
         }
       })
-
-      if (!good) return
-
-      const f = async () => {
+      ignorePromise(async () => {
         await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
-      }
-      ignorePromise(f())
+      }())
     },
     messagesClear: () => {
       set(s => {
@@ -2245,18 +2274,14 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         }, new Array<T.Chat.Ordinal>())
       }
 
-      const allOrdinals = new Set(
-        [
-          ...ordinals,
-          ...messageIDs.map(messageID => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)),
-          ...upToOrdinals,
-        ].reduce<Array<T.Chat.Ordinal>>((arr, n) => {
-          if (n) {
-            arr.push(n)
-          }
-          return arr
-        }, [])
-      )
+      const allOrdinals = new Set([
+        ...ordinals,
+        ...messageIDs.flatMap(id => {
+          const o = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, id)
+          return o ? [o] : []
+        }),
+        ...upToOrdinals,
+      ])
 
       set(s => {
         allOrdinals.forEach(ordinal => {
@@ -2401,7 +2426,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
-      const username = useCurrentUserState.getState().username
+      const {username, devicename} = getCurrentUser()
       // check for a reaction outbox notification before doing anything
       if (
         cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
@@ -2427,8 +2452,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
 
       const conversationIDKey = get().id
-      const devicename = useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
 
       // special case mutations
       if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
@@ -2483,29 +2506,13 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     onMessagesUpdated: messagesUpdated => {
       if (!messagesUpdated.updates) return
-      const username = useCurrentUserState.getState().username
-      const devicename = useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-      const toAdd = new Array<T.Chat.Message>()
-      messagesUpdated.updates.forEach(uimsg => {
-        const messageID = Message.getMessageID(uimsg)
-        if (!messageID) {
-          return
-        }
+      const {username, devicename} = getCurrentUser()
+      const messages = messagesUpdated.updates.flatMap(uimsg => {
+        if (!Message.getMessageID(uimsg)) return []
         const message = Message.uiMessageToMessage(get().id, uimsg, username, getLastOrdinal, devicename)
-        if (!message) {
-          return
-        }
-        const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, messageID)
-        set(s => {
-          const existing = ordinal ? s.messageMap.get(ordinal) : undefined
-          if (existing) {
-            Object.assign(existing, message)
-          }
-          toAdd.push(message)
-        })
+        return message ? [message] : []
       })
-      messagesAdd(toAdd, {why: 'messages updated'})
+      messagesAdd(messages, {why: 'messages updated'})
     },
     openFolder: () => {
       const meta = get().meta
@@ -3039,9 +3046,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-        const username = useCurrentUserState.getState().username
-        const devicename = useCurrentUserState.getState().deviceName
+        const {username, devicename} = getCurrentUser()
         const onDone = () => {
           set(s => {
             s.threadSearchInfo.status = 'done'
@@ -3350,7 +3355,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
               get().id
             }`
           )
-          return
+          continue
         }
         set(s => {
           const m = s.messageMap.get(targetOrdinal)
@@ -3508,46 +3513,3 @@ export const useChatNavigateAppend = () => {
   }
 }
 
-const formatTextForQuoting = (text: string) =>
-  text
-    .split('\n')
-    .map(line => `> ${line}\n`)
-    .join('')
-
-const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
-  switch (reason) {
-    case 'extension':
-    case 'push':
-      return T.RPCChat.GetThreadReason.push
-    case 'foregrounding':
-      return T.RPCChat.GetThreadReason.foreground
-    default:
-      return T.RPCChat.GetThreadReason.general
-  }
-}
-
-const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
-  (arr, key) => {
-    switch (key) {
-      case 'none':
-      case 'edit': // daemon filters this out for us so we can ignore
-      case 'delete':
-      case 'attachmentuploaded':
-      case 'reaction':
-      case 'unfurl':
-      case 'tlfname':
-        break
-      default:
-        {
-          const val = T.RPCChat.MessageType[key]
-          if (typeof val === 'number') {
-            arr.push(val)
-          }
-        }
-        break
-    }
-
-    return arr
-  },
-  []
-)
