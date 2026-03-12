@@ -30,8 +30,10 @@ const decodeForgotUsernameError = (error: RPCError) => {
 }
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
-const errorCausedByUsCanceling = (e?: RPCError) =>
-  (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
+const errorCausedByUsCanceling = (e?: RPCError) => {
+  const desc = e?.desc
+  return desc === 'Input canceled' || desc === 'kex canceled by caller'
+}
 const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
   response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
@@ -64,12 +66,8 @@ type Step =
   | {type: 'deviceName'}
   | {type: 'chooseDevice'; devices: Array<Device>}
   | {type: 'promptSecret'}
-type ExtractType<T> = T extends {type: infer U} ? U : never
-type StepTypes = ExtractType<Step>
-
 type Store = T.Immutable<{
   autoSubmit: Array<Step>
-  callbackMap: Map<StepTypes, () => void>
   codePageIncomingTextCode: string
   codePageOtherDevice: Device
   deviceName: string
@@ -78,16 +76,13 @@ type Store = T.Immutable<{
   existingDevices: Array<string>
   finalError?: RPCError
   forgotUsernameResult: string
-  gpgImportError?: string
   inlineError?: RPCError
   passphrase: string
-  provisionStep: number
   startProvisionTrigger: number
   username: string
 }>
 const initialStore: Store = {
   autoSubmit: [],
-  callbackMap: new Map(),
   codePageIncomingTextCode: '',
   codePageOtherDevice: makeDevice(),
   deviceName: '',
@@ -96,10 +91,8 @@ const initialStore: Store = {
   existingDevices: [],
   finalError: undefined,
   forgotUsernameResult: '',
-  gpgImportError: undefined,
   inlineError: undefined,
   passphrase: '',
-  provisionStep: 0,
   startProvisionTrigger: 0,
   username: '',
 }
@@ -188,31 +181,36 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
     })
   }
 
+  const makeCancelHelpers = () => {
+    let cancelled = false
+    const isCanceled = (response: CommonResponseHandler) => {
+      if (cancelled) {
+        cancelOnCallback(undefined, response)
+        return true
+      }
+      return false
+    }
+    const setupCancel = (response: CommonResponseHandler) => {
+      set(s => {
+        s.dispatch.dynamic.cancel = wrapErrors(() => {
+          set(s => {
+            s.dispatch.dynamic.cancel = _cancel
+          })
+          cancelled = true
+          cancelOnCallback(undefined, response)
+        })
+      })
+    }
+    return {isCanceled, setupCancel}
+  }
+
   const dispatch: State['dispatch'] = {
     addNewDevice: otherDeviceType => {
       get().dispatch.dynamic.cancel?.()
       set(s => {
         s.codePageOtherDevice.type = otherDeviceType
       })
-      let cancelled = false
-      const setupCancel = (response: CommonResponseHandler) => {
-        set(s => {
-          s.dispatch.dynamic.cancel = wrapErrors(() => {
-            set(s => {
-              s.dispatch.dynamic.cancel = _cancel
-            })
-            cancelled = true
-            cancelOnCallback(undefined, response)
-          })
-        })
-      }
-      const isCanceled = (response: CommonResponseHandler) => {
-        if (cancelled) {
-          cancelOnCallback(undefined, response)
-          return true
-        }
-        return false
-      }
+      const {isCanceled, setupCancel} = makeCancelHelpers()
       const f = async () => {
         try {
           await T.RPCGen.deviceDeviceAddRpcListener({
@@ -264,9 +262,6 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
         } finally {
           set(s => {
             s.dispatch.dynamic.cancel = _cancel
-            s.dispatch.dynamic.setDeviceName = _setDeviceName
-            s.dispatch.dynamic.setPassphrase = _setPassphrase
-            s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
             s.dispatch.dynamic.submitTextCode = _submitTextCode
           })
         }
@@ -350,31 +345,11 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
         return
       }
 
-      let cancelled = false
       // freeze the autosubmit for this call so changes don't affect us
       const {autoSubmit} = get()
       console.log('Provision: startProvisioning starting with auto submit', autoSubmit)
       const f = async () => {
-        const isCanceled = (response: CommonResponseHandler) => {
-          if (cancelled) {
-            cancelOnCallback(undefined, response)
-            return true
-          }
-          return false
-        }
-
-        // Make cancel set the flag and cancel the current rpc
-        const setupCancel = (response: CommonResponseHandler) => {
-          set(s => {
-            s.dispatch.dynamic.cancel = wrapErrors(() => {
-              set(s => {
-                s.dispatch.dynamic.cancel = _cancel
-              })
-              cancelled = true
-              cancelOnCallback(undefined, response)
-            })
-          })
-        }
+        const {isCanceled, setupCancel} = makeCancelHelpers()
 
         let submitStep = 0
         const shouldAutoSubmit = (hadError: boolean, step: Step) => {
@@ -517,7 +492,6 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
             },
             waitingKey: waitingKeyProvision,
           })
-          get().dispatch.resetState()
         } catch (_finalError) {
           if (!(_finalError instanceof RPCError)) {
             console.log('Provision non rpc error at end?', _finalError)
