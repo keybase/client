@@ -546,9 +546,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       updateAttachmentViewTransfered(messageID, path)
       return rpcRes.filePath
     } catch (error) {
-      const errMsg = error instanceof RPCError
-        ? (error.message || 'Error downloading attachment')
-        : 'Error downloading attachment'
+      const errMsg =
+        error instanceof RPCError
+          ? error.message || 'Error downloading attachment'
+          : 'Error downloading attachment'
       if (error instanceof RPCError) logger.info(`downloadAttachment error: ${error.message}`)
       set(s => {
         const m = s.messageMap.get(ordinal)
@@ -721,7 +722,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           }
 
           const existingMsg = s.messageMap.get(mapOrdinal)
-          if (existingMsg && existingMsg.type === m.type) {
+          if (existingMsg?.type === m.type) {
             mergeMessage(existingMsg, m)
             if (m.type !== 'text') {
               s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
@@ -778,8 +779,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         const prev = s.validatedOrdinalRange
         if (prev) {
           s.validatedOrdinalRange = {
-            from: (Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal),
-            to: (Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal),
+            from: Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal,
+            to: Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal,
           }
         } else {
           s.validatedOrdinalRange = validatedRange
@@ -3308,7 +3309,10 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         if (time !== undefined) s.meta.timestamp = time
         // For non-team convos, use layout name as participant fallback
         if (layoutName && !teamname && s.participants.name.length === 0) {
-          const names = layoutName.split(',').map(n => n.trim()).filter(Boolean)
+          const names = layoutName
+            .split(',')
+            .map(n => n.trim())
+            .filter(Boolean)
           s.participants = {all: names, contactName: s.participants.contactName, name: names}
         }
       })
@@ -3527,4 +3531,3 @@ export const useChatNavigateAppend = () => {
     navigateAppend(makePath(cid), replace)
   }
 }
-
