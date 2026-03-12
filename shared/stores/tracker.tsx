@@ -271,23 +271,22 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
     load: p => {
       const {guiID, forceDisplay, assertion, reason, ignoreCache = false, inTracker} = p
       set(s => {
-        const username = assertion
         if (forceDisplay) {
           logger.info(`Showing tracker for assertion: ${assertion}`)
-          s.showTrackerSet.add(username)
+          s.showTrackerSet.add(assertion)
         }
-        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
+        const d = mapGetEnsureValue(s.usernameToDetails, assertion, {...noDetails})
         d.assertions = new Map() // just remove for now, maybe keep them
         d.guiID = guiID
         d.reason = reason
         d.state = 'checking'
-        d.username = username
+        d.username = assertion
       })
       const f = async () => {
         if (p.fromDaemon) return
         const d = get().getDetails(assertion)
         if (!d.guiID) {
-          throw new Error('No guid on profile 2 load? ' + assertion || '')
+          throw new Error('No guid on profile 2 load? ' + assertion)
         }
         try {
           await T.RPCGen.identify3Identify3RpcListener({
@@ -375,7 +374,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
           const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise({assertion})
           if (res.isNonUser) {
             const common = {
-              assertion,
               assertionKey: res.assertionKey,
               assertionValue: res.assertionValue,
               description: res.description,
@@ -385,29 +383,20 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
               siteIconFullDarkmode: res.siteIconFullDarkmode || [],
             }
             if (res.service) {
-              const p = {
-                ...common,
-                ...res.service,
-              }
               set(s => {
-                const {assertion, ...rest} = p
                 const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...common, ...res.service!}))
               })
-              return
             } else {
-              const formatPhoneNumberInternational = (await import('@/util/phone-numbers'))
-                .formatPhoneNumberInternational
+              const {formatPhoneNumberInternational} = await import('@/util/phone-numbers')
               const formattedName =
                 res.assertionKey === 'phone'
                   ? formatPhoneNumberInternational('+' + res.assertionValue)
                   : undefined
-              const fullName = res.contact ? res.contact.contactName : ''
-              const p = {...common, formattedName, fullName}
+              const fullName = res.contact?.contactName ?? ''
               set(s => {
-                const {assertion, ...rest} = p
                 const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...rest}))
+                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...common, formattedName, fullName}))
               })
             }
           }
@@ -466,10 +455,9 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         if (!username) return
         const d = s.usernameToDetails.get(username)
         if (!d) return
-        const assertions = d.assertions ?? new Map()
-        d.assertions = assertions
+        d.assertions ??= new Map()
         const assertion = rpcAssertionToAssertion(row)
-        assertions.set(assertion.assertionKey, assertion)
+        d.assertions.set(assertion.assertionKey, T.castDraft(assertion))
       })
     },
     notifySummary: summary => {
@@ -542,11 +530,12 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          const cu = useCurrentUserState.getState()
+          if (cu.uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: useCurrentUserState.getState().username,
+            assertion: cu.username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: generateGUIID(),
