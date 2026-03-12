@@ -3,20 +3,20 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import {HeaderHocHeader} from './header-hoc'
+import BackButton from './back-button'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
-import Icon from './icon'
+import ImageIcon from './image-icon'
 import type {RPCError} from '@/util/errors'
-import {settingsFeedbackTab} from '@/constants/settings/util'
-import {useConfigState} from '@/constants/config'
+import {settingsFeedbackTab} from '@/constants/settings'
+import {useConfigState} from '@/stores/config'
 
 const Kb = {
+  BackButton,
   Box2,
   Button,
-  HeaderHocHeader,
-  Icon,
+  ImageIcon,
   ScrollView,
   Text,
 }
@@ -30,15 +30,23 @@ type ReloadProps = {
   title?: string
 }
 
-const Reload = React.memo(function Reload(props: ReloadProps) {
+function Reload(props: ReloadProps) {
   const [expanded, setExpanded] = React.useState(false)
-  const toggle = React.useCallback(() => setExpanded(e => !e), [])
+  const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
-      {Styles.isMobile && props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} title={props.title} />}
+      {Styles.isMobile && props.onBack && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.header}>
+          <Kb.BackButton onClick={props.onBack} />
+          <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>
+            {props.title && <Kb.Text type="BodyBig">{props.title}</Kb.Text>}
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" style={styles.headerSide} />
+        </Kb.Box2>
+      )}
       <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
-          <Kb.Icon type="icon-illustration-zen-240-180" />
+        <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
+          <Kb.ImageIcon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
           </Kb.Text>
@@ -60,7 +68,7 @@ const Reload = React.memo(function Reload(props: ReloadProps) {
       </Kb.ScrollView>
     </Kb.Box2>
   )
-})
+}
 
 export type Props = {
   children: React.ReactNode
@@ -76,13 +84,16 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload} = props
-  const onEventReload = C.useEvent(onReload)
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      reloadOnMount && onEventReload()
-    }, [reloadOnMount, onEventReload])
-  )
+  const reloadOnMountRef = React.useRef(reloadOnMount)
+  const onReloadRef = React.useRef(onReload)
+  React.useEffect(() => {
+    reloadOnMountRef.current = reloadOnMount
+    onReloadRef.current = onReload
+  }, [reloadOnMount, onReload])
+  const [stableReload] = React.useState(() => () => {
+    reloadOnMountRef.current && onReloadRef.current()
+  })
+  C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
     return <>{props.children}</>
   }
@@ -122,17 +133,19 @@ const styles = Styles.styleSheetCreate(
         common: {flexGrow: 1},
         isElectron: {wordBreak: 'break-all'},
       }),
+      header: Styles.platformStyles({
+        common: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid' as const,
+        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
+      headerSide: {width: 44},
       reload: {
-        flexGrow: 1,
         maxHeight: '100%',
         maxWidth: '100%',
-        padding: Styles.globalMargins.small,
-      },
-      scrollInside: {
-        height: '100%',
-        maxHeight: '100%',
-        maxWidth: '100%',
-        width: '100%',
       },
     }) as const
 )

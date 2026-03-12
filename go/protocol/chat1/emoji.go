@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/emoji.avdl
 
 package chat1
@@ -374,7 +374,8 @@ func (o EmojiStorage) DeepCopy() EmojiStorage {
 	}
 }
 
-type EmojiInterface interface{}
+type EmojiInterface interface {
+}
 
 func EmojiProtocol(i EmojiInterface) rpc.Protocol {
 	return rpc.Protocol{

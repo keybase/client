@@ -98,12 +98,12 @@ func TestSeqnoConcurrent(t *testing.T) {
 	}
 
 	numPayments := 10
-	for i := 0; i < numPayments; i++ {
+	for range numPayments {
 		go fakePayment(t)
 	}
 
 	seqnos := make([]uint64, numPayments)
-	for i := 0; i < numPayments; i++ {
+	for i := range numPayments {
 		seqnos[i] = <-submits
 	}
 

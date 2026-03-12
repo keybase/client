@@ -355,11 +355,8 @@ func (d *DirtyBlockCacheStandard) maybeDecreaseBuffer(start time.Time,
 		// started, and multiply that by the entire fracTimeoutUsed,
 		// since subtracting percentages in this way doesn't make a
 		// whole lot of sense.
-		d.syncBufferCap = int64(float64(d.syncBufferCap) *
-			(1 - (fracTimeoutUsed - soFar)))
-		if d.syncBufferCap < d.minSyncBufCap {
-			d.syncBufferCap = d.minSyncBufCap
-		}
+		d.syncBufferCap = max(int64(float64(d.syncBufferCap)*
+			(1-(fracTimeoutUsed-soFar))), d.minSyncBufCap)
 		d.log.CDebugf(context.TODO(), "Writes blocked for %s (%f%% of timeout), "+
 			"syncBufferCap=%d", timeoutUsed, fracTimeoutUsed*100,
 			d.syncBufferCap)
@@ -615,10 +612,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(_ tlf.ID, size int64) {
 
 	// If the outstanding bytes have timed out, don't count them
 	// towards the buffer increase.
-	ignore := d.ignoreSyncBytes
-	if ignore > size {
-		ignore = size
-	}
+	ignore := min(d.ignoreSyncBytes, size)
 	bufferIncrease := size - ignore
 	d.ignoreSyncBytes -= ignore
 

@@ -5,7 +5,7 @@ import {InfoIcon} from '@/signup/common'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
-import {settingsFeedbackTab} from '@/constants/settings/util'
+import {settingsFeedbackTab} from '@/constants/settings'
 
 const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
@@ -19,21 +19,22 @@ const headerRightActions = () => (
 
 const recoverPasswordGetOptions = {
   headerBottomStyle: {height: undefined},
-  headerLeft: undefined, // no back button
   headerRightActions,
+  title: 'Recover password',
 }
 
 export const newRoutes = {
   feedback: settingsRoutes[settingsFeedbackTab],
-  login: {screen: React.lazy(async () => import('.'))},
+  login: {getOptions: {headerShown: false}, screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
+    getOptions: {title: 'Recover password'},
     screen: React.lazy(async () => import('./recover-password/device-selector')),
   },
   recoverPasswordError: {
     getOptions: {
-      gesturesEnabled: false,
-      headerLeft: undefined, // no back button
+      gestureEnabled: false,
       headerRightActions,
+      title: 'Recover password',
     },
     screen: React.lazy(async () => import('./recover-password/error')),
   },
@@ -54,27 +55,34 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
   },
   resetConfirm: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Account reset'},
     screen: React.lazy(async () => import('./reset/confirm')),
   },
-  resetEnterPassword: {screen: React.lazy(async () => import('./reset/password-enter'))},
-  resetKnowPassword: {screen: React.lazy(async () => import('./reset/password-known'))},
-  resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting'))),
+  resetEnterPassword: {
+    getOptions: {title: 'Account reset'},
+    screen: React.lazy(async () => import('./reset/password-enter')),
+  },
+  resetKnowPassword: {
+    getOptions: {title: 'Account reset'},
+    screen: React.lazy(async () => import('./reset/password-known')),
+  },
+  resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting')), {
+    getOptions: {title: 'Account reset'},
+  }),
   ...provisionRoutes,
   ...signupRoutes,
 }
 export const newModalRoutes = {
   proxySettingsModal: {
+    getOptions: {title: 'Proxy settings'},
     screen: React.lazy(async () => import('../settings/proxy')),
   },
   recoverPasswordErrorModal: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Error'},
     screen: React.lazy(async () => import('./recover-password/error-modal')),
   },
   recoverPasswordSetPassword: {
-    getOptions: {gesturesEnabled: false},
+    getOptions: {gestureEnabled: false, title: 'Set password'},
     screen: React.lazy(async () => import('./recover-password/password')),
   },
 }
-
-export type RootParamListLogin = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

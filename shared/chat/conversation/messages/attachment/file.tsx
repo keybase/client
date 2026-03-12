@@ -1,7 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
+import * as Crypto from '@/stores/crypto'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
@@ -9,13 +8,13 @@ import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {showPopup: () => void}
 
 const missingMessage = Chat.makeMessageAttachment({})
 
-const FileContainer = React.memo(function FileContainer(p: OwnProps) {
+function FileContainer(p: OwnProps) {
   const ordinal = useOrdinal()
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -49,29 +48,26 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const saltpackOpenFile = Crypto.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSaltpackFileOpen = React.useCallback(
-    (path: string, operation: T.Crypto.Operations) => {
-      switchTab(C.Tabs.cryptoTab)
-      saltpackOpenFile(operation, path)
-    },
-    [switchTab, saltpackOpenFile]
-  )
+  const onSaltpackFileOpen = (path: string, operation: T.Crypto.Operations) => {
+    switchTab(C.Tabs.cryptoTab)
+    saltpackOpenFile(operation, path)
+  }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = React.useCallback(() => {
+  const _onShowInFinder = () => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
-  }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
+  }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDownload = React.useCallback(() => {
+  const onDownload = () => {
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
         navigateAppend({
-          props: {conversationIDKey, ordinal},
-          selected: 'chatPDF',
+          name: 'chatPDF',
+          params: {conversationIDKey, ordinal},
         })
       } else {
         switch (transferState) {
@@ -84,16 +80,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
         attachmentDownload(ordinal)
       }
     }
-  }, [
-    ordinal,
-    conversationIDKey,
-    navigateAppend,
-    attachmentDownload,
-    messageAttachmentNativeShare,
-    downloadPath,
-    transferState,
-    fileType,
-  ])
+  }
 
   const arrowColor = C.isMobile
     ? ''
@@ -127,12 +114,14 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   return (
     <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={onDownload}>
       <ShowToastAfterSaving transferState={transferState} />
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+          <Kb.ImageIcon type={iconType} style={styles.iconStyle} />
+          <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
             {fileName === title ? (
               // if the title is the filename, don't try to parse it as markdown
               <Kb.Text
@@ -171,7 +160,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
         {!Kb.Styles.isMobile && isSaltpackFile && operation && (
-          <Kb.Box style={styles.saltpackOperationContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
               small={true}
@@ -179,49 +168,45 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               style={styles.saltpackOperation}
               onClick={() => onSaltpackFileOpen(fileName, operation)}
             />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!arrowColor && (
-          <Kb.Box style={styles.downloadedIconWrapperStyle}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.downloadedIconWrapperStyle}>
             <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={arrowColor} />
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!progressLabel && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
             {hasProgress && <Kb.ProgressBar ratio={progress} />}
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {!!errorMsg && (
-          <Kb.Box style={styles.progressContainerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.error}>
               Failed to download.{' '}
               <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownload}>
                 Retry
               </Kb.Text>
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
         {onShowInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ClickableBox2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       containerStyle: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          width: '100%',
-        },
         isElectron: {...Kb.Styles.desktopStyles.clickable},
       }),
       downloadedIcon: {
@@ -230,7 +215,6 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 1,
       },
       downloadedIconWrapperStyle: {
-        ...Kb.Styles.globalStyles.flexBoxCenter,
         ...Kb.Styles.padding(3, 0, 3, 3),
         borderRadius: 20,
         bottom: 0,
@@ -251,10 +235,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
-      progressContainerStyle: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
@@ -269,7 +249,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'flex-start',
         marginTop: Kb.Styles.globalMargins.xtiny,
       },
-      titleStyle: {flex: 1},
     }) as const
 )
 

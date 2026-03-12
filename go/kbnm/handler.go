@@ -72,7 +72,7 @@ type handler struct {
 }
 
 // Handle accepts a request, handles it, and returns an optional result if there was no error
-func (h *handler) Handle(req *Request) (interface{}, error) {
+func (h *handler) Handle(req *Request) (any, error) {
 	switch req.Method {
 	case "chat":
 		return nil, h.handleChat(req)

@@ -1,8 +1,8 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -140,7 +140,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {balanceChange}
         </Kb.Text>
       )}
-      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {showCoinsIcon && <Kb.ImageIcon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = loading ? (
@@ -229,11 +229,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {justifyContent: 'space-between'},
       }),
-      button: {
-        alignSelf: 'flex-start',
-        marginTop: Kb.Styles.globalMargins.xtiny,
-      },
-      buttonText: {color: Kb.Styles.globalColors.white},
       flexWrap: {flexWrap: 'wrap'},
       lineThrough: {textDecorationLine: 'line-through'},
       memo: Kb.Styles.platformStyles({
@@ -252,9 +247,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       purple: {color: Kb.Styles.globalColors.purpleDark},
       purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
-      tooltipText: Kb.Styles.platformStyles({
-        isElectron: {wordBreak: 'normal'},
-      }),
     }) as const
 )
 

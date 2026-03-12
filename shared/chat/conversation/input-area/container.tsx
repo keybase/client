@@ -1,6 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import Normal from './normal2'
+import * as Chat from '@/stores/chat'
+import {PerfProfiler} from '@/perf/react-profiler'
+import Normal from './normal'
 import Preview from './preview'
 import ThreadSearch from '../search'
 
@@ -33,6 +34,6 @@ const InputAreaContainer = () => {
   if (showThreadSearch && C.isMobile) {
     return <ThreadSearch />
   }
-  return <Normal />
+  return <PerfProfiler id="ChatInput"><Normal /></PerfProfiler>
 }
 export default InputAreaContainer

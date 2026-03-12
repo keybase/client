@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import FloatingBox from './floating-box'
-import Box from './box'
+import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
+import Popup from './popup'
 import {useTimeout} from './use-timers'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './toast'
@@ -12,9 +12,9 @@ import noop from 'lodash/noop'
 import {useColorScheme} from 'react-native'
 
 const Kb = {
-  Box,
-  FloatingBox,
+  Box2,
   KeyboardAvoidingView2,
+  Popup,
 }
 
 const Toast = (props: Props) => {
@@ -61,20 +61,18 @@ const Toast = (props: Props) => {
   }, [shouldRender, opacity])
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        setShouldRender(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      setShouldRender(false)
+    }
+  })
 
   const isDarkMode = useColorScheme() === 'dark'
 
   return shouldRender ? (
-    <Kb.FloatingBox>
+    <Kb.Popup>
       <Kb.KeyboardAvoidingView2>
-        <Kb.Box pointerEvents="none" style={styles.wrapper}>
+        <Kb.Box2 direction="vertical" pointerEvents="none" justifyContent="center" style={styles.wrapper}>
           <NativeAnimated.View
             style={Styles.collapseStyles([
               styles.container,
@@ -89,9 +87,9 @@ const Toast = (props: Props) => {
           >
             {props.children}
           </NativeAnimated.View>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
-    </Kb.FloatingBox>
+    </Kb.Popup>
   ) : null
 }
 
@@ -115,7 +113,6 @@ const styles = Styles.styleSheetCreate(() => {
     wrapper: {
       alignItems: 'center',
       bottom: 0,
-      justifyContent: 'center',
       left: 0,
       position: 'absolute',
       right: 0,

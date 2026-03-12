@@ -1,13 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
-import {ModalTitle, useChannelParticipants} from '@/teams/common'
+import {useChannelParticipants} from '@/teams/common'
+import {useModalHeaderState} from '@/stores/modal-header'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -23,11 +24,9 @@ const AddToChannel = (props: Props) => {
   const {channelname} = Teams.useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
-  const allMembers = React.useMemo(() => {
-    return [...teamDetails.members.values()]
-      .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
-      .sort((a, b) => a.username.localeCompare(b.username))
-  }, [teamDetails.members])
+  const allMembers = [...teamDetails.members.values()]
+    .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+    .sort((a, b) => a.username.localeCompare(b.username))
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
   )
@@ -58,55 +57,40 @@ const AddToChannel = (props: Props) => {
 
   const loading = !allMembers.length
 
+  React.useEffect(() => {
+    const handleAdd = () => {
+      setWaiting(true)
+      addToChannel(
+        [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+        () => {
+          setWaiting(false)
+          loadTeamChannelList(teamID)
+          nav.safeNavigateUp()
+        },
+        (e: {message: string}) => {
+          setError(e.message)
+          setWaiting(false)
+        }
+      )
+    }
+    useModalHeaderState.setState({
+      actionEnabled: toAdd.size > 0,
+      actionWaiting: waiting,
+      onAction: handleAdd,
+      title: `Add to #${channelname}`,
+    })
+    return () => {
+      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+    }
+  }, [channelname, teamID, toAdd, toAdd.size, waiting, addToChannel, conversationIDKey, loadTeamChannelList, nav])
+
   return (
-    <Kb.Modal
-      header={{
-        hideBorder: Kb.Styles.isMobile,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton: Kb.Styles.isMobile && toAdd.size && (
-          <Kb.Text type="BodyBigLink" onClick={waiting ? undefined : onAdd}>
-            Add
-          </Kb.Text>
-        ),
-        title: title({channelname, teamID}),
-      }}
-      footer={
-        Kb.Styles.isMobile
-          ? undefined
-          : {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
-                    type="Dim"
-                    label="Cancel"
-                    onClick={onClose}
-                    style={Kb.Styles.globalStyles.flexOne}
-                  />
-                  <Kb.Button
-                    label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
-                    onClick={onAdd}
-                    disabled={!toAdd.size}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    waiting={waiting}
-                  />
-                </Kb.Box2>
-              ),
-            }
-      }
-      onClose={onClose}
-      allowOverflow={true}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
         size="full-width"
@@ -116,8 +100,10 @@ const AddToChannel = (props: Props) => {
         style={styles.filterInput}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-        <Kb.List2
+        <Kb.List
+          keyProperty="username"
           items={membersFiltered}
+          extraData={toAdd}
           renderItem={(idx, item) => {
             const alreadyIn = participants.includes(item.username)
             const onCheck = () => {
@@ -130,7 +116,7 @@ const AddToChannel = (props: Props) => {
               }
             }
             return (
-              <Kb.ListItem2
+              <Kb.ListItem
                 firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
@@ -162,20 +148,32 @@ const AddToChannel = (props: Props) => {
               />
             )
           }}
-          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
           style={styles.list}
         />
       </Kb.Box2>
-    </Kb.Modal>
+      {Kb.Styles.isMobile ? null : (
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kb.Button
+                type="Dim"
+                label="Cancel"
+                onClick={onClose}
+                style={Kb.Styles.globalStyles.flexOne}
+              />
+              <Kb.Button
+                label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+                onClick={onAdd}
+                disabled={!toAdd.size}
+                style={Kb.Styles.globalStyles.flexOne}
+                waiting={waiting}
+              />
+            </Kb.Box2>
+        </Kb.Box2>
+      )}
+    </>
   )
 }
-
-const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
-  Kb.Styles.isMobile ? (
-    `Add to #${channelname}`
-  ) : (
-    <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
-  )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {
@@ -191,6 +189,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   list: Kb.Styles.platformStyles({isMobile: {height: '100%'}}),
   listContainer: Kb.Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddToChannel

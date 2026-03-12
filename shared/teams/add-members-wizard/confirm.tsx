@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
-import {ModalTitle, ChannelsWidget} from '../common'
+import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -34,7 +34,6 @@ const AddMembersConfirm = () => {
       const newTeamWizErr = teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined
       return {
         addMembersWizard: s.addMembersWizard,
-        cancelAddMembersWizard: s.dispatch.cancelAddMembersWizard,
         finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
@@ -43,7 +42,7 @@ const AddMembersConfirm = () => {
       }
     })
   )
-  const {addMembersWizard, cancelAddMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
+  const {addMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
   const {isInTeam, isSubteam, newTeamWizErr} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
@@ -59,9 +58,6 @@ const AddMembersConfirm = () => {
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
-  const onLeave = () => cancelAddMembersWizard()
-  const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -103,35 +99,11 @@ const AddMembersConfirm = () => {
       }
 
   return (
-    <Kb.Modal
-      allowOverflow={true}
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: fromNewTeamWizard ? (
-          <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onLeave}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: <ModalTitle teamID={teamID} title={`Inviting ${addingMembers.length} ${noun}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label={`Invite ${addingMembers.length} ${noun} & finish`}
-            waiting={waiting}
-            onClick={onComplete}
-            disabled={addingMembers.length === 0}
-          />
-        ),
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <AddingMembers disabledRoles={disabledRoles} />
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.controls}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
             <AddMoreMembers />
             <RoleSelector
               memberCount={addingMembers.length}
@@ -148,9 +120,8 @@ const AddMembersConfirm = () => {
                 Include a note in your email
               </Kb.Text>
             ) : (
-              <Kb.LabeledInput
+              <Kb.Input3
                 autoFocus={true}
-                hoverPlaceholder="Ex: Hey folks, here is my team on Keybase. Can't wait to chat securely!"
                 maxLength={250}
                 multiline={true}
                 onChangeText={text => setEmailMessage(text)}
@@ -165,7 +136,16 @@ const AddMembersConfirm = () => {
         {membersAlreadyInTeam.length > 0 && <AlreadyInTeam assertions={membersAlreadyInTeam} />}
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            fullWidth={true}
+            label={`Invite ${addingMembers.length} ${noun} & finish`}
+            waiting={waiting}
+            onClick={onComplete}
+            disabled={addingMembers.length === 0}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -173,15 +153,15 @@ const AddMembersConfirm = () => {
 const alreadyInTeamLimit = 20
 
 const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
-  const invitedStr = React.useMemo(() => {
+  const invitedStr = (() => {
     if (assertions.length > alreadyInTeamLimit) {
       const left = assertions.length - alreadyInTeamLimit
       const spliced = assertions.slice(0, alreadyInTeamLimit)
       return spliced.map(x => assertionToDisplay(x)).join(', ') + `... (and ${left} more)`
     }
     return assertions.map(x => assertionToDisplay(x)).join(', ')
-  }, [assertions])
-  const noun = React.useMemo(() => {
+  })()
+  const noun = (() => {
     // If all assertions are emails or phone numbers, use "emails" or "phone
     // numbers" noun. Otherwise, use "people".
     const types = new Set<string>()
@@ -204,7 +184,7 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
       }
     }
     return 'people'
-  }, [assertions])
+  })()
   return (
     <Kb.Text type="BodySmallSuccess" selectable={true}>
       Some {noun} were already invited to the team and are not shown here: {invitedStr}
@@ -220,8 +200,7 @@ const AddMoreMembers = () => {
     }))
   )
   const teamID = useTeamsState(s => s.addMembersWizard.teamID)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
       const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
@@ -241,9 +220,7 @@ const AddMoreMembers = () => {
           ]}
         />
       )
-    },
-    [appendNewTeamBuilder, nav, teamID]
-  )
+    }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
@@ -388,8 +365,8 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
     setAddMembersWizardIndividualRole(props.assertion, newRole)
   }
   return (
-    <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.memberPill}>
+    <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
+      <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
         <Kb.Avatar size={16} username={props.assertion} />
         <Kb.ConnectedUsernames
           type="BodyBold"
@@ -438,18 +415,12 @@ const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
     }))
   )
   const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
-  const onAdd = React.useCallback(
-    (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
+  const onAdd = (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
       addMembersWizardSetDefaultChannels(toAdd)
-    },
-    [addMembersWizardSetDefaultChannels]
-  )
-  const onRemove = React.useCallback(
-    (toRemove: T.Teams.ChannelNameID) => {
+    }
+  const onRemove = (toRemove: T.Teams.ChannelNameID) => {
       addMembersWizardSetDefaultChannels(undefined, toRemove)
-    },
-    [addMembersWizardSetDefaultChannels]
-  )
+    }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>
@@ -499,7 +470,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: Kb.Styles.borderRadius,
-      justifyContent: 'space-between',
     },
     isElectron: {
       height: 32,
@@ -516,7 +486,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.black_20,
     borderRadius: Kb.Styles.borderRadius,
     height: 40,
-    justifyContent: 'center',
   },
   addingMembers: Kb.Styles.platformStyles({
     common: {
@@ -535,14 +504,26 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   body: {
+    flex: 1,
     padding: Kb.Styles.globalMargins.small,
-  },
-  controls: {
-    justifyContent: 'space-between',
   },
   flexDefinitelyShrink: {flexShrink: 100},
   flexShrink: {flexShrink: 1},
-  memberPill: {flex: 1, width: 0},
+  memberPill: {width: 0},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default AddMembersConfirm

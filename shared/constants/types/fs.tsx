@@ -357,6 +357,7 @@ export enum MobilePickType {
   Photo = 'photo',
   Video = 'video',
   Mixed = 'mixed',
+  File = 'file',
 }
 
 export enum FileEditType {

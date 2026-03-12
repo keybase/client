@@ -115,7 +115,6 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 
 	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
 	for _, resolvedAssertion := range resolvedAssertions {
-		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(func() error {
 			return verifyResolveResult(subctx, g, resolvedAssertion)
 		})

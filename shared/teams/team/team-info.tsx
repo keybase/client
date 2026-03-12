@@ -1,15 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {ModalTitle} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
-  const nav = useSafeNavigation()
   const {teamID} = props
   const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
@@ -34,7 +31,6 @@ const TeamInfo = (props: Props) => {
 
   const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
   const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
-  const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {
       renameTeam(teamname, parentTeamNameWithDot + newName)
@@ -43,54 +39,44 @@ const TeamInfo = (props: Props) => {
       editTeamDescription(teamID, description)
     }
   }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onEditAvatar = () =>
-    nav.safeNavigateAppend({
-      props: {sendChatNotification: true, showBack: true, teamID},
-      selected: 'profileEditAvatar',
+    navigateAppend({
+      name: 'profileEditAvatar',
+      params: {sendChatNotification: true, showBack: true, teamID},
     })
+
+  const wasWaitingRef = React.useRef(waiting)
+  React.useEffect(() => {
+    if (!waiting && wasWaitingRef.current && !errors.desc && !errors.rename) {
+      navigateUp()
+    }
+  }, [waiting, navigateUp, errors.desc, errors.rename])
+  React.useEffect(() => {
+    wasWaitingRef.current = waiting
+  }, [waiting])
+
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={onBack}
-      header={{
-        leftButton: Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
-        title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={saveDisabled}
-            waiting={waiting}
-          />
-        ),
-      }}
-      banners={
-        <>
-          {Object.keys(errors).map(k =>
-            errors[k as keyof typeof errors] ? (
-              <Kb.Banner color="red" key={k}>
-                {errors[k as keyof typeof errors] ?? ''}
-              </Kb.Banner>
-            ) : null
-          )}
-        </>
-      }
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
+      {Object.keys(errors).map(k =>
+        errors[k as keyof typeof errors] ? (
+          <Kb.Banner color="red" key={k}>
+            {errors[k as keyof typeof errors] ?? ''}
+          </Kb.Banner>
+        ) : null
+      )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
         <Kb.Avatar
-          editable={true}
-          onEditAvatarClick={onEditAvatar}
+          onClick={onEditAvatar}
           teamname={teamname}
           size={96}
           style={styles.avatar}
-        />
+        >
+          <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />
+        </Kb.Avatar>
         {isSubteam ? (
-          <Kb.NewInput
+          <Kb.Input3
             autoFocus={true}
             maxLength={16}
             onChangeText={setName}
@@ -100,7 +86,7 @@ const TeamInfo = (props: Props) => {
             containerStyle={styles.subteamNameInput}
           />
         ) : (
-          <Kb.LabeledInput
+          <Kb.Input3
             containerStyle={styles.faded}
             maxLength={16}
             onChangeText={setName}
@@ -112,8 +98,7 @@ const TeamInfo = (props: Props) => {
         <Kb.Text type="BodySmall">
           {isSubteam ? `Subteam names are private.` : `Team names can't be changed.`}
         </Kb.Text>
-        <Kb.LabeledInput
-          hoverPlaceholder={isSubteam ? 'What is this subteam about?' : 'What is your team about?'}
+        <Kb.Input3
           placeholder="Description"
           value={description}
           autoFocus={!isSubteam}
@@ -125,17 +110,24 @@ const TeamInfo = (props: Props) => {
         />
         {/* TODO: location */}
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            label="Save"
+            onClick={onSave}
+            fullWidth={true}
+            disabled={saveDisabled}
+            waiting={waiting}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.tiny,
   },
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
@@ -143,16 +135,36 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  faded: {opacity: 0.5},
-  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
+  editTeamAvatar: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.blue,
+      borderColor: Kb.Styles.globalColors.white,
+      borderRadius: 100,
+      borderStyle: 'solid',
+      borderWidth: 2,
+      bottom: -6,
+      color: Kb.Styles.globalColors.whiteOrWhite,
+      padding: 4,
+      position: 'absolute',
+      right: -6,
     },
   }),
+  faded: {opacity: 0.5},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
 export default TeamInfo

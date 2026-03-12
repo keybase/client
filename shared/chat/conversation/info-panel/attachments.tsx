@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -177,7 +177,7 @@ type MediaThumbProps = {
 const MediaThumb = (props: MediaThumbProps) => {
   const {sizing, thumb} = props
   return (
-    <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
       <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
@@ -194,12 +194,12 @@ const MediaThumb = (props: MediaThumbProps) => {
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Image2 src={thumb.previewURL} style={{...sizing.dims}} />
+          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} />
         )}
       </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
-          <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
+          <Kb.ImageIcon type="icon-film-64" style={styles.filmIcon} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -210,9 +210,9 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
-  const shouldShow = React.useCallback(() => {
+  const shouldShow = () => {
     return !!item.message
-  }, [item])
+  }
   const {showPopup, popup} = useMessagePopup({
     ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
     shouldShow,
@@ -221,7 +221,7 @@ const DocViewRow = (props: DocViewRowProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ClickableBox onClick={item.onClick} onLongPress={showPopup}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-          <Kb.Icon type="icon-file-32" style={styles.docIcon} />
+          <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
             <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
             {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
@@ -300,6 +300,22 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
   </Kb.Box2>
 )
 
+const LinkTitle = (p: {title: string; url?: string}) => {
+  const urlProps = Kb.useClickURL(p.url ?? '')
+  return (
+    <Kb.Text
+      type="BodySmallPrimaryLink"
+      {...urlProps}
+      style={Kb.Styles.collapseStyles([
+        styles.linkStyle,
+        {color: Kb.Styles.globalColors.blueDark},
+      ])}
+    >
+      {p.title}
+    </Kb.Text>
+  )
+}
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -316,10 +332,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       avatar: {marginRight: Kb.Styles.globalMargins.tiny},
-      container: {
-        flex: 1,
-        height: '100%',
-      },
       docBottom: {padding: Kb.Styles.globalMargins.tiny},
       docIcon: {height: 32},
       docProgress: {alignSelf: 'center'},
@@ -359,18 +371,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      loading: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -12,
-        marginLeft: -12,
-        marginRight: -12,
-        marginTop: -12,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
-        width: 24,
-      },
       selectorContainer: {
         maxWidth: 460,
         padding: Kb.Styles.globalMargins.small,
@@ -408,10 +408,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderTopLeftRadius: Kb.Styles.borderRadius,
         borderTopRightRadius: 0,
       },
-      thumbContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
     }) as const
 )
 
@@ -443,15 +439,12 @@ export const useAttachmentSections = (
   const loadMessagesCentered = Chat.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
-  const jumpToAttachment = React.useCallback(
-    (messageID: T.Chat.MessageID) => {
-      if (C.isMobile) {
-        clearModals()
-      }
-      loadMessagesCentered(messageID, 'always')
-    },
-    [loadMessagesCentered, clearModals]
-  )
+  const jumpToAttachment = (messageID: T.Chat.MessageID) => {
+    if (C.isMobile) {
+      clearModals()
+    }
+    loadMessagesCentered(messageID, 'always')
+  }
 
   C.useOnMountOnce(() => {
     setTimeout(() => {
@@ -499,7 +492,7 @@ export const useAttachmentSections = (
   }
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
@@ -721,16 +714,7 @@ export const useAttachmentSections = (
                       </Kb.Markdown>
                     </Kb.Box2>
                     {!!item.title && (
-                      <Kb.Text
-                        type="BodySmallPrimaryLink"
-                        onClickURL={item.url}
-                        style={Kb.Styles.collapseStyles([
-                          styles.linkStyle,
-                          {color: Kb.Styles.globalColors.blueDark},
-                        ])}
-                      >
-                        {item.title}
-                      </Kb.Text>
+                      <LinkTitle title={item.title} url={item.url} />
                     )}
                     <Kb.Divider />
                   </Kb.Box2>

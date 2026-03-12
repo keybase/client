@@ -6,6 +6,7 @@ package engine
 import (
 	"fmt"
 	"runtime/debug"
+	"slices"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -21,10 +22,8 @@ type UIDelegateWanter interface {
 }
 
 func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
-	for _, ui := range c.RequiredUIs() {
-		if ui == kind {
-			return true
-		}
+	if slices.Contains(c.RequiredUIs(), kind) {
+		return true
 	}
 	for _, sub := range c.SubConsumers() {
 		if requiresUI(sub, kind) {

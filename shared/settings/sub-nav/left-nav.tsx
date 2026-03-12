@@ -1,12 +1,9 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import WhatsNewIcon from '@/whats-new/icon'
 import SettingsItem from './settings-item'
-import {keybaseFM} from '@/constants/whats-new'
-import * as Settings from '@/constants/settings'
-import {usePushState} from '@/constants/push'
-import {useNotifState} from '@/constants/notifications'
+import * as Settings from '@/stores/settings'
+import {usePushState} from '@/stores/push'
+import {useNotifState} from '@/stores/notifications'
 
 type Props = {
   onClick: (s: string) => void
@@ -20,12 +17,11 @@ const LeftNav = (props: Props) => {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
-  const onSignout = React.useCallback(() => {
+  const onSignout = () => {
     navigate(Settings.settingsLogOutTab)
-  }, [navigate])
+  }
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
-      <Kb.ScrollView style={styles.container}>
+    <Kb.ScrollView style={styles.container}>
         {Kb.Styles.isTablet && (
           <>
             <SettingsItem
@@ -51,14 +47,6 @@ const LeftNav = (props: Props) => {
               selected={props.selected === Settings.settingsDevicesTab}
               onClick={props.onClick}
               badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
-            />
-
-            <SettingsItem
-              text={keybaseFM}
-              iconComponent={WhatsNewIcon}
-              type={Settings.settingsWhatsNewTab}
-              selected={props.selected === Settings.settingsWhatsNewTab}
-              onClick={props.onClick}
             />
             <Kb.SectionDivider label="Settings" />
           </>
@@ -114,14 +102,6 @@ const LeftNav = (props: Props) => {
           selected={props.selected === Settings.settingsFsTab}
           onClick={props.onClick}
         />
-        {!Kb.Styles.isTablet && (
-          <SettingsItem
-            text="Invitations"
-            type={Settings.settingsInvitationsTab}
-            selected={props.selected === Settings.settingsInvitationsTab}
-            onClick={props.onClick}
-          />
-        )}
         <SettingsItem
           badgeNumber={badgeNotifications}
           text="Notifications"
@@ -154,8 +134,7 @@ const LeftNav = (props: Props) => {
         {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
         <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={onSignout} />
-      </Kb.ScrollView>
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+    </Kb.ScrollView>
   )
 }
 

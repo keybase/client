@@ -1184,7 +1184,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	err = remote.Post(mctx, *rev2Bundle)
 	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		// turn mobile only off
 		err = tc2.Srv.SetAccountAllDevicesLocal(context.TODO(), stellar1.SetAccountAllDevicesLocalArg{
 			AccountID: a1,
@@ -1351,7 +1351,7 @@ func TestAutoClaimLoop(t *testing.T) {
 	tcs[1].G.GetStellar().KickAutoClaimRunner(tcs[1].MetaContext(), gregor1.MsgID{})
 
 	var found bool
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		time.Sleep(100 * time.Millisecond * libkb.CITimeMultiplier(tcs[1].G))
 		payment := tcs[1].Backend.txLog.Find(sendRes.KbTxID.String())
 		claim := payment.Summary.Relay().Claim
@@ -1394,7 +1394,7 @@ func TestShutdown(t *testing.T) {
 	require.Equal(t, balances[0].Amount, "10000")
 
 	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(index int) {
 			time.Sleep(time.Duration(index*10) * time.Millisecond)
@@ -1565,7 +1565,7 @@ func (tc *TestContext) MetaContext() libkb.MetaContext {
 // Returns (FakeUsers, TestContexts, CleanupFunction)
 func setupNTests(t *testing.T, n int) ([]*TestContext, func()) {
 	var settings []usetting
-	for i := 0; i < n; i++ {
+	for range n {
 		settings = append(settings, usettingFull)
 	}
 	return setupTestsWithSettings(t, settings)

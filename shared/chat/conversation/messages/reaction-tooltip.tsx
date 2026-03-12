@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -41,13 +41,13 @@ const ReactionTooltip = (p: OwnProps) => {
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onAddReaction = React.useCallback(() => {
+  const onAddReaction = () => {
     onHidden()
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-      selected: 'chatChooseEmoji',
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
     }))
-  }, [navigateAppend, onHidden, ordinal])
+  }
 
   let reactions = [...(_reactions?.keys() ?? [])]
     .map(emoji => {
@@ -69,10 +69,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const messageContext = React.useMemo(
-    () => ({canFixOverdraw: false, isHighlighted: false, ordinal}),
-    [ordinal]
-  )
+  const messageContext = {isHighlighted: false, ordinal}
   if (!visible) {
     return null
   }
@@ -85,7 +82,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }))
 
   return (
-    <Kb.Overlay
+    <Kb.Popup
       attachTo={attachmentRef}
       onHidden={onHidden}
       position="top center"
@@ -95,7 +92,7 @@ const ReactionTooltip = (p: OwnProps) => {
     >
       {/* need context since this uses a portal... */}
       <Chat.ChatProvider id={conversationIDKey}>
-        <MessageContext.Provider value={messageContext}>
+        <MessageContext value={messageContext}>
           <Kb.Box2
             onMouseLeave={onMouseLeave}
             onMouseOver={onMouseOver}
@@ -108,7 +105,7 @@ const ReactionTooltip = (p: OwnProps) => {
                 <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
                   Close
                 </Kb.Text>
-                <Kb.Box2 direction="horizontal" style={{flex: 1}} />
+                <Kb.Box2 direction="horizontal" flex={1} />
               </Kb.Box2>
             )}
             <Kb.SectionList
@@ -132,9 +129,9 @@ const ReactionTooltip = (p: OwnProps) => {
               </Kb.ButtonBar>
             )}
           </Kb.Box2>
-        </MessageContext.Provider>
+        </MessageContext>
       </Chat.ChatProvider>
-    </Kb.Overlay>
+    </Kb.Popup>
   )
 }
 
@@ -192,7 +189,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.small,
       },
       addReactionButtonIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      addReactionButtonText: {color: Kb.Styles.globalColors.black_50},
       buttonContainer: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,

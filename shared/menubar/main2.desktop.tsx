@@ -1,7 +1,18 @@
-import Menubar from './remote-container.desktop'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import Menubar from './index.desktop'
 import load from '../desktop/remote/component-loader.desktop'
-import {deserialize, type SerializeProps, type DeserializeProps} from './remote-serializer.desktop'
+import {useDarkModeState} from '@/stores/darkmode'
+import type {Props} from './index.desktop'
+
+const DarkModeSync = ({darkMode, children}: {darkMode: boolean; children: React.ReactNode}) => {
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  React.useEffect(() => {
+    const id = setTimeout(() => setSystemDarkMode(darkMode), 1)
+    return () => clearTimeout(id)
+  }, [setSystemDarkMode, darkMode])
+  return <>{children}</>
+}
 
 // This is to keep that arrow and gap on top w/ transparency
 const style = {
@@ -13,9 +24,12 @@ const style = {
   position: 'relative',
 } as const
 
-load<DeserializeProps, SerializeProps>({
-  child: (p: DeserializeProps) => <Menubar {...p} />,
-  deserialize,
+load<Props>({
+  child: (p: Props) => (
+    <DarkModeSync darkMode={p.darkMode}>
+      <Menubar {...p} />
+    </DarkModeSync>
+  ),
   name: 'menubar',
   showOnProps: false,
   style,

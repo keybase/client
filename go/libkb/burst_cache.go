@@ -45,7 +45,7 @@ func NewBurstCache(g *GlobalContext, cacheSize int, cacheLife time.Duration, cac
 }
 
 type burstCacheObj struct {
-	obj      interface{}
+	obj      any
 	cachedAt time.Time
 }
 
@@ -54,11 +54,11 @@ type burstCacheObj struct {
 // to an object as an interface{}. The caller to Load() should wrap into the
 // closure all parameters needed to actually fetch the object. They called
 // Load(), so they likely have them handy.
-type BurstCacheLoader func() (obj interface{}, err error)
+type BurstCacheLoader func() (obj any, err error)
 
 // Load item key from the burst cache. On a cache miss, load with the given loader function.
 // Return the object as an interface{}, so the caller needs to cast out of this burst cache.
-func (b *BurstCache) Load(ctx context.Context, key BurstCacheKey, loader BurstCacheLoader) (ret interface{}, err error) {
+func (b *BurstCache) Load(ctx context.Context, key BurstCacheKey, loader BurstCacheLoader) (ret any, err error) {
 	ctx = WithLogTag(ctx, "BC")
 	defer b.G().CVTrace(ctx, VLog0, fmt.Sprintf("BurstCache(%s)#Load(%s)", b.cacheName, key.String()), &err)()
 

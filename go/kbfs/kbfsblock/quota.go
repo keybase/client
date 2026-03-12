@@ -74,7 +74,7 @@ func UsageStatFromProtocol(stat keybase1.UsageStat) *UsageStat {
 
 // NonZero checks whether UsageStat has accumulated any usage info
 func (u *UsageStat) NonZero() bool {
-	for i := UsageType(0); i < NumUsage; i++ {
+	for i := range NumUsage {
 		if u.Bytes[i] != 0 {
 			return true
 		}

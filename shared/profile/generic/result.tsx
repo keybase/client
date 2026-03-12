@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
 
@@ -34,28 +34,26 @@ const GenericResult = () => {
     )
   }
   return (
-    <Kb.PopupWrapper>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          alignItems="center"
-          fullWidth={true}
-          style={styles.topContainer}
-        >
-          <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
-            <SiteIcon set={serviceIcon} full={true} />
-            <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
-              <Kb.Icon type={iconType} color={Kb.Styles.globalColors.green} />
-            </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        alignItems="center"
+        fullWidth={true}
+        style={styles.topContainer}
+      >
+        <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
+          <SiteIcon set={serviceIcon} full={true} />
+          <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
+            <Kb.ImageIcon type={iconType} />
           </Kb.Box2>
-          {frag}
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
-          <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
-        </Kb.Box2>
+        {frag}
       </Kb.Box2>
-    </Kb.PopupWrapper>
+      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
+        <Kb.Button type="Dim" label="Close and reload Profile" onClick={onClose} />
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -65,20 +63,11 @@ const styles = Kb.Styles.styleSheetCreate(
       bottomContainer: {
         height: 80,
       },
-      container: Kb.Styles.platformStyles({
-        isElectron: {
-          height: 485,
-          width: 560,
-        },
-      }),
+      container: {},
       iconBadgeContainer: {
         bottom: -5,
         position: 'absolute',
         right: -5,
-      },
-      serviceIcon: {
-        height: 64,
-        width: 64,
       },
       serviceIconContainer: Kb.Styles.platformStyles({
         common: {

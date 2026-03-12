@@ -1,4 +1,3 @@
-import * as React from 'react'
 import PeopleItem from './item'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -45,9 +44,9 @@ const FollowNotification = (props: Props) => {
   )
   const desc = newFollows[0]?.contactDescription ?? ''
 
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     onClickUser(username)
-  }, [username, onClickUser])
+  }
 
   return (
     <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined}>
@@ -79,7 +78,7 @@ const FollowNotification = (props: Props) => {
   )
 }
 
-const MultiFollowNotification = React.memo(function MultiFollowNotification(props: Props) {
+function MultiFollowNotification(props: Props) {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
@@ -121,7 +120,7 @@ const MultiFollowNotification = React.memo(function MultiFollowNotification(prop
       </Kb.ScrollView>
     </PeopleItem>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

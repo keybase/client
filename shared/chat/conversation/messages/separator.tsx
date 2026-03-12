@@ -1,16 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import logger from '@/logger'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
-// import {useChatDebugDump} from '@/constants/chat2/debug'
+import {useTrackerState} from '@/stores/tracker'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -83,43 +82,42 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
 }
 
 // Author Avatar
-const LeftSide = React.memo(function LeftSide(p: {username?: string}) {
+function LeftSide(p: {username?: string}) {
   const {username} = p
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onAuthorClick = React.useCallback(() => {
+  const onAuthorClick = () => {
     if (!username) return
     if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)
     }
-  }, [showUserProfile, showUser, username])
+  }
 
   return username ? (
     <Kb.Avatar
       size={32}
       username={username}
-      skipBackground={true}
       onClick={onAuthorClick}
       style={styles.avatar}
     />
   ) : null
-})
+}
 
-const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
+function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
   const {ordinal, showUsername} = p
   const mdata = useState(ordinal)
   const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onAuthorClick = React.useCallback(() => {
+  const onAuthorClick = () => {
     if (C.isMobile) {
       showUsername && showUserProfile(showUsername)
     } else {
       showUsername && showUser(showUsername, true)
     }
-  }, [showUser, showUsername, showUserProfile])
+  }
 
   const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
@@ -129,7 +127,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
       colorFollowing={true}
       colorYou={true}
       onUsernameClicked={onAuthorClick}
-      fixOverdraw="auto"
+
       type="BodySmallBold"
       usernames={showUsername}
       virtualText={true}
@@ -162,9 +160,9 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
   )
 
   const timestampNode = (
-    <Kb.Text2 type="BodyTiny" virtualText={true} className="separator-text">
+    <Kb.Text type="BodyTiny" virtualText={true} className="separator-text">
       {formatTimeForChat(timestamp)}
-    </Kb.Text2>
+    </Kb.Text>
   )
 
   return (
@@ -189,7 +187,7 @@ const TopSide = React.memo(function TopSide(p: {ordinal: T.Chat.Ordinal; showUse
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const missingMessage = Chat.makeMessageDeleted({})
 
@@ -198,8 +196,6 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
   const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
   const you = useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
-
-  // const TEMP = React.useRef({})
 
   const ret = Chat.useChatContext(
     C.useShallow(s => {
@@ -221,64 +217,42 @@ const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordina
           ? formatTimeForConversationList(m.timestamp)
           : ''
 
-      // TEMP.current = {
-      //   orangeOrdinal,
-      //   ordinal,
-      //   previous,
-      //   showUsername,
-      //   mauthor: m.author,
-      //   mbot: m.botUsername,
-      //   mtype: m.type,
-      //   mtime: m.timestamp,
-      //   pauthor: pmessage?.author,
-      //   pbot: pmessage?.botUsername,
-      //   ptype: pmessage?.type,
-      //   ptime: pmessage?.timestamp,
-      //   msg: (m as {text?: T.Chat.MessageText['text']}).text?.stringValue().length,
-      //   pmsg: (pmessage as undefined | {text?: T.Chat.MessageText['text']})?.text?.stringValue().length,
-      // }
       return {orangeLineAbove, orangeTime, ordinal, showUsername}
     })
   )
-
-  // useChatDebugDump(
-  //   `CHATDEBUGSep${ordinal}:`,
-  //   C.useEvent(() => {
-  //     return JSON.stringify(TEMP.current, null, 2)
-  //   })
-  // )
 
   return ret
 }
 
 const useState = (ordinal: T.Chat.Ordinal) => {
-  const d = Chat.useChatContext(
+  const {author, teamID, teamType, teamname, botAlias, timestamp, isAdhocBot} = Chat.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
-      const participantInfoNames = s.participants.name
       const {author, timestamp} = m
       const {teamID, botAliases, teamType, teamname} = s.meta
-      // TODO not reactive
-      const authorRoleInTeam = useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
-      const authorIsOwner = authorRoleInTeam === 'owner'
-      const authorIsAdmin = authorRoleInTeam === 'admin'
-      const botAlias = botAliases[author] ?? ''
-      const authorIsBot = teamname
-        ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-        : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-          ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+      const participantInfoNames = s.participants.name
+      const isAdhocBot =
+        teamType === 'adhoc' && participantInfoNames.length > 0
+          ? !participantInfoNames.includes(author)
           : false
       return {
-        authorIsAdmin,
-        authorIsBot,
-        authorIsOwner,
-        botAlias,
+        author,
+        botAlias: botAliases[author] ?? '',
+        isAdhocBot,
+        teamID,
         teamType,
+        teamname,
         timestamp,
       }
     })
   )
-  return d
+  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+  const authorIsBot = teamname
+    ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+    : isAdhocBot
+  return {authorIsAdmin, authorIsBot, authorIsOwner, botAlias, teamType, timestamp}
 }
 
 type Props = {
@@ -286,19 +260,12 @@ type Props = {
   trailingItem: T.Chat.Ordinal
 }
 
-const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
+function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
   const {ordinal, showUsername, orangeLineAbove, orangeTime} = useStateFast(
     trailingItem,
     leadingItem ?? T.Chat.numberToOrdinal(0)
   )
-  // useful to show ordinal information while debugging
-  // return (
-  //   <Kb.Text
-  //     type="BodyTiny"
-  //     style={{height: 20}}
-  //   >{`orangeLineAbove: ${orangeLineAbove} ordinal:${ordinal} leading:${leadingItem} trailing:${trailingItem}`}</Kb.Text>
-  // )
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Kb.Box2
       direction="horizontal"
@@ -320,7 +287,7 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
       ) : null}
     </Kb.Box2>
   ) : null
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

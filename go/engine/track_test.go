@@ -327,7 +327,7 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 		require.Equal(tc.T, tse.FirstTrack, firstTrack)
 	}
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		fui1 := &FakeIdentifyUI{}
 		fui2 := &FakeIdentifyUI{}
 		doID(dev1, fui1)

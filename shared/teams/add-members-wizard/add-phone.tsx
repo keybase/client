@@ -1,19 +1,15 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {ModalTitle, usePhoneNumberList} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {usePhoneNumberList} from '../common'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
@@ -56,32 +52,12 @@ const AddPhone = () => {
   }
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Phone list" />,
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.Button
-            waiting={waiting}
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-          />
-        ),
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">
         <Kb.Text type="Body">Enter one or multiple phone numbers:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} alignItems="flex-start">
@@ -95,10 +71,19 @@ const AddPhone = () => {
               onEnterKeyDown={maybeSubmit}
             />
           ))}
-          <Kb.Button mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
+          <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={addPhoneNumber} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            waiting={waiting}
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -111,12 +96,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  wordBreak: Kb.Styles.platformStyles({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
     isElectron: {
-      wordBreak: 'break-all',
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

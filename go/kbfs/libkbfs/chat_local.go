@@ -293,10 +293,7 @@ func (c *chatLocal) GetGroupedInbox(
 		selfHandles = append(selfHandles, h)
 	}
 
-	numOver := len(results) + len(selfHandles) - maxChats
-	if numOver < 0 {
-		numOver = 0
-	}
+	numOver := max(len(results)+len(selfHandles)-maxChats, 0)
 	results = append(results[:len(results)-numOver], selfHandles...)
 	return results, nil
 }

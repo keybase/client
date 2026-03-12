@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -12,7 +12,7 @@ type OwnProps = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
+function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
 
@@ -28,21 +28,18 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
 
   const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = Chat.useChatNavigateAppend()
-  const _onForward = React.useCallback(() => {
+  const _onForward = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
+      name: 'chatForwardMsgPick',
+      params: {conversationIDKey, ordinal},
     }))
-  }, [navigateAppend, ordinal])
-  const onReact = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
-  const _onReply = React.useCallback(() => {
+  }
+  const onReact = (emoji: string) => {
+    toggleMessageReaction(ordinal, emoji)
+  }
+  const _onReply = () => {
     setReplyTo(ordinal)
-  }, [setReplyTo, ordinal])
+  }
 
   const onForward = hasUnfurls || type === 'attachment' ? _onForward : undefined
   const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
@@ -56,7 +53,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const _showPicker = () => _setShowingPicker(true)
   const _hidePicker = () => _setShowingPicker(false)
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([styles.container, style])}
@@ -69,32 +66,32 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.Box
+        <Kb.ClickableBox
           className="hover_container"
           onClick={_showPicker}
           style={styles.iconContainer}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.Box>
+        </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.Box className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.Box
+          <Kb.ClickableBox
             className="hover_container"
             onClick={onForward}
             style={styles.iconContainer}
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
       {showingPicker && (
-        <Kb.FloatingBox
+        <Kb.Popup
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
           position="top right"
@@ -102,16 +99,16 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
           propagateOutsideClicks={false}
         >
           <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
-        </Kb.FloatingBox>
+        </Kb.Popup>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
-})
+}
 
 const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
   const [hovering, setHovering] = React.useState(false)
-  const _setHovering = React.useCallback(() => setHovering(true), [])
-  const _setNotHovering = React.useCallback(() => setHovering(false), [])
+  const _setHovering = () => setHovering(true)
+  const _setNotHovering = () => setHovering(false)
   return (
     <Kb.ClickableBox
       onClick={props.onClick}

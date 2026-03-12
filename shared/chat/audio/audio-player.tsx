@@ -78,17 +78,14 @@ const AudioPlayer = (props: Props) => {
     }
   }
 
-  const onPositionUpdated = React.useCallback(
-    (ratio: number) => {
-      setPlayedRatio(ratio)
-    },
-    [setPlayedRatio]
-  )
+  const onPositionUpdated = (ratio: number) => {
+    setPlayedRatio(ratio)
+  }
 
-  const onEnded = React.useCallback(() => {
+  const onEnded = () => {
     setPaused(true)
     setPlayedRatio(0)
-  }, [setPaused, setPlayedRatio])
+  }
 
   const timeLeft = duration - playedRatio * duration
   return (
@@ -104,7 +101,7 @@ const AudioPlayer = (props: Props) => {
           color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
         />
       </Kb.ClickableBox>
-      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
+      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
@@ -116,12 +113,6 @@ const AudioPlayer = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  button: {
-    borderRadius: 15,
-    height: 30,
-    position: 'relative',
-    width: 30,
-  },
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
     backgroundColor: Kb.Styles.globalColors.white,
@@ -130,12 +121,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderWidth: 1,
   },
-  vis: {
-    alignSelf: 'flex-start',
-  },
   visContainer: {
     alignItems: 'flex-start',
-    justifyContent: 'flex-end',
     minWidth: 40,
   },
 }))

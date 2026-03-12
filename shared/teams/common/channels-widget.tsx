@@ -51,9 +51,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const channelItems = React.useMemo(
-    () =>
-      [...channelMetas.values()]
+  const channelItems = [...channelMetas.values()]
         .filter(
           c =>
             !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
@@ -63,17 +61,12 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
         .map(c => ({
           label: `#${c.channelname}`,
           value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
-        })),
-    [channelMetas, disableGeneral, disabledChannels, selected]
-  )
+        }))
 
-  const onSelect = React.useCallback(
-    (value: T.Unpacked<typeof channelItems>['value']) => {
+  const onSelect = (value: T.Unpacked<typeof channelItems>['value']) => {
       onAdd([value])
       setFilter('')
-    },
-    [onAdd, setFilter]
-  )
+    }
 
   const {popup, popupAnchor, onKeyDown, showPopup, hidePopup} = useAutocompleter(
     channelItems,

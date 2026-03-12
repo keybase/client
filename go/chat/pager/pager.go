@@ -33,7 +33,7 @@ func NewPager() Pager {
 	}
 }
 
-func (p Pager) encode(input interface{}) ([]byte, error) {
+func (p Pager) encode(input any) ([]byte, error) {
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, p.codec)
 	if err := enc.Encode(input); err != nil {
@@ -42,14 +42,14 @@ func (p Pager) encode(input interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func (p Pager) decode(data []byte, res interface{}) error {
+func (p Pager) decode(data []byte, res any) error {
 	dec := codec.NewDecoderBytes(data, p.codec)
 	err := dec.Decode(res)
 	return err
 }
 
 func (p Pager) GetPage(getcond func(bool) string, page *chat1.Pagination,
-	pivot interface{},
+	pivot any,
 ) (string, bool, error) {
 	var dat []byte
 	var cond string
@@ -74,7 +74,7 @@ func (p Pager) GetPage(getcond func(bool) string, page *chat1.Pagination,
 	return cond, prev, nil
 }
 
-func (p Pager) MakePage(length, reqed int, next interface{}, prev interface{}) (*chat1.Pagination, error) {
+func (p Pager) MakePage(length, reqed int, next any, prev any) (*chat1.Pagination, error) {
 	prevEncoded, err := p.encode(prev)
 	if err != nil {
 		return nil, err

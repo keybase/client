@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/saltpack.avdl
 
 package keybase1
@@ -404,11 +404,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 		Name: "keybase.1.saltpack",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"saltpackEncrypt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackEncryptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackEncryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackEncryptArg)(nil), args)
@@ -419,11 +419,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackDecrypt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackDecryptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackDecryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackDecryptArg)(nil), args)
@@ -434,11 +434,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSign": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSignArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSignArg)(nil), args)
@@ -449,11 +449,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackVerify": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackVerifyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackVerifyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackVerifyArg)(nil), args)
@@ -464,11 +464,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackEncryptString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackEncryptStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackEncryptStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackEncryptStringArg)(nil), args)
@@ -479,11 +479,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackEncryptStringToTextFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackEncryptStringToTextFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackEncryptStringToTextFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackEncryptStringToTextFileArg)(nil), args)
@@ -494,11 +494,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackEncryptFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackEncryptFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackEncryptFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackEncryptFileArg)(nil), args)
@@ -509,11 +509,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackDecryptString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackDecryptStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackDecryptStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackDecryptStringArg)(nil), args)
@@ -524,11 +524,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackDecryptFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackDecryptFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackDecryptFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackDecryptFileArg)(nil), args)
@@ -539,11 +539,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSignString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSignStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSignStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSignStringArg)(nil), args)
@@ -554,11 +554,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSignStringToTextFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSignStringToTextFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSignStringToTextFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSignStringToTextFileArg)(nil), args)
@@ -569,11 +569,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSignFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSignFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSignFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSignFileArg)(nil), args)
@@ -584,11 +584,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSaveCiphertextToFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSaveCiphertextToFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSaveCiphertextToFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSaveCiphertextToFileArg)(nil), args)
@@ -599,11 +599,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackSaveSignedMsgToFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackSaveSignedMsgToFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackSaveSignedMsgToFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackSaveSignedMsgToFileArg)(nil), args)
@@ -614,11 +614,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackVerifyString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackVerifyStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackVerifyStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackVerifyStringArg)(nil), args)
@@ -629,11 +629,11 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 				},
 			},
 			"saltpackVerifyFile": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackVerifyFileArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackVerifyFileArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackVerifyFileArg)(nil), args)
@@ -652,81 +652,81 @@ type SaltpackClient struct {
 }
 
 func (c SaltpackClient) SaltpackEncrypt(ctx context.Context, __arg SaltpackEncryptArg) (res SaltpackEncryptResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncrypt", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncrypt", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackDecrypt(ctx context.Context, __arg SaltpackDecryptArg) (res SaltpackEncryptedMessageInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecrypt", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecrypt", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSign(ctx context.Context, __arg SaltpackSignArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSign", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSign", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackVerify(ctx context.Context, __arg SaltpackVerifyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerify", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerify", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackEncryptString(ctx context.Context, __arg SaltpackEncryptStringArg) (res SaltpackEncryptStringResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackEncryptStringToTextFile(ctx context.Context, __arg SaltpackEncryptStringToTextFileArg) (res SaltpackEncryptFileResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptStringToTextFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptStringToTextFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackEncryptFile(ctx context.Context, __arg SaltpackEncryptFileArg) (res SaltpackEncryptFileResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackDecryptString(ctx context.Context, __arg SaltpackDecryptStringArg) (res SaltpackPlaintextResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackDecryptFile(ctx context.Context, __arg SaltpackDecryptFileArg) (res SaltpackFileResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSignString(ctx context.Context, __arg SaltpackSignStringArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSignStringToTextFile(ctx context.Context, __arg SaltpackSignStringToTextFileArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignStringToTextFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignStringToTextFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSignFile(ctx context.Context, __arg SaltpackSignFileArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSaveCiphertextToFile(ctx context.Context, __arg SaltpackSaveCiphertextToFileArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSaveCiphertextToFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSaveCiphertextToFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackSaveSignedMsgToFile(ctx context.Context, __arg SaltpackSaveSignedMsgToFileArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSaveSignedMsgToFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSaveSignedMsgToFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackVerifyString(ctx context.Context, __arg SaltpackVerifyStringArg) (res SaltpackVerifyResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackClient) SaltpackVerifyFile(ctx context.Context, __arg SaltpackVerifyFileArg) (res SaltpackVerifyFileResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyFile", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

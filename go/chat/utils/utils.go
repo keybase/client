@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -433,12 +435,7 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 }
 
 func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) bool {
-	for _, mt := range l {
-		if messageType == mt {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(l, messageType)
 }
 
 func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
@@ -535,21 +532,21 @@ func (d DebugLabeler) showLog() bool {
 	return true
 }
 
-func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
+func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...any) {
 	if d.showLog() {
 		d.G().GetLog().CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
-func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) Trace(ctx context.Context, err *error, format string, args ...any) func() {
 	return d.trace(ctx, d.G().GetLog(), err, format, args...)
 }
 
-func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) PerfTrace(ctx context.Context, err *error, format string, args ...any) func() {
 	return d.trace(ctx, d.G().GetPerfLog(), err, format, args...)
 }
 
-func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...interface{}) func() {
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, err *error, format string, args ...any) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
@@ -771,11 +768,8 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 		if err != nil {
 			return nil, err
 		}
-		for _, memb := range membs {
-			if memb == nname.String() {
-				shouldLookup = true
-				break
-			}
+		if slices.Contains(membs, nname.String()) {
+			shouldLookup = true
 		}
 	}
 	if shouldLookup {
@@ -1796,9 +1790,7 @@ func PresentDecoratedReactionMap(ctx context.Context, g *globals.Context, uid gr
 				chat1.MessageType_REACTION, msg.Emojis)
 		}
 		desc.Users = make(map[string]chat1.Reaction)
-		for username, reaction := range value {
-			desc.Users[username] = reaction
-		}
+		maps.Copy(desc.Users, value)
 		res.Reactions[key] = desc
 	}
 	return res
@@ -2280,7 +2272,7 @@ func ParseTeamNameFromDisplayName(displayName string) string {
 // comma-separated display name (e.g. "alice,bob,charlie").
 func ParseParticipantNamesFromDisplayName(displayName string, maxCount int) []string {
 	var out []string
-	for _, p := range strings.Split(displayName, ",") {
+	for p := range strings.SplitSeq(displayName, ",") {
 		if u := strings.TrimSpace(p); u != "" {
 			out = append(out, u)
 			if len(out) >= maxCount {
@@ -2627,7 +2619,7 @@ func EscapeForDecorate(ctx context.Context, body string) string {
 	})
 }
 
-func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration any) (res string, added int) {
 	out, err := json.Marshal(decoration)
 	if err != nil {
 		return res, 0
@@ -2829,7 +2821,7 @@ func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
 	// Remove all quoted lines. Because we removed all codeblocks
 	// before, we only need to consider single lines.
 	var ret []string
-	for _, line := range strings.Split(xs, string(newline)) {
+	for line := range strings.SplitSeq(xs, string(newline)) {
 		if skipAngleQuotes || !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
 			ret = append(ret, line)
 		} else {

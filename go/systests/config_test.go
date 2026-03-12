@@ -55,17 +55,17 @@ func (c *configTestUI) GetDumbOutputUI() libkb.DumbOutputUI {
 	return c
 }
 
-func (c *configTestUI) Printf(fmtString string, args ...interface{}) (int, error) {
+func (c *configTestUI) Printf(fmtString string, args ...any) (int, error) {
 	return c.PrintfUnescaped(fmtString, args...)
 }
 
-func (c *configTestUI) PrintfUnescaped(fmtString string, args ...interface{}) (int, error) {
+func (c *configTestUI) PrintfUnescaped(fmtString string, args ...any) (int, error) {
 	s := fmt.Sprintf(fmtString, args...)
 	c.stdout = append(c.stdout, s)
 	return 0, nil
 }
 
-func (c *configTestUI) PrintfStderr(fmtString string, args ...interface{}) (int, error) {
+func (c *configTestUI) PrintfStderr(fmtString string, args ...any) (int, error) {
 	s := fmt.Sprintf(fmtString, args...)
 	c.stderr = append(c.stderr, s)
 	return 0, nil

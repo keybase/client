@@ -4,12 +4,12 @@ import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
-import type {Props as InputProps} from '@/common-adapters/labeled-input'
+import type {Input3Props} from '@/common-adapters/input3'
 import type {Props} from '.'
 
 const LoginRender = (props: Props) => {
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
-  const inputProps: InputProps = {
+  const inputProps: Input3Props = {
     autoFocus: true,
     error: !!props.error,
     keyboardType: props.showTyping && C.isAndroid ? 'visible-password' : 'default',
@@ -17,22 +17,23 @@ const LoginRender = (props: Props) => {
     onEnterKeyDown: () => props.onSubmit(),
     placeholder: 'Password',
     secureTextEntry: !props.showTyping,
-    type: props.showTyping ? 'text' : 'password',
   }
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
       onLayout={evt => setScrollViewHeight(evt.nativeEvent.layout.height)}
       style={Kb.Styles.globalStyles.flexOne}
     >
       <NativeScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.container}>
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
-            <Kb.Box style={styles.deviceNotSecureContainer}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                 {"Since you don't have a lock screen, you'll have to type your password everytime."}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
           <UserCard username={props.selectedUser} outerStyle={styles.card} style={styles.cardInner}>
@@ -45,7 +46,7 @@ const LoginRender = (props: Props) => {
             />
             {props.needPassword && (
               <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
-                <Kb.LabeledInput {...inputProps} />
+                <Kb.Input3 {...inputProps} />
                 <Kb.Checkbox
                   checked={props.showTyping}
                   label="Show typing"
@@ -90,9 +91,9 @@ const LoginRender = (props: Props) => {
               style={{flexGrow: 0}}
             />
           </Kb.Box2>
-        </Kb.Box>
+        </Kb.Box2>
       </NativeScrollView>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -107,10 +108,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isTablet: {paddingBottom: 0},
       }),
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flex: 1,
       },
       createAccountContainer: Kb.Styles.platformStyles({
         common: {padding: Kb.Styles.globalMargins.medium},

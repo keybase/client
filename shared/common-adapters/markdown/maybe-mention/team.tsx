@@ -1,13 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import TeamInfo from '@/profile/user/teams/teaminfo'
-import type {MeasureRef} from 'common-adapters/measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 const Kb = {Box2, Styles, Text}
 
@@ -93,7 +94,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const popups = (
     <TeamInfo
-      attachTo={mentionRef}
+      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
       description={description}
       inTeam={inTeam}
       isOpen={isOpen}

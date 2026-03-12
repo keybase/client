@@ -4,7 +4,6 @@
 // Adapted mainly from github.com/gonutz/w32
 
 //go:build windows
-// +build windows
 
 package install
 

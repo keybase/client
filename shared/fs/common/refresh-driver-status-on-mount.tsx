@@ -1,13 +1,12 @@
 import * as React from 'react'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const RefreshDriverStatusOnMount = () => {
-  const refreshDriverStatusDesktop = useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
-  const refresh = React.useCallback(() => refreshDriverStatusDesktop?.(), [refreshDriverStatusDesktop])
+  const refreshDriverStatusDesktop = useFSState(s => s.dispatch.defer.refreshDriverStatusDesktop)
 
   React.useEffect(() => {
-    refresh()
-  }, [refresh])
+    refreshDriverStatusDesktop?.()
+  }, [refreshDriverStatusDesktop])
 
   return null
 }

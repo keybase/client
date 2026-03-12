@@ -2,8 +2,8 @@ import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import * as C from '@/constants'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false as boolean

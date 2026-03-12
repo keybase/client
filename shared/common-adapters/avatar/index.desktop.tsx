@@ -1,173 +1,110 @@
-import * as React from 'react'
-import Icon, {type IconType} from '../icon'
+// Minimal fast Avatar (desktop).
+import './avatar.css'
+import type * as React from 'react'
+import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import type {Props, AvatarSize} from '.'
-import useHook from './hooks'
+import {useConfigState} from '@/stores/config'
+import * as AvatarZus from './store'
+import {navToProfile} from '@/constants/router'
+import {iconTypeToImgSet} from './icon-to-img-set'
+import type {IconType} from '../icon.constants-gen'
+
+type Props = {
+  children?: React.ReactNode
+  crop?: T.Teams.AvatarCrop
+  imageOverrideUrl?: string
+  isTeam?: boolean
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  size: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  style?: Styles.CustomStyles<'borderStyle'>
+  teamname?: string
+  username?: string
+}
+
+const avatarPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-192',
+  '256': 'icon-placeholder-avatar-256',
+  '960': 'icon-placeholder-avatar-960',
+}
+const teamPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-team-placeholder-avatar-192',
+  '256': 'icon-team-placeholder-avatar-256',
+  '960': 'icon-team-placeholder-avatar-960',
+}
 
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 
-const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
-  s === 128
-    ? 'icon-poop-96'
-    : s === 96
-      ? 'icon-poop-64'
-      : s === 64
-        ? 'icon-poop-48'
-        : s === 48 || s === 32
-          ? 'icon-poop-32'
-          : undefined
+function Avatar(p: Props) {
+  const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
+  const {imageOverrideUrl, crop} = p
+  const isTeam = _isTeam || !!teamname
+  const name = isTeam ? teamname : username
+  const counter = AvatarZus.useAvatarState(s => s.counts.get(name || '') ?? 0)
+  const httpSrv = useConfigState(s => s.httpSrv)
+  const {address, token} = httpSrv
 
-const Avatar = (p: Props) => {
-  const props = useHook(p)
-  const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
+  const avatarSizeClassName = `avatar-${isTeam ? 'team' : 'user'}-size-${size}`
 
-  const scaledAvatarRatio = props.size / AVATAR_SIZE
-  const avatarScaledWidth = props.crop?.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
-  
-  // Stable style object to prevent img re-render
-  const imgOpacity = props.opacity === undefined || props.opacity === 1
-    ? props.blocked
-      ? 0.1
-      : 1
-    : props.opacity
-  const imgStyle = React.useMemo(
-    () => (imgOpacity !== 1 ? {opacity: imgOpacity} : undefined),
-    [imgOpacity]
-  )
-  
+  let bgImage: string | undefined
+  if (imageOverrideUrl) {
+    bgImage = `url("${encodeURI(imageOverrideUrl)}")`
+  } else if (address && name) {
+    const typ = isTeam ? 'team' : 'user'
+    const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
+    bgImage = `url(http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=light&token=${token}&count=${counter})`
+  }
+
+  const placeholderBg = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size)
+
+  const onClick =
+    _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
+
+  const hasCrop = crop?.offsetLeft !== undefined && crop.offsetTop !== undefined
+  const scaledAvatarRatio = size / AVATAR_SIZE
+  const avatarScaledWidth = crop?.scaledWidth ? crop.scaledWidth * scaledAvatarRatio : null
+
+  const showBg = bgImage || placeholderBg
+
   return (
     <div
-      className={Styles.classNames('avatar', avatarSizeClasName)}
-      onClick={props.onClick}
-      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
+      className={Styles.classNames('avatar', avatarSizeClassName)}
+      onClick={onClick}
+      style={Styles.collapseStyles([onClick && clickableStyle, style]) as React.CSSProperties}
     >
-      {/* Inner wrapper clips avatar image content, outer container allows follow icons to extend */}
-      <div className={Styles.classNames('avatar-inner', avatarSizeClasName)}>
-        {!props.skipBackground && (
-          <div className="avatar-background" />
+      <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
+        <div className="avatar-background" />
+        {!!showBg && (
+          <div className="avatar-user-image" style={{backgroundImage: showBg}} />
         )}
-      {!!props.blocked && !!avatarSizeToPoopIconType(props.size) && (
-        <div
-          className="avatar-user-image"
-          style={styles.poopContainer}
-        >
-          {/* ts messes up here without the || 'icon-poop-32' even though it
-              can't happen due to the !!avatarSizeToPoopIconType() check above */}
-          <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
-        </div>
-      )}
-      {!!props.src && props.crop === undefined && (
-        <img
-          key={props.src}
-          src={props.src}
-          srcSet={props.size <= 32 ? undefined : props.srcset || undefined}
-          decoding="async"
-          className="avatar-user-image"
-          style={imgStyle as React.CSSProperties}
-          alt=""
-          draggable={false}
-        />
-      )}
-      {!!props.url && !props.src && props.crop === undefined && (
-        <div
-          className="avatar-user-image"
-          style={{
-            backgroundImage: props.url,
-            opacity:
-              props.opacity === undefined || props.opacity === 1
-                ? props.blocked
-                  ? 1
-                  : undefined
-                : props.opacity,
-          }}
-        />
-      )}
-      {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
-        <div
-          className="avatar-user-image"
-          style={{
-            backgroundImage: props.url,
-            backgroundPositionX: props.crop.offsetLeft * scaledAvatarRatio,
-            backgroundPositionY: props.crop.offsetTop * scaledAvatarRatio,
-            backgroundSize: `${avatarScaledWidth}px auto`,
-            opacity:
-              props.opacity === undefined || props.opacity === 1
-                ? props.blocked
-                  ? 0.1
-                  : undefined
-                : props.opacity,
-          }}
-        />
-      )}
-      {(!!props.borderColor || props.isTeam) && (
-        <div
-          style={Styles.collapseStylesDesktop([
-            props.isTeam && styles.borderTeam,
-            !props.isTeam && styles.border,
-            props.borderColor &&
-              Styles.platformStyles({
-                isElectron: {
-                  boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
-                    props.borderColor || Styles.globalColors.black_10
-                  } ${props.isTeam ? 'inset' : ''}`,
-                },
-              }),
-          ])}
-          className={Styles.classNames(
-            {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
-            avatarSizeClasName
-          )}
-        />
-      )}
+        {!!bgImage && hasCrop && (
+          <div
+            className="avatar-user-image"
+            style={{
+              backgroundImage: bgImage,
+              backgroundPositionX: (crop.offsetLeft ?? 0) * scaledAvatarRatio,
+              backgroundPositionY: (crop.offsetTop ?? 0) * scaledAvatarRatio,
+              backgroundSize: `${avatarScaledWidth}px auto`,
+            }}
+          />
+        )}
+        {isTeam && (
+          <div
+            style={borderTeamStyle}
+            className={Styles.classNames('avatar-border-team', avatarSizeClassName)}
+          />
+        )}
       </div>
-      {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
-      {props.children}
+      {children}
     </div>
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      border: Styles.platformStyles({
-        isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
-      }),
-      borderTeam: Styles.platformStyles({
-        isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
-      }),
-      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
-      edit: {
-        bottom: 0,
-        position: 'absolute',
-        right: 0,
-      },
-      editTeam: Styles.platformStyles({
-        isElectron: {
-          backgroundColor: Styles.globalColors.blue,
-          border: 'solid white 2px',
-          borderRadius: 100,
-          bottom: -6,
-          color: Styles.globalColors.whiteOrWhite,
-          padding: 4,
-          position: 'absolute',
-          right: -6,
-        },
-      }),
-      editTeamOld: {
-        bottom: -2,
-        position: 'absolute',
-        right: -18,
-      },
-      poopContainer: {
-        alignItems: 'center',
-        display: 'flex',
-        justifyContent: 'center',
-        zIndex: 1,
-      },
-    }) as const
-)
+const clickableStyle = {cursor: 'pointer'} as const
+
+const borderTeamStyle = {
+  boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`,
+} satisfies React.CSSProperties
 
 export default Avatar

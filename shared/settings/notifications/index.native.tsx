@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Notifications from './render'
 import {Reloadable} from '@/common-adapters'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState} from '@/constants/settings'
-import {usePushState} from '@/constants/push'
+import {useSettingsNotifState} from '@/stores/settings-notifications'
+import {useSettingsState} from '@/stores/settings'
+import {usePushState} from '@/stores/push'
 
 const MobileNotifications = () => {
   const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
@@ -35,17 +35,18 @@ const TurnOnNotifications = () => {
   if (mobileHasPermissions) return null
   const onEnable = requestPermissions
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      relative={true}
+      overflow="hidden"
       style={{
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         backgroundColor: Kb.Styles.globalColors.red,
         height: 330,
-        overflow: 'hidden',
-        position: 'relative',
-        width: '100%',
       }}
     >
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         style={{
           height: 270,
           left: Kb.Styles.globalMargins.medium,
@@ -54,8 +55,8 @@ const TurnOnNotifications = () => {
           width: 250,
         }}
       >
-        <Kb.Icon type="illustration-turn-on-notifications" />
-      </Kb.Box>
+        <Kb.ImageIcon type="illustration-turn-on-notifications" />
+      </Kb.Box2>
       <Kb.Text
         type="BodySemibold"
         center={true}
@@ -77,7 +78,7 @@ const TurnOnNotifications = () => {
           Enable notifications
         </Kb.Text>
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

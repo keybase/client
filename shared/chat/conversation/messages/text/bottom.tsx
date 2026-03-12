@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
 import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list'
@@ -24,15 +23,12 @@ export const useBottom = (ordinal: T.Chat.Ordinal) => {
     })
   )
 
-  return React.useMemo(
-    () => (
-      <WrapperTextBottom
-        hasCoinFlip={hasCoinFlip}
-        hasUnfurlList={hasUnfurlList}
-        hasUnfurlPrompts={hasUnfurlPrompts}
-      />
-    ),
-    [hasCoinFlip, hasUnfurlList, hasUnfurlPrompts]
+  return (
+    <WrapperTextBottom
+      hasCoinFlip={hasCoinFlip}
+      hasUnfurlList={hasUnfurlList}
+      hasUnfurlPrompts={hasUnfurlPrompts}
+    />
   )
 }
 

@@ -783,14 +783,14 @@ func TestUpdaterGuiBusy(t *testing.T) {
 
 	// Now put the config file there and make sure the right error is returned
 	now := time.Now().Unix() * 1000
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":true, "changedAtMs":%d}`, now)), 0o600)
+	err = os.WriteFile(testAppStatePath, fmt.Appendf(nil, `{"isUserActive":true, "changedAtMs":%d}`, now), 0o600)
 	assert.NoError(t, err)
 	defer util.RemoveFileAtPath(testAppStatePath)
 	_, err = upr.Update(ctx)
 	assert.EqualError(t, err, "Update Error (guiBusy): User active, retrying later")
 
 	// If the user was recently active, they are still considered busy.
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, now)), 0o600)
+	err = os.WriteFile(testAppStatePath, fmt.Appendf(nil, `{"isUserActive":false, "changedAtMs":%d}`, now), 0o600)
 	assert.NoError(t, err)
 	_, err = upr.Update(ctx)
 	assert.EqualError(t, err, "Update Error (guiBusy): User active, retrying later")
@@ -803,7 +803,7 @@ func TestUpdaterGuiBusy(t *testing.T) {
 	// If the user wasn't recently active, they are not considered busy
 	ctx.isCheckCommand = false
 	later := time.Now().Add(-5*time.Minute).Unix() * 1000
-	err = os.WriteFile(testAppStatePath, []byte(fmt.Sprintf(`{"isUserActive":false, "changedAtMs":%d}`, later)), 0o600)
+	err = os.WriteFile(testAppStatePath, fmt.Appendf(nil, `{"isUserActive":false, "changedAtMs":%d}`, later), 0o600)
 	assert.NoError(t, err)
 	_, err = upr.Update(ctx)
 	assert.NoError(t, err)

@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import Mention, {type OwnProps} from './mention'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useProfileState} from '@/stores/profile'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
@@ -36,7 +36,9 @@ const Container = (ownProps: OwnProps) => {
   const onClick = Chat.isSpecialMention(username) ? undefined : _onClick
 
   const props = {
+    allowFontScaling: ownProps.allowFontScaling,
     onClick,
+    style: ownProps.style,
     theme,
     username,
   }

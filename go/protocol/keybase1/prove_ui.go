@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/prove_ui.avdl
 
 package keybase1
@@ -156,11 +156,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 		Name: "keybase.1.proveUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"promptOverwrite": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PromptOverwriteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PromptOverwriteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PromptOverwriteArg)(nil), args)
@@ -171,11 +171,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"promptUsername": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PromptUsernameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PromptUsernameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PromptUsernameArg)(nil), args)
@@ -186,11 +186,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"outputPrechecks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OutputPrechecksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OutputPrechecksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OutputPrechecksArg)(nil), args)
@@ -201,11 +201,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"preProofWarning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PreProofWarningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PreProofWarningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PreProofWarningArg)(nil), args)
@@ -216,11 +216,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"outputInstructions": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OutputInstructionsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OutputInstructionsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OutputInstructionsArg)(nil), args)
@@ -231,11 +231,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"okToCheck": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]OkToCheckArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]OkToCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]OkToCheckArg)(nil), args)
@@ -246,11 +246,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"checking": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckingArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckingArg)(nil), args)
@@ -261,11 +261,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"continueChecking": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ContinueCheckingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ContinueCheckingArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ContinueCheckingArg)(nil), args)
@@ -276,11 +276,11 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 				},
 			},
 			"displayRecheckWarning": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayRecheckWarningArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayRecheckWarningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayRecheckWarningArg)(nil), args)
@@ -299,47 +299,47 @@ type ProveUiClient struct {
 }
 
 func (c ProveUiClient) PromptOverwrite(ctx context.Context, __arg PromptOverwriteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptOverwrite", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) PromptUsername(ctx context.Context, __arg PromptUsernameArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptUsername", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OutputPrechecks(ctx context.Context, __arg OutputPrechecksArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputPrechecks", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) PreProofWarning(ctx context.Context, __arg PreProofWarningArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.preProofWarning", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OutputInstructions(ctx context.Context, __arg OutputInstructionsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputInstructions", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OkToCheck(ctx context.Context, __arg OkToCheckArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) Checking(ctx context.Context, __arg CheckingArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) ContinueChecking(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ContinueCheckingArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.continueChecking", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.continueChecking", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) DisplayRecheckWarning(ctx context.Context, __arg DisplayRecheckWarningArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.displayRecheckWarning", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

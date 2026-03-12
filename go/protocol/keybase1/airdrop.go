@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/airdrop.avdl
 
 package keybase1
@@ -47,11 +47,11 @@ func AirdropProtocol(i AirdropInterface) rpc.Protocol {
 		Name: "keybase.1.airdrop",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"reg1": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Reg1Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Reg1Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Reg1Arg)(nil), args)
@@ -62,11 +62,11 @@ func AirdropProtocol(i AirdropInterface) rpc.Protocol {
 				},
 			},
 			"reg2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Reg2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]Reg2Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]Reg2Arg)(nil), args)
@@ -85,12 +85,12 @@ type AirdropClient struct {
 }
 
 func (c AirdropClient) Reg1(ctx context.Context, __arg Reg1Arg) (res BinaryKID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.airdrop.reg1", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.airdrop.reg1", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AirdropClient) Reg2(ctx context.Context, ctext []byte) (err error) {
 	__arg := Reg2Arg{Ctext: ctext}
-	err = c.Cli.Call(ctx, "keybase.1.airdrop.reg2", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.airdrop.reg2", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

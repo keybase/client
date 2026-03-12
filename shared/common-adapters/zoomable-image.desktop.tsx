@@ -1,33 +1,31 @@
 import * as React from 'react'
 import Toast from './toast.desktop'
 import {Box2} from './box'
-import Text from './text.desktop'
+import Text from './text'
 import type {Props} from './zoomable-image'
-import type {MeasureRef} from './measure-ref'
-
 const Kb = {
   Box2,
   Text,
   Toast,
 }
 
-const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
+function ZoomableImage(p: Props) {
   const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError, forceDims} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
   const [showToast, setShowToast] = React.useState(false)
-  const containerRef = React.useRef<MeasureRef | null>(null)
+  const containerRef = React.useRef<HTMLDivElement>(null)
   const imgRef = React.useRef<HTMLImageElement>(null)
   const scaleRef = React.useRef(1)
   const isZoomedRef = React.useRef(isZoomed)
 
-  const toggleZoom = React.useCallback(() => {
+  const toggleZoom = () => {
     isZoomedRef.current = !isZoomed
     setIsZoomed(s => !s)
     // hide until we handle mouse move
     imgRef.current?.classList.remove('fade-anim-enter-active')
     onIsZoomed?.(!isZoomed)
-  }, [isZoomed, onIsZoomed])
+  }
 
   React.useEffect(() => {
     if (isZoomed) {
@@ -54,9 +52,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       return
     }
 
-    const containerRect = containerRef.current.measure?.()
-    if (!containerRect) return
-
+    const containerRect = containerRef.current.getBoundingClientRect()
     const imgRect = imgRef.current.getBoundingClientRect()
     const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
     const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
@@ -136,18 +132,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
         }
   }
 
-  const divRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    containerRef.current = {
-      divRef,
-      measure: () => {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  }, [])
   return (
-    <div ref={divRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
+    <div ref={containerRef} style={style} onMouseMove={handleMouseMove} onWheel={handleWheel} onClick={handleClick}>
       <img
         draggable={false}
         onLoad={onLoaded}
@@ -164,6 +150,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       </Kb.Toast>
     </div>
   )
-})
+}
 
 export default ZoomableImage

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/backend_common.avdl
 
 package keybase1
@@ -64,7 +64,8 @@ func (o ChallengeInfo) DeepCopy() ChallengeInfo {
 	}
 }
 
-type BackendCommonInterface interface{}
+type BackendCommonInterface interface {
+}
 
 func BackendCommonProtocol(i BackendCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

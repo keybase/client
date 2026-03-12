@@ -3,10 +3,10 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
-import {usePWState} from '@/constants/settings-password'
-import {useFSState} from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/stores/settings'
+import {usePWState} from '@/stores/settings-password'
+import {useFSState} from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -49,6 +49,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
     }))
   )
   const onChangeLockdownMode = setLockdownMode
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
   const disabled = hasRandomPW || settingLockdownMode
@@ -65,12 +66,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
             With this setting on you will not be able to reset your account, even from the app. Protect your
             account by installing Keybase on several devices, or by keeping a paper key in a safe place.
           </Kb.Text>
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/lockdown/index">
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
-              boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
@@ -160,60 +160,62 @@ const Advanced = () => {
   }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
 
   return (
-    <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
-          {settingLockdownMode && <Kb.ProgressIndicator />}
-          <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
-          {!!setLockdownModeError && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              {setLockdownModeError}
-            </Kb.Text>
-          )}
-          {!hasRandomPW && (
-            <Kb.Checkbox
-              checked={rememberPassword}
-              labelComponent={
-                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                  <Kb.Text type="BodySmall">
-                    {"You won't be asked for your password when restarting the app or your device."}
-                  </Kb.Text>
-                </Kb.Box2>
-              }
-              onCheck={onChangeRememberPassword}
-            />
-          )}
-          {C.isLinux ? <UseNativeFrame /> : null}
-          {!C.isMobile && (
-            <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
-          )}
-          {!C.isMobile && (
-            <Kb.Checkbox
-              label={
-                'Disable spellchecking' +
-                (disableSpellCheckInitialValue !== undefined &&
-                disableSpellCheckInitialValue !== disableSpellCheck
-                  ? ' (restart required)'
-                  : '')
-              }
-              disabled={disableSpellCheck === undefined}
-              checked={!!disableSpellCheck}
-              onCheck={onToggleDisableSpellcheck}
-            />
-          )}
+    <Kb.KeyboardAvoidingView2>
+      <Kb.ScrollView style={styles.scrollview}>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+            {settingLockdownMode && <Kb.ProgressIndicator />}
+            <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
+            {!!setLockdownModeError && (
+              <Kb.Text type="BodySmall" style={styles.error}>
+                {setLockdownModeError}
+              </Kb.Text>
+            )}
+            {!hasRandomPW && (
+              <Kb.Checkbox
+                checked={rememberPassword}
+                labelComponent={
+                  <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                    <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                    <Kb.Text type="BodySmall">
+                      {"You won't be asked for your password when restarting the app or your device."}
+                    </Kb.Text>
+                  </Kb.Box2>
+                }
+                onCheck={onChangeRememberPassword}
+              />
+            )}
+            {C.isLinux ? <UseNativeFrame /> : null}
+            {!C.isMobile && (
+              <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
+            )}
+            {!C.isMobile && (
+              <Kb.Checkbox
+                label={
+                  'Disable spellchecking' +
+                  (disableSpellCheckInitialValue !== undefined &&
+                  disableSpellCheckInitialValue !== disableSpellCheck
+                    ? ' (restart required)'
+                    : '')
+                }
+                disabled={disableSpellCheck === undefined}
+                checked={!!disableSpellCheck}
+                onCheck={onToggleDisableSpellcheck}
+              />
+            )}
+          </Kb.Box2>
+          <Kb.Divider style={styles.proxyDivider} />
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
+          >
+            <ProxySettings />
+          </Kb.Box2>
+          <Developer />
         </Kb.Box2>
-        <Kb.Divider style={styles.proxyDivider} />
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
-        >
-          <ProxySettings />
-        </Kb.Box2>
-        <Developer />
-      </Kb.Box2>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 
@@ -253,7 +255,7 @@ const Developer = () => {
   const onClearLogs = useSettingsState(s => s.dispatch.clearLogs)
 
   return (
-    <Kb.Box style={styles.developerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.developerContainer}>
       <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
         {"Please don't do anything below here unless instructed to by a developer."}
       </Kb.Text>
@@ -309,46 +311,26 @@ const Developer = () => {
           </Kb.Text>
         </>
       )}
-      <Kb.Box style={styles.filler} />
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" flex={1} />
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkboxContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
-      },
       developerButtons: {
         marginTop: Kb.Styles.globalMargins.small,
       },
       developerContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
         paddingBottom: Kb.Styles.globalMargins.medium,
       },
-      displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
       divider: {
         marginTop: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
       error: {
         color: Kb.Styles.globalColors.redDark,
-      },
-      filler: {
-        flex: 1,
-      },
-      progressContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 32,
       },
       proxyDivider: {
         marginBottom: Kb.Styles.globalMargins.small,

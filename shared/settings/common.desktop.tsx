@@ -1,13 +1,12 @@
 import * as Kb from '@/common-adapters'
-import range from 'lodash/range'
 
 function Stars({count}: {count: number}) {
   return (
-    <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
-      {range(count).map(i => (
+    <Kb.Box2 direction="horizontal">
+      {Array.from({length: count}, (_, i) => i).map(i => (
         <Kb.Icon key={i} color={Kb.Styles.globalColors.green} type="iconfont-star" />
       ))}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

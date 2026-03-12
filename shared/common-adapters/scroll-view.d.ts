@@ -51,6 +51,6 @@ export interface ScrollViewRef {
   scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
 }
 
-declare const ScrollView: React.ForwardRefExoticComponent<Props & React.RefAttributes<ScrollViewRef>>
+declare function ScrollView(props: Props): React.ReactElement
 
 export default ScrollView

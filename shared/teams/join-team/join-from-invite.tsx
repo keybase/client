@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {Success} from './container'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -62,7 +62,6 @@ const JoinFromInvite = () => {
       loaded ? (
         <Kb.Box2
           direction="vertical"
-          style={styles.center}
           fullWidth={true}
           fullHeight={true}
           gap="small"
@@ -73,7 +72,6 @@ const JoinFromInvite = () => {
       ) : (
         <Kb.Box2
           direction="vertical"
-          style={styles.center}
           fullWidth={true}
           fullHeight={true}
           gap="small"
@@ -86,7 +84,6 @@ const JoinFromInvite = () => {
     ) : showSuccess ? (
       <Kb.Box2
         direction="vertical"
-        style={styles.center}
         fullWidth={true}
         fullHeight={true}
         gap="small"
@@ -104,7 +101,7 @@ const JoinFromInvite = () => {
         gap="xtiny"
         style={styles.body}
       >
-        <Kb.Box style={styles.avatar}>
+        <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
             teamname={teamname}
@@ -121,7 +118,7 @@ const JoinFromInvite = () => {
               <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text type="Header">Join {teamname}</Kb.Text>
         <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
         <Kb.Text type="Body" lineClamp={3} style={styles.description}>
@@ -144,13 +141,9 @@ const JoinFromInvite = () => {
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
-          <Kb.Avatar
-            size={16}
-            username={details.inviterUsername}
-            borderColor={Kb.Styles.isMobile ? Kb.Styles.globalColors.white : undefined}
-          />
+          <Kb.Avatar size={16} username={details.inviterUsername} />
           <Kb.ConnectedUsernames
             type="BodySmallBold"
             usernames={[details.inviterUsername]}
@@ -166,13 +159,7 @@ const JoinFromInvite = () => {
       </Kb.Box2>
     )
 
-  return Kb.Styles.isMobile ? (
-    <Kb.MobilePopup overlayStyle={styles.mobileOverlay}>{body}</Kb.MobilePopup>
-  ) : (
-    <Kb.Modal mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
-      {body}
-    </Kb.Modal>
-  )
+  return body
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -199,8 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      buttonBar: {justifyContent: 'center', paddingTop: Kb.Styles.globalMargins.small},
-      center: {justifyContent: 'center'},
+      buttonBar: {paddingTop: Kb.Styles.globalMargins.small},
       description: Kb.Styles.platformStyles({
         isElectron: {width: 460},
         isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
@@ -214,9 +200,6 @@ const styles = Kb.Styles.styleSheetCreate(
       meta: {
         bottom: -7,
         position: 'absolute',
-      },
-      mobileOverlay: {
-        height: 392,
       },
     }) as const
 )

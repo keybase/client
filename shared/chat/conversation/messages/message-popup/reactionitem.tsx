@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -22,7 +22,7 @@ const ReactionItem = (props: Props) => {
   }
   const topReacjis = _topReacjis.slice(0, 5)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (
         <Kb.ClickableBox key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
           <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
@@ -45,8 +45,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        flex: 1,
-        justifyContent: 'space-between',
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
       },

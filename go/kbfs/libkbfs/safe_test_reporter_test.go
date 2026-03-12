@@ -47,12 +47,12 @@ func (ctr *SafeTestReporter) error(s string) {
 	ctr.t.Errorf("\r%s: %s", makePrefix(), s)
 }
 
-func (ctr *SafeTestReporter) Errorf(format string, args ...interface{}) {
+func (ctr *SafeTestReporter) Errorf(format string, args ...any) {
 	ctr.error(fmt.Sprintf(format, args...))
 }
 
 // Fatalf errors and then panics.
-func (ctr *SafeTestReporter) Fatalf(format string, args ...interface{}) {
+func (ctr *SafeTestReporter) Fatalf(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	ctr.error(s)
 	// panic here, since a Goexit() might leave the main thread

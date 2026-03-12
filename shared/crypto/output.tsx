@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Crypto from '@/constants/crypto'
+import * as Chat from '@/stores/chat'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
@@ -8,9 +8,9 @@ import capitalize from 'lodash/capitalize'
 import type * as T from '@/constants/types'
 import {pickFiles} from '@/util/pick-files'
 import type HiddenString from '@/util/hidden-string'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -102,7 +102,7 @@ export const SignedSender = (props: SignedSenderProps) => {
           </Kb.Box2>
         ) : (
           <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-            <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
+            <Kb.ImageIcon key="avatar" type="icon-placeholder-secret-user-16" />
             {isSelfSigned ? null : (
               <Kb.Text key="username" type="BodySmallSemibold">
                 Anonymous sender
@@ -181,7 +181,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const actionsDisabled = waiting || !outputValid
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
@@ -194,7 +194,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }
@@ -260,7 +260,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
               onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
-          <Kb.Box2Measure direction="horizontal" ref={popupAnchor}>
+          <Kb.Box2 direction="horizontal" ref={popupAnchor}>
             <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
                 Copied to clipboard
@@ -275,7 +275,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
                 onClick={() => copy()}
               />
             )}
-          </Kb.Box2Measure>
+          </Kb.Box2>
           {canSaveAsText && !Kb.Styles.isMobile && (
             <Kb.Button
               mode="Secondary"
@@ -369,7 +369,7 @@ export const OperationOutput = (props: OutputProps) => {
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     if (!output) return
@@ -412,7 +412,7 @@ export const OperationOutput = (props: OutputProps) => {
           alignItems="center"
           style={styles.fileOutputContainer}
         >
-          {fileIcon ? <Kb.Icon type={fileIcon} sizeType="Huge" /> : null}
+          {fileIcon ? <Kb.ImageIcon type={fileIcon} /> : null}
           <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
@@ -495,8 +495,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
-      outputVerifiedContainer: {marginBottom: Kb.Styles.globalMargins.xlarge},
-      placeholder: {color: Kb.Styles.globalColors.black_50},
       progressBar: {
         width: 200,
       },
@@ -533,7 +531,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         },
       }),
-      signedIcon: {color: Kb.Styles.globalColors.green},
       signedSender: {
         ...Kb.Styles.globalStyles.flexGrow,
       },

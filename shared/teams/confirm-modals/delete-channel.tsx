@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
@@ -14,8 +14,8 @@ type Props = {
 
 const Header = () => (
   <>
-    <Kb.Icon type="icon-teams-channel-64" />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
+    <Kb.ImageIcon type="icon-teams-channel-64" />
+    <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
   </>
 )
 

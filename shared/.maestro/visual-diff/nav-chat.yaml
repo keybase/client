@@ -1,0 +1,6 @@
+appId: keybase.ios
+---
+- tapOn:
+    text: "Chat"
+- assertVisible:
+    text: "Chat"

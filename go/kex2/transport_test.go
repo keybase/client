@@ -47,7 +47,7 @@ type session struct {
 
 func newSession(i SessionID) *session {
 	sess := &session{id: i}
-	for j := 0; j < 2; j++ {
+	for j := range 2 {
 		sess.simplexSessions[j] = newSimplexSession()
 	}
 	return sess
@@ -221,7 +221,7 @@ func newTestLogCtx(t *testing.T) (ret *testLogCtx, closer func()) {
 	return ret, closer
 }
 
-func (t *testLogCtx) Debug(format string, args ...interface{}) {
+func (t *testLogCtx) Debug(format string, args ...any) {
 	t.Lock()
 	if t.t != nil {
 		t.t.Logf(format, args...)
@@ -490,7 +490,7 @@ func TestClose(t *testing.T) {
 	}
 
 	// Assert we get an EOF now and forever...
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		if n, err := c2.Read(buf); err != io.EOF {
 			t.Fatalf("expected EOF, but got err = %v", err)
 		} else if n != 0 {

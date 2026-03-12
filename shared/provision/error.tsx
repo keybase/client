@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
-    <Kb.Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+    <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
     </Kb.Text>

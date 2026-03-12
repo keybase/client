@@ -1,5 +1,5 @@
-import {useConfigState} from '@/constants/config'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -9,7 +9,7 @@ import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 import type {Props as OwnProps} from './container'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 export type Props = {
   chat: object
@@ -34,7 +34,7 @@ const Connected = (ownProps: OwnProps) => {
   const chat = getExtraChatLogsForLogSend()
   const loggedOut = useConfigState(s => !s.loggedIn)
   const _push = usePushState(s => s.token)
-  const push = React.useMemo(() => ({pushToken: _push}), [_push])
+  const push = {pushToken: _push}
   const deviceID = useCurrentUserState(s => s.deviceID)
   const uid = useCurrentUserState(s => s.uid)
   const username = useCurrentUserState(s => s.username)
@@ -43,9 +43,7 @@ const Connected = (ownProps: OwnProps) => {
   const mountedRef = React.useRef(true)
   const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const status = React.useMemo(() => {
-    return {..._status, deviceID, uid, username}
-  }, [deviceID, uid, username])
+  const status = {..._status, deviceID, uid, username}
 
   React.useEffect(() => {
     return () => {
@@ -56,45 +54,42 @@ const Connected = (ownProps: OwnProps) => {
     }
   }, [])
 
-  const _onSendFeedback = React.useCallback(
-    (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
-      setSending(true)
+  const _onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
+    setSending(true)
 
-      timeoutIDRef.current = setTimeout(() => {
-        const run = async () => {
-          const maybeDump = sendLogs ? logger.dump() : Promise.resolve()
-          await maybeDump
-          logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-          const extra = sendLogs ? {...status, ...chat, ...push} : status
-          const traceDir = pprofDir
-          const cpuProfileDir = traceDir
-          const logSendId = await logSend(
-            JSON.stringify(extra),
-            feedback || '',
-            sendLogs,
-            sendMaxBytes,
-            traceDir,
-            cpuProfileDir
-          )
-          logger.info('logSendId is', logSendId)
+    timeoutIDRef.current = setTimeout(() => {
+      const run = async () => {
+        const maybeDump = sendLogs ? logger.dump() : Promise.resolve()
+        await maybeDump
+        logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
+        const extra = sendLogs ? {...status, ...chat, ...push} : status
+        const traceDir = pprofDir
+        const cpuProfileDir = traceDir
+        const logSendId = await logSend(
+          JSON.stringify(extra),
+          feedback || '',
+          sendLogs,
+          sendMaxBytes,
+          traceDir,
+          cpuProfileDir
+        )
+        logger.info('logSendId is', logSendId)
+        if (mountedRef.current) {
+          setSendError('')
+          setSending(false)
+        }
+      }
+      run()
+        .then(() => {})
+        .catch((err: unknown) => {
+          logger.warn('err in sending logs', err)
           if (mountedRef.current) {
-            setSendError('')
+            setSendError(String(err))
             setSending(false)
           }
-        }
-        run()
-          .then(() => {})
-          .catch((err: unknown) => {
-            logger.warn('err in sending logs', err)
-            if (mountedRef.current) {
-              setSendError(String(err))
-              setSending(false)
-            }
-          })
-      }, 0)
-    },
-    [status, chat, push]
-  )
+        })
+    }, 0)
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>

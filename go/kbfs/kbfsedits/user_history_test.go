@@ -41,7 +41,7 @@ func TestUserHistorySimple(t *testing.T) {
 	now := time.Now()
 	// Alice writes to private shared TLF.
 	var privSharedAlice []string
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		now = now.Add(1 * time.Minute)
 		_ = privSharedNN.make(
 			strconv.Itoa(i), NotificationCreate, aliceUID, nil, now)
@@ -56,7 +56,7 @@ func TestUserHistorySimple(t *testing.T) {
 
 	// Alice writes to public TLF.
 	var publicAlice []string
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		now = now.Add(1 * time.Minute)
 		_ = publicNN.make(
 			strconv.Itoa(i), NotificationCreate, aliceUID, nil, now)
@@ -76,7 +76,7 @@ func TestUserHistorySimple(t *testing.T) {
 
 	// Alice writes to private home TLF.
 	var privHomeAlice []string
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		now = now.Add(1 * time.Minute)
 		_ = privHomeNN.make(
 			strconv.Itoa(i), NotificationCreate, aliceUID, nil, now)

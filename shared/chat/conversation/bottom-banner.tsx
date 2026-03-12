@@ -1,22 +1,23 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import _openSMS from '@/util/sms'
 import {assertionToDisplay} from '@/common-adapters/usernames'
-import type {Props as TextProps} from '@/common-adapters/text'
-import {useUsersState} from '@/constants/users'
-import {useFollowerState} from '@/constants/followers'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {showShareActionSheet} from '@/util/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 const Invite = () => {
+  const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
   const participantInfo = Chat.useChatContext(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
-    C.PlatformSpecific.showShareActionSheet({
+    showShareActionSheet({
       message: installMessage,
       mimeType: 'text/plain',
     })
@@ -47,20 +48,22 @@ const Invite = () => {
   if (C.isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
-        <BannerText>{caption}</BannerText>
+        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
             label="Send install link"
             onClick={mobileClickInstall}
             small={true}
-            backgroundColor="blue"
+            style={styles.primaryOnBlue}
+            labelStyle={styles.primaryOnBlueLabel}
           />
           <Kb.Button
             label="Dismiss"
             mode="Secondary"
             onClick={onDismiss}
             small={true}
-            backgroundColor="blue"
+            style={styles.secondaryOnColor}
+            labelStyle={styles.secondaryOnColorLabel}
           />
         </Kb.Box2>
       </BannerBox>
@@ -69,19 +72,20 @@ const Invite = () => {
 
   return (
     <BannerBox color={Kb.Styles.globalColors.blue}>
-      <BannerText>{caption}</BannerText>
-      <BannerText>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Send them this link:
-        <BannerText
-          onClickURL="https://keybase.io/app"
+        <Kb.Text
+          {...linkUrlProps}
           underline={true}
           type="BodySmallPrimaryLink"
           selectable={true}
+          negative={true}
           style={{marginLeft: Kb.Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
-        </BannerText>
-      </BannerText>
+        </Kb.Text>
+      </Kb.Text>
     </BannerBox>
   )
 }
@@ -94,7 +98,7 @@ const Broken = () => {
   return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = React.memo(function BannerContainer() {
+const BannerContainer = function BannerContainer() {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
   const dismissed = Chat.useChatContext(s => s.dismissedInviteBanners)
@@ -127,7 +131,7 @@ const BannerContainer = React.memo(function BannerContainer() {
     case 'none':
       return null
   }
-})
+}
 
 export default BannerContainer
 
@@ -145,10 +149,6 @@ const BannerBox = (props: {
   >
     {props.children}
   </Kb.Box2>
-)
-
-const BannerText = (props: Partial<TextProps>) => (
-  <Kb.Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 )
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -170,5 +170,12 @@ const styles = Kb.Styles.styleSheetCreate(
           marginBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      secondaryOnColor: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnColorLabel: {color: Kb.Styles.globalColors.white},
     }) as const
 )

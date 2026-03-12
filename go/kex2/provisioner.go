@@ -51,7 +51,7 @@ func newProvisioner(arg ProvisionerArg) *provisioner {
 	return ret
 }
 
-func (p *provisioner) debug(fmtString string, args ...interface{}) {
+func (p *provisioner) debug(fmtString string, args ...any) {
 	if p.arg.LogCtx != nil {
 		p.arg.LogCtx.Debug(fmtString, args...)
 	}

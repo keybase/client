@@ -10,8 +10,8 @@ const About = () => {
   const onShowPrivacyPolicy = () => {
     if (C.isMobile) {
       navigateAppend({
-        props: {title: 'Privacy Policy', url: privacyPolicy},
-        selected: 'webLinks',
+        name: 'webLinks',
+        params: {title: 'Privacy Policy', url: privacyPolicy},
       })
     } else {
       openUrl(privacyPolicy)
@@ -19,15 +19,15 @@ const About = () => {
   }
   const onShowTerms = () => {
     if (C.isMobile) {
-      navigateAppend({props: {title: 'Terms', url: terms}, selected: 'webLinks'})
+      navigateAppend({name: 'webLinks', params: {title: 'Terms', url: terms}})
     } else {
       openUrl(terms)
     }
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Icon type="icon-keybase-logo-64" />
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" style={styles.container}>
+      <Kb.ImageIcon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
         <Kb.Text center={true} type="Body">
           You are running version{' '}
@@ -48,7 +48,6 @@ const About = () => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
-    justifyContent: 'center',
   },
   terms: {
     marginBottom: Kb.Styles.globalMargins.tiny,

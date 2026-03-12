@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {ModalTitle} from '@/teams/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
@@ -26,10 +25,6 @@ const EditChannel = (props: Props) => {
 
   const [description, setDescription] = React.useState(oldDescription)
 
-  const onBack = () => nav.safeNavigateUp()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => clearModals()
-
   const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
   const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
 
@@ -50,29 +45,9 @@ const EditChannel = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsUpdateChannelName(teamID))
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={onClose}
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title={`#${oldName}`} />,
-      }}
-      footer={{
-        content: (
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={oldName === name && description === oldDescription}
-            waiting={waiting}
-          />
-        ),
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.body} gap="tiny">
-        <Kb.NewInput
+        <Kb.Input3
           autoFocus={true}
           maxLength={16}
           onChangeText={setName}
@@ -85,8 +60,7 @@ const EditChannel = (props: Props) => {
         {oldName === 'general' && (
           <Kb.Text type="BodySmall">{"You can't edit the #general channel's name."}</Kb.Text>
         )}
-        <Kb.LabeledInput
-          hoverPlaceholder="What is this channel about?"
+        <Kb.Input3
           placeholder="Description"
           value={description}
           rowsMin={3}
@@ -96,12 +70,20 @@ const EditChannel = (props: Props) => {
           maxLength={280}
         />
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            label="Save"
+            onClick={onSave}
+            fullWidth={true}
+            disabled={oldName === name && description === oldDescription}
+            waiting={waiting}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
@@ -110,6 +92,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default EditChannel

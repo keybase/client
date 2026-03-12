@@ -23,8 +23,8 @@ func NewRemoteClient(g *globals.Context, cli rpc.GenericClient) *RemoteClient {
 	}
 }
 
-func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
-	res interface{}, timeout time.Duration,
+func (c *RemoteClient) Call(ctx context.Context, method string, arg any,
+	res any, timeout time.Duration,
 ) (err error) {
 	defer c.Trace(ctx, &err, "%s", method)()
 	err = c.cli.Call(ctx, method, arg, res, timeout)
@@ -36,8 +36,8 @@ func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
 	return err
 }
 
-func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg interface{},
-	res interface{}, ctype rpc.CompressionType, timeout time.Duration,
+func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg any,
+	res any, ctype rpc.CompressionType, timeout time.Duration,
 ) (err error) {
 	defer c.Trace(ctx, &err, "%s", method)()
 	err = c.cli.CallCompressed(ctx, method, arg, res, ctype, timeout)
@@ -49,7 +49,7 @@ func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg in
 	return err
 }
 
-func (c *RemoteClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) (err error) {
+func (c *RemoteClient) Notify(ctx context.Context, method string, arg any, timeout time.Duration) (err error) {
 	defer c.Trace(ctx, &err, "%s", method)()
 	return c.cli.Notify(ctx, method, arg, timeout)
 }

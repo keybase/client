@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 
 const CommandMarkdown = () => {
@@ -6,7 +6,7 @@ const CommandMarkdown = () => {
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       {!!title && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.title}>
           <Kb.Markdown>{title}</Kb.Markdown>
@@ -17,7 +17,7 @@ const CommandMarkdown = () => {
           <Kb.Markdown selectable={true}>{body}</Kb.Markdown>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

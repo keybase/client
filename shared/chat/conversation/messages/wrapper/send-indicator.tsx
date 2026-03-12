@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -48,7 +48,7 @@ const statusToIconDarkExploding = {
 
 const shownEncryptingSet = new Set()
 
-const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
+function SendIndicatorContainer() {
   const ordinal = useOrdinal()
 
   const {isExploding, sent, failed, id} = Chat.useChatContext(
@@ -137,15 +137,11 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
       style={styles.animationVisible}
     />
   ) : null
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      animationInvisible: Kb.Styles.platformStyles({
-        common: {height: 20, opacity: 0, width: 20},
-        isMobile: {backgroundColor: Kb.Styles.globalColors.white},
-      }),
       animationVisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {

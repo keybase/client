@@ -60,7 +60,7 @@ var (
 )
 
 // log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
-func log(format string, args ...interface{}) {
+func log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
@@ -446,7 +446,7 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteArr sends raw bytes encoded msgpack rpc payload, ios only
+// WriteArr sends raw bytes encoded msgpack rpc payload from the native layer (iOS and Android)
 func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
 	copy(bytes, b)

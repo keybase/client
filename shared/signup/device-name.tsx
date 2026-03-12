@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
-import * as Provision from '@/constants/provision'
-import {useSignupState} from '@/constants/signup'
+import * as Provision from '@/stores/provision'
+import {useSignupState} from '@/stores/signup'
 
 const ConnectedEnterDevicename = () => {
   const error = useSignupState(s => s.devicenameError)
@@ -60,31 +60,9 @@ const EnterDevicename = (props: Props) => {
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
 
-  const inputRef = React.useRef<Kb.PlainInputRef>(null)
-  C.useOnMountOnce(() => {
-    inputRef.current?.transformText(i => {
-      if (!props.initialDevicename) return i
-      return {
-        selection: {
-          end: props.initialDevicename.length,
-          start: 0,
-        },
-        text: props.initialDevicename,
-      }
-    })
-  })
-
   React.useEffect(() => {
     if (cleanDeviceName !== deviceName) {
-      inputRef.current?.transformText(() => {
-        return {
-          selection: {
-            end: cleanDeviceName.length,
-            start: cleanDeviceName.length,
-          },
-          text: cleanDeviceName,
-        }
-      })
+      setDeviceName(cleanDeviceName)
     }
   }, [deviceName, cleanDeviceName])
 
@@ -102,7 +80,7 @@ const EnterDevicename = (props: Props) => {
         fullWidth={true}
         style={Kb.Styles.globalStyles.flexOne}
       >
-        <Kb.Icon
+        <Kb.ImageIcon
           type={
             Kb.Styles.isMobile
               ? C.isLargeScreen
@@ -112,16 +90,16 @@ const EnterDevicename = (props: Props) => {
           }
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
-          <Kb.LabeledInput
-            ref={inputRef}
+          <Kb.Input3
             autoFocus={true}
+            selectTextOnFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
+            value={deviceName}
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>

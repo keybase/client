@@ -669,7 +669,7 @@ func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversatio
 				explodedByText = fmt.Sprintf(" by %s", *m.ExplodedBy())
 			}
 			mv.Body = fmt.Sprintf("[exploded%s] ", explodedByText)
-			for i := 0; i < 40; i++ {
+			for range 40 {
 				mv.Body += "* "
 			}
 		} else {
@@ -688,12 +688,12 @@ func newMessageViewValid(g *libkb.GlobalContext, opts RenderOptions, conversatio
 	}
 	sort.Strings(reactionTexts)
 
-	var reactionInfo string
+	var reactionInfo strings.Builder
 	for _, reactionText := range reactionTexts {
 		reactions := m.Reactions.Reactions[reactionText]
-		reactionInfo += emoji.Sprintf("%v[%d] ", reactionText, len(reactions))
+		reactionInfo.WriteString(emoji.Sprintf("%v[%d] ", reactionText, len(reactions)))
 	}
-	mv.ReactionInfo = reactionInfo
+	mv.ReactionInfo = reactionInfo.String()
 
 	return mv, nil
 }

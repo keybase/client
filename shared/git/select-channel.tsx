@@ -1,5 +1,5 @@
-import * as Git from '@/constants/git'
-import * as Teams from '@/constants/teams'
+import * as Git from '@/stores/git'
+import * as Teams from '@/stores/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -32,29 +32,27 @@ const SelectChannel = (ownProps: OwnProps) => {
 
   // TODO: this modal could use a little bit of love
   return (
-    <Kb.PopupWrapper>
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
-            <Kb.Text type="Header">Select a channel</Kb.Text>
-            {channelNames.map(name => (
-              <Kb.Box key={name} style={styles.row}>
-                <Kb.RadioButton
-                  label={name}
-                  selected={selected === name}
-                  style={styles.radioButton}
-                  onSelect={selected => selected && setSelected(name)}
-                />
-              </Kb.Box>
-            ))}
-          </Kb.Box2>
-        </Kb.ScrollView>
-        <Kb.ButtonBar>
-          <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
-          <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
-        </Kb.ButtonBar>
-      </Kb.Box2>
-    </Kb.PopupWrapper>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+      <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
+          <Kb.Text type="Header">Select a channel</Kb.Text>
+          {channelNames.map(name => (
+            <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
+              <Kb.RadioButton
+                label={name}
+                selected={selected === name}
+                style={styles.radioButton}
+                onSelect={selected => selected && setSelected(name)}
+              />
+            </Kb.Box2>
+          ))}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.ButtonBar>
+        <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
+        <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
+      </Kb.ButtonBar>
+    </Kb.Box2>
   )
 }
 
@@ -71,7 +69,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
     paddingLeft: Kb.Styles.globalMargins.tiny,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },

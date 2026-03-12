@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
@@ -11,12 +11,12 @@ const EnterPassword = () => {
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
-  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onBack = () => nav.safeNavigateUp()
 
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     resetAccount(password)
-  }, [resetAccount, password])
+  }
 
   const [now] = React.useState(() => Date.now())
 
@@ -36,10 +36,10 @@ const EnterPassword = () => {
       buttons={[{label: 'Continue', onClick: onContinue, waiting}]}
     >
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.LabeledInput
+        <Kb.Input3
           placeholder="Enter your password"
           containerStyle={styles.input}
-          type="password"
+          secureTextEntry={true}
           onChangeText={setPassword}
           onEnterKeyDown={onContinue}
           autoFocus={true}
@@ -53,12 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   input: Kb.Styles.platformStyles({
     isElectron: {
       width: 368,
-    },
-  }),
-  topGap: Kb.Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-start',
-      marginTop: '20%',
     },
   }),
 }))

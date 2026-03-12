@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build darwin
-// +build darwin
 
 package libkb
 
@@ -71,7 +70,7 @@ func (k KeychainSecretStore) StoreSecret(mctx MetaContext, accountName Normalize
 
 	// Try until we successfully write the secret in the store and we are the
 	// last entry.
-	for i := 0; i < maxKeychainItemSlots; i++ {
+	for i := range maxKeychainItemSlots {
 		account := newKeychainSlottedAccount(accountName, i)
 		if err = k.storeSecret(mctx, account, encodedSecret); err != nil {
 			mctx.Debug("KeychainSecretStore.StoreSecret(%s): unable to store secret %v, attempt %d, retrying", accountName, err, i)
@@ -128,7 +127,7 @@ func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName Normal
 
 	// find the last valid item we have stored in the keychain
 	var previousSecret LKSecFullSecret
-	for i := 0; i < maxKeychainItemSlots; i++ {
+	for i := range maxKeychainItemSlots {
 		account := newKeychainSlottedAccount(accountName, i)
 		secret, err = k.retrieveSecret(mctx, account)
 		if err == nil {
@@ -182,7 +181,7 @@ func (k KeychainSecretStore) ClearSecret(mctx MetaContext, accountName Normalize
 
 	// Try all slots to fully clear any secrets for this user
 	epick := FirstErrorPicker{}
-	for i := 0; i < maxKeychainItemSlots; i++ {
+	for i := range maxKeychainItemSlots {
 		account := newKeychainSlottedAccount(accountName, i)
 		err = k.clearSecret(mctx, account)
 		switch err {

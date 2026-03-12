@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/keybase/client/go/kbun"
@@ -260,12 +261,7 @@ type _wotMsg struct {
 }
 
 func hasWotMsg(testable string) bool {
-	for _, match := range []string{"wot.new_vouch", "wot.accepted", "wot.rejected"} {
-		if match == testable {
-			return true
-		}
-	}
-	return false
+	return slices.Contains([]string{"wot.new_vouch", "wot.accepted", "wot.rejected"}, testable)
 }
 
 func isDismissable(mctx MetaContext, category string, msg _wotMsg, voucher, vouchee kbun.NormalizedUsername) bool {

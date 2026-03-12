@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 
 const ConnectedExplainDevice = () => {
   const ed = useRecoverState(s => s.explainedDevice)
@@ -38,7 +38,7 @@ const ConnectedExplainDevice = () => {
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
-        <Kb.Icon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to

@@ -53,7 +53,7 @@ type Indexer struct {
 	clock        clockwork.Clock
 	eg           errgroup.Group
 	uid          gregor1.UID
-	storageCh    chan interface{}
+	storageCh    chan any
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
@@ -81,7 +81,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		pokeSyncCh:   make(chan struct{}, 100),
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
-		storageCh:    make(chan interface{}, 100),
+		storageCh:    make(chan any, 100),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -373,7 +373,7 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
-func (idx *Indexer) storageDispatch(op interface{}) {
+func (idx *Indexer) storageDispatch(op any) {
 	select {
 	case idx.storageCh <- op:
 	default:

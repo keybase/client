@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/metadata.avdl
 
 package keybase1
@@ -181,7 +181,8 @@ func (o FindNextMDResponse) DeepCopy() FindNextMDResponse {
 	}
 }
 
-type GetChallengeArg struct{}
+type GetChallengeArg struct {
+}
 
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
@@ -260,9 +261,11 @@ type GetFoldersForRekeyArg struct {
 	DeviceKID KID `codec:"deviceKID" json:"deviceKID"`
 }
 
-type PingArg struct{}
+type PingArg struct {
+}
 
-type Ping2Arg struct{}
+type Ping2Arg struct {
+}
 
 type GetLatestFolderHandleArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
@@ -315,7 +318,8 @@ type SetImplicitTeamModeForTestArg struct {
 	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
 }
 
-type ForceMerkleBuildForTestArg struct{}
+type ForceMerkleBuildForTestArg struct {
+}
 
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
@@ -353,21 +357,21 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 		Name: "keybase.1.metadata",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getChallenge": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetChallengeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetChallenge(ctx)
 					return
 				},
 			},
 			"authenticate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AuthenticateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AuthenticateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AuthenticateArg)(nil), args)
@@ -378,11 +382,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"putMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PutMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PutMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PutMetadataArg)(nil), args)
@@ -393,11 +397,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMetadataArg)(nil), args)
@@ -408,11 +412,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMetadataByTimestamp": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMetadataByTimestampArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMetadataByTimestampArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMetadataByTimestampArg)(nil), args)
@@ -423,11 +427,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"registerForUpdates": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RegisterForUpdatesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RegisterForUpdatesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RegisterForUpdatesArg)(nil), args)
@@ -438,11 +442,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"pruneBranch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PruneBranchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PruneBranchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PruneBranchArg)(nil), args)
@@ -453,11 +457,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"putKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PutKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PutKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PutKeysArg)(nil), args)
@@ -468,11 +472,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetKeyArg)(nil), args)
@@ -483,11 +487,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"deleteKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteKeyArg)(nil), args)
@@ -498,11 +502,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"truncateLock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TruncateLockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TruncateLockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TruncateLockArg)(nil), args)
@@ -513,11 +517,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"truncateUnlock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TruncateUnlockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TruncateUnlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TruncateUnlockArg)(nil), args)
@@ -528,11 +532,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getFolderHandle": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetFolderHandleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetFolderHandleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetFolderHandleArg)(nil), args)
@@ -543,11 +547,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getFoldersForRekey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetFoldersForRekeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetFoldersForRekeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetFoldersForRekeyArg)(nil), args)
@@ -558,31 +562,31 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"ping": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.Ping(ctx)
 					return
 				},
 			},
 			"ping2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]Ping2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.Ping2(ctx)
 					return
 				},
 			},
 			"getLatestFolderHandle": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetLatestFolderHandleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetLatestFolderHandleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetLatestFolderHandleArg)(nil), args)
@@ -593,11 +597,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getKeyBundles": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetKeyBundlesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetKeyBundlesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetKeyBundlesArg)(nil), args)
@@ -608,11 +612,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"lock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LockArg)(nil), args)
@@ -623,11 +627,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"releaseLock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReleaseLockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReleaseLockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReleaseLockArg)(nil), args)
@@ -638,11 +642,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"startImplicitTeamMigration": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]StartImplicitTeamMigrationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]StartImplicitTeamMigrationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]StartImplicitTeamMigrationArg)(nil), args)
@@ -653,11 +657,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMerkleRoot": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMerkleRootArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMerkleRootArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMerkleRootArg)(nil), args)
@@ -668,11 +672,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMerkleRootLatest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMerkleRootLatestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMerkleRootLatestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMerkleRootLatestArg)(nil), args)
@@ -683,11 +687,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMerkleRootSince": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMerkleRootSinceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMerkleRootSinceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMerkleRootSinceArg)(nil), args)
@@ -698,11 +702,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"getMerkleNode": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMerkleNodeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMerkleNodeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMerkleNodeArg)(nil), args)
@@ -713,11 +717,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"findNextMD": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindNextMDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindNextMDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindNextMDArg)(nil), args)
@@ -728,11 +732,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"setImplicitTeamModeForTest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetImplicitTeamModeForTestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetImplicitTeamModeForTestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetImplicitTeamModeForTestArg)(nil), args)
@@ -743,11 +747,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 			},
 			"forceMerkleBuildForTest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ForceMerkleBuildForTestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.ForceMerkleBuildForTest(ctx)
 					return
 				},
@@ -761,150 +765,150 @@ type MetadataClient struct {
 }
 
 func (c MetadataClient) GetChallenge(ctx context.Context) (res ChallengeInfo, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getChallenge", []interface{}{GetChallengeArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getChallenge", []any{GetChallengeArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) Authenticate(ctx context.Context, signature string) (res int, err error) {
 	__arg := AuthenticateArg{Signature: signature}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.authenticate", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.authenticate", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) PutMetadata(ctx context.Context, __arg PutMetadataArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.putMetadata", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.putMetadata", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMetadata(ctx context.Context, __arg GetMetadataArg) (res MetadataResponse, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMetadata", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMetadataByTimestamp(ctx context.Context, __arg GetMetadataByTimestampArg) (res MDBlock, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMetadataByTimestamp", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMetadataByTimestamp", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) RegisterForUpdates(ctx context.Context, __arg RegisterForUpdatesArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.registerForUpdates", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) PruneBranch(ctx context.Context, __arg PruneBranchArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.pruneBranch", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.pruneBranch", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) PutKeys(ctx context.Context, __arg PutKeysArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.putKeys", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.putKeys", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetKey(ctx context.Context, __arg GetKeyArg) (res []byte, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getKey", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getKey", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) DeleteKey(ctx context.Context, __arg DeleteKeyArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.deleteKey", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.deleteKey", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) TruncateLock(ctx context.Context, folderID string) (res bool, err error) {
 	__arg := TruncateLockArg{FolderID: folderID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.truncateLock", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.truncateLock", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) TruncateUnlock(ctx context.Context, folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.truncateUnlock", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetFolderHandle(ctx context.Context, __arg GetFolderHandleArg) (res []byte, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getFolderHandle", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getFolderHandle", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetFoldersForRekey(ctx context.Context, deviceKID KID) (err error) {
 	__arg := GetFoldersForRekeyArg{DeviceKID: deviceKID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getFoldersForRekey", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getFoldersForRekey", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) Ping(ctx context.Context) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.ping", []any{PingArg{}}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) Ping2(ctx context.Context) (res PingResponse, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.ping2", []interface{}{Ping2Arg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.ping2", []any{Ping2Arg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetLatestFolderHandle(ctx context.Context, folderID string) (res []byte, err error) {
 	__arg := GetLatestFolderHandleArg{FolderID: folderID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getLatestFolderHandle", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getLatestFolderHandle", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetKeyBundles(ctx context.Context, __arg GetKeyBundlesArg) (res KeyBundleResponse, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getKeyBundles", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getKeyBundles", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) Lock(ctx context.Context, __arg LockArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.lock", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.lock", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) ReleaseLock(ctx context.Context, __arg ReleaseLockArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.releaseLock", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.releaseLock", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) StartImplicitTeamMigration(ctx context.Context, folderID string) (err error) {
 	__arg := StartImplicitTeamMigrationArg{FolderID: folderID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.startImplicitTeamMigration", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.startImplicitTeamMigration", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMerkleRoot(ctx context.Context, __arg GetMerkleRootArg) (res MerkleRoot, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRoot", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRoot", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMerkleRootLatest(ctx context.Context, treeID MerkleTreeID) (res MerkleRoot, err error) {
 	__arg := GetMerkleRootLatestArg{TreeID: treeID}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRootLatest", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRootLatest", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMerkleRootSince(ctx context.Context, __arg GetMerkleRootSinceArg) (res MerkleRoot, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRootSince", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleRootSince", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) GetMerkleNode(ctx context.Context, hash string) (res []byte, err error) {
 	__arg := GetMerkleNodeArg{Hash: hash}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleNode", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.getMerkleNode", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) FindNextMD(ctx context.Context, __arg FindNextMDArg) (res FindNextMDResponse, err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.findNextMD", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.findNextMD", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) SetImplicitTeamModeForTest(ctx context.Context, implicitTeamMode string) (err error) {
 	__arg := SetImplicitTeamModeForTestArg{ImplicitTeamMode: implicitTeamMode}
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.setImplicitTeamModeForTest", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.setImplicitTeamModeForTest", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c MetadataClient) ForceMerkleBuildForTest(ctx context.Context) (err error) {
-	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.forceMerkleBuildForTest", []interface{}{ForceMerkleBuildForTestArg{}}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "keybase.1.metadata.forceMerkleBuildForTest", []any{ForceMerkleBuildForTestArg{}}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

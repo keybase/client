@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -41,63 +40,69 @@ const Container = (ownProps: OwnProps) => {
   )
 
   const sortSetting = FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const sortByNameAsc =
-        path === FS.defaultPath
-          ? undefined
-          : () => {
-              setSorting(path, T.FS.SortSetting.NameAsc)
-            }
-      const sortByNameDesc =
-        path === FS.defaultPath
-          ? undefined
-          : () => {
-              setSorting(path, T.FS.SortSetting.NameDesc)
-            }
-      const sortByTimeAsc =
-        path === FS.defaultPath
-          ? undefined
-          : () => {
-              setSorting(path, T.FS.SortSetting.TimeAsc)
-            }
-      const sortByTimeDesc =
-        path === FS.defaultPath
-          ? undefined
-          : () => {
-              setSorting(path, T.FS.SortSetting.TimeDesc)
-            }
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          position="bottom left"
-          closeOnSelect={true}
-          items={[
-            ...(sortByNameAsc ? [makeSortOptionItem(T.FS.SortSetting.NameAsc, sortByNameAsc)] : []),
-            ...(sortByNameDesc ? [makeSortOptionItem(T.FS.SortSetting.NameDesc, sortByNameDesc)] : []),
-            ...(sortByTimeAsc ? [makeSortOptionItem(T.FS.SortSetting.TimeAsc, sortByTimeAsc)] : []),
-            ...(sortByTimeDesc ? [makeSortOptionItem(T.FS.SortSetting.TimeDesc, sortByTimeDesc)] : []),
-          ]}
-        />
-      )
-    },
-    [setSorting, path]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const sortByNameAsc =
+      path === FS.defaultPath
+        ? undefined
+        : () => {
+            setSorting(path, T.FS.SortSetting.NameAsc)
+          }
+    const sortByNameDesc =
+      path === FS.defaultPath
+        ? undefined
+        : () => {
+            setSorting(path, T.FS.SortSetting.NameDesc)
+          }
+    const sortByTimeAsc =
+      path === FS.defaultPath
+        ? undefined
+        : () => {
+            setSorting(path, T.FS.SortSetting.TimeAsc)
+          }
+    const sortByTimeDesc =
+      path === FS.defaultPath
+        ? undefined
+        : () => {
+            setSorting(path, T.FS.SortSetting.TimeDesc)
+          }
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        position="bottom left"
+        closeOnSelect={true}
+        items={[
+          ...(sortByNameAsc ? [makeSortOptionItem(T.FS.SortSetting.NameAsc, sortByNameAsc)] : []),
+          ...(sortByNameDesc ? [makeSortOptionItem(T.FS.SortSetting.NameDesc, sortByNameDesc)] : []),
+          ...(sortByTimeAsc ? [makeSortOptionItem(T.FS.SortSetting.TimeAsc, sortByTimeAsc)] : []),
+          ...(sortByTimeDesc ? [makeSortOptionItem(T.FS.SortSetting.TimeDesc, sortByTimeDesc)] : []),
+        ]}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return sortSetting ? (
     <>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
-          <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(sortSetting)}</Kb.Text>
+          <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
+            {getTextFromSortSetting(sortSetting)}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
       {popup}
     </>
   ) : null
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      sortText: Kb.Styles.platformStyles({isElectron: {whiteSpace: 'nowrap'}}),
+    }) as const
+)
 
 export default Container

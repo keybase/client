@@ -14,7 +14,7 @@ func (e ManagerError) Error() string {
 	return fmt.Sprintf("hidden team manager error: %s", e.note)
 }
 
-func NewManagerError(format string, args ...interface{}) ManagerError {
+func NewManagerError(format string, args ...any) ManagerError {
 	return ManagerError{fmt.Sprintf(format, args...)}
 }
 
@@ -28,7 +28,7 @@ func (e LoaderError) Error() string {
 	return fmt.Sprintf("hidden team loader error: %s", e.note)
 }
 
-func NewLoaderError(format string, args ...interface{}) LoaderError {
+func NewLoaderError(format string, args ...any) LoaderError {
 	return LoaderError{fmt.Sprintf(format, args...)}
 }
 
@@ -42,7 +42,7 @@ func (e GenerateError) Error() string {
 	return fmt.Sprintf("hidden team generate error: %s", e.note)
 }
 
-func NewGenerateError(format string, args ...interface{}) GenerateError {
+func NewGenerateError(format string, args ...any) GenerateError {
 	return GenerateError{fmt.Sprintf(format, args...)}
 }
 
@@ -56,7 +56,7 @@ func (e RatchetError) Error() string {
 	return fmt.Sprintf("hidden team ratchet error: %s", e.note)
 }
 
-func newRatchetError(format string, args ...interface{}) RatchetError {
+func newRatchetError(format string, args ...any) RatchetError {
 	return RatchetError{fmt.Sprintf(format, args...)}
 }
 
@@ -106,7 +106,7 @@ func (e TombstonedError) Error() string {
 	return fmt.Sprintf("hidden team tombstoned error: %s", e.note)
 }
 
-func NewTombstonedError(format string, args ...interface{}) TombstonedError {
+func NewTombstonedError(format string, args ...any) TombstonedError {
 	return TombstonedError{fmt.Sprintf(format, args...)}
 }
 

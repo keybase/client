@@ -1,9 +1,9 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {HeaderOptions} from '@react-navigation/elements'
-import {HeaderLeftArrowCanGoBack} from '@/common-adapters/header-hoc'
-import type {NavState} from '@/constants/router2'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import type {NavState} from '@/stores/router'
 
 export const headerDefaultStyle = {
   get backgroundColor() {
@@ -38,7 +38,7 @@ export const defaultNavigationOptions = {
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
   headerLeft: ({tintColor}: HeaderLeftProps) => {
-    return <HeaderLeftArrowCanGoBack tintColor={tintColor} />
+    return <HeaderLeftButton autoDetectCanGoBack={true} tintColor={tintColor} />
   },
   headerLeftContainerStyle: {
     flexGrow: 0,
@@ -85,25 +85,24 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) =>
-  React.useCallback(
-    (tab: string) => {
-      const route = state?.routes?.find(r => r.name === tab)
-      const event = route
-        ? navigation.emit({
-            canPreventDefault: true,
-            target: route.key,
-            // @ts-ignore
-            type: 'tabPress',
-          })
-        : {defaultPrevented: false}
-
-      if (!event.defaultPrevented) {
-        navigation.dispatch({
-          ...TabActions.jumpTo(tab),
-          target: state?.key,
+export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) => {
+  const onSelectTab = (tab: string) => {
+    const route = state?.routes?.find(r => r.name === tab)
+    const event = route
+      ? navigation.emit({
+          canPreventDefault: true,
+          target: route.key,
+          // @ts-ignore tabPress is valid but not in the emit type
+          type: 'tabPress',
         })
-      }
-    },
-    [navigation, state]
-  )
+      : {defaultPrevented: false}
+
+    if (!event.defaultPrevented) {
+      navigation.dispatch({
+        ...TabActions.jumpTo(tab),
+        target: state?.key,
+      })
+    }
+  }
+  return onSelectTab
+}

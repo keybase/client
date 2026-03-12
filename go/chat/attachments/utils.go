@@ -275,7 +275,7 @@ func (fi kbfsFileInfo) ModTime() time.Time {
 func (fi kbfsFileInfo) IsDir() bool {
 	return fi.dirent.DirentType == keybase1.DirentType_DIR
 }
-func (fi kbfsFileInfo) Sys() interface{} { return fi.dirent }
+func (fi kbfsFileInfo) Sys() any { return fi.dirent }
 
 // StatOSOrKbfsFile stats the file located at p, using SimpleFSStat if it's a
 // KBFS path, or os.Stat if not.

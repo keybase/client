@@ -18,7 +18,7 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
 
         classpath("com.github.triplet.gradle:play-publisher:3.7.0") // To publish from gradle
-        classpath("com.google.gms:google-services:4.4.0")
+        classpath("com.google.gms:google-services:4.4.4")
     }
 }
 

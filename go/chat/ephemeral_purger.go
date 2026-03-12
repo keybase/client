@@ -75,7 +75,7 @@ func (pq *priorityQueue) Swap(i, j int) {
 // conversation to appear once in the heap. Use
 // `BackgroundEphemeralPurger.update` instead since it handles this as
 // intended.
-func (pq *priorityQueue) Push(x interface{}) {
+func (pq *priorityQueue) Push(x any) {
 	pq.Lock()
 	defer pq.Unlock()
 
@@ -85,7 +85,7 @@ func (pq *priorityQueue) Push(x interface{}) {
 	pq.itemMap[item.purgeInfo.ConvID.ConvIDStr()] = item
 }
 
-func (pq *priorityQueue) Pop() interface{} {
+func (pq *priorityQueue) Pop() any {
 	pq.Lock()
 	defer pq.Unlock()
 

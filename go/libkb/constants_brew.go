@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build brew
-// +build brew
 
 package libkb
 

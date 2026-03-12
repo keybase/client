@@ -1,5 +1,5 @@
 import logger from '@/logger'
-import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '@/constants/platform.desktop'
 import {printRPCBytes} from '@/local-debug'
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
@@ -19,10 +19,6 @@ class NativeTransport extends TransportShared {
     this.needsConnect = true
   }
 
-  _connect_critical_section(cb: unknown) {
-    super._connect_critical_section(cb)
-  }
-
   // Override Transport._raw_write -- see transport.iced in framed-msgpack-rpc.
   _raw_write(msg: string, encoding: 'binary') {
     if (printRPCBytes) {
@@ -40,35 +36,8 @@ class NativeTransport extends TransportShared {
   }
 }
 
-class ProxyNativeTransport extends TransportShared {
-  constructor(
-    incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
-  ) {
-    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
-
-    // We're connected locally so we never get disconnected
-    this.needsConnect = false
-  }
-
-  // We're always connected, so call the callback
-  connect(cb: (err?: unknown) => void) {
-    cb()
-  }
-  is_connected() {
-    return true
-  }
-
-  // Override and disable some built in stuff in TransportShared
-  reset() {}
-  close() {}
-  get_generation() {
-    return 1
-  }
-
+class ProxyNativeTransport extends LocalTransport {
   send(msg: unknown) {
-    // send over bridge to node to really send
     engineSend?.(msg as Uint8Array)
     return true
   }

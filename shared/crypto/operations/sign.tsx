@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import openURL from '@/util/open-url'
@@ -29,9 +29,9 @@ const SignOutputBanner = () => {
 
 export const SignInput = () => {
   const blurCBRef = React.useRef(() => {})
-  const setBlurCB = React.useCallback((cb: () => void) => {
+  const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
-  }, [])
+  }
 
   const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {

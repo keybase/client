@@ -3,7 +3,6 @@ import * as Framed from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '@/local-debug'
 import {requestIdleCallback} from '@/util/idle-callback'
 import * as LocalConsole from './local-console'
-import * as Stats from './stats'
 
 Framed.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
@@ -61,11 +60,6 @@ class TransportShared extends Framed.transport.RobustTransport {
           const reason = '[incoming]'
           const type = 'serverToEngine'
           rpcLog({extra, method, reason, type})
-        }
-
-        // always capture stats
-        if (method) {
-          Stats.gotStat(method, true)
         }
 
         this._injectInstrumentedResponse(payload)
@@ -134,10 +128,6 @@ class TransportShared extends Framed.transport.RobustTransport {
 
   // Override RobustTransport.invoke.
   invoke(arg: Framed.InvokeArgs, cb: (err: Framed.ErrorType, data: object) => void) {
-    // don't actually compress
-    // if (arg.ctype == undefined) {
-    //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
-    // }
     const extra = arg.args[0]
     const method = arg.method
     const reason = '[+calling]'
@@ -145,8 +135,6 @@ class TransportShared extends Framed.transport.RobustTransport {
     if (printRPC) {
       rpcLog({extra, method, reason, type})
     }
-    Stats.gotStat(method, false)
-
     let once = false
     super.invoke(arg, (err: Framed.ErrorType, data: object) => {
       if (once) {
@@ -160,9 +148,32 @@ class TransportShared extends Framed.transport.RobustTransport {
         const extra = data
         rpcLog({extra, method, reason, type})
       }
-      Stats.gotStat(method, false)
       cb(err, data)
     })
+  }
+}
+
+// Base for transports that are always locally connected (mobile JSI, desktop renderer IPC).
+// Only send() needs to be overridden per platform.
+class LocalTransport extends TransportShared {
+  constructor(
+    incomingRPCCallback: Framed.incomingRPCCallbackType,
+    connectCallback?: Framed.connectDisconnectCB,
+    disconnectCallback?: Framed.connectDisconnectCB
+  ) {
+    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
+    this.needsConnect = false
+  }
+  connect(cb: (err?: unknown) => void) {
+    cb()
+  }
+  is_connected() {
+    return true
+  }
+  reset() {}
+  close() {}
+  get_generation() {
+    return 1
   }
 }
 
@@ -180,4 +191,4 @@ function sharedCreateClient(nativeTransport: TransportShared) {
   return rpcClient
 }
 
-export {TransportShared, sharedCreateClient, rpcLog}
+export {TransportShared, LocalTransport, sharedCreateClient, rpcLog}

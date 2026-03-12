@@ -16,7 +16,7 @@ func TestBgTicker(t *testing.T) {
 	ticker := NewBgTickerWithWait(duration, wait)
 
 	// Test tick
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		select {
 		case <-ticker.C:
 			if i == 0 {

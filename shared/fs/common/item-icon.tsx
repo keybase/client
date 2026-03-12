@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'
@@ -65,11 +65,11 @@ export type TlfTypeIconProps = {
 const getTlfTypeIcon = (size: Size, tlfType: T.FS.TlfType) => {
   switch (tlfType) {
     case T.FS.TlfType.Private:
-      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.private[getIconSizeString(size)]} />
+      return <Kb.ImageIcon type={icons.tlfList.private[getIconSizeString(size)]} />
     case T.FS.TlfType.Public:
-      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.public[getIconSizeString(size)]} />
+      return <Kb.ImageIcon type={icons.tlfList.public[getIconSizeString(size)]} />
     case T.FS.TlfType.Team:
-      return <Kb.Icon fixOverdraw={true} type={icons.tlfList.team[getIconSizeString(size)]} />
+      return <Kb.ImageIcon type={icons.tlfList.team[getIconSizeString(size)]} />
   }
 }
 
@@ -78,21 +78,20 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
   const badgeCount = FS.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
-    <Kb.Box style={props.style}>
+    <Kb.Box2 direction="vertical" style={props.style}>
       {getTlfTypeIcon(props.size, props.tlfType)}
       {props.badgeOverride ? (
-        <Kb.Box style={styles.badgeContainer}>
-          <Kb.Icon fixOverdraw={true} type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
-          color={Kb.Styles.globalColors.greyDarker}
-        </Kb.Box>
+        <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
+          <Kb.ImageIcon type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
+        </Kb.Box2>
       ) : (
         !!badgeCount && (
-          <Kb.Box style={styles.badgeContainer}>
+          <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
             <Kb.Badge badgeNumber={badgeCount} badgeStyle={badgeStyle.numberBadge} />
-          </Kb.Box>
+          </Kb.Box2>
         )
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -104,23 +103,21 @@ type TlfIconProps = {
 }
 
 const TlfIcon = (props: TlfIconProps) => (
-  <Kb.Box style={props.style}>
+  <Kb.Box2 direction="vertical" style={props.style}>
     {props.tlfTypeForFolderIconOverride ? (
       getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
     ) : (
-      <Kb.Icon fixOverdraw={true} type={icons.folder[getIconSizeString(props.size)]} />
+      <Kb.ImageIcon type={icons.folder[getIconSizeString(props.size)]} />
     )}
     {!!props.badgeOverride && (
-      <Kb.Box style={styles.badgeContainer}>
-        <Kb.Icon
-          fixOverdraw={true}
+      <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
+        <Kb.ImageIcon
           type={props.badgeOverride}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
-          color={Kb.Styles.globalColors.greyDarker}
         />
-      </Kb.Box>
+      </Kb.Box2>
     )}
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 type InTlfItemIconProps = {
@@ -139,26 +136,25 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (
-    <Kb.Box style={props.style}>
+    <Kb.Box2 direction="vertical" style={props.style}>
       {pathItem.type === T.FS.PathType.Folder ? (
         props.tlfTypeForFolderIconOverride ? (
           getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
         ) : (
-          <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+          <Kb.ImageIcon type={icons.folder[getIconSizeString(props.size)]} />
         )
       ) : (
-        <Kb.Icon type={icons.file[getIconSizeString(props.size)]} />
+        <Kb.ImageIcon type={icons.file[getIconSizeString(props.size)]} />
       )}
       {badgeIcon ? (
-        <Kb.Box style={styles.badgeContainer}>
-          <Kb.Icon
+        <Kb.Box2 direction="vertical" relative={true} style={styles.badgeContainer}>
+          <Kb.ImageIcon
             type={badgeIcon}
             style={badgeStyle.rightBottomBadge}
-            color={Kb.Styles.globalColors.greyDarker}
           />
-        </Kb.Box>
+        </Kb.Box2>
       ) : null}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -174,7 +170,7 @@ const ItemIcon = (props: ItemIconProps) => {
   const parsedPath = FS.parsePath(props.path)
   switch (parsedPath.kind) {
     case T.FS.PathKind.Root:
-      return <Kb.Icon fixOverdraw={true} type={icons['folder'][getIconSizeString(props.size)]} />
+      return <Kb.ImageIcon type={icons['folder'][getIconSizeString(props.size)]} />
     case T.FS.PathKind.TlfList:
       return (
         <TlfTypeIcon
@@ -218,12 +214,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badgeContainer: {
-        // 1) Make position 'relative' so it's "positioned",
-        //    and that the badge inside can just use 'absolute' relative to this
-        //    container.
-        // 2) Make width/height explicit 0 so they don't affect nearby stuff.
+        // Make width/height explicit 0 so they don't affect nearby stuff.
         height: 0,
-        position: 'relative',
         width: 0,
       },
     }) as const

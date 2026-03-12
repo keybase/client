@@ -7,8 +7,8 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {useSignupState} from '@/constants/signup'
-import {usePeopleState} from '@/constants/people'
+import {useSignupState} from '@/stores/signup'
+import {usePeopleState} from '@/stores/people'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -60,7 +60,7 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
   }
 }
 
-const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
+function EmailVerificationBanner() {
   const clearJustSignedUpEmail = useSignupState(s => s.dispatch.clearJustSignedUpEmail)
   const signupEmail = useSignupState(s => s.justSignedUpEmail)
   React.useEffect(
@@ -82,9 +82,9 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
   )
-})
+}
 
-const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificationBanner() {
+function ResentEmailVerificationBanner() {
   const resentEmail = usePeopleState(s => s.resentEmail)
   const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   React.useEffect(
@@ -110,11 +110,11 @@ const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificatio
       />
     </Kb.Banner>
   )
-})
+}
 
-export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
+export function PeoplePageList(props: Props) {
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
       <EmailVerificationBanner />
       <ResentEmailVerificationBanner />
       {props.newItems
@@ -132,6 +132,6 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
 
       <FollowSuggestions suggestions={props.followSuggestions} />
       {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}

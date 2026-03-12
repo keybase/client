@@ -1,15 +1,11 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import type * as T from '@/constants/types'
 import Main from './main'
-import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/constants/config'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -51,13 +47,12 @@ const Connected = () => {
     C.useShallow(s => {
       const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
       const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
-      const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = dispatch
+      const {getTeams, launchNewTeamWizardOrModal} = dispatch
       return {
         activityLevels,
         deletedTeams,
         getTeams,
         launchNewTeamWizardOrModal,
-        manageChatChannels,
         newTeamRequests,
         newTeams,
         teamIDToResetUsers,
@@ -69,28 +64,9 @@ const Connected = () => {
   )
   const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
   const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
-  const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = data
+  const {getTeams, launchNewTeamWizardOrModal} = data
 
-  const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
-
-  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
-  const onHideChatBanner = () => {
-    updateGregorCategory('sawChatBanner', 'true')
-  }
-  const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
-  }
-  const onReadMore = () => {
-    openURL('https://keybase.io/blog/introducing-keybase-teams')
-  }
-
-  const teams = React.useMemo(
-    () =>
-      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
-    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
-  )
-
-  const loadTeams = getTeams
+  const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter)
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -101,25 +77,13 @@ const Connected = () => {
   const onCreateTeam = () => launchNewTeamWizardOrModal()
   const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
 
-  const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
-  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
-
   return (
-    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={getTeams}>
       <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
-        onManageChat={onManageChat}
-        onViewTeam={onViewTeam}
         deletedTeams={deletedTeams}
-        loaded={loaded}
-        newTeamRequests={newTeamRequests}
-        newTeams={newTeams}
-        onHideChatBanner={onHideChatBanner}
-        onOpenFolder={onOpenFolder}
-        onReadMore={onReadMore}
         teams={teams}
-        teamresetusers={teamIDToResetUsers}
       />
     </Kb.Reloadable>
   )

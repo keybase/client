@@ -1,372 +1,313 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType} from './text'
+import type {TextType} from './text.shared'
 
-// need to be `undefined` instead of `null` since `null` doesn't ellipsize at
-// all.
-export function lineClamp(lines: number | undefined, mode: string | undefined): object {
-  return {
-    ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
-  }
+export const negativeColors: {[K in TextType]: string} = {
+  Body: Styles.globalColors.white,
+  BodyBig: Styles.globalColors.white,
+  BodyBigExtrabold: Styles.globalColors.white,
+  BodyBigLink: Styles.globalColors.white,
+  BodyBold: Styles.globalColors.white,
+  BodyExtrabold: Styles.globalColors.white,
+  BodyItalic: Styles.globalColors.white,
+  BodyPrimaryLink: Styles.globalColors.white,
+  BodySecondaryLink: Styles.globalColors.white,
+  BodySemibold: Styles.globalColors.white,
+  BodySemiboldItalic: Styles.globalColors.white,
+  BodySemiboldLink: Styles.globalColors.white,
+  BodySmall: Styles.globalColors.white,
+  BodySmallBold: Styles.globalColors.white,
+  BodySmallError: Styles.globalColors.white,
+  BodySmallExtrabold: Styles.globalColors.white,
+  BodySmallExtraboldSecondaryLink: Styles.globalColors.white,
+  BodySmallItalic: Styles.globalColors.white,
+  BodySmallPrimaryLink: Styles.globalColors.white,
+  BodySmallSecondaryLink: Styles.globalColors.white,
+  BodySmallSemibold: Styles.globalColors.white,
+  BodySmallSemiboldItalic: Styles.globalColors.white,
+  BodySmallSemiboldPrimaryLink: Styles.globalColors.white,
+  BodySmallSemiboldSecondaryLink: Styles.globalColors.white,
+  BodySmallSuccess: Styles.globalColors.white,
+  BodySmallWallet: Styles.globalColors.white,
+  BodyTiny: Styles.globalColors.white,
+  BodyTinyBold: Styles.globalColors.white,
+  BodyTinyExtrabold: Styles.globalColors.white,
+  BodyTinyLink: Styles.globalColors.white,
+  BodyTinySemibold: Styles.globalColors.white,
+  BodyTinySemiboldItalic: Styles.globalColors.white,
+  Header: Styles.globalColors.white,
+  HeaderBig: Styles.globalColors.white,
+  HeaderBigExtrabold: Styles.globalColors.white,
+  HeaderExtrabold: Styles.globalColors.white,
+  HeaderItalic: Styles.globalColors.white,
+  HeaderLink: Styles.globalColors.white,
+  Terminal: Styles.globalColors.blueDarker,
+  TerminalComment: Styles.globalColors.blueLighter_40,
+  TerminalEmpty: Styles.globalColors.blueLighter_40,
+  TerminalInline: Styles.globalColors.blueDarker,
 }
 
-export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} {
-  const lineHeight = {
-    '13': 17,
-    '15': 19,
-    '16': 20,
-    '17': 21,
-    '20': 24,
-    '28': 32,
-  }[String(fontSize)] as number
-
-  return {
-    fontSize,
-    lineHeight,
-  }
-}
-
-const _metaData = (): {[K in TextType]: MetaType} => {
-  // you CANNOT spread these else the getters dissappear and your colors will be wrong
-  const whiteNegative = {
-    get negative() {
-      return Styles.globalColors.white
-    },
-    get positive() {
-      return Styles.globalColors.black
-    },
-  }
-  const whiteNegative_50 = {
-    get negative() {
-      return Styles.globalColors.white
-    },
-    get positive() {
-      return Styles.globalColors.black_50
-    },
-  }
-
-  const _blueLink = {
-    get negative() {
-      return Styles.globalColors.white
-    },
-    get positive() {
-      return Styles.globalColors.blueDark
-    },
-  }
-  return {
-    Body: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodyBig: {
-      colorForBackground: whiteNegative,
-      fontSize: 17,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodyBigExtrabold: {
-      colorForBackground: whiteNegative,
-      fontSize: 17,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    BodyBigLink: {
-      colorForBackground: _blueLink,
-      fontSize: 17,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodyBold: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    BodyExtrabold: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    BodyItalic: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: {
-        ...Styles.globalStyles.fontRegular,
-        fontStyle: 'italic',
-      },
-    },
-    BodyPrimaryLink: {
-      colorForBackground: _blueLink,
-      fontSize: 16,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySecondaryLink: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 16,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySemibold: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodySemiboldItalic: {
-      colorForBackground: whiteNegative,
-      fontSize: 16,
-      styleOverride: {
-        ...Styles.globalStyles.fontSemibold,
-        fontStyle: 'italic',
-      },
-    },
-    BodySemiboldLink: {
-      colorForBackground: _blueLink,
-      fontSize: 16,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodySmall: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallBold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    BodySmallError: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.redDark
-        },
-      },
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallExtrabold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    BodySmallExtraboldSecondaryLink: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    BodySmallItalic: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: {
-        ...Styles.globalStyles.fontRegular,
-        fontStyle: 'italic',
-      },
-    },
-    BodySmallPrimaryLink: {
-      colorForBackground: _blueLink,
-      fontSize: 15,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallSecondaryLink: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallSemibold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodySmallSemiboldItalic: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 15,
-      styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'},
-    },
-    BodySmallSemiboldPrimaryLink: {
-      colorForBackground: _blueLink,
-      fontSize: 15,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodySmallSemiboldSecondaryLink: {
-      colorForBackground: _blueLink,
-      fontSize: 15,
-      isLink: true,
-      styleOverride: {...Styles.globalStyles.fontSemibold, textDecorationLine: undefined},
-    },
-    BodySmallSuccess: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.greenDark
-        },
-      },
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodySmallWallet: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.white
-        },
-        get positive() {
-          return Styles.globalColors.purpleDark
-        },
-      },
-      fontSize: 15,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodyTiny: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodyTinyBold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    BodyTinyExtrabold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    BodyTinyLink: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontRegular,
-    },
-    BodyTinySemibold: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      styleOverride: Styles.globalStyles.fontSemibold,
-    },
-    BodyTinySemiboldItalic: {
-      colorForBackground: whiteNegative_50,
-      fontSize: 13,
-      styleOverride: {
-        ...Styles.globalStyles.fontSemibold,
-        fontStyle: 'italic',
-      },
-    },
-    Header: {
-      colorForBackground: whiteNegative,
-      fontSize: 20,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    HeaderBig: {
-      colorForBackground: whiteNegative,
-      fontSize: 28,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    HeaderBigExtrabold: {
-      colorForBackground: whiteNegative,
-      fontSize: 28,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    HeaderExtrabold: {
-      colorForBackground: whiteNegative,
-      fontSize: 20,
-      styleOverride: Styles.globalStyles.fontExtrabold,
-    },
-    HeaderItalic: {
-      colorForBackground: whiteNegative,
-      fontSize: 20,
-      styleOverride: {
-        ...Styles.globalStyles.fontBold,
-        fontStyle: 'italic',
-      },
-    },
-    HeaderLink: {
-      colorForBackground: _blueLink,
-      fontSize: 20,
-      isLink: true,
-      styleOverride: Styles.globalStyles.fontBold,
-    },
-    Terminal: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.blueDarker
-        },
-        get positive() {
-          return Styles.globalColors.blueLighter
-        },
-      },
-      fontSize: 15,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        lineHeight: 20,
-      },
-    },
-    TerminalComment: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.blueLighter_40
-        },
-        get positive() {
-          return Styles.globalColors.blueLighter_40
-        },
-      },
-      fontSize: 15,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        lineHeight: 20,
-      },
-    },
-    TerminalEmpty: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.blueLighter_40
-        },
-        get positive() {
-          return Styles.globalColors.blueLighter_40
-        },
-      },
-      fontSize: 15,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        height: 20,
-        lineHeight: 20,
-      },
-    },
-    TerminalInline: {
-      colorForBackground: {
-        get negative() {
-          return Styles.globalColors.blueDarker
-        },
-        get positive() {
-          return Styles.globalColors.blueDarker
-        },
-      },
-      fontSize: 15,
-      styleOverride: {
-        ...Styles.globalStyles.fontTerminal,
-        backgroundColor: Styles.globalColors.blueLighter2,
-        borderRadius: 2,
-        height: 20,
-        lineHeight: 20,
-        padding: 2,
-      },
-    },
-  }
-}
-
-let _darkMetaData: {[K in TextType]: MetaType} | undefined
-let _lightMetaData: {[K in TextType]: MetaType} | undefined
-
-export const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
-  if (isDarkMode) {
-    _darkMetaData = _darkMetaData || _metaData()
-    return _darkMetaData
-  } else {
-    _lightMetaData = _lightMetaData || _metaData()
-    return _lightMetaData
-  }
-}
+export const typeStyles = Styles.styleSheetCreate(() => ({
+  Body: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodyBig: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black,
+    fontSize: 17,
+    lineHeight: 21,
+  },
+  BodyBigExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black,
+    fontSize: 17,
+    lineHeight: 21,
+  },
+  BodyBigLink: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.blueDark,
+    fontSize: 17,
+    lineHeight: 21,
+  },
+  BodyBold: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodyExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodyItalic: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    fontStyle: 'italic' as const,
+    lineHeight: 20,
+  },
+  BodyPrimaryLink: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.blueDark,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodySecondaryLink: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodySemibold: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodySemiboldItalic: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black,
+    fontSize: 16,
+    fontStyle: 'italic' as const,
+    lineHeight: 20,
+  },
+  BodySemiboldLink: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.blueDark,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  BodySmall: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallBold: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallError: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.redDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallExtraboldSecondaryLink: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallItalic: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    fontStyle: 'italic' as const,
+    lineHeight: 19,
+  },
+  BodySmallPrimaryLink: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.blueDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallSecondaryLink: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallSemibold: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallSemiboldItalic: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_50,
+    fontSize: 15,
+    fontStyle: 'italic' as const,
+    lineHeight: 19,
+  },
+  BodySmallSemiboldPrimaryLink: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.blueDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallSemiboldSecondaryLink: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.blueDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallSuccess: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.greenDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodySmallWallet: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.purpleDark,
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  BodyTiny: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  BodyTinyBold: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  BodyTinyExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  BodyTinyLink: {
+    ...Styles.globalStyles.fontRegular,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  BodyTinySemibold: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+  BodyTinySemiboldItalic: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.black_50,
+    fontSize: 13,
+    fontStyle: 'italic' as const,
+    lineHeight: 17,
+  },
+  Header: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  HeaderBig: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black,
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  HeaderBigExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black,
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  HeaderExtrabold: {
+    ...Styles.globalStyles.fontExtrabold,
+    color: Styles.globalColors.black,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  HeaderItalic: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.black,
+    fontSize: 20,
+    fontStyle: 'italic' as const,
+    lineHeight: 24,
+  },
+  HeaderLink: {
+    ...Styles.globalStyles.fontBold,
+    color: Styles.globalColors.blueDark,
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  Terminal: {
+    ...Styles.globalStyles.fontTerminal,
+    color: Styles.globalColors.blueLighter,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  TerminalComment: {
+    ...Styles.globalStyles.fontTerminal,
+    color: Styles.globalColors.blueLighter_40,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  TerminalEmpty: {
+    ...Styles.globalStyles.fontTerminal,
+    color: Styles.globalColors.blueLighter_40,
+    fontSize: 15,
+    height: 20,
+    lineHeight: 20,
+  },
+  TerminalInline: {
+    ...Styles.globalStyles.fontTerminal,
+    backgroundColor: Styles.globalColors.blueLighter2,
+    borderRadius: 2,
+    color: Styles.globalColors.blueDarker,
+    fontSize: 15,
+    height: 20,
+    lineHeight: 20,
+    padding: 2,
+  },
+}) as const)

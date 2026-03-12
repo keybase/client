@@ -338,13 +338,13 @@ func (e *mockError) Error() string {
 	return fmt.Sprintf("error in mock: %s", e.Msg)
 }
 
-func NewMockError(format string, args ...interface{}) error {
+func NewMockError(format string, args ...any) error {
 	return &mockError{
 		Msg: fmt.Sprintf(format, args...),
 	}
 }
 
-func NewMockBoundsError(caller string, keydesc string, key interface{}) error {
+func NewMockBoundsError(caller string, keydesc string, key any) error {
 	return &mockError{
 		Msg: fmt.Sprintf("in %s: key not found (%s) %+v", caller, keydesc, key),
 	}

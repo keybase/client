@@ -1,10 +1,8 @@
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {ModalTitle} from '@/teams/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
@@ -21,8 +19,6 @@ const CreateChannel = () => {
 
 export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const nav = useSafeNavigation()
-  const teamID = props.teamID || T.Teams.newTeamWizardTeamID
   const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
@@ -42,7 +38,6 @@ export const CreateChannelsModal = (props: Props) => {
   const setTeamWizardChannels = useTeamsState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
-  const onBack = () => nav.safeNavigateUp()
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
@@ -61,23 +56,15 @@ export const CreateChannelsModal = (props: Props) => {
   )
 
   return (
-    <Kb.Modal
-      banners={props.banners}
-      backgroundStyle={styles.background}
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Create channels" />,
-      }}
-      mode="DefaultFullHeight"
-      footer={{content: submitButton}}
-      allowOverflow={true}
-    >
+    <>
+      {props.banners}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.Icon type="icon-illustration-teams-channels-460-96" />
+        <Kb.ImageIcon type="icon-illustration-teams-channels-460-96" />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        flex={1}
         style={styles.body}
         gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
@@ -91,7 +78,7 @@ export const CreateChannelsModal = (props: Props) => {
             onClear={() => onClear(idx)}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && !props.onSubmitChannels && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
@@ -99,7 +86,8 @@ export const CreateChannelsModal = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>{submitButton}</Kb.Box2>
+    </>
   )
 }
 
@@ -114,12 +102,12 @@ type ChannelInputProps =
 
 const ChannelInput = (props: ChannelInputProps) => {
   if (props.isGeneral) {
-    return <Kb.NewInput value="#general" disabled={true} containerStyle={styles.inputGeneral} />
+    return <Kb.Input3 value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
   return (
-    <Kb.NewInput
+    <Kb.Input3
       value={props.value}
-      onChangeText={text => props.onChange(cleanChannelname(text))}
+      onChangeText={(text: string) => props.onChange(cleanChannelname(text))}
       decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
       placeholder="channel"
       prefix="#"
@@ -137,17 +125,29 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: 47},
         isTablet: {alignSelf: 'flex-start'},
       }),
-      background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       banner: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
         isElectron: {overflowX: 'hidden'},
       }),
       body: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-        flex: 1,
       },
       input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
       inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
     }) as const
 )

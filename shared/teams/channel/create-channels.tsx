@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {CreateChannelsModal} from '../new-team/wizard/create-channels'
@@ -37,9 +37,7 @@ const CreateChannels = (props: Props) => {
     setSuccess(prevWaitingRef.current && !waiting && !error)
   }, [waiting, error])
 
-  const banners = React.useMemo(
-    () =>
-      error ? (
+  const banners = error ? (
         <Kb.Banner color="red" key="error">
           {error}
         </Kb.Banner>
@@ -47,9 +45,7 @@ const CreateChannels = (props: Props) => {
         <Kb.Banner color="green" key="success">
           Successfully created channels.
         </Kb.Banner>
-      ) : null,
-    [error, success]
-  )
+      ) : null
 
   const onSubmitChannels = (channels: Array<string>) => {
     createChannels(teamID, channels)

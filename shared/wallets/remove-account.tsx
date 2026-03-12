@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import WalletPopup from './wallet-popup'
-import {useState as useWalletsState} from '@/constants/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
 
 type OwnProps = {accountID: string}
 
@@ -16,7 +16,7 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
-    navigateAppend({props: {accountID}, selected: 'reallyRemoveAccount'}, true)
+    navigateAppend({name: 'reallyRemoveAccount', params: {accountID}}, true)
   }
 
   const buttons = [
@@ -33,14 +33,10 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <WalletPopup
-      onExit={onClose}
-      backButtonType="cancel"
-      headerStyle={styles.header}
       bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
-      safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
-        <Kb.Icon
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
+        <Kb.IconAuto
           type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={styles.icon}
         />
@@ -66,17 +62,12 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  flexOne: {flex: 1},
-  header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},
     isElectron: {marginTop: Kb.Styles.globalMargins.medium},
     isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
   }),
   marginBottomTiny: {marginBottom: Kb.Styles.globalMargins.tiny},
-  safeAreaBottom: {
-    backgroundColor: Kb.Styles.globalColors.fastBlank,
-  },
   warningText: Kb.Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'} as const,
     isMobile: {

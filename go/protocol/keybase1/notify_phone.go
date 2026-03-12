@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_phone.avdl
 
 package keybase1
@@ -25,11 +25,11 @@ func NotifyPhoneNumberProtocol(i NotifyPhoneNumberInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyPhoneNumber",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"phoneNumbersChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PhoneNumbersChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PhoneNumbersChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PhoneNumbersChangedArg)(nil), args)
@@ -48,6 +48,6 @@ type NotifyPhoneNumberClient struct {
 }
 
 func (c NotifyPhoneNumberClient) PhoneNumbersChanged(ctx context.Context, __arg PhoneNumbersChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumbersChanged", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumbersChanged", []any{__arg}, 0*time.Millisecond)
 	return
 }

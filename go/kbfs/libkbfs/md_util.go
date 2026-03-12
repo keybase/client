@@ -358,10 +358,9 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	currHead = startRev
 	for {
 		// first look up all unmerged MD revisions older than my current head
-		startRev := currHead - maxMDsAtATime + 1 // (kbfsmd.Revision is signed)
-		if startRev < kbfsmd.RevisionInitial {
-			startRev = kbfsmd.RevisionInitial
-		}
+		startRev := max(
+			// (kbfsmd.Revision is signed)
+			currHead-maxMDsAtATime+1, kbfsmd.RevisionInitial)
 
 		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead,
 			kbfsmd.Unmerged, nil)

@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -57,17 +58,18 @@ func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
 		return errors.New("Need a terminal UI to prompt for TLF data loss override")
 	}
 
-	out := "Are you sure you want to delete this device? If you do, you can lose KBFS access to:\n"
+	var out strings.Builder
+	out.WriteString("Are you sure you want to delete this device? If you do, you can lose KBFS access to:\n")
 	n := len(res.EndangeredTLFs)
 	for i, tlf := range res.EndangeredTLFs {
 		if i == 10 && n > 11 {
-			out += fmt.Sprintf("   .... and %d others\n", (n - 10))
+			fmt.Fprintf(&out, "   .... and %d others\n", (n - 10))
 			break
 		}
-		out += fmt.Sprintf(" * %s\n", tlf.Name)
+		fmt.Fprintf(&out, " * %s\n", tlf.Name)
 	}
 
-	_ = tui.OutputDesc(OutputDescriptorEndageredTLFs, out)
+	_ = tui.OutputDesc(OutputDescriptorEndageredTLFs, out.String())
 	ok, err := tui.PromptYesNo(PromptDescriptorDeviceRevoke, "Go ahead anyway?", libkb.PromptDefaultNo)
 	if err != nil {
 		return err

@@ -25,7 +25,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.modules.core.PermissionListener
 import com.reactnativekb.DarkModePreference
 import com.reactnativekb.KbModule
@@ -80,11 +79,10 @@ class MainActivity : ReactActivity() {
         super.onCreate(null)
         Handler(Looper.getMainLooper()).postDelayed({
             try {
-                var gc = GuiConfig.getInstance(filesDir)
-                if (gc != null) {
-                    setBackgroundColor(gc.getDarkMode())
-                }
+                val gc = GuiConfig.getInstance(filesDir)
+                gc?.let { setBackgroundColor(it.getDarkMode()) }
             } catch (e: Exception) {
+                NativeLogger.warn("Error reading GuiConfig in onCreate", e)
             }
         }, 300)
         KeybasePushNotificationListenerService.createNotificationChannel(this)
@@ -259,6 +257,7 @@ class MainActivity : ReactActivity() {
 
         // Avoid getParcelableArrayListExtra() here: some senders incorrectly use ACTION_SEND_MULTIPLE
         // but provide a single Uri in EXTRA_STREAM, which would cause a ClassCast log/warning.
+        @Suppress("DEPRECATION")
         when (val streamExtra = intent.extras?.get(Intent.EXTRA_STREAM)) {
             is Uri -> uris.add(streamExtra)
             is ArrayList<*> -> streamExtra.filterIsInstance<Uri>().forEach { uris.add(it) }
@@ -300,10 +299,6 @@ class MainActivity : ReactActivity() {
             NativeLogger.info("MainActivity.handleIntent: no react context, will retry")
             return false
         }
-        val emitter = rc.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java) ?: run {
-            NativeLogger.info("MainActivity.handleIntent: no emitter, will retry")
-            return false
-        }
         if (!jsIsListening) {
             NativeLogger.info("MainActivity.handleIntent: JS not listening yet, will retry")
             return false
@@ -332,12 +327,12 @@ class MainActivity : ReactActivity() {
                 val bundle1 = bundleFromNotification.clone() as Bundle
                 val bundle2 = bundleFromNotification.clone() as Bundle
                 val payload1 = Arguments.fromBundle(bundle1)
-                emitter.emit(
+                rc.emitDeviceEvent(
                     "initialIntentFromNotification",
                     payload1
                 )
                 val payload2 = Arguments.fromBundle(bundle2)
-                emitter.emit(
+                rc.emitDeviceEvent(
                     "onPushNotification",
                     payload2
                 )
@@ -388,7 +383,7 @@ class MainActivity : ReactActivity() {
                 // Text-type intent (e.g. URL from Chrome): prefer text over any preview images
                 val args = Arguments.createMap()
                 args.putString("text", text ?: textPayload)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (filePaths.isNotEmpty()) {
                 val args = Arguments.createMap()
@@ -397,18 +392,18 @@ class MainActivity : ReactActivity() {
                     lPaths.pushString(path)
                 }
                 args.putArray("localPaths", lPaths)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (textPayload.isNotEmpty()) {
                 // Fallback: non-text MIME but no files resolved, send text
                 val args = Arguments.createMap()
                 args.putString("text", textPayload)
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             } else if (uris.isNotEmpty()) {
                 val args = Arguments.createMap()
                 args.putArray("localPaths", Arguments.createArray())
-                emitter.emit("onShareData", args)
+                rc.emitDeviceEvent("onShareData", args)
                 didSomething = true
             }
         }
@@ -430,11 +425,10 @@ class MainActivity : ReactActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         try {
-            var gc = GuiConfig.getInstance(filesDir)
-            if (gc != null) {
-                setBackgroundColor(gc.getDarkMode())
-            }
+            val gc = GuiConfig.getInstance(filesDir)
+            gc?.let { setBackgroundColor(it.getDarkMode()) }
         } catch (e: Exception) {
+            NativeLogger.warn("Error reading GuiConfig in onConfigurationChanged", e)
         }
         if (newConfig.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
             isUsingHardwareKeyboard = true
@@ -444,13 +438,12 @@ class MainActivity : ReactActivity() {
     }
 
     fun setBackgroundColor(pref: DarkModePreference) {
-        val bgColor: Int
-        bgColor = if (pref == DarkModePreference.System) {
-            if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
-        } else if (pref == DarkModePreference.AlwaysDark) {
-            R.color.black
-        } else {
-            R.color.white
+        val bgColor = when (pref) {
+            DarkModePreference.System -> {
+                if (colorSchemeForCurrentConfiguration() == "light") R.color.white else R.color.black
+            }
+            DarkModePreference.AlwaysDark -> R.color.black
+            DarkModePreference.AlwaysLight -> R.color.white
         }
         val mainWindow = this.window
         val handler = Handler(Looper.getMainLooper())
