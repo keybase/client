@@ -601,8 +601,15 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     // Common mutable fields
     if (existing.exploded !== incoming.exploded) return false
     if (existing.submitState !== incoming.submitState) return false
+    if (existing.isCollapsed !== incoming.isCollapsed) return false
     if ((existing.reactions?.size ?? 0) !== (incoming.reactions?.size ?? 0)) return false
     if ((existing.unfurls?.size ?? 0) !== (incoming.unfurls?.size ?? 0)) return false
+    if (existing.unfurls && incoming.unfurls) {
+      for (const [key, eu] of existing.unfurls) {
+        const iu = incoming.unfurls.get(key)
+        if (!iu || eu.isCollapsed !== iu.isCollapsed) return false
+      }
+    }
     // Type-specific content
     if (existing.type === 'text' && incoming.type === 'text') {
       if (existing.text.stringValue() !== incoming.text.stringValue()) return false
