@@ -599,7 +599,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     for (const [key, val] of Object.entries(incoming) as Array<[string, unknown]>) {
       const cur = (existing as Record<string, unknown>)[key]
       if (val instanceof HiddenString) {
-        if (!val.equals(cur as HiddenString)) {
+        if (!(cur instanceof HiddenString) || !val.equals(cur)) {
           ;(existing as Record<string, unknown>)[key] = val
         }
       } else if (val instanceof Map) {
