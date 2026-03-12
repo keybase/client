@@ -2366,17 +2366,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
     },
     onGregorPushState: items => {
-      let sawChatBanner = false
-      let sawSubteamsBanner = false
+      const sawChatBanner = items.some(i => i.item.category === 'sawChatBanner')
+      const sawSubteamsBanner = items.some(i => i.item.category === 'sawSubteamsBanner')
       let chosenChannels: undefined | (typeof items)[0]
       const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
       items.forEach(i => {
-        if (i.item.category === 'sawChatBanner') {
-          sawChatBanner = true
-        }
-        if (i.item.category === 'sawSubteamsBanner') {
-          sawSubteamsBanner = true
-        }
         if (i.item.category === chosenChannelsGregorKey) {
           chosenChannels = i
         }

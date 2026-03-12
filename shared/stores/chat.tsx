@@ -1129,18 +1129,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
           const selectedConversation = Common.getSelectedConversation()
-          let loadMore = false
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
-            if (meta) {
-              arr.push(meta)
-              if (meta.conversationIDKey === selectedConversation) {
-                loadMore = true
-              }
-            }
+            if (meta) arr.push(meta)
             return arr
           }, [])
-          if (loadMore) {
+          if (metas.some(m => m.conversationIDKey === selectedConversation)) {
             storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
           }
           const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
@@ -1167,17 +1161,13 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           throw new Error('onChatThreadStale invalid enum')
         }
       }
-      let loadMore = false
       const selectedConversation = Common.getSelectedConversation()
+      const shouldLoadMore = (updates || []).some(u => T.Chat.conversationIDToKey(u.convID) === selectedConversation)
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
           const cid = T.Chat.conversationIDToKey(u.convID)
           if (u.updateType === T.RPCChat.StaleUpdateType[key]) {
             arr.push(cid)
-          }
-          // mentioned?
-          if (cid === selectedConversation) {
-            loadMore = true
           }
           return arr
         }, [])
@@ -1198,7 +1188,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
         }
       })
-      if (loadMore) {
+      if (shouldLoadMore) {
         storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({
           reason: 'got stale',
         })
@@ -1504,7 +1494,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
-      let added = false
       const usernameToFullname: {[username: string]: string} = {}
       inboxUIItems.forEach(inboxUIItem => {
         const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
@@ -1522,12 +1511,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         inboxUIItem.participants?.forEach((part: T.RPCChat.UIParticipant) => {
           const {assertion, fullName} = part
           if (!infoMap.get(assertion) && fullName) {
-            added = true
             usernameToFullname[assertion] = fullName
           }
         })
       })
-      if (added) {
+      if (Object.keys(usernameToFullname).length > 0) {
         get().dispatch.defer.onUsersUpdates(
           Object.keys(usernameToFullname).map(name => ({
             info: {fullname: usernameToFullname[name]},
@@ -1799,14 +1787,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       ignorePromise(f())
     },
     queueMetaToRequest: ids => {
-      let added = false
-      untrustedConversationIDKeys(ids).forEach(k => {
-        if (!metaQueue.has(k)) {
-          added = true
-          metaQueue.add(k)
-        }
-      })
-      if (added) {
+      const prevSize = metaQueue.size
+      untrustedConversationIDKeys(ids).forEach(k => metaQueue.add(k))
+      if (metaQueue.size > prevSize) {
         // only unboxMore if something changed
         get().dispatch.queueMetaHandle()
       } else {

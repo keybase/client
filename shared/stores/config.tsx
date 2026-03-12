@@ -557,7 +557,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => {
       const old = get().networkStatus
-      if (old && old.online === online && old.type === type && old.isInit === isInit) return
+      if (old?.online === online && old.type === type && old.isInit === isInit) return
       set(s => {
         if (!s.networkStatus) {
           s.networkStatus = {isInit, online, type}
