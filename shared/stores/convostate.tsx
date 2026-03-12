@@ -602,6 +602,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     if (existing.exploded !== incoming.exploded) return false
     if (existing.submitState !== incoming.submitState) return false
     if (existing.isCollapsed !== incoming.isCollapsed) return false
+    if (existing.isEditable !== incoming.isEditable) return false
+    if (existing.isDeleteable !== incoming.isDeleteable) return false
     if ((existing.reactions?.size ?? 0) !== (incoming.reactions?.size ?? 0)) return false
     if ((existing.unfurls?.size ?? 0) !== (incoming.unfurls?.size ?? 0)) return false
     if (existing.unfurls && incoming.unfurls) {
@@ -614,6 +616,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     if (existing.type === 'text' && incoming.type === 'text') {
       if (existing.text.stringValue() !== incoming.text.stringValue()) return false
       if (existing.decoratedText?.stringValue() !== incoming.decoratedText?.stringValue()) return false
+      if (existing.inlinePaymentSuccessful !== incoming.inlinePaymentSuccessful) return false
     }
     if (existing.type === 'attachment' && incoming.type === 'attachment') {
       if (existing.title !== incoming.title) return false
