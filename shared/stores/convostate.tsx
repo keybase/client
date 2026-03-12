@@ -622,7 +622,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         }
       } else {
         // covers: incoming has a value (set it), incoming lacks the key (val is undefined, clears it)
-        existingRecord[key] = val
+        if (cur !== val) existingRecord[key] = val
       }
     }
   }
