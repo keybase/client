@@ -578,27 +578,20 @@ export const uiPaymentInfoToChatPaymentInfo = (
   })
 }
 
-export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | MessageTypes.Reactions =>
-  r.reactions
-    ? new Map(
-        Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
-          if (r.reactions?.[emoji]) {
-            const users = Object.keys(r.reactions[emoji].users ?? {}).map(username => ({
-              timestamp: r.reactions?.[emoji]?.users?.[username]?.ctime ?? 0,
-              username,
-            }))
-            arr.push([
-              emoji,
-              {
-                decorated: r.reactions[emoji].decorated,
-                users,
-              },
-            ])
-          }
-          return arr
-        }, [])
-      )
-    : undefined
+export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): undefined | MessageTypes.Reactions => {
+  if (!r.reactions) return undefined
+  const entries = Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
+    if (r.reactions?.[emoji]) {
+      const users = Object.keys(r.reactions[emoji].users ?? {}).map(username => ({
+        timestamp: r.reactions?.[emoji]?.users?.[username]?.ctime ?? 0,
+        username,
+      }))
+      arr.push([emoji, {decorated: r.reactions[emoji].decorated, users}])
+    }
+    return arr
+  }, [])
+  return entries.length > 0 ? new Map(entries) : undefined
+}
 
 const uiMessageToSystemMessage = (
   minimum: Minimum,
@@ -890,7 +883,7 @@ const validUIMessagetoMessage = (
             ) as T.Chat.MessageReplyTo)
           : undefined,
         text: new HiddenString(rawText),
-        unfurls: m.unfurls ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,
+        unfurls: m.unfurls?.length ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,
       })
     }
     case T.RPCChat.MessageType.attachmentuploaded: // fallthrough
