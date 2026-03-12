@@ -491,7 +491,6 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         resetOutput(o)
         o.input = new HiddenString(path)
         o.inputType = 'file'
-        resetWarnings(o)
       })
     },
     onSaltpackProgress: (op, bytesComplete, bytesTotal) => {
@@ -531,9 +530,16 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
       // User set themselves as a recipient, so don't show 'includeSelf' option
       // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
       const currentUser = useCurrentUserState.getState().username
-      const {options} = get().encrypt
       if (usernames.includes(currentUser) && !hasSBS) {
-        get().dispatch.setEncryptOptions(options, true)
+        // Update options state directly rather than via setEncryptOptions to avoid
+        // triggering a redundant encrypt — setRecipients below will trigger it
+        set(s => {
+          const e = s.encrypt
+          if (e.inputType === 'file') resetOutput(e)
+          e.outputValid = false
+          e.meta.hideIncludeSelf = true
+          e.options.includeSelf = false
+        })
       }
       get().dispatch.setRecipients(usernames, hasSBS)
     },
@@ -604,8 +610,6 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
           ...e.options,
           ...newOptions,
         }
-        // Reset output when file input changes
-        // Prompt for destination dir
         if (e.inputType === 'file') {
           resetOutput(e)
         }
@@ -630,18 +634,14 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
       set(s => {
         const o = s[op]
         const oldInput = o.input
-        // Reset input to 'text' when no value given (cleared input or removed file upload)
-        const inputType = value ? type : 'text'
         const outputValid = oldInput.stringValue() === value
 
-        o.inputType = inputType
+        o.inputType = type
         o.input = new HiddenString(value)
         o.outputValid = outputValid
         resetWarnings(o)
 
-        // Reset output when file input changes
-        // Prompt for destination dir
-        if (inputType === 'file') {
+        if (type === 'file') {
           resetOutput(o)
         }
       })
@@ -653,8 +653,6 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     setRecipients: (recipients, hasSBS) => {
       set(s => {
         const o = s.encrypt
-        // Reset output when file input changes
-        // Prompt for destination dir
         if (o.inputType === 'file') {
           resetOutput(o)
         }
