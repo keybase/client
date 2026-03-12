@@ -56,6 +56,21 @@ export interface State extends Store {
   }
 }
 
+const runPprofAction = (
+  rpc: () => Promise<void>,
+  waitingKey: string,
+  durationSeconds: number
+) => {
+  const f = async () => {
+    await rpc()
+    const {decrement, increment} = useWaitingState.getState().dispatch
+    increment(waitingKey)
+    await timeoutPromise(durationSeconds * 1_000)
+    decrement(waitingKey)
+  }
+  ignorePromise(f())
+}
+
 let maybeLoadAppLinkOnce = false
 export const useSettingsState = Z.createZustand<State>('settings', (set, get) => {
   const maybeLoadAppLink = () => {
@@ -137,7 +152,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
           return
         }
         try {
-          const result = await T.RPCGen.accountGetLockdownModeRpcPromise(undefined)
+          const result = await T.RPCGen.accountGetLockdownModeRpcPromise()
           set(s => {
             s.lockdownModeEnabled = result.status
           })
@@ -193,18 +208,16 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
       }
       ignorePromise(f())
     },
-    processorProfile: profileDurationSeconds => {
-      const f = async () => {
-        await T.RPCGen.pprofLogProcessorProfileRpcPromise({
-          logDirForMobile: pprofDir,
-          profileDurationSeconds,
-        })
-        const {decrement, increment} = useWaitingState.getState().dispatch
-        increment(processorProfileInProgressKey)
-        await timeoutPromise(profileDurationSeconds * 1_000)
-        decrement(processorProfileInProgressKey)
-      }
-      ignorePromise(f())
+    processorProfile: durationSeconds => {
+      runPprofAction(
+        () =>
+          T.RPCGen.pprofLogProcessorProfileRpcPromise({
+            logDirForMobile: pprofDir,
+            profileDurationSeconds: durationSeconds,
+          }),
+        processorProfileInProgressKey,
+        durationSeconds
+      )
     },
     resetCheckPassword: () => {
       set(s => {
@@ -239,6 +252,9 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
       const f = async () => {
         try {
           await T.RPCGen.configSetProxyDataRpcPromise({proxyData})
+          set(s => {
+            s.proxyData = proxyData
+          })
         } catch (err) {
           logger.warn('Error in saving proxy data', err)
         }
@@ -252,17 +268,15 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
       ignorePromise(f())
     },
     trace: durationSeconds => {
-      const f = async () => {
-        await T.RPCGen.pprofLogTraceRpcPromise({
-          logDirForMobile: pprofDir,
-          traceDurationSeconds: durationSeconds,
-        })
-        const {decrement, increment} = useWaitingState.getState().dispatch
-        increment(traceInProgressKey)
-        await timeoutPromise(durationSeconds * 1_000)
-        decrement(traceInProgressKey)
-      }
-      ignorePromise(f())
+      runPprofAction(
+        () =>
+          T.RPCGen.pprofLogTraceRpcPromise({
+            logDirForMobile: pprofDir,
+            traceDurationSeconds: durationSeconds,
+          }),
+        traceInProgressKey,
+        durationSeconds
+      )
     },
   }
   return {
