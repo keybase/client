@@ -510,7 +510,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   const getCurrentUser = () => {
     const s = useCurrentUserState.getState()
-    return {username: s.username, devicename: s.deviceName}
+    return {devicename: s.deviceName, username: s.username}
   }
 
   const closeBotModal = () => {
@@ -2221,9 +2221,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           m.submitState = 'pending'
         }
       })
-      ignorePromise(async () => {
-        await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
-      }())
+      ignorePromise(
+        (async () => {
+          await T.RPCChat.localRetryPostRpcPromise({outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID)})
+        })()
+      )
     },
     messagesClear: () => {
       set(s => {
