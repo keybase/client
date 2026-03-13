@@ -151,9 +151,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     ? styles.suggestionOverlayInfoShowing
     : styles.suggestionOverlay
 
-  const allowExplodingModeRef = React.useRef(-1)
   const setExplodingMode = (mode: number) => {
-    allowExplodingModeRef.current = mode
     setExplodingModeRaw(mode, false)
   }
 
@@ -249,14 +247,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   }, [setInputRef])
 
   React.useEffect(() => {
-    if (explodingModeSeconds !== explodingModeSecondsRaw) {
-      // ignore if we have text unless we set it ourselves
-      if (!textValueRef.current || allowExplodingModeRef.current === explodingModeSecondsRaw) {
-        allowExplodingModeRef.current = -1
-        setExplodingModeSeconds(explodingModeSecondsRaw)
-      }
-    }
-  }, [explodingModeSeconds, explodingModeSecondsRaw])
+    setExplodingModeSeconds(explodingModeSecondsRaw)
+  }, [explodingModeSecondsRaw])
 
   return (
     <PlatformInput
