@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/chrisnojima/go/src/github.com/keybase/client*)",
+      "Bash(yarn lint)",
+      "Bash(yarn lint-warn:*)",
+      "Bash(yarn prettier:*)",
+      "Bash(yarn build-*)",
+      "Bash(yarn package)",
+      "Bash(yarn start*)",
+      "Bash(yarn rn-gobuild*)",
+      "Bash(yarn rn-download-android*)",
+      "Bash(yarn tsc)",
+      "Bash(yarn tsc:*)",
+      "Bash(yarn pod*)",
+      "Bash(yarn coverage:*)",
+      "Bash(yarn maestro*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-commit-check.sh",
+            "timeout": 120,
+            "statusMessage": "Running lint and tsc..."
+          }
+        ]
+      }
+    ]
+  }
+}
