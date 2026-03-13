@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd /Users/chrisnojima/go/src/github.com/keybase/client*)",
       "Bash(yarn lint)",
       "Bash(yarn lint-warn:*)",
       "Bash(yarn prettier:*)",
