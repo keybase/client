@@ -22,7 +22,7 @@ func restartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath
 	return fmt.Errorf("Unsupported on this platform")
 }
 
-// DebugSocketError allows platforms to help the user diagnose and resolve
+// DiagnoseSocketError allows platforms to help the user diagnose and resolve
 // socket errors.
 func DiagnoseSocketError(ui libkb.UI, err error) {}
 
