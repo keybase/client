@@ -3,8 +3,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {mapGetEnsureValue} from '@/util/map'
-import {ignorePromise} from '@/constants/utils'
-import {RPCError, isNetworkErr} from '@/constants/utils'
+import {ignorePromise, RPCError, isNetworkErr} from '@/constants/utils'
 import * as S from '@/constants/strings'
 
 type Store = T.Immutable<{
@@ -76,20 +75,22 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       switch (action.type) {
         case EngineGen.keybase1NotifyUsersIdentifyUpdate: {
           const {brokenUsernames, okUsernames} = action.payload.params
-          brokenUsernames &&
-            get().dispatch.updates(brokenUsernames.map(name => ({info: {broken: true}, name})))
-          okUsernames && get().dispatch.updates(okUsernames.map(name => ({info: {broken: false}, name})))
+          const combined = [
+            ...(brokenUsernames ?? []).map(name => ({info: {broken: true}, name})),
+            ...(okUsernames ?? []).map(name => ({info: {broken: false}, name})),
+          ]
+          if (combined.length) {
+            get().dispatch.updates(combined)
+          }
           break
         }
         case EngineGen.keybase1NotifyTrackingNotifyUserBlocked: {
           const {blocks} = action.payload.params.b
-          const users = Object.keys(blocks ?? {})
           set(s => {
-            for (const username of users) {
-              const bs = blocks?.[username]
+            for (const [username, bs] of Object.entries(blocks ?? {})) {
               s.blockMap.set(username, {
-                chatBlocked: bs?.find(s => s.blockType === T.RPCGen.UserBlockType.chat)?.blocked ?? false,
-                followBlocked: bs?.find(s => s.blockType === T.RPCGen.UserBlockType.follow)?.blocked ?? false,
+                chatBlocked: bs?.find(item => item.blockType === T.RPCGen.UserBlockType.chat)?.blocked ?? false,
+                followBlocked: bs?.find(item => item.blockType === T.RPCGen.UserBlockType.follow)?.blocked ?? false,
               })
             }
           })

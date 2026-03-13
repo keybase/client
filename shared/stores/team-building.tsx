@@ -19,10 +19,6 @@ type Store = T.Immutable<{
   error: string
   teamSoFar: Set<T.TB.User>
   searchResults: T.TB.SearchResults
-  serviceResultCount: T.TB.ServiceResultCount
-  finishedTeam: Set<T.TB.User>
-  finishedSelectedRole: T.Teams.TeamRoleType
-  finishedSendNotification: boolean
   searchQuery: T.TB.Query
   selectedService: T.TB.ServiceIdWithContact
   searchLimit: number
@@ -32,9 +28,6 @@ type Store = T.Immutable<{
 }>
 export const initialStore: Store = {
   error: '',
-  finishedSelectedRole: 'writer',
-  finishedSendNotification: true,
-  finishedTeam: new Set(),
   namespace: 'invalid',
   searchLimit: 11,
   searchQuery: '',
@@ -42,7 +35,6 @@ export const initialStore: Store = {
   selectedRole: 'writer',
   selectedService: 'keybase',
   sendNotification: true,
-  serviceResultCount: new Map(),
   teamSoFar: new Set(),
 }
 
@@ -84,6 +76,7 @@ const namespaceToRoute = new Map([
   ['teams', 'teamsTeamBuilder'],
   ['people', 'peopleTeamBuilder'],
 ])
+const routeNames = [...namespaceToRoute.values()]
 
 const parseRawResultToUser = (
   result: T.RPCGen.APIUserSearchResult,
@@ -257,7 +250,7 @@ const interestingPersonToUser = (person: T.RPCGen.InterestingPerson): T.TB.User 
     prettyName: fullname,
     serviceId: 'keybase' as const,
     serviceMap: pluckServiceMap(person),
-    username: username,
+    username,
   }
 }
 
@@ -299,9 +292,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = getModalStack()
-      const routeNames = [...namespaceToRoute.values()]
-      const routeName = modals.at(-1)?.name
+      const routeName = getModalStack().at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
         navigateUp()
       }
@@ -377,26 +368,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       }
     },
     finishedTeamBuilding: () => {
-      set(s => {
-        return {
-          ...initialStore,
-          finishedSelectedRole: s.selectedRole,
-          finishedSendNotification: s.sendNotification,
-          finishedTeam: s.teamSoFar,
-          namespace: s.namespace,
-          selectedRole: s.selectedRole,
-          sendNotification: s.sendNotification,
-          teamSoFar: s.teamSoFar,
-        }
-      })
-      const {finishedTeam, namespace} = get()
+      const {teamSoFar, selectedRole, sendNotification, namespace} = get()
+      set(() => ({
+        ...initialStore,
+        namespace,
+        selectedRole,
+        sendNotification,
+        teamSoFar,
+      }))
       switch (namespace) {
         case 'crypto': {
-          get().dispatch.defer.onFinishedTeamBuildingCrypto(finishedTeam)
+          get().dispatch.defer.onFinishedTeamBuildingCrypto(teamSoFar)
           break
         }
         case 'chat': {
-          get().dispatch.defer.onFinishedTeamBuildingChat(finishedTeam)
+          get().dispatch.defer.onFinishedTeamBuildingChat(teamSoFar)
           break
         }
         default:
@@ -417,7 +403,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
     },
     resetState: () => {
       set(s => ({
-        ...s,
         ...initialStore,
         namespace: s.namespace,
       }))
@@ -457,21 +442,16 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           results.set(selectedService, users)
         })
 
-        const updates = users.reduce((arr, {serviceMap, prettyName}) => {
+        const updates: Array<{info: {fullname: string}; name: string}> = []
+        const blocks: Array<string> = []
+        for (const {serviceMap, prettyName} of users) {
           const {keybase} = serviceMap
           if (keybase) {
-            arr.push({info: {fullname: prettyName}, name: keybase})
+            updates.push({info: {fullname: prettyName}, name: keybase})
+            blocks.push(keybase)
           }
-          return arr
-        }, new Array<{info: {fullname: string}; name: string}>())
+        }
         get().dispatch.defer.onUsersUpdates(updates)
-        const blocks = users.reduce((arr, {serviceMap}) => {
-          const {keybase} = serviceMap
-          if (keybase) {
-            arr.push(keybase)
-          }
-          return arr
-        }, new Array<string>())
         if (blocks.length) {
           get().dispatch.defer.onUsersGetBlockState(blocks)
         }

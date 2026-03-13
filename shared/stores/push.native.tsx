@@ -41,23 +41,21 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
   const askNativeIfSystemPushPromptHasBeenShown = async () =>
     isIOS ? await iosGetHasShownPushPrompt() : Promise.resolve(false)
 
-  const checkPermissionsFromNative = async () =>
-    new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
-      checkPushPermissions()
-        .then(on => {
-          resolve({alert: on, badge: on, sound: on})
-        })
-        .catch(() => reject(new Error('')))
-    })
-
-  type ReqType = Promise<{
-    alert: boolean
-    badge: boolean
-    sound: boolean
-  }>
-  const requestPermissionsFromNative: () => ReqType = async () => {
-    const on = await requestPushPermissions()
+  const checkPermissionsFromNative = async () => {
+    const on = await checkPushPermissions()
     return {alert: on, badge: on, sound: on}
+  }
+
+  const requestPermissionsFromNative = async () => {
+    await requestPushPermissions()
+  }
+
+  const fetchIOSTokenIfNeeded = () => {
+    if (isIOS && !get().token) {
+      getRegistrationToken()
+        .then(token => get().dispatch.setPushToken(token))
+        .catch(() => {})
+    }
   }
 
   const handleLoudMessage = async (notification: T.Push.PushNotification) => {
@@ -101,11 +99,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         } else {
           logger.info('[PushCheck] enabled already')
         }
-        if (isIOS && !get().token) {
-          getRegistrationToken()
-            .then(token => get().dispatch.setPushToken(token))
-            .catch(() => {})
-        }
+        fetchIOSTokenIfNeeded()
         return true
       } else {
         logger.info('[PushCheck] disabled')
@@ -224,20 +218,14 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         if (hasPermissions) {
           // Get the token
           await requestPermissionsFromNative()
-          if (isIOS && !get().token) {
-            getRegistrationToken()
-              .then(token => get().dispatch.setPushToken(token))
-              .catch(() => {})
-          }
+          fetchIOSTokenIfNeeded()
         } else {
-          const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
-          const shownMonsterPushPromptTask = async () => {
-            const v = await T.RPCGen.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-            return !!v.b
-          }
           const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
-            neverThrowPromiseFunc(shownNativePushPromptTask),
-            neverThrowPromiseFunc(shownMonsterPushPromptTask),
+            neverThrowPromiseFunc(askNativeIfSystemPushPromptHasBeenShown),
+            neverThrowPromiseFunc(async () => {
+              const v = await T.RPCGen.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+              return !!v.b
+            }),
           ])
           logger.info(
             '[PushInitialCheck] shownNativePushPrompt:',
@@ -271,9 +259,9 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             return
           }
         }
+        const {increment, decrement} = useWaitingState.getState().dispatch
         try {
           useConfigState.getState().dispatch.defer.openAppSettings?.()
-          const {increment} = useWaitingState.getState().dispatch
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
@@ -289,7 +277,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
             })
           }
         } finally {
-          const {decrement} = useWaitingState.getState().dispatch
           decrement(S.waitingKeyPushPermissionsRequesting)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }

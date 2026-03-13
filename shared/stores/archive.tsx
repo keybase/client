@@ -4,7 +4,7 @@ import {ignorePromise} from '@/constants/utils'
 import * as EngineGen from '@/actions/engine-gen-gen'
 import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
-import {uint8ArrayToHex} from 'uint8array-extras'
+import {makeUUID} from '@/util/uuid'
 import {fsCacheDir, isAndroid, isMobile} from '@/constants/platform'
 
 type ChatJob = {
@@ -17,7 +17,7 @@ type ChatJob = {
   status: T.RPCChat.ArchiveChatJobStatus
 }
 
-type KBFSJobPhase = 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copyied' | 'Zipping' | 'Done'
+type KBFSJobPhase = 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copied' | 'Zipping' | 'Done'
 
 type KBFSJob = {
   id: string
@@ -95,7 +95,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     set(s => {
       s.kbfsJobs = new Map(
         // order is retained
-        (status.jobs || []).map(job => [
+        (status.jobs ?? []).map(job => [
           job.desc.jobID,
           {
             bytesCopied: job.bytesCopied,
@@ -125,19 +125,26 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           } as KBFSJob,
         ])
       )
+      for (const id of s.kbfsJobsFreshness.keys()) {
+        if (!s.kbfsJobs.has(id)) {
+          s.kbfsJobsFreshness.delete(id)
+        }
+      }
     })
   }
 
   const setChatProgress = (p: {jobID: string; messagesComplete: number; messagesTotal: number}) => {
     const {jobID, messagesComplete, messagesTotal} = p
+    if (!get().chatJobs.has(jobID)) {
+      loadChat()
+      return
+    }
     set(s => {
       const job = s.chatJobs.get(jobID)
-      if (!job) {
-        loadChat()
-        return
+      if (job) {
+        job.progress = messagesTotal ? messagesComplete / messagesTotal : 0
+        job.status = T.RPCChat.ArchiveChatJobStatus.running
       }
-      job.progress = messagesTotal ? messagesComplete / messagesTotal : 0
-      job.status = T.RPCChat.ArchiveChatJobStatus.running
     })
   }
 
@@ -169,8 +176,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
 
   const startChatArchive = (query: T.RPCChat.GetInboxLocalQuery | null, outPath: string) => {
     const f = async () => {
-      const jobID = Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
-      const id = uint8ArrayToHex(jobID)
+      const id = makeUUID()
       const actualOutPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbchat-${id}` : '')
       try {
         await T.RPCChat.localArchiveChatRpcPromise({
@@ -196,8 +202,8 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
   }
 
   const clearCompletedChat = () => {
-    ignorePromise(
-      Promise.allSettled(
+    const f = async () => {
+      await Promise.allSettled(
         [...get().chatJobs.values()].map(async job => {
           if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
             await T.RPCChat.localArchiveChatDeleteRpcPromise({
@@ -208,21 +214,23 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           }
         })
       )
-    )
-    loadChat()
+      loadChat()
+    }
+    ignorePromise(f())
   }
 
   const clearCompletedKBFS = () => {
-    ignorePromise(
-      Promise.allSettled(
+    const f = async () => {
+      await Promise.allSettled(
         [...get().kbfsJobs.values()].map(async job => {
           if (job.phase === 'Done') {
             return get().dispatch.cancelOrDismissKBFS(job.id)
           }
         })
       )
-    )
-    loadKBFS()
+      loadKBFS()
+    }
+    ignorePromise(f())
   }
 
   const loadChat = () => {
@@ -273,19 +281,21 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     ignorePromise(f())
   }
 
-  const startFSArchive = (path: string, outPath: string) => {
-    const f = async () => {
-      const actualPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbfs-backup-${Date.now()}` : '')
-      await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
-        archiveJobStartPath: {
-          archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
-          kbfs: pathToRPCPath(path).kbfs,
-        },
-        outputPath: actualPath,
-        overwriteZip: true,
-      })
-    }
-    ignorePromise(f())
+  const startArchiveSingle = (type: 'kbfs' | 'git', pathOrRepo: string, outPath: string) => {
+    const prefix = type === 'kbfs' ? 'kbfs-backup' : 'git-backup'
+    ignorePromise(
+      (async () => {
+        const actualPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/${prefix}-${Date.now()}` : '')
+        await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
+          archiveJobStartPath:
+            type === 'kbfs'
+              ? {archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs, kbfs: pathToRPCPath(pathOrRepo).kbfs}
+              : {archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git, git: pathOrRepo},
+          outputPath: actualPath,
+          overwriteZip: true,
+        })
+      })()
+    )
   }
 
   const startFSArchiveAll = (outputDir: string) => {
@@ -309,22 +319,6 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           started: Object.keys(response.tlfPathToJobDesc ?? {}).length,
           state: 'finished',
         }
-      })
-    }
-    ignorePromise(f())
-  }
-
-  const startGitArchive = (gitRepo: string, outPath: string) => {
-    const f = async () => {
-      const actualPath =
-        outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/git-backup-${Date.now()}` : '')
-      await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
-        archiveJobStartPath: {
-          archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git,
-          git: gitRepo,
-        },
-        outputPath: actualPath,
-        overwriteZip: true,
       })
     }
     ignorePromise(f())
@@ -441,10 +435,10 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           }
           break
         case 'kbfs':
-          target === '/keybase' ? startFSArchiveAll(outPath) : startFSArchive(target, outPath)
+          target === '/keybase' ? startFSArchiveAll(outPath) : startArchiveSingle('kbfs', target, outPath)
           return
         case 'git':
-          target === '.' ? startGitArchiveAll(outPath) : startGitArchive(target, outPath)
+          target === '.' ? startGitArchiveAll(outPath) : startArchiveSingle('git', target, outPath)
           return
       }
     },

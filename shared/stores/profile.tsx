@@ -7,9 +7,8 @@ import logger from '@/logger'
 import openURL from '@/util/open-url'
 import {RPCError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
-import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
+import {clearModals, navToProfile, navigateAppend, navigateUp} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
-import {navToProfile} from '@/constants/router'
 import type {useTrackerState} from '@/stores/tracker'
 
 type ProveGenericParams = {
@@ -468,9 +467,6 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
           } else {
             set(s => {
               s.errorText = ''
-            })
-
-            set(s => {
               s.proofFound = found
               s.proofStatus = status
             })
@@ -526,7 +522,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
       const username = useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
       get().dispatch.defer.onTracker2Load?.({
-        assertion: useCurrentUserState.getState().username,
+        assertion: username,
         guiID: generateGUIID(),
         inTracker: false,
         reason: '',

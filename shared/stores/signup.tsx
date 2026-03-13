@@ -14,12 +14,8 @@ type Store = T.Immutable<{
   devicename: string
   devicenameError: string
   email: string
-  emailError: string
-  emailVisible: boolean
   inviteCode: string
   justSignedUpEmail: string
-  name: string
-  nameError: string
   signupError?: RPCError
   username: string
   usernameError: string
@@ -30,12 +26,8 @@ const initialStore: Store = {
   devicename: S.defaultDevicename,
   devicenameError: '',
   email: '',
-  emailError: '',
-  emailVisible: false,
   inviteCode: '',
   justSignedUpEmail: '',
-  name: '',
-  nameError: '',
   signupError: undefined,
   username: '',
   usernameError: '',
@@ -55,16 +47,14 @@ export interface State extends Store {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     requestAutoInvite: (username?: string) => void
     resetState: () => void
-    restartSignup: () => void
     setJustSignedUpEmail: (email: string) => void
   }
 }
 
 export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
   const noErrors = () => {
-    const {devicenameError, emailError} = get()
-    const {nameError, usernameError, signupError, usernameTaken} = get()
-    return !(devicenameError || emailError || nameError || usernameError || signupError || usernameTaken)
+    const {devicenameError, usernameError, signupError, usernameTaken} = get()
+    return !(devicenameError || usernameError || signupError || usernameTaken)
   }
 
   const reallySignupOnNoErrors = () => {
@@ -115,14 +105,11 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
         set(s => {
           s.signupError = undefined
         })
-        if (noErrors()) {
-          get().dispatch.restartSignup()
+        const ok = noErrors()
+        if (ok) {
+          get().dispatch.resetState()
         } else {
           navigateAppend('signupError')
-        }
-        // If the email was set to be visible during signup, we need to set that with a separate RPC.
-        if (noErrors() && get().emailVisible) {
-          get().dispatch.defer.onEditEmail?.({email: get().email, makeSearchable: true})
         }
       } catch (_error) {
         if (_error instanceof RPCError) {
@@ -217,8 +204,6 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
     goBackAndClearErrors: () => {
       set(s => {
         s.devicenameError = ''
-        s.emailError = ''
-        s.nameError = ''
         s.signupError = undefined
         s.usernameError = ''
         s.usernameTaken = ''
@@ -263,11 +248,8 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
       set(s => ({
         ...s,
         ...initialStore,
-        justSignedUpEmail: s.email,
+        justSignedUpEmail: '',
       }))
-    },
-    restartSignup: () => {
-      get().dispatch.resetState()
     },
     setJustSignedUpEmail: (email: string) => {
       set(s => {
