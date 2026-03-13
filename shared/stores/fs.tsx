@@ -15,6 +15,7 @@ import {navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Constants from '@/constants/fs'
+import {makeUUID} from '@/util/uuid'
 
 export * from '@/constants/fs'
 

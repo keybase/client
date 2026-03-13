@@ -210,7 +210,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     },
     processorProfile: durationSeconds => {
       runPprofAction(
-        () =>
+        async () =>
           T.RPCGen.pprofLogProcessorProfileRpcPromise({
             logDirForMobile: pprofDir,
             profileDurationSeconds: durationSeconds,
@@ -269,7 +269,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     },
     trace: durationSeconds => {
       runPprofAction(
-        () =>
+        async () =>
           T.RPCGen.pprofLogTraceRpcPromise({
             logDirForMobile: pprofDir,
             traceDurationSeconds: durationSeconds,
