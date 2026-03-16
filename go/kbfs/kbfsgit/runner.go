@@ -1894,8 +1894,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	head, headErr := repo.Storer.Reference(plumbing.HEAD)
 	if headErr == nil && head.Type() == plumbing.SymbolicReference {
 		_, targetErr := repo.Storer.Reference(head.Target())
+		var bestBranch plumbing.ReferenceName
 		if targetErr == plumbing.ErrReferenceNotFound {
-			var bestBranch plumbing.ReferenceName
 			allRefs, refsErr := repo.References()
 			if refsErr == nil {
 				defer allRefs.Close()
@@ -1916,18 +1916,18 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 					bestBranch = bestBranchFromCandidates(bestBranch, ref.Name())
 				}
 			}
-			if bestBranch != "" {
-				newHead := plumbing.NewSymbolicReference(
-					plumbing.HEAD, bestBranch)
-				if setErr := repo.Storer.SetReference(
-					newHead); setErr != nil {
-					r.log.CDebugf(ctx,
-						"Error updating HEAD to %s: %+v",
-						bestBranch, setErr)
-				} else {
-					r.log.CDebugf(ctx,
-						"Updated HEAD to point to %s", bestBranch)
-				}
+		}
+		if bestBranch != "" {
+			newHead := plumbing.NewSymbolicReference(
+				plumbing.HEAD, bestBranch)
+			if setErr := repo.Storer.SetReference(
+				newHead); setErr != nil {
+				r.log.CDebugf(ctx,
+					"Error updating HEAD to %s: %+v",
+					bestBranch, setErr)
+			} else {
+				r.log.CDebugf(ctx,
+					"Updated HEAD to point to %s", bestBranch)
 			}
 		}
 	}
