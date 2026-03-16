@@ -96,14 +96,17 @@ function SeparatorConnector(p: Props) {
   const allowCrown = data.teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
   const usernameNode = (
-    <Kb.Text
+    <Kb.ConnectedUsernames
+      colorBroken={true}
+      colorFollowing={true}
+      colorYou={true}
+      onUsernameClicked={onAuthorClick}
+      fixOverdraw="auto"
       type="BodySmallBold"
-      onClick={onAuthorClick}
+      usernames={showUsername}
       virtualText={true}
       className="separator-text"
-    >
-      {showUsername}
-    </Kb.Text>
+    />
   )
 
   const ownerAdminTooltipIcon = allowCrown ? (
