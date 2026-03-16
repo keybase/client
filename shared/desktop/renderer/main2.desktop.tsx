@@ -1,3 +1,4 @@
+/// <reference types="webpack-env" />
 // Entry point to the chrome part of the app
 import Main from '@/app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
