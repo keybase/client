@@ -216,6 +216,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
   const forceSmallNavKey = 'ui.forceSmallNav'
+  const windowStateKey = 'windowState'
 
   const _checkForUpdate = async () => {
     try {
@@ -262,24 +263,13 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     }
     set(s => {
       s.gregorPushState = T.castDraft(goodState)
-    })
-
-    const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
-    set(s => {
-      s.allowAnimatedEmojis = allowAnimatedEmojis
+      s.allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
     })
   }
 
   const updateRuntimeStats = (stats?: T.RPCGen.RuntimeStats) => {
     set(s => {
-      if (!stats) {
-        s.runtimeStats = stats
-      } else {
-        s.runtimeStats = T.castDraft({
-          ...s.runtimeStats,
-          ...stats,
-        })
-      }
+      s.runtimeStats = stats ? T.castDraft({...s.runtimeStats, ...stats}) : undefined
     })
   }
 
@@ -567,6 +557,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => {
       const old = get().networkStatus
+      if (old?.online === online && old.type === type && old.isInit === isInit) return
       set(s => {
         if (!s.networkStatus) {
           s.networkStatus = {isInit, online, type}
@@ -576,8 +567,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           s.networkStatus.type = type
         }
       })
-      const next = get().networkStatus
-      if (next === old) return
       const updateGregor = async () => {
         const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
         setGregorReachable(reachability.reachable)
@@ -642,7 +631,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     resetState: isDebug => {
       if (isDebug) return
       set(s => ({
-        ...s,
         ...initialStore,
         appFocused: s.appFocused,
         configuredAccounts: s.configuredAccounts,
@@ -805,10 +793,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     setOutOfDate: outOfDate => {
       set(s => {
-        s.outOfDate.critical = outOfDate.critical
-        s.outOfDate.message = outOfDate.message
-        s.outOfDate.updating = outOfDate.updating
-        s.outOfDate.outOfDate = outOfDate.outOfDate
+        Object.assign(s.outOfDate, outOfDate)
       })
     },
     setStartupDetails: st => {
@@ -868,12 +853,13 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       ignorePromise(f())
     },
     updateWindowState: ws => {
-      const next = {...get().windowState, ...ws}
+      const old = get().windowState
+      const next = {...old, ...ws}
+      if (isEqual(old, next)) return
       set(s => {
         s.windowState = next
       })
 
-      const windowStateKey = 'windowState'
       ignorePromise(
         T.RPCGen.configGuiSetValueRpcPromise({
           path: windowStateKey,

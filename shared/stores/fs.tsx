@@ -15,6 +15,7 @@ import {navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Constants from '@/constants/fs'
+import {makeUUID} from '@/util/uuid'
 
 export * from '@/constants/fs'
 
@@ -181,47 +182,26 @@ const fsNotificationTypeToEditType = (
 
 const userTlfHistoryRPCToState = (
   history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
-): T.FS.UserTlfUpdates => {
-  let updates: Array<T.FS.TlfUpdate> = []
-  history.forEach(folder => {
-    const updateServerTime = folder.serverTime
+): T.FS.UserTlfUpdates =>
+  history.flatMap(folder => {
     const path = pathFromFolderRPC(folder.folder)
-    const tlfUpdates = folder.history
-      ? folder.history.map(({writerName, edits}) => ({
-          history: edits
-            ? edits.map(({filename, notificationType, serverTime}) => ({
-                editType: fsNotificationTypeToEditType(notificationType),
-                filename,
-                serverTime,
-              }))
-            : [],
-          path,
-          serverTime: updateServerTime,
-          writer: writerName,
-        }))
-      : []
-    updates = updates.concat(tlfUpdates)
+    return (folder.history ?? []).map(({writerName, edits}) => ({
+      history: edits
+        ? edits.map(({filename, notificationType, serverTime}) => ({
+            editType: fsNotificationTypeToEditType(notificationType),
+            filename,
+            serverTime,
+          }))
+        : [],
+      path,
+      serverTime: folder.serverTime,
+      writer: writerName,
+    }))
   })
-  return updates
-}
 
 const subscriptionDeduplicateIntervalSecond = 1
 
-// RPC expects a string that's interpreted as [16]byte on Go side and it has to
-// be unique among all ongoing ops at any given time. uuidv1 may exceed 16
-// bytes, so just roll something simple that's seeded with time.
-//
-// MAX_SAFE_INTEGER after toString(36) is 11 characters, so this should take <=
-// 12 chars
-const uuidSeed = Date.now().toString(36) + '-'
-let counter = 0
-// We have 36^4=1,679,616 of space to work with in order to not exceed 16
-// bytes.
-const counterMod = 36 * 36 * 36 * 36
-export const makeUUID = () => {
-  counter = (counter + 1) % counterMod
-  return uuidSeed + counter.toString(36)
-}
+export {makeUUID} from '@/util/uuid'
 
 export const clientID = makeUUID()
 
@@ -601,11 +581,25 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
   }
 
-  let fsBadgeSubscriptionID: string = ''
-  let settingsSubscriptionID: string = ''
-  let uploadStatusSubscriptionID: string = ''
-  let journalStatusSubscriptionID: string = ''
+  const fsBadgeSub = {id: ''}
+  const settingsSub = {id: ''}
+  const uploadStatusSub = {id: ''}
+  const journalStatusSub = {id: ''}
   let pollJournalStatusPolling = false
+
+  const subscribeAndLoad = (
+    sub: {id: string},
+    topic: T.RPCGen.SubscriptionTopic,
+    load: () => void
+  ) => {
+    const oldID = sub.id
+    sub.id = makeUUID()
+    if (get().kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+      if (oldID) get().dispatch.unsubscribe(oldID)
+      get().dispatch.subscribeNonPath(sub.id, topic)
+      load()
+    }
+  }
 
   const dispatch: State['dispatch'] = {
     cancelDownload: downloadID => {
@@ -807,6 +801,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       })
     },
     favoriteIgnore: path => {
+      const setTlfIgnored = (isIgnored: boolean) => {
+        set(s => {
+          const elems = T.FS.getPathElements(path)
+          const visibility = T.FS.getVisibilityFromElems(elems)
+          if (!visibility) return
+          const name = elems[2] ?? ''
+          s.tlfs[visibility].set(name, T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored}))
+        })
+      }
       const f = async () => {
         const folder = folderRPCFromPath(path)
         if (!folder) {
@@ -816,38 +819,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           await T.RPCGen.favoriteFavoriteIgnoreRpcPromise({folder})
         } catch (error) {
           errorToActionOrThrow(error, path)
-          set(s => {
-            const elems = T.FS.getPathElements(path)
-            const visibility = T.FS.getVisibilityFromElems(elems)
-            if (!visibility) {
-              return
-            }
-            s.tlfs[visibility] = new Map(s.tlfs[visibility])
-            s.tlfs[visibility].set(
-              elems[2] ?? '',
-              T.castDraft({
-                ...(s.tlfs[visibility].get(elems[2] ?? '') || Constants.unknownTlf),
-                isIgnored: false,
-              })
-            )
-          })
+          setTlfIgnored(false)
         }
       }
-      set(s => {
-        const elems = T.FS.getPathElements(path)
-        const visibility = T.FS.getVisibilityFromElems(elems)
-        if (!visibility) {
-          return
-        }
-        s.tlfs[visibility] = new Map(s.tlfs[visibility])
-        s.tlfs[visibility].set(
-          elems[2] ?? '',
-          T.castDraft({
-            ...(s.tlfs[visibility].get(elems[2] ?? '') || Constants.unknownTlf),
-            isIgnored: true,
-          })
-        )
-      })
+      setTlfIgnored(true)
       ignorePromise(f())
     },
     favoritesLoad: () => {
@@ -1008,30 +983,26 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             pathItems.forEach((pathItemFromAction, path) => {
               const oldPathItem = Constants.getPathItem(s.pathItems, path)
               const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-              oldPathItem.type === T.FS.PathType.Folder &&
-                oldPathItem.children.forEach(
-                  name =>
-                    (newPathItem.type !== T.FS.PathType.Folder || !newPathItem.children.has(name)) &&
+              if (oldPathItem.type === T.FS.PathType.Folder) {
+                oldPathItem.children.forEach(name => {
+                  if (newPathItem.type !== T.FS.PathType.Folder || !newPathItem.children.has(name)) {
                     s.pathItems.delete(T.FS.pathConcat(path, name))
-                )
+                  }
+                })
+              }
               s.pathItems.set(path, T.castDraft(newPathItem))
             })
 
             // Remove Rename edits that are for path items that don't exist anymore in
             // case when/if a new item is added later the edit causes confusion.
-            const newEntries = [...s.edits.entries()].filter(([_, edit]) => {
-              if (edit.type !== T.FS.EditType.Rename) {
-                return true
+            s.edits.forEach((edit, editID) => {
+              if (edit.type === T.FS.EditType.Rename) {
+                const parent = Constants.getPathItem(s.pathItems, edit.parentPath)
+                if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.name))) {
+                  s.edits.delete(editID)
+                }
               }
-              const parent = Constants.getPathItem(s.pathItems, edit.parentPath)
-              if (parent.type === T.FS.PathType.Folder && parent.children.has(edit.name)) {
-                return true
-              }
-              return false
             })
-            if (newEntries.length !== s.edits.size) {
-              s.edits = new Map(newEntries)
-            }
           })
         } catch (error) {
           errorToActionOrThrow(error, rootPath)
@@ -1058,15 +1029,19 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     kbfsDaemonOnlineStatusChanged: onlineStatus => {
       set(s => {
-        s.kbfsDaemonStatus.onlineStatus =
-          onlineStatus === T.RPCGen.KbfsOnlineStatus.offline
-            ? T.FS.KbfsDaemonOnlineStatus.Offline
-            : onlineStatus === T.RPCGen.KbfsOnlineStatus.trying
-              ? T.FS.KbfsDaemonOnlineStatus.Trying
-              : // eslint-disable-next-line
-                onlineStatus === T.RPCGen.KbfsOnlineStatus.online
-                ? T.FS.KbfsDaemonOnlineStatus.Online
-                : T.FS.KbfsDaemonOnlineStatus.Unknown
+        switch (onlineStatus) {
+          case T.RPCGen.KbfsOnlineStatus.offline:
+            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
+            break
+          case T.RPCGen.KbfsOnlineStatus.trying:
+            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Trying
+            break
+          case T.RPCGen.KbfsOnlineStatus.online:
+            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Online
+            break
+          default:
+            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Unknown
+        }
       })
     },
     kbfsDaemonRpcStatusChanged: rpcStatus => {
@@ -1082,73 +1057,18 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         get().dispatch.setTlfsAsUnloaded()
       }
 
-      const subscribeAndLoadFsBadge = () => {
-        const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
-        fsBadgeSubscriptionID = makeUUID()
-        const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          if (oldFsBadgeSubscriptionID) {
-            get().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
-          }
-          get().dispatch.subscribeNonPath(fsBadgeSubscriptionID, T.RPCGen.SubscriptionTopic.filesTabBadge)
-          get().dispatch.loadFilesTabBadge()
-        }
-      }
-
-      subscribeAndLoadFsBadge()
-
-      const subscribeAndLoadSettings = () => {
-        const oldSettingsSubscriptionID = settingsSubscriptionID
-        settingsSubscriptionID = makeUUID()
-        const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          get().dispatch.loadSettings()
-        }
-
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          if (oldSettingsSubscriptionID) {
-            get().dispatch.unsubscribe(oldSettingsSubscriptionID)
-          }
-          get().dispatch.subscribeNonPath(settingsSubscriptionID, T.RPCGen.SubscriptionTopic.settings)
-        }
-      }
-      subscribeAndLoadSettings()
-
-      const subscribeAndLoadUploadStatus = () => {
-        const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
-        uploadStatusSubscriptionID = makeUUID()
-        const kbfsDaemonStatus = get().kbfsDaemonStatus
-
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          get().dispatch.loadUploadStatus()
-        }
-
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          if (oldUploadStatusSubscriptionID) {
-            get().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
-          }
-
-          get().dispatch.subscribeNonPath(uploadStatusSubscriptionID, T.RPCGen.SubscriptionTopic.uploadStatus)
-        }
-      }
-      subscribeAndLoadUploadStatus()
-
-      const subscribeAndLoadJournalStatus = () => {
-        const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
-        journalStatusSubscriptionID = makeUUID()
-        const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          if (oldJournalStatusSubscriptionID) {
-            get().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
-          }
-          get().dispatch.subscribeNonPath(
-            journalStatusSubscriptionID,
-            T.RPCGen.SubscriptionTopic.journalStatus
-          )
-          get().dispatch.pollJournalStatus()
-        }
-      }
-      subscribeAndLoadJournalStatus()
+      subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, () =>
+        get().dispatch.loadFilesTabBadge()
+      )
+      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () =>
+        get().dispatch.loadSettings()
+      )
+      subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, () =>
+        get().dispatch.loadUploadStatus()
+      )
+      subscribeAndLoad(journalStatusSub, T.RPCGen.SubscriptionTopic.journalStatus, () =>
+        get().dispatch.pollJournalStatus()
+      )
       // how this works isn't great. This function gets called way early before we set this
       get().dispatch.defer.afterKbfsDaemonRpcStatusChanged?.()
     },
@@ -1262,9 +1182,8 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             s.downloads.regularDownloads = T.castDraft(regularDownloads)
             s.downloads.state = state
 
-            const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
-            if (toDelete.length) {
-              toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
+            for (const downloadID of s.downloads.info.keys()) {
+              if (!state.has(downloadID)) s.downloads.info.delete(downloadID)
             }
           })
         } catch (error) {
@@ -1388,22 +1307,16 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           const tlfType = parsedPath.tlfType
 
           set(s => {
-            const oldTlfList = s.tlfs[tlfType]
-            const oldTlfFromFavorites = oldTlfList.get(tlfName) || Constants.unknownTlf
-            if (oldTlfFromFavorites !== Constants.unknownTlf) {
-              s.tlfs[tlfType] = T.castDraft(
-                new Map([...oldTlfList, [tlfName, {...oldTlfFromFavorites, syncConfig}]])
-              )
+            const existing = s.tlfs[tlfType].get(tlfName)
+            if (existing && existing !== Constants.unknownTlf) {
+              s.tlfs[tlfType].set(tlfName, T.castDraft({...existing, syncConfig}))
               return
             }
 
-            const tlfPath = T.FS.pathConcat(T.FS.pathConcat(Constants.defaultPath, tlfType), tlfName)
-            const oldTlfFromAdditional = s.tlfs.additionalTlfs.get(tlfPath) || Constants.unknownTlf
-            if (oldTlfFromAdditional !== Constants.unknownTlf) {
-              s.tlfs.additionalTlfs = T.castDraft(
-                new Map([...s.tlfs.additionalTlfs, [tlfPath, {...oldTlfFromAdditional, syncConfig}]])
-              )
-              return
+            const additionalPath = T.FS.pathConcat(T.FS.pathConcat(Constants.defaultPath, tlfType), tlfName)
+            const existingAdditional = s.tlfs.additionalTlfs.get(additionalPath)
+            if (existingAdditional && existingAdditional !== Constants.unknownTlf) {
+              s.tlfs.additionalTlfs.set(additionalPath, T.castDraft({...existingAdditional, syncConfig}))
             }
           })
         } catch (e) {
@@ -1418,8 +1331,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         try {
           const uploadStates = await T.RPCGen.SimpleFSSimpleFSGetUploadStatusRpcPromise()
           set(s => {
-            // return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
-
             const writingToJournal = new Map(
               uploadStates?.map(uploadState => {
                 const path = rpcPathToPath(uploadState.targetPath)

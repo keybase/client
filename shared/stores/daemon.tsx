@@ -57,15 +57,11 @@ export interface State extends Store {
 export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
-    get().dispatch.setState('starting')
-    get().dispatch.setFailed('')
     set(s => {
+      s.handshakeState = 'starting'
+      s.handshakeFailedReason = ''
       s.handshakeRetriesLeft = maxHandshakeTries
     })
-  }
-
-  const _onRestartHandshakeNative = () => {
-    // overriden on desktop
   }
 
   let _firstTimeBootstrapDone = true
@@ -75,9 +71,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       return
     }
     const {handshakeWaiters, handshakeFailedReason, handshakeRetriesLeft} = get()
-    if (handshakeWaiters.size > 0) {
-      // still waiting for things to finish
-    } else {
+    if (handshakeWaiters.size === 0) {
       if (handshakeFailedReason) {
         if (handshakeRetriesLeft) {
           restartHandshake()
@@ -90,7 +84,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         get().dispatch.daemonHandshakeDone()
       }
     }
-    return
   }
 
   // When there are no more waiters, we can show the actual app
@@ -133,18 +126,13 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
           return
         }
 
-        let handshakeWait = false
-        const handshakeVersion = version
-
         // did we beat getBootstrapStatus?
-        if (!loggedIn) {
-          handshakeWait = true
-        }
+        const handshakeWait = !loggedIn
 
         const {wait} = get().dispatch
         try {
           if (handshakeWait) {
-            wait(getAccountsWaitKey, handshakeVersion, true)
+            wait(getAccountsWaitKey, version, true)
           }
 
           await refreshAccounts()
@@ -153,7 +141,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
             // someone dismissed this already?
             const {handshakeWaiters} = get()
             if (handshakeWaiters.get(getAccountsWaitKey)) {
-              wait(getAccountsWaitKey, handshakeVersion, false)
+              wait(getAccountsWaitKey, version, false)
             }
           }
         } catch {
@@ -161,7 +149,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
             // someone dismissed this already?
             const {handshakeWaiters} = get()
             if (handshakeWaiters.get(getAccountsWaitKey)) {
-              wait(getAccountsWaitKey, handshakeVersion, false, "Can't get accounts")
+              wait(getAccountsWaitKey, version, false, "Can't get accounts")
             }
           }
         }
@@ -173,32 +161,31 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
 
-      const f = async () => {
-        const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
-        set(state => {
-          state.bootstrapStatus = T.castDraft(s)
-        })
+      const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+      set(state => {
+        state.bootstrapStatus = T.castDraft(s)
+      })
 
-        logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
+      logger.info(`[Bootstrap] loggedIn: ${s.loggedIn ? 1 : 0}`)
 
-        // set HTTP srv info
-        if (s.httpSrvInfo) {
-          logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-        } else {
-          logger.info(`[Bootstrap] http server: no info given`)
-        }
+      // set HTTP srv info
+      if (s.httpSrvInfo) {
+        logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
+      } else {
+        logger.info(`[Bootstrap] http server: no info given`)
+      }
 
-        // if we're logged in act like getAccounts is done already
-        if (s.loggedIn) {
-          const {handshakeWaiters} = get()
-          if (handshakeWaiters.get(getAccountsWaitKey)) {
-            wait(getAccountsWaitKey, version, false)
-          }
+      // if we're logged in act like getAccounts is done already
+      if (s.loggedIn) {
+        const {handshakeWaiters} = get()
+        if (handshakeWaiters.get(getAccountsWaitKey)) {
+          wait(getAccountsWaitKey, version, false)
         }
       }
-      return await f()
     },
-    onRestartHandshakeNative: _onRestartHandshakeNative,
+    onRestartHandshakeNative: () => {
+      // overriden on desktop
+    },
     resetState: () => {
       set(s => ({
         ...s,
@@ -231,13 +218,14 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       })
     },
     startHandshake: () => {
-      get().dispatch.setError()
-      get().dispatch.setState('starting')
-      get().dispatch.setFailed('')
+      const nextVersion = get().handshakeVersion + 1
       set(s => {
+        s.error = undefined
+        s.handshakeState = 'starting'
+        s.handshakeFailedReason = ''
         s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
       })
-      get().dispatch.daemonHandshake(get().handshakeVersion + 1)
+      get().dispatch.daemonHandshake(nextVersion)
     },
     wait: (name, version, increment, failedReason, failedFatal) => {
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
@@ -259,8 +247,8 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       })
 
       if (failedFatal) {
-        get().dispatch.setFailed(failedReason || '')
         set(s => {
+          s.handshakeFailedReason = failedReason || ''
           s.handshakeRetriesLeft = 0
         })
       } else {

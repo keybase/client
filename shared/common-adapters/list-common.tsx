@@ -2,7 +2,19 @@ import {smallHeight, largeHeight} from './list-item'
 import type {Props} from './list'
 
 export function useListProps<T>(p: Props<T>) {
-  const {items, renderItem, itemHeight, onEndReached, keyProperty, estimatedItemHeight, extraData: extraDataProp, selectedIndex, ListHeaderComponent, ListFooterComponent, recycleItems: recycleItemsOverride} = p
+  const {
+    items,
+    renderItem,
+    itemHeight,
+    onEndReached,
+    keyProperty,
+    estimatedItemHeight,
+    extraData: extraDataProp,
+    selectedIndex,
+    ListHeaderComponent,
+    ListFooterComponent,
+    recycleItems: recycleItemsOverride,
+  } = p
   const {getItemType, drawDistance, onViewableItemsChanged, viewabilityConfig} = p
 
   const legendRenderItem = ({item, index}: {item: T; index: number}) => {
@@ -31,10 +43,14 @@ export function useListProps<T>(p: Props<T>) {
     (itemHeight.type === 'fixed'
       ? itemHeight.height
       : itemHeight.type === 'fixedListItemAuto'
-        ? (itemHeight.sizeType === 'Large' ? largeHeight : smallHeight)
+        ? itemHeight.sizeType === 'Large'
+          ? largeHeight
+          : smallHeight
         : 48)
 
-  const recycleItems = recycleItemsOverride ?? (itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto' || itemHeight.type === 'perItem')
+  const recycleItems =
+    recycleItemsOverride ??
+    (itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto' || itemHeight.type === 'perItem')
 
   return {
     ListFooterComponent,
