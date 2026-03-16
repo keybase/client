@@ -1086,6 +1086,36 @@ func TestSearchableRemoteConversationName(t *testing.T) {
 		searchableRemoteConversationNameFromStr("joshblum,zoommikem,mikem,zoomua,mikem", "mikem"))
 }
 
+func TestGetMsgSnippetEphemeralError(t *testing.T) {
+	ctx := context.Background()
+	conv := chat1.ConversationLocal{}
+	errMsg := "This exploding message is not available because this device was created after it was sent"
+
+	// Non-expired ephemeral error: should surface the error message with EXPLODING_MESSAGE decoration.
+	msg := chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		ErrType:     chat1.MessageUnboxedErrorType_EPHEMERAL,
+		ErrMsg:      errMsg,
+		IsEphemeral: true,
+		Etime:       gregor1.ToTime(time.Now().Add(time.Hour)),
+		MessageType: chat1.MessageType_TEXT,
+	})
+	decoration, snippet, _ := GetMsgSnippet(ctx, nil, gregor1.UID{}, msg, conv, "alice")
+	require.Equal(t, chat1.SnippetDecoration_EXPLODING_MESSAGE, decoration)
+	require.Equal(t, errMsg, snippet)
+
+	// Expired ephemeral error: should show "Message exploded." with EXPLODED_MESSAGE decoration.
+	msg = chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		ErrType:     chat1.MessageUnboxedErrorType_EPHEMERAL,
+		ErrMsg:      errMsg,
+		IsEphemeral: true,
+		Etime:       gregor1.ToTime(time.Now().Add(-time.Hour)),
+		MessageType: chat1.MessageType_TEXT,
+	})
+	decoration, snippet, _ = GetMsgSnippet(ctx, nil, gregor1.UID{}, msg, conv, "alice")
+	require.Equal(t, chat1.SnippetDecoration_EXPLODED_MESSAGE, decoration)
+	require.Equal(t, "Message exploded.", snippet)
+}
+
 func TestStripUsernameFromConvName(t *testing.T) {
 	// Only the username as a complete segment is removed; "mikem" inside "zoommikem" must not be stripped
 	require.Equal(t, "joshblum,zoommikem,zoomua",

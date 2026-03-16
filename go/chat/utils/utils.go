@@ -1116,10 +1116,13 @@ func formatDuration(dur time.Duration) string {
 
 func getMsgSnippetDecoration(msg chat1.MessageUnboxed) chat1.SnippetDecoration {
 	var msgBody chat1.MessageBody
-	if msg.IsValid() {
+	switch {
+	case msg.IsValid():
 		msgBody = msg.Valid().MessageBody
-	} else {
+	case msg.IsOutbox():
 		msgBody = msg.Outbox().Msg.MessageBody
+	default:
+		return chat1.SnippetDecoration_NONE
 	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_ATTACHMENT:
@@ -1221,6 +1224,12 @@ func GetMsgSnippet(ctx context.Context, g *globals.Context, uid gregor1.UID, msg
 	conv chat1.ConversationLocal, currentUsername string,
 ) (decoration chat1.SnippetDecoration, snippet string, snippetDecorated string) {
 	if !msg.IsValid() && !msg.IsOutbox() {
+		if msg.IsError() && msg.Error().IsEphemeral {
+			if msg.Error().IsEphemeralExpired(time.Now()) {
+				return chat1.SnippetDecoration_EXPLODED_MESSAGE, "Message exploded.", ""
+			}
+			return chat1.SnippetDecoration_EXPLODING_MESSAGE, msg.Error().ErrMsg, ""
+		}
 		return chat1.SnippetDecoration_NONE, "", ""
 	}
 	defer func() {
