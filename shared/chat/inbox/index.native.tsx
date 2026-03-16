@@ -66,7 +66,7 @@ function Inbox(p: InboxProps) {
 
   React.useEffect(() => {
     applyUnreadAndFloating()
-  }, [rows])
+  }, [applyUnreadAndFloating])
 
   const itemHeight = {
     getSize: (item: RowItem) => {

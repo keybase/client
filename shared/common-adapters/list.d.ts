@@ -9,7 +9,7 @@ export type LegendListState = {
 }
 
 export type LegendListRef = _LegendListRef & {
-  getState(): LegendListState
+  getState: () => LegendListState
 }
 
 // List differs from list in that on desktop it uses LegendList.

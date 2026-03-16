@@ -44,7 +44,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
           ordinal,
           showUsername,
           teamID: '' as T.Teams.TeamID,
-          teamType: 'adhoc' as T.Teams.TeamType,
+          teamType: 'adhoc' as T.Chat.TeamType,
           teamname: '',
           timestamp: 0,
         }
@@ -80,7 +80,7 @@ type AuthorProps = {
   botAlias: string
   isAdhocBot: boolean
   teamID: T.Teams.TeamID
-  teamType: T.Teams.TeamType
+  teamType: T.Chat.TeamType
   teamname: string
   timestamp: number
   showUsername: string
@@ -116,7 +116,6 @@ function AuthorSection(p: AuthorProps) {
       colorFollowing={true}
       colorYou={true}
       onUsernameClicked={onAuthorClick}
-      fixOverdraw="auto"
       type="BodySmallBold"
       usernames={showUsername}
       virtualText={true}
