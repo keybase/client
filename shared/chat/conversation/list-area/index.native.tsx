@@ -283,7 +283,7 @@ const ConversationList = function ConversationList() {
               testID="messageList"
               onScrollToIndexFailed={noop}
               extraData={extraData}
-              // estimatedItemSize: typical text msg ~36px + separator ~24px = ~60px; use 72 as generous estimate
+              // @ts-ignore LegendList/FlashList prop; ignored by FlatList
               estimatedItemSize={72}
               ListHeaderComponent={SpecialBottomMessage}
               ListFooterComponent={SpecialTopMessage}
