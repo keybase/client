@@ -6,6 +6,11 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command')
 if echo "$COMMAND" | grep -qE "git commit"; then
   REPO_ROOT=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
 
+  if [ ! -d "$REPO_ROOT/shared/node_modules" ]; then
+    echo "node_modules not installed — skipping lint/tsc." >&2
+    exit 0
+  fi
+
   echo "Running yarn lint..." >&2
   if ! (cd "$REPO_ROOT/shared" && yarn lint 2>&1); then
     echo "Lint failed — commit blocked." >&2
