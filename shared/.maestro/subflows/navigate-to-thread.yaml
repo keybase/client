@@ -1,0 +1,9 @@
+appId: keybase.ios
+
+---
+
+# The app restores to the last open thread on launch.
+- extendedWaitUntil:
+    visible:
+      id: "messageList"
+    timeout: 30000
