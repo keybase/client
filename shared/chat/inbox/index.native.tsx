@@ -60,12 +60,11 @@ function Inbox(p: InboxProps) {
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
 
   const listRef = React.useRef<LegendListRef | null>(null)
-  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
   React.useEffect(() => {
-    console.log('[floating] Inbox rows useEffect fired, rows.length:', rows.length)
     applyUnreadAndFloating()
   }, [rows])
 
@@ -106,8 +105,6 @@ function Inbox(p: InboxProps) {
 
   const onViewChanged = (data: ViewableItemsData) => {
     onScrollUnbox(data)
-    lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
-    console.log('[floating] onViewChanged lastVisible:', lastVisibleIdxRef.current, 'type:', rows[lastVisibleIdxRef.current]?.type)
     applyUnreadAndFloating()
   }
 
@@ -138,10 +135,6 @@ function Inbox(p: InboxProps) {
     if (smallTeamsExpanded) {
       toggleSmallTeamsExpanded()
     }
-    // Immediately hide the floating button by updating the last visible index to the divider row.
-    // Without this, the floating button stays visible until onViewableItemsChanged fires after the scroll.
-    lastVisibleIdxRef.current = inboxNumSmallRows
-    applyUnreadAndFloating()
     void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
   }
 

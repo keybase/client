@@ -63,22 +63,27 @@ export function useUnreadShortcut(p: {
   rows: ReadonlyArray<RowItem>
   unreadIndices: ReadonlyMap<number, number>
   unreadTotal: number
-  listRef: React.RefObject<{scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>} | null>
+  listRef: React.RefObject<{
+    getState: () => {end: number}
+    scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>
+  } | null>
 }) {
   const {rows, unreadIndices, unreadTotal, listRef} = p
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
   const firstOffscreenIdxRef = React.useRef(-1)
-  const lastVisibleIdxRef = React.useRef(-1)
+  const rowsRef = React.useRef(rows)
+  rowsRef.current = rows
 
   const applyUnreadAndFloating = () => {
-    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
+    const lastVisibleIdx = listRef.current?.getState().end ?? -1
+    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdx)
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    const floating = shouldShowFloating(rows, lastVisibleIdxRef.current)
-    console.log('[floating] apply lastVisible:', lastVisibleIdxRef.current, 'rows.length:', rows.length, 'result:', floating)
+    const floating = shouldShowFloating(rowsRef.current, lastVisibleIdx)
+    console.log('[floating] apply lastVisible:', lastVisibleIdx, 'rows.length:', rowsRef.current.length, 'result:', floating)
     setShowFloating(floating)
   }
 
@@ -90,16 +95,10 @@ export function useUnreadShortcut(p: {
   }
 
   React.useEffect(() => {
-    const info = calcUnreadShortcut(unreadIndices, lastVisibleIdxRef.current)
-    setShowUnread(info.showUnread)
-    setUnreadCount(info.unreadCount)
-    firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    const floating = shouldShowFloating(rows, lastVisibleIdxRef.current)
-    console.log('[floating] useEffect lastVisible:', lastVisibleIdxRef.current, 'rows.length:', rows.length, 'result:', floating)
-    setShowFloating(floating)
+    applyUnreadAndFloating()
   }, [unreadIndices, unreadTotal, rows])
 
-  return {applyUnreadAndFloating, lastVisibleIdxRef, scrollToUnread, showFloating, showUnread, unreadCount}
+  return {applyUnreadAndFloating, scrollToUnread, showFloating, showUnread, unreadCount}
 }
 
 export function useScrollUnbox(
