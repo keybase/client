@@ -77,17 +77,6 @@ function Inbox(p: InboxProps) {
     type: 'perItem' as const,
   }
 
-  const onToggleSmallTeams = () => {
-    if (!smallTeamsExpanded) {
-      // Expanding: big teams will be pushed off screen. Immediately show the floating button by
-      // setting the last visible index to the last pre-expansion small row. Without this, the
-      // floating button won't appear until onViewableItemsChanged fires after a scroll.
-      lastVisibleIdxRef.current = inboxNumSmallRows - 1
-      applyUnreadAndFloating()
-    }
-    toggleSmallTeamsExpanded()
-  }
-
   const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
@@ -96,7 +85,7 @@ function Inbox(p: InboxProps) {
         <TeamsDivider
           showButton={row.showButton}
           hiddenCount={row.hiddenCount}
-          toggle={onToggleSmallTeams}
+          toggle={toggleSmallTeamsExpanded}
           smallTeamsExpanded={smallTeamsExpanded}
         />
       )
@@ -143,10 +132,9 @@ function Inbox(p: InboxProps) {
     if (smallTeamsExpanded) {
       toggleSmallTeamsExpanded()
     }
-    // Immediately hide the floating button. Find the divider (first non-small row) in the current
-    // rows so this works whether or not small teams are expanded.
-    const dividerIdx = rows.findIndex(r => r.type !== 'small')
-    lastVisibleIdxRef.current = dividerIdx >= 0 ? dividerIdx : inboxNumSmallRows
+    // Immediately hide the floating button by updating the last visible index to the divider row.
+    // Without this, the floating button stays visible until onViewableItemsChanged fires after the scroll.
+    lastVisibleIdxRef.current = inboxNumSmallRows
     applyUnreadAndFloating()
     void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
   }
