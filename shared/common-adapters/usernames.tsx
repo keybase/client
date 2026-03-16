@@ -90,33 +90,19 @@ function Username(p: UsernameProps) {
   const following = useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onOpenProfile = (evt?: React.BaseSyntheticEvent) => {
-    evt?.stopPropagation()
-    showUserProfile(username)
-  }
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onOpenTracker = (evt?: React.BaseSyntheticEvent) => {
-    evt?.stopPropagation()
-    showUser(username, true)
-  }
-  const onPassThrough = () => {
-    if (typeof onUsernameClicked === 'function') {
-      onUsernameClicked(username)
-    }
-  }
   let onClicked: undefined | ((evt?: React.BaseSyntheticEvent) => void)
-  switch (onUsernameClicked) {
-    case 'tracker':
-      onClicked = onOpenTracker
-      break
-    case 'profile':
-      onClicked = onOpenProfile
-      break
-    default:
-      if (typeof onUsernameClicked === 'function') {
-        onClicked = onPassThrough
-      }
+  if (onUsernameClicked === 'tracker') {
+    onClicked = (evt?: React.BaseSyntheticEvent) => {
+      evt?.stopPropagation()
+      useTrackerState.getState().dispatch.showUser(username, true)
+    }
+  } else if (onUsernameClicked === 'profile') {
+    onClicked = (evt?: React.BaseSyntheticEvent) => {
+      evt?.stopPropagation()
+      useProfileState.getState().dispatch.showUserProfile(username)
+    }
+  } else if (typeof onUsernameClicked === 'function') {
+    onClicked = () => onUsernameClicked(username)
   }
 
   let userStyle: Styles.StylesCrossPlatform = Styles.platformStyles({
