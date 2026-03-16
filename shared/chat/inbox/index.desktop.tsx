@@ -1,7 +1,15 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
+import {
+  type RowItem,
+  type ViewableItemsData,
+  viewabilityConfig,
+  getItemType,
+  keyExtractor,
+  useUnreadShortcut,
+  useScrollUnbox,
+} from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider'
@@ -184,7 +192,6 @@ const DragLine = (p: {
   )
 }
 
-
 type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 function Inbox(props: InboxProps) {
@@ -264,7 +271,6 @@ function Inbox(props: InboxProps) {
               items={rows}
               itemHeight={itemHeight}
               estimatedItemHeight={56}
-              extraData={selectedConversationIDKey}
               getItemType={getItemType}
               recycleItems={true}
               keyExtractor={keyExtractor}
