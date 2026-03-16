@@ -64,6 +64,10 @@ function Inbox(p: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
+  React.useEffect(() => {
+    applyUnreadAndFloating()
+  }, [rows])
+
   const itemHeight = {
     getSize: (item: RowItem) => {
       switch (item.type) {
