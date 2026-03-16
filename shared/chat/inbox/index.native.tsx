@@ -65,6 +65,7 @@ function Inbox(p: InboxProps) {
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
   React.useEffect(() => {
+    console.log('[floating] Inbox rows useEffect fired, rows.length:', rows.length)
     applyUnreadAndFloating()
   }, [rows])
 
@@ -106,6 +107,7 @@ function Inbox(p: InboxProps) {
   const onViewChanged = (data: ViewableItemsData) => {
     onScrollUnbox(data)
     lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
+    console.log('[floating] onViewChanged lastVisible:', lastVisibleIdxRef.current, 'type:', rows[lastVisibleIdxRef.current]?.type)
     applyUnreadAndFloating()
   }
 
