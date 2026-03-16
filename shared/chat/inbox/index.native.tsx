@@ -132,6 +132,10 @@ function Inbox(p: InboxProps) {
     if (smallTeamsExpanded) {
       toggleSmallTeamsExpanded()
     }
+    // Immediately hide the floating button by updating the last visible index to the divider row.
+    // Without this, the floating button stays visible until onViewableItemsChanged fires after the scroll.
+    lastVisibleIdxRef.current = inboxNumSmallRows
+    applyUnreadAndFloating()
     void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
   }
 
