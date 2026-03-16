@@ -1,6 +1,7 @@
 import * as Common from './common.desktop'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
+import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -190,13 +191,15 @@ function ElectronApp() {
     }
   }
 
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
+
   return (
     <NavigationContainer
       documentTitle={documentTitle}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
       ref={navRef}
-      theme={Shared.theme}
+      theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
     >
       <RootComponent />
     </NavigationContainer>

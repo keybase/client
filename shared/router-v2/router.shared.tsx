@@ -2,9 +2,8 @@ import * as Kb from '@/common-adapters'
 import UploadIcon from '@/fs/common/upload-icon'
 import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
-import {colors, darkColors, themed} from '@/styles/colors'
+import {colors, darkColors} from '@/styles/colors'
 import {useFSState} from '@/stores/fs'
-import {useDarkModeState} from '@/stores/darkmode'
 
 export function SimpleLoading() {
   return (
@@ -35,26 +34,31 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 // the nav assumes plain colors for animation in some cases so we can't use the themed colors there
-export const theme: Theme = {
+export const darkTheme: Theme = {
   colors: {
-    get background() {
-      return themed.white
-    },
-    get border() {
-      return themed.black_10 as string
-    },
-    get card() {
-      return undefined as unknown as string
-    },
-    get notification() {
-      return themed.black as string
-    },
-    get primary() {
-      return themed.black as string
-    },
-    get text() {
-      return (useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
-    },
+    background: darkColors.white,
+    border: darkColors.black_10,
+    card: undefined as unknown as string,
+    notification: darkColors.black,
+    primary: darkColors.black,
+    text: darkColors.black,
+  },
+  dark: true,
+  fonts: {
+    bold: Kb.Styles.globalStyles.fontBold,
+    heavy: Kb.Styles.globalStyles.fontExtrabold,
+    medium: Kb.Styles.globalStyles.fontSemibold,
+    regular: Kb.Styles.globalStyles.fontRegular,
+  },
+}
+export const lightTheme: Theme = {
+  colors: {
+    background: colors.white,
+    border: colors.black_10,
+    card: undefined as unknown as string,
+    notification: colors.black,
+    primary: colors.black,
+    text: colors.black,
   },
   dark: false,
   fonts: {
