@@ -1089,7 +1089,7 @@ func TestSearchableRemoteConversationName(t *testing.T) {
 func TestGetMsgSnippetEphemeralError(t *testing.T) {
 	ctx := context.Background()
 	conv := chat1.ConversationLocal{}
-	errMsg := "This exploding message is not available because this device was created after it was sent"
+	errMsg := "This exploding message is not available because this device was created after the message was sent"
 
 	// Non-expired ephemeral error: should surface the error message with EXPLODING_MESSAGE decoration.
 	msg := chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
