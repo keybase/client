@@ -82,9 +82,7 @@ export function useUnreadShortcut(p: {
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    const floating = shouldShowFloating(rowsRef.current, lastVisibleIdx)
-    console.log('[floating] apply lastVisible:', lastVisibleIdx, 'rows.length:', rowsRef.current.length, 'result:', floating)
-    setShowFloating(floating)
+    setShowFloating(shouldShowFloating(rowsRef.current, lastVisibleIdx))
   }
 
   const scrollToUnread = () => {
