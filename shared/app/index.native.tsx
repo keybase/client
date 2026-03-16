@@ -1,3 +1,4 @@
+/// <reference types="webpack-env" />
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'

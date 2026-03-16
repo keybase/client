@@ -10920,10 +10920,10 @@ typescript-eslint@8.57.0:
     "@typescript-eslint/typescript-estree" "8.57.0"
     "@typescript-eslint/utils" "8.57.0"
 
-typescript@5.9.3:
-  version "5.9.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
-  integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
+typescript@6.0.0-beta:
+  version "6.0.0-beta"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.0-beta.tgz#2f87bd0cd1a291f675b3414a02a00bd4f7b48357"
+  integrity sha512-CldZdztDpQRLM1HC6WDQjQkQN5Ub5zRau737a1diGh3lPmb9oRsaWHk1y5iqK0o7+1bNJ0oXfEGRkAogFZBL+Q==
 
 ua-parser-js@^1.0.35:
   version "1.0.41"

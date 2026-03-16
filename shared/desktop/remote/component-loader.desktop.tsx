@@ -1,3 +1,4 @@
+/// <reference types="webpack-env" />
 // Loads a remote component. Receives props from the main window via IPC.
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'

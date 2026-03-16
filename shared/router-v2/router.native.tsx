@@ -1,3 +1,4 @@
+/// <reference types="webpack-env" />
 import * as C from '@/constants'
 import * as Constants from '@/stores/router'
 import {useConfigState} from '@/stores/config'

@@ -192,7 +192,7 @@
     "rimraf": "6.1.3",
     "style-loader": "4.0.0",
     "terser-webpack-plugin": "5.4.0",
-    "typescript": "5.9.3",
+    "typescript": "6.0.0-beta",
     "typescript-eslint": "8.57.0",
     "webpack": "5.105.4",
     "webpack-cli": "7.0.0",
