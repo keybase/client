@@ -1,15 +1,7 @@
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import {useIsHighlighted, useOrdinal} from '../ids-context'
+import {useIsHighlighted} from '../ids-context'
 
-export const useEdited = () => {
-  const ordinal = useOrdinal()
-  const hasBeenEdited = Chat.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    const hasBeenEdited = message?.hasBeenEdited ?? false
-    return hasBeenEdited
-  })
-
+export const useEdited = (hasBeenEdited: boolean) => {
   const showCenteredHighlight = useIsHighlighted()
   return hasBeenEdited ? (
     <Kb.Text

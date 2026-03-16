@@ -5,11 +5,7 @@ import * as React from 'react'
 import {useOrdinal, useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
-export const useReply = (ordinal: T.Chat.Ordinal) => {
-  const showReplyTo = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'text' ? !!m.replyTo : false
-  })
+export const useReply = (showReplyTo: boolean) => {
   return showReplyTo ? <Reply /> : null
 }
 

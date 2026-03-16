@@ -81,58 +81,103 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
   return ''
 }
 
-// Author Avatar
-function LeftSide(p: {username?: string}) {
-  const {username} = p
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onAuthorClick = () => {
-    if (!username) return
-    if (C.isMobile) {
-      showUserProfile(username)
-    } else {
-      showUser(username, true)
-    }
-  }
+const missingMessage = Chat.makeMessageDeleted({})
 
-  return username ? (
-    <Kb.Avatar
-      size={32}
-      username={username}
-      onClick={onAuthorClick}
-      style={styles.avatar}
-    />
-  ) : null
+// Single merged selector replacing useStateFast + useState
+const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
+  const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
+  const you = useCurrentUserState(s => s.username)
+  const orangeOrdinal = React.useContext(OrangeLineContext)
+
+  const data = Chat.useChatContext(
+    C.useShallow(s => {
+      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
+      const pmessage = s.messageMap.get(previous)
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const showUsername = getUsernameToShow(m, pmessage, you)
+      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const orangeMessage = orangeOrdinal ? s.messageMap.get(orangeOrdinal) : undefined
+      const orangeOrdinalExists =
+        orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
+      const orangeLineAbove =
+        orangeOrdinalExists &&
+        (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
+      const isJoinLeave = m.type === 'systemJoined'
+      const orangeTime =
+        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
+          ? formatTimeForConversationList(m.timestamp)
+          : ''
+
+      // Author/team data (only meaningful when showUsername is truthy)
+      const {author, timestamp} = m
+      const {teamID, botAliases, teamType, teamname} = s.meta
+      const participantInfoNames = s.participants.name
+      const isAdhocBot =
+        teamType === 'adhoc' && participantInfoNames.length > 0
+          ? !participantInfoNames.includes(author)
+          : false
+
+      return {
+        author,
+        botAlias: showUsername ? (botAliases[author] ?? '') : '',
+        isAdhocBot,
+        orangeLineAbove,
+        orangeTime,
+        ordinal,
+        showUsername,
+        teamID,
+        teamType,
+        teamname,
+        timestamp,
+      }
+    })
+  )
+
+  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(data.teamID)?.get(data.author)?.type)
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+  const authorIsBot = data.teamname
+    ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+    : data.isAdhocBot
+
+  return {...data, authorIsAdmin, authorIsBot, authorIsOwner}
 }
 
-function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
-  const {ordinal, showUsername} = p
-  const mdata = useState(ordinal)
-  const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp, teamType} = mdata
+type Props = {
+  leadingItem?: T.Chat.Ordinal
+  trailingItem: T.Chat.Ordinal
+}
+
+function SeparatorConnector(p: Props) {
+  const {leadingItem, trailingItem} = p
+  const data = useSeparatorData(trailingItem, leadingItem ?? T.Chat.numberToOrdinal(0))
+  const {ordinal, showUsername, orangeLineAbove, orangeTime} = data
+  const {botAlias, authorIsOwner, authorIsAdmin, authorIsBot, timestamp} = data
+
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = () => {
+    if (!showUsername) return
     if (C.isMobile) {
-      showUsername && showUserProfile(showUsername)
+      showUserProfile(showUsername)
     } else {
-      showUsername && showUser(showUsername, true)
+      showUser(showUsername, true)
     }
   }
 
-  const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
+  if (!ordinal || (!showUsername && !orangeLineAbove)) return null
+
+  const allowCrown = data.teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
   const usernameNode = (
-    <Kb.ConnectedUsernames
-      colorBroken={true}
-      colorFollowing={true}
-      colorYou={true}
-      onUsernameClicked={onAuthorClick}
-
+    <Kb.Text
       type="BodySmallBold"
-      usernames={showUsername}
+      onClick={onAuthorClick}
       virtualText={true}
       className="separator-text"
-    />
+    >
+      {showUsername}
+    </Kb.Text>
   )
 
   const ownerAdminTooltipIcon = allowCrown ? (
@@ -159,114 +204,7 @@ function TopSide(p: {ordinal: T.Chat.Ordinal; showUsername: string}) {
     usernameNode
   )
 
-  const timestampNode = (
-    <Kb.Text type="BodyTiny" virtualText={true} className="separator-text">
-      {formatTimeForChat(timestamp)}
-    </Kb.Text>
-  )
-
   return (
-    <Kb.Box2
-      pointerEvents="box-none"
-      key="author"
-      direction="horizontal"
-      style={styles.authorContainer}
-      gap="tiny"
-    >
-      <Kb.Box2
-        pointerEvents="box-none"
-        direction="horizontal"
-        gap="xtiny"
-        fullWidth={true}
-        style={styles.usernameCrown}
-      >
-        {botAliasOrUsername}
-        {ownerAdminTooltipIcon}
-        {botIcon}
-        {timestampNode}
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
-const missingMessage = Chat.makeMessageDeleted({})
-
-// TODO check flashlist if that ever gets turned back on
-const useStateFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
-  const ordinal = Kb.Styles.isMobile ? _leadingItem : _trailingItem
-  const you = useCurrentUserState(s => s.username)
-  const orangeOrdinal = React.useContext(OrangeLineContext)
-
-  const ret = Chat.useChatContext(
-    C.useShallow(s => {
-      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
-      const pmessage = s.messageMap.get(previous)
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const showUsername = getUsernameToShow(m, pmessage, you)
-      // we don't show the label if its been too recent (2hrs)
-      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-      const orangeMessage = orangeOrdinal ? s.messageMap.get(orangeOrdinal) : undefined
-      const orangeOrdinalExists = orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
-      const orangeLineAbove =
-        orangeOrdinalExists &&
-        (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
-      const isJoinLeave = m.type === 'systemJoined'
-
-      const orangeTime =
-        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
-          ? formatTimeForConversationList(m.timestamp)
-          : ''
-
-      return {orangeLineAbove, orangeTime, ordinal, showUsername}
-    })
-  )
-
-  return ret
-}
-
-const useState = (ordinal: T.Chat.Ordinal) => {
-  const {author, teamID, teamType, teamname, botAlias, timestamp, isAdhocBot} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const {author, timestamp} = m
-      const {teamID, botAliases, teamType, teamname} = s.meta
-      const participantInfoNames = s.participants.name
-      const isAdhocBot =
-        teamType === 'adhoc' && participantInfoNames.length > 0
-          ? !participantInfoNames.includes(author)
-          : false
-      return {
-        author,
-        botAlias: botAliases[author] ?? '',
-        isAdhocBot,
-        teamID,
-        teamType,
-        teamname,
-        timestamp,
-      }
-    })
-  )
-  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
-  const authorIsOwner = authorRoleInTeam === 'owner'
-  const authorIsAdmin = authorRoleInTeam === 'admin'
-  const authorIsBot = teamname
-    ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-    : isAdhocBot
-  return {authorIsAdmin, authorIsBot, authorIsOwner, botAlias, teamType, timestamp}
-}
-
-type Props = {
-  leadingItem?: T.Chat.Ordinal
-  trailingItem: T.Chat.Ordinal
-}
-
-function SeparatorConnector(p: Props) {
-  const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove, orangeTime} = useStateFast(
-    trailingItem,
-    leadingItem ?? T.Chat.numberToOrdinal(0)
-  )
-  return ordinal && (showUsername || orangeLineAbove) ? (
     <Kb.Box2
       direction="horizontal"
       style={showUsername ? styles.container : styles.containerNoName}
@@ -274,8 +212,33 @@ function SeparatorConnector(p: Props) {
       pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
-      {showUsername ? <LeftSide username={showUsername} /> : null}
-      {showUsername ? <TopSide showUsername={showUsername} ordinal={ordinal} /> : null}
+      {showUsername ? (
+        <Kb.Avatar size={32} username={showUsername} onClick={onAuthorClick} style={styles.avatar} />
+      ) : null}
+      {showUsername ? (
+        <Kb.Box2
+          pointerEvents="box-none"
+          key="author"
+          direction="horizontal"
+          style={styles.authorContainer}
+          gap="tiny"
+        >
+          <Kb.Box2
+            pointerEvents="box-none"
+            direction="horizontal"
+            gap="xtiny"
+            fullWidth={true}
+            style={styles.usernameCrown}
+          >
+            {botAliasOrUsername}
+            {ownerAdminTooltipIcon}
+            {botIcon}
+            <Kb.Text type="BodyTiny" virtualText={true} className="separator-text">
+              {formatTimeForChat(timestamp)}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+      ) : null}
       {orangeLineAbove ? (
         <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine}>
           {orangeTime ? (
@@ -286,7 +249,7 @@ function SeparatorConnector(p: Props) {
         </Kb.Box2>
       ) : null}
     </Kb.Box2>
-  ) : null
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(

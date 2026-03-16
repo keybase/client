@@ -112,21 +112,34 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const centeredOrdinalType = s.messageCenterOrdinal
       const showCenteredHighlight =
         centeredOrdinalType?.ordinal === ordinal && centeredOrdinalType.highlightMode !== 'none'
+      // Fields lifted from child components to consolidate subscriptions
+      const hasBeenEdited = m.hasBeenEdited ?? false
+      const hasCoinFlip = m.type === 'text' && !!m.flipGameID
+      const hasUnfurlList = (m.unfurls?.size ?? 0) > 0
+      const hasUnfurlPrompts = !!id && !!s.unfurlPrompt.get(id)?.size
+      const textType: 'error' | 'sent' | 'pending' = m.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
+      const showReplyTo = m.type === 'text' ? !!m.replyTo : false
 
       return {
         botname,
         decorate,
         ecrType,
         exploding,
+        hasBeenEdited,
+        hasCoinFlip,
         hasReactions,
+        hasUnfurlList,
+        hasUnfurlPrompts,
         isEditing,
         reactionsPopupPosition,
         shouldShowPopup,
         showCenteredHighlight,
         showCoinsIcon,
         showExplodingCountdown,
+        showReplyTo,
         showRevoked,
         showSendIndicator,
+        textType,
         type,
         you,
         youSent,
@@ -202,7 +215,9 @@ type TSProps = {
   decorate: boolean
   ecrType: EditCancelRetryType
   exploding: boolean
+  hasBeenEdited: boolean
   hasReactions: boolean
+  hasUnfurlList: boolean
   isHighlighted: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
@@ -234,7 +249,7 @@ const NormalWrapper = ({
 }
 
 function TextAndSiblings(p: TSProps) {
-  const {botname, bottomChildren, children, decorate, isHighlighted} = p
+  const {botname, bottomChildren, children, decorate, hasBeenEdited, hasUnfurlList, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
@@ -268,6 +283,9 @@ function TextAndSiblings(p: TSProps) {
           {content}
           <BottomSide
             ecrType={ecrType}
+            hasBeenEdited={hasBeenEdited}
+            hasUnfurlList={hasUnfurlList}
+            messageType={type}
             reactionsPopupPosition={reactionsPopupPosition}
             hasReactions={hasReactions}
             bottomChildren={bottomChildren}
@@ -381,14 +399,17 @@ type BProps = {
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
+  hasBeenEdited: boolean
   hasReactions: boolean
+  hasUnfurlList: boolean
+  messageType: T.Chat.MessageType
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   ecrType: EditCancelRetryType
 }
 // reactions
 function BottomSide(p: BProps) {
-  const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
-  const {hasReactions, reactionsPopupPosition} = p
+  const {showingPopup, setShowingPicker, bottomChildren, ecrType, hasBeenEdited} = p
+  const {hasReactions, hasUnfurlList, messageType, reactionsPopupPosition} = p
 
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
@@ -397,12 +418,14 @@ function BottomSide(p: BProps) {
     !C.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
+        hasUnfurls={hasUnfurlList}
+        messageType={messageType}
         onShowingEmojiPicker={setShowingPicker}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
       />
     ) : null
 
-  const edited = useEdited()
+  const edited = useEdited(hasBeenEdited)
 
   return (
     <>
@@ -511,7 +534,7 @@ export function WrapperMessage(p: WMProps) {
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
+  const {reactionsPopupPosition, showCoinsIcon, botname, you, hasBeenEdited, hasUnfurlList} = mdata
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
@@ -521,7 +544,9 @@ export function WrapperMessage(p: WMProps) {
     decorate,
     ecrType,
     exploding,
+    hasBeenEdited,
     hasReactions,
+    hasUnfurlList,
     isHighlighted,
     popupAnchor,
     reactionsPopupPosition,

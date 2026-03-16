@@ -8,6 +8,8 @@ import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 
 type OwnProps = {
   className?: string
+  hasUnfurls?: boolean
+  messageType?: T.Chat.MessageType
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Kb.Styles.StylesCrossPlatform
 }
@@ -16,15 +18,25 @@ function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
 
-  const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal)
-      const type = m?.type
-      const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
-      const {toggleMessageReaction, setReplyTo} = s.dispatch
-      return {hasUnfurls, setReplyTo, toggleMessageReaction, type}
-    })
-  )
+  const {setReplyTo, toggleMessageReaction, type: subscriptionType, hasUnfurls: subscriptionHasUnfurls} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const {toggleMessageReaction, setReplyTo} = s.dispatch
+        // When both are provided as props, skip message map lookup (constant return = no re-renders)
+        if (p.messageType !== undefined && p.hasUnfurls !== undefined) {
+          return {hasUnfurls: false as boolean, setReplyTo, toggleMessageReaction, type: null as T.Chat.MessageType | null}
+        }
+        const m = s.messageMap.get(ordinal)
+        return {
+          hasUnfurls: p.hasUnfurls !== undefined ? false : (m?.unfurls?.size ?? 0) > 0,
+          setReplyTo,
+          toggleMessageReaction,
+          type: p.messageType !== undefined ? null : (m?.type ?? null),
+        }
+      })
+    )
+  const type = p.messageType ?? subscriptionType ?? undefined
+  const hasUnfurls = p.hasUnfurls ?? subscriptionHasUnfurls
 
   const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = Chat.useChatNavigateAppend()
