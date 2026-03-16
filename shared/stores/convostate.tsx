@@ -137,6 +137,7 @@ type ConvoStore = T.Immutable<{
   replyTo: T.Chat.Ordinal
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
+  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   threadSearchInfo: T.Chat.ThreadSearchInfo
   threadSearchQuery: string
@@ -178,6 +179,7 @@ const initialConvoStore: ConvoStore = {
   replyTo: T.Chat.numberToOrdinal(0),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
+  reactionOrderMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
@@ -590,17 +592,20 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     const mo = s.messageOrdinals ?? []
     const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
     const um = new Map<T.Chat.Ordinal, string>()
+    const rm = new Map<T.Chat.Ordinal, ReadonlyArray<string>>()
     let p = T.Chat.numberToOrdinal(0)
     let pMessage: T.Chat.Message | undefined = undefined
     for (const o of mo) {
       sm.set(o, p)
       const m = s.messageMap.get(o)
       if (m) um.set(o, getUsernameToShow(m, pMessage, you))
+      if (m?.reactions?.size) rm.set(o, [...m.reactions.keys()])
       pMessage = m as T.Chat.Message | undefined
       p = o
     }
     s.separatorMap = sm
     s.showUsernameMap = um
+    s.reactionOrderMap = rm
   }
 
   const mergeMessage = (
@@ -931,6 +936,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             users: [{timestamp: Date.now(), username}],
           })
         }
+        s.reactionOrderMap.set(targetOrdinal, [...(m.reactions?.keys() ?? [])])
       }
     })
   }
@@ -2273,6 +2279,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           m.explodedBy = explodedBy || ''
           m.reactions = new Map()
           m.unfurls = new Map()
+          if (ordinal) s.reactionOrderMap.set(ordinal, [])
           if (m.type === 'text') {
             m.flipGameID = ''
             m.mentionsAt = new Set()
@@ -3419,6 +3426,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
               }
               m.reactions = T.castDraft(newReactions)
             }
+            s.reactionOrderMap.set(targetOrdinal, m.reactions ? [...m.reactions.keys()] : [])
           }
         })
       }

@@ -9,35 +9,11 @@ import type * as T from '@/constants/types'
 import {useOrdinal} from './ids-context'
 import {Keyboard} from 'react-native'
 
-const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
-  if (!reactions) {
-    return []
-  }
-  const scoreMap = new Map(
-    [...reactions.entries()].map(([key, value]) => {
-      return [
-        key,
-        value.users.reduce(
-          (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
-          Infinity
-        ),
-      ]
-    })
-  )
-  return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
-}
+const emptyEmojis: ReadonlyArray<string> = []
 
 function ReactionsRowContainer() {
   const ordinal = useOrdinal()
-  const reactions = Chat.useChatContext(
-    C.useDeep(s => {
-      const message = s.messageMap.get(ordinal)
-      const reactions = message?.reactions
-      return reactions
-    })
-  )
-
-  const emojis = getOrderedReactions(reactions)
+  const emojis = Chat.useChatContext(C.useShallow(s => s.reactionOrderMap.get(ordinal) ?? emptyEmojis))
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
