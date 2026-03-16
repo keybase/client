@@ -279,6 +279,7 @@ function Inbox(props: InboxProps) {
               ref={listRef}
               renderItem={renderItem}
               drawDistance={250}
+              extraData={selectedConversationIDKey}
             />
           ) : null}
         </div>
