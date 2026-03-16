@@ -224,7 +224,7 @@ function RNApp() {
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
         ref={navRef}
-        theme={Shared.theme}
+        theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
       >
         <RootComponent />
       </NavigationContainer>
