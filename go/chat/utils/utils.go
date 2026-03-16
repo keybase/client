@@ -1223,6 +1223,11 @@ func GetMsgSnippetBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func GetMsgSnippet(ctx context.Context, g *globals.Context, uid gregor1.UID, msg chat1.MessageUnboxed,
 	conv chat1.ConversationLocal, currentUsername string,
 ) (decoration chat1.SnippetDecoration, snippet string, snippetDecorated string) {
+	defer func() {
+		if len(snippetDecorated) == 0 {
+			snippetDecorated = snippet
+		}
+	}()
 	if !msg.IsValid() && !msg.IsOutbox() {
 		if msg.IsError() && msg.Error().IsEphemeral {
 			if msg.Error().IsEphemeralExpired(time.Now()) {
@@ -1232,11 +1237,6 @@ func GetMsgSnippet(ctx context.Context, g *globals.Context, uid gregor1.UID, msg
 		}
 		return chat1.SnippetDecoration_NONE, "", ""
 	}
-	defer func() {
-		if len(snippetDecorated) == 0 {
-			snippetDecorated = snippet
-		}
-	}()
 
 	var senderUsername string
 	if msg.IsValid() {
