@@ -254,7 +254,7 @@ const ConversationList = function ConversationList() {
             <LegendList
               testID="messageList"
               extraData={messageTypeMap}
-              estimatedItemSize={72}
+              estimatedItemSize={44}
               ListHeaderComponent={SpecialTopMessage}
               ListFooterComponent={SpecialBottomMessage}
               overScrollMode="never"
