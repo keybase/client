@@ -3,7 +3,7 @@ appId: keybase.ios
 ---
 
 - tapOn:
-    text: "Chats"
+    text: "Chat"
 
 - extendedWaitUntil:
     visible:

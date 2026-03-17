@@ -8,7 +8,7 @@ appId: keybase.ios
 - runFlow: ../subflows/navigate-to-thread.yaml
 
 - repeat:
-    times: 8
+    times: 10
     commands:
       - swipe:
           id: 'messageList'

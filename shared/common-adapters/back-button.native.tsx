@@ -22,7 +22,7 @@ function BackButton(props: Props) {
   }
   const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (
-    <Pressable onPress={onBack}>
+    <Pressable onPress={onBack} testID="backButton">
       <Kb.Box2 direction="horizontal" alignItems="center" style={Styles.collapseStyles([styles.container, props.style])}>
         <Kb.Icon
           type="iconfont-arrow-left"

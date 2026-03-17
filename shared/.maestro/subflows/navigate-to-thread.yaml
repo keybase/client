@@ -2,8 +2,32 @@ appId: keybase.ios
 
 ---
 
-# The app restores to the last open thread on launch.
+- waitForAnimationToEnd:
+    timeout: 30000
+
+# If starting inside a conversation, the tab bar is hidden — go back to inbox first
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+
+# Tab bar is now visible — navigate to chat inbox
+- tapOn:
+    text: "Chat"
+
+- extendedWaitUntil:
+    visible:
+      id: "inboxRow"
+    timeout: 10000
+
+- tapOn:
+    id: "inboxRow"
+    index: 0
+
 - extendedWaitUntil:
     visible:
       id: "messageList"
-    timeout: 30000
+    timeout: 10000

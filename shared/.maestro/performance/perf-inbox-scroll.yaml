@@ -9,7 +9,7 @@ appId: keybase.ios
 
 - extendedWaitUntil:
     visible:
-      text: "Chats"
+      text: "Chat"
     timeout: 60000
 
 - runFlow: ../subflows/navigate-to-chat.yaml
