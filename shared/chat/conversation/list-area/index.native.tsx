@@ -7,21 +7,16 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type {ItemType} from '.'
-import {FlatList} from 'react-native'
-// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+import {LegendList, type LegendListRef} from '@legendapp/list/react-native'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat/debug'
-import {usingFlashList} from './flashlist-config'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 // import {useDebugLayout} from '@/util/debug-react'
-
-// TODO if we bring flashlist back bring back the patch
-const List = /*usingFlashList ? FlashList :*/ FlatList
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -33,13 +28,13 @@ const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: Array<T.Chat.Ordinal>
   conversationIDKey: T.Chat.ConversationIDKey
-  listRef: React.RefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
+  listRef: React.RefObject<LegendListRef | null>
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const [scrollToBottom] = React.useState(() => () => {
-    listRef.current?.scrollToOffset({animated: false, offset: 0})
+    void listRef.current?.scrollToEnd({animated: false})
   })
 
   const {setScrollRef} = React.useContext(ScrollContext)
@@ -71,29 +66,25 @@ const useScrolling = (p: {
       }
 
       lastScrollToCentered.current = co
-      list.scrollToItem({animated: false, item: co, viewPosition: 0.5})
+      void list.scrollToItem({animated: false, item: co, viewPosition: 0.5})
     }, 100)
   })
 
-  const onEndReached = () => {
+  const onStartReached = () => {
     loadOlderMessages(numOrdinals)
   }
 
   return {
-    onEndReached,
+    onStartReached,
     scrollToBottom,
     scrollToCentered,
   }
 }
 
-// This keeps the list stable when data changes. If we don't do this it will jump around
-// when new messages come in and its very easy to get this to cause an unstoppable loop of
-// quick janking up and down
-const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
 const ConversationList = function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-      {usingFlashList ? 'FLASH' : 'old'}
+      legend
     </Kb.Text>
   ) : null
 
@@ -109,24 +100,24 @@ const ConversationList = function ConversationList() {
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
-  const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
+  const messageOrdinals: Array<T.Chat.Ordinal> = _messageOrdinals ? [..._messageOrdinals] : []
 
-  const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
+  const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
   }
 
-  const renderItem = (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
-    const index: number = info?.index ?? 0
-    const ordinal = messageOrdinals[index]
-    if (!ordinal) {
-      return null
-    }
+  const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
-    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
+    return (
+      <>
+        <Separator leadingItem={ordinal} trailingItem={ordinal} />
+        <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
+      </>
+    )
   }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
@@ -157,7 +148,7 @@ const ConversationList = function ConversationList() {
     return baseType
   }
 
-  const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
+  const {scrollToCentered, scrollToBottom, onStartReached: onStartReachedBase} = useScrolling({
     centeredOrdinal,
     conversationIDKey,
     listRef,
@@ -270,7 +261,13 @@ const ConversationList = function ConversationList() {
   //   })
   // )
 
-  const onViewableItemsChanged = useSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
+  const lastStartReachedRef = React.useRef(0)
+  const onStartReached = () => {
+    const t = Date.now()
+    if (t - lastStartReachedRef.current < 1000) return
+    lastStartReachedRef.current = t
+    onStartReachedBase()
+  }
   // const onLayout = useDebugLayout()
 
   return (
@@ -279,30 +276,27 @@ const ConversationList = function ConversationList() {
         <ForceListRedrawContext value={forceListRedraw}>
           <PerfProfiler id="MessageList">
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-            <List
+            <LegendList
               testID="messageList"
-              onScrollToIndexFailed={noop}
               extraData={extraData}
-              // @ts-ignore LegendList/FlashList prop; ignored by FlatList
               estimatedItemSize={72}
-              ListHeaderComponent={SpecialBottomMessage}
-              ListFooterComponent={SpecialTopMessage}
-              ItemSeparatorComponent={Separator}
+              ListHeaderComponent={SpecialTopMessage}
+              ListFooterComponent={SpecialBottomMessage}
               overScrollMode="never"
               contentContainerStyle={styles.contentContainer}
               data={messageOrdinals}
               getItemType={getItemType}
-              inverted={true}
               renderItem={renderItem}
-              onViewableItemsChanged={onViewableItemsChanged.current}
+              onStartReached={onStartReached}
+              onStartReachedThreshold={0.3}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
               ref={listRef}
-              maintainVisibleContentPosition={
-                // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-                numOrdinals ? maintainVisibleContentPosition : undefined
-              }
+              alignItemsAtEnd={true}
+              initialScrollAtEnd={true}
+              maintainScrollAtEnd={{animated: false}}
+              maintainVisibleContentPosition={{data: true}}
             />
             {jumpToRecent}
             {debugWhichList}
@@ -312,44 +306,6 @@ const ConversationList = function ConversationList() {
       </SetRecycleTypeContext>
     </Kb.ErrorBoundary>
   )
-}
-
-const minTimeDelta = 1000
-const minDistanceFromEnd = 10
-
-const useSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
-  const nextCallbackRef = React.useRef(new Date().getTime())
-  const onEndReachedRef = React.useRef(onEndReached)
-  React.useEffect(() => {
-    onEndReachedRef.current = onEndReached
-  }, [onEndReached])
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-    nextCallbackRef.current = new Date().getTime() + minTimeDelta
-  }, [numOrdinals])
-
-  // this can't change ever, so we have to use refs to keep in sync
-  const onViewableItemsChanged = React.useRef(
-    ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
-      const idx = viewableItems.at(-1)?.index ?? 0
-      const lastIdx = numOrdinalsRef.current - 1
-      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
-      const deltaIdx = idx - lastIdx + offset
-      // not far enough from the end
-      if (deltaIdx < 0) {
-        return
-      }
-      const t = new Date().getTime()
-      const deltaT = t - nextCallbackRef.current
-      // enough time elapsed?
-      if (deltaT > 0) {
-        nextCallbackRef.current = t + minTimeDelta
-        onEndReachedRef.current()
-      }
-    }
-  )
-  return onViewableItemsChanged
 }
 
 const styles = Kb.Styles.styleSheetCreate(
