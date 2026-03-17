@@ -98,6 +98,7 @@ const ConversationList = function ConversationList() {
   const messageOrdinals: Array<T.Chat.Ordinal> = _messageOrdinals ? [..._messageOrdinals] : []
 
   const listRef = React.useRef<LegendListRef | null>(null)
+  const itemSizeMapRef = React.useRef(new Map<T.Chat.Ordinal, number>())
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -254,7 +255,7 @@ const ConversationList = function ConversationList() {
             <LegendList
               testID="messageList"
               extraData={messageTypeMap}
-              estimatedItemSize={44}
+              estimatedItemSize={undefined}
               ListHeaderComponent={SpecialTopMessage}
               ListFooterComponent={SpecialBottomMessage}
               overScrollMode="never"
@@ -269,8 +270,14 @@ const ConversationList = function ConversationList() {
               keyExtractor={keyExtractor}
               ref={listRef}
               recycleItems={true}
-              suggestEstimatedItemSize={__DEV__}
-              onItemSizeChanged={__DEV__ ? info => { console.log('[ll] size changed', info) } : undefined}
+              onItemSizeChanged={__DEV__ ? info => {
+                console.log('[ll] size changed', info)
+                const prev = itemSizeMapRef.current.get(info.itemData)
+                if (prev !== undefined && prev !== info.size) {
+                  console.warn('[ll] ASYNC SIZE CHANGE', {from: prev, itemData: info.itemData, to: info.size})
+                }
+                itemSizeMapRef.current.set(info.itemData, info.size)
+              } : undefined}
               alignItemsAtEnd={true}
               initialScrollAtEnd={true}
               maintainScrollAtEnd={{animated: false}}
