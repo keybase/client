@@ -11,7 +11,6 @@ import {LegendList, type LegendListRef} from '@legendapp/list/react-native'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
-import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat/debug'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ScrollContext} from '../normal/context'
@@ -90,10 +89,6 @@ const ConversationList = function ConversationList() {
 
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
-  // used to force a rerender when a type changes, aka placeholder resolves
-  const [extraData, setExtraData] = React.useState(0)
-  const [lastED, setLastED] = React.useState(extraData)
-
   const loaded = Chat.useChatContext(s => s.loaded)
   const centeredOrdinal =
     Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
@@ -121,12 +116,6 @@ const ConversationList = function ConversationList() {
   }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  React.useEffect(() => {
-    if (lastED !== extraData) {
-      recycleTypeRef.current = new Map()
-      setLastED(extraData)
-    }
-  }, [extraData, lastED])
   const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }
@@ -201,19 +190,6 @@ const ConversationList = function ConversationList() {
     }
   }, [loaded, centeredOrdinal, scrollToBottom, scrollToCentered, numOrdinals])
 
-  // We use context to inject a way for items to force the list to rerender when they notice something about their
-  // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
-  // and call you can get effectively memoized. In order to allow the item to re-render if they're still in this state
-  // we make this callback mutate, so they have a chance to rerender and recall it
-  // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
-  const forceListRedraw = () => {
-    extraData // just to silence eslint
-    // wrap in timeout so we don't get max update depths sometimes
-    setTimeout(() => {
-      setExtraData(d => d + 1)
-    }, 100)
-  }
-
   // useChatDebugDump(
   //   'listArea',
   //   C.useEvent(() => {
@@ -273,12 +249,11 @@ const ConversationList = function ConversationList() {
   return (
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext value={setRecycleType}>
-        <ForceListRedrawContext value={forceListRedraw}>
           <PerfProfiler id="MessageList">
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
             <LegendList
               testID="messageList"
-              extraData={extraData}
+              extraData={messageTypeMap}
               estimatedItemSize={72}
               ListHeaderComponent={SpecialTopMessage}
               ListFooterComponent={SpecialBottomMessage}
@@ -293,6 +268,7 @@ const ConversationList = function ConversationList() {
               keyboardShouldPersistTaps="handled"
               keyExtractor={keyExtractor}
               ref={listRef}
+              recycleItems={true}
               alignItemsAtEnd={true}
               initialScrollAtEnd={true}
               maintainScrollAtEnd={{animated: false}}
@@ -302,7 +278,6 @@ const ConversationList = function ConversationList() {
             {debugWhichList}
           </Kb.Box2>
           </PerfProfiler>
-        </ForceListRedrawContext>
       </SetRecycleTypeContext>
     </Kb.ErrorBoundary>
   )
