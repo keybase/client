@@ -312,8 +312,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
-        paddingBottom: 0,
-        paddingTop: mobileTypingContainerHeight,
+        paddingBottom: mobileTypingContainerHeight,
+        paddingTop: 0,
       },
     }) as const
 )
