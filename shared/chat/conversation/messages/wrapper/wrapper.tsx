@@ -706,7 +706,7 @@ export function WrapperMessage(p: WMProps) {
 
   return (
     <MessageContext value={messageContext}>
-      <Kb.Box2 direction="vertical" relative={true} fullWidth={!Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" relative={true} fullWidth={true}>
         <AuthorHeader ordinal={ordinal} />
         <TextAndSiblings {...tsprops} />
       </Kb.Box2>
