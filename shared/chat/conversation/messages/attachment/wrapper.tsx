@@ -1,3 +1,4 @@
+import * as Kb from '@/common-adapters'
 import type AudioAttachmentType from './audio'
 import type FileAttachmentType from './file'
 import type ImageAttachmentType from './image'

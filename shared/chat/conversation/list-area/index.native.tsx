@@ -81,12 +81,6 @@ const useScrolling = (p: {
 }
 
 const ConversationList = function ConversationList() {
-  const debugWhichList = __DEV__ ? (
-    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-      legend
-    </Kb.Text>
-  ) : null
-
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
   const loaded = Chat.useChatContext(s => s.loaded)
@@ -98,7 +92,6 @@ const ConversationList = function ConversationList() {
   const messageOrdinals: Array<T.Chat.Ordinal> = _messageOrdinals ? [..._messageOrdinals] : []
 
   const listRef = React.useRef<LegendListRef | null>(null)
-  const itemSizeMapRef = React.useRef(new Map<T.Chat.Ordinal, number>())
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -108,13 +101,12 @@ const ConversationList = function ConversationList() {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
-    return (
-      <>
-        <Separator leadingItem={ordinal} trailingItem={ordinal} />
-        <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
-      </>
-    )
+    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
   }
+
+  const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => (
+    <Separator leadingItem={leadingItem} trailingItem={leadingItem} />
+  )
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
   const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
@@ -263,6 +255,7 @@ const ConversationList = function ConversationList() {
               data={messageOrdinals}
               getItemType={getItemType}
               renderItem={renderItem}
+              ItemSeparatorComponent={ItemSeparator}
               onStartReached={onStartReached}
               onStartReachedThreshold={0.3}
               keyboardDismissMode="on-drag"
@@ -270,21 +263,12 @@ const ConversationList = function ConversationList() {
               keyExtractor={keyExtractor}
               ref={listRef}
               recycleItems={true}
-              onItemSizeChanged={__DEV__ ? info => {
-                console.log('[ll] size changed', info)
-                const prev = itemSizeMapRef.current.get(info.itemData)
-                if (prev !== undefined && prev !== info.size) {
-                  console.warn('[ll] ASYNC SIZE CHANGE', {from: prev, itemData: info.itemData, to: info.size})
-                }
-                itemSizeMapRef.current.set(info.itemData, info.size)
-              } : undefined}
               alignItemsAtEnd={true}
               initialScrollAtEnd={true}
               maintainScrollAtEnd={{animated: false}}
               maintainVisibleContentPosition={{data: true}}
             />
             {jumpToRecent}
-            {debugWhichList}
           </Kb.Box2>
           </PerfProfiler>
       </SetRecycleTypeContext>
