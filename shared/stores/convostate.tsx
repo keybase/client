@@ -134,10 +134,10 @@ type ConvoStore = T.Immutable<{
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
+  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   replyTo: T.Chat.Ordinal
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
-  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   threadSearchInfo: T.Chat.ThreadSearchInfo
   threadSearchQuery: string
@@ -176,10 +176,10 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
+  reactionOrderMap: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
-  reactionOrderMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
@@ -592,7 +592,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     const mo = s.messageOrdinals ?? []
     const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
     const um = new Map<T.Chat.Ordinal, string>()
-    const rm = new Map<T.Chat.Ordinal, ReadonlyArray<string>>()
+    const rm = new Map<T.Chat.Ordinal, Array<string>>()
     let p = T.Chat.numberToOrdinal(0)
     let pMessage: T.Chat.Message | undefined = undefined
     for (const o of mo) {
@@ -936,7 +936,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
             users: [{timestamp: Date.now(), username}],
           })
         }
-        s.reactionOrderMap.set(targetOrdinal, [...(m.reactions?.keys() ?? [])])
+        s.reactionOrderMap.set(targetOrdinal, [...m.reactions.keys()])
       }
     })
   }
