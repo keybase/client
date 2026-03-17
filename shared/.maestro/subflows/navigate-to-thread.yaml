@@ -2,17 +2,7 @@ appId: keybase.ios
 
 ---
 
-- waitForAnimationToEnd:
-    timeout: 30000
-
-# If starting inside a conversation, the tab bar is hidden — go back to inbox first
-- runFlow:
-    when:
-      visible:
-        id: "backButton"
-    commands:
-      - tapOn:
-          id: "backButton"
+- runFlow: escape-to-tabs.yaml
 
 # Tab bar is now visible — navigate to chat inbox
 - tapOn:
