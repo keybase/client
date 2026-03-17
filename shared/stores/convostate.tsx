@@ -3437,7 +3437,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
               }
               m.reactions = T.castDraft(newReactions)
             }
-            s.reactionOrderMap.set(targetOrdinal, m.reactions ? [...m.reactions.keys()] : [])
+            s.reactionOrderMap.set(targetOrdinal, m.reactions ? getReactionOrder(m.reactions) : [])
           }
         })
       }
