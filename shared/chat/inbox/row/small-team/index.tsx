@@ -51,6 +51,7 @@ const SmallTeam = (p: Props) => {
       <Kb.ClickableBox2
         onClick={onSelectConversation}
         className={Kb.Styles.classNames('small-row', {selected: isSelected})}
+        testID="inboxRow"
         style={
           Kb.Styles.isTablet
             ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])

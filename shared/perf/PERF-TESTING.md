@@ -56,6 +56,7 @@ cd shared && yarn maestro-test-perf --simulator "iPhone 16 Pro"
 |------|-----------------|
 | `performance/perf-inbox-scroll.yaml` | Launch → navigate to Chat → 3 swipes up + 3 swipes down on inbox list |
 | `performance/perf-teams-scroll.yaml` | Launch → navigate to Teams → 3 swipes up + 3 swipes down on teams list |
+| `performance/perf-thread-scroll.yaml` | Launch → navigate to Chat → open first conversation → 3 swipes up + 3 swipes down on message list |
 
 ### React Profiler Wrappers
 

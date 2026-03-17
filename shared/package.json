@@ -69,7 +69,8 @@
     "sync-kb-modules": "rm -rf node_modules/react-native-kb ; yarn --check-files",
     "maestro-test": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh",
     "maestro-test-perf-inbox": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-inbox-scroll.yaml",
-    "maestro-test-perf-teams": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-teams-scroll.yaml"
+    "maestro-test-perf-teams": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-teams-scroll.yaml",
+    "maestro-test-perf-thread": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-thread-scroll.yaml"
   },
   "keywords": [],
   "author": "",

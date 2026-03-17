@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import logger from '@/logger'
 
 export const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
@@ -8,7 +8,11 @@ export const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: numb
 export const authorIsCollapsible = (type?: T.Chat.MessageType) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
 
-export const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | undefined, you: string) => {
+export const getUsernameToShow = (
+  message: T.Chat.Message,
+  pMessage: T.Chat.Message | undefined,
+  you: string
+) => {
   switch (message.type) {
     case 'journeycard': // fallthrough
     case 'systemJoined':

@@ -2,8 +2,10 @@ appId: keybase.ios
 
 ---
 
+- runFlow: escape-to-tabs.yaml
+
 - tapOn:
-    text: "Chats"
+    text: "Chat"
 
 - extendedWaitUntil:
     visible:
