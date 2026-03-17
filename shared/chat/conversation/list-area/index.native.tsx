@@ -93,6 +93,10 @@ const useScrolling = (p: {
   }
 }
 
+const keyExtractor = (ordinal: ItemType) => {
+  return String(ordinal)
+}
+
 const ConversationList = function ConversationList() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
@@ -112,15 +116,16 @@ const ConversationList = function ConversationList() {
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
-  const keyExtractor = (ordinal: ItemType) => {
-    return String(ordinal)
-  }
 
   const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
-    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
+    return (
+      <PerfProfiler id={`Msg-${type}`}>
+        <Clazz ordinal={ordinal} />
+      </PerfProfiler>
+    )
   }
 
   // LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
@@ -154,7 +159,11 @@ const ConversationList = function ConversationList() {
     return baseType
   }
 
-  const {scrollToCentered, scrollToBottom, onStartReached: onStartReachedBase} = useScrolling({
+  const {
+    scrollToCentered,
+    scrollToBottom,
+    onStartReached: onStartReachedBase,
+  } = useScrolling({
     centeredOrdinal,
     conversationIDKey,
     listRef,
@@ -182,53 +191,6 @@ const ConversationList = function ConversationList() {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  // useChatDebugDump(
-  //   'listArea',
-  //   C.useEvent(() => {
-  //     if (!listRef.current) return ''
-  //     const {props, state} = listRef.current as {
-  //       props: {extraData?: {}; data?: [number]}
-  //       state?: object
-  //     }
-  //     const {extraData, data} = props
-  //
-  //     // const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as unknown)) as {
-  //     //   _layouts?: [unknown]
-  //     //   _renderWindowSize: unknown
-  //     //   _totalHeight: unknown
-  //     //   _totalWidth: unknown
-  //     // }
-  //     // const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-  //     // const mm = window.DEBUGStore.store.getState().chat.messageMap.get(conversationIDKey)
-  //     // const stateItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
-  //
-  //     console.log(listRef.current)
-  //
-  //     const items = data?.map((ordinal: number, idx: number) => {
-  //       const layout = _layouts?.[idx]
-  //       // const m = mm.get(ordinal) ?? ({} as any)
-  //       return {
-  //         idx,
-  //         layout,
-  //         ordinal,
-  //         // rid: m.id,
-  //         // rtype: m.type,
-  //       }
-  //     })
-  //
-  //     const details = {
-  //       // children,
-  //       _renderWindowSize,
-  //       _totalHeight,
-  //       _totalWidth,
-  //       data,
-  //       extraData,
-  //       items,
-  //     }
-  //     return JSON.stringify(details)
-  //   })
-  // )
-
   const lastStartReachedRef = React.useRef(0)
   const onStartReached = () => {
     const t = Date.now()
@@ -236,53 +198,40 @@ const ConversationList = function ConversationList() {
     lastStartReachedRef.current = t
     onStartReachedBase()
   }
-  // const onLayout = useDebugLayout()
 
   return (
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext value={setRecycleType}>
-          <PerfProfiler id="MessageList">
-          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-            <LegendList
-              testID="messageList"
-              extraData={messageTypeMap}
-              estimatedItemSize={undefined}
-              ListHeaderComponent={SpecialTopMessage}
-              ListFooterComponent={SpecialBottomMessage}
-              overScrollMode="never"
-              contentContainerStyle={styles.contentContainer}
-              data={messageOrdinals}
-              getItemType={getItemType}
-              renderItem={renderItem}
-              ItemSeparatorComponent={ItemSeparator}
-              onStartReached={onStartReached}
-              onStartReachedThreshold={0.3}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              keyExtractor={keyExtractor}
-              ref={listRef}
-              recycleItems={true}
-              alignItemsAtEnd={true}
-              initialScrollAtEnd={true}
-              maintainScrollAtEnd={{animated: false}}
-              maintainVisibleContentPosition={{data: true}}
-            />
-            {jumpToRecent}
-          </Kb.Box2>
-          </PerfProfiler>
+        <PerfProfiler id="MessageList">
+          <LegendList
+            testID="messageList"
+            extraData={messageTypeMap}
+            estimatedItemSize={40}
+            ListHeaderComponent={SpecialTopMessage}
+            ListFooterComponent={SpecialBottomMessage}
+            overScrollMode="never"
+            contentInset={{bottom: mobileTypingContainerHeight}}
+            data={messageOrdinals}
+            getItemType={getItemType}
+            renderItem={renderItem}
+            ItemSeparatorComponent={ItemSeparator}
+            onStartReached={onStartReached}
+            onStartReachedThreshold={0.3}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={keyExtractor}
+            ref={listRef}
+            recycleItems={true}
+            alignItemsAtEnd={true}
+            initialScrollAtEnd={true}
+            maintainScrollAtEnd={{animated: false}}
+            maintainVisibleContentPosition={true}
+          />
+          {jumpToRecent}
+        </PerfProfiler>
       </SetRecycleTypeContext>
     </Kb.ErrorBoundary>
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      contentContainer: {
-        paddingBottom: mobileTypingContainerHeight,
-        paddingTop: 0,
-      },
-    }) as const
-)
 
 export default ConversationList
