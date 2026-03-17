@@ -119,6 +119,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const hasUnfurlPrompts = !!id && !!s.unfurlPrompt.get(id)?.size
       const textType: 'error' | 'sent' | 'pending' = m.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
       const showReplyTo = m.type === 'text' ? !!m.replyTo : false
+      const text = m.type === 'text' ? (m.decoratedText?.stringValue() ?? m.text.stringValue()) : ''
 
       return {
         botname,
@@ -139,6 +140,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         showReplyTo,
         showRevoked,
         showSendIndicator,
+        text,
         textType,
         type,
         you,

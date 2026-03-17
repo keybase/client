@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useReply} from './reply'
@@ -29,17 +28,8 @@ const getStyle = (
   }
 }
 
-function MessageMarkdown(p: {style: Kb.Styles.StylesCrossPlatform}) {
-  const {style} = p
+function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; text: string}) {
   const ordinal = useOrdinal()
-  const text = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'text') return ''
-    const decoratedText = m.decoratedText
-    const text = m.text
-    return decoratedText ? decoratedText.stringValue() : text.stringValue()
-  })
-
   const styleOverride = Kb.Styles.isMobile ? {paragraph: style} : undefined
 
   return (
@@ -62,7 +52,7 @@ function WrapperText(p: Props) {
   const {type, showCenteredHighlight} = common
   const {isEditing, hasReactions} = messageData
 
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, textType, showReplyTo} = messageData
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, textType, showReplyTo, text} = messageData
   const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
   const reply = useReply(showReplyTo)
 
@@ -86,7 +76,7 @@ function WrapperText(p: Props) {
   const children = (
     <>
       {reply}
-      <MessageMarkdown style={style} />
+      <MessageMarkdown style={style} text={text} />
     </>
   )
 
