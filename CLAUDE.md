@@ -6,7 +6,7 @@
 - No DOM elements (`<div>`, `<span>`, etc.) in plain `.tsx` files — use `Kb.*`. Guard desktop-only DOM with `Styles.isMobile`.
 - Temp files go in `/tmp/`.
 - Remove unused code when editing: styles, imports, vars, params, dead helpers.
-- Comments: no refactoring notes; only add when context isn't obvious from code.
+- Comments: no refactoring notes, no "we changed X" history; only add when context isn't obvious from code.
 - Exact versions in `package.json` (no `^`/`~`).
 - Keep `react`, `react-dom`, `react-native`, `@react-native/*` in sync with Expo SDK.
 - When updating deps: edit `package.json` → `yarn` → `yarn pod-install`.

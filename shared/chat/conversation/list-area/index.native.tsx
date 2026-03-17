@@ -91,6 +91,13 @@ const ConversationList = function ConversationList() {
 
   const messageOrdinals: Array<T.Chat.Ordinal> = _messageOrdinals ? [..._messageOrdinals] : []
 
+  // Map ordinal → index for O(1) trailing-item lookup in ItemSeparator
+  const ordinalIndexMap = React.useMemo(() => {
+    const m = new Map<T.Chat.Ordinal, number>()
+    ;(_messageOrdinals ?? []).forEach((o, i) => m.set(o, i))
+    return m
+  }, [_messageOrdinals])
+
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
@@ -104,9 +111,14 @@ const ConversationList = function ConversationList() {
     return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
   }
 
-  const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => (
-    <Separator leadingItem={leadingItem} trailingItem={leadingItem} />
-  )
+  // LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
+  // as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
+  const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
+    const idx = ordinalIndexMap.get(leadingItem) ?? -1
+    const trailingItem = messageOrdinals[idx + 1]
+    if (!trailingItem) return null
+    return <Separator leadingItem={trailingItem} trailingItem={leadingItem} />
+  }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
   const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
