@@ -28,8 +28,9 @@ const useScrolling = (p: {
   messageOrdinals: Array<T.Chat.Ordinal>
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject<LegendListRef | null>
+  ordinalIndexMap: Map<T.Chat.Ordinal, number>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals} = p
+  const {listRef, centeredOrdinal, messageOrdinals, ordinalIndexMap} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const [scrollToBottom] = React.useState(() => () => {
@@ -53,20 +54,32 @@ const useScrolling = (p: {
   React.useEffect(() => {
     centeredOrdinalRef.current = centeredOrdinal
   }, [centeredOrdinal])
-  const [scrollToCentered] = React.useState(() => () => {
-    setTimeout(() => {
-      const list = listRef.current
-      if (!list) {
-        return
-      }
-      const co = centeredOrdinalRef.current
-      if (lastScrollToCentered.current === co) {
-        return
-      }
 
-      lastScrollToCentered.current = co
-      void list.scrollToItem({animated: false, item: co, viewPosition: 0.5})
-    }, 100)
+  const ordinalIndexMapRef = React.useRef(ordinalIndexMap)
+  React.useEffect(() => {
+    ordinalIndexMapRef.current = ordinalIndexMap
+  }, [ordinalIndexMap])
+
+  const [scrollToCentered] = React.useState(() => () => {
+    const list = listRef.current
+    if (!list) {
+      return
+    }
+    const co = centeredOrdinalRef.current
+    if (lastScrollToCentered.current === co) {
+      return
+    }
+    lastScrollToCentered.current = co
+
+    const idx = ordinalIndexMapRef.current.get(co) ?? -1
+    if (idx < 0) {
+      return
+    }
+    // Scroll once, then re-scroll after the promise resolves so that size
+    // stabilization has settled and the item lands in view correctly.
+    void list.scrollToIndex({animated: false, index: idx, viewPosition: 0.5}).then(() => {
+      void list.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+    })
   })
 
   const onStartReached = () => {
@@ -83,7 +96,6 @@ const useScrolling = (p: {
 const ConversationList = function ConversationList() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
-  const loaded = Chat.useChatContext(s => s.loaded)
   const centeredOrdinal =
     Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
@@ -147,6 +159,7 @@ const ConversationList = function ConversationList() {
     conversationIDKey,
     listRef,
     messageOrdinals,
+    ordinalIndexMap,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
@@ -158,14 +171,8 @@ const ConversationList = function ConversationList() {
     }
     lastCenteredOrdinal.current = centeredOrdinal
     if (centeredOrdinal > 0) {
-      const id = setTimeout(() => {
-        scrollToCentered()
-      }, 200)
-      return () => {
-        clearTimeout(id)
-      }
+      scrollToCentered()
     }
-    return undefined
   }, [centeredOrdinal, scrollToCentered])
 
   React.useEffect(() => {
@@ -174,26 +181,6 @@ const ConversationList = function ConversationList() {
       markInitiallyLoadedThreadAsRead()
     }
   }, [markInitiallyLoadedThreadAsRead])
-
-  const prevLoadedRef = React.useRef(loaded)
-  React.useLayoutEffect(() => {
-    const justLoaded = loaded && !prevLoadedRef.current
-    prevLoadedRef.current = loaded
-
-    if (!justLoaded) return
-
-    if (centeredOrdinal > 0) {
-      scrollToCentered()
-      setTimeout(() => {
-        scrollToCentered()
-      }, 100)
-    } else if (numOrdinals > 0) {
-      scrollToBottom()
-      setTimeout(() => {
-        scrollToBottom()
-      }, 100)
-    }
-  }, [loaded, centeredOrdinal, scrollToBottom, scrollToCentered, numOrdinals])
 
   // useChatDebugDump(
   //   'listArea',
