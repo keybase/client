@@ -269,6 +269,8 @@ const ConversationList = function ConversationList() {
               keyExtractor={keyExtractor}
               ref={listRef}
               recycleItems={true}
+              suggestEstimatedItemSize={__DEV__}
+              onItemSizeChanged={__DEV__ ? info => { console.log('[ll] size changed', info) } : undefined}
               alignItemsAtEnd={true}
               initialScrollAtEnd={true}
               maintainScrollAtEnd={{animated: false}}
