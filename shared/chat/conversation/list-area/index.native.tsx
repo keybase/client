@@ -146,10 +146,15 @@ const ConversationList = function ConversationList() {
     if (!ordinal) {
       return 'null'
     }
-    if (numOrdinals - 1 === idx) {
-      return 'sent'
+    // Check recycleType first (set by messages after render — includes subtypes like 'text:reply')
+    const recycled = recycleTypeRef.current.get(ordinal)
+    if (recycled) return recycled
+    const baseType = messageTypeMap.get(ordinal) ?? 'text'
+    // Last item is most-recently sent; isolate it to avoid recycling with settled messages
+    if (numOrdinals - 1 === idx && (baseType === 'text' || baseType === 'attachment')) {
+      return `${baseType}:pending`
     }
-    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap.get(ordinal) ?? 'text'
+    return baseType
   }
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
@@ -278,10 +283,8 @@ const ConversationList = function ConversationList() {
               testID="messageList"
               onScrollToIndexFailed={noop}
               extraData={extraData}
-              removeClippedSubviews={Kb.Styles.isAndroid}
-              // @ts-ignore part of FlashList so lets set it
-              drawDistance={100}
-              estimatedItemSize={100}
+              // @ts-ignore LegendList/FlashList prop; ignored by FlatList
+              estimatedItemSize={72}
               ListHeaderComponent={SpecialBottomMessage}
               ListFooterComponent={SpecialTopMessage}
               ItemSeparatorComponent={Separator}
@@ -300,7 +303,6 @@ const ConversationList = function ConversationList() {
                 // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
                 numOrdinals ? maintainVisibleContentPosition : undefined
               }
-              // onlayout={onLayout}
             />
             {jumpToRecent}
             {debugWhichList}

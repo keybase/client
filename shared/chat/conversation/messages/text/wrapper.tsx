@@ -62,21 +62,15 @@ function WrapperText(p: Props) {
   const {type, showCenteredHighlight} = common
   const {isEditing, hasReactions} = messageData
 
-  const bottomChildren = useBottom(ordinal)
-  const reply = useReply(ordinal)
-
-  // Get text-specific styling info
-  const textType = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const errorReason = m?.errorReason
-    return errorReason ? ('error' as const) : !m?.submitState ? ('sent' as const) : ('pending' as const)
-  })
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, textType, showReplyTo} = messageData
+  const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
+  const reply = useReply(showReplyTo)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
 
   React.useEffect(() => {
     let subType = ''
-    if (reply) {
+    if (showReplyTo) {
       subType += ':reply'
     }
     if (hasReactions) {
@@ -85,7 +79,7 @@ function WrapperText(p: Props) {
     if (subType.length) {
       setRecycleType(ordinal, 'text' + subType)
     }
-  }, [ordinal, reply, hasReactions, setRecycleType])
+  }, [ordinal, showReplyTo, hasReactions, setRecycleType])
 
   const style = getStyle(textType, isEditing, showCenteredHighlight)
 

@@ -7,11 +7,6 @@ appId: keybase.ios
     arguments:
       PERF_FPS_MONITOR: "true"
 
-- extendedWaitUntil:
-    visible:
-      text: "Teams"
-    timeout: 60000
-
 - runFlow: ../subflows/navigate-to-teams.yaml
 
 - repeat:

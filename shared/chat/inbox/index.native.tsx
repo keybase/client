@@ -60,9 +60,13 @@ function Inbox(p: InboxProps) {
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
 
   const listRef = React.useRef<LegendListRef | null>(null)
-  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
+
+  React.useEffect(() => {
+    applyUnreadAndFloating()
+  }, [applyUnreadAndFloating])
 
   const itemHeight = {
     getSize: (item: RowItem) => {
@@ -101,7 +105,6 @@ function Inbox(p: InboxProps) {
 
   const onViewChanged = (data: ViewableItemsData) => {
     onScrollUnbox(data)
-    lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
     applyUnreadAndFloating()
   }
 

@@ -2,6 +2,8 @@ appId: keybase.ios
 
 ---
 
+- runFlow: escape-to-tabs.yaml
+
 - tapOn:
     text: "Teams"
 
