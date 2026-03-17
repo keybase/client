@@ -107,8 +107,11 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
+        const t = Date.now()
+        logger.info('[Bootstrap] loadDaemonBootstrapStatus: starting')
         try {
           await get().dispatch.loadDaemonBootstrapStatus()
+          logger.info(`[Bootstrap] loadDaemonBootstrapStatus: done in ${Date.now() - t}ms`)
           storeRegistry.getState('dark-mode').dispatch.loadDarkPrefs()
           storeRegistry.getState('chat').dispatch.loadStaticConfig()
         } finally {
@@ -303,6 +306,8 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           s.handshakeWaiters.set(name, newCount)
         }
       })
+      const remaining = get().handshakeWaiters.size
+      logger.info(`[Bootstrap] waiter ${increment ? '+' : '-'} ${name} v${version}, remaining: ${remaining}`)
 
       if (failedFatal) {
         get().dispatch.setFailed(failedReason || '')

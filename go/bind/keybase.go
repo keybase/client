@@ -524,6 +524,7 @@ func ReadArr() (data []byte, err error) {
 // ensureConnection establishes the loopback connection if not already connected.
 // Must be called with connMutex held.
 func ensureConnection() error {
+	start := time.Now()
 	if !isInited() {
 		return errors.New("keybase not initialized")
 	}
@@ -536,7 +537,7 @@ func ensureConnection() error {
 	if err != nil {
 		return fmt.Errorf("Failed to dial loopback listener: %s", err)
 	}
-	log("Go: Established loopback connection")
+	log("Go: Established loopback connection in %v", time.Since(start))
 	return nil
 }
 

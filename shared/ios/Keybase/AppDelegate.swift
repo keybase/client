@@ -408,6 +408,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidBecomeActive(_ application: UIApplication) {
+    let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
+    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
     NSLog("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     NSLog("applicationDidBecomeActive: notifying service.")
