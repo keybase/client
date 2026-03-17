@@ -242,11 +242,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
-      progressOverlay: {bottom: 0, left: 0, position: 'absolute', right: 0},
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
+      progressOverlay: {bottom: 0, left: 0, position: 'absolute', right: 0},
       retry: {
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
