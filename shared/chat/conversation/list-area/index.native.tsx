@@ -27,6 +27,10 @@ export const DEBUGDump = () => {}
 // Stable empty array so we never create a new reference when ordinals are absent
 const emptyOrdinals: Array<T.Chat.Ordinal> = []
 
+// Sentinel ordinal for SpecialTopMessage rendered as a regular list item so
+// LegendList can track its size changes and maintain scroll position correctly.
+const SPECIAL_TOP_ORDINAL = T.Chat.numberToOrdinal(-2)
+
 // LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
 // as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
 // Defined outside ConversationList so React sees a stable component type across renders.
@@ -34,6 +38,8 @@ const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
   const {ordinalIndexMap, messageOrdinals} = Chat.useChatContext(
     C.useShallow(s => ({messageOrdinals: s.messageOrdinals, ordinalIndexMap: s.ordinalIndexMap}))
   )
+  // SpecialTopMessage renders its own separator at its bottom edge.
+  if (leadingItem === SPECIAL_TOP_ORDINAL) return null
   const idx = ordinalIndexMap.get(leadingItem) ?? -1
   const trailingItem = messageOrdinals?.[idx + 1]
   if (!trailingItem) return null
@@ -125,11 +131,18 @@ const ConversationList = function ConversationList() {
   )
 
   const messageOrdinals = _messageOrdinals ?? emptyOrdinals
+  const data = React.useMemo(
+    () => [SPECIAL_TOP_ORDINAL, ...(messageOrdinals as Array<T.Chat.Ordinal>)],
+    [messageOrdinals]
+  )
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
 
   const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
+    if (ordinal === SPECIAL_TOP_ORDINAL) {
+      return <SpecialTopMessage />
+    }
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
@@ -148,6 +161,9 @@ const ConversationList = function ConversationList() {
   const numOrdinals = messageOrdinals.length
 
   const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
+    if (ordinal === SPECIAL_TOP_ORDINAL) {
+      return 'special-top'
+    }
     if (!ordinal) {
       return 'null'
     }
@@ -156,7 +172,8 @@ const ConversationList = function ConversationList() {
     if (recycled) return recycled
     const baseType = messageTypeMap.get(ordinal) ?? 'text'
     // Last item is most-recently sent; isolate it to avoid recycling with settled messages
-    if (numOrdinals - 1 === idx && (baseType === 'text' || baseType === 'attachment')) {
+    // +1 because SPECIAL_TOP_ORDINAL is at index 0, shifting all message indices by 1.
+    if (numOrdinals === idx && (baseType === 'text' || baseType === 'attachment')) {
       return `${baseType}:pending`
     }
     return baseType
@@ -209,11 +226,10 @@ const ConversationList = function ConversationList() {
             testID="messageList"
             extraData={messageTypeMap}
             estimatedItemSize={undefined}
-            //            ListHeaderComponent={SpecialTopMessage}
-            //            ListFooterComponent={SpecialBottomMessage}
+            ListFooterComponent={SpecialBottomMessage}
             overScrollMode="never"
             contentInset={{bottom: mobileTypingContainerHeight}}
-            data={messageOrdinals as Array<T.Chat.Ordinal>}
+            data={data}
             getItemType={getItemType}
             renderItem={renderItem}
             ItemSeparatorComponent={ItemSeparator}
