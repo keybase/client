@@ -7,6 +7,7 @@ import {useDeepLinksState} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {usePushState} from '@/constants/push'
+import logger from '@/logger'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -177,6 +178,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
 
     const f = async () => {
       await loadInitialURL()
+      logger.info('[Router] initialStateState loaded, rendering app')
       setInitialStateState('loaded')
     }
 
