@@ -4,7 +4,7 @@ import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
-import {KeyboardStickyView} from 'react-native-keyboard-controller'
+import {KeyboardGestureArea, KeyboardStickyView} from 'react-native-keyboard-controller'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -66,12 +66,14 @@ const Conversation = function Conversation() {
 
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-        <ThreadLoadStatus />
-        <PinnedMessage />
-        <ListArea />
-        <LoadingLine />
-      </Kb.Box2>
+      <KeyboardGestureArea interpolator="ios" style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
+          <ThreadLoadStatus />
+          <PinnedMessage />
+          <ListArea />
+          <LoadingLine />
+        </Kb.Box2>
+      </KeyboardGestureArea>
       {Kb.Styles.isIOS ? (
         <KeyboardStickyView offset={{opened: insets.bottom}}>{bottomContent}</KeyboardStickyView>
       ) : (
