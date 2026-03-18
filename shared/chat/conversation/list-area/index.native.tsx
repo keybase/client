@@ -208,9 +208,9 @@ const ConversationList = function ConversationList() {
           <LegendList
             testID="messageList"
             extraData={messageTypeMap}
-            estimatedItemSize={40}
-            ListHeaderComponent={SpecialTopMessage}
-            ListFooterComponent={SpecialBottomMessage}
+            estimatedItemSize={undefined}
+            //            ListHeaderComponent={SpecialTopMessage}
+            //            ListFooterComponent={SpecialBottomMessage}
             overScrollMode="never"
             contentInset={{bottom: mobileTypingContainerHeight}}
             data={messageOrdinals as Array<T.Chat.Ordinal>}
@@ -228,6 +228,7 @@ const ConversationList = function ConversationList() {
             initialScrollAtEnd={true}
             maintainScrollAtEnd={{animated: false}}
             maintainVisibleContentPosition={true}
+            waitForInitialLayout={true}
           />
           {jumpToRecent}
         </PerfProfiler>
