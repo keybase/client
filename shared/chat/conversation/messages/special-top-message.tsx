@@ -149,13 +149,19 @@ function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
   )
   const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
   const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
+  // When there's nothing more to load, we're at the true top — show immediately.
+  // Otherwise delay to avoid flashing "Digging ancient messages..." before content settles.
   const [visible, setVisible] = React.useState(false)
   React.useEffect(() => {
+    if (loadMoreType === 'noMoreToLoad') {
+      setVisible(true)
+      return
+    }
     setVisible(false)
     if (!isOnScreen) return
     const timer = setTimeout(() => setVisible(true), 3000)
     return () => clearTimeout(timer)
-  }, [isOnScreen, ordinal])
+  }, [isOnScreen, loadMoreType, ordinal])
 
   const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))

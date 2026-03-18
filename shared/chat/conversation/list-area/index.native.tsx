@@ -221,13 +221,44 @@ const ConversationList = function ConversationList() {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  const lastStartReachedRef = React.useRef(0)
-  const onStartReached = () => {
-    const t = Date.now()
-    if (t - lastStartReachedRef.current < 1000) return
-    lastStartReachedRef.current = t
-    onStartReachedBase()
-  }
+  const isLoadingOlderRef = React.useRef(false)
+  const prevNumOrdinalsRef = React.useRef(numOrdinals)
+  const loadResetTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const onStartReachedBaseRef = React.useRef(onStartReachedBase)
+
+  React.useEffect(() => {
+    onStartReachedBaseRef.current = onStartReachedBase
+  }, [onStartReachedBase])
+
+  React.useEffect(() => {
+    if (numOrdinals !== prevNumOrdinalsRef.current) {
+      prevNumOrdinalsRef.current = numOrdinals
+      isLoadingOlderRef.current = false
+      clearTimeout(loadResetTimerRef.current)
+    }
+  }, [numOrdinals])
+
+  // Cleanup on unmount
+  React.useEffect(() => () => clearTimeout(loadResetTimerRef.current), [])
+
+  const [onStartReached] = React.useState(() => () => {
+    if (isLoadingOlderRef.current) return
+    isLoadingOlderRef.current = true
+    clearTimeout(loadResetTimerRef.current)
+    // Safety reset in case no messages arrive (already at top of history)
+    loadResetTimerRef.current = setTimeout(() => {
+      isLoadingOlderRef.current = false
+    }, 3000)
+    onStartReachedBaseRef.current()
+  })
+
+  // When the top item is actually visible, ensure we load — catches bad-scroll-position cases
+  // where maintainVisibleContentPosition leaves us at the top without onStartReached firing.
+  React.useEffect(() => {
+    if (isTopOnScreen) {
+      onStartReached()
+    }
+  }, [isTopOnScreen, onStartReached])
 
   return (
     <Kb.ErrorBoundary>
@@ -235,7 +266,10 @@ const ConversationList = function ConversationList() {
         <PerfProfiler id="MessageList">
           <KeyboardAvoidingLegendList
             testID="messageList"
-            extraData={React.useMemo(() => ({isTopOnScreen, messageTypeMap}), [isTopOnScreen, messageTypeMap])}
+            extraData={React.useMemo(
+              () => ({isTopOnScreen, messageTypeMap}),
+              [isTopOnScreen, messageTypeMap]
+            )}
             onViewableItemsChanged={onViewableItemsChanged}
             estimatedItemSize={undefined}
             ListFooterComponent={SpecialBottomMessage}
@@ -247,7 +281,7 @@ const ConversationList = function ConversationList() {
             ItemSeparatorComponent={ItemSeparator}
             onStartReached={onStartReached}
             onStartReachedThreshold={0.3}
-            keyboardDismissMode="interactive"
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
             ref={listRef}
@@ -257,7 +291,6 @@ const ConversationList = function ConversationList() {
             maintainScrollAtEnd={{animated: false}}
             maintainVisibleContentPosition={{data: true, size: true}}
             waitForInitialLayout={true}
-            keyboardLiftBehavior="whenAtEnd"
             offset={insets.bottom}
           />
           {jumpToRecent}
