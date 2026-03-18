@@ -23,6 +23,7 @@ export const tabBarStyle = {
 
 export const tabBarStyleHidden = {
   height: 0,
+  opacity: 0,
   overflow: 'hidden',
   position: 'absolute',
 } as const
