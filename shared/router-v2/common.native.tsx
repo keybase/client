@@ -18,10 +18,14 @@ export const tabBarStyle = {
   get backgroundColor() {
     return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
+  position: 'absolute' as const,
 }
 
 export const tabBarStyleHidden = {
-  display: 'none',
+  height: 0,
+  opacity: 0,
+  overflow: 'hidden',
+  position: 'absolute',
 } as const
 
 const actionWidth = 64

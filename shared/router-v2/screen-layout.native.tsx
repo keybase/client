@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
@@ -10,6 +11,19 @@ type LayoutProps = {
   children: React.ReactNode
   route: GetOptionsParams['route']
   navigation: GetOptionsParams['navigation']
+}
+
+const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  const paddingBottom = useBottomTabBarHeight()
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.tabScreen, {paddingBottom}])}
+    >
+      {children}
+    </Kb.Box2>
+  )
 }
 
 export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
@@ -37,7 +51,7 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
     ) : suspenseContent
 
     if (!isModal && !isLoggedOut) {
-      return wrappedContent
+      return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
     }
 
     return (
@@ -61,6 +75,9 @@ const styles = Kb.Styles.styleSheetCreate(
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
+      },
+      tabScreen: {
+        flex: 1,
       },
       modalFooter: Kb.Styles.platformStyles({
         common: {
