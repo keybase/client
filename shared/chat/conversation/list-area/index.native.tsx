@@ -8,7 +8,9 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type {ItemType} from '.'
-import {LegendList, type LegendListRef} from '@legendapp/list/react-native'
+import {type LegendListRef} from '@legendapp/list/react-native'
+import {KeyboardAvoidingLegendList} from '@legendapp/list/keyboard-test'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
@@ -136,6 +138,7 @@ const ConversationList = function ConversationList() {
     [messageOrdinals]
   )
 
+  const insets = useSafeAreaInsets()
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
 
@@ -222,7 +225,7 @@ const ConversationList = function ConversationList() {
     <Kb.ErrorBoundary>
       <SetRecycleTypeContext value={setRecycleType}>
         <PerfProfiler id="MessageList">
-          <LegendList
+          <KeyboardAvoidingLegendList
             testID="messageList"
             extraData={messageTypeMap}
             estimatedItemSize={undefined}
@@ -245,6 +248,8 @@ const ConversationList = function ConversationList() {
             maintainScrollAtEnd={{animated: false}}
             maintainVisibleContentPosition={true}
             waitForInitialLayout={true}
+            keyboardLiftBehavior="whenAtEnd"
+            offset={insets.bottom}
           />
           {jumpToRecent}
         </PerfProfiler>

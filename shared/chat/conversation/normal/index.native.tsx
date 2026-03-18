@@ -4,6 +4,7 @@ import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -39,22 +40,6 @@ const Conversation = function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
-  const innerComponent = (
-    <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-        <ThreadLoadStatus />
-        <PinnedMessage />
-        <ListArea />
-        <LoadingLine />
-      </Kb.Box2>
-      <InvitationToBlock />
-      <Banner />
-      <MaxInputAreaContext value={maxInputArea}>
-        <InputArea />
-      </MaxInputAreaContext>
-    </Kb.BoxGrow>
-  )
-
   const insets = useSafeAreaInsets()
   const headerHeight = Kb.Styles.isTablet ? 115 : 44
   const windowHeight = useSafeAreaFrame().height
@@ -68,6 +53,32 @@ const Conversation = function Conversation() {
         minHeight: height,
         paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
       }
+
+  const bottomContent = (
+    <>
+      <InvitationToBlock />
+      <Banner />
+      <MaxInputAreaContext value={maxInputArea}>
+        <InputArea />
+      </MaxInputAreaContext>
+    </>
+  )
+
+  const innerComponent = (
+    <Kb.BoxGrow onLayout={onLayout}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
+        <ThreadLoadStatus />
+        <PinnedMessage />
+        <ListArea />
+        <LoadingLine />
+      </Kb.Box2>
+      {Kb.Styles.isIOS ? (
+        <KeyboardStickyView offset={{opened: insets.bottom}}>{bottomContent}</KeyboardStickyView>
+      ) : (
+        bottomContent
+      )}
+    </Kb.BoxGrow>
+  )
 
   const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
 
@@ -90,20 +101,9 @@ const Conversation = function Conversation() {
 
   return (
     <PerfProfiler id="Conversation">
-      {Kb.Styles.isAndroid ? (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          {content}
-        </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          <Kb.KeyboardAvoidingView2
-            extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-            behavior="translate-with-padding"
-          >
-            {content}
-          </Kb.KeyboardAvoidingView2>
-        </Kb.Box2>
-      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+        {content}
+      </Kb.Box2>
     </PerfProfiler>
   )
 }
