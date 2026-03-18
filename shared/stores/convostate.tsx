@@ -128,6 +128,7 @@ type ConvoStore = T.Immutable<{
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
+  ordinalIndexMap: Map<T.Chat.Ordinal, number> // ordinal → index for O(1) lookup,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadBack: boolean
@@ -172,6 +173,7 @@ const initialConvoStore: ConvoStore = {
   messageMap: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
+  ordinalIndexMap: new Map(),
   meta: Meta.makeConversationMeta(),
   moreToLoadBack: false,
   moreToLoadForward: false,

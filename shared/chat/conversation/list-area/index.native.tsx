@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -23,16 +24,32 @@ let markedInitiallyLoaded = false
 
 export const DEBUGDump = () => {}
 
+// Stable empty array so we never create a new reference when ordinals are absent
+const emptyOrdinals: Array<T.Chat.Ordinal> = []
+
+// LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
+// as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
+// Defined outside ConversationList so React sees a stable component type across renders.
+const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
+  const {ordinalIndexMap, messageOrdinals} = Chat.useChatContext(
+    C.useShallow(s => ({ordinalIndexMap: s.ordinalIndexMap, messageOrdinals: s.messageOrdinals}))
+  )
+  const idx = ordinalIndexMap.get(leadingItem) ?? -1
+  const trailingItem = messageOrdinals?.[idx + 1]
+  if (!trailingItem) return null
+  return <Separator leadingItem={trailingItem} trailingItem={leadingItem} />
+}
+
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject<LegendListRef | null>
-  ordinalIndexMap: Map<T.Chat.Ordinal, number>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, ordinalIndexMap} = p
+  const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const ordinalIndexMap = Chat.useChatContext(s => s.ordinalIndexMap)
   const [scrollToBottom] = React.useState(() => () => {
     void listRef.current?.scrollToEnd({animated: false})
   })
@@ -98,21 +115,17 @@ const keyExtractor = (ordinal: ItemType) => {
 }
 
 const ConversationList = function ConversationList() {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const {conversationIDKey, centeredOrdinal, messageTypeMap, _messageOrdinals} =
+    Chat.useChatContext(
+      C.useShallow(s => ({
+        _messageOrdinals: s.messageOrdinals,
+        centeredOrdinal: s.messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1),
+        conversationIDKey: s.id,
+        messageTypeMap: s.messageTypeMap,
+      }))
+    )
 
-  const centeredOrdinal =
-    Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
-  const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
-  const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
-
-  const messageOrdinals: Array<T.Chat.Ordinal> = _messageOrdinals ? [..._messageOrdinals] : []
-
-  // Map ordinal → index for O(1) trailing-item lookup in ItemSeparator
-  const ordinalIndexMap = React.useMemo(() => {
-    const m = new Map<T.Chat.Ordinal, number>()
-    ;(_messageOrdinals ?? []).forEach((o, i) => m.set(o, i))
-    return m
-  }, [_messageOrdinals])
+  const messageOrdinals = _messageOrdinals ?? emptyOrdinals
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -126,15 +139,6 @@ const ConversationList = function ConversationList() {
         <Clazz ordinal={ordinal} />
       </PerfProfiler>
     )
-  }
-
-  // LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
-  // as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
-  const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
-    const idx = ordinalIndexMap.get(leadingItem) ?? -1
-    const trailingItem = messageOrdinals[idx + 1]
-    if (!trailingItem) return null
-    return <Separator leadingItem={trailingItem} trailingItem={leadingItem} />
   }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
@@ -168,7 +172,6 @@ const ConversationList = function ConversationList() {
     conversationIDKey,
     listRef,
     messageOrdinals,
-    ordinalIndexMap,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
@@ -211,7 +214,7 @@ const ConversationList = function ConversationList() {
             ListFooterComponent={SpecialBottomMessage}
             overScrollMode="never"
             contentInset={{bottom: mobileTypingContainerHeight}}
-            data={messageOrdinals}
+            data={messageOrdinals as Array<T.Chat.Ordinal>}
             getItemType={getItemType}
             renderItem={renderItem}
             ItemSeparatorComponent={ItemSeparator}
