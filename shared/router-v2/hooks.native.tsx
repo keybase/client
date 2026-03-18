@@ -97,7 +97,8 @@ export const useInitialState = (loggedInLoaded: boolean) => {
     }
     setInitialStateState('loading')
     const loadInitialURL = async () => {
-      let url = await Linking.getInitialURL()
+      const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 100))
+      let url = await Promise.race([Linking.getInitialURL(), timeout])
 
       // don't try and resume or follow links if we're signed out
       if (!loggedIn) {
