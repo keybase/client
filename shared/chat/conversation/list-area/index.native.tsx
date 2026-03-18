@@ -32,7 +32,7 @@ const emptyOrdinals: Array<T.Chat.Ordinal> = []
 // Defined outside ConversationList so React sees a stable component type across renders.
 const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
   const {ordinalIndexMap, messageOrdinals} = Chat.useChatContext(
-    C.useShallow(s => ({ordinalIndexMap: s.ordinalIndexMap, messageOrdinals: s.messageOrdinals}))
+    C.useShallow(s => ({messageOrdinals: s.messageOrdinals, ordinalIndexMap: s.ordinalIndexMap}))
   )
   const idx = ordinalIndexMap.get(leadingItem) ?? -1
   const trailingItem = messageOrdinals?.[idx + 1]
@@ -115,15 +115,14 @@ const keyExtractor = (ordinal: ItemType) => {
 }
 
 const ConversationList = function ConversationList() {
-  const {conversationIDKey, centeredOrdinal, messageTypeMap, _messageOrdinals} =
-    Chat.useChatContext(
-      C.useShallow(s => ({
-        _messageOrdinals: s.messageOrdinals,
-        centeredOrdinal: s.messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1),
-        conversationIDKey: s.id,
-        messageTypeMap: s.messageTypeMap,
-      }))
-    )
+  const {conversationIDKey, centeredOrdinal, messageTypeMap, _messageOrdinals} = Chat.useChatContext(
+    C.useShallow(s => ({
+      _messageOrdinals: s.messageOrdinals,
+      centeredOrdinal: s.messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1),
+      conversationIDKey: s.id,
+      messageTypeMap: s.messageTypeMap,
+    }))
+  )
 
   const messageOrdinals = _messageOrdinals ?? emptyOrdinals
 
