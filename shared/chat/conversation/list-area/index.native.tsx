@@ -138,13 +138,21 @@ const ConversationList = function ConversationList() {
     [messageOrdinals]
   )
 
+  const [isTopOnScreen, setIsTopOnScreen] = React.useState(false)
+  const onViewableItemsChanged = React.useCallback(
+    ({viewableItems}: {viewableItems: Array<{item: T.Chat.Ordinal}>}) => {
+      setIsTopOnScreen(viewableItems.some(vt => vt.item === SPECIAL_TOP_ORDINAL))
+    },
+    []
+  )
+
   const insets = useSafeAreaInsets()
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
 
   const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
     if (ordinal === SPECIAL_TOP_ORDINAL) {
-      return <SpecialTopMessage />
+      return <SpecialTopMessage isOnScreen={isTopOnScreen} />
     }
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
@@ -227,7 +235,8 @@ const ConversationList = function ConversationList() {
         <PerfProfiler id="MessageList">
           <KeyboardAvoidingLegendList
             testID="messageList"
-            extraData={messageTypeMap}
+            extraData={React.useMemo(() => ({isTopOnScreen, messageTypeMap}), [isTopOnScreen, messageTypeMap])}
+            onViewableItemsChanged={onViewableItemsChanged}
             estimatedItemSize={undefined}
             ListFooterComponent={SpecialBottomMessage}
             overScrollMode="never"

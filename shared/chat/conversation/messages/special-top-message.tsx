@@ -107,7 +107,7 @@ const ErrorMessage = () => {
   )
 }
 
-function SpecialTopMessage() {
+function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
   const username = useCurrentUserState(s => s.username)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -149,39 +149,23 @@ function SpecialTopMessage() {
   )
   const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
   const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
-  // we defer showing this so it doesn't flash so much
-  const [allowDigging, setAllowDigging] = React.useState(false)
-  const lastOrdinalRef = React.useRef(ordinal)
-
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [visible, setVisible] = React.useState(false)
   React.useEffect(() => {
-    if (ordinal !== lastOrdinalRef.current) {
-      setAllowDigging(false)
-      lastOrdinalRef.current = ordinal
-      digTimerRef.current && clearTimeout(digTimerRef.current)
-      digTimerRef.current = setTimeout(() => {
-        setAllowDigging(true)
-      }, 3000)
-    }
-  }, [ordinal])
-
-  React.useEffect(() => {
-    return () => {
-      if (digTimerRef.current) {
-        clearTimeout(digTimerRef.current)
-        digTimerRef.current = undefined
-      }
-    }
-  }, [])
+    setVisible(false)
+    if (!isOnScreen) return
+    const timer = setTimeout(() => setVisible(true), 3000)
+    return () => clearTimeout(timer)
+  }, [isOnScreen, ordinal])
 
   const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
   }
 
+  if (!visible) return null
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
@@ -203,7 +187,7 @@ function SpecialTopMessage() {
           <MakeTeamCard />
         </Kb.Box2>
       )}
-      {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
+      {loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
@@ -227,7 +211,6 @@ const styles = Kb.Styles.styleSheetCreate(
       more: {
         paddingBottom: Kb.Styles.globalMargins.medium,
       },
-      spacer: {height: Kb.Styles.globalMargins.small},
     }) as const
 )
 
