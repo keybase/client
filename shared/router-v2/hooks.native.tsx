@@ -7,6 +7,7 @@ import {useDeepLinksState} from '@/constants/deeplinks'
 import {Linking} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {usePushState} from '@/constants/push'
+import logger from '@/logger'
 
 type InitialStateState = 'init' | 'loading' | 'loaded'
 
@@ -96,7 +97,8 @@ export const useInitialState = (loggedInLoaded: boolean) => {
     }
     setInitialStateState('loading')
     const loadInitialURL = async () => {
-      let url = await Linking.getInitialURL()
+      const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 100))
+      let url = await Promise.race([Linking.getInitialURL(), timeout])
 
       // don't try and resume or follow links if we're signed out
       if (!loggedIn) {
@@ -177,6 +179,7 @@ export const useInitialState = (loggedInLoaded: boolean) => {
 
     const f = async () => {
       await loadInitialURL()
+      logger.info('[Router] initialStateState loaded, rendering app')
       setInitialStateState('loaded')
     }
 

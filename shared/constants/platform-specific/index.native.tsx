@@ -137,6 +137,8 @@ export const showShareActionSheet = async (options: {
 }
 
 const loadStartupDetails = async () => {
+  logger.info('[Startup] loadStartupDetails: starting')
+  const t = Date.now()
   const [routeState, initialUrl, push] = await Promise.all([
     neverThrowPromiseFunc(async () => {
       try {
@@ -146,7 +148,19 @@ const loadStartupDetails = async () => {
         return Promise.resolve('')
       }
     }),
-    neverThrowPromiseFunc(async () => Linking.getInitialURL()),
+    neverThrowPromiseFunc(async () => {
+      const linkingStart = Date.now()
+      logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
+      const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 100))
+      const url = await Promise.race([Linking.getInitialURL(), timeout])
+      const elapsed = Date.now() - linkingStart
+      if (url === null) {
+        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null/timed out in ${elapsed}ms`)
+      } else {
+        logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
+      }
+      return url
+    }),
     neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
@@ -192,6 +206,7 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
+  logger.info(`[Startup] loadStartupDetails: done in ${Date.now() - t}ms`)
   storeRegistry.getState('config').dispatch.setStartupDetails({
     conversation: conversation ?? noConversationIDKey,
     followUser,
