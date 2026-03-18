@@ -23,7 +23,6 @@ import {useRootKey} from './hooks.native'
 import * as TabBar from './tab-bar.native'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import {useColorScheme} from 'react-native'
 import {useDaemonState} from '@/stores/daemon'
 
 if (module.hot) {
@@ -200,10 +199,18 @@ function RNApp() {
     }
   }
 
-  const isDarkMode = useColorScheme() === 'dark'
-  const barStyle = useDarkModeState(s => {
-    return s.darkModePreference === 'system' ? 'default' : isDarkMode ? 'light-content' : 'dark-content'
-  })
+  const {barStyle, isDarkMode} = useDarkModeState(
+    C.useShallow(s => {
+      const isDarkMode = s.isDarkMode()
+      const barStyle =
+        s.darkModePreference === 'system'
+          ? ('default' as const)
+          : isDarkMode
+            ? ('light-content' as const)
+            : ('dark-content' as const)
+      return {barStyle, isDarkMode}
+    })
+  )
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
   const rootKey = useRootKey()
 
