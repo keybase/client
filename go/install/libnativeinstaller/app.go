@@ -101,16 +101,26 @@ func UninstallRedirector(runMode libkb.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--uninstall-redirector"}, runMode, log)
 }
 
-// InstallFuse calls the installer with --install-fuse.
-func InstallFuse(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing KBFuse")
-	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
+// InstallFSKit calls the installer with --install-fskit.
+func InstallFSKit(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing KBFS FSKit module")
+	return execNativeInstallerWithArg([]string{"--install-fskit"}, runMode, log)
 }
 
-// UninstallFuse calls the installer with --uninstall-fuse.
+// UninstallFSKit calls the installer with --uninstall-fskit.
+func UninstallFSKit(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing KBFS FSKit module")
+	return execNativeInstallerWithArg([]string{"--uninstall-fskit"}, runMode, log)
+}
+
+// InstallFuse is preserved for RPC/API compatibility and now installs FSKit.
+func InstallFuse(runMode libkb.RunMode, log Log) error {
+	return InstallFSKit(runMode, log)
+}
+
+// UninstallFuse is preserved for RPC/API compatibility and now uninstalls FSKit.
 func UninstallFuse(runMode libkb.RunMode, log Log) error {
-	log.Info("Removing KBFuse")
-	return execNativeInstallerWithArg([]string{"--uninstall-fuse"}, runMode, log)
+	return UninstallFSKit(runMode, log)
 }
 
 // InstallHelper calls the installer with --install-helper.

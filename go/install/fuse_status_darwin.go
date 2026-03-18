@@ -8,19 +8,21 @@ package install
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-kext"
 )
 
-const installPath = "/Library/Filesystems/kbfuse.fs"
+const (
+	installPath = "/Library/Filesystems/keybase.fs"
+	driverID    = "com.keybase.filesystems.kbfs.fskit"
+)
 
 // KeybaseFuseStatus returns Fuse status
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
@@ -30,59 +32,34 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 		InstallAction: keybase1.InstallAction_UNKNOWN,
 	}
 
-	var kextInfo *kext.Info
-
 	if _, err := os.Stat(installPath); err == nil {
 		st.Path = installPath
-		kextID := "com.github.kbfuse.filesystems.kbfuse"
-		var loadErr error
-		kextInfo, loadErr = kext.LoadInfo(kextID)
-		if loadErr != nil {
-			st.InstallStatus = keybase1.InstallStatus_ERROR
-			st.InstallAction = keybase1.InstallAction_REINSTALL
-			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading kext info: %s", loadErr)}
-			return st
-		}
-		if kextInfo == nil {
-			log.Debug("No kext info available (kext not loaded)")
-			// This means the kext isn't loaded, which is ok, kbfs will call
-			// load_kbfuse when it starts up.
-			// We have to get the version from the installed plist.
-			installedVersion, fivErr := fuseInstallVersion(log)
-			if fivErr != nil {
-				st.InstallStatus = keybase1.InstallStatus_ERROR
-				st.InstallAction = keybase1.InstallAction_REINSTALL
-				st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading (plist) info: %s", fivErr)}
-				return st
-			}
-			if installedVersion != "" {
-				kextInfo = &kext.Info{
-					Version: installedVersion,
-					Started: false,
-				}
-			}
-		}
-
-		// Installed
-		st.KextID = kextID
+		st.KextID = driverID
 	}
 
 	// If neither is found, we have no install
-	if st.KextID == "" || kextInfo == nil {
+	if st.KextID == "" {
 		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
 		st.InstallAction = keybase1.InstallAction_INSTALL
 		return st
 	}
 
 	// Try to get mount info, it's non-critical if we fail though.
-	mountInfos, err := mountInfo("kbfuse")
+	mountInfos, err := mountInfo("keybase")
 	if err != nil {
 		log.Errorf("Error trying to read mount info: %s", err)
 	}
 	st.MountInfos = mountInfos
 
-	st.Version = kextInfo.Version
-	st.KextStarted = kextInfo.Started
+	installedVersion, fivErr := fuseInstallVersion(log)
+	if fivErr != nil {
+		st.InstallStatus = keybase1.InstallStatus_ERROR
+		st.InstallAction = keybase1.InstallAction_REINSTALL
+		st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading install metadata: %s", fivErr)}
+		return st
+	}
+	st.Version = installedVersion
+	st.KextStarted = len(mountInfos) > 0
 
 	installStatus, installAction, status := ResolveInstallStatus(st.Version, st.BundleVersion, "", log)
 	st.InstallStatus = installStatus
@@ -93,7 +70,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 }
 
 func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
-	out, err := exec.Command("/sbin/mount", "-t", fstype).Output()
+	out, err := exec.Command("/sbin/mount").Output()
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +78,9 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 	mountInfos := []keybase1.FuseMountInfo{}
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if !strings.Contains(strings.ToLower(line), fstype) {
 			continue
 		}
 		info := strings.SplitN(line, " ", 4)
@@ -118,7 +98,7 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 }
 
 func findStringInPlist(key string, plistData []byte, log Log) string {
-	// Hack to parse plist, instead of parsing we'll use a regex
+	// Keep regex parsing for compatibility with existing tests.
 	res := fmt.Sprintf(`<key>%s<\/key>\s*<string>([\S ]+)<\/string>`, key)
 	re := regexp.MustCompile(res)
 	submatch := re.FindStringSubmatch(string(plistData))
@@ -129,29 +109,22 @@ func findStringInPlist(key string, plistData []byte, log Log) string {
 	return ""
 }
 
-func loadPlist(plistPath string, log Log) ([]byte, error) {
-	if _, err := os.Stat(plistPath); os.IsNotExist(err) {
-		log.Debug("No plist found: %s", plistPath)
-		return nil, err
-	}
-	log.Debug("Loading plist: %s", plistPath)
-	plistFile, err := os.Open(plistPath)
-	defer func() {
-		if err := plistFile.Close(); err != nil {
-			log.Debug("unable to close file: %s", err)
-		}
-	}()
-	if err != nil {
-		return nil, err
-	}
-	return io.ReadAll(plistFile)
-}
-
 func fuseInstallVersion(log Log) (string, error) {
-	plistPath := filepath.Join(installPath, "Contents/Info.plist")
-	plistData, err := loadPlist(plistPath, log)
+	appPath, err := libnativeinstaller.AppBundleForPath()
 	if err != nil {
-		return "", err
+		return "", nil
 	}
-	return findStringInPlist("CFBundleVersion", plistData, log), nil
+	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
+	cmd := exec.Command(
+		"/usr/libexec/PlistBuddy",
+		"-c",
+		"Print :FSKitVersion",
+		plistPath,
+	)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Debug("Unable to read FSKit version from installer plist: %s", strings.TrimSpace(string(out)))
+		return "", nil
+	}
+	return strings.TrimSpace(string(out)), nil
 }

@@ -180,13 +180,15 @@ func (r *root) findKBFSMount(ctx context.Context) (
 	if err != nil {
 		return "", err
 	}
-	fuseType := "fuse"
+	fuseTypes := map[string]bool{"fuse": true}
 	if runtime.GOOS == "darwin" {
-		fuseType = "kbfuse"
+		fuseTypes["kbfuse"] = true
+		fuseTypes["keybase"] = true
+		fuseTypes["fskit"] = true
 	}
 	var fuseMountPoints []string
 	for _, v := range vols {
-		if v.Type != fuseType {
+		if !fuseTypes[v.Type] {
 			continue
 		}
 		if v.Owner != u.Uid {

@@ -41,12 +41,14 @@
   [parser registerOption:@"timeout" requirement:GBValueRequired];
   [parser registerSwitch:@"uninstall-app"];
   [parser registerSwitch:@"uninstall-fuse"];
+  [parser registerSwitch:@"uninstall-fskit"];
   [parser registerSwitch:@"uninstall-mountdir"];
   [parser registerSwitch:@"uninstall-helper"];
   [parser registerSwitch:@"uninstall-cli"];
   [parser registerSwitch:@"uninstall-redirector"];
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
+  [parser registerSwitch:@"install-fskit"];
   [parser registerSwitch:@"install-mountdir"];
   [parser registerSwitch:@"install-redirector"];
   [parser registerSwitch:@"install-helper"];
@@ -76,6 +78,9 @@
   if ([[self.settings objectForKey:@"uninstall-fuse"] boolValue]) {
     self.uninstallOptions |= UninstallOptionFuse;
   }
+  if ([[self.settings objectForKey:@"uninstall-fskit"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionFuse;
+  }
   if ([[self.settings objectForKey:@"uninstall-mountdir"] boolValue]) {
     self.uninstallOptions |= UninstallOptionMountDir;
   }
@@ -93,6 +98,9 @@
   }
 
   if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
+    self.installOptions |= KBInstallOptionFuse;
+  }
+  if ([[self.settings objectForKey:@"install-fskit"] boolValue]) {
     self.installOptions |= KBInstallOptionFuse;
   }
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {

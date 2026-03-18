@@ -77,13 +77,14 @@ protocol install {
   }
 
   /*
-    Return status for Fuse install.
+    Return status for the filesystem driver install on this platform.
+    On macOS this now refers to the FSKit-based driver.
     If you specify bundleVersion, it will tell you if an upgrade is needed.
    */
   FuseStatus fuseStatus(int sessionID, string bundleVersion);
 
   /*
-    Install Fuse.
+    Install the filesystem driver (FSKit on macOS).
    */
   InstallResult installFuse();
 

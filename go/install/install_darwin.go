@@ -406,32 +406,20 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
-// InstallAuto installs everything it can without asking for privileges or
-// extensions. If the user has already installed Fuse, we install everything.
+// InstallAuto installs everything needed for macOS KBFS operation.
+// FSKit is treated as a first-class required component on darwin.
 func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
-	var components []string
-	status := KeybaseFuseStatus("", log)
-	if status.InstallStatus == keybase1.InstallStatus_INSTALLED {
-		components = []string{
-			ComponentNameCLI.String(),
-			ComponentNameUpdater.String(),
-			ComponentNameService.String(),
-			ComponentNameKBFS.String(),
-			ComponentNameHelper.String(),
-			ComponentNameFuse.String(),
-			ComponentNameMountDir.String(),
-			ComponentNameRedirector.String(),
-			ComponentNameKBFS.String(),
-			ComponentNameKBNM.String(),
-		}
-	} else {
-		components = []string{
-			ComponentNameCLI.String(),
-			ComponentNameUpdater.String(),
-			ComponentNameService.String(),
-			ComponentNameKBFS.String(),
-			ComponentNameKBNM.String(),
-		}
+	components := []string{
+		ComponentNameCLI.String(),
+		ComponentNameUpdater.String(),
+		ComponentNameService.String(),
+		ComponentNameKBFS.String(),
+		ComponentNameHelper.String(),
+		ComponentNameFuse.String(),
+		ComponentNameMountDir.String(),
+		ComponentNameRedirector.String(),
+		ComponentNameKBFS.String(),
+		ComponentNameKBNM.String(),
 	}
 
 	// A force unmount is needed to change from one mountpoint to another
@@ -444,7 +432,7 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 const mountsPresentErrorCode = 7 // See Installer/Installer.m
 
 func installFuse(runMode libkb.RunMode, log Log) error {
-	err := libnativeinstaller.InstallFuse(runMode, log)
+	err := libnativeinstaller.InstallFSKit(runMode, log)
 	switch e := err.(type) {
 	case nil:
 		return nil
@@ -461,7 +449,7 @@ func installFuse(runMode libkb.RunMode, log Log) error {
 		return err
 	}
 
-	log.Info("Can't install/upgrade fuse when mounts are present. " +
+	log.Info("Can't install/upgrade FSKit when mounts are present. " +
 		"Assuming it's the redirector and trying to uninstall it first.")
 	if err = libnativeinstaller.UninstallRedirector(runMode, log); err != nil {
 		log.Info("Uninstalling redirector failed. " +
@@ -474,10 +462,10 @@ func installFuse(runMode libkb.RunMode, log Log) error {
 		}
 	}()
 	log.Info(
-		"Uninstalling redirector succeeded. Trying to install KBFuse again.")
-	if err = libnativeinstaller.InstallFuse(runMode, log); err != nil {
-		log.Info("Installing fuse failed again. " +
-			"Fuse should be able to update next time the OS reboots.")
+		"Uninstalling redirector succeeded. Trying to install FSKit again.")
+	if err = libnativeinstaller.InstallFSKit(runMode, log); err != nil {
+		log.Info("Installing FSKit failed again. " +
+			"The driver should be able to update next time the OS reboots.")
 		return err
 	}
 	return nil
@@ -608,7 +596,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		err = installFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
-			log.Errorf("Error installing KBFuse: %s", err)
+			log.Errorf("Error installing filesystem driver: %s", err)
 		}
 	}
 

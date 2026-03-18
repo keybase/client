@@ -27,7 +27,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 @implementation KBFuseComponent
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
-  if ((self = [self initWithConfig:config name:@"Fuse" info:@"Extensions for KBFS" image:[NSImage imageNamed:@"Fuse.icns"]])) {
+  if ((self = [self initWithConfig:config name:@"Filesystem Driver" info:@"FSKit extension for KBFS" image:[NSImage imageNamed:@"Fuse.icns"]])) {
     _servicePath = servicePath;
     _helperTool = helperTool;
   }
@@ -98,8 +98,8 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       }
 
       if (![NSString gh_isBlank:fuseStatus.kextID]) {
-        info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
-        info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
+        info[@"Driver ID"] = KBIfBlank(fuseStatus.kextID, nil);
+        info[@"Driver Active"] = fuseStatus.kextStarted ? @"Yes" : @"No";
       }
       info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
 
@@ -123,7 +123,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (BOOL)hasKBFuseMounts:(KBRFuseStatus *)fuseStatus {
   for (KBRFuseMountInfo *mountInfo in fuseStatus.mountInfos) {
-    if ([mountInfo.fstype isEqualToString:@"kbfuse"]) {
+    if ([mountInfo.fstype.lowercaseString containsString:@"keybase"]) {
       return YES;
     }
   }
@@ -261,21 +261,21 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (NSString *)source {
-  return [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"kbfuse.bundle"];
+  return [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"keybase.fs"];
 }
 
 - (NSString *)destination {
-  return @"/Library/Filesystems/kbfuse.fs";
+  return @"/Library/Filesystems/keybase.fs";
 }
 
 - (NSString *)kextID {
-  return @"com.github.kbfuse.filesystems.kbfuse";
+  return @"com.keybase.filesystems.kbfs.fskit";
 }
 
 - (NSString *)kextPath {
   NSProcessInfo *pInfo = [NSProcessInfo processInfo];
   NSOperatingSystemVersion version = [pInfo operatingSystemVersion];
-  return [NSString stringWithFormat:@"/Library/Filesystems/kbfuse.fs/Contents/Extensions/%ld.%ld/kbfuse.kext", version.majorVersion, version.minorVersion];
+  return [NSString stringWithFormat:@"/Library/Filesystems/keybase.fs/Contents/Extensions/%ld.%ld/keybase.kext", version.majorVersion, version.minorVersion];
 }
 
 @end
