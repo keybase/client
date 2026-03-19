@@ -147,6 +147,7 @@
     "@babel/core": "7.29.0",
     "@babel/node": "7.29.0",
     "@babel/preset-env": "7.29.2",
+    "@babel/preset-flow": "7.28.5",
     "@babel/preset-react": "7.28.5",
     "@babel/preset-typescript": "7.28.5",
     "@electron/packager": "19.1.0",
