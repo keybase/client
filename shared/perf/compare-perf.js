@@ -17,27 +17,10 @@ function resolveBaseline(arg) {
 }
 
 function loadBaseline(dir) {
-  // Unified format (new captures from both iOS and desktop)
   const perfFile = path.join(dir, 'perf.json')
-  if (fs.existsSync(perfFile)) {
-    const data = JSON.parse(fs.readFileSync(perfFile, 'utf8'))
-    return {fps: data.fps, longTasks: data.longTasks ?? null, memory: data.memory ?? null, react: data.react ?? null}
-  }
-  // Legacy desktop format
-  const desktopFile = path.join(dir, 'desktop-fps.json')
-  if (fs.existsSync(desktopFile)) {
-    const data = JSON.parse(fs.readFileSync(desktopFile, 'utf8'))
-    return {fps: data.fps, longTasks: data.longTasks ?? null, memory: data.memory ?? null, react: data.react ?? null}
-  }
-  // Legacy iOS format
-  const iosFpsFile = path.join(dir, 'maestro-fps.json')
-  if (fs.existsSync(iosFpsFile)) {
-    const fpsRaw = JSON.parse(fs.readFileSync(iosFpsFile, 'utf8'))
-    const reactFile = path.join(dir, 'react-profiler.json')
-    const react = fs.existsSync(reactFile) ? JSON.parse(fs.readFileSync(reactFile, 'utf8')) : null
-    return {fps: fpsRaw.fps ?? fpsRaw, longTasks: null, memory: null, react}
-  }
-  return null
+  if (!fs.existsSync(perfFile)) return null
+  const data = JSON.parse(fs.readFileSync(perfFile, 'utf8'))
+  return {fps: data.fps, longTasks: data.longTasks ?? null, memory: data.memory ?? null, react: data.react ?? null}
 }
 
 function pct(oldVal, newVal) {
