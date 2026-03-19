@@ -20,6 +20,8 @@ import {useTrackerState} from '@/stores/tracker'
 import {formatTimeForChat} from '@/util/timestamp'
 
 export type Props = {
+  isCenteredHighlight?: boolean
+  isLastMessage?: boolean
   ordinal: T.Chat.Ordinal
 }
 
@@ -184,8 +186,7 @@ function AuthorHeader({ordinal}: {ordinal: T.Chat.Ordinal}) {
 
 // Pure helper functions - moved outside hooks to avoid recreating them per message
 const getReactionsPopupPosition = (
-  ordinal: T.Chat.Ordinal,
-  ordinals: ReadonlyArray<T.Chat.Ordinal>,
+  isLastMessage: boolean,
   hasReactions: boolean,
   message: T.Chat.Message
 ) => {
@@ -193,7 +194,7 @@ const getReactionsPopupPosition = (
   if (hasReactions) return 'none' as const
   const validMessage = Chat.isMessageWithReactions(message)
   if (!validMessage) return 'none' as const
-  return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
+  return isLastMessage ? ('last' as const) : ('middle' as const)
 }
 
 const getEcrType = (message: T.Chat.Message, you: string) => {
@@ -218,7 +219,11 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 }
 
 // Combined selector hook that fetches all message data in a single subscription
-export const useMessageData = (ordinal: T.Chat.Ordinal) => {
+export const useMessageData = (
+  ordinal: T.Chat.Ordinal,
+  isLastMessage = false,
+  isCenteredHighlight = false
+) => {
   const you = useCurrentUserState(s => s.username)
 
   return Chat.useChatContext(
@@ -226,7 +231,6 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const accountsInfoMap = s.accountsInfoMap
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const isEditing = s.editing === ordinal
-      const ordinals = s.messageOrdinals
       const {exploded, submitState, author, id, botUsername} = m
       const type = m.type
       const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
@@ -242,13 +246,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       const botname = botUsername === author ? '' : (botUsername ?? '')
-      const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
+      const reactionsPopupPosition = getReactionsPopupPosition(isLastMessage, hasReactions, m)
       const ecrType = getEcrType(m, you)
       const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, m)
-      // Inline highlight mode check to avoid separate selector
-      const centeredOrdinalType = s.messageCenterOrdinal
-      const showCenteredHighlight =
-        centeredOrdinalType?.ordinal === ordinal && centeredOrdinalType.highlightMode !== 'none'
       // Fields lifted from child components to consolidate subscriptions
       const hasBeenEdited = m.hasBeenEdited ?? false
       const hasCoinFlip = m.type === 'text' && !!m.flipGameID
@@ -271,7 +271,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         isEditing,
         reactionsPopupPosition,
         shouldShowPopup,
-        showCenteredHighlight,
+        showCenteredHighlight: isCenteredHighlight,
         showCoinsIcon,
         showExplodingCountdown,
         showReplyTo,
@@ -663,13 +663,16 @@ function RightSide(p: RProps) {
 }
 
 export function WrapperMessage(p: WMProps) {
+  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
+  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  return <WrapperMessageView {...p} messageData={messageData} />
+}
+
+export function WrapperMessageView(p: WMProps & {messageData: ReturnType<typeof useMessageData>}) {
   const {ordinal, bottomChildren, children, messageData: mdataProp} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
-
-  // Use provided messageData if available, otherwise fetch it
-  const mdataFetched = useMessageData(ordinal)
-  const mdata = mdataProp ?? mdataFetched
+  const mdata = mdataProp
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata

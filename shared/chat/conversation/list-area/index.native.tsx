@@ -29,19 +29,6 @@ export const DEBUGDump = () => {}
 // Stable empty array so we never create a new reference when ordinals are absent
 const emptyOrdinals: Array<T.Chat.Ordinal> = []
 
-// LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
-// as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
-// Defined outside ConversationList so React sees a stable component type across renders.
-const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
-  const {ordinalIndexMap, messageOrdinals} = Chat.useChatContext(
-    C.useShallow(s => ({messageOrdinals: s.messageOrdinals, ordinalIndexMap: s.ordinalIndexMap}))
-  )
-  const idx = ordinalIndexMap.get(leadingItem) ?? -1
-  const trailingItem = messageOrdinals?.[idx + 1]
-  if (!trailingItem) return null
-  return <Separator leadingItem={trailingItem} trailingItem={leadingItem} />
-}
-
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
@@ -117,9 +104,13 @@ const keyExtractor = (ordinal: ItemType) => {
 }
 
 const ConversationList = function ConversationList() {
-  const {conversationIDKey, centeredOrdinal, messageTypeMap, _messageOrdinals} = Chat.useChatContext(
+  const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal, messageTypeMap, _messageOrdinals} = Chat.useChatContext(
     C.useShallow(s => ({
       _messageOrdinals: s.messageOrdinals,
+      centeredHighlightOrdinal:
+        s.messageCenterOrdinal?.highlightMode !== 'none'
+          ? (s.messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1))
+          : T.Chat.numberToOrdinal(-1),
       centeredOrdinal: s.messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1),
       conversationIDKey: s.id,
       messageTypeMap: s.messageTypeMap,
@@ -128,6 +119,18 @@ const ConversationList = function ConversationList() {
 
   const messageOrdinals = _messageOrdinals ?? emptyOrdinals
   const data = messageOrdinals as Array<T.Chat.Ordinal>
+  const lastOrdinal = messageOrdinals.at(-1)
+  const separatorTrailingByLeading = React.useMemo(() => {
+    const trailingByLeading = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
+    for (let idx = 0; idx < messageOrdinals.length - 1; idx++) {
+      const trailingItem = messageOrdinals[idx + 1]
+      const leadingItem = messageOrdinals[idx]
+      if (trailingItem) {
+        trailingByLeading.set(leadingItem, trailingItem)
+      }
+    }
+    return trailingByLeading
+  }, [messageOrdinals])
 
   // Always keep a ref to the latest messageOrdinals for use in stable callbacks.
   const messageOrdinalsRef = React.useRef(messageOrdinals)
@@ -145,21 +148,34 @@ const ConversationList = function ConversationList() {
   const listRef = React.useRef<LegendListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
 
-  const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
+  const renderItem = React.useCallback(({item: ordinal}: {item: T.Chat.Ordinal}) => {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
     return (
       <PerfProfiler id={`Msg-${type}`}>
-        <Clazz ordinal={ordinal} />
+        <Clazz
+          isCenteredHighlight={centeredHighlightOrdinal === ordinal}
+          isLastMessage={lastOrdinal === ordinal}
+          ordinal={ordinal}
+        />
       </PerfProfiler>
     )
-  }
+  }, [centeredHighlightOrdinal, lastOrdinal, messageTypeMap])
+
+  const ItemSeparator = React.useCallback(
+    ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
+      const trailingItem = separatorTrailingByLeading.get(leadingItem)
+      if (!trailingItem) return null
+      return <Separator leadingItem={trailingItem} trailingItem={leadingItem} />
+    },
+    [separatorTrailingByLeading]
+  )
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
+  const [setRecycleType] = React.useState(() => (ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
-  }
+  })
 
   const numOrdinals = messageOrdinals.length
 
