@@ -109,17 +109,22 @@ const ErrorMessage = () => {
 
 // Outer gate: minimal reads, manages visibility timer, mounts inner only when needed.
 function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
-  const {moreToLoadBack, ordinal} = Chat.useChatContext(
+  const {hasLoadedEver, moreToLoadBack, ordinal} = Chat.useChatContext(
     C.useShallow(s => ({
+      hasLoadedEver: s.messageOrdinals !== undefined,
       moreToLoadBack: s.moreToLoadBack,
       ordinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
     }))
   )
   const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
-  // When there's nothing more to load, we're at the true top — show immediately.
-  // Otherwise delay to avoid flashing "Digging ancient messages..." before content settles.
+  // Hold off until the thread has actually loaded — avoids flashing cards while initial
+  // data is in flight. Once loaded: show immediately at the true top, delay otherwise.
   const [visible, setVisible] = React.useState(false)
   React.useEffect(() => {
+    if (!hasLoadedEver) {
+      setVisible(false)
+      return
+    }
     if (loadMoreType === 'noMoreToLoad') {
       setVisible(true)
       return
@@ -128,7 +133,7 @@ function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
     if (!isOnScreen) return
     const timer = setTimeout(() => setVisible(true), 3000)
     return () => clearTimeout(timer)
-  }, [isOnScreen, loadMoreType, ordinal])
+  }, [hasLoadedEver, isOnScreen, loadMoreType, ordinal])
 
   if (!visible) return null
   return <SpecialTopMessageInner />
