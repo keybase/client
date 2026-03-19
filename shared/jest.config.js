@@ -12,6 +12,7 @@ module.exports = {
     'node',
   ],
   moduleNameMapper: {
+    '^@/logger$': '<rootDir>/test/mocks/logger.js',
     '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
     '^@/(.*)$': '<rootDir>/$1',
