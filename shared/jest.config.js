@@ -13,6 +13,8 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
+    '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'node',
