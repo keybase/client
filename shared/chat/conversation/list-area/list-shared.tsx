@@ -23,8 +23,8 @@ export const useConversationListData = () =>
       const {editing: editingOrdinal, id: conversationIDKey, messageTypeMap, ordinalIndexMap} = s
       const {messageCenterOrdinal: mco, messageOrdinals = emptyOrdinals, loaded} = s
       const centeredHighlightOrdinal =
-        mco?.highlightMode !== 'none' ? (mco.ordinal ?? T.Chat.numberToOrdinal(-1)) : T.Chat.numberToOrdinal(-1)
-      const centeredOrdinal = mco?.ordinal ?? T.Chat.numberToOrdinal(-1)
+        mco && mco.highlightMode !== 'none' ? mco.ordinal : T.Chat.numberToOrdinal(-1)
+      const centeredOrdinal = mco ? mco.ordinal : T.Chat.numberToOrdinal(-1)
       const containsLatestMessage = s.isCaughtUp()
       return {
         centeredHighlightOrdinal,
