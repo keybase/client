@@ -322,7 +322,9 @@ RCT_EXPORT_METHOD(engineReset) {
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
+  NSLog(@"notifyJSReady: called from JS, queuing main thread block");
   dispatch_async(dispatch_get_main_queue(), ^{
+    NSLog(@"notifyJSReady: main thread block executing");
     // Setup infrastructure
     [[NSNotificationCenter defaultCenter]
         addObserver:self
