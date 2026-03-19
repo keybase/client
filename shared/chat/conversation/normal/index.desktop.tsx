@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -108,4 +109,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Conversation
+const ConversationWithProfiler = () => (
+  <PerfProfiler id="Conversation">
+    <Conversation />
+  </PerfProfiler>
+)
+
+export default ConversationWithProfiler

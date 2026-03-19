@@ -3,6 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import * as T from '@/constants/types'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
@@ -749,4 +750,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ThreadWrapper
+const ThreadWrapperWithProfiler = () => (
+  <PerfProfiler id="MessageList">
+    <ThreadWrapper />
+  </PerfProfiler>
+)
+
+export default ThreadWrapperWithProfiler

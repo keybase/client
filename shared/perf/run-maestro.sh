@@ -53,82 +53,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# --- Compare mode: compare two existing baselines, no test run ---
+
+# --- Compare mode: delegate to shared compare-perf.js ---
 if [ -n "$COMPARE_A" ]; then
-  # Resolve relative to baselines/ dir if not absolute
-  if [[ "$COMPARE_A" != /* ]]; then
-    COMPARE_A="$SCRIPT_DIR/baselines/$COMPARE_A"
-  fi
-  if [[ "$COMPARE_B" != /* ]]; then
-    COMPARE_B="$SCRIPT_DIR/baselines/$COMPARE_B"
-  fi
-  if [ ! -d "$COMPARE_A" ]; then
-    echo "Error: Baseline directory not found: $COMPARE_A"
-    exit 1
-  fi
-  if [ ! -d "$COMPARE_B" ]; then
-    echo "Error: Baseline directory not found: $COMPARE_B"
-    exit 1
-  fi
-
-  A_NAME=$(basename "$COMPARE_A")
-  B_NAME=$(basename "$COMPARE_B")
-  echo "=== Comparison: $A_NAME vs $B_NAME ==="
-
-  # Compare FPS
-  if [ -f "$COMPARE_A/maestro-fps.json" ] && [ -f "$COMPARE_B/maestro-fps.json" ]; then
-    python3 -c "
-import json, sys
-with open('$COMPARE_A/maestro-fps.json') as f: old = json.load(f)
-with open('$COMPARE_B/maestro-fps.json') as f: new = json.load(f)
-for key in ['avg', 'min', 'max', 'p5']:
-    o, n = old.get('fps', old).get(key, 0), new.get('fps', new).get(key, 0)
-    if o > 0:
-        pct = (n - o) / o * 100
-        sign = '+' if pct >= 0 else ''
-        print(f'FPS {key:>4}:  {o} -> {n}  ({sign}{pct:.1f}%)')
-    else:
-        print(f'FPS {key:>4}:  {o} -> {n}')
-" 2>/dev/null || echo "(could not compare FPS data)"
-  else
-    echo "(FPS data missing from one or both baselines)"
-  fi
-
-  # Compare React Profiler
-  if [ -f "$COMPARE_A/react-profiler.json" ] && [ -f "$COMPARE_B/react-profiler.json" ]; then
-    python3 -c "
-import json
-with open('$COMPARE_A/react-profiler.json') as f: old = json.load(f)
-with open('$COMPARE_B/react-profiler.json') as f: new = json.load(f)
-for key in ['totalDurationMs', 'totalRenders']:
-    o, n = old.get(key, 0), new.get(key, 0)
-    if o > 0:
-        pct = (n - o) / o * 100
-        sign = '+' if pct >= 0 else ''
-        print(f'React {key}: {o} -> {n}  ({sign}{pct:.1f}%)')
-    else:
-        print(f'React {key}: {o} -> {n}')
-# Per-component comparison
-print()
-all_ids = sorted(set(list(old.get('components', {}).keys()) + list(new.get('components', {}).keys())))
-if all_ids:
-    print(f'{\"Component\":<25} {\"old ms\":>8} {\"new ms\":>8} {\"change\":>8}   {\"old #\":>6} {\"new #\":>6}')
-    print('-' * 80)
-    for cid in all_ids:
-        oc = old.get('components', {}).get(cid, {})
-        nc = new.get('components', {}).get(cid, {})
-        oms, nms = oc.get('totalMs', 0), nc.get('totalMs', 0)
-        ocnt = oc.get('mountCount', 0) + oc.get('updateCount', 0)
-        ncnt = nc.get('mountCount', 0) + nc.get('updateCount', 0)
-        pct = f'{(nms - oms) / oms * 100:+.0f}%' if oms > 0 else 'new'
-        print(f'{cid:<25} {oms:>8.0f} {nms:>8.0f} {pct:>8}   {ocnt:>6} {ncnt:>6}')
-" 2>/dev/null || echo "(could not compare React Profiler data)"
-  else
-    echo "(React Profiler data missing from one or both baselines)"
-  fi
-
-  echo ""
-  echo "=== Done ==="
+  node "$SCRIPT_DIR/compare-perf.js" "$COMPARE_A" "$COMPARE_B"
   exit 0
 fi
 
