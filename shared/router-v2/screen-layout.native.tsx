@@ -48,7 +48,9 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
           {modalFooter.content}
         </Kb.Box2>
       </>
-    ) : suspenseContent
+    ) : (
+      suspenseContent
+    )
 
     if (!isModal && !isLoggedOut) {
       return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
@@ -76,9 +78,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
-      tabScreen: {
-        flex: 1,
-      },
       modalFooter: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -94,5 +93,8 @@ const styles = Kb.Styles.styleSheetCreate(
           minHeight: 56,
         },
       }),
+      tabScreen: {
+        flex: 1,
+      },
     }) as const
 )
