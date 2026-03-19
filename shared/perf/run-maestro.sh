@@ -231,6 +231,25 @@ for f in react-profiler.json maestro-fps.json; do
   fi
 done
 
+# Write unified perf.json (same format as desktop for compare-perf.js)
+python3 -c "
+import json, os
+fps_file = '$BASELINE_DIR/maestro-fps.json'
+react_file = '$BASELINE_DIR/react-profiler.json'
+fps_raw = json.load(open(fps_file)) if os.path.exists(fps_file) else {}
+react = json.load(open(react_file)) if os.path.exists(react_file) else None
+fps = fps_raw.get('fps', fps_raw)
+duration_s = fps_raw.get('durationSeconds', 0)
+perf = {
+    'durationMs': duration_s * 1000,
+    'fps': fps,
+    'longTasks': None,
+    'memory': None,
+    'react': react,
+}
+json.dump(perf, open('$BASELINE_DIR/perf.json', 'w'), indent=2)
+"
+
 # Write metadata
 python3 -c "
 import json, datetime

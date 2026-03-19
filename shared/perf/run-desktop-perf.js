@@ -187,14 +187,14 @@ async function main() {
   const baselineDir = resolveBaselineDir(hash)
   fs.mkdirSync(baselineDir, {recursive: true})
 
-  fs.writeFileSync(path.join(baselineDir, 'desktop-fps.json'), JSON.stringify(median, null, 2))
+  fs.writeFileSync(path.join(baselineDir, 'perf.json'), JSON.stringify(median, null, 2))
   fs.writeFileSync(
     path.join(baselineDir, 'meta.json'),
     JSON.stringify({branch, date: new Date().toISOString(), flow: flowName, gitHash: hash, runs, script: 'run-desktop-perf.js'}, null, 2)
   )
   const relDir = path.relative(path.resolve(__dirname, '..'), baselineDir)
   console.log(`\n=== Baseline saved to ${relDir}/ ===`)
-  console.log('  desktop-fps.json  meta.json')
+  console.log('  perf.json  meta.json')
 
   await browser.close()
 }

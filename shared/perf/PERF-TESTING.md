@@ -184,8 +184,8 @@ cd shared && yarn desktop-perf-compare <hash-a> <hash-b>
 ```
 
 Baselines are saved to `shared/perf/baselines/<short-git-hash>/` (gitignored):
-- `desktop-fps.json` — median run FPS, long task, and memory data
-- `meta.json` — date, git hash, branch, run count
+- `perf.json` — median run data (FPS, long tasks, memory, React renders)
+- `meta.json` — date, git hash, branch, flow, run count
 
 ### Recommended Workflow
 
