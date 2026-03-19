@@ -151,11 +151,10 @@ const loadStartupDetails = async () => {
     neverThrowPromiseFunc(async () => {
       const linkingStart = Date.now()
       logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
-      const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 100))
-      const url = await Promise.race([Linking.getInitialURL(), timeout])
+      const url = await Linking.getInitialURL()
       const elapsed = Date.now() - linkingStart
       if (url === null) {
-        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null/timed out in ${elapsed}ms`)
+        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
       } else {
         logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
       }
