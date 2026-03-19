@@ -14,6 +14,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  setupFiles: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'node',
   testMatch: ['<rootDir>/stores/**/*.test.ts'],
   transform: {
