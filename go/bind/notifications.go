@@ -55,6 +55,8 @@ type ChatNotification struct {
 	IsPlaintext         bool
 	SoundName           string
 	BadgeCount          int
+	// Title is the notification title, e.g. "username@keybase"
+	Title string
 }
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
@@ -144,6 +146,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return err
 	}
 
+	currentUsername := string(kbCtx.Env.GetUsername())
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
@@ -156,10 +159,12 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
+		ConversationName:    utils.FormatConversationName(conv.Info, currentUsername),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
+		Title:               fmt.Sprintf("%s@keybase", currentUsername),
 	}
+	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: title=%s", chatNotification.Title)
 
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
 	if err == nil && msgUnboxed.IsValid() {
