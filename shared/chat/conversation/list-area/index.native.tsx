@@ -125,23 +125,20 @@ const ConversationList = function ConversationList() {
     for (let idx = 0; idx < messageOrdinals.length - 1; idx++) {
       const trailingItem = messageOrdinals[idx + 1]
       const leadingItem = messageOrdinals[idx]
-      if (trailingItem) {
+      if (trailingItem !== undefined && leadingItem !== undefined) {
         trailingByLeading.set(leadingItem, trailingItem)
       }
     }
     return trailingByLeading
   }, [messageOrdinals])
 
-  // Always keep a ref to the latest messageOrdinals for use in stable callbacks.
-  const messageOrdinalsRef = React.useRef(messageOrdinals)
-  messageOrdinalsRef.current = messageOrdinals
-
+  const firstOrdinal = messageOrdinals[0]
   const [isTopOnScreen, setIsTopOnScreen] = React.useState(false)
   const onViewableItemsChanged = React.useCallback(
     ({viewableItems}: {viewableItems: Array<{item: T.Chat.Ordinal}>}) => {
-      setIsTopOnScreen(viewableItems[0]?.item === messageOrdinalsRef.current[0])
+      setIsTopOnScreen(viewableItems[0]?.item === firstOrdinal)
     },
-    []
+    [firstOrdinal]
   )
 
   const insets = useSafeAreaInsets()
