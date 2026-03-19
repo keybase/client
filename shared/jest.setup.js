@@ -1,3 +1,8 @@
+const {enableMapSet, setUseStrictIteration} = require('immer')
+
+enableMapSet()
+setUseStrictIteration(false)
+
 global.__DEV__ = false
 global.__FILE_SUFFIX__ = '.desktop'
 global.__HOT__ = false
