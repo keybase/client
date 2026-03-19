@@ -29,15 +29,6 @@ export const DEBUGDump = () => {}
 // Stable empty array so we never create a new reference when ordinals are absent
 const emptyOrdinals: Array<T.Chat.Ordinal> = []
 
-// Sentinel ordinal for SpecialTopMessage rendered as a regular list item so
-// LegendList can track its size changes and maintain scroll position correctly.
-const SPECIAL_TOP_ORDINAL = T.Chat.numberToOrdinal(-2)
-
-// 1px stable anchor at list index 0 so maintainVisibleContentPosition
-// anchors to a fixed item. SPECIAL_TOP changes height dynamically; if it were
-// the anchor, its own height changes would corrupt the offset compensation.
-const STABLE_ANCHOR_ORDINAL = T.Chat.numberToOrdinal(-3)
-
 // LegendList passes leadingItem=older message, but Separator.tsx on mobile uses leadingItem
 // as the ordinal for showUsernameMap, which is keyed by the newer (upper) message.
 // Defined outside ConversationList so React sees a stable component type across renders.
@@ -45,8 +36,6 @@ const ItemSeparator = ({leadingItem}: {leadingItem: T.Chat.Ordinal}) => {
   const {ordinalIndexMap, messageOrdinals} = Chat.useChatContext(
     C.useShallow(s => ({messageOrdinals: s.messageOrdinals, ordinalIndexMap: s.ordinalIndexMap}))
   )
-  // SpecialTopMessage renders its own separator at its bottom edge.
-  if (leadingItem === SPECIAL_TOP_ORDINAL || leadingItem === STABLE_ANCHOR_ORDINAL) return null
   const idx = ordinalIndexMap.get(leadingItem) ?? -1
   const trailingItem = messageOrdinals?.[idx + 1]
   if (!trailingItem) return null
@@ -138,15 +127,16 @@ const ConversationList = function ConversationList() {
   )
 
   const messageOrdinals = _messageOrdinals ?? emptyOrdinals
-  const data = React.useMemo(
-    () => [STABLE_ANCHOR_ORDINAL, SPECIAL_TOP_ORDINAL, ...(messageOrdinals as Array<T.Chat.Ordinal>)],
-    [messageOrdinals]
-  )
+  const data = messageOrdinals as Array<T.Chat.Ordinal>
+
+  // Always keep a ref to the latest messageOrdinals for use in stable callbacks.
+  const messageOrdinalsRef = React.useRef(messageOrdinals)
+  messageOrdinalsRef.current = messageOrdinals
 
   const [isTopOnScreen, setIsTopOnScreen] = React.useState(false)
   const onViewableItemsChanged = React.useCallback(
     ({viewableItems}: {viewableItems: Array<{item: T.Chat.Ordinal}>}) => {
-      setIsTopOnScreen(viewableItems.some(vt => vt.item === SPECIAL_TOP_ORDINAL))
+      setIsTopOnScreen(viewableItems[0]?.item === messageOrdinalsRef.current[0])
     },
     []
   )
@@ -156,12 +146,6 @@ const ConversationList = function ConversationList() {
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
 
   const renderItem = ({item: ordinal}: {item: T.Chat.Ordinal}) => {
-    if (ordinal === STABLE_ANCHOR_ORDINAL) {
-      return <Kb.Box2 direction="vertical" style={{height: 1}} />
-    }
-    if (ordinal === SPECIAL_TOP_ORDINAL) {
-      return <SpecialTopMessage isOnScreen={isTopOnScreen} />
-    }
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
@@ -180,12 +164,6 @@ const ConversationList = function ConversationList() {
   const numOrdinals = messageOrdinals.length
 
   const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
-    if (ordinal === STABLE_ANCHOR_ORDINAL) {
-      return 'stable-anchor'
-    }
-    if (ordinal === SPECIAL_TOP_ORDINAL) {
-      return 'special-top'
-    }
     if (!ordinal) {
       return 'null'
     }
@@ -194,8 +172,7 @@ const ConversationList = function ConversationList() {
     if (recycled) return recycled
     const baseType = messageTypeMap.get(ordinal) ?? 'text'
     // Last item is most-recently sent; isolate it to avoid recycling with settled messages
-    // +2 because STABLE_ANCHOR_ORDINAL and SPECIAL_TOP_ORDINAL are at indices 0 and 1.
-    if (numOrdinals + 1 === idx && (baseType === 'text' || baseType === 'attachment')) {
+    if (numOrdinals - 1 === idx && (baseType === 'text' || baseType === 'attachment')) {
       return `${baseType}:pending`
     }
     return baseType
@@ -277,12 +254,10 @@ const ConversationList = function ConversationList() {
         <PerfProfiler id="MessageList">
           <KeyboardAvoidingLegendList
             testID="messageList"
-            extraData={React.useMemo(
-              () => ({isTopOnScreen, messageTypeMap}),
-              [isTopOnScreen, messageTypeMap]
-            )}
+            extraData={messageTypeMap}
             onViewableItemsChanged={onViewableItemsChanged}
             estimatedItemSize={80}
+            ListHeaderComponent={<SpecialTopMessage isOnScreen={isTopOnScreen} />}
             ListFooterComponent={SpecialBottomMessage}
             overScrollMode="never"
             contentInset={{bottom: mobileTypingContainerHeight}}

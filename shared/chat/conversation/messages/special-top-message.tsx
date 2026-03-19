@@ -107,7 +107,34 @@ const ErrorMessage = () => {
   )
 }
 
+// Outer gate: minimal reads, manages visibility timer, mounts inner only when needed.
 function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
+  const {moreToLoadBack, ordinal} = Chat.useChatContext(
+    C.useShallow(s => ({
+      moreToLoadBack: s.moreToLoadBack,
+      ordinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
+    }))
+  )
+  const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
+  // When there's nothing more to load, we're at the true top — show immediately.
+  // Otherwise delay to avoid flashing "Digging ancient messages..." before content settles.
+  const [visible, setVisible] = React.useState(false)
+  React.useEffect(() => {
+    if (loadMoreType === 'noMoreToLoad') {
+      setVisible(true)
+      return
+    }
+    setVisible(false)
+    if (!isOnScreen) return
+    const timer = setTimeout(() => setVisible(true), 3000)
+    return () => clearTimeout(timer)
+  }, [isOnScreen, loadMoreType, ordinal])
+
+  if (!visible) return null
+  return <SpecialTopMessageInner />
+}
+
+function SpecialTopMessageInner() {
   const username = useCurrentUserState(s => s.username)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -123,7 +150,6 @@ function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
           : s.id === Chat.pendingErrorConversationIDKey
             ? 'error'
             : 'done'
-
       const partAll = s.participants.all
       const partNum = partAll.length
       const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
@@ -149,25 +175,10 @@ function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
   )
   const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
   const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
-  // When there's nothing more to load, we're at the true top — show immediately.
-  // Otherwise delay to avoid flashing "Digging ancient messages..." before content settles.
-  const [visible, setVisible] = React.useState(false)
-  React.useEffect(() => {
-    if (loadMoreType === 'noMoreToLoad') {
-      setVisible(true)
-      return
-    }
-    setVisible(false)
-    if (!isOnScreen) return
-    const timer = setTimeout(() => setVisible(true), 3000)
-    return () => clearTimeout(timer)
-  }, [isOnScreen, loadMoreType, ordinal])
 
   const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
   }
-
-  if (!visible) return null
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
