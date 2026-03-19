@@ -387,7 +387,7 @@ const messageIDToOrdinal = (
   indexed?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>
 ) => {
   const indexedOrdinal = indexed?.get(messageID)
-  if (indexedOrdinal && map.get(indexedOrdinal)?.id === messageID) {
+  if (indexedOrdinal !== undefined && map.get(indexedOrdinal)?.id === messageID) {
     return indexedOrdinal
   }
 
@@ -397,16 +397,13 @@ const messageIDToOrdinal = (
     return m.ordinal
   }
   // Search through our sent messages
-  const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
-    m = map.get(o)
-    if (m?.id !== 0 && m?.id === messageID) {
-      return true
+  if (pendingOutboxToOrdinal) {
+    for (const ordinal of pendingOutboxToOrdinal.values()) {
+      m = map.get(ordinal)
+      if (m?.id !== 0 && m?.id === messageID) {
+        return ordinal
+      }
     }
-    return false
-  })
-
-  if (pendingOrdinal) {
-    return pendingOrdinal
   }
 
   return null
@@ -2343,7 +2340,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         ordinals = [],
         upToMessageID = null,
       } = p
-      const {messageIDToOrdinal: indexedLookup, pendingOutboxToOrdinal, messageMap} = get()
+      const state = get()
+      const {messageMap} = state
 
       let upToOrdinals: Array<T.Chat.Ordinal> = []
       if (upToMessageID) {
@@ -2358,7 +2356,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       const allOrdinals = new Set([
         ...ordinals,
         ...messageIDs.flatMap(id => {
-          const o = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, id, indexedLookup)
+          const o = maybeGetOrdinalByMessageID(state, id)
           return o ? [o] : []
         }),
         ...upToOrdinals,
