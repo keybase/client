@@ -1,3 +1,17 @@
+/*
+ * Baseline convo-state copy used for side-by-side comparison tests.
+ *
+ * When we are not actively testing divergence against the refactored store,
+ * this file can be replaced with a straight re-export of `./convostate`:
+ *
+ *   export * from './convostate'
+ *
+ * To do that safely:
+ * 1. Delete the copied implementation below.
+ * 2. Replace it with the single export line above.
+ * 3. Restore the copied baseline before resuming side-by-side comparison work.
+ */
+
 // TODO remove useChatNavigateAppend
 // TODO remove
 import * as TeamsUtil from '@/constants/teams'
@@ -124,7 +138,6 @@ type ConvoStore = T.Immutable<{
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
-  messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
@@ -167,7 +180,6 @@ const initialConvoStore: ConvoStore = {
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
   messageCenterOrdinal: undefined,
-  messageIDToOrdinal: new Map(),
   messageMap: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
@@ -383,14 +395,8 @@ const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
 const messageIDToOrdinal = (
   map: ConvoState['messageMap'],
   pendingOutboxToOrdinal: ConvoState['pendingOutboxToOrdinal'] | undefined,
-  messageID: T.Chat.MessageID,
-  indexed?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>
+  messageID: T.Chat.MessageID
 ) => {
-  const indexedOrdinal = indexed?.get(messageID)
-  if (indexedOrdinal && map.get(indexedOrdinal)?.id === messageID) {
-    return indexedOrdinal
-  }
-
   // A message we didn't send in this session?
   let m = map.get(T.Chat.numberToOrdinal(messageID))
   if (m?.id !== 0 && m?.id === messageID) {
@@ -462,17 +468,15 @@ let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
 export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
   convoDeferImpl = impl
   if (__DEV__) globalThis.__hmr_convoDeferImpl = impl
-  for (const stores of [chatStores, shadowChatStores] as const) {
-    for (const store of stores.values()) {
-      const s = store.getState()
-      store.setState({
-        ...s,
-        dispatch: {
-          ...s.dispatch,
-          defer: impl,
-        },
-      })
-    }
+  for (const store of chatStores.values()) {
+    const s = store.getState()
+    store.setState({
+      ...s,
+      dispatch: {
+        ...s.dispatch,
+        defer: impl,
+      },
+    })
   }
 }
 
@@ -608,47 +612,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     return keys.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
   }
 
-  const clearPendingOutboxForOrdinal = (
-    state: Z.WritableDraft<ConvoState>,
-    ordinal: T.Chat.Ordinal,
-    knownMessage?: T.Chat.Message
-  ) => {
-    const message = knownMessage ?? state.messageMap.get(ordinal)
-    const outboxID = message?.outboxID
-    if (outboxID) {
-      state.pendingOutboxToOrdinal.delete(outboxID)
-    }
-  }
-
-  const clearMessageIndexesForOrdinal = (
-    state: Z.WritableDraft<ConvoState>,
-    ordinal: T.Chat.Ordinal,
-    knownMessage?: T.Chat.Message
-  ) => {
-    const message = knownMessage ?? state.messageMap.get(ordinal)
-    if (message?.id) {
-      state.messageIDToOrdinal.delete(message.id)
-    }
-    clearPendingOutboxForOrdinal(state, ordinal, message)
-  }
-
-  const indexMessage = (state: Z.WritableDraft<ConvoState>, ordinal: T.Chat.Ordinal, message: T.Chat.Message) => {
-    if (message.id) {
-      state.messageIDToOrdinal.set(message.id, ordinal)
-    }
-  }
-
-  const maybeGetOrdinalByMessageID = (
-    state: Pick<ConvoState, 'messageIDToOrdinal' | 'messageMap' | 'pendingOutboxToOrdinal'>,
-    messageID: T.Chat.MessageID
-  ) =>
-    messageIDToOrdinal(
-      state.messageMap,
-      state.pendingOutboxToOrdinal,
-      messageID,
-      state.messageIDToOrdinal
-    )
-
   const syncSeparatorMap = (s: Z.WritableDraft<ConvoState>) => {
     const you = useCurrentUserState.getState().username
     const mo = s.messageOrdinals ?? []
@@ -768,7 +731,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         const regularMessage = m.conversationMessage !== false
 
         if (regularMessage && m.type === 'deleted') {
-          clearMessageIndexesForOrdinal(s, m.ordinal)
           s.messageMap.delete(m.ordinal)
           s.messageTypeMap.delete(m.ordinal)
         } else {
@@ -801,22 +763,14 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
           const existingMsg = s.messageMap.get(mapOrdinal)
           if (existingMsg?.type === m.type) {
-            if (existingMsg.id && existingMsg.id !== m.id) {
-              s.messageIDToOrdinal.delete(existingMsg.id)
-            }
             mergeMessage(existingMsg, m)
-            indexMessage(s, mapOrdinal, existingMsg)
             if (m.type !== 'text') {
               s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
             }
             continue
           }
 
-          if (existingMsg) {
-            clearMessageIndexesForOrdinal(s, mapOrdinal, existingMsg)
-          }
           s.messageMap.set(mapOrdinal, T.castDraft(m))
-          indexMessage(s, mapOrdinal, m)
           if (
             regularMessage &&
             m.outboxID &&
@@ -855,7 +809,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       if (validatedRange) {
         for (const o of existing) {
           if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-            clearMessageIndexesForOrdinal(s, o)
             existing.delete(o)
             s.messageMap.delete(o)
             s.messageTypeMap.delete(o)
@@ -1078,7 +1031,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 
   const onDownloadComplete = (msgID: number) => {
-    const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(msgID))
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(msgID)
+    )
     if (!ordinal) {
       logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
       return
@@ -1099,7 +1056,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const onDownloadProgress = (msgID: number, bytesComplete: number, bytesTotal: number) => {
     const ratio = bytesComplete / bytesTotal
     updateAttachmentViewTransfer(msgID, ratio)
-    const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(msgID))
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(msgID)
+    )
     if (!ordinal) {
       logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
       return
@@ -1213,7 +1174,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     const existing = get().messageMap.get(toDelOrdinal)
     if (existing) {
       set(s => {
-        clearMessageIndexesForOrdinal(s, toDelOrdinal, existing)
         s.messageMap.delete(toDelOrdinal)
         s.messageTypeMap.delete(toDelOrdinal)
         if (s.messageOrdinals) {
@@ -1245,8 +1205,9 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           const messageIDs = T.Chat.numbersToMessageIDs(d.messageIDs)
           const messages = get().messageMap
           const isExplodeNow = messageIDs.some(id => {
-            const ordinal = maybeGetOrdinalByMessageID(get(), id)
-            const message = ordinal ? messages.get(ordinal) : undefined
+            const message =
+              messages.get(T.Chat.numberToOrdinal(id)) ??
+              [...messages.values()].find(msg => T.Chat.numberToMessageID(msg.id) === id)
             if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
               return true
             }
@@ -1267,7 +1228,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 
   const onAttachmentEdit = (placeholderID: number, message: Z.WritableDraft<T.Chat.MessageAttachment>) => {
-    const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(placeholderID))
+    const ordinal = messageIDToOrdinal(
+      get().messageMap,
+      get().pendingOutboxToOrdinal,
+      T.Chat.numberToMessageID(placeholderID)
+    )
     const existing = ordinal ? get().messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
       // keep this
@@ -2321,7 +2286,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
         s.loaded = false
-        s.messageIDToOrdinal.clear()
         s.messageMap.clear()
         s.messageOrdinals = undefined
         s.messageTypeMap.clear()
@@ -2333,7 +2297,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       set(s => {
         messageIDs.forEach(mid => {
-          const ordinal = maybeGetOrdinalByMessageID(s, mid)
+          const ordinal = messageIDToOrdinal(s.messageMap, s.pendingOutboxToOrdinal, mid)
           const m = ordinal && s.messageMap.get(ordinal)
           if (!m) return
           m.exploded = true
@@ -2356,7 +2320,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         ordinals = [],
         upToMessageID = null,
       } = p
-      const {messageIDToOrdinal: indexedLookup, pendingOutboxToOrdinal, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
 
       let upToOrdinals: Array<T.Chat.Ordinal> = []
       if (upToMessageID) {
@@ -2371,7 +2335,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       const allOrdinals = new Set([
         ...ordinals,
         ...messageIDs.flatMap(id => {
-          const o = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, id, indexedLookup)
+          const o = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, id)
           return o ? [o] : []
         }),
         ...upToOrdinals,
@@ -2379,7 +2343,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
       set(s => {
         allOrdinals.forEach(ordinal => {
-          clearMessageIndexesForOrdinal(s, ordinal)
           s.messageMap.delete(ordinal)
           s.messageTypeMap.delete(ordinal)
         })
@@ -2999,13 +2962,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           }
           try {
             await new Promise<void>(resolve => {
-              let settled = false
-              const done = () => {
-                if (!settled) {
-                  settled = true
-                  resolve()
-                }
-              }
               const onGotThread = (p: string) => {
                 try {
                   const d = JSON.parse(p) as undefined | {messages?: Array<{valid?: {messageID?: unknown}}>}
@@ -3013,10 +2969,8 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
                   if (typeof m === 'number') {
                     msgID = T.Chat.numberToMessageID(m)
                   }
-                  done()
-                } catch {
-                  done()
-                }
+                  resolve()
+                } catch {}
               }
               T.RPCChat.localGetThreadNonblockRpcListener({
                 incomingCallMap: {
@@ -3041,11 +2995,9 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
                   reason: reasonToRPCReason(''),
                 },
               })
-                .then(() => {
-                  done()
-                })
+                .then(() => {})
                 .catch(() => {
-                  done()
+                  resolve()
                 })
             })
           } catch {}
@@ -3453,7 +3405,11 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       for (const u of updates) {
         const reactions = u.reactions
         const targetMsgID = u.targetMsgID
-        const targetOrdinal = maybeGetOrdinalByMessageID(get(), u.targetMsgID)
+        const targetOrdinal = messageIDToOrdinal(
+          get().messageMap,
+          get().pendingOutboxToOrdinal,
+          u.targetMsgID
+        )
         if (!targetOrdinal) {
           logger.info(
             `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
@@ -3528,176 +3484,13 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 }
 
-const normalizeForComparison = (value: unknown): unknown => {
-  if (value instanceof HiddenString) {
-    return value.stringValue()
-  }
-  if (value instanceof Map) {
-    return [...value.entries()]
-      .map(([k, v]) => [normalizeForComparison(k), normalizeForComparison(v)] as const)
-      .sort((l, r) => JSON.stringify(l[0]).localeCompare(JSON.stringify(r[0])))
-  }
-  if (value instanceof Set) {
-    return [...value.values()]
-      .map(v => normalizeForComparison(v))
-      .sort((l, r) => JSON.stringify(l).localeCompare(JSON.stringify(r)))
-  }
-  if (value instanceof Uint8Array) {
-    return [...value]
-  }
-  if (Array.isArray(value)) {
-    return value.map(item => normalizeForComparison(item))
-  }
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>
-    return Object.fromEntries(
-      Object.keys(record)
-        .filter(key => typeof record[key] !== 'function')
-        .sort()
-        .map(key => [key, normalizeForComparison(record[key])])
-    )
-  }
-  return value
-}
-
-const projectConvoStateForComparison = (state: {
-  dispatch: unknown
-  getConvID: unknown
-  isCaughtUp: unknown
-  isMetaGood: unknown
-  [key: string]: unknown
-}) => {
-  const {dispatch, getConvID, isCaughtUp, isMetaGood, ...rest} = state
-  delete rest.messageIDToOrdinal
-  return normalizeForComparison(rest)
-}
-
-const compareConvoStates = (
-  id: T.Chat.ConversationIDKey,
-  reason: string,
-  primary: ConvoState,
-  shadow: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  }
-) => {
-  const left = projectConvoStateForComparison(primary)
-  const right = projectConvoStateForComparison(shadow)
-  if (!isEqual(left, right)) {
-    logger.warn(`Convo shadow mismatch for ${id} after ${reason}`)
-    logger.warn(JSON.stringify({id, left, reason, right}))
-  }
-}
-
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-const wrappedPrimaryStores = new WeakSet<object>()
-type ComparableStore = UseBoundStore<StoreApi<any>>
-
-let convoShadowEnabled: boolean = __DEV__ ? Boolean((globalThis as any).__hmr_convoShadowEnabled) : false
-
-export const setConvoStateShadowEnabled = (enabled: boolean) => {
-  convoShadowEnabled = enabled
-  if (__DEV__) {
-    ;(globalThis as any).__hmr_convoShadowEnabled = enabled
-  }
-  if (!enabled) {
-    shadowChatStores.clear()
-  }
-}
-
-export const getConvoStateShadowEnabled = () => convoShadowEnabled
-
 export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
   ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
   : new Map()
 
-const shadowChatStores: Map<T.Chat.ConversationIDKey, ComparableStore> = __DEV__
-  ? (((globalThis as any).__hmr_shadowChatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, ComparableStore>)
-  : new Map()
-
-const getShadowConvoStore = (id: T.Chat.ConversationIDKey) => {
-  const existing = shadowChatStores.get(id)
-  if (existing) return existing
-  const base = require('./convostate.base') as {
-    createConvoStoreForTesting: (id: T.Chat.ConversationIDKey) => ComparableStore
-    setConvoDefer?: (impl: ConvoState['dispatch']['defer']) => void
-  }
-  if (convoDeferImpl && base.setConvoDefer) {
-    base.setConvoDefer(convoDeferImpl)
-  }
-  const next = base.createConvoStoreForTesting(id)
-  shadowChatStores.set(id, next)
-  return next
-}
-
-const settleCompare = (result: unknown) =>
-  result instanceof Promise
-    ? result.then(
-        () => undefined,
-        () => undefined
-      )
-    : Promise.resolve()
-
-const shadowComparableDispatches = new Set<keyof ConvoState['dispatch']>([
-  'messagesClear',
-  'messagesExploded',
-  'messagesWereDeleted',
-  'setMarkAsUnread',
-  'updateReactions',
-])
-
-const wrapPrimaryDispatches = (id: T.Chat.ConversationIDKey, store: MadeStore) => {
-  if (!__DEV__ || wrappedPrimaryStores.has(store)) return
-  wrappedPrimaryStores.add(store)
-  let actionDepth = 0
-  const dispatch = store.getState().dispatch as Record<string, unknown>
-  for (const [name, value] of Object.entries(dispatch)) {
-    if (typeof value !== 'function' || !shadowComparableDispatches.has(name as keyof ConvoState['dispatch'])) {
-      continue
-    }
-    const orig = value as (...args: Array<unknown>) => unknown
-    const wrapped = (...args: Array<unknown>) => {
-      const isTopLevel = actionDepth === 0
-      actionDepth += 1
-      let primaryResult: unknown
-      try {
-        primaryResult = orig(...args)
-      } finally {
-        actionDepth -= 1
-      }
-
-      if (isTopLevel && convoShadowEnabled) {
-        const shadow = getShadowConvoStore(id)
-        const shadowDispatch = shadow.getState().dispatch as Record<string, unknown>
-        const shadowValue = shadowDispatch[name]
-        let shadowResult: unknown
-        try {
-          if (typeof shadowValue === 'function') {
-            shadowResult = shadowValue(...args)
-          }
-        } catch (error) {
-          logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
-        }
-        ignorePromise(
-          Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then(() => {
-            compareConvoStates(id, name, store.getState(), shadow.getState())
-          })
-        )
-      }
-
-      return primaryResult
-    }
-    Object.assign(wrapped, orig)
-    dispatch[name] = wrapped
-  }
-}
-
 export const clearChatStores = () => {
   chatStores.clear()
-  shadowChatStores.clear()
 }
 
 registerDebugClear(() => {
@@ -3710,7 +3503,6 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const next = Z.createZustand<ConvoState>(createSlice())
   next.setState({id})
   chatStores.set(id, next)
-  wrapPrimaryDispatches(id, next)
   return next
 }
 
@@ -3719,24 +3511,6 @@ export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
   next.setState({id})
   return next
 }
-
-export const compareConvoStoreStatesForTesting = (
-  left: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  },
-  right: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  }
-) =>
-  isEqual(projectConvoStateForComparison(left), projectConvoStateForComparison(right))
 
 // debug only
 export function hasConvoState(id: T.Chat.ConversationIDKey) {
