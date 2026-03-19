@@ -608,19 +608,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     return keys.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
   }
 
-  const clearPendingOutboxForOrdinal = (
-    state: Z.WritableDraft<ConvoState>,
-    ordinal: T.Chat.Ordinal,
-    knownMessage?: T.Chat.Message
-  ) => {
-    const message = knownMessage ?? state.messageMap.get(ordinal)
-    const outboxID = message?.outboxID
-    if (outboxID) {
-      state.pendingOutboxToOrdinal.delete(outboxID)
-    }
-  }
-
-  const clearMessageIndexesForOrdinal = (
+  const clearMessageIDIndexForOrdinal = (
     state: Z.WritableDraft<ConvoState>,
     ordinal: T.Chat.Ordinal,
     knownMessage?: T.Chat.Message
@@ -629,7 +617,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     if (message?.id) {
       state.messageIDToOrdinal.delete(message.id)
     }
-    clearPendingOutboxForOrdinal(state, ordinal, message)
   }
 
   const indexMessage = (state: Z.WritableDraft<ConvoState>, ordinal: T.Chat.Ordinal, message: T.Chat.Message) => {
@@ -768,7 +755,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
         const regularMessage = m.conversationMessage !== false
 
         if (regularMessage && m.type === 'deleted') {
-          clearMessageIndexesForOrdinal(s, m.ordinal)
+            clearMessageIDIndexForOrdinal(s, m.ordinal)
           s.messageMap.delete(m.ordinal)
           s.messageTypeMap.delete(m.ordinal)
         } else {
@@ -813,7 +800,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           }
 
           if (existingMsg) {
-            clearMessageIndexesForOrdinal(s, mapOrdinal, existingMsg)
+            clearMessageIDIndexForOrdinal(s, mapOrdinal, existingMsg)
           }
           s.messageMap.set(mapOrdinal, T.castDraft(m))
           indexMessage(s, mapOrdinal, m)
@@ -855,7 +842,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       if (validatedRange) {
         for (const o of existing) {
           if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-            clearMessageIndexesForOrdinal(s, o)
+            clearMessageIDIndexForOrdinal(s, o)
             existing.delete(o)
             s.messageMap.delete(o)
             s.messageTypeMap.delete(o)
@@ -1213,7 +1200,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     const existing = get().messageMap.get(toDelOrdinal)
     if (existing) {
       set(s => {
-        clearMessageIndexesForOrdinal(s, toDelOrdinal, existing)
+        clearMessageIDIndexForOrdinal(s, toDelOrdinal, existing)
         s.messageMap.delete(toDelOrdinal)
         s.messageTypeMap.delete(toDelOrdinal)
         if (s.messageOrdinals) {
@@ -2379,7 +2366,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
 
       set(s => {
         allOrdinals.forEach(ordinal => {
-          clearMessageIndexesForOrdinal(s, ordinal)
+          clearMessageIDIndexForOrdinal(s, ordinal)
           s.messageMap.delete(ordinal)
           s.messageTypeMap.delete(ordinal)
         })

@@ -96,15 +96,16 @@ test('reaction updates preserve outbox-anchored row identity', () => {
   expect(indexed.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
 })
 
-test('message deletion clears row and both lookup anchors', () => {
+test('message deletion matches baseline row removal behavior', () => {
   const {baseline, indexed} = seedPairWithAnchoredMessage()
   baseline.getState().dispatch.messagesWereDeleted({messageIDs: [msgID]})
   indexed.getState().dispatch.messagesWereDeleted({messageIDs: [msgID]})
   assertEquivalent(baseline.getState(), indexed.getState())
   expect(baseline.getState().messageMap.has(ordinal)).toBe(false)
   expect(indexed.getState().messageMap.has(ordinal)).toBe(false)
-  expect(baseline.getState().pendingOutboxToOrdinal.has(outboxID)).toBe(false)
-  expect(indexed.getState().pendingOutboxToOrdinal.has(outboxID)).toBe(false)
+  expect(baseline.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
+  expect(indexed.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
+  expect(indexed.getState().messageIDToOrdinal.has(msgID)).toBe(false)
 })
 
 test('explode-now updates remain equivalent across implementations', () => {
