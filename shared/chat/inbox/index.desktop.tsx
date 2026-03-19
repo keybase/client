@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {PerfProfiler} from '@/perf/react-profiler'
 import {
   type RowItem,
   type ViewableItemsData,
@@ -397,4 +398,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Inbox
+const InboxWithProfiler = (props: InboxProps) => (
+  <PerfProfiler id="Inbox">
+    <Inbox {...props} />
+  </PerfProfiler>
+)
+
+export default InboxWithProfiler

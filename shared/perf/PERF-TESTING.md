@@ -162,12 +162,67 @@ Shared subflows live in `shared/.maestro/subflows/` (e.g. `navigate-to-chat.yaml
 
 ### Prerequisites
 
-- App running with remote debugging: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
-- Playwright MCP configured to connect via CDP on port 9222
+- App running with remote debugging: `yarn start-hot-debug`
+- `playwright-core` installed globally: `yarn global add playwright-core`
 
-### Quick Workflow (Playwright MCP + Claude)
+### Automated Thread Scroll Test
 
-1. Start the app: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+Equivalent to `yarn maestro-test-perf-thread` for desktop. Navigates to chat, opens the first conversation, scrolls the message list, and reports FPS + long task metrics.
+
+```bash
+# Capture (default 3 runs, picks median, saves baseline automatically)
+cd shared && yarn desktop-perf-thread
+
+# Single run (faster)
+cd shared && yarn desktop-perf-thread --runs 1
+
+# Skip auto-navigation (if you already have a thread open)
+cd shared && yarn desktop-perf-thread --no-navigate
+
+# Compare two saved baselines (no app connection needed)
+cd shared && yarn desktop-perf-compare <hash-a> <hash-b>
+```
+
+Baselines are saved to `shared/perf/baselines/<short-git-hash>/` (gitignored):
+- `perf.json` — median run data (FPS, long tasks, memory, React renders)
+- `meta.json` — date, git hash, branch, flow, run count
+
+### Recommended Workflow
+
+1. Check out the base branch, run capture:
+   ```bash
+   git checkout master
+   cd shared && yarn desktop-perf-thread
+   ```
+   Note the saved baseline hash from the output.
+2. Switch to your feature branch, run capture again:
+   ```bash
+   git checkout my-feature-branch
+   cd shared && yarn desktop-perf-thread
+   ```
+3. Compare:
+   ```bash
+   cd shared && yarn desktop-perf-compare <base-hash> <feature-hash>
+   ```
+
+Comparison output:
+```
+=== Comparison: abc1234 vs def5678 ===
+Metric        abc1234   def5678   Change
+------------  --------  --------  ------
+FPS avg       52        58        +11.5%
+FPS p5        38        48        +26.3%
+FPS min       30        38        +26.7%
+Long tasks    5         2         -60.0%
+Long task ms  340       130       -61.8%
+Memory start  210MB     210MB
+Memory peak   225MB     218MB
+Memory end    215MB     212MB
+```
+
+### Manual Workflow (Playwright MCP + Claude)
+
+1. Start the app: `yarn start-hot-debug` (requires Playwright MCP configured)
 2. In Claude, close the DevTools tab (`browser_tabs` action=close index=0) and select the app tab
 3. Navigate to the target page via snapshot + click
 4. Read and inject the perf measurement script:
@@ -307,7 +362,7 @@ Pixel-level comparison of all 8 desktop app tabs between branches to catch visua
 
 ### Prerequisites
 
-- App running with remote debugging: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+- App running with remote debugging: `yarn start-hot-debug`
 - ImageMagick installed: `brew install imagemagick`
 
 ### Workflow
@@ -317,7 +372,7 @@ Pixel-level comparison of all 8 desktop app tabs between branches to catch visua
 ```bash
 # 1. Check out base branch, start app, take baseline screenshots
 git checkout nojima/HOTPOT-next-670-clean
-# (start app with KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot)
+# (start app with yarn start-hot-debug)
 cd shared && node perf/visual-diff-take.js baseline
 
 # 2. Check out feature branch, rebuild, take current screenshots
@@ -331,7 +386,7 @@ cd shared && ./perf/visual-diff-compare.sh
 
 #### Option B: Using Playwright MCP + Claude
 
-1. Start the app: `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+1. Start the app: `yarn start-hot-debug`
 2. In Claude, close DevTools tab and select the app tab
 3. Navigate to each tab and take screenshots:
    - Save baseline set to `/tmp/visual-diff/baseline/`

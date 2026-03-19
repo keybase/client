@@ -71,7 +71,10 @@
     "maestro-test": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh",
     "maestro-test-perf-inbox": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-inbox-scroll.yaml",
     "maestro-test-perf-teams": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-teams-scroll.yaml",
-    "maestro-test-perf-thread": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-thread-scroll.yaml"
+    "maestro-test-perf-thread": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-thread-scroll.yaml",
+    "desktop-perf-thread": "node perf/run-desktop-perf.js --flow thread",
+    "desktop-perf-inbox": "node perf/run-desktop-perf.js --flow inbox",
+    "desktop-perf-compare": "node perf/compare-perf.js"
   },
   "keywords": [],
   "author": "",
