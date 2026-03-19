@@ -13,8 +13,8 @@ appId: keybase.ios
       - swipe:
           id: 'messageList'
           direction: DOWN
-          duration: 400
-          waitToSettleTimeoutMs: 50
+          duration: 50
+          waitToSettleTimeoutMs: 1
 
 # Press Home to trigger app background → flushes profiler data
 - pressKey: Home
