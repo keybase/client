@@ -1,5 +1,16 @@
 module.exports = {
-  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  moduleFileExtensions: [
+    'desktop.tsx',
+    'desktop.ts',
+    'desktop.jsx',
+    'desktop.js',
+    'tsx',
+    'ts',
+    'jsx',
+    'js',
+    'json',
+    'node',
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
