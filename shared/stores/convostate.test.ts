@@ -3,12 +3,28 @@ import * as Message from '../constants/chat/message'
 import * as T from '../constants/types'
 import HiddenString from '../util/hidden-string'
 import {useCurrentUserState} from './current-user'
-import {
-  compareConvoStoreStatesForTesting,
-  createConvoStoreForTesting,
-  type ConvoState,
-} from './convostate'
-import {createConvoStoreForTesting as createBaseConvoStoreForTesting} from './convostate.base'
+import {createConvoStoreForTesting, type ConvoState} from './convostate'
+
+/*
+ * Differential test example for future refactors:
+ *
+ * import {
+ *   compareConvoStoreStatesForTesting,
+ *   createConvoStoreForTesting,
+ * } from './convostate'
+ * import {createConvoStoreForTesting as createBaseConvoStoreForTesting} from './convostate.base'
+ *
+ * test('base and refactor stay equivalent', () => {
+ *   const base = createBaseConvoStoreForTesting(convID)
+ *   const next = createConvoStoreForTesting(convID)
+ *   // seed both stores, drive the same actions, then compare:
+ *   expect(compareConvoStoreStatesForTesting(base.getState(), next.getState())).toBe(true)
+ * })
+ *
+ * `convostate.base.tsx` currently re-exports `./convostate`. When we want real
+ * side-by-side validation again, replace that file with a copied baseline
+ * implementation that preserves the same testing exports.
+ */
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
@@ -122,14 +138,10 @@ const applyState = (
   })
 }
 
-const createPair = () => {
-  const baseline = createBaseConvoStoreForTesting(convID)
-  const indexed = createConvoStoreForTesting(convID)
-  return {baseline, indexed}
-}
+const createStore = () => createConvoStoreForTesting(convID)
 
-const seedPairWithAnchoredMessage = () => {
-  const {baseline, indexed} = createPair()
+const seedStoreWithAnchoredMessage = () => {
+  const store = createStore()
   const message = makeTextMessage()
   const baseState: Partial<ConvoState> = {
     loaded: true,
@@ -142,69 +154,47 @@ const seedPairWithAnchoredMessage = () => {
     separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[ordinal, 'alice']]),
   }
-  applyState(baseline, baseState)
-  applyState(indexed, {
+  applyState(store, {
     ...baseState,
     messageIDToOrdinal: new Map([[msgID, ordinal]]),
   })
-  return {baseline, indexed}
-}
-
-const assertEquivalent = (left: Record<string, unknown>, right: Record<string, unknown>) => {
-  expect(compareConvoStoreStatesForTesting(left, right)).toBe(true)
+  return store
 }
 
 test('reaction updates preserve outbox-anchored row identity', () => {
-  const {baseline, indexed} = seedPairWithAnchoredMessage()
+  const store = seedStoreWithAnchoredMessage()
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
-  baseline.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
-  indexed.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
-  expect(indexed.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
-  expect(baseline.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
-  expect(indexed.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
+  store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
+  expect(store.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
+  expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
 })
 
-test('message deletion matches baseline row removal behavior', () => {
-  const {baseline, indexed} = seedPairWithAnchoredMessage()
-  baseline.getState().dispatch.messagesWereDeleted({messageIDs: [msgID]})
-  indexed.getState().dispatch.messagesWereDeleted({messageIDs: [msgID]})
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().messageMap.has(ordinal)).toBe(false)
-  expect(indexed.getState().messageMap.has(ordinal)).toBe(false)
-  expect(baseline.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
-  expect(indexed.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
-  expect(indexed.getState().messageIDToOrdinal.has(msgID)).toBe(false)
+test('message deletion removes the row but preserves the outbox anchor', () => {
+  const store = seedStoreWithAnchoredMessage()
+  store.getState().dispatch.messagesWereDeleted({messageIDs: [msgID]})
+  expect(store.getState().messageMap.has(ordinal)).toBe(false)
+  expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
+  expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
 })
 
-test('explode-now updates remain equivalent across implementations', () => {
-  const {baseline, indexed} = seedPairWithAnchoredMessage()
-  baseline.getState().dispatch.messagesExploded([msgID], 'bob')
-  indexed.getState().dispatch.messagesExploded([msgID], 'bob')
-  assertEquivalent(baseline.getState(), indexed.getState())
-  const left = baseline.getState().messageMap.get(ordinal)
-  const right = indexed.getState().messageMap.get(ordinal)
-  expect(left?.type).toBe('text')
-  expect(right?.type).toBe('text')
-  expect(left?.type === 'text' ? left.text.stringValue() : undefined).toBe('')
-  expect(right?.type === 'text' ? right.text.stringValue() : undefined).toBe('')
+test('explode-now clears text content in place', () => {
+  const store = seedStoreWithAnchoredMessage()
+  store.getState().dispatch.messagesExploded([msgID], 'bob')
+  const message = store.getState().messageMap.get(ordinal)
+  expect(message?.type).toBe('text')
+  expect(message?.type === 'text' ? message.text.stringValue() : undefined).toBe('')
 })
 
 test('messagesClear resets all message indexes and maps', () => {
-  const {baseline, indexed} = seedPairWithAnchoredMessage()
-  baseline.getState().dispatch.messagesClear()
-  indexed.getState().dispatch.messagesClear()
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().messageMap.size).toBe(0)
-  expect(indexed.getState().messageMap.size).toBe(0)
-  expect(baseline.getState().pendingOutboxToOrdinal.size).toBe(0)
-  expect(indexed.getState().pendingOutboxToOrdinal.size).toBe(0)
-  expect(indexed.getState().messageIDToOrdinal.size).toBe(0)
+  const store = seedStoreWithAnchoredMessage()
+  store.getState().dispatch.messagesClear()
+  expect(store.getState().messageMap.size).toBe(0)
+  expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
+  expect(store.getState().messageIDToOrdinal.size).toBe(0)
 })
 
 test('server ack preserves the outbox-anchored ordinal and later msgID lookups hit that row', () => {
-  const {baseline, indexed} = createPair()
+  const store = createStore()
   const pendingOrdinal = T.Chat.numberToOrdinal(10.001)
   const serverMsgID = T.Chat.numberToMessageID(202)
   const pendingMessage = makePendingTextMessage(pendingOrdinal, outboxID, 'pending hello')
@@ -219,34 +209,23 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
     separatorMap: new Map([[pendingOrdinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[pendingOrdinal, 'alice']]),
   }
-  applyState(baseline, baseState)
-  applyState(indexed, baseState)
+  applyState(store, baseState)
 
   const ack = makeValidTextUIMessage(serverMsgID, outboxID, 'acked hello')
-  baseline.getState().dispatch.onMessagesUpdated({updates: [ack]})
-  indexed.getState().dispatch.onMessagesUpdated({updates: [ack]})
+  store.getState().dispatch.onMessagesUpdated({updates: [ack]})
 
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().messageOrdinals).toEqual([pendingOrdinal])
-  expect(indexed.getState().messageOrdinals).toEqual([pendingOrdinal])
-  expect(baseline.getState().messageMap.get(pendingOrdinal)?.id).toBe(serverMsgID)
-  expect(indexed.getState().messageMap.get(pendingOrdinal)?.id).toBe(serverMsgID)
-  expect(indexed.getState().messageIDToOrdinal.get(serverMsgID)).toBe(pendingOrdinal)
+  expect(store.getState().messageOrdinals).toEqual([pendingOrdinal])
+  expect(store.getState().messageMap.get(pendingOrdinal)?.id).toBe(serverMsgID)
+  expect(store.getState().messageIDToOrdinal.get(serverMsgID)).toBe(pendingOrdinal)
 
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
-  baseline.getState().dispatch.updateReactions([{reactions, targetMsgID: serverMsgID}])
-  indexed.getState().dispatch.updateReactions([{reactions, targetMsgID: serverMsgID}])
+  store.getState().dispatch.updateReactions([{reactions, targetMsgID: serverMsgID}])
 
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().reactionOrderMap.get(pendingOrdinal)?.[0]).toBe(':+1:')
-  expect(indexed.getState().reactionOrderMap.get(pendingOrdinal)?.[0]).toBe(':+1:')
+  expect(store.getState().reactionOrderMap.get(pendingOrdinal)?.[0]).toBe(':+1:')
 
-  baseline.getState().dispatch.messagesWereDeleted({messageIDs: [serverMsgID]})
-  indexed.getState().dispatch.messagesWereDeleted({messageIDs: [serverMsgID]})
+  store.getState().dispatch.messagesWereDeleted({messageIDs: [serverMsgID]})
 
-  assertEquivalent(baseline.getState(), indexed.getState())
-  expect(baseline.getState().messageMap.has(pendingOrdinal)).toBe(false)
-  expect(indexed.getState().messageMap.has(pendingOrdinal)).toBe(false)
-  expect(indexed.getState().messageIDToOrdinal.has(serverMsgID)).toBe(false)
-  expect(indexed.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(pendingOrdinal)
+  expect(store.getState().messageMap.has(pendingOrdinal)).toBe(false)
+  expect(store.getState().messageIDToOrdinal.has(serverMsgID)).toBe(false)
+  expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(pendingOrdinal)
 })
