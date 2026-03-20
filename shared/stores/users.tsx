@@ -37,7 +37,6 @@ export interface State extends Store {
 
 export const useUsersState = Z.createZustand<State>('users', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     getBio: username => {
       const f = async () => {
         const info = get().infoMap.get(username)
@@ -124,6 +123,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {

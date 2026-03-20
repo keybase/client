@@ -210,7 +210,6 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
 }
 export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
@@ -582,6 +581,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
+    resetState: Z.defaultReset,
     showUser: (username, asTracker, skipNav) => {
       get().dispatch.load({
         assertion: username,

@@ -46,7 +46,6 @@ export interface State extends Store {
 
 export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     cancelReset: () => {
       set(s => {
         s.error = ''
@@ -174,6 +173,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     startAccountReset: (skipPassword, _username) => {
       const username = _username || get().dispatch.defer.onGetRecoverPasswordUsername() || ''
       set(s => {

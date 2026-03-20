@@ -21,12 +21,12 @@ export interface State extends Store {
 
 export const useAvatarState = Z.createZustand<State>(set => {
   const dispatch = {
-    resetState: Z.defaultReset,
     replace: m => {
       set(s => {
         s.counts = m
       })
     },
+    resetState: Z.defaultReset,
     updated: key => {
       set(s => {
         s.counts.set(key, (s.counts.get(key) ?? 0) + 1)

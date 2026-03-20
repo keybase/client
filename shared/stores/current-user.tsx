@@ -34,12 +34,12 @@ export interface State extends Store {
 
 export const useCurrentUserState = Z.createZustand<State>('current-user', set => {
   const dispatch = {
-    resetState: Z.defaultReset,
     replaceUsername: u => {
       set(s => {
         s.username = u
       })
     },
+    resetState: Z.defaultReset,
     setBootstrap: b => {
       set(s => {
         const {deviceID, deviceName, uid, username} = b

@@ -349,7 +349,6 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
   }
 
   const dispatch = {
-    resetState: Z.defaultReset,
     cancelChat: jobID => {
       const f = async () => {
         await T.RPCChat.localArchiveChatDeleteRpcPromise({
@@ -407,6 +406,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     resetWaiters: () =>
       set(s => {
         s.archiveAllFilesResponseWaiter = {state: 'idle'}

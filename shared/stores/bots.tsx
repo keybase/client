@@ -42,7 +42,6 @@ export interface State extends Store {
 const pageSize = 100
 export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     getFeaturedBots: (limit, page) => {
       const f = async () => {
         try {
@@ -84,6 +83,7 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
         default:
       }
     },
+    resetState: Z.defaultReset,
     searchFeaturedAndUsers: query => {
       const f = async () => {
         let botRes: T.RPCGen.SearchRes | undefined

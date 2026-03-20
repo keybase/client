@@ -125,7 +125,6 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
     ignorePromise(_load())
   }
   const dispatch = {
-    resetState: Z.defaultReset,
     clearBadges: () => {
       callAndHandleError(async () => {
         await T.RPCGen.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
@@ -166,6 +165,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {

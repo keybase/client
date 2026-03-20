@@ -20,7 +20,6 @@ type State = Store & {
 
 export const useConfirm = Z.createZustand<State>(set => {
   const dispatch = {
-    resetState: Z.defaultReset,
     closeModal: () => {
       set(s => {
         s.modalOpen = false
@@ -31,6 +30,7 @@ export const useConfirm = Z.createZustand<State>(set => {
         s.modalOpen = true
       })
     },
+    resetState: Z.defaultReset,
     updateConfirm: rt => {
       set(s => {
         s.modalOpen = false

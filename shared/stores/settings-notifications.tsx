@@ -61,7 +61,6 @@ export interface State extends Store {
 
 export const useSettingsNotifState = Z.createZustand<State>('settings-notifications', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     refresh: () => {
       const f = async () => {
         let handled = false
@@ -169,6 +168,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     toggle: (group, name) => {
       const {groups} = get()
       if (!groups.get('email')) {

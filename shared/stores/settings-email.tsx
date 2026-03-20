@@ -68,7 +68,6 @@ export interface State extends Store {
 
 export const useSettingsEmailState = Z.createZustand<State>('settings-email', (set, get) => {
   const dispatch = {
-    resetState: Z.defaultReset,
     addEmail: (email, searchable) => {
       set(s => {
         const emailError = isValidEmail(email)
@@ -187,6 +186,7 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         s.error = ''
       })
     },
+    resetState: Z.defaultReset,
   } satisfies State['dispatch']
   return {
     ...initialStore,

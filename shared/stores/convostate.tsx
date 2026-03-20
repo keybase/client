@@ -1368,7 +1368,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 
   const dispatch = {
-    resetState: Z.defaultReset,
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
         try {
@@ -2705,6 +2704,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       })
     },
     resetDeleteMe: true,
+    resetState: Z.defaultReset,
     resetLetThemIn: username => {
       // let them back in after they reset
       const f = async () => {
