@@ -1,5 +1,5 @@
-/// <reference types="jest" />
 /** @jest-environment jsdom */
+/// <reference types="jest" />
 
 import {expect, test} from '@jest/globals'
 import {fireEvent} from '@testing-library/dom'
