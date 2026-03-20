@@ -1,19 +1,22 @@
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useSignupState} from '../signup'
-
-const mockNavigateAppend = jest.fn()
-const mockNavigateUp = jest.fn()
 
 jest.mock('@/constants/router', () => {
-    const actual = jest.requireActual('@/constants/router')
-    return {
-      ...actual,
-      navigateAppend: mockNavigateAppend,
-      navigateUp: mockNavigateUp,
-    }
+  const actual = jest.requireActual('@/constants/router')
+  return {
+    ...actual,
+    navigateAppend: jest.fn(),
+    navigateUp: jest.fn(),
+  }
 })
+
+import {useSignupState} from '../signup'
+
+const {navigateAppend: mockNavigateAppend, navigateUp: mockNavigateUp} = require('@/constants/router') as {
+  navigateAppend: jest.Mock
+  navigateUp: jest.Mock
+}
 
 afterEach(() => {
   jest.restoreAllMocks()

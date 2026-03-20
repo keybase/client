@@ -1,27 +1,30 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {usePWState} from '../settings-password'
-
-const mockNavigateUp = jest.fn()
-const mockRequestLogout = jest.fn()
 
 jest.mock('@/constants/router', () => {
-    const actual = jest.requireActual('@/constants/router')
-    return {
-      ...actual,
-      navigateUp: mockNavigateUp,
-    }
+  const actual = jest.requireActual('@/constants/router')
+  return {
+    ...actual,
+    navigateUp: jest.fn(),
+  }
 })
 
 jest.mock('@/stores/logout', () => ({
   useLogoutState: {
     getState: () => ({
       dispatch: {
-        requestLogout: mockRequestLogout,
+        requestLogout: jest.fn(),
       },
     }),
   },
 }))
+
+import {usePWState} from '../settings-password'
+
+const {navigateUp: mockNavigateUp} = require('@/constants/router') as {
+  navigateUp: jest.Mock
+}
+const mockRequestLogout = require('@/stores/logout').useLogoutState.getState().dispatch.requestLogout as jest.Mock
 
 afterEach(() => {
   jest.restoreAllMocks()

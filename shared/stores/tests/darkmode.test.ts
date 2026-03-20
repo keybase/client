@@ -4,6 +4,10 @@ import {useDarkModeState} from '../darkmode'
 jest.mock('@/util/electron.desktop', () => ({
   __esModule: true,
   default: {
+    constants: {
+      env: {},
+      platform: 'darwin',
+    },
     functions: {
       setNativeTheme: jest.fn(),
     },

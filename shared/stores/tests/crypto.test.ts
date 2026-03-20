@@ -22,9 +22,15 @@ afterEach(() => {
 })
 
 test('setInput records text input and triggers the desktop text-operation path', () => {
-  const runTextOperation = jest
-    .spyOn(useCryptoState.getState().dispatch, 'runTextOperation')
-    .mockImplementation(() => {})
+  const originalDispatch = useCryptoState.getState().dispatch
+  const runTextOperation = jest.fn()
+  useCryptoState.setState(s => ({
+    ...s,
+    dispatch: {
+      ...originalDispatch,
+      runTextOperation,
+    },
+  }))
 
   useCryptoState.getState().dispatch.setInput(Operations.Encrypt, 'text', 'secret message')
 

@@ -1,18 +1,21 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useState as useRecoverPasswordState} from '../recover-password'
-
-const mockNavigateAppend = jest.fn()
-const mockNavigateUp = jest.fn()
 
 jest.mock('@/constants/router', () => {
-    const actual = jest.requireActual('@/constants/router')
-    return {
-      ...actual,
-      navigateAppend: mockNavigateAppend,
-      navigateUp: mockNavigateUp,
-    }
+  const actual = jest.requireActual('@/constants/router')
+  return {
+    ...actual,
+    navigateAppend: jest.fn(),
+    navigateUp: jest.fn(),
+  }
 })
+
+import {useState as useRecoverPasswordState} from '../recover-password'
+
+const {navigateAppend: mockNavigateAppend, navigateUp: mockNavigateUp} = require('@/constants/router') as {
+  navigateAppend: jest.Mock
+  navigateUp: jest.Mock
+}
 
 afterEach(() => {
   jest.restoreAllMocks()
