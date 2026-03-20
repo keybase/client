@@ -1,16 +1,13 @@
-import {renderToStaticMarkup} from 'react-dom/server'
+/** @jest-environment jsdom */
+
+import * as React from 'react'
+import {fireEvent} from '@testing-library/dom'
+import {render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
 import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from './index'
 
 const makeServiceDecorationTag = (payload: unknown) =>
   `$>kb$${Buffer.from(JSON.stringify(payload)).toString('base64')}$<kb$`
-
-const extractMarkupText = (markup: string) =>
-  markup
-    .replace(/<[^>]+>/g, '')
-    .replace(/&gt;/g, '>')
-    .replace(/&lt;/g, '<')
-    .replace(/&amp;/g, '&')
 
 const flattenAstText = (nodes: Array<{type: string; content?: unknown}>): string => {
   return nodes
@@ -79,8 +76,8 @@ test('parseMarkdown only treats single backticks as inline code', () => {
 })
 
 test('Markdown falls back to raw text for unsupported double-backtick syntax', () => {
-  const markup = renderToStaticMarkup(<Markdown>{'``code``'}</Markdown>)
-  expect(extractMarkupText(markup)).toBe('``code``')
+  render(<Markdown>{'``code``'}</Markdown>)
+  expect(document.body.textContent).toContain('``code``')
 })
 
 test('parseMarkdown parses fenced code blocks', () => {
@@ -179,8 +176,8 @@ test('Markdown keeps default output for mixed emoji and text', () => {
 })
 
 test('Markdown preview output flattens block quotes into plain text', () => {
-  const markup = renderToStaticMarkup(<Markdown preview={true}>{'> quoted line'}</Markdown>)
-  expect(extractMarkupText(markup)).toContain('> quoted line')
+  render(<Markdown preview={true}>{'> quoted line'}</Markdown>)
+  expect(document.body.textContent).toContain('> quoted line')
 })
 
 test('Markdown serviceOnlyNoWrap skips only the inner service wrapper', () => {
@@ -195,6 +192,12 @@ test('Markdown serviceOnlyNoWrap skips only the inner service wrapper', () => {
 })
 
 test('Markdown spoilers render masked output by default', () => {
-  const markup = renderToStaticMarkup(<Markdown context="msg-1">{'!>secret<!'}</Markdown>)
-  expect(extractMarkupText(markup)).toContain('••••••')
+  render(<Markdown context="msg-1">{'!>secret<!'}</Markdown>)
+  expect(screen.getByText('••••••')).toBeTruthy()
+})
+
+test('Markdown spoilers reveal content when clicked', () => {
+  render(<Markdown context="msg-2">{'!>secret<!'}</Markdown>)
+  fireEvent.click(screen.getByTitle('Click to reveal'))
+  expect(screen.getByText('secret')).toBeTruthy()
 })
