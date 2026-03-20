@@ -99,9 +99,9 @@ test('custom resetState preserves the fields config intentionally carries across
   dispatch.setDefaultUsername('alice')
   useConfigState.setState({
     forceSmallNav: true,
+    globalError: new Error('transient'),
     mobileAppState: 'active',
     userSwitching: true,
-    globalError: new Error('transient'),
   } as any)
 
   dispatch.resetState()

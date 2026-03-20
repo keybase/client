@@ -5,7 +5,7 @@ import {useSettingsNotifState} from '../settings-notifications'
 const mockApiserverPostJSONRpcPromise = jest.fn()
 const mockLocalSetGlobalAppNotificationSettingsLocalRpcPromise = jest.fn()
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 afterEach(() => {
   mockApiserverPostJSONRpcPromise.mockReset()

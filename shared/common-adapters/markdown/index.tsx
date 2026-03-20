@@ -490,20 +490,23 @@ function SimpleMarkdownComponent(p: Props) {
       smallStandaloneEmoji,
     })
 
-    output = (() => {
-      switch (outputKind) {
-        case 'serviceOnlyNoWrap':
-          return serviceOnlyNoWrapOutput(parseTree, state)
-        case 'serviceOnly':
-          return serviceOnlyOutput(parseTree, state)
-        case 'preview':
-          return previewOutput(parseTree, state)
-        case 'bigEmoji':
-          return bigEmojiOutput(parseTree, state)
-        default:
-          return reactOutput(parseTree, state)
-      }
-    })()
+    switch (outputKind) {
+      case 'serviceOnlyNoWrap':
+        output = serviceOnlyNoWrapOutput(parseTree, state)
+        break
+      case 'serviceOnly':
+        output = serviceOnlyOutput(parseTree, state)
+        break
+      case 'preview':
+        output = previewOutput(parseTree, state)
+        break
+      case 'bigEmoji':
+        output = bigEmojiOutput(parseTree, state)
+        break
+      default:
+        output = reactOutput(parseTree, state)
+        break
+    }
   } catch (e) {
     logger.error('Error parsing markdown')
     logger.debug('Error parsing markdown', e)

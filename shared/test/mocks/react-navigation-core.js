@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 const React = require('react')
 
 const noop = () => {}
@@ -74,8 +75,8 @@ exports.TabRouter = config => ({
 })
 
 exports.useNavigationBuilder = (_router, _options) => ({
-  descriptors: {},
   NavigationContent: ({children}) => React.createElement(React.Fragment, null, children),
+  descriptors: {},
   navigation,
   state: {index: 0, key: 'nav-state', routeNames: [], routes: [], stale: false, type: 'tab'},
 })

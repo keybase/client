@@ -7,7 +7,7 @@ jest.mock('../convostate', () => ({
 import * as T from '../../constants/types'
 import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
-import {flushInboxRowUpdates, queueInboxRowUpdate, useInboxRowsState} from '../inbox-rows'
+import {queueInboxRowUpdate, useInboxRowsState} from '../inbox-rows'
 
 afterEach(() => {
   mockGetConvoState.mockReset()

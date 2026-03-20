@@ -7,7 +7,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 test('email change notifications populate the email map and verification updates the row', () => {
   useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged([

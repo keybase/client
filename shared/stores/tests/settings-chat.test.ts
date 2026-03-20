@@ -9,7 +9,7 @@ const mockAccountUserSetContactSettingsRpcPromise = jest.fn()
 const mockLocalGetUnfurlSettingsRpcPromise = jest.fn()
 const mockLocalSaveUnfurlSettingsRpcPromise = jest.fn()
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 beforeEach(() => {
   useConfigState.setState({loggedIn: true})

@@ -15,7 +15,7 @@ const bootstrapCurrentUser = () => {
   })
 }
 
-const flushPromises = () => new Promise<void>(resolve => setImmediate(resolve))
+const flushPromises = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 const makeCommonState = (
   overrides: Partial<{

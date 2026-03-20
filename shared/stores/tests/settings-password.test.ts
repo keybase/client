@@ -37,7 +37,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 test('setPassword and setPasswordConfirm update the staged values and clear errors', () => {
   usePWState.setState({

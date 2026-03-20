@@ -131,11 +131,11 @@ const makeValidTextUIMessage = (
 
 const makePlaceholderUIMessage = (messageID: T.Chat.MessageID, hidden = false): T.RPCChat.UIMessage =>
   ({
-    state: T.RPCChat.MessageUnboxedState.placeholder,
     placeholder: {
       hidden,
       messageID: T.Chat.messageIDToNumber(messageID),
     },
+    state: T.RPCChat.MessageUnboxedState.placeholder,
   }) as T.RPCChat.UIMessage
 
 const makeAttachmentMessage = (override?: Partial<T.Chat.MessageAttachment>) =>

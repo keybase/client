@@ -3618,13 +3618,14 @@ const getShadowConvoStore = (id: T.Chat.ConversationIDKey) => {
   return next
 }
 
-const settleCompare = (result: unknown) =>
-  result instanceof Promise
-    ? result.then(
-        () => undefined,
-        () => undefined
-      )
-    : Promise.resolve()
+const settleCompare = async (result: unknown): Promise<void> => {
+  if (result instanceof Promise) {
+    await result.then(
+      () => undefined,
+      () => undefined
+    )
+  }
+}
 
 const shadowComparableDispatches = new Set<keyof ConvoState['dispatch']>([
   'messagesClear',
@@ -3633,6 +3634,47 @@ const shadowComparableDispatches = new Set<keyof ConvoState['dispatch']>([
   'setMarkAsUnread',
   'updateReactions',
 ])
+
+const makeWrappedPrimaryDispatch = (
+  id: T.Chat.ConversationIDKey,
+  name: string,
+  orig: (...args: Array<unknown>) => unknown,
+  store: MadeStore,
+  getActionDepth: () => number,
+  setActionDepth: (next: number) => void
+) => {
+  return (...args: Array<unknown>) => {
+    const isTopLevel = getActionDepth() === 0
+    setActionDepth(getActionDepth() + 1)
+    let primaryResult: unknown
+    try {
+      primaryResult = orig(...args)
+    } finally {
+      setActionDepth(getActionDepth() - 1)
+    }
+
+    if (isTopLevel && convoShadowEnabled) {
+      const shadow = getShadowConvoStore(id)
+      const shadowDispatch = shadow.getState().dispatch as Record<string, unknown>
+      const shadowValue = shadowDispatch[name]
+      let shadowResult: unknown
+      try {
+        if (typeof shadowValue === 'function') {
+          shadowResult = shadowValue(...args)
+        }
+      } catch (error) {
+        logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
+      }
+      ignorePromise(
+        Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then(() => {
+          compareConvoStates(id, name, store.getState(), shadow.getState())
+        })
+      )
+    }
+
+    return primaryResult
+  }
+}
 
 const wrapPrimaryDispatches = (id: T.Chat.ConversationIDKey, store: MadeStore) => {
   if (!__DEV__ || wrappedPrimaryStores.has(store)) return
@@ -3644,37 +3686,16 @@ const wrapPrimaryDispatches = (id: T.Chat.ConversationIDKey, store: MadeStore) =
       continue
     }
     const orig = value as (...args: Array<unknown>) => unknown
-    const wrapped = (...args: Array<unknown>) => {
-      const isTopLevel = actionDepth === 0
-      actionDepth += 1
-      let primaryResult: unknown
-      try {
-        primaryResult = orig(...args)
-      } finally {
-        actionDepth -= 1
+    const wrapped = makeWrappedPrimaryDispatch(
+      id,
+      name,
+      orig,
+      store,
+      () => actionDepth,
+      next => {
+        actionDepth = next
       }
-
-      if (isTopLevel && convoShadowEnabled) {
-        const shadow = getShadowConvoStore(id)
-        const shadowDispatch = shadow.getState().dispatch as Record<string, unknown>
-        const shadowValue = shadowDispatch[name]
-        let shadowResult: unknown
-        try {
-          if (typeof shadowValue === 'function') {
-            shadowResult = shadowValue(...args)
-          }
-        } catch (error) {
-          logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
-        }
-        ignorePromise(
-          Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then(() => {
-            compareConvoStates(id, name, store.getState(), shadow.getState())
-          })
-        )
-      }
-
-      return primaryResult
-    }
+    )
     Object.assign(wrapped, orig)
     dispatch[name] = wrapped
   }

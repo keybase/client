@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 /** @jest-environment jsdom */
 
-import * as React from 'react'
 import {fireEvent} from '@testing-library/dom'
 import {render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
@@ -33,6 +32,12 @@ const paragraphContent = (input: string, options?: Parameters<typeof parseMarkdo
     ast[0]?.['content'] as Array<{type: string; content?: unknown; raw?: string}>
   )
 }
+
+const getNestedText = (nodes: Array<{content?: unknown}> | undefined, index: number) =>
+  ((nodes?.[index]?.['content'] as Array<{content?: string}> | undefined)?.[0]?.['content'] ?? '')
+
+const getTextAt = (nodes: Array<{content?: string}> | undefined, index: number) =>
+  nodes?.[index]?.['content'] ?? ''
 
 test('parseMarkdown wraps plain text in a paragraph', () => {
   const content = paragraphContent('hello world')
@@ -93,13 +98,16 @@ test('parseMarkdown parses block quotes as nested content', () => {
   expect(ast[0]?.type).toBe('blockQuote')
   const nested = ast[0]?.content as Array<{type: string; content: Array<{type: string; content: string}>}>
   expect(nested[0]?.type).toBe('paragraph')
-  expect((nested[0]?.content ?? [])[0]).toMatchObject({content: 'quoted line', type: 'text'})
+  expect((nested[0]?.['content'] as Array<{content: string; type: string}> | undefined)?.[0]).toMatchObject({
+    content: 'quoted line',
+    type: 'text',
+  })
 })
 
 test('parseMarkdown stops block quotes when a line loses the quote marker', () => {
   const ast = parseMarkdown('> quoted line\nplain line')
   expect(ast.map(node => node.type)).toEqual(['blockQuote', 'paragraph'])
-  expect(((ast[1]?.content as Array<{content: string}>)[0] ?? {}).content).toBe('plain line')
+  expect(getTextAt(ast[1]?.['content'] as Array<{content?: string}> | undefined, 0)).toBe('plain line')
 })
 
 test('parseMarkdown parses quoted fences on desktop without wrapping the preamble', () => {
@@ -116,7 +124,7 @@ test('parseMarkdown wraps quoted fence preambles in paragraphs on mobile', () =>
   const ast = parseMarkdown('> they wrote ```\nfoo\n```', {isMobile: true})
   const nested = normalizeInlineContent(ast[0]?.content as Array<{type: string; content?: unknown}>)
   expect(nested.map(node => node.type)).toEqual(['paragraph', 'fence'])
-  expect((((nested[0]?.content as Array<{content: string}>) ?? [])[0] ?? {}).content).toBe('they wrote')
+  expect(getTextAt(nested[0]?.['content'] as Array<{content?: string}> | undefined, 0)).toBe('they wrote')
   expect(nested[1]?.content).toBe('foo\n')
 })
 
@@ -124,7 +132,7 @@ test('parseMarkdown parses spoilers with raw content preserved', () => {
   const content = paragraphContent('!>secret<!')
   expect(content.map(node => node.type)).toEqual(['spoiler'])
   expect(content[0]?.raw).toBe('secret')
-  expect(((content[0]?.content as Array<{content: string}>) ?? [])[0]?.content).toBe('secret')
+  expect(getNestedText(content, 0)).toBe('secret')
 })
 
 test('parseMarkdown parses service decoration payloads as opaque nodes', () => {

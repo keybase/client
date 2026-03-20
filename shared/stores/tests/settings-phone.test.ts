@@ -8,7 +8,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 test('makePhoneError maps the expected RPC errors', () => {
   expect(

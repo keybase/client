@@ -21,7 +21,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 test('load parses git metadata and forwards repo errors to config', async () => {
   const loadGit = jest.spyOn(T.RPCGen, 'gitGetAllGitMetadataRpcPromise').mockResolvedValue([
@@ -38,7 +38,7 @@ test('load parses git metadata and forwards repo errors to config', async () => 
           lastModifyingUsername: 'alice',
           mtime: 1_700_000_000_000,
         },
-        teamRepoSettings: {chatDisabled: false, channelName: 'general'},
+        teamRepoSettings: {channelName: 'general', chatDisabled: false},
       },
       state: T.RPCGen.GitRepoResultState.ok,
     },

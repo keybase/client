@@ -62,12 +62,6 @@ test('resetState preserves inline and final errors while clearing form state', (
   useProvisionState.setState(s => ({
     ...s,
     autoSubmit: [{type: 'username'}],
-    deviceName: 'My Phone',
-    finalError,
-    forgotUsernameResult: 'success',
-    inlineError,
-    passphrase: 'hunter2',
-    username: 'alice',
     dispatch: {
       ...s.dispatch,
       dynamic: {
@@ -75,6 +69,12 @@ test('resetState preserves inline and final errors while clearing form state', (
         cancel,
       },
     },
+    deviceName: 'My Phone',
+    finalError,
+    forgotUsernameResult: 'success',
+    inlineError,
+    passphrase: 'hunter2',
+    username: 'alice',
   }))
 
   useProvisionState.getState().dispatch.resetState()

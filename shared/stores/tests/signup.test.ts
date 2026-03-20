@@ -25,7 +25,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = () => new Promise<void>(resolve => setImmediate(resolve))
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
 test('invalid usernames are rejected locally without calling the RPC', () => {
   const checkUsername = jest.spyOn(T.RPCGen, 'signupCheckUsernameAvailableRpcPromise')

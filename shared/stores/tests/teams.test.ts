@@ -1,5 +1,5 @@
 import {resetAllStores} from '@/util/zustand'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {addMembersWizardEmptyState, emptyTeamDetails, useTeamsState} from '../teams'
 
 const parentTeamID = 'team-parent' as T.Teams.TeamID
