@@ -66,7 +66,6 @@ export const createZustand = <T extends HasReset>(
   }
 
   const hasDefaultReset = initialState.dispatch.resetStateDefault === true
-  let initialDispatch!: T['dispatch']
   let resetFunc: (isDebug?: boolean) => void
   if (hasDefaultReset) {
     resetFunc = () => {
@@ -89,7 +88,7 @@ export const createZustand = <T extends HasReset>(
   }
 
   delete unsafeISD['resetStateDefault']
-  initialDispatch = {...unsafeISD} as T['dispatch']
+  const initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {
     resettersAndDelete.push(resetFunc)
