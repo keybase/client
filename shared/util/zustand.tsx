@@ -60,8 +60,13 @@ export const createZustand = <T extends HasReset>(
   if (reset === 'default') {
     resetFunc = () => {
       const currentDefer = store.getState().dispatch.defer
+      const hasInitialDefer = Object.hasOwn(initialState.dispatch, 'defer')
+      const nextDispatch =
+        hasInitialDefer || currentDefer !== undefined
+          ? {...initialState.dispatch, defer: currentDefer}
+          : initialState.dispatch
       // eslint-disable-next-line
-      store.setState({...initialState, dispatch: {...initialState.dispatch, defer: currentDefer}} as any, true)
+      store.setState({...initialState, dispatch: nextDispatch} as any, true)
     }
     unsafeISD.resetState = wrapErrors(resetFunc, 'resetState')
   } else {
