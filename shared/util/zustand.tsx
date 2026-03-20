@@ -41,7 +41,7 @@ export const createZustand = <T extends HasReset>(
   const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
   const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
 
-  const f = immerZustand(initializer) as StateCreator<T, [['zustand/immer', never]]>
+  const f = immerZustand(initializer) as StateCreator<T, [], [['zustand/immer', never]]>
   const store = create<T, [['zustand/immer', never]]>(f)
 
   // During HMR, return the existing store to preserve state and subscribers
