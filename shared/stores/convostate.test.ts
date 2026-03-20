@@ -3,7 +3,11 @@ import * as Message from '../constants/chat/message'
 import * as T from '../constants/types'
 import HiddenString from '../util/hidden-string'
 import {useCurrentUserState} from './current-user'
-import {createConvoStoreForTesting, type ConvoState} from './convostate'
+import {
+  compareConvoStoreStatesForTesting,
+  createConvoStoreForTesting,
+  type ConvoState,
+} from './convostate'
 
 /*
  * Differential test example for future refactors:
@@ -43,15 +47,16 @@ const makeReaction = (username: string, timestamp: number): T.Chat.ReactionDesc 
   users: [{timestamp, username}],
 })
 
-const makeTextMessage = () =>
+const makeTextMessage = (override?: Omit<Partial<T.Chat.MessageText>, 'text'> & {text?: string}) =>
   Message.makeMessageText({
     author: 'alice',
     conversationIDKey: convID,
     id: msgID,
     ordinal,
     outboxID,
-    text: new HiddenString('hello'),
+    text: new HiddenString(override?.text ?? 'hello'),
     timestamp: 100,
+    ...override,
   })
 
 const makePendingTextMessage = (pendingOrdinal: T.Chat.Ordinal, pendingOutboxID: T.Chat.OutboxID, text: string) =>
@@ -67,8 +72,12 @@ const makePendingTextMessage = (pendingOrdinal: T.Chat.Ordinal, pendingOutboxID:
 
 const makeValidTextUIMessage = (
   serverMsgID: T.Chat.MessageID,
-  pendingOutboxID: T.Chat.OutboxID,
-  text: string
+  text: string,
+  options?: {
+    author?: string
+    outboxID?: T.Chat.OutboxID
+    timestamp?: number
+  }
 ): T.RPCChat.UIMessage => ({
   state: T.RPCChat.MessageUnboxedState.valid,
   valid: {
@@ -77,7 +86,7 @@ const makeValidTextUIMessage = (
     botUsername: '',
     channelMention: T.RPCChat.ChannelMention.none,
     channelNameMentions: null,
-    ctime: 200,
+    ctime: options?.timestamp ?? 200,
     decoratedTextBody: null,
     etime: 0,
     explodedBy: null,
@@ -99,28 +108,50 @@ const makeValidTextUIMessage = (
       },
     },
     messageID: T.Chat.messageIDToNumber(serverMsgID),
-    outboxID: T.Chat.outboxIDToString(pendingOutboxID),
+    outboxID: T.Chat.outboxIDToString(options?.outboxID ?? T.Chat.stringToOutboxID('')),
     paymentInfos: null,
     pinnedMessageID: null,
     reactions: {},
     replyTo: null,
     requestInfo: null,
     senderDeviceID: 'device-id',
-    senderDeviceName: 'alice-device',
+    senderDeviceName: `${options?.author ?? 'alice'}-device`,
     senderDeviceRevokedAt: null,
     senderDeviceType: 'desktop',
     senderUID: 'uid',
-    senderUsername: 'alice',
+    senderUsername: options?.author ?? 'alice',
     superseded: false,
     unfurls: null,
   },
 })
 
-const makeMeta = () => ({
+const makePlaceholderUIMessage = (messageID: T.Chat.MessageID, hidden = false): T.RPCChat.UIMessage =>
+  ({
+    state: T.RPCChat.MessageUnboxedState.placeholder,
+    placeholder: {
+      hidden,
+      messageID: T.Chat.messageIDToNumber(messageID),
+    },
+  }) as T.RPCChat.UIMessage
+
+const makeAttachmentMessage = (override?: Partial<T.Chat.MessageAttachment>) =>
+  Message.makeMessageAttachment({
+    author: 'alice',
+    conversationIDKey: convID,
+    id: T.Chat.numberToMessageID(201),
+    ordinal: T.Chat.numberToOrdinal(201),
+    outboxID: T.Chat.stringToOutboxID('attachment-outbox'),
+    timestamp: 100,
+    title: 'attachment title',
+    ...override,
+  })
+
+const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
   ...Meta.makeConversationMeta(),
   conversationIDKey: convID,
   maxVisibleMsgID: msgID,
   readMsgID: T.Chat.numberToMessageID(0),
+  ...override,
 })
 
 const applyState = (
@@ -139,6 +170,49 @@ const applyState = (
 }
 
 const createStore = () => createConvoStoreForTesting(convID)
+
+const seedStore = (
+  messages: ReadonlyArray<T.Chat.Message>,
+  extra?: Partial<ConvoState> & {
+    messageIDToOrdinal?: Map<T.Chat.MessageID, T.Chat.Ordinal>
+    pendingOutboxToOrdinal?: Map<T.Chat.OutboxID, T.Chat.Ordinal>
+  }
+) => {
+  const store = createStore()
+  const sortedMessages = [...messages].sort((a, b) => a.ordinal - b.ordinal)
+  const messageMap = new Map(sortedMessages.map(message => [message.ordinal, message]))
+  const messageOrdinals = sortedMessages
+    .filter(message => message.conversationMessage !== false && message.type !== 'deleted')
+    .map(message => message.ordinal)
+  const messageTypeMap = new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>()
+  const messageIDToOrdinal = new Map<T.Chat.MessageID, T.Chat.Ordinal>()
+  const pendingOutboxToOrdinal = new Map<T.Chat.OutboxID, T.Chat.Ordinal>()
+  sortedMessages.forEach(message => {
+    if (message.type !== 'text') {
+      messageTypeMap.set(message.ordinal, Message.getMessageRenderType(message))
+    }
+    if (message.id) {
+      messageIDToOrdinal.set(message.id, message.ordinal)
+    }
+    if (message.outboxID) {
+      pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
+    }
+  })
+  applyState(store, {
+    loaded: true,
+    messageIDToOrdinal,
+    messageMap,
+    messageOrdinals,
+    messageTypeMap,
+    meta: makeMeta(),
+    pendingOutboxToOrdinal,
+    reactionOrderMap: new Map(),
+    separatorMap: new Map(),
+    showUsernameMap: new Map(),
+    ...extra,
+  })
+  return store
+}
 
 const seedStoreWithAnchoredMessage = () => {
   const store = createStore()
@@ -161,12 +235,134 @@ const seedStoreWithAnchoredMessage = () => {
   return store
 }
 
+test('testing store starts with initial state and helper selectors', () => {
+  const store = createStore()
+  const state = store.getState()
+  expect(state.id).toBe(convID)
+  expect(state.loaded).toBe(false)
+  expect(state.messageMap.size).toBe(0)
+  expect(state.messageOrdinals).toBeUndefined()
+  expect(state.getConvID()).toEqual(T.Chat.keyToConversationID(convID))
+  expect(state.isCaughtUp()).toBe(true)
+  expect(state.isMetaGood()).toBe(false)
+})
+
+test('comparison helper normalizes hidden strings and ignores messageID indexes', () => {
+  const left = createStore()
+  const right = createStore()
+  const messageLeft = makeTextMessage({text: 'same text'})
+  const messageRight = makeTextMessage({text: 'same text'})
+
+  applyState(left, {
+    loaded: true,
+    messageIDToOrdinal: new Map([[msgID, ordinal]]),
+    messageMap: new Map([[ordinal, messageLeft]]),
+    messageOrdinals: [ordinal],
+    meta: makeMeta(),
+  })
+  applyState(right, {
+    loaded: true,
+    messageIDToOrdinal: new Map([[T.Chat.numberToMessageID(999), ordinal]]),
+    messageMap: new Map([[ordinal, messageRight]]),
+    messageOrdinals: [ordinal],
+    meta: makeMeta(),
+  })
+
+  expect(compareConvoStoreStatesForTesting(left.getState(), right.getState())).toBe(true)
+})
+
+test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {
+  const store = createStore()
+  const firstMsgID = T.Chat.numberToMessageID(301)
+  const secondMsgID = T.Chat.numberToMessageID(302)
+
+  store.getState().dispatch.onMessagesUpdated({
+    updates: [
+      makeValidTextUIMessage(firstMsgID, 'first', {author: 'bob', timestamp: 100}),
+      makeValidTextUIMessage(secondMsgID, 'second', {author: 'bob', timestamp: 101}),
+    ],
+  })
+
+  expect(store.getState().messageOrdinals).toEqual([
+    T.Chat.numberToOrdinal(301),
+    T.Chat.numberToOrdinal(302),
+  ])
+  expect(store.getState().messageIDToOrdinal.get(firstMsgID)).toBe(T.Chat.numberToOrdinal(301))
+  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(301))).toBe(T.Chat.numberToOrdinal(0))
+  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(302))).toBe(T.Chat.numberToOrdinal(301))
+  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(301))).toBe('bob')
+  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(302))).toBe('')
+  expect(store.getState().messageTypeMap.size).toBe(0)
+})
+
 test('reaction updates preserve outbox-anchored row identity', () => {
   const store = seedStoreWithAnchoredMessage()
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
   expect(store.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
+})
+
+test('reaction updates keep existing emoji order and sort new emojis by first timestamp', () => {
+  const store = seedStore([
+    makeTextMessage({
+      reactions: new Map([
+        [':+1:', makeReaction('alice', 50)],
+        [':wave:', makeReaction('bob', 60)],
+      ]),
+    }),
+  ])
+  const reactions = new Map([
+    [':fire:', makeReaction('carol', 70)],
+    [':+1:', makeReaction('alice', 30)],
+    [':wave:', makeReaction('bob', 80)],
+    [':eyes:', makeReaction('dave', 40)],
+  ])
+
+  store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
+
+  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
+  const message = store.getState().messageMap.get(ordinal)
+  expect(Message.isMessageWithReactions(message!)).toBe(true)
+  if (message && Message.isMessageWithReactions(message)) {
+    expect([...(message.reactions?.keys() ?? [])]).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
+  }
+})
+
+test('reaction updates clear message reactions when the server sends none', () => {
+  const store = seedStore([makeTextMessage({reactions: new Map([[':+1:', makeReaction('bob', 5)]])})])
+  store.getState().dispatch.updateReactions([{targetMsgID: msgID}])
+  const message = store.getState().messageMap.get(ordinal)
+  expect(message && Message.isMessageWithReactions(message) ? message.reactions : undefined).toBeUndefined()
+  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([])
+})
+
+test('reaction updates ignore deleted and placeholder rows', () => {
+  const deletedMsgID = T.Chat.numberToMessageID(401)
+  const placeholderMsgID = T.Chat.numberToMessageID(402)
+  const store = seedStore([
+    Message.makeMessageDeleted({
+      author: 'alice',
+      conversationIDKey: convID,
+      id: deletedMsgID,
+      ordinal: T.Chat.numberToOrdinal(401),
+    }),
+    Message.makeMessagePlaceholder({
+      conversationIDKey: convID,
+      id: placeholderMsgID,
+      ordinal: T.Chat.numberToOrdinal(402),
+    }),
+  ])
+  const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
+
+  store.getState().dispatch.updateReactions([
+    {reactions, targetMsgID: deletedMsgID},
+    {reactions, targetMsgID: placeholderMsgID},
+  ])
+
+  expect(store.getState().reactionOrderMap.size).toBe(0)
+  expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(401))?.type).toBe('deleted')
+  expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.type).toBe('placeholder')
 })
 
 test('message deletion removes the row but preserves the outbox anchor', () => {
@@ -177,20 +373,78 @@ test('message deletion removes the row but preserves the outbox anchor', () => {
   expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
 })
 
-test('explode-now clears text content in place', () => {
-  const store = seedStoreWithAnchoredMessage()
+test('message deletion up to a message ID honors deletable message types', () => {
+  const earlyText = makeTextMessage({
+    id: T.Chat.numberToMessageID(501),
+    ordinal: T.Chat.numberToOrdinal(501),
+    outboxID: T.Chat.stringToOutboxID('early-text'),
+  })
+  const attachment = makeAttachmentMessage({
+    id: T.Chat.numberToMessageID(502),
+    ordinal: T.Chat.numberToOrdinal(502),
+    outboxID: T.Chat.stringToOutboxID('early-attachment'),
+  })
+  const laterText = makeTextMessage({
+    id: T.Chat.numberToMessageID(503),
+    ordinal: T.Chat.numberToOrdinal(503),
+    outboxID: T.Chat.stringToOutboxID('later-text'),
+  })
+  const store = seedStore([earlyText, attachment, laterText])
+
+  store.getState().dispatch.messagesWereDeleted({
+    deletableMessageTypes: new Set<T.Chat.MessageType>(['text']),
+    upToMessageID: T.Chat.numberToMessageID(503),
+  })
+
+  expect(store.getState().messageMap.has(T.Chat.numberToOrdinal(501))).toBe(false)
+  expect(store.getState().messageMap.has(T.Chat.numberToOrdinal(502))).toBe(true)
+  expect(store.getState().messageMap.has(T.Chat.numberToOrdinal(503))).toBe(true)
+  expect(store.getState().messageOrdinals).toEqual([T.Chat.numberToOrdinal(502), T.Chat.numberToOrdinal(503)])
+})
+
+test('explode-now clears text content and transient metadata in place', () => {
+  const store = seedStore([
+    makeTextMessage({
+      flipGameID: 'flip-game',
+      mentionsAt: new Set(['bob']),
+      reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
+      unfurls: new Map([['https://keybase.io', {} as T.Chat.Unfurl]]),
+    }),
+  ])
   store.getState().dispatch.messagesExploded([msgID], 'bob')
-  const message = store.getState().messageMap.get(ordinal)
+  const state = store.getState()
+  const message = state.messageMap.get(ordinal)
   expect(message?.type).toBe('text')
   expect(message?.type === 'text' ? message.text.stringValue() : undefined).toBe('')
+  expect(message?.exploded).toBe(true)
+  expect(message?.explodedBy).toBe('bob')
+  expect(message?.type === 'text' ? message.flipGameID : undefined).toBe('')
+  expect(message?.type === 'text' ? [...(message.mentionsAt ?? [])] : undefined).toEqual([])
+  expect(message?.reactions?.size ?? 0).toBe(0)
+  expect(message?.unfurls?.size ?? 0).toBe(0)
+  expect(state.reactionOrderMap.get(ordinal)).toEqual([])
 })
 
 test('messagesClear resets all message indexes and maps', () => {
   const store = seedStoreWithAnchoredMessage()
+  applyState(store, {
+    loaded: true,
+    reactionOrderMap: new Map([[ordinal, [':+1:']]]),
+    separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
+    showUsernameMap: new Map([[ordinal, 'alice']]),
+    validatedOrdinalRange: {from: ordinal, to: ordinal},
+  })
   store.getState().dispatch.messagesClear()
+  expect(store.getState().loaded).toBe(false)
   expect(store.getState().messageMap.size).toBe(0)
+  expect(store.getState().messageOrdinals).toBeUndefined()
+  expect(store.getState().messageTypeMap.size).toBe(0)
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
+  expect(store.getState().reactionOrderMap.size).toBe(0)
+  expect(store.getState().separatorMap.size).toBe(0)
+  expect(store.getState().showUsernameMap.size).toBe(0)
+  expect(store.getState().validatedOrdinalRange).toBeUndefined()
 })
 
 test('server ack preserves the outbox-anchored ordinal and later msgID lookups hit that row', () => {
@@ -211,11 +465,16 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
   }
   applyState(store, baseState)
 
-  const ack = makeValidTextUIMessage(serverMsgID, outboxID, 'acked hello')
+  const ack = makeValidTextUIMessage(serverMsgID, 'acked hello', {outboxID})
   store.getState().dispatch.onMessagesUpdated({updates: [ack]})
 
   expect(store.getState().messageOrdinals).toEqual([pendingOrdinal])
   expect(store.getState().messageMap.get(pendingOrdinal)?.id).toBe(serverMsgID)
+  expect(
+    store.getState().messageMap.get(pendingOrdinal)?.type === 'text'
+      ? store.getState().messageMap.get(pendingOrdinal)?.text.stringValue()
+      : undefined
+  ).toBe('acked hello')
   expect(store.getState().messageIDToOrdinal.get(serverMsgID)).toBe(pendingOrdinal)
 
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
@@ -228,4 +487,148 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
   expect(store.getState().messageMap.has(pendingOrdinal)).toBe(false)
   expect(store.getState().messageIDToOrdinal.has(serverMsgID)).toBe(false)
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(pendingOrdinal)
+})
+
+test('placeholder updates do not overwrite an existing non-placeholder message', () => {
+  const placeholderOrdinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(msgID))
+  const store = seedStore([
+    makeTextMessage({
+      id: msgID,
+      ordinal: placeholderOrdinal,
+      outboxID: T.Chat.stringToOutboxID('existing-message'),
+      text: 'kept text',
+    }),
+  ])
+
+  store.getState().dispatch.onMessagesUpdated({updates: [makePlaceholderUIMessage(msgID)]})
+
+  const message = store.getState().messageMap.get(placeholderOrdinal)
+  expect(message?.type).toBe('text')
+  expect(message?.type === 'text' ? message.text.stringValue() : undefined).toBe('kept text')
+})
+
+test('hidden placeholder updates delete the existing message row', () => {
+  const hiddenMsgID = T.Chat.numberToMessageID(601)
+  const hiddenOrdinal = T.Chat.numberToOrdinal(601)
+  const store = seedStore([
+    makeTextMessage({
+      id: hiddenMsgID,
+      ordinal: hiddenOrdinal,
+      outboxID: T.Chat.stringToOutboxID('hidden-existing'),
+    }),
+  ])
+
+  store.getState().dispatch.onMessagesUpdated({updates: [makePlaceholderUIMessage(hiddenMsgID, true)]})
+
+  expect(store.getState().messageMap.has(hiddenOrdinal)).toBe(false)
+  expect(store.getState().messageOrdinals).toEqual([])
+  expect(store.getState().messageIDToOrdinal.has(hiddenMsgID)).toBe(false)
+})
+
+test('onMessageErrored marks the pending message as failed and leaves unknown outbox IDs alone', () => {
+  const pendingOrdinal = T.Chat.numberToOrdinal(10.001)
+  const knownOutboxID = T.Chat.stringToOutboxID('known-outbox')
+  const store = seedStore([makePendingTextMessage(pendingOrdinal, knownOutboxID, 'pending')])
+
+  store.getState().dispatch.onMessageErrored(knownOutboxID, 'network fail', 7)
+  store.getState().dispatch.onMessageErrored(T.Chat.stringToOutboxID('missing-outbox'), 'ignored', 8)
+
+  const message = store.getState().messageMap.get(pendingOrdinal)
+  expect(message?.submitState).toBe('failed')
+  expect(message?.errorReason).toBe('network fail')
+  expect(message?.errorTyp).toBe(7)
+})
+
+test('setEditing last picks the latest editable local message and injects its content', () => {
+  const attachmentOrdinal = T.Chat.numberToOrdinal(703)
+  const store = seedStore([
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(701),
+      ordinal: T.Chat.numberToOrdinal(701),
+      outboxID: T.Chat.stringToOutboxID('someone-else'),
+    }),
+    makeTextMessage({
+      exploded: true,
+      id: T.Chat.numberToMessageID(702),
+      ordinal: T.Chat.numberToOrdinal(702),
+      outboxID: T.Chat.stringToOutboxID('exploded-self'),
+      text: 'ignore me',
+    }),
+    makeAttachmentMessage({
+      id: T.Chat.numberToMessageID(703),
+      ordinal: attachmentOrdinal,
+      outboxID: T.Chat.stringToOutboxID('editable-attachment'),
+      title: 'picked attachment title',
+    }),
+  ])
+
+  store.getState().dispatch.setEditing('last')
+
+  expect(store.getState().editing).toBe(attachmentOrdinal)
+  expect(store.getState().unsentText).toBe('picked attachment title')
+})
+
+test('setEditing clear resets editing state and clears unsent text', () => {
+  const store = createStore()
+  applyState(store, {
+    editing: ordinal,
+    unsentText: 'draft text',
+  })
+
+  store.getState().dispatch.setEditing('clear')
+
+  expect(store.getState().editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(store.getState().unsentText).toBe('')
+})
+
+test('setMeta adopts the server draft once when the meta becomes good', () => {
+  const store = createStore()
+
+  store.getState().dispatch.setMeta(makeMeta({draft: 'server draft'}))
+  expect(store.getState().isMetaGood()).toBe(true)
+  expect(store.getState().unsentText).toBe('server draft')
+
+  store.getState().dispatch.injectIntoInput('local draft')
+  store.getState().dispatch.setMeta(makeMeta({draft: 'new server draft'}))
+
+  expect(store.getState().unsentText).toBe('local draft')
+})
+
+test('local setters update participants, reply target, search query, and badge', () => {
+  const store = createStore()
+  const participants: ConvoState['participants'] = {
+    all: ['alice', 'bob'],
+    contactName: new Map([['bob', 'Bobby']]),
+    name: ['alice', 'bob'],
+  }
+
+  store.getState().dispatch.setParticipants(participants)
+  store.getState().dispatch.setReplyTo(ordinal)
+  store.getState().dispatch.setThreadSearchQuery('hello world')
+  store.getState().dispatch.badgesUpdated(3)
+
+  expect(store.getState().participants).toEqual(participants)
+  expect(store.getState().replyTo).toBe(ordinal)
+  expect(store.getState().threadSearchQuery).toBe('hello world')
+  expect(store.getState().badge).toBe(3)
+})
+
+test('toggleThreadSearch resets hits and removes center highlight when opening search', () => {
+  const store = createStore()
+  applyState(store, {
+    messageCenterOrdinal: {highlightMode: 'always', ordinal},
+    threadSearchInfo: {
+      hits: [makeTextMessage()],
+      status: 'done',
+      visible: false,
+    },
+  })
+
+  store.getState().dispatch.toggleThreadSearch()
+
+  expect(store.getState().threadSearchInfo.visible).toBe(true)
+  expect(store.getState().threadSearchInfo.hits).toEqual([])
+  expect(store.getState().threadSearchInfo.status).toBe('initial')
+  expect(store.getState().messageCenterOrdinal?.highlightMode).toBe('none')
 })
