@@ -1,4 +1,5 @@
 import HiddenString from '../../util/hidden-string'
+import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {Operations, useCryptoState} from '../crypto'
 
@@ -13,17 +14,17 @@ const bootstrapCurrentUser = () => {
 
 beforeEach(() => {
   bootstrapCurrentUser()
-  useCryptoState.getState().dispatch.resetState()
+  resetAllStores()
 })
 
 afterEach(() => {
-  useCryptoState.getState().dispatch.resetState()
+  resetAllStores()
 })
 
 test('setInput records text input and triggers the desktop text-operation path', () => {
-  const originalDispatch = useCryptoState.getState().dispatch
-  const runTextOperation = jest.fn()
-  useCryptoState.setState({dispatch: {...originalDispatch, runTextOperation}} as any)
+  const runTextOperation = jest
+    .spyOn(useCryptoState.getState().dispatch, 'runTextOperation')
+    .mockImplementation(() => {})
 
   useCryptoState.getState().dispatch.setInput(Operations.Encrypt, 'text', 'secret message')
 

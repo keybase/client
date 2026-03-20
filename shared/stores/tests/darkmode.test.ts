@@ -1,16 +1,16 @@
 import {resetAllStores} from '../../util/zustand'
 import {useDarkModeState} from '../darkmode'
 
-const mockSetNativeTheme = jest.fn()
-
 jest.mock('@/util/electron.desktop', () => ({
   __esModule: true,
   default: {
     functions: {
-      setNativeTheme: mockSetNativeTheme,
+      setNativeTheme: jest.fn(),
     },
   },
 }))
+
+const mockSetNativeTheme = require('@/util/electron.desktop').default.functions.setNativeTheme as jest.Mock
 
 afterEach(() => {
   mockSetNativeTheme.mockClear()

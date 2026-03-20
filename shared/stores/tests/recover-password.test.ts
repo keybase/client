@@ -2,22 +2,22 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useState as useRecoverPasswordState} from '../recover-password'
 
-const navigateAppend = jest.fn()
-const navigateUp = jest.fn()
+const mockNavigateAppend = jest.fn()
+const mockNavigateUp = jest.fn()
 
 jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    navigateAppend,
-    navigateUp,
-  }
+    const actual = jest.requireActual('@/constants/router')
+    return {
+      ...actual,
+      navigateAppend: mockNavigateAppend,
+      navigateUp: mockNavigateUp,
+    }
 })
 
 afterEach(() => {
   jest.restoreAllMocks()
-  navigateAppend.mockReset()
-  navigateUp.mockReset()
+  mockNavigateAppend.mockReset()
+  mockNavigateUp.mockReset()
   resetAllStores()
 })
 
@@ -51,7 +51,7 @@ test('startRecoverPassword exposes device selection handlers', async () => {
   expect(state.devices).toHaveLength(1)
   expect(state.dispatch.dynamic.submitDeviceSelect).toBeDefined()
   expect(state.dispatch.dynamic.cancel).toBeDefined()
-  expect(navigateAppend).toHaveBeenCalledWith('recoverPasswordDeviceSelector', false)
+  expect(mockNavigateAppend).toHaveBeenCalledWith('recoverPasswordDeviceSelector', false)
 
   state.dispatch.dynamic.submitDeviceSelect?.('phone')
 

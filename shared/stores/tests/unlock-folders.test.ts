@@ -2,13 +2,13 @@ import * as EngineGen from '@/actions/engine-gen-gen'
 import {resetAllStores} from '@/util/zustand'
 import {useUnlockFoldersState} from '../unlock-folders'
 
-const openUnlockFolders = jest.fn()
+const mockOpenUnlockFolders = jest.fn()
 
 jest.mock('@/stores/config', () => ({
   useConfigState: {
     getState: () => ({
       dispatch: {
-        openUnlockFolders,
+        openUnlockFolders: mockOpenUnlockFolders,
       },
     }),
   },
@@ -16,7 +16,7 @@ jest.mock('@/stores/config', () => ({
 
 afterEach(() => {
   jest.restoreAllMocks()
-  openUnlockFolders.mockReset()
+  mockOpenUnlockFolders.mockReset()
   resetAllStores()
 })
 
@@ -50,5 +50,5 @@ test('rekey refresh actions forward the device list to config', () => {
     type: EngineGen.keybase1RekeyUIRefresh,
   } as any)
 
-  expect(openUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
+  expect(mockOpenUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
 })

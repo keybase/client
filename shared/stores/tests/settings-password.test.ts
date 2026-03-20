@@ -2,22 +2,22 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {usePWState} from '../settings-password'
 
-const navigateUp = jest.fn()
-const requestLogout = jest.fn()
+const mockNavigateUp = jest.fn()
+const mockRequestLogout = jest.fn()
 
 jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    navigateUp,
-  }
+    const actual = jest.requireActual('@/constants/router')
+    return {
+      ...actual,
+      navigateUp: mockNavigateUp,
+    }
 })
 
 jest.mock('@/stores/logout', () => ({
   useLogoutState: {
     getState: () => ({
       dispatch: {
-        requestLogout,
+        requestLogout: mockRequestLogout,
       },
     }),
   },
@@ -25,8 +25,8 @@ jest.mock('@/stores/logout', () => ({
 
 afterEach(() => {
   jest.restoreAllMocks()
-  navigateUp.mockReset()
-  requestLogout.mockReset()
+  mockNavigateUp.mockReset()
+  mockRequestLogout.mockReset()
   resetAllStores()
 })
 
@@ -56,7 +56,7 @@ test('submitNewPassword rejects mismatched passwords locally', async () => {
 
   expect(usePWState.getState().error).toBe("Passwords don't match")
   expect(changePassword).not.toHaveBeenCalled()
-  expect(navigateUp).not.toHaveBeenCalled()
+  expect(mockNavigateUp).not.toHaveBeenCalled()
 })
 
 test('submitNewPassword logs out and navigates away on success', async () => {
@@ -67,7 +67,7 @@ test('submitNewPassword logs out and navigates away on success', async () => {
   usePWState.getState().dispatch.submitNewPassword(true)
   await flush()
 
-  expect(requestLogout).toHaveBeenCalled()
-  expect(navigateUp).toHaveBeenCalled()
+  expect(mockRequestLogout).toHaveBeenCalled()
+  expect(mockNavigateUp).toHaveBeenCalled()
   expect(usePWState.getState().error).toBe('')
 })

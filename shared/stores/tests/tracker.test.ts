@@ -45,8 +45,17 @@ test('closeTracker removes the shown tracker entry by guiID and updateResult cha
 test('showUser delegates to load and the deferred profile callback', () => {
   const load = jest.fn()
   const onShowUserProfile = jest.fn()
-  useTrackerState.getState().dispatch.load = load as never
-  useTrackerState.getState().dispatch.defer.onShowUserProfile = onShowUserProfile
+  useTrackerState.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      defer: {
+        ...s.dispatch.defer,
+        onShowUserProfile,
+      },
+      load: load as never,
+    },
+  }))
 
   useTrackerState.getState().dispatch.showUser('alice', false)
 

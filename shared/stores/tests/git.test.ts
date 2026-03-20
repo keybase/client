@@ -3,13 +3,13 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useGitState} from '../git'
 
-const setGlobalError = jest.fn()
+const mockSetGlobalError = jest.fn()
 
 jest.mock('@/stores/config', () => ({
   useConfigState: {
     getState: () => ({
       dispatch: {
-        setGlobalError,
+        setGlobalError: mockSetGlobalError,
       },
     }),
   },
@@ -17,7 +17,7 @@ jest.mock('@/stores/config', () => ({
 
 afterEach(() => {
   jest.restoreAllMocks()
-  setGlobalError.mockReset()
+  mockSetGlobalError.mockReset()
   resetAllStores()
 })
 
@@ -55,7 +55,7 @@ test('load parses git metadata and forwards repo errors to config', async () => 
   expect(useGitState.getState().idToInfo.get('repo-guid')?.name).toBe('repo-one')
   expect(useGitState.getState().idToInfo.get('repo-guid')?.teamname).toBe('team-one')
   expect(useGitState.getState().idToInfo.get('repo-guid')?.lastEditUser).toBe('alice')
-  expect(setGlobalError).toHaveBeenCalledWith(expect.objectContaining({message: 'Git repo error: missing repo'}))
+  expect(mockSetGlobalError).toHaveBeenCalledWith(expect.objectContaining({message: 'Git repo error: missing repo'}))
 })
 
 test('badge updates are reflected in local state', () => {

@@ -3,22 +3,22 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useSignupState} from '../signup'
 
-const navigateAppend = jest.fn()
-const navigateUp = jest.fn()
+const mockNavigateAppend = jest.fn()
+const mockNavigateUp = jest.fn()
 
 jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    navigateAppend,
-    navigateUp,
-  }
+    const actual = jest.requireActual('@/constants/router')
+    return {
+      ...actual,
+      navigateAppend: mockNavigateAppend,
+      navigateUp: mockNavigateUp,
+    }
 })
 
 afterEach(() => {
   jest.restoreAllMocks()
-  navigateAppend.mockReset()
-  navigateUp.mockReset()
+  mockNavigateAppend.mockReset()
+  mockNavigateUp.mockReset()
   resetAllStores()
 })
 
@@ -43,7 +43,7 @@ test('checkUsername accepts a valid username and navigates to device setup', asy
   expect(useSignupState.getState().username).toBe('alice123')
   expect(useSignupState.getState().usernameError).toBe('')
   expect(useSignupState.getState().usernameTaken).toBe('')
-  expect(navigateAppend).toHaveBeenCalledWith('signupEnterDevicename')
+  expect(mockNavigateAppend).toHaveBeenCalledWith('signupEnterDevicename')
 })
 
 test('email verification notifications clear the staged signup email', () => {

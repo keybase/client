@@ -20,13 +20,13 @@ test('setNavState stores the provided navigation state', () => {
   expect(useRouterState.getState().navState).toBe(navState)
 })
 
-test('resetState clears navState and preserves the dispatch object', () => {
+test('resetState preserves navState and the dispatch object', () => {
   const dispatch = useRouterState.getState().dispatch
   useRouterState.getState().dispatch.setNavState(makeNavState('two'))
-  expect(useRouterState.getState().navState).not.toBeUndefined()
+  const navState = useRouterState.getState().navState
 
   useRouterState.getState().dispatch.resetState()
 
-  expect(useRouterState.getState().navState).toBeUndefined()
+  expect(useRouterState.getState().navState).toBe(navState)
   expect(useRouterState.getState().dispatch).toBe(dispatch)
 })

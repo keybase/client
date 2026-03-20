@@ -21,11 +21,10 @@ test('resetState restores the modal header defaults', () => {
       editAvatarHasImage: true,
       onAction: () => undefined,
       title: 'custom title',
-    },
-    true
+    }
   )
 
-  store.getState().dispatch.resetState()
+  resetAllStores()
 
   expect(store.getState().actionEnabled).toBe(false)
   expect(store.getState().actionWaiting).toBe(false)

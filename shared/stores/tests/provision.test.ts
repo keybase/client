@@ -37,7 +37,16 @@ test('startProvision increments the trigger and stores the username', () => {
 
 test('restartProvisioning bails early when there is no username after canceling the current flow', () => {
   const cancel = jest.fn()
-  useProvisionState.getState().dispatch.dynamic.cancel = cancel
+  useProvisionState.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      dynamic: {
+        ...s.dispatch.dynamic,
+        cancel,
+      },
+    },
+  }))
 
   useProvisionState.getState().dispatch.restartProvisioning()
 
@@ -50,8 +59,8 @@ test('resetState preserves inline and final errors while clearing form state', (
   const finalError = new RPCError('final error', 1)
   const inlineError = new RPCError('inline error', 2)
 
-  useProvisionState.getState().dispatch.dynamic.cancel = cancel
-  useProvisionState.setState({
+  useProvisionState.setState(s => ({
+    ...s,
     autoSubmit: [{type: 'username'}],
     deviceName: 'My Phone',
     finalError,
@@ -59,7 +68,14 @@ test('resetState preserves inline and final errors while clearing form state', (
     inlineError,
     passphrase: 'hunter2',
     username: 'alice',
-  } as never)
+    dispatch: {
+      ...s.dispatch,
+      dynamic: {
+        ...s.dispatch.dynamic,
+        cancel,
+      },
+    },
+  }))
 
   useProvisionState.getState().dispatch.resetState()
 

@@ -61,7 +61,7 @@ test('removeAccount deletes then reloads the wallet account list', async () => {
 
   expect(mockLocalDeleteWalletAccountLocalRpcPromise).toHaveBeenCalledWith(
     {accountID: 'acct-1', userAcknowledged: 'yes'},
-    expect.any(Array)
+    expect.any(String)
   )
   expect(mockLocalGetWalletAccountsLocalRpcPromise).toHaveBeenCalledTimes(1)
 })

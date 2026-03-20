@@ -46,7 +46,7 @@ describe('logout store', () => {
     useLogoutState.getState().dispatch.requestLogout()
     await Promise.resolve()
 
-    expect(navigateAppend).toHaveBeenNthCalledWith(1, 'settingsTab')
-    expect(navigateAppend).toHaveBeenNthCalledWith(2, 'settingsPasswordTab')
+    expect(navigateAppend).toHaveBeenNthCalledWith(1, 'tabs.settingsTab')
+    expect(navigateAppend).toHaveBeenNthCalledWith(2, 'settingsTabs.password')
   })
 })

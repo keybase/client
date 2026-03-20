@@ -35,7 +35,13 @@ test('resetState clears people screen data and resent email', () => {
 
 test('engine actions refresh people data and update verified email', () => {
   const loadPeople = jest.fn()
-  usePeopleState.getState().dispatch.loadPeople = loadPeople as never
+  usePeopleState.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      loadPeople: loadPeople as never,
+    },
+  }))
 
   usePeopleState.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {}},

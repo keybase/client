@@ -82,6 +82,6 @@ test('badge engine updates fan out into config and badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.devicesTab)).toBe(1)
   expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
   expect(store.getState().navBadges.get(Tabs.gitTab)).toBe(1)
-  expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(4)
+  expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
 })

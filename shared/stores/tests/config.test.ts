@@ -89,7 +89,7 @@ test('setOutOfDate merges fields and setGlobalError normalizes unknown input', (
     outOfDate: true,
     updating: true,
   })
-  expect(state.globalError?.message).toBe('boom')
+  expect(state.globalError?.message).toBe('Unknown error: "boom"')
 })
 
 test('custom resetState preserves the fields config intentionally carries across resets', () => {

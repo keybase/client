@@ -32,8 +32,8 @@ test('chat sizing helpers clamp and center oversized images', () => {
   expect(zoomed.dims).toEqual({height: 80, width: 40})
   expect(zoomed.margins.marginTop).toBe(-20)
   expect(zoomed.margins.marginBottom).toBe(-20)
-  expect(zoomed.margins.marginLeft).toBe(0)
-  expect(zoomed.margins.marginRight).toBe(0)
+  expect(zoomed.margins.marginLeft).toBeCloseTo(0)
+  expect(zoomed.margins.marginRight).toBeCloseTo(0)
 })
 
 test('inbox search selection movement stays within available results', () => {

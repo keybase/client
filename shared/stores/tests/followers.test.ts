@@ -17,14 +17,14 @@ test('followers and following sets update independently', () => {
   expect(store.getState().following.has('bob')).toBe(true)
 })
 
-test('replace overwrites both sets and resetState clears them again', () => {
+test('replace overwrites both sets and resetAllStores clears them again', () => {
   const store = useFollowerState
 
   store.getState().dispatch.replace(new Set(['alice']), new Set(['bob']))
   expect(store.getState().followers).toEqual(new Set(['alice']))
   expect(store.getState().following).toEqual(new Set(['bob']))
 
-  store.getState().dispatch.resetState()
+  resetAllStores()
 
   expect(store.getState().followers).toEqual(new Set())
   expect(store.getState().following).toEqual(new Set())

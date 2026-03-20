@@ -60,7 +60,7 @@ describe('settings store', () => {
     useSettingsState.getState().dispatch.setDidToggleCertificatePinning(true)
     expect(useSettingsState.getState().didToggleCertificatePinning).toBe(true)
 
-    useSettingsState.getState().dispatch.resetState()
+    resetAllStores()
 
     expect(useSettingsState.getState().didToggleCertificatePinning).toBeUndefined()
     expect(useSettingsState.getState().checkPasswordIsCorrect).toBeUndefined()

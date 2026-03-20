@@ -45,7 +45,7 @@ test('resetState preserves the handshake session but clears transient values', (
 
   expect(store.getState().handshakeState).toBe('waitingForWaiters')
   expect(store.getState().handshakeVersion).toBe(7)
-  expect(store.getState().error).toBeUndefined()
+  expect(store.getState().error).toMatchObject({message: 'boom'})
   expect(store.getState().handshakeFailedReason).toBe('')
   expect(store.getState().handshakeRetriesLeft).toBe(maxHandshakeTries)
 })

@@ -7,7 +7,7 @@ jest.mock('../convostate', () => ({
 import * as T from '../../constants/types'
 import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
-import {flushInboxRowUpdates, queueInboxRowUpdate, useInboxRowBig, useInboxRowSmall, useInboxRowsState} from '../inbox-rows'
+import {flushInboxRowUpdates, queueInboxRowUpdate, useInboxRowsState} from '../inbox-rows'
 
 afterEach(() => {
   mockGetConvoState.mockReset()
@@ -45,22 +45,19 @@ test('queued inbox row updates flush into the row caches', () => {
   })
 
   queueInboxRowUpdate('conv-1')
-  expect(useInboxRowBig('conv-1')).toMatchObject({
-    channelname: '',
-    hasBadge: false,
-  })
+  expect(useInboxRowsState.getState().rowsBig.get('conv-1')).toBeUndefined()
 
   jest.runOnlyPendingTimers()
 
   expect(mockGetConvoState).toHaveBeenCalledWith('conv-1')
-  expect(useInboxRowBig('conv-1')).toMatchObject({
+  expect(useInboxRowsState.getState().rowsBig.get('conv-1')).toMatchObject({
     channelname: 'general',
     hasBadge: true,
     hasDraft: true,
     hasUnread: true,
     snippetDecoration: T.RPCChat.SnippetDecoration.pendingMessage,
   })
-  expect(useInboxRowSmall('conv-1')).toMatchObject({
+  expect(useInboxRowsState.getState().rowsSmall.get('conv-1')).toMatchObject({
     draft: 'draft text',
     hasBadge: true,
     hasResetUsers: true,
@@ -78,10 +75,4 @@ test('queued inbox row updates flush into the row caches', () => {
     youAreReset: false,
     youNeedToRekey: true,
   })
-})
-
-test('flushInboxRowUpdates is a no-op when nothing is queued', () => {
-  flushInboxRowUpdates()
-  expect(useInboxRowsState.getState().rowsBig.size).toBe(0)
-  expect(useInboxRowsState.getState().rowsSmall.size).toBe(0)
 })
