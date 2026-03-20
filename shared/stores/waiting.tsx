@@ -73,7 +73,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     increment: keys => {
       changeHelper(keys, 1)
     },
-    resetState: 'default',
+    resetStateDefault: true,
   }
 
   return {

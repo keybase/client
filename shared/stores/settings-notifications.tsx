@@ -168,7 +168,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetStateDefault: true,
     toggle: (group, name) => {
       const {groups} = get()
       if (!groups.get('email')) {

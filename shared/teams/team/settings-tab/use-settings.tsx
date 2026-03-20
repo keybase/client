@@ -19,7 +19,7 @@ interface State extends Store {
 // old and creaky
 export const useSettingsTabState = Z.createZustand<State>(set => {
   const dispatch: Z.InitialDispatch<State['dispatch']> = {
-    resetState: 'default',
+    resetStateDefault: true,
     triggerAllowOpen: () => {
       set(state => {
         state.allowOpenTrigger++

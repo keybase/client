@@ -143,7 +143,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         default:
       }
     },
-    resetState: 'default',
+    resetStateDefault: true,
     setBadgeCounts: counts => {
       set(s => {
         const chatCount = counts.get(Tabs.chatTab)

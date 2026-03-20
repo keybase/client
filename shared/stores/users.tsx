@@ -123,7 +123,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetStateDefault: true,
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {

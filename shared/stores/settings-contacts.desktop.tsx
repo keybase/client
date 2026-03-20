@@ -19,7 +19,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
     loadContactPermissions: () => {},
     manageContactsCache: () => {},
     requestPermissions: () => {},
-    resetState: 'default',
+    resetStateDefault: true,
   }
   return {
     ...initialStore,

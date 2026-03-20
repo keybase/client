@@ -2524,7 +2524,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.errorInTeamCreation = ''
       })
     },
-    resetState: 'default',
+    resetStateDefault: true,
     resetTeamJoin: () => {
       set(s => {
         s.errorInTeamJoin = ''

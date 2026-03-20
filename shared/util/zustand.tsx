@@ -17,11 +17,13 @@ type HasReset = {
   }
 }
 
-export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
-  resetState: 'default' | T['resetState']
-}
+export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> &
+  {
+    resetState?: T['resetState']
+    resetStateDefault?: true
+  }
 
-type WithInitialReset<T extends HasReset> = Omit<T, 'dispatch'> & {
+type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
   dispatch: InitialDispatch<T['dispatch']>
 }
 
@@ -35,21 +37,21 @@ const _hmrRegistry: Map<string, unknown> = __DEV__ ? ((globalThis as any).__ZUST
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
-  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]], [], WithInitialReset<T>>,
-  maybeInitializer?: StateCreator<T, [['zustand/immer', never]], [], WithInitialReset<T>>
+  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]], [], InitialState<T>>,
+  maybeInitializer?: StateCreator<T, [['zustand/immer', never]], [], InitialState<T>>
 ) => {
   const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
   const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
 
-  const f = immerZustand(initializer) as StateCreator<T, [], [['zustand/immer', never]]>
-  const store = create<T, [['zustand/immer', never]]>(f)
+  const f = immerZustand(initializer as any)
+  const store = create<T, [['zustand/immer', never]]>(f as any)
 
   // During HMR, return the existing store to preserve state and subscribers
   if (__DEV__ && hmrKey && _hmrRegistry.has(hmrKey)) {
     return _hmrRegistry.get(hmrKey) as typeof store
   }
   // includes dispatch, custom overrides typically don't
-  const initialState = store.getState() as unknown as WithInitialReset<T>
+  const initialState = store.getState() as unknown as InitialState<T>
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
@@ -63,23 +65,31 @@ export const createZustand = <T extends HasReset>(
     }
   }
 
-  const reset = initialState.dispatch.resetState
+  const hasDefaultReset = initialState.dispatch.resetStateDefault === true
+  let initialDispatch!: T['dispatch']
   let resetFunc: (isDebug?: boolean) => void
-  if (reset === 'default') {
+  if (hasDefaultReset) {
     resetFunc = () => {
       const currentDefer = store.getState().dispatch.defer
-      const hasInitialDefer = Object.hasOwn(initialState.dispatch, 'defer')
+      const hasInitialDefer = Object.hasOwn(initialDispatch, 'defer')
       const nextDispatch =
         hasInitialDefer || currentDefer !== undefined
-          ? {...initialState.dispatch, defer: currentDefer}
-          : initialState.dispatch
+          ? {...initialDispatch, defer: currentDefer}
+          : initialDispatch
       // eslint-disable-next-line
       store.setState({...initialState, dispatch: nextDispatch} as any, true)
     }
     unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
+    const reset = initialState.dispatch.resetState
+    if (!reset) {
+      throw new Error('createZustand requires dispatch.resetState or dispatch.resetStateDefault')
+    }
     resetFunc = reset
   }
+
+  delete unsafeISD['resetStateDefault']
+  initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {
     resettersAndDelete.push(resetFunc)
@@ -108,7 +118,7 @@ export type ImmerStateCreator<T extends HasReset> = StateCreator<
   T,
   [['zustand/immer', never]],
   [],
-  WithInitialReset<T>
+  InitialState<T>
 >
 export {useShallow} from 'zustand/react/shallow'
 

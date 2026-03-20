@@ -443,7 +443,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     clearInput: op => {
       set(s => {
         const o = s[op]
@@ -558,7 +558,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         }
       })
     },
-    resetState: 'default',
+    resetStateDefault: true,
     runFileOperation: (op, destinationDir) => {
       set(s => {
         const o = s[op]
@@ -674,9 +674,9 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         get().dispatch.runTextOperation('encrypt')
       }
     },
-  } satisfies Omit<State['dispatch'], 'resetState'> & {resetState: 'default'}
+  }
   return {
     ...initialStore,
-    dispatch: dispatch as unknown as State['dispatch'],
+    dispatch,
   }
 })

@@ -283,7 +283,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetStateDefault: true,
     setPushToken: (token: string) => {
       set(s => {
         s.token = token

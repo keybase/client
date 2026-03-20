@@ -175,7 +175,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetStateDefault: true,
     setBadges: b => {
       set(s => {
         s.isNew = b

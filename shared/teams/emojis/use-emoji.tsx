@@ -17,7 +17,7 @@ interface State extends Store {
 
 export const useEmojiState = Z.createZustand<State>(set => {
   const dispatch: Z.InitialDispatch<State['dispatch']> = {
-    resetState: 'default',
+    resetStateDefault: true,
     triggerEmojiUpdated: () => {
       set(state => {
         state.emojiUpdatedTrigger++

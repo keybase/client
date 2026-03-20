@@ -83,7 +83,7 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetStateDefault: true,
     searchFeaturedAndUsers: query => {
       const f = async () => {
         let botRes: T.RPCGen.SearchRes | undefined

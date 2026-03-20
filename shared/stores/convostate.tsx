@@ -2714,7 +2714,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetStateDefault: true,
     resolveMaybeMention: (channel, name) => {
       const f = async () => {
         await T.RPCChat.localResolveMaybeMentionRpcPromise({

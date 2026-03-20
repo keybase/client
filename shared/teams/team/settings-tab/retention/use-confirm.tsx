@@ -30,7 +30,7 @@ export const useConfirm = Z.createZustand<State>(set => {
         s.modalOpen = true
       })
     },
-    resetState: 'default',
+    resetStateDefault: true,
     updateConfirm: rt => {
       set(s => {
         s.modalOpen = false

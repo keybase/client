@@ -65,7 +65,7 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
         s.devices = T.castDraft(devices)
       })
     },
-    resetState: 'default',
+    resetStateDefault: true,
     toPaperKeyInput: () => {
       set(s => {
         s.phase = 'paperKeyInput'

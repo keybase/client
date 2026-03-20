@@ -57,7 +57,7 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetStateDefault: true,
     setBadges: b => {
       set(s => {
         s.isNew = b

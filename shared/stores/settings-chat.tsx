@@ -97,7 +97,7 @@ export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetStateDefault: true,
     unfurlSettingsRefresh: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {
