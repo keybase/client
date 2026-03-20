@@ -6,7 +6,7 @@
     "_helper": "yarn run _node desktop/yarn-helper",
     "_node": "cross-env-shell babel-node --extensions='.tsx' --extensions='.js' ",
     "help": "yarn run _helper help",
-    "test": "jest --runInBand shared/stores/convostate.test.ts",
+    "test": "jest --runInBand",
     "lint": "yarn run lint-specific .",
     "lint-warn": "eslint .",
     "lint-specific": "eslint --cache --quiet ",

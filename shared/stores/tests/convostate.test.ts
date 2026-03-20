@@ -1,15 +1,15 @@
-import * as Meta from '../constants/chat/meta'
-import * as Message from '../constants/chat/message'
-import * as T from '../constants/types'
-import HiddenString from '../util/hidden-string'
-import {useCurrentUserState} from './current-user'
+import * as Meta from '../../constants/chat/meta'
+import * as Message from '../../constants/chat/message'
+import * as T from '../../constants/types'
+import HiddenString from '../../util/hidden-string'
+import {useCurrentUserState} from '../current-user'
 import {
   compareConvoStoreStatesForTesting,
   createConvoStoreForTesting,
   type ConvoState,
-} from './convostate'
+} from '../convostate'
 
-jest.mock('./inbox-rows', () => ({
+jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
 }))
 
@@ -19,8 +19,8 @@ jest.mock('./inbox-rows', () => ({
  * import {
  *   compareConvoStoreStatesForTesting,
  *   createConvoStoreForTesting,
- * } from './convostate'
- * import {createConvoStoreForTesting as createBaseConvoStoreForTesting} from './convostate.base'
+ * } from '../convostate'
+ * import {createConvoStoreForTesting as createBaseConvoStoreForTesting} from '../convostate.base'
  *
  * test('base and refactor stay equivalent', () => {
  *   const base = createBaseConvoStoreForTesting(convID)
