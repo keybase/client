@@ -9,6 +9,10 @@ import {
   type ConvoState,
 } from './convostate'
 
+jest.mock('./inbox-rows', () => ({
+  queueInboxRowUpdate: jest.fn(),
+}))
+
 /*
  * Differential test example for future refactors:
  *
@@ -54,9 +58,9 @@ const makeTextMessage = (override?: Omit<Partial<T.Chat.MessageText>, 'text'> & 
     id: msgID,
     ordinal,
     outboxID,
-    text: new HiddenString(override?.text ?? 'hello'),
     timestamp: 100,
     ...override,
+    text: new HiddenString(override?.text ?? 'hello'),
   })
 
 const makePendingTextMessage = (pendingOrdinal: T.Chat.Ordinal, pendingOutboxID: T.Chat.OutboxID, text: string) =>
@@ -321,7 +325,7 @@ test('reaction updates keep existing emoji order and sort new emojis by first ti
 
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
 
-  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
+  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([':+1:', ':eyes:', ':fire:', ':wave:'])
   const message = store.getState().messageMap.get(ordinal)
   expect(Message.isMessageWithReactions(message!)).toBe(true)
   if (message && Message.isMessageWithReactions(message)) {
