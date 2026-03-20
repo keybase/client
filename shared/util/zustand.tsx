@@ -1,7 +1,7 @@
 // helpers for zustand
 import * as React from 'react'
 import isEqual from 'lodash/isEqual'
-import {type StateCreator, type StoreApi, type UseBoundStore} from 'zustand'
+import {type Mutate, type StateCreator, type StoreApi, type UseBoundStore} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {wrapErrors} from '@/util/debug'
@@ -25,6 +25,8 @@ type WithInitialReset<T extends HasReset> = Omit<T, 'dispatch'> & {
   dispatch: InitialDispatch<T['dispatch']>
 }
 
+type ImmerStore<T> = UseBoundStore<Mutate<StoreApi<T>, [['zustand/immer', never]]>>
+
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
 
@@ -43,7 +45,7 @@ export const createZustand = <T extends HasReset>(
 
   const f = immerZustand(initializer)
   const rawStore = create<WithInitialReset<T>, [['zustand/immer', never]]>(f)
-  const store = rawStore as unknown as UseBoundStore<StoreApi<T>>
+  const store = rawStore as unknown as ImmerStore<T>
 
   // During HMR, return the existing store to preserve state and subscribers
   if (__DEV__ && hmrKey && _hmrRegistry.has(hmrKey)) {
