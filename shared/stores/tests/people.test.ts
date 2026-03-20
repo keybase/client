@@ -25,7 +25,7 @@ test('resetState clears people screen data and resent email', () => {
     resentEmail: 'alice@keybase.io',
   } as never)
 
-  usePeopleState.getState().dispatch.resetState?.()
+  usePeopleState.getState().dispatch.resetState()
 
   const state = usePeopleState.getState()
   expect(state.followSuggestions).toEqual([])

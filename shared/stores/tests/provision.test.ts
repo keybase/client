@@ -78,7 +78,7 @@ test('resetState preserves inline and final errors while clearing form state', (
     username: 'alice',
   }))
 
-  useProvisionState.getState().dispatch.resetState?.()
+  useProvisionState.getState().dispatch.resetState()
 
   const state = useProvisionState.getState()
   expect(cancel).toHaveBeenCalledWith(true)

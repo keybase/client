@@ -37,7 +37,7 @@ test('dark mode preference drives isDarkMode and resets with the stored override
   expect(useDarkModeState.getState().isDarkMode()).toBe(false)
   expect(mockSetNativeTheme).toHaveBeenCalledWith('light')
 
-  dispatch.resetState?.()
+  dispatch.resetState()
   expect(useDarkModeState.getState()).toMatchObject({
     darkModePreference: 'alwaysLight',
     supported: true,

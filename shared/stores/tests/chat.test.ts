@@ -9,7 +9,7 @@ import {
 } from '../chat'
 
 afterEach(() => {
-  useChatState.getState().dispatch.resetState?.()
+  useChatState.getState().dispatch.resetState()
 })
 
 test('chat helper utilities derive stable defaults and formatting', () => {

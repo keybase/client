@@ -107,7 +107,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
         })
         const ok = noErrors()
         if (ok) {
-          get().dispatch.resetState?.()
+          get().dispatch.resetState()
         } else {
           navigateAppend('signupError')
         }

@@ -28,7 +28,7 @@ const resetConfigState = () => {
     useNativeFrame: defaultUseNativeFrame,
     userSwitching: false,
   } as any)
-  dispatch.resetState?.()
+  dispatch.resetState()
 }
 
 beforeEach(() => {
@@ -105,7 +105,7 @@ test('custom resetState preserves the fields config intentionally carries across
     userSwitching: true,
   } as any)
 
-  dispatch.resetState?.()
+  dispatch.resetState()
 
   const state = useConfigState.getState()
   expect(state.configuredAccounts).toEqual([{hasStoredSecret: true, username: 'alice'}])

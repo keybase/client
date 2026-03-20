@@ -26,7 +26,7 @@ test('resetState preserves navState and the dispatch object', () => {
   useRouterState.getState().dispatch.setNavState(makeNavState('two'))
   const navState = useRouterState.getState().navState
 
-  useRouterState.getState().dispatch.resetState?.()
+  useRouterState.getState().dispatch.resetState()
 
   expect(useRouterState.getState().navState).toBe(navState)
   expect(useRouterState.getState().dispatch).toBe(dispatch)

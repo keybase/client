@@ -100,7 +100,7 @@ test('resetState clears recover-password state after it has been populated', asy
     await flush()
     expect(useRecoverPasswordState.getState().devices).toHaveLength(1)
 
-    useRecoverPasswordState.getState().dispatch.resetState?.()
+    useRecoverPasswordState.getState().dispatch.resetState()
 
     expect(useRecoverPasswordState.getState().username).toBe('')
     expect(useRecoverPasswordState.getState().devices).toHaveLength(0)
