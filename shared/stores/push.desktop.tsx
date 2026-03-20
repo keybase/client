@@ -11,7 +11,7 @@ const initialStore: Store = {
 }
 
 export const usePushState = Z.createZustand<State>('push', () => {
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     checkPermissions: async () => {
       return Promise.resolve(false)
     },

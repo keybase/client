@@ -124,7 +124,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
   const load = () => {
     ignorePromise(_load())
   }
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     clearBadges: () => {
       callAndHandleError(async () => {
         await T.RPCGen.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})

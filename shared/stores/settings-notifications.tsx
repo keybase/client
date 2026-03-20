@@ -60,7 +60,7 @@ export interface State extends Store {
 }
 
 export const useSettingsNotifState = Z.createZustand<State>('settings-notifications', (set, get) => {
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     refresh: () => {
       const f = async () => {
         let handled = false

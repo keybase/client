@@ -85,7 +85,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     }
   }
 
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     // Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
     checkPermissions: async () => {
       const permissions = await checkPermissionsFromNative()

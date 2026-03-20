@@ -30,7 +30,7 @@ interface State extends Store {
   }
 }
 export const useState = Z.createZustand<State>('wallets', (set, get) => {
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     load: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {

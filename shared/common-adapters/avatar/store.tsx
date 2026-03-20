@@ -20,7 +20,7 @@ export interface State extends Store {
 }
 
 export const useAvatarState = Z.createZustand<State>(set => {
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     replace: m => {
       set(s => {
         s.counts = m

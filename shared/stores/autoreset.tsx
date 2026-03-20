@@ -45,7 +45,7 @@ export interface State extends Store {
 }
 
 export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) => {
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     cancelReset: () => {
       set(s => {
         s.error = ''

@@ -17,11 +17,13 @@ type HasReset = {
   }
 }
 
+export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
+  resetState?: T['resetState']
+  resetStateDefault?: true
+}
+
 type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
-  dispatch: Omit<T['dispatch'], 'resetState'> & {
-    resetState?: T['dispatch']['resetState']
-    resetStateDefault?: true
-  }
+  dispatch: InitialDispatch<T['dispatch']>
 }
 
 const resetters: ((isDebug?: boolean) => void)[] = []

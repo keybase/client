@@ -49,7 +49,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     })
   }
 
-  const dispatch = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     batch: changes => {
       changes.forEach(c => {
         if (c.increment) {
