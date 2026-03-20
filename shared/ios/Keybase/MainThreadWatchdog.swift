@@ -1,0 +1,181 @@
+import UIKit
+import Darwin
+
+// File-scope globals required by the SIGUSR1 signal handler.
+// Signal handlers cannot safely reference Swift objects, so these must be C-compatible globals.
+private let kMaxStackFrames: Int32 = 128
+private var gMainStackFrames = [UnsafeMutableRawPointer?](repeating: nil, count: Int(kMaxStackFrames))
+private var gMainStackFrameCount: Int32 = 0
+private var gMainStackReady: Bool = false
+
+// Monitors the main thread for hangs by pinging it every second from a background thread.
+// Captures a stack trace via SIGUSR1 on first hang detection.
+//
+// Lifecycle:
+//   1. Call install() once on the main thread at app startup.
+//   2. Call start(context:) when entering background (or at cold start).
+//   3. Call stop() at the top of applicationDidBecomeActive.
+class MainThreadWatchdog {
+  private var active = false
+  private let lock = NSLock()
+  private var lastPong: CFAbsoluteTime = 0
+  private var bgEnterTime: CFAbsoluteTime = 0
+
+  private var mainThreadPthread: pthread_t?
+  private let appStartTime: CFAbsoluteTime
+  private let writeLog: (String) -> Void
+
+  init(appStartTime: CFAbsoluteTime, writeLog: @escaping (String) -> Void) {
+    self.appStartTime = appStartTime
+    self.writeLog = writeLog
+  }
+
+  // Must be called from the main thread. Captures pthread_self() and installs
+  // the SIGUSR1 handler that records the main thread stack on demand.
+  func install() {
+    mainThreadPthread = pthread_self()
+    signal(SIGUSR1) { _ in
+      gMainStackFrameCount = backtrace(&gMainStackFrames, kMaxStackFrames)
+      gMainStackReady = true
+    }
+  }
+
+  func start(context: String) {
+    lock.lock()
+    if active {
+      lock.unlock()
+      return
+    }
+    active = true
+    let now = CFAbsoluteTimeGetCurrent()
+    lastPong = now
+    bgEnterTime = now
+    lock.unlock()
+
+    writeLog("Watchdog: started (\(context))")
+
+    DispatchQueue(label: "kb.startup.watchdog", qos: .utility).async { [weak self] in
+      self?.run()
+    }
+  }
+
+  func stop() {
+    lock.lock()
+    let wasActive = active
+    active = false
+    lock.unlock()
+    if wasActive {
+      writeLog("Watchdog: stopped")
+    }
+  }
+
+  // MARK: - Private
+
+  private func run() {
+    var lastLogTime: CFAbsoluteTime = 0
+
+    while true {
+      Thread.sleep(forTimeInterval: 1.0)
+
+      lock.lock()
+      let isActive = active
+      let lastPong = self.lastPong
+      let bgEnterTime = self.bgEnterTime
+      lock.unlock()
+      guard isActive else { break }
+
+      let now = CFAbsoluteTimeGetCurrent()
+      let blockDuration = now - lastPong
+
+      // If blockDuration is very large, the process was suspended by iOS (not a main thread hang).
+      // Reset the pong baseline and send one ping — the main thread should respond within a
+      // few seconds once unfrozen. If it doesn't, we'll start reporting a hang next iteration.
+      if blockDuration > 30.0 {
+        let bgElapsedSec = now - bgEnterTime
+        let msg = String(format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)", blockDuration, bgElapsedSec)
+        NSLog("[Startup] %@", msg)
+        lock.lock()
+        self.lastPong = now
+        lock.unlock()
+        lastLogTime = 0
+        DispatchQueue.main.async { [weak self] in
+          guard let self else { return }
+          self.lock.lock()
+          self.lastPong = CFAbsoluteTimeGetCurrent()
+          self.lock.unlock()
+        }
+        continue
+      }
+
+      let totalElapsedMs = (now - appStartTime) * 1000
+
+      if blockDuration >= 3.0 {
+        // Log at first detection, then every 5s to avoid spam
+        if lastLogTime == 0 || (now - lastLogTime) >= 5.0 {
+          let bgElapsedSec = now - bgEnterTime
+          let msg = String(format: "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
+          NSLog("[Startup] %@", msg)
+          // Enqueue a write for when the main thread recovers
+          DispatchQueue.main.async { [weak self] in
+            self?.writeLog(msg)
+          }
+          // Capture main thread stack on first detection
+          if lastLogTime == 0 {
+            captureAndLogStackTrace()
+          }
+          lastLogTime = now
+        }
+      } else {
+        if lastLogTime != 0 {
+          let bgElapsedSec = now - bgEnterTime
+          let msg = String(format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)", bgElapsedSec, totalElapsedMs)
+          NSLog("[Startup] %@", msg)
+          DispatchQueue.main.async { [weak self] in
+            self?.writeLog(msg)
+          }
+          lastLogTime = 0
+        }
+      }
+
+      // Ping: ask main thread to update the pong time
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        self.lock.lock()
+        self.lastPong = CFAbsoluteTimeGetCurrent()
+        self.lock.unlock()
+      }
+    }
+  }
+
+  // Send SIGUSR1 to the main thread, wait briefly for the handler to run, then log the stack.
+  private func captureAndLogStackTrace() {
+    gMainStackReady = false
+    guard let tid = mainThreadPthread else {
+      NSLog("[Startup] Watchdog: main thread pthread not captured")
+      return
+    }
+    pthread_kill(tid, SIGUSR1)
+    // Spin up to 200ms for the signal handler to complete
+    for _ in 0..<20 {
+      if gMainStackReady { break }
+      Thread.sleep(forTimeInterval: 0.01)
+    }
+    guard gMainStackReady else {
+      NSLog("[Startup] Watchdog: stack capture timed out")
+      return
+    }
+    let count = Int(gMainStackFrameCount)
+    // Log the binary load slide so addresses can be symbolicated offline:
+    //   atos -o Keybase.app.dSYM/Contents/Resources/DWARF/Keybase -l <slide> <address>
+    let slide = _dyld_get_image_vmaddr_slide(0)
+    NSLog("[Startup] Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide)
+    gMainStackFrames.withUnsafeMutableBufferPointer { buf in
+      if let syms = backtrace_symbols(buf.baseAddress, Int32(count)) {
+        for i in 0..<count {
+          NSLog("[Startup]   %s", syms[i]!)
+        }
+        free(syms)
+      }
+    }
+  }
+}
