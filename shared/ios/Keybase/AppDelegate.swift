@@ -45,6 +45,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var iph: ItemProviderHelper?
   var startupLogFileHandle: FileHandle?
 
+  private var watchdog: MainThreadWatchdog?
+
   public override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -58,6 +60,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
+    let wd = MainThreadWatchdog(appStartTime: AppDelegate.appStartTime, writeLog: { [weak self] msg in
+      self?.writeStartupTimingLog(msg)
+    })
+    wd.install()
+    wd.start(context: "cold start")
+    self.watchdog = wd
 
     self.didLaunchSetupBefore()
 
@@ -163,7 +171,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     let dateString = dateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
-    
+
     let fileName = (file as NSString).lastPathComponent
     let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
 
@@ -210,7 +218,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let shareIntentDonator = ShareIntentDonatorImpl()
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
-    
+
     self.writeStartupTimingLog("After Go init")
   }
 
@@ -223,6 +231,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     case .inactive: Keybasego.KeybaseSetAppStateInactive()
     default: Keybasego.KeybaseSetAppStateForeground()
     }
+    NSLog("notifyAppState: done")
+    Keybasego.KeybaseFlushLogs()
   }
 
   func didLaunchSetupBefore() {
@@ -280,11 +290,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    NSLog("Background fetch started...")
+    let fetchStart = CFAbsoluteTimeGetCurrent()
+    NSLog("Background fetch queued...")
     DispatchQueue.global(qos: .default).async {
-      Keybasego.KeybaseBackgroundSync()
+      NSLog("Background fetch started...")
+      let status = Keybasego.KeybaseBackgroundSync()
+      let elapsed = (CFAbsoluteTimeGetCurrent() - fetchStart) * 1000
+      if status.isEmpty {
+        NSLog("Background fetch completed in %.0fms", elapsed)
+      } else {
+        NSLog("Background fetch completed in %.0fms: %@", elapsed, status)
+      }
       completionHandler(.newData)
-      NSLog("Background fetch completed...")
     }
   }
 
@@ -374,6 +391,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidEnterBackground(_ application: UIApplication) {
+    watchdog?.start(context: "background entered")
     application.ignoreSnapshotOnNextApplicationLaunch()
     NSLog("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
@@ -383,6 +401,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     NSLog("applicationDidEnterBackground: after notifying go.")
+    Keybasego.KeybaseFlushLogs()
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
@@ -408,6 +427,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidBecomeActive(_ application: UIApplication) {
+    watchdog?.stop()
+    Keybasego.KeybaseFlushLogs()
     let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
     writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
     NSLog("applicationDidBecomeActive: hiding keyz screen.")

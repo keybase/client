@@ -81,12 +81,7 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 		select {
 		case <-writer.timer.C:
 			// Swap out active and backup writers
-			writer.lock.Lock()
-			writer.bufferedWriter, writer.backupWriter = writer.
-				backupWriter, writer.bufferedWriter
-			writer.lock.Unlock()
-
-			writer.backupWriter.Flush()
+			writer.Flush()
 		case <-writer.shutdown:
 			writer.timer.shutdownCh <- struct{}{}
 			writer.bufferedWriter.Flush()
@@ -125,6 +120,15 @@ func NewAutoFlushingBufferedWriter(baseWriter io.Writer,
 	}
 	go result.backgroundFlush()
 	return result, result.shutdown, result.doneShutdown
+}
+
+// Flush synchronously flushes any buffered data to the underlying writer.
+// Safe to call concurrently with Write.
+func (writer *autoFlushingBufferedWriter) Flush() {
+	writer.lock.Lock()
+	writer.bufferedWriter, writer.backupWriter = writer.backupWriter, writer.bufferedWriter
+	writer.lock.Unlock()
+	_ = writer.backupWriter.Flush()
 }
 
 func (writer *autoFlushingBufferedWriter) Write(p []byte) (int, error) {
