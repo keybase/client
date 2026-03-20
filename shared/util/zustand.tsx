@@ -13,7 +13,7 @@ type HasReset = {
   dispatch: {
     defer?: Record<string, unknown>
     resetDeleteMe?: boolean
-    resetState: (...args: Array<unknown>) => void
+    resetState: (isDebug?: boolean) => void
   }
 }
 

@@ -24,7 +24,7 @@ export type Loggers = {
 const localLog = isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
 const localWarn = console.warn.bind(console)
 const localError = console.error.bind(console)
-const isJest = typeof process !== 'undefined' && !!process.env.JEST_WORKER_ID
+const isJest = typeof process !== 'undefined' && !!process.env['JEST_WORKER_ID']
 
 // inject for convenience
 if (__DEV__) {
