@@ -13,8 +13,8 @@ const bootstrapCurrentUser = () => {
 }
 
 beforeEach(() => {
-  bootstrapCurrentUser()
   resetAllStores()
+  bootstrapCurrentUser()
 })
 
 afterEach(() => {

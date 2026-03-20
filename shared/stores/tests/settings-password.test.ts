@@ -9,22 +9,26 @@ jest.mock('@/constants/router', () => {
   }
 })
 
-jest.mock('@/stores/logout', () => ({
-  useLogoutState: {
-    getState: () => ({
-      dispatch: {
-        requestLogout: jest.fn(),
-      },
-    }),
-  },
-}))
+jest.mock('@/stores/logout', () => {
+  const mockRequestLogout = jest.fn()
+  return {
+    __mockRequestLogout: mockRequestLogout,
+    useLogoutState: {
+      getState: () => ({
+        dispatch: {
+          requestLogout: mockRequestLogout,
+        },
+      }),
+    },
+  }
+})
 
 import {usePWState} from '../settings-password'
 
 const {navigateUp: mockNavigateUp} = require('@/constants/router') as {
   navigateUp: jest.Mock
 }
-const mockRequestLogout = require('@/stores/logout').useLogoutState.getState().dispatch.requestLogout as jest.Mock
+const mockRequestLogout = require('@/stores/logout').__mockRequestLogout as jest.Mock
 
 afterEach(() => {
   jest.restoreAllMocks()
