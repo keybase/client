@@ -231,7 +231,7 @@ test('Markdown serviceOnlyNoWrap skips only the inner service wrapper on desktop
 })
 
 test('Markdown spoilers stay masked until clicked and then reveal content', () => {
-  const renderer = TestRenderer.create(<Markdown context="msg-1">!>secret<!</Markdown>)
+  const renderer = TestRenderer.create(<Markdown context="msg-1">{'!>secret<!'}</Markdown>)
 
   expect(extractText(renderer.toJSON())).toBe('••••••')
 
