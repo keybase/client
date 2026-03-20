@@ -7,6 +7,17 @@ import UserNotifications
 import AVFoundation
 import ExpoModulesCore
 import Keybasego
+import Darwin
+
+// File-scope globals for signal-based main thread stack capture.
+// Must be trivial C types — signal handlers cannot safely use Swift objects.
+private let kMaxStackFrames: Int32 = 128
+private var gMainStackFrames = [UnsafeMutableRawPointer?](repeating: nil, count: Int(kMaxStackFrames))
+private var gMainStackFrameCount: Int32 = 0
+private var gMainStackReady: Bool = false
+// Captured in didFinishLaunchingWithOptions (which runs on main); used by the watchdog
+// to send SIGUSR1 to the main thread. pthread_main_thread_np() is not exposed in Swift.
+private var gMainThreadPthread: pthread_t? = nil
 
 class KeyboardWindow: UIWindow {
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -45,6 +56,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var iph: ItemProviderHelper?
   var startupLogFileHandle: FileHandle?
 
+  // Main thread watchdog
+  private var watchdogActive = false
+  private let watchdogLock = NSLock()
+  private var watchdogLastPong: CFAbsoluteTime = 0
+  private var watchdogBgEnterTime: CFAbsoluteTime = 0
+
   public override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -58,6 +75,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
+    gMainThreadPthread = pthread_self()
+    AppDelegate.installMainThreadStackCaptureHandler()
+    self.startMainThreadWatchdog(context: "cold start")
 
     self.didLaunchSetupBefore()
 
@@ -163,7 +183,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     let dateString = dateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
-    
+
     let fileName = (file as NSString).lastPathComponent
     let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
 
@@ -210,7 +230,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let shareIntentDonator = ShareIntentDonatorImpl()
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
-    
+
     self.writeStartupTimingLog("After Go init")
   }
 
@@ -223,6 +243,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     case .inactive: Keybasego.KeybaseSetAppStateInactive()
     default: Keybasego.KeybaseSetAppStateForeground()
     }
+    NSLog("notifyAppState: done")
+    Keybasego.KeybaseFlushLogs()
   }
 
   func didLaunchSetupBefore() {
@@ -280,11 +302,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    NSLog("Background fetch started...")
+    let fetchStart = CFAbsoluteTimeGetCurrent()
+    NSLog("Background fetch queued...")
     DispatchQueue.global(qos: .default).async {
-      Keybasego.KeybaseBackgroundSync()
+      NSLog("Background fetch started...")
+      let status = Keybasego.KeybaseBackgroundSync()
+      let elapsed = (CFAbsoluteTimeGetCurrent() - fetchStart) * 1000
+      if status.isEmpty {
+        NSLog("Background fetch completed in %.0fms", elapsed)
+      } else {
+        NSLog("Background fetch completed in %.0fms: %@", elapsed, status)
+      }
       completionHandler(.newData)
-      NSLog("Background fetch completed...")
     }
   }
 
@@ -374,6 +403,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidEnterBackground(_ application: UIApplication) {
+    startMainThreadWatchdog(context: "background entered")
     application.ignoreSnapshotOnNextApplicationLaunch()
     NSLog("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
@@ -383,6 +413,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     NSLog("applicationDidEnterBackground: after notifying go.")
+    Keybasego.KeybaseFlushLogs()
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
@@ -408,6 +439,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidBecomeActive(_ application: UIApplication) {
+    stopMainThreadWatchdog()
+    Keybasego.KeybaseFlushLogs()
     let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
     writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
     NSLog("applicationDidBecomeActive: hiding keyz screen.")
@@ -445,6 +478,150 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func applicationWillEnterForeground(_ application: UIApplication) {
     NSLog("applicationWillEnterForeground: hiding keyz screen.")
     hideCover()
+  }
+
+  // Register a SIGUSR1 handler that captures the main thread's own stack via backtrace().
+  // backtrace() is async-signal-safe on Darwin; must be called once before any hang can occur.
+  private static func installMainThreadStackCaptureHandler() {
+    signal(SIGUSR1) { _ in
+      gMainStackFrameCount = backtrace(&gMainStackFrames, kMaxStackFrames)
+      gMainStackReady = true
+    }
+  }
+
+  // Send SIGUSR1 to the main thread, wait briefly for the handler to run, then log the stack.
+  // Called from the watchdog background thread on first hang detection.
+  private func logMainThreadStackTrace() {
+    gMainStackReady = false
+    guard let mainThread = gMainThreadPthread else {
+      NSLog("[Startup] Watchdog: main thread pthread not captured")
+      return
+    }
+    pthread_kill(mainThread, SIGUSR1)
+    // Spin up to 200ms for the signal handler to complete
+    for _ in 0..<20 {
+      if gMainStackReady { break }
+      Thread.sleep(forTimeInterval: 0.01)
+    }
+    guard gMainStackReady else {
+      NSLog("[Startup] Watchdog: stack capture timed out")
+      return
+    }
+    let count = Int(gMainStackFrameCount)
+    // Log the binary load slide so addresses can be symbolicated offline:
+    //   atos -o Keybase.app.dSYM/Contents/Resources/DWARF/Keybase -l <slide> <address>
+    let slide = _dyld_get_image_vmaddr_slide(0)
+    NSLog("[Startup] Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide)
+    gMainStackFrames.withUnsafeMutableBufferPointer { buf in
+      if let syms = backtrace_symbols(buf.baseAddress, Int32(count)) {
+        for i in 0..<count {
+          NSLog("[Startup]   %s", syms[i]!)
+        }
+        free(syms)
+      }
+    }
+  }
+
+  private func startMainThreadWatchdog(context: String) {
+    watchdogLock.lock()
+    if watchdogActive {
+      watchdogLock.unlock()
+      return
+    }
+    watchdogActive = true
+    let startTime = CFAbsoluteTimeGetCurrent()
+    watchdogLastPong = startTime
+    watchdogBgEnterTime = startTime
+    watchdogLock.unlock()
+
+    writeStartupTimingLog("Watchdog: started (\(context))")
+
+    DispatchQueue(label: "kb.startup.watchdog", qos: .utility).async { [weak self] in
+      var lastLogTime: CFAbsoluteTime = 0
+
+      while true {
+        Thread.sleep(forTimeInterval: 1.0)
+
+        guard let self = self else { break }
+        self.watchdogLock.lock()
+        let active = self.watchdogActive
+        let lastPong = self.watchdogLastPong
+        let bgEnterTime = self.watchdogBgEnterTime
+        self.watchdogLock.unlock()
+        guard active else { break }
+
+        let now = CFAbsoluteTimeGetCurrent()
+        let blockDuration = now - lastPong
+
+        // If blockDuration is very large, the process was suspended by iOS (not a main thread hang).
+        // Reset the pong baseline and send one ping — the main thread should respond within a
+        // few seconds once unfrozen. If it doesn't, we'll start reporting a hang next iteration.
+        if blockDuration > 30.0 {
+          let bgElapsedSec = now - bgEnterTime
+          let msg = String(format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)", blockDuration, bgElapsedSec)
+          NSLog("[Startup] %@", msg)
+          self.watchdogLock.lock()
+          self.watchdogLastPong = now
+          self.watchdogLock.unlock()
+          lastLogTime = 0
+          DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.watchdogLock.lock()
+            self.watchdogLastPong = CFAbsoluteTimeGetCurrent()
+            self.watchdogLock.unlock()
+          }
+          continue
+        }
+
+        let totalElapsedMs = (now - AppDelegate.appStartTime) * 1000
+
+        if blockDuration >= 3.0 {
+          // Log at first detection, then every 5s to avoid spam
+          if lastLogTime == 0 || (now - lastLogTime) >= 5.0 {
+            let bgElapsedSec = now - bgEnterTime
+            let msg = String(format: "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
+            NSLog("[Startup] %@", msg)
+            // Enqueue a write for when the main thread recovers
+            DispatchQueue.main.async { [weak self] in
+              self?.writeStartupTimingLog(msg)
+            }
+            // Capture main thread stack on first detection
+            if lastLogTime == 0 {
+              self.logMainThreadStackTrace()
+            }
+            lastLogTime = now
+          }
+        } else {
+          if lastLogTime != 0 {
+            let bgElapsedSec = now - bgEnterTime
+            let msg = String(format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)", bgElapsedSec, totalElapsedMs)
+            NSLog("[Startup] %@", msg)
+            DispatchQueue.main.async { [weak self] in
+              self?.writeStartupTimingLog(msg)
+            }
+            lastLogTime = 0
+          }
+        }
+
+        // Ping: ask main thread to update the pong time
+        DispatchQueue.main.async { [weak self] in
+          guard let self = self else { return }
+          self.watchdogLock.lock()
+          self.watchdogLastPong = CFAbsoluteTimeGetCurrent()
+          self.watchdogLock.unlock()
+        }
+      }
+    }
+  }
+
+  private func stopMainThreadWatchdog() {
+    watchdogLock.lock()
+    let wasActive = watchdogActive
+    watchdogActive = false
+    watchdogLock.unlock()
+    if wasActive {
+      writeStartupTimingLog("Watchdog: stopped")
+    }
   }
 
 }

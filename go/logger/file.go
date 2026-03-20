@@ -62,6 +62,7 @@ func SetLogFileConfig(lfc *LogFileConfig, blc *BufferedLoggerConfig) error {
 	if first {
 		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, blc)
 		w.stopFlushing = shutdown
+		currentBufferedWriter = buf.(*autoFlushingBufferedWriter)
 		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
 
@@ -103,6 +104,18 @@ func (lfw *LogFileWriter) Open(at time.Time) error {
 		_ = tryRedirectStderrTo(lfw.file)
 	}
 	return nil
+}
+
+// FlushLogFile synchronously flushes any buffered log data to disk.
+// Call this before the app is suspended or after resuming from background
+// to ensure logs are not lost if the process is killed.
+func FlushLogFile() {
+	globalLock.Lock()
+	buf := currentBufferedWriter
+	globalLock.Unlock()
+	if buf != nil {
+		buf.Flush()
+	}
 }
 
 func (lfw *LogFileWriter) Close() error {
