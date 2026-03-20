@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import HiddenString from '@/util/hidden-string'

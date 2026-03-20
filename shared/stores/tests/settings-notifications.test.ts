@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as T from '../../constants/types'
 import {resetAllStores} from '../../util/zustand'
 import {useSettingsNotifState} from '../settings-notifications'

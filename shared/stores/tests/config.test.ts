@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {defaultUseNativeFrame} from '../../constants/platform'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'

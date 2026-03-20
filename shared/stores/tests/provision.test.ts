@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {RPCError} from '@/util/errors'
 import {resetAllStores} from '@/util/zustand'
 import {

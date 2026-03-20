@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 const mockNavigateAppend = jest.fn()
 
 jest.mock('@/constants/router', () => ({

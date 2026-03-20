@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import type * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {createTBStore} from '../team-building'

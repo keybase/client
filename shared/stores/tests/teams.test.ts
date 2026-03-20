@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
 import type * as T from '@/constants/types'
 import {addMembersWizardEmptyState, emptyTeamDetails, useTeamsState} from '../teams'

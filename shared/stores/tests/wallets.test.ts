@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {resetAllStores} from '../../util/zustand'
 import {useConfigState} from '../config'
 import {useState as useWalletsState} from '../wallets'

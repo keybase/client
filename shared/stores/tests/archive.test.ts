@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'

@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as S from '../../constants/strings'
 import * as T from '../../constants/types'
 import {resetAllStores} from '../../util/zustand'

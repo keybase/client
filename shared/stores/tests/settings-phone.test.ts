@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
 import {resetAllStores} from '@/util/zustand'

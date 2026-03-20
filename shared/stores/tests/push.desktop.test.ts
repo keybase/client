@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {resetAllStores} from '../../util/zustand'
 import {usePushState} from '../push'
 

@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as Meta from '../../constants/chat/meta'
 import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'

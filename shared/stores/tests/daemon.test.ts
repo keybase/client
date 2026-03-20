@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import {maxHandshakeTries} from '@/constants/values'
 import {resetAllStores} from '@/util/zustand'
 import {useDaemonState} from '../daemon'

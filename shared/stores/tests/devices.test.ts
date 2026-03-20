@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import * as EngineGen from '@/actions/engine-gen-gen'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'

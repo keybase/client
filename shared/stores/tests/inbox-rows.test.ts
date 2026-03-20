@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 const mockGetConvoState = jest.fn()
 
 jest.mock('../convostate', () => ({
