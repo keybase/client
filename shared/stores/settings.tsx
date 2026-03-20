@@ -87,7 +87,8 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     navigateAppend('settingsAddPhone')
   }
 
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     checkPassword: passphrase => {
       set(s => {
         s.checkPasswordIsCorrect = undefined
@@ -278,7 +279,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
       )
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

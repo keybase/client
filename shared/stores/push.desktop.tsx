@@ -11,7 +11,8 @@ const initialStore: Store = {
 }
 
 export const usePushState = Z.createZustand<State>('push', () => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     checkPermissions: async () => {
       return Promise.resolve(false)
     },
@@ -29,7 +30,6 @@ export const usePushState = Z.createZustand<State>('push', () => {
     setPushToken: () => {},
     showPermissionsPrompt: () => {},
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

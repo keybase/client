@@ -30,7 +30,8 @@ interface State extends Store {
   }
 }
 export const useState = Z.createZustand<State>('wallets', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     load: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {
@@ -69,7 +70,6 @@ export const useState = Z.createZustand<State>('wallets', (set, get) => {
       ignorePromise(f())
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

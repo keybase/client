@@ -17,15 +17,7 @@ type HasReset = {
   }
 }
 
-export const defaultReset = Symbol('defaultReset')
-
-export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
-  resetState?: T['resetState'] | typeof defaultReset
-}
-
-type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
-  dispatch: InitialDispatch<T['dispatch']>
-}
+export const defaultReset = () => {}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
@@ -37,8 +29,8 @@ const _hmrRegistry: Map<string, unknown> = __DEV__ ? ((globalThis as any).__ZUST
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
-  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]], [], InitialState<T>>,
-  maybeInitializer?: StateCreator<T, [['zustand/immer', never]], [], InitialState<T>>
+  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]], [], T>,
+  maybeInitializer?: StateCreator<T, [['zustand/immer', never]], [], T>
 ) => {
   const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
   const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
@@ -51,21 +43,20 @@ export const createZustand = <T extends HasReset>(
     return _hmrRegistry.get(hmrKey) as typeof store
   }
   // includes dispatch, custom overrides typically don't
-  const initialState = store.getState() as unknown as InitialState<T>
+  const initialState = store.getState()
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
   const unsafeISD = (initialState as {dispatch: {[key: string]: unknown}}).dispatch
+  const hasDefaultReset = initialState.dispatch.resetState === defaultReset
   for (const d of dispatches) {
     const orig = unsafeISD[d]
-    if (typeof orig === 'function') {
+    if (typeof orig === 'function' && orig !== defaultReset) {
       unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
       Object.assign(unsafeISD[d] as object, orig)
     }
   }
-
-  const hasDefaultReset = initialState.dispatch.resetState === defaultReset
   let resetFunc: (isDebug?: boolean) => void
   if (hasDefaultReset) {
     resetFunc = () => {
@@ -116,7 +107,7 @@ export type ImmerStateCreator<T extends HasReset> = StateCreator<
   T,
   [['zustand/immer', never]],
   [],
-  InitialState<T>
+  T
 >
 export {useShallow} from 'zustand/react/shallow'
 

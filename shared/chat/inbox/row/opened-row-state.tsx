@@ -18,14 +18,14 @@ interface State extends Store {
 }
 
 export const useOpenedRowState = Z.createZustand<State>(set => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     setOpenRow: row => {
       set(state => {
         state.openedRow = row
       })
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

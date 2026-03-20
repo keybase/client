@@ -12,7 +12,8 @@ const initialStore: Store = {
 }
 
 export const useSettingsContactsState = Z.createZustand<State>('settings-contacts', () => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     editContactImportEnabled: () => {},
     importContactsLater: () => {},
     loadContactImportEnabled: () => {},
@@ -20,7 +21,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
     manageContactsCache: () => {},
     requestPermissions: () => {},
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

@@ -1060,7 +1060,8 @@ export interface State extends Store {
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     addMembersWizardPushMembers: members => {
       const f = async () => {
         // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
@@ -3043,7 +3044,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

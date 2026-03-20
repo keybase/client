@@ -20,14 +20,14 @@ interface State extends Store {
   }
 }
 export const usePickerState = Z.createZustand<State>(set => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     updatePickerMap: (key, val) => {
       set(state => {
         state.pickerMap.set(key, val)
       })
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

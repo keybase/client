@@ -41,7 +41,8 @@ export interface State extends Store {
 
 const pageSize = 100
 export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     getFeaturedBots: (limit, page) => {
       const f = async () => {
         try {
@@ -176,7 +177,6 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
       })
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

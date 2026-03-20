@@ -86,7 +86,8 @@ export interface State extends Store {
 }
 
 export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     addPhoneNumber: (phoneNumber, searchable) => {
       const f = async () => {
         logger.info('adding phone number')
@@ -253,7 +254,6 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
       ignorePromise(f())
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

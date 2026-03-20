@@ -209,7 +209,8 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
   }
 }
 export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
@@ -618,7 +619,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
       })
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

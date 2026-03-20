@@ -74,7 +74,8 @@ const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedCo
 }
 
 export const useSettingsContactsState = Z.createZustand<State>('settings-contacts', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch: State['dispatch'] = {
+    resetState: Z.defaultReset,
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {
         set(s => {
@@ -254,7 +255,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
       ignorePromise(f())
     },
   }
-  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,
