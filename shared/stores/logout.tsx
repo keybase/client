@@ -30,7 +30,7 @@ export interface State extends Store {
 }
 
 export const useLogoutState = Z.createZustand<State>('logout', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     requestLogout: () => {
       // Figure out whether we can log out using CanLogout, if so,
       // startLogoutHandshake, else do what's needed - right now only
@@ -101,7 +101,7 @@ export const useLogoutState = Z.createZustand<State>('logout', (set, get) => {
           .catch(() => {})
       }
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

@@ -35,7 +35,7 @@ const ignorePromise = (f: Promise<void>) => {
 }
 
 export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     loadDarkPrefs: () => {
       const f = async () => {
         try {
@@ -123,7 +123,7 @@ export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) =>
         s.supported = sup
       })
     },
-  }
+  } satisfies State['dispatch']
 
   return {
     ...initialStore,

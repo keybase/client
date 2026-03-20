@@ -21,7 +21,7 @@ export interface State extends T.Devices.State {
 }
 
 export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     clearBadges: () => {
       ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
@@ -63,7 +63,7 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
         s.isNew = b
       })
     },
-  }
+  } satisfies State['dispatch']
 
   return {
     ...initialStore,

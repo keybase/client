@@ -20,7 +20,7 @@ export interface State extends Store {
 }
 
 export const useAvatarState = Z.createZustand<State>(set => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     replace: m => {
       set(s => {
@@ -32,7 +32,7 @@ export const useAvatarState = Z.createZustand<State>(set => {
         s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

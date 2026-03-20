@@ -45,7 +45,7 @@ export interface State extends Store {
 }
 
 export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     cancelReset: () => {
       set(s => {
@@ -189,7 +189,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
         s.endTime = endTime
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

@@ -500,7 +500,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     badgesUpdated: b => {
       if (!b) return
       const badgedConvIDs = new Set(b.conversations?.map(c => T.Chat.conversationIDToKey(c.convID)) ?? [])
@@ -2092,7 +2092,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

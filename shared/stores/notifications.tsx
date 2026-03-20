@@ -95,7 +95,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
     s.widgetBadge = widgetBadge
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     badgeApp: (key, on) => {
       set(s => {
@@ -176,7 +176,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         updateWidgetBadge(s)
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

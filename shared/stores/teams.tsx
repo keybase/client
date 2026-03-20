@@ -1060,7 +1060,7 @@ export interface State extends Store {
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -3043,7 +3043,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

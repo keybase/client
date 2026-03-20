@@ -85,7 +85,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     }
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     // Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
     checkPermissions: async () => {
@@ -343,7 +343,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         ignorePromise(neverShowMonsterAgain())
       }
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

@@ -124,7 +124,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
   const load = () => {
     ignorePromise(_load())
   }
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     clearBadges: () => {
       callAndHandleError(async () => {
@@ -200,7 +200,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         })
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

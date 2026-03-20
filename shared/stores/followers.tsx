@@ -19,7 +19,7 @@ export interface State extends Store {
   }
 }
 export const useFollowerState = Z.createZustand<State>('followers', set => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     replace: (followers, following) => {
       set(s => {
@@ -45,7 +45,7 @@ export const useFollowerState = Z.createZustand<State>('followers', set => {
         }
       })
     },
-  }
+  } satisfies State['dispatch']
 
   return {
     ...initialStore,

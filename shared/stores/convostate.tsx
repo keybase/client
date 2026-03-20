@@ -1367,7 +1367,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: ConvoState['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -3484,7 +3484,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       get().dispatch.markThreadAsRead()
     },
-  }
+  } satisfies ConvoState['dispatch']
   const convIDCache = new Map<string, Uint8Array>()
   return {
     ...initialConvoStore,

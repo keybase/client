@@ -46,7 +46,7 @@ export interface State extends Store {
 }
 
 export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     contactSettingsRefresh: () => {
       const f = async () => {
@@ -145,7 +145,7 @@ export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set
       }
       ignorePromise(f())
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

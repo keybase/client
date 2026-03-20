@@ -52,7 +52,7 @@ export interface State extends Store {
 }
 
 export const useRouterState = Z.createZustand<State>('router', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     clearModals: Util.clearModals,
     defer: {
       tabLongPress: undefined,
@@ -77,7 +77,7 @@ export const useRouterState = Z.createZustand<State>('router', (set, get) => {
       })
     },
     switchTab: Util.switchTab,
-  }
+  } satisfies State['dispatch']
 
   return {
     ...initialStore,

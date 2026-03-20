@@ -88,7 +88,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
 
   // When there are no more waiters, we can show the actual app
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     daemonHandshake: version => {
       get().dispatch.setState('waitingForWaiters')
       const changed = get().handshakeVersion !== version
@@ -260,7 +260,7 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       }
       maybeDoneWithDaemonHandshake(version)
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

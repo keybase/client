@@ -44,7 +44,7 @@ export interface State extends Store {
 }
 
 export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     dynamic: {
       onCancel: undefined,
       onSubmit: undefined,
@@ -95,7 +95,7 @@ export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) =>
         })
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

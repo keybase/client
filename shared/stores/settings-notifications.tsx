@@ -60,7 +60,7 @@ export interface State extends Store {
 }
 
 export const useSettingsNotifState = Z.createZustand<State>('settings-notifications', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     refresh: () => {
       const f = async () => {
@@ -264,7 +264,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
       }
       ignorePromise(f())
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

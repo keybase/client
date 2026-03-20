@@ -359,7 +359,7 @@ export interface State extends Store {
 }
 
 export const usePeopleState = Z.createZustand<State>('people', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     dismissAnnouncement: id => {
       const f = async () => {
         await T.RPCGen.homeHomeDismissAnnouncementRpcPromise({
@@ -480,7 +480,7 @@ export const usePeopleState = Z.createZustand<State>('people', (set, get) => {
       }
       ignorePromise(f())
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

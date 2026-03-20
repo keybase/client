@@ -348,7 +348,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     cancelChat: jobID => {
       const f = async () => {
@@ -442,7 +442,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           return
       }
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

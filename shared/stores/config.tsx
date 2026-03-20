@@ -273,7 +273,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     })
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     changedFocus: f => {
       if (get().appFocused === f) return
       set(s => {
@@ -870,7 +870,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         })
       )
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

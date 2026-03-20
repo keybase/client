@@ -44,7 +44,7 @@ export interface State extends Store {
 }
 
 export const usePWState = Z.createZustand<State>('settings-password', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->
@@ -156,7 +156,7 @@ export const usePWState = Z.createZustand<State>('settings-password', (set, get)
       }
       ignorePromise(f())
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,

@@ -27,7 +27,7 @@ export interface State extends Store {
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
 export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (set, _get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     resetState: Z.defaultReset,
     onBackFromPaperKey: () => {
       set(s => {
@@ -71,7 +71,7 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
         s.phase = 'paperKeyInput'
       })
     },
-  }
+  } satisfies State['dispatch']
   return {
     ...initialStore,
     dispatch,
