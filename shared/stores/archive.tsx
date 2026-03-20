@@ -442,9 +442,9 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
       }
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

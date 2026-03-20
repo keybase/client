@@ -264,9 +264,9 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

@@ -49,10 +49,10 @@ export const useCurrentUserState = Z.createZustand<State>('current-user', set =>
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
 
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

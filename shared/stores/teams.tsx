@@ -3043,9 +3043,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

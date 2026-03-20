@@ -156,9 +156,9 @@ export const usePWState = Z.createZustand<State>('settings-password', (set, get)
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

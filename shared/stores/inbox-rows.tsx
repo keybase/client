@@ -55,8 +55,7 @@ type State = T.Immutable<{
 }>
 
 export const useInboxRowsState = Z.createZustand<State>('inboxRows', () => ({
-  resetStateDefault: true,
-  dispatch: {},
+  dispatch: {resetState: Z.defaultReset},
   rowsBig: new Map(),
   rowsSmall: new Map(),
 }))

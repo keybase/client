@@ -343,9 +343,9 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       }
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

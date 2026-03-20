@@ -176,9 +176,9 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

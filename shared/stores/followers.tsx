@@ -45,10 +45,10 @@ export const useFollowerState = Z.createZustand<State>('followers', set => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
 
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

@@ -176,9 +176,9 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

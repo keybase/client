@@ -37,9 +37,9 @@ export const useConfirm = Z.createZustand<State>(set => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

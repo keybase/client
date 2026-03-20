@@ -618,6 +618,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
     dispatch,

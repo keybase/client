@@ -74,10 +74,10 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
       changeHelper(keys, 1)
     },
   }
+  dispatch.resetState = Z.defaultReset
 
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

@@ -189,9 +189,9 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

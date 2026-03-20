@@ -674,9 +674,9 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
       }
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

@@ -145,9 +145,9 @@ export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

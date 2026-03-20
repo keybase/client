@@ -148,9 +148,9 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

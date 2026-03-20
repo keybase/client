@@ -253,9 +253,9 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

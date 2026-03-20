@@ -254,9 +254,9 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
       ignorePromise(f())
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

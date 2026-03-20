@@ -63,10 +63,10 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
 
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

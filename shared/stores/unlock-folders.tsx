@@ -71,9 +71,9 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

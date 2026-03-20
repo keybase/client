@@ -29,9 +29,9 @@ export const usePushState = Z.createZustand<State>('push', () => {
     setPushToken: () => {},
     showPermissionsPrompt: () => {},
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

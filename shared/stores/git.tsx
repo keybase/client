@@ -200,9 +200,9 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
       })
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

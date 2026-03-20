@@ -278,9 +278,9 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
       )
     },
   }
+  dispatch.resetState = Z.defaultReset
   return {
     ...initialStore,
-    resetStateDefault: true,
     dispatch,
   }
 })

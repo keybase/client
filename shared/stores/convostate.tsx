@@ -3484,6 +3484,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       get().dispatch.markThreadAsRead()
     },
   }
+  dispatch.resetState = Z.defaultReset
   const convIDCache = new Map<string, Uint8Array>()
   return {
     ...initialConvoStore,

@@ -17,12 +17,13 @@ type HasReset = {
   }
 }
 
+export const defaultReset = Symbol('defaultReset')
+
 export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
-  resetState?: T['resetState']
+  resetState?: T['resetState'] | typeof defaultReset
 }
 
 type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
-  resetStateDefault?: true
   dispatch: InitialDispatch<T['dispatch']>
 }
 
@@ -64,7 +65,7 @@ export const createZustand = <T extends HasReset>(
     }
   }
 
-  const hasDefaultReset = initialState.resetStateDefault === true
+  const hasDefaultReset = initialState.dispatch.resetState === defaultReset
   let resetFunc: (isDebug?: boolean) => void
   if (hasDefaultReset) {
     resetFunc = () => {
@@ -80,13 +81,12 @@ export const createZustand = <T extends HasReset>(
     unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
     const reset = initialState.dispatch.resetState
-    if (!reset) {
-      throw new Error('createZustand requires resetStateDefault or dispatch.resetState')
+    if (typeof reset !== 'function') {
+      throw new Error('createZustand requires dispatch.resetState or Z.defaultReset')
     }
     resetFunc = reset
   }
 
-  delete (initialState as Record<string, unknown>)['resetStateDefault']
   const initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {
