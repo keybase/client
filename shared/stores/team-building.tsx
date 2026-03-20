@@ -283,7 +283,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       }
     },
     cancelTeamBuilding: () => {
-      get().dispatch.resetState()
+      get().dispatch.resetState?.()
       get().dispatch.closeTeamBuilding()
     },
     changeSendNotification: sendNotification => {

@@ -170,7 +170,7 @@ test('resetState restores the full public store surface to defaults', () => {
   expect(runTextOperation).toHaveBeenCalledWith(Operations.Verify)
   expect(getPublicState()).not.toEqual(getDefaultPublicState())
 
-  dispatch.resetState()
+  dispatch.resetState?.()
 
   expect(Object.keys(useCryptoState.getState().dispatch).sort()).toEqual(dispatchKeys)
   expect(getPublicState()).toEqual(getDefaultPublicState())

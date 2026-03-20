@@ -61,7 +61,7 @@ test('clearPlatformGeneric clears proof flow errors and resetState restores defa
   expect(state.username).toBe('')
 
   useProfileState.setState({revokeError: 'still here', username: 'bob'} as never)
-  useProfileState.getState().dispatch.resetState()
+  useProfileState.getState().dispatch.resetState?.()
 
   state = useProfileState.getState()
   expect(state.revokeError).toBe('')

@@ -42,7 +42,7 @@ test('resetState preserves the handshake session but clears transient values', (
     true
   )
 
-  store.getState().dispatch.resetState()
+  store.getState().dispatch.resetState?.()
 
   expect(store.getState().handshakeState).toBe('waitingForWaiters')
   expect(store.getState().handshakeVersion).toBe(7)

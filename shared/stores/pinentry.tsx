@@ -84,14 +84,14 @@ export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) =>
             s.dispatch.dynamic.onSubmit = undefined
           })
           response.result({passphrase: password, storeSecret: false})
-          get().dispatch.resetState()
+          get().dispatch.resetState?.()
         })
         s.dispatch.dynamic.onCancel = wrapErrors(() => {
           set(s => {
             s.dispatch.dynamic.onCancel = undefined
           })
           response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-          get().dispatch.resetState()
+          get().dispatch.resetState?.()
         })
       })
     },

@@ -1367,7 +1367,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: Z.InitialDispatch<ConvoState['dispatch']> = {
+  const dispatch = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
         try {

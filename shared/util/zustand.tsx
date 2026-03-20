@@ -17,14 +17,11 @@ type HasReset = {
   }
 }
 
-export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> &
-  {
-    resetState?: T['resetState']
+type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
+  dispatch: Omit<T['dispatch'], 'resetState'> & {
+    resetState?: T['dispatch']['resetState']
     resetStateDefault?: true
   }
-
-type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
-  dispatch: InitialDispatch<T['dispatch']>
 }
 
 const resetters: ((isDebug?: boolean) => void)[] = []
@@ -51,7 +48,7 @@ export const createZustand = <T extends HasReset>(
     return _hmrRegistry.get(hmrKey) as typeof store
   }
   // includes dispatch, custom overrides typically don't
-  const initialState = store.getState() as unknown as InitialState<T>
+  const initialState = store.getState()
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)

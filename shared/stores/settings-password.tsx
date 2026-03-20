@@ -44,7 +44,7 @@ export interface State extends Store {
 }
 
 export const usePWState = Z.createZustand<State>('settings-password', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch = {
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->
       // false (never the opposite way), and there are notifications set up when

@@ -67,7 +67,7 @@ export interface State extends Store {
 }
 
 export const useSettingsEmailState = Z.createZustand<State>('settings-email', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch = {
     addEmail: (email, searchable) => {
       set(s => {
         const emailError = isValidEmail(email)

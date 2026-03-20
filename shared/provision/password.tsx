@@ -26,7 +26,7 @@ const Password = () => {
   const resetState = useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
-      resetState()
+      resetState?.()
     },
     [resetState]
   )

@@ -87,7 +87,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     navigateAppend('settingsAddPhone')
   }
 
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch = {
     checkPassword: passphrase => {
       set(s => {
         s.checkPasswordIsCorrect = undefined

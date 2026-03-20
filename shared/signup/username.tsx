@@ -14,7 +14,7 @@ const ConnectedEnterUsername = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const resetState = useSignupState(s => s.dispatch.resetState)
   const onBack = () => {
-    resetState()
+    resetState?.()
     navigateUp()
   }
   const onContinue = checkUsername

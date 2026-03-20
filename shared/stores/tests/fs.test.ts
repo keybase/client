@@ -23,11 +23,11 @@ const bootstrapCurrentUser = () => {
 beforeEach(() => {
   bootstrapCurrentUser()
   mockNavigateAppend.mockClear()
-  useFSState.getState().dispatch.resetState()
+  useFSState.getState().dispatch.resetState?.()
 })
 
 afterEach(() => {
-  useFSState.getState().dispatch.resetState()
+  useFSState.getState().dispatch.resetState?.()
 })
 
 test('makeEditID returns distinct non-empty edit identifiers', () => {

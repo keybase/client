@@ -443,7 +443,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch = {
     clearInput: op => {
       set(s => {
         const o = s[op]

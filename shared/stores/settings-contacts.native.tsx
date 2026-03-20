@@ -74,7 +74,7 @@ const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedCo
 }
 
 export const useSettingsContactsState = Z.createZustand<State>('settings-contacts', (set, get) => {
-  const dispatch: Z.InitialDispatch<State['dispatch']> = {
+  const dispatch = {
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {
         set(s => {

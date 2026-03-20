@@ -518,7 +518,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
               break
           }
         } finally {
-          get().dispatch.resetState()
+          get().dispatch.resetState?.()
         }
       }
       ignorePromise(f())
