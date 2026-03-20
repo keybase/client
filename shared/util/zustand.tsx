@@ -29,14 +29,14 @@ const _hmrRegistry: Map<string, unknown> = __DEV__ ? ((globalThis as any).__ZUST
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
-  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]], [], T>,
-  maybeInitializer?: StateCreator<T, [['zustand/immer', never]], [], T>
+  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]]>,
+  maybeInitializer?: StateCreator<T, [['zustand/immer', never]]>
 ) => {
   const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
   const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
 
-  const f = immerZustand(initializer as any)
-  const store = create<T, [['zustand/immer', never]]>(f as any)
+  const f = immerZustand(initializer)
+  const store = create<T, [['zustand/immer', never]]>(f)
 
   // During HMR, return the existing store to preserve state and subscribers
   if (__DEV__ && hmrKey && _hmrRegistry.has(hmrKey)) {
@@ -103,12 +103,7 @@ export const resetAllStores = (isDebug?: boolean) => {
   resettersAndDelete.length = 0
 }
 
-export type ImmerStateCreator<T extends HasReset> = StateCreator<
-  T,
-  [['zustand/immer', never]],
-  [],
-  T
->
+export type ImmerStateCreator<T extends HasReset> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {
