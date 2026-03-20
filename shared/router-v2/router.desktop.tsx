@@ -35,7 +35,7 @@ const appTabsInnerOptions = {
   tabBarStyle: Common.tabBarStyle,
 }
 
-const tabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false)
+const tabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false, true)
 
 const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of Tabs.desktopTabs) {
@@ -59,7 +59,7 @@ function AppTabsInner() {
 
 const AppTabs = () => <AppTabsInner />
 
-const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true, false)
 const loggedOutOptions = {
   header: ({navigation}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
@@ -144,7 +144,7 @@ const useIsLoggedOut = () => {
   return loggedInLoaded && !loggedIn
 }
 
-const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
 
 const rootNav = createNativeStackNavigator({
   groups: {

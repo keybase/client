@@ -1,9 +1,7 @@
 import * as Kb from '@/common-adapters'
-import UploadIcon from '@/fs/common/upload-icon'
 import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors} from '@/styles/colors'
-import {useFSState} from '@/stores/fs'
 
 export function SimpleLoading() {
   return (
@@ -17,21 +15,6 @@ export function SimpleLoading() {
     </Kb.Box2>
   )
 }
-
-export const FilesTabBadge = () => {
-  const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
-  return uploadIcon ? <UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
-}
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  fsBadgeIconUpload: {
-    bottom: Kb.Styles.globalMargins.tiny,
-    height: Kb.Styles.globalMargins.small,
-    position: 'absolute',
-    right: Kb.Styles.globalMargins.small,
-    width: Kb.Styles.globalMargins.small,
-  },
-}))
 
 // the nav assumes plain colors for animation in some cases so we can't use the themed colors there
 export const darkTheme: Theme = {

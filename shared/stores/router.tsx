@@ -34,9 +34,6 @@ const initialStore: Store = {
 export interface State extends Store {
   dispatch: {
     clearModals: () => void
-    defer: {
-      tabLongPress?: (tab: string) => void
-    }
     navigateAppend: (path: Util.PathParam, replace?: boolean) => void
     navigateUp: () => void
     navUpToScreen: (name: RouteKeys) => void
@@ -54,9 +51,6 @@ export interface State extends Store {
 export const useRouterState = Z.createZustand<State>('router', (set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: Util.clearModals,
-    defer: {
-      tabLongPress: undefined,
-    },
     navUpToScreen: Util.navUpToScreen,
     navigateAppend: Util.navigateAppend,
     navigateUp: Util.navigateUp,

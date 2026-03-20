@@ -84,7 +84,8 @@ const makeTabState = (
     }
   }
   return {
-    routes: [{name: 'loggedIn', state: {routes: [tabRoute]}}],
+    index: 0,
+    routes: [{name: 'loggedIn', state: {index: 0, routes: [tabRoute]}}],
   }
 }
 
@@ -94,11 +95,20 @@ export const makeChatConversationState = (conversationIDKey: string): PartialNav
     // Tablet/desktop: chatRoot with conversationIDKey param (split view)
     return makeTabState(Tabs.chatTab, [{name: 'chatRoot', params: {conversationIDKey}}])
   }
-  // Phone: chatRoot + chatConversation on stack
-  return makeTabState(Tabs.chatTab, [
-    {name: 'chatRoot'},
-    {name: 'chatConversation', params: {conversationIDKey}},
-  ])
+  // Phone: tabs at root, conversation pushed above them
+  return {
+    index: 1,
+    routes: [
+      {
+        name: 'loggedIn',
+        state: {
+          index: 0,
+          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+        },
+      },
+      {name: 'chatConversation', params: {conversationIDKey}},
+    ],
+  }
 }
 
 // Build state for a modal screen at root level
