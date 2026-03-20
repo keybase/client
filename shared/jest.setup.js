@@ -1,7 +1,11 @@
 const {enableMapSet, setUseStrictIteration} = require('immer')
+const {TextDecoder, TextEncoder} = require('util')
 
 enableMapSet()
 setUseStrictIteration(false)
+
+global.TextDecoder = global.TextDecoder || TextDecoder
+global.TextEncoder = global.TextEncoder || TextEncoder
 
 global.__DEV__ = false
 global.__FILE_SUFFIX__ = '.desktop'

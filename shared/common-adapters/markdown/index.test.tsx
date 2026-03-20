@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /** @jest-environment jsdom */
 
 import * as React from 'react'
@@ -13,9 +14,9 @@ const flattenAstText = (nodes: Array<{type: string; content?: unknown}>): string
   return nodes
     .map(node => {
       if (node.type === 'newline') return '\n'
-      if (typeof node.content === 'string') return node.content
-      if (Array.isArray(node.content)) {
-        return flattenAstText(node.content as Array<{type: string; content?: unknown}>)
+      if (typeof node['content'] === 'string') return node['content']
+      if (Array.isArray(node['content'])) {
+        return flattenAstText(node['content'] as Array<{type: string; content?: unknown}>)
       }
       return ''
     })
@@ -29,7 +30,7 @@ const paragraphContent = (input: string, options?: Parameters<typeof parseMarkdo
   const ast = parseMarkdown(input, options)
   expect(ast[0]?.type).toBe('paragraph')
   return normalizeInlineContent(
-    ast[0]?.content as Array<{type: string; content?: unknown; raw?: string}>
+    ast[0]?.['content'] as Array<{type: string; content?: unknown; raw?: string}>
   )
 }
 
