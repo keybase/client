@@ -33,7 +33,7 @@ export interface State extends Store {
 }
 
 export const useCurrentUserState = Z.createZustand<State>('current-user', set => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     replaceUsername: u => {
       set(s => {
         s.username = u
@@ -49,7 +49,7 @@ export const useCurrentUserState = Z.createZustand<State>('current-user', set =>
         s.username = username
       })
     },
-  } satisfies State['dispatch']
+  }
 
   return {
     ...initialStore,

@@ -204,7 +204,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
     return {isCanceled, setupCancel}
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     addNewDevice: otherDeviceType => {
       get().dispatch.dynamic.cancel?.()
       set(s => {
@@ -531,7 +531,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
       })
       navigateAppend({name: 'username', params: {fromReset}})
     },
-  } satisfies State['dispatch']
+  }
 
   return {
     ...initialStore,

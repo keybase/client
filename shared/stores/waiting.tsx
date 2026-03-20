@@ -49,7 +49,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     })
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     batch: changes => {
       changes.forEach(c => {
         if (c.increment) {
@@ -74,7 +74,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
       changeHelper(keys, 1)
     },
     resetState: Z.defaultReset,
-  } satisfies State['dispatch']
+  }
 
   return {
     ...initialStore,

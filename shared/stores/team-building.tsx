@@ -255,7 +255,7 @@ const interestingPersonToUser = (person: T.RPCGen.InterestingPerson): T.TB.User 
 }
 
 const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     addUsersToTeamSoFar: users => {
       set(s => {
         users.forEach(u => {
@@ -468,7 +468,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         s.error = error
       })
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,

@@ -601,7 +601,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     cancelDownload: downloadID => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
@@ -1912,7 +1912,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-  } satisfies State['dispatch']
+  }
 
   return {
     ...initialStore,

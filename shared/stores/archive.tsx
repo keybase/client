@@ -348,7 +348,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     cancelChat: jobID => {
       const f = async () => {
         await T.RPCChat.localArchiveChatDeleteRpcPromise({
@@ -442,7 +442,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           return
       }
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,

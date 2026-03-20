@@ -19,7 +19,7 @@ export interface State extends Store {
   }
 }
 export const useFollowerState = Z.createZustand<State>('followers', set => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     replace: (followers, following) => {
       set(s => {
         s.followers = T.castDraft(followers)
@@ -45,7 +45,7 @@ export const useFollowerState = Z.createZustand<State>('followers', set => {
         }
       })
     },
-  } satisfies State['dispatch']
+  }
 
   return {
     ...initialStore,

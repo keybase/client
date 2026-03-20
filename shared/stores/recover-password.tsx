@@ -51,7 +51,7 @@ export interface State extends Store {
 }
 
 export const useState = Z.createZustand<State>('recover-password', (set, get) => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     defer: {
       onProvisionCancel: () => {
         throw new Error('onProvisionCancel not implemented')
@@ -255,7 +255,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
       }
       ignorePromise(f())
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,

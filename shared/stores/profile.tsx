@@ -230,7 +230,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
   // only let one of these happen at a time
   let addProofInProgress = false
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     addProof: (platform, reason) => {
       if (addProofInProgress) {
         logger.warn('addProof while one in progress')
@@ -760,7 +760,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
       }
       ignorePromise(f())
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,

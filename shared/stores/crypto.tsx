@@ -443,7 +443,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     clearInput: op => {
       set(s => {
         const o = s[op]
@@ -674,7 +674,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         get().dispatch.runTextOperation('encrypt')
       }
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,

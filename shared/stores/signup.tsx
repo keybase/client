@@ -125,7 +125,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     checkDeviceName: _devicename => {
       const devicename = _devicename.trim()
       set(s => {
@@ -256,7 +256,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
         s.justSignedUpEmail = email
       })
     },
-  } satisfies State['dispatch']
+  }
   return {
     ...initialStore,
     dispatch,
