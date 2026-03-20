@@ -224,7 +224,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
         s.checkPasswordIsCorrect = undefined
       })
     },
-    resetStateDefault: true,
     setDidToggleCertificatePinning: t => {
       set(s => {
         s.didToggleCertificatePinning = t
@@ -281,6 +280,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

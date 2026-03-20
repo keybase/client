@@ -26,7 +26,6 @@ export const useFollowerState = Z.createZustand<State>('followers', set => {
         s.following = T.castDraft(following)
       })
     },
-    resetStateDefault: true,
     updateFollowers: (user, add) => {
       set(s => {
         if (add) {
@@ -49,6 +48,7 @@ export const useFollowerState = Z.createZustand<State>('followers', set => {
 
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

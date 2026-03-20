@@ -204,7 +204,6 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
     setNumbers: phoneNumbers => {
       set(s => {
         s.phones = phoneNumbers?.reduce<Map<string, PhoneRow>>((map, row) => {
@@ -256,6 +255,7 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

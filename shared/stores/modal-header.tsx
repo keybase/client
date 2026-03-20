@@ -32,10 +32,10 @@ export interface State extends Store {
 
 export const useModalHeaderState = Z.createZustand<State>('modal-header', () => {
   const dispatch: Z.InitialDispatch<State['dispatch']> = {
-    resetStateDefault: true,
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

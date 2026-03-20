@@ -68,10 +68,10 @@ export const useState = Z.createZustand<State>('wallets', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

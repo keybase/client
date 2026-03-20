@@ -558,7 +558,6 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         }
       })
     },
-    resetStateDefault: true,
     runFileOperation: (op, destinationDir) => {
       set(s => {
         const o = s[op]
@@ -677,6 +676,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

@@ -186,10 +186,10 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         s.error = ''
       })
     },
-    resetStateDefault: true,
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

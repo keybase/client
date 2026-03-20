@@ -39,7 +39,6 @@ export const useCurrentUserState = Z.createZustand<State>('current-user', set =>
         s.username = u
       })
     },
-    resetStateDefault: true,
     setBootstrap: b => {
       set(s => {
         const {deviceID, deviceName, uid, username} = b
@@ -53,6 +52,7 @@ export const useCurrentUserState = Z.createZustand<State>('current-user', set =>
 
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

@@ -175,7 +175,6 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         default:
       }
     },
-    resetStateDefault: true,
     setBadges: b => {
       set(s => {
         s.isNew = b
@@ -203,6 +202,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

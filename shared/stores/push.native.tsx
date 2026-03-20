@@ -283,7 +283,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
     setPushToken: (token: string) => {
       set(s => {
         s.token = token
@@ -346,6 +345,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

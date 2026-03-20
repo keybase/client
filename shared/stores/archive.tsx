@@ -406,7 +406,6 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
     resetWaiters: () =>
       set(s => {
         s.archiveAllFilesResponseWaiter = {state: 'idle'}
@@ -445,6 +444,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

@@ -19,10 +19,10 @@ type HasReset = {
 
 export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
   resetState?: T['resetState']
-  resetStateDefault?: true
 }
 
 type InitialState<T extends HasReset> = Omit<T, 'dispatch'> & {
+  resetStateDefault?: true
   dispatch: InitialDispatch<T['dispatch']>
 }
 
@@ -50,7 +50,7 @@ export const createZustand = <T extends HasReset>(
     return _hmrRegistry.get(hmrKey) as typeof store
   }
   // includes dispatch, custom overrides typically don't
-  const initialState = store.getState()
+  const initialState = store.getState() as unknown as InitialState<T>
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
@@ -64,7 +64,7 @@ export const createZustand = <T extends HasReset>(
     }
   }
 
-  const hasDefaultReset = initialState.dispatch.resetStateDefault === true
+  const hasDefaultReset = initialState.resetStateDefault === true
   let resetFunc: (isDebug?: boolean) => void
   if (hasDefaultReset) {
     resetFunc = () => {
@@ -81,12 +81,12 @@ export const createZustand = <T extends HasReset>(
   } else {
     const reset = initialState.dispatch.resetState
     if (!reset) {
-      throw new Error('createZustand requires dispatch.resetState or dispatch.resetStateDefault')
+      throw new Error('createZustand requires resetStateDefault or dispatch.resetState')
     }
     resetFunc = reset
   }
 
-  delete unsafeISD['resetStateDefault']
+  delete (initialState as Record<string, unknown>)['resetStateDefault']
   const initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {

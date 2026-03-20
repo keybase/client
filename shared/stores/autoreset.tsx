@@ -173,7 +173,6 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
     startAccountReset: (skipPassword, _username) => {
       const username = _username || get().dispatch.defer.onGetRecoverPasswordUsername() || ''
       set(s => {
@@ -192,6 +191,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

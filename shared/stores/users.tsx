@@ -123,7 +123,6 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetStateDefault: true,
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {
@@ -151,6 +150,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

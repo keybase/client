@@ -26,7 +26,6 @@ export const useAvatarState = Z.createZustand<State>(set => {
         s.counts = m
       })
     },
-    resetStateDefault: true,
     updated: key => {
       set(s => {
         s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
@@ -35,6 +34,7 @@ export const useAvatarState = Z.createZustand<State>(set => {
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

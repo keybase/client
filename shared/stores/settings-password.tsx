@@ -102,7 +102,6 @@ export const usePWState = Z.createZustand<State>('settings-password', (set, get)
         s.randomPW = randomPW
       })
     },
-    resetStateDefault: true,
     setPassword: password => {
       set(s => {
         s.error = ''
@@ -159,6 +158,7 @@ export const usePWState = Z.createZustand<State>('settings-password', (set, get)
   }
   return {
     ...initialStore,
+    resetStateDefault: true,
     dispatch,
   }
 })

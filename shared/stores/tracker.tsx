@@ -581,7 +581,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
-    resetStateDefault: true,
     showUser: (username, asTracker, skipNav) => {
       get().dispatch.load({
         assertion: username,
