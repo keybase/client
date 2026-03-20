@@ -48,7 +48,7 @@ const initialStore: Store = {
   newEmail: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     addEmail: (email: string, searchable: boolean) => void
     editEmail: (p: {

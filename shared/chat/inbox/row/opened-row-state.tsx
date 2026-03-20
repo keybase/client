@@ -10,7 +10,7 @@ const initialStore: Store = {
   openedRow: Chat.noConversationIDKey,
 }
 
-interface State extends Store {
+type State = Store & {
   dispatch: {
     setOpenRow: (row: T.Chat.ConversationIDKey) => void
     resetState: () => void

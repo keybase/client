@@ -864,7 +864,7 @@ const initialStore: Store = {
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onChatNavigateToInbox?: (allowSwitchTab?: boolean) => void

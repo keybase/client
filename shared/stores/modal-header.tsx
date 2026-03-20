@@ -24,7 +24,7 @@ const initialStore: Store = {
   title: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     resetState: () => void
   }

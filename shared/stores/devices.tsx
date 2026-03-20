@@ -10,7 +10,7 @@ const initialStore: T.Devices.State = {
   isNew: new Set(),
 }
 
-export interface State extends T.Devices.State {
+export type State = T.Devices.State & {
   dispatch: {
     load: () => void
     clearBadges: () => void

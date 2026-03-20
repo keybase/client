@@ -38,7 +38,7 @@ export const initialStore: Store = {
   teamSoFar: new Set(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     addUsersToTeamSoFar: (users: Array<T.TB.User>) => void
     cancelTeamBuilding: () => void

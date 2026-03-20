@@ -97,7 +97,7 @@ const initialStore: Store = {
   username: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     dynamic: {
       cancel?: (ignoreWarning?: boolean) => void

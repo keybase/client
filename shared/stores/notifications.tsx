@@ -27,7 +27,7 @@ const initialStore: Store = {
   widgetBadge: 'regular',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onFavoritesLoad?: () => void

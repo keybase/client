@@ -10,7 +10,7 @@ const initialStore: Store = {
   following: new Set(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     resetState: () => void
     replace: (followers: ReadonlySet<string>, following: ReadonlySet<string>) => void

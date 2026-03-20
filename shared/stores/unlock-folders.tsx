@@ -15,7 +15,7 @@ const initialStore: Store = {
   phase: 'dead',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void

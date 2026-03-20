@@ -23,7 +23,7 @@ type Bootstrap = {
   username: string
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     // ONLY used by remote windows
     replaceUsername: (u: string) => void

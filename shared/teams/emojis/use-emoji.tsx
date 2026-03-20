@@ -8,7 +8,7 @@ const initialStore: Store = {
   emojiUpdatedTrigger: 0,
 }
 
-interface State extends Store {
+type State = Store & {
   dispatch: {
     triggerEmojiUpdated: () => void
     resetState: () => void

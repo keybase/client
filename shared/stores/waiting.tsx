@@ -8,7 +8,7 @@ const initialStore: T.Waiting.State = {
   errors: new Map(),
 }
 
-export interface State extends T.Waiting.State {
+export type State = T.Waiting.State & {
   dispatch: {
     resetState: () => void
     clear: (keys: string | ReadonlyArray<string>) => void

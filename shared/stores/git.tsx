@@ -69,7 +69,7 @@ const initialStore: Store = {
   isNew: new Set(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void

@@ -24,7 +24,7 @@ const initialStore: Store = {
   featuredBotsPage: -1,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void

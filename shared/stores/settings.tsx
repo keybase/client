@@ -30,7 +30,7 @@ const initialStore: Store = {
   proxyData: undefined,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
     clearLogs: () => void

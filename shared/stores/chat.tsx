@@ -308,7 +308,7 @@ export type RefreshReason =
   | 'widgetRefresh'
   | 'shareConfigSearch'
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
