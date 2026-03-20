@@ -8,7 +8,7 @@ afterEach(() => {
 test('desktop settings contacts store is a no-op wrapper around the default state', () => {
   const {dispatch} = useSettingsContactsState.getState()
 
-  dispatch.editContactImportEnabled()
+  dispatch.editContactImportEnabled(false)
   dispatch.importContactsLater()
   dispatch.loadContactImportEnabled()
   dispatch.loadContactPermissions()
@@ -16,7 +16,21 @@ test('desktop settings contacts store is a no-op wrapper around the default stat
   dispatch.requestPermissions()
 
   useSettingsContactsState.setState({
-    alreadyOnKeybase: ['alice'],
+    alreadyOnKeybase: [
+      {
+        assertion: 'alice@keybase',
+        component: {label: 'alice'},
+        contactIndex: 0,
+        contactName: 'Alice',
+        displayLabel: 'alice',
+        displayName: 'Alice',
+        following: false,
+        fullName: 'Alice',
+        resolved: true,
+        uid: 'uid',
+        username: 'alice',
+      },
+    ],
     importError: 'error',
     importPromptDismissed: true,
     importedCount: 2,

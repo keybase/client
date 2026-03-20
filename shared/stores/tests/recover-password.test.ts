@@ -40,7 +40,11 @@ test('startRecoverPassword exposes device selection handlers', async () => {
 
   jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async listener => {
     chooserResponse = {error: jest.fn(), result: jest.fn()}
-    listener.customResponseIncomingCallMap['keybase.1.loginUi.chooseDeviceToRecoverWith'](
+    const chooseDevice = listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']
+    if (!chooseDevice) {
+      throw new Error('chooseDeviceToRecoverWith handler missing')
+    }
+    chooseDevice(
       {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]} as any,
       chooserResponse as any
     )
@@ -76,7 +80,11 @@ test('resetState clears recover-password state after it has been populated', asy
   let finishListener = () => {}
 
   jest.spyOn(T.RPCGen, 'loginRecoverPassphraseRpcListener').mockImplementation(async listener => {
-    listener.customResponseIncomingCallMap['keybase.1.loginUi.chooseDeviceToRecoverWith'](
+    const chooseDevice = listener.customResponseIncomingCallMap?.['keybase.1.loginUi.chooseDeviceToRecoverWith']
+    if (!chooseDevice) {
+      throw new Error('chooseDeviceToRecoverWith handler missing')
+    }
+    chooseDevice(
       {devices: [makeRpcDevice('tablet', 'device-2', 'desktop')]} as any,
       {error: jest.fn(), result: jest.fn()} as any
     )

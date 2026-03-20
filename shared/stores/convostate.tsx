@@ -3545,29 +3545,23 @@ const normalizeForComparison = (value: unknown): unknown => {
   return value
 }
 
-const projectConvoStateForComparison = (state: {
-  dispatch: unknown
-  getConvID: unknown
-  isCaughtUp: unknown
-  isMetaGood: unknown
-  [key: string]: unknown
-}) => {
-  const {dispatch, getConvID, isCaughtUp, isMetaGood, ...rest} = state
-  delete rest.messageIDToOrdinal
+type ComparableConvoState = Pick<ConvoState, 'dispatch' | 'getConvID' | 'isCaughtUp' | 'isMetaGood'> & object
+
+const projectConvoStateForComparison = (state: ComparableConvoState) => {
+  const rest = {...(state as Record<string, unknown>)}
+  delete rest['dispatch']
+  delete rest['getConvID']
+  delete rest['isCaughtUp']
+  delete rest['isMetaGood']
+  delete rest['messageIDToOrdinal']
   return normalizeForComparison(rest)
 }
 
 const compareConvoStates = (
   id: T.Chat.ConversationIDKey,
   reason: string,
-  primary: ConvoState,
-  shadow: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  }
+  primary: ComparableConvoState,
+  shadow: ComparableConvoState
 ) => {
   const left = projectConvoStateForComparison(primary)
   const right = projectConvoStateForComparison(shadow)
@@ -3640,17 +3634,16 @@ const makeWrappedPrimaryDispatch = (
   name: string,
   orig: (...args: Array<unknown>) => unknown,
   store: MadeStore,
-  getActionDepth: () => number,
-  setActionDepth: (next: number) => void
+  actionDepthRef: {current: number}
 ) => {
   return (...args: Array<unknown>) => {
-    const isTopLevel = getActionDepth() === 0
-    setActionDepth(getActionDepth() + 1)
+    const isTopLevel = actionDepthRef.current === 0
+    actionDepthRef.current += 1
     let primaryResult: unknown
     try {
       primaryResult = orig(...args)
     } finally {
-      setActionDepth(getActionDepth() - 1)
+      actionDepthRef.current -= 1
     }
 
     if (isTopLevel && convoShadowEnabled) {
@@ -3666,7 +3659,7 @@ const makeWrappedPrimaryDispatch = (
         logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
       }
       ignorePromise(
-        Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then(() => {
+        Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then((): void => {
           compareConvoStates(id, name, store.getState(), shadow.getState())
         })
       )
@@ -3679,23 +3672,14 @@ const makeWrappedPrimaryDispatch = (
 const wrapPrimaryDispatches = (id: T.Chat.ConversationIDKey, store: MadeStore) => {
   if (!__DEV__ || wrappedPrimaryStores.has(store)) return
   wrappedPrimaryStores.add(store)
-  let actionDepth = 0
+  const actionDepthRef = {current: 0}
   const dispatch = store.getState().dispatch as Record<string, unknown>
   for (const [name, value] of Object.entries(dispatch)) {
     if (typeof value !== 'function' || !shadowComparableDispatches.has(name as keyof ConvoState['dispatch'])) {
       continue
     }
     const orig = value as (...args: Array<unknown>) => unknown
-    const wrapped = makeWrappedPrimaryDispatch(
-      id,
-      name,
-      orig,
-      store,
-      () => actionDepth,
-      next => {
-        actionDepth = next
-      }
-    )
+    const wrapped = makeWrappedPrimaryDispatch(id, name, orig, store, actionDepthRef)
     Object.assign(wrapped, orig)
     dispatch[name] = wrapped
   }
@@ -3727,20 +3711,8 @@ export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
 }
 
 export const compareConvoStoreStatesForTesting = (
-  left: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  },
-  right: {
-    dispatch: unknown
-    getConvID: unknown
-    isCaughtUp: unknown
-    isMetaGood: unknown
-    [key: string]: unknown
-  }
+  left: ComparableConvoState,
+  right: ComparableConvoState
 ) =>
   isEqual(projectConvoStateForComparison(left), projectConvoStateForComparison(right))
 

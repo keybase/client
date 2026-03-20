@@ -47,7 +47,11 @@ describe('settings store', () => {
   })
 
   test('setProxyData persists and updates local state on success', async () => {
-    const proxyData = {address: '127.0.0.1', port: 8080} as T.RPCGen.ProxyData
+    const proxyData: T.RPCGen.ProxyData = {
+      addressWithPort: '127.0.0.1:8080',
+      certPinning: false,
+      proxyType: T.RPCGen.ProxyType.httpConnect,
+    }
     jest.spyOn(T.RPCGen, 'configSetProxyDataRpcPromise').mockResolvedValue(undefined)
 
     useSettingsState.getState().dispatch.setProxyData(proxyData)

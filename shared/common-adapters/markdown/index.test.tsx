@@ -48,8 +48,8 @@ test('parseMarkdown wraps plain text in a paragraph', () => {
 test('parseMarkdown keeps inline newlines inside a paragraph', () => {
   const content = paragraphContent('alpha\nbeta')
   expect(content.map(node => node.type)).toEqual(['text', 'newline', 'text'])
-  expect(content[0]?.content).toBe('alpha')
-  expect(content[2]?.content).toBe('beta')
+  expect(content[0]?.['content']).toBe('alpha')
+  expect(content[2]?.['content']).toBe('beta')
 })
 
 test('parseMarkdown recognizes inline markdown variants', () => {
@@ -63,10 +63,10 @@ test('parseMarkdown recognizes inline markdown variants', () => {
     'text',
     'inlineCode',
   ])
-  expect((content[0]?.content as Array<{content: string}>)[0]?.content).toBe('bold')
-  expect((content[2]?.content as Array<{content: string}>)[0]?.content).toBe('italic')
-  expect((content[4]?.content as Array<{content: string}>)[0]?.content).toBe('strike')
-  expect(content[6]?.content).toBe('code')
+  expect((content[0]?.['content'] as Array<{content: string}>)[0]?.['content']).toBe('bold')
+  expect((content[2]?.['content'] as Array<{content: string}>)[0]?.['content']).toBe('italic')
+  expect((content[4]?.['content'] as Array<{content: string}>)[0]?.['content']).toBe('strike')
+  expect(content[6]?.['content']).toBe('code')
 })
 
 test('parseMarkdown preserves escaped formatting characters as text', () => {
@@ -78,7 +78,7 @@ test('parseMarkdown preserves escaped formatting characters as text', () => {
 test('parseMarkdown only treats single backticks as inline code', () => {
   const inline = paragraphContent('`code`')
   expect(inline.map(node => node.type)).toEqual(['inlineCode'])
-  expect(inline[0]?.content).toBe('code')
+  expect(inline[0]?.['content']).toBe('code')
 })
 
 test('Markdown falls back to raw text for unsupported double-backtick syntax', () => {
@@ -96,7 +96,7 @@ test('parseMarkdown parses block quotes as nested content', () => {
   const ast = parseMarkdown('> quoted line')
   expect(ast).toHaveLength(1)
   expect(ast[0]?.type).toBe('blockQuote')
-  const nested = ast[0]?.content as Array<{type: string; content: Array<{type: string; content: string}>}>
+  const nested = ast[0]?.['content'] as Array<{type: string; content: Array<{type: string; content: string}>}>
   expect(nested[0]?.type).toBe('paragraph')
   expect((nested[0]?.['content'] as Array<{content: string; type: string}> | undefined)?.[0]).toMatchObject({
     content: 'quoted line',
@@ -114,18 +114,18 @@ test('parseMarkdown parses quoted fences on desktop without wrapping the preambl
   const ast = parseMarkdown('> they wrote ```\nfoo\n```')
   expect(ast).toHaveLength(1)
   expect(ast[0]?.type).toBe('blockQuote')
-  const nested = ast[0]?.content as Array<{type: string; content?: unknown}>
+  const nested = ast[0]?.['content'] as Array<{type: string; content?: unknown}>
   expect(normalizeInlineContent(nested).map(node => node.type)).toEqual(['text', 'fence'])
-  expect(nested[0]?.content).toBe('they wrote')
-  expect(nested[1]?.content).toBe('foo\n')
+  expect(nested[0]?.['content']).toBe('they wrote')
+  expect(nested[1]?.['content']).toBe('foo\n')
 })
 
 test('parseMarkdown wraps quoted fence preambles in paragraphs on mobile', () => {
   const ast = parseMarkdown('> they wrote ```\nfoo\n```', {isMobile: true})
-  const nested = normalizeInlineContent(ast[0]?.content as Array<{type: string; content?: unknown}>)
+  const nested = normalizeInlineContent(ast[0]?.['content'] as Array<{type: string; content?: unknown}>)
   expect(nested.map(node => node.type)).toEqual(['paragraph', 'fence'])
   expect(getTextAt(nested[0]?.['content'] as Array<{content?: string}> | undefined, 0)).toBe('they wrote')
-  expect(nested[1]?.content).toBe('foo\n')
+  expect(nested[1]?.['content']).toBe('foo\n')
 })
 
 test('parseMarkdown parses spoilers with raw content preserved', () => {
@@ -142,13 +142,13 @@ test('parseMarkdown parses service decoration payloads as opaque nodes', () => {
   })
   const content = paragraphContent(encoded)
   expect(content.map(node => node.type)).toEqual(['serviceDecoration'])
-  expect(content[0]?.content).toBe(encoded.slice('$>kb$'.length, -'$<kb$'.length))
+  expect(content[0]?.['content']).toBe(encoded.slice('$>kb$'.length, -'$<kb$'.length))
 })
 
 test('parseMarkdown recognizes emoji shortcodes and unicode emoji', () => {
   const shortcode = paragraphContent(':wave:')
   expect(shortcode.map(node => node.type)).toEqual(['emoji'])
-  expect(shortcode[0]?.content).toBe(':wave:')
+  expect(shortcode[0]?.['content']).toBe(':wave:')
 
   const unicode = paragraphContent('🙂')
   expect(unicode.map(node => node.type)).toEqual(['emoji'])
@@ -173,7 +173,7 @@ test('parseMarkdown preserves long plain inputs through the no-markdown parser',
   const longPlain = 'a'.repeat(10001)
   const content = paragraphContent(longPlain)
   expect(content).toHaveLength(1)
-  expect(content[0]?.content).toBe(longPlain)
+  expect(content[0]?.['content']).toBe(longPlain)
 })
 
 test('Markdown uses big emoji rendering for standalone emoji messages', () => {

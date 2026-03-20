@@ -118,11 +118,11 @@ const makeValidTextUIMessage = (
     reactions: {},
     replyTo: null,
     requestInfo: null,
-    senderDeviceID: 'device-id',
+    senderDeviceID: new Uint8Array([1]),
     senderDeviceName: `${options?.author ?? 'alice'}-device`,
     senderDeviceRevokedAt: null,
     senderDeviceType: 'desktop',
-    senderUID: 'uid',
+    senderUID: new Uint8Array([2]),
     senderUsername: options?.author ?? 'alice',
     superseded: false,
     unfurls: null,
@@ -160,7 +160,7 @@ const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
 
 const applyState = (
   store: {getState: () => any; setState: (state: any) => void},
-  partial: Partial<ConvoState> & {messageIDToOrdinal?: Map<T.Chat.MessageID, T.Chat.Ordinal>}
+  partial: Partial<ConvoState> & {messageIDToOrdinal?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>}
 ) => {
   const current = store.getState()
   store.setState({
@@ -178,8 +178,8 @@ const createStore = () => createConvoStoreForTesting(convID)
 const seedStore = (
   messages: ReadonlyArray<T.Chat.Message>,
   extra?: Partial<ConvoState> & {
-    messageIDToOrdinal?: Map<T.Chat.MessageID, T.Chat.Ordinal>
-    pendingOutboxToOrdinal?: Map<T.Chat.OutboxID, T.Chat.Ordinal>
+    messageIDToOrdinal?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>
+    pendingOutboxToOrdinal?: ReadonlyMap<T.Chat.OutboxID, T.Chat.Ordinal>
   }
 ) => {
   const store = createStore()
@@ -281,6 +281,7 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
   const secondMsgID = T.Chat.numberToMessageID(302)
 
   store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
     updates: [
       makeValidTextUIMessage(firstMsgID, 'first', {author: 'bob', timestamp: 100}),
       makeValidTextUIMessage(secondMsgID, 'second', {author: 'bob', timestamp: 101}),
@@ -412,7 +413,7 @@ test('explode-now clears text content and transient metadata in place', () => {
       flipGameID: 'flip-game',
       mentionsAt: new Set(['bob']),
       reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
-      unfurls: new Map([['https://keybase.io', {} as T.Chat.Unfurl]]),
+      unfurls: new Map([['https://keybase.io', {} as T.RPCChat.UIMessageUnfurlInfo]]),
     }),
   ])
   store.getState().dispatch.messagesExploded([msgID], 'bob')
@@ -470,15 +471,15 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
   applyState(store, baseState)
 
   const ack = makeValidTextUIMessage(serverMsgID, 'acked hello', {outboxID})
-  store.getState().dispatch.onMessagesUpdated({updates: [ack]})
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [ack],
+  })
 
+  const ackedMessage = store.getState().messageMap.get(pendingOrdinal)
   expect(store.getState().messageOrdinals).toEqual([pendingOrdinal])
-  expect(store.getState().messageMap.get(pendingOrdinal)?.id).toBe(serverMsgID)
-  expect(
-    store.getState().messageMap.get(pendingOrdinal)?.type === 'text'
-      ? store.getState().messageMap.get(pendingOrdinal)?.text.stringValue()
-      : undefined
-  ).toBe('acked hello')
+  expect(ackedMessage?.id).toBe(serverMsgID)
+  expect(ackedMessage?.type === 'text' ? ackedMessage.text.stringValue() : undefined).toBe('acked hello')
   expect(store.getState().messageIDToOrdinal.get(serverMsgID)).toBe(pendingOrdinal)
 
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
@@ -504,7 +505,10 @@ test('placeholder updates do not overwrite an existing non-placeholder message',
     }),
   ])
 
-  store.getState().dispatch.onMessagesUpdated({updates: [makePlaceholderUIMessage(msgID)]})
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makePlaceholderUIMessage(msgID)],
+  })
 
   const message = store.getState().messageMap.get(placeholderOrdinal)
   expect(message?.type).toBe('text')
@@ -522,7 +526,10 @@ test('hidden placeholder updates delete the existing message row', () => {
     }),
   ])
 
-  store.getState().dispatch.onMessagesUpdated({updates: [makePlaceholderUIMessage(hiddenMsgID, true)]})
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makePlaceholderUIMessage(hiddenMsgID, true)],
+  })
 
   expect(store.getState().messageMap.has(hiddenOrdinal)).toBe(false)
   expect(store.getState().messageOrdinals).toEqual([])

@@ -9,7 +9,7 @@ test('desktop push store reports the desktop handshake state and resettable defa
   const {dispatch} = usePushState.getState()
 
   await expect(dispatch.checkPermissions()).resolves.toBe(false)
-  expect(dispatch.defer.onGetDaemonHandshakeState()).toBe('done')
+  expect(dispatch.defer.onGetDaemonHandshakeState?.()).toBe('done')
 
   dispatch.clearPendingPushNotification()
   dispatch.deleteToken(1)

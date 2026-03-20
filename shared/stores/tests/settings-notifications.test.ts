@@ -49,7 +49,8 @@ test('toggle updates the in-memory group state and persists the change', async (
 
   useSettingsNotifState.getState().dispatch.toggle('security', 'plaintextmobile')
   expect(useSettingsNotifState.getState().allowEdit).toBe(false)
-  expect(useSettingsNotifState.getState().groups.get('security')?.settings[0].subscribed).toBe(false)
+  const security = useSettingsNotifState.getState().groups.get('security')
+  expect(security?.settings[0]?.subscribed).toBe(false)
 
   await flush()
   await flush()

@@ -11,9 +11,9 @@ afterEach(() => {
 })
 
 test('replace swaps the tracker details map wholesale', () => {
-  const details = new Map([
-    ['alice', {...noDetails, guiID: 'gui-alice', state: 'checking', username: 'alice'}],
-    ['bob', {...noDetails, guiID: 'gui-bob', state: 'valid', username: 'bob'}],
+  const details: Map<string, T.Tracker.Details> = new Map([
+    ['alice', {...noDetails, guiID: 'gui-alice', state: 'checking' as const, username: 'alice'}],
+    ['bob', {...noDetails, guiID: 'gui-bob', state: 'valid' as const, username: 'bob'}],
   ])
 
   useTrackerState.getState().dispatch.replace(details)

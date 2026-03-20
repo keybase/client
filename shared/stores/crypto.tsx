@@ -151,7 +151,7 @@ export type State = Store & {
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
-    resetState: 'default'
+    resetState: 'default' | (() => void)
     resetOperation: (op: T.Crypto.Operations) => void
     runFileOperation: (op: T.Crypto.Operations, destinationDir: string) => void
     runTextOperation: (op: T.Crypto.Operations) => void

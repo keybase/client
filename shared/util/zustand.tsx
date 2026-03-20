@@ -68,7 +68,7 @@ export const createZustand = <T extends HasReset>(
       // eslint-disable-next-line
       store.setState({...initialState, dispatch: nextDispatch} as any, true)
     }
-    unsafeISD.resetState = wrapErrors(resetFunc, 'resetState')
+    unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
     resetFunc = reset
   }

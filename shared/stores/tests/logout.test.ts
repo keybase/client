@@ -41,7 +41,11 @@ describe('logout store', () => {
   })
 
   test('requestLogout routes to password settings when logout is blocked', async () => {
-    jest.spyOn(T.RPCGen, 'userCanLogoutRpcPromise').mockResolvedValue({canLogout: false})
+    jest.spyOn(T.RPCGen, 'userCanLogoutRpcPromise').mockResolvedValue({
+      canLogout: false,
+      passphraseState: T.RPCGen.PassphraseState.known,
+      reason: 'password required',
+    })
 
     useLogoutState.getState().dispatch.requestLogout()
     await Promise.resolve()
