@@ -151,7 +151,7 @@ export type State = Store & {
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
-    resetState: 'default' | (() => void)
+    resetState: () => void
     resetOperation: (op: T.Crypto.Operations) => void
     runFileOperation: (op: T.Crypto.Operations, destinationDir: string) => void
     runTextOperation: (op: T.Crypto.Operations) => void
@@ -443,7 +443,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch = {
     clearInput: op => {
       set(s => {
         const o = s[op]
@@ -674,9 +674,9 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         get().dispatch.runTextOperation('encrypt')
       }
     },
-  }
+  } satisfies Omit<State['dispatch'], 'resetState'> & {resetState: 'default'}
   return {
     ...initialStore,
-    dispatch,
+    dispatch: dispatch as unknown as State['dispatch'],
   }
 })

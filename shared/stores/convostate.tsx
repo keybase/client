@@ -3659,9 +3659,10 @@ const makeWrappedPrimaryDispatch = (
         logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
       }
       ignorePromise(
-        Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)]).then((): void => {
+        (async () => {
+          await Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)])
           compareConvoStates(id, name, store.getState(), shadow.getState())
-        })
+        })()
       )
     }
 
