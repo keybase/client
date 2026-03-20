@@ -2704,7 +2704,6 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       })
     },
     resetDeleteMe: true,
-    resetState: Z.defaultReset,
     resetLetThemIn: username => {
       // let them back in after they reset
       const f = async () => {
@@ -2715,6 +2714,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     resolveMaybeMention: (channel, name) => {
       const f = async () => {
         await T.RPCChat.localResolveMaybeMentionRpcPromise({

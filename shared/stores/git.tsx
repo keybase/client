@@ -165,7 +165,6 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: Z.defaultReset,
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyBadgesBadgeState: {
@@ -176,6 +175,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         default:
       }
     },
+    resetState: Z.defaultReset,
     setBadges: b => {
       set(s => {
         s.isNew = b

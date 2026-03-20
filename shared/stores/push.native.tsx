@@ -248,7 +248,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       })
       ignorePromise(neverShowMonsterAgain())
     },
-    resetState: Z.defaultReset,
     requestPermissions: () => {
       const f = async () => {
         if (isIOS) {
@@ -284,6 +283,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       }
       ignorePromise(f())
     },
+    resetState: Z.defaultReset,
     setPushToken: (token: string) => {
       set(s => {
         s.token = token
