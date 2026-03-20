@@ -12,7 +12,7 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createComponentForStaticNavigation} from '@react-navigation/core'
@@ -40,7 +40,7 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-const Tab = createNativeBottomTabNavigator()
+const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
@@ -116,7 +116,7 @@ const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, numb
     tabBarActiveTintColor: Kb.Styles.globalColors.white,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-    tabBarControllerMode: C.isTablet ? 'auto' : undefined,
+    tabBarControllerMode: Kb.Styles.isIOS && C.isTablet ? 'auto' : undefined,
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
@@ -129,7 +129,7 @@ function AppTabs() {
   const navBadges = useNotifState(s => s.navBadges)
   const hasPermissions = usePushState(s => s.hasPermissions)
   return (
-    <Tab.Navigator backBehavior="none">
+    <Tab.Navigator backBehavior="none" implementation="native">
       {tabs.map(tab => (
         <Tab.Screen
           key={tab}
