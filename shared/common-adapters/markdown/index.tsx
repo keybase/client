@@ -104,6 +104,13 @@ export type ParseMarkdownOptions = {
   shouldUseMarkdownParser?: boolean
 }
 
+export type MarkdownOutputKind =
+  | 'serviceOnlyNoWrap'
+  | 'serviceOnly'
+  | 'preview'
+  | 'bigEmoji'
+  | 'default'
+
 const serviceBeginDecorationTag = /\$>kb\$/
 const serviceEndDecorationTag = /\$<kb\$/
 const serviceDecorationRegex = new RegExp(
@@ -430,6 +437,24 @@ export const parseMarkdown = (
   })
 }
 
+export const getMarkdownOutputKind = (
+  parseTree: Array<SM.SingleASTNode>,
+  options?: Pick<Props, 'preview' | 'serviceOnly' | 'serviceOnlyNoWrap' | 'smallStandaloneEmoji'>
+): MarkdownOutputKind => {
+  switch (true) {
+    case !!options?.serviceOnlyNoWrap:
+      return 'serviceOnlyNoWrap'
+    case !!options?.serviceOnly:
+      return 'serviceOnly'
+    case !!options?.preview:
+      return 'preview'
+    case !options?.smallStandaloneEmoji && isAllEmoji(parseTree):
+      return 'bigEmoji'
+    default:
+      return 'default'
+  }
+}
+
 const ErrorComponent = (p: {children: React.ReactNode}) => {
   const {children} = p
   return (
@@ -458,15 +483,22 @@ function SimpleMarkdownComponent(p: Props) {
       virtualText,
     }
 
-    output = ((): React.ReactNode => {
-      switch (true) {
-        case serviceOnlyNoWrap:
+    const outputKind = getMarkdownOutputKind(parseTree, {
+      preview,
+      serviceOnly,
+      serviceOnlyNoWrap,
+      smallStandaloneEmoji,
+    })
+
+    output = (() => {
+      switch (outputKind) {
+        case 'serviceOnlyNoWrap':
           return serviceOnlyNoWrapOutput(parseTree, state)
-        case serviceOnly:
+        case 'serviceOnly':
           return serviceOnlyOutput(parseTree, state)
-        case preview:
+        case 'preview':
           return previewOutput(parseTree, state)
-        case !smallStandaloneEmoji && isAllEmoji(parseTree):
+        case 'bigEmoji':
           return bigEmojiOutput(parseTree, state)
         default:
           return reactOutput(parseTree, state)

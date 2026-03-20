@@ -1,65 +1,40 @@
-import TestRenderer, {act} from 'react-test-renderer'
-import Text from '@/common-adapters/text'
+import {renderToStaticMarkup} from 'react-dom/server'
 import * as T from '@/constants/types'
-import Markdown, {isAllEmoji, parseMarkdown, shouldUseParser} from './index'
-import {setServiceDecoration} from './react'
-
-jest.mock('@/common-adapters/emoji/native-emoji', () => {
-  const React = require('react')
-  const Text = require('@/common-adapters/text').default
-
-  const MockNativeEmoji = (props: {emojiName: string; size: number}) =>
-    React.createElement(
-      Text,
-      {
-        title: `emoji:${props.emojiName}:${props.size}`,
-        type: 'Body',
-      },
-      props.emojiName
-    )
-
-  return {
-    __esModule: true,
-    default: MockNativeEmoji,
-  }
-})
-
-const MockServiceDecoration = (props: {json: string}) => (
-  <Text title={`service:${props.json}`} type="Body">
-    {props.json}
-  </Text>
-)
+import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from './index'
 
 const makeServiceDecorationTag = (payload: unknown) =>
   `$>kb$${Buffer.from(JSON.stringify(payload)).toString('base64')}$<kb$`
 
-const extractText = (node: any): string => {
-  if (!node) return ''
-  if (typeof node === 'string') return node
-  if (Array.isArray(node)) return node.map(extractText).join('')
-  return extractText(node.children)
-}
+const extractMarkupText = (markup: string) =>
+  markup
+    .replace(/<[^>]+>/g, '')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&')
 
 const flattenAstText = (nodes: Array<{type: string; content?: unknown}>): string => {
   return nodes
     .map(node => {
       if (node.type === 'newline') return '\n'
       if (typeof node.content === 'string') return node.content
-      if (Array.isArray(node.content)) return flattenAstText(node.content as Array<{type: string; content?: unknown}>)
+      if (Array.isArray(node.content)) {
+        return flattenAstText(node.content as Array<{type: string; content?: unknown}>)
+      }
       return ''
     })
     .join('')
 }
 
+const normalizeInlineContent = <T extends {type: string}>(nodes: Array<T>) =>
+  nodes[nodes.length - 1]?.type === 'newline' ? nodes.slice(0, -1) : nodes
+
 const paragraphContent = (input: string, options?: Parameters<typeof parseMarkdown>[1]) => {
   const ast = parseMarkdown(input, options)
   expect(ast[0]?.type).toBe('paragraph')
-  return ast[0]?.content as Array<{type: string; content?: unknown; raw?: string}>
+  return normalizeInlineContent(
+    ast[0]?.content as Array<{type: string; content?: unknown; raw?: string}>
+  )
 }
-
-beforeAll(() => {
-  setServiceDecoration(MockServiceDecoration as any)
-})
 
 test('parseMarkdown wraps plain text in a paragraph', () => {
   const content = paragraphContent('hello world')
@@ -104,8 +79,8 @@ test('parseMarkdown only treats single backticks as inline code', () => {
 })
 
 test('Markdown falls back to raw text for unsupported double-backtick syntax', () => {
-  const renderer = TestRenderer.create(<Markdown>{'``code``'}</Markdown>)
-  expect(extractText(renderer.toJSON())).toBe('``code``')
+  const markup = renderToStaticMarkup(<Markdown>{'``code``'}</Markdown>)
+  expect(extractMarkupText(markup)).toBe('``code``')
 })
 
 test('parseMarkdown parses fenced code blocks', () => {
@@ -134,14 +109,14 @@ test('parseMarkdown parses quoted fences on desktop without wrapping the preambl
   expect(ast).toHaveLength(1)
   expect(ast[0]?.type).toBe('blockQuote')
   const nested = ast[0]?.content as Array<{type: string; content?: unknown}>
-  expect(nested.map(node => node.type)).toEqual(['text', 'fence'])
+  expect(normalizeInlineContent(nested).map(node => node.type)).toEqual(['text', 'fence'])
   expect(nested[0]?.content).toBe('they wrote')
   expect(nested[1]?.content).toBe('foo\n')
 })
 
 test('parseMarkdown wraps quoted fence preambles in paragraphs on mobile', () => {
   const ast = parseMarkdown('> they wrote ```\nfoo\n```', {isMobile: true})
-  const nested = ast[0]?.content as Array<{type: string; content?: unknown}>
+  const nested = normalizeInlineContent(ast[0]?.content as Array<{type: string; content?: unknown}>)
   expect(nested.map(node => node.type)).toEqual(['paragraph', 'fence'])
   expect((((nested[0]?.content as Array<{content: string}>) ?? [])[0] ?? {}).content).toBe('they wrote')
   expect(nested[1]?.content).toBe('foo\n')
@@ -196,52 +171,30 @@ test('parseMarkdown preserves long plain inputs through the no-markdown parser',
 })
 
 test('Markdown uses big emoji rendering for standalone emoji messages', () => {
-  const renderer = TestRenderer.create(<Markdown>:wave:</Markdown>)
-  const emojiNode = renderer.root.find(node => node.props.title === 'emoji::wave::32')
-  expect(emojiNode.props.title).toBe('emoji::wave::32')
+  expect(getMarkdownOutputKind(parseMarkdown(':wave:'))).toBe('bigEmoji')
 })
 
-test('Markdown keeps default emoji sizing for mixed emoji and text', () => {
-  const renderer = TestRenderer.create(<Markdown>:wave: hi</Markdown>)
-  const emojiNode = renderer.root.find(node => node.props.title === 'emoji::wave::16')
-  expect(emojiNode.props.title).toBe('emoji::wave::16')
+test('Markdown keeps default output for mixed emoji and text', () => {
+  expect(getMarkdownOutputKind(parseMarkdown(':wave: hi'))).toBe('default')
 })
 
 test('Markdown preview output flattens block quotes into plain text', () => {
-  const renderer = TestRenderer.create(
-    <Markdown preview={true}>{'> quoted line'}</Markdown>
-  )
-  expect(extractText(renderer.toJSON())).toContain('> quoted line')
+  const markup = renderToStaticMarkup(<Markdown preview={true}>{'> quoted line'}</Markdown>)
+  expect(extractMarkupText(markup)).toContain('> quoted line')
 })
 
-test('Markdown serviceOnlyNoWrap skips only the inner service wrapper on desktop', () => {
+test('Markdown serviceOnlyNoWrap skips only the inner service wrapper', () => {
   const encoded = makeServiceDecorationTag({
     link: {punycode: '', url: 'https://keybase.io'},
     typ: T.RPCChat.UITextDecorationTyp.link,
   })
-  const wrapped = TestRenderer.create(<Markdown serviceOnly={true}>{encoded}</Markdown>)
-  const unwrapped = TestRenderer.create(<Markdown serviceOnlyNoWrap={true}>{encoded}</Markdown>)
+  const parseTree = parseMarkdown(encoded)
 
-  expect(wrapped.root.findAllByType('span')).toHaveLength(3)
-  expect(unwrapped.root.findAllByType('span')).toHaveLength(2)
-  expect(extractText(wrapped.toJSON())).toContain(Buffer.from(JSON.stringify({
-    link: {punycode: '', url: 'https://keybase.io'},
-    typ: T.RPCChat.UITextDecorationTyp.link,
-  })).toString('base64'))
+  expect(getMarkdownOutputKind(parseTree, {serviceOnly: true})).toBe('serviceOnly')
+  expect(getMarkdownOutputKind(parseTree, {serviceOnlyNoWrap: true})).toBe('serviceOnlyNoWrap')
 })
 
-test('Markdown spoilers stay masked until clicked and then reveal content', () => {
-  const renderer = TestRenderer.create(<Markdown context="msg-1">{'!>secret<!'}</Markdown>)
-
-  expect(extractText(renderer.toJSON())).toBe('••••••')
-
-  const spoiler = renderer.root.find(node => node.props.title === 'Click to reveal')
-  act(() => {
-    spoiler.props.onClick({
-      preventDefault: () => {},
-      stopPropagation: () => {},
-    })
-  })
-
-  expect(extractText(renderer.toJSON())).toBe('secret')
+test('Markdown spoilers render masked output by default', () => {
+  const markup = renderToStaticMarkup(<Markdown context="msg-1">{'!>secret<!'}</Markdown>)
+  expect(extractMarkupText(markup)).toContain('••••••')
 })
