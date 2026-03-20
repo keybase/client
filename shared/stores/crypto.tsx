@@ -176,6 +176,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     resetWarnings(o)
     o.bytesComplete = 0
     o.bytesTotal = 0
+    o.outputSigned = false
     o.output = new HiddenString('')
     o.outputStatus = undefined
     o.outputType = undefined
