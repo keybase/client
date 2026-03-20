@@ -9,21 +9,21 @@ import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
 import logger from '@/logger'
-import {StatusBar, View} from 'react-native'
-import {PlatformPressable} from '@react-navigation/elements'
+import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
-import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
+import {NavigationContainer} from '@react-navigation/native'
+import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import {makeLayout} from './screen-layout.native'
 import {useRootKey} from './hooks.native'
-import * as TabBar from './tab-bar.native'
 import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
+import {useNotifState} from '@/stores/notifications'
+import {usePushState} from '@/stores/push'
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -40,76 +40,104 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-const Tab = createBottomTabNavigator()
+const Tab = createNativeBottomTabNavigator()
 const tabRoutes = routes
+const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
+
+const phoneTabRoutes = {...tabRoutes}
+delete phoneTabRoutes.chatConversation
 
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
 } as const
 
-const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false)
+const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false, true)
+const phoneTabScreensConfig = routeMapToStaticScreens(phoneTabRoutes, makeLayout, false, false, true)
+const phoneRootScreensConfig = routeMapToStaticScreens(
+  C.isTablet ? {} : {chatConversation: tabRoutes.chatConversation},
+  makeLayout,
+  false,
+  false,
+  false
+)
 
 const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of tabs) {
+  const screens = C.isTablet ? tabScreensConfig : phoneTabScreensConfig
   const nav = createNativeStackNavigator({
     initialRouteName: tabRoots[tab],
     screenOptions: tabStackOptions as NativeStackNavigationOptions,
-    screens: tabScreensConfig,
+    screens,
   })
   tabComponents[tab] = nav.getComponent()
 }
 
-const tabScreenOptions = ({route}: {route: {name: string}}) => {
-  let routeName: string | undefined
-  try {
-    routeName = getFocusedRouteNameFromRoute(route)
-  } catch {}
-  return {
-    tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
-  }
-}
-const tabStacks = tabs.map(tab => (
-  <Tab.Screen
-    key={tab}
-    name={tab}
-    listeners={{
-      tabLongPress: () => {
-        C.useRouterState.getState().dispatch.defer.tabLongPress?.(tab)
-      },
-    }}
-    component={tabComponents[tab]!}
-    options={tabScreenOptions}
-  />
-))
+const androidTabIcons = new Map<Tabs.Tab, number>([
+  [Tabs.chatTab, require('../images/icons/icon-nav-chat-32.png')],
+  [Tabs.fsTab, require('../images/icons/icon-nav-folders-32.png')],
+  [Tabs.peopleTab, require('../images/icons/icon-nav-people-32.png')],
+  [Tabs.settingsTab, require('../images/icons/icon-nav-settings-32.png')],
+  [Tabs.teamsTab, require('../images/icons/icon-folder-team-32.png')],
+])
 
-const android_rippleFix = {color: 'transparent'}
-const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
+const iosTabIcons = new Map<Tabs.Tab, {active: string; inactive: string}>([
+  [Tabs.chatTab, {active: 'message.fill', inactive: 'message'}],
+  [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
+  [Tabs.peopleTab, {active: 'person.crop.circle.fill', inactive: 'person.crop.circle'}],
+  [Tabs.settingsTab, {active: 'ellipsis.circle.fill', inactive: 'ellipsis.circle'}],
+  [Tabs.teamsTab, {active: 'person.3.fill', inactive: 'person.3'}],
+])
+
+const getNativeTabIcon = (tab: Tabs.Tab) => {
+  if (Platform.OS === 'ios') {
+    const icon = iosTabIcons.get(tab)
+    return icon
+      ? ({focused}: {focused: boolean}) => ({
+          name: focused ? icon.active : icon.inactive,
+          type: 'sfSymbol',
+        })
+      : undefined
+  }
+  const source = androidTabIcons.get(tab)
+  return source ? {source, type: 'image'} : undefined
+}
+
+const getBadgeNumber = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
+  const onSettings = routeName === Tabs.settingsTab
+  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+  const count = tabsToCount.reduce((res, tab) => res + (navBadges.get(tab) || 0), onSettings && !hasPermissions ? 1 : 0)
+  return count || undefined
+}
+
+const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
   return {
-    ...Common.defaultNavigationOptions,
     headerShown: false,
-    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
-    tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
-    tabBarButton: (p: BottomTabBarButtonProps) => (
-      <PlatformPressable {...p} android_ripple={android_rippleFix}>
-        {p.children}
-      </PlatformPressable>
-    ),
-    tabBarHideOnKeyboard: true,
-    tabBarIcon: ({focused}: {focused: boolean}) => (
-      <TabBar.TabBarIconWrapper routeName={route.name as Tabs.Tab} focused={focused} />
-    ),
-    tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
-    tabBarLabel: ({focused}: {focused: boolean}) => (
-      <TabBar.TabBarLabelWrapper routeName={route.name as Tabs.Tab} focused={focused} />
-    ),
-    tabBarShowLabel: Kb.Styles.isTablet,
+    tabBarActiveIndicatorEnabled: false,
+    tabBarActiveTintColor: Kb.Styles.globalColors.white,
+    tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
+    tabBarBadgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+    tabBarControllerMode: C.isTablet ? 'auto' : undefined,
+    tabBarIcon: getNativeTabIcon(routeName),
+    tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
+    tabBarLabel: tabToLabel.get(routeName) ?? routeName,
+    tabBarLabelVisibilityMode: C.isTablet ? 'labeled' : 'selected',
     tabBarStyle: Common.tabBarStyle,
+    title: tabToLabel.get(routeName) ?? routeName,
   }
 }
 function AppTabs() {
+  const navBadges = useNotifState(s => s.navBadges)
+  const hasPermissions = usePushState(s => s.hasPermissions)
   return (
-    <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
-      {tabStacks}
+    <Tab.Navigator backBehavior="none">
+      {tabs.map(tab => (
+        <Tab.Screen
+          key={tab}
+          name={tab}
+          component={tabComponents[tab]!}
+          options={appTabsScreenOptions(tab, navBadges, hasPermissions)}
+        />
+      ))}
     </Tab.Navigator>
   )
 }
@@ -117,7 +145,7 @@ function AppTabs() {
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
 } as const
-const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true, false)
 const loggedOutNav = createNativeStackNavigator({
   initialRouteName: 'login',
   screenOptions: loggedOutScreenOptions as NativeStackNavigationOptions,
@@ -125,9 +153,7 @@ const loggedOutNav = createNativeStackNavigator({
 })
 const LoggedOut = loggedOutNav.getComponent()
 
-const rootStackScreenOptions = {
-  headerShown: false, // eventually do this after we pull apart modal2 etc
-} satisfies NativeStackNavigationOptions
+const rootStackScreenOptions = {} satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
   headerLeft: () => <HeaderLeftButton mode="cancel" />,
   headerShown: true,
@@ -138,20 +164,21 @@ const modalScreenOptions = {
 const useIsLoggedIn = () => useConfigState(s => s.loggedIn)
 const useIsLoggedOut = () => !useConfigState(s => s.loggedIn)
 
-const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false, false)
 
 const rootNav = createNativeStackNavigator({
   groups: {
     loggedIn: {
       if: useIsLoggedIn,
       screens: {
-        loggedIn: {screen: AppTabs},
+        loggedIn: {options: {headerShown: false}, screen: AppTabs},
+        ...phoneRootScreensConfig,
       },
     },
     loggedOut: {
       if: useIsLoggedOut,
       screens: {
-        loggedOut: {screen: LoggedOut},
+        loggedOut: {options: {headerShown: false}, screen: LoggedOut},
       },
     },
     modals: {

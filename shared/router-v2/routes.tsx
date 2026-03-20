@@ -111,7 +111,12 @@ type LayoutFn = (props: {
   route: GetOptionsParams['route']
   navigation: GetOptionsParams['navigation']
 }) => React.ReactNode
-type MakeLayoutFn = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => LayoutFn
+type MakeLayoutFn = (
+  isModal: boolean,
+  isLoggedOut: boolean,
+  isTabScreen: boolean,
+  getOptions?: GetOptions
+) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
@@ -123,7 +128,8 @@ export function routeMapToStaticScreens(
   rs: RouteMap,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
-  isLoggedOut: boolean
+  isLoggedOut: boolean,
+  isTabScreen: boolean
 ) {
   const result: Record<
     string,
@@ -138,7 +144,7 @@ export function routeMapToStaticScreens(
     result[name] = {
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
-      layout: makeLayoutFn(isModal, isLoggedOut, rd.getOptions) as (props: any) => React.ReactElement,
+      layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
       options: ({route, navigation}: {route: any; navigation: any}) => {
         const go = rd.getOptions
         const opts = typeof go === 'function' ? go({navigation, route}) : go
@@ -156,7 +162,8 @@ export function routeMapToScreenElements(
   makeLayoutFn: MakeLayoutFn,
   makeOptionsFn: MakeOptionsFn,
   isModal: boolean,
-  isLoggedOut: boolean
+  isLoggedOut: boolean,
+  isTabScreen: boolean
 ) {
   return (Object.keys(rs) as Array<keyof KBRootParamList>).flatMap(name => {
     const rd = rs[name as string]
@@ -166,7 +173,7 @@ export function routeMapToScreenElements(
         key={String(name)}
         name={name}
         component={rd.screen}
-        layout={makeLayoutFn(isModal, isLoggedOut, rd.getOptions)}
+        layout={makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions)}
         options={makeOptionsFn(rd)}
       />,
     ]

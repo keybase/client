@@ -36,6 +36,7 @@ export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
+const rootNonModalRouteNames = new Set<string>(['chatConversation'])
 
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef.isReady()) return
@@ -118,7 +119,7 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   if (!_isLoggedIn(rs)) {
     return []
   }
-  return rs.routes?.slice(1) ?? []
+  return (rs.routes?.slice(1) ?? []).filter(r => !rootNonModalRouteNames.has(r.name))
 }
 
 export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -171,8 +172,20 @@ export const clearModals = () => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
-    n.dispatch({...StackActions.popToTop(), target: ns?.key})
+  if (!_isLoggedIn(ns)) {
+    return
+  }
+  const rootRoutes = ns?.routes ?? []
+  const keepRoutes = rootRoutes.filter((route, index) => index === 0 || rootNonModalRouteNames.has(route.name))
+  if (keepRoutes.length !== rootRoutes.length) {
+    n.dispatch({
+      ...CommonActions.reset({
+        ...ns,
+        index: keepRoutes.length - 1,
+        routes: keepRoutes,
+      } as Parameters<typeof CommonActions.reset>[0]),
+      target: ns?.key,
+    })
   }
 }
 
@@ -304,14 +317,18 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // A single reset on the tab navigator atomically switches tabs and sets params.
     setChatRootParams({conversationIDKey})
   } else {
-    // Phone: full reset to build the chat → conversation stack
+    // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = {
-      routes: [{name: 'loggedIn', state: {
-        routes: [{name: Tabs.chatTab, state: {
-          index: 1,
-          routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
-        }}],
-      }}],
+      index: 1,
+      routes: [
+        {
+          name: 'loggedIn',
+          state: {
+            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+          },
+        },
+        {name: 'chatConversation', params: {conversationIDKey}},
+      ],
     }
     n.dispatch({
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),

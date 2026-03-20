@@ -26,7 +26,20 @@ const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
   )
 }
 
-export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
+const StackScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
+      {children}
+    </Kb.Box2>
+  )
+}
+
+export const makeLayout = (
+  isModal: boolean,
+  isLoggedOut: boolean,
+  isTabScreen: boolean,
+  getOptions?: GetOptions
+) => {
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
     const {modalFooter} = navigationOptions ?? {}
@@ -52,8 +65,11 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
       suspenseContent
     )
 
-    if (!isModal && !isLoggedOut) {
+    if (!isModal && !isLoggedOut && isTabScreen) {
       return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
+    }
+    if (!isModal && !isLoggedOut) {
+      return <StackScreenWrapper>{wrappedContent}</StackScreenWrapper>
     }
 
     return (
