@@ -13,12 +13,12 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     setOpenRow: (row: T.Chat.ConversationIDKey) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
 export const useOpenedRowState = Z.createZustand<State>(set => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     resetState: 'default',
     setOpenRow: row => {
       set(state => {

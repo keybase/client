@@ -12,13 +12,13 @@ const initialStore: Store = {
 interface State extends Store {
   dispatch: {
     triggerAllowOpen: () => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 // just to plumb the state, really the settings tab should change how it works, its quite
 // old and creaky
 export const useSettingsTabState = Z.createZustand<State>(set => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     resetState: 'default',
     triggerAllowOpen: () => {
       set(state => {

@@ -188,7 +188,7 @@ export interface State extends Store {
     notifyUserBlocked: (b: T.RPCGen.UserBlockedSummary) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
-    resetState: 'default'
+    resetState: () => void
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
     updateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
   }
@@ -209,7 +209,7 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
   }
 }
 export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {

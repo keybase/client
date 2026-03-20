@@ -47,7 +47,7 @@ export interface State extends Store {
     loginBrowserViaWebAuthToken: () => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
-    resetState: 'default'
+    resetState: () => void
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
     setProxyData: (proxyData: T.RPCGen.ProxyData) => void
@@ -87,7 +87,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     navigateAppend('settingsAddPhone')
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     checkPassword: passphrase => {
       set(s => {
         s.checkPasswordIsCorrect = undefined

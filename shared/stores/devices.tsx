@@ -15,13 +15,13 @@ export interface State extends T.Devices.State {
     load: () => void
     clearBadges: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     setBadges: (set: Set<string>) => void
   }
 }
 
 export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     clearBadges: () => {
       ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
     },

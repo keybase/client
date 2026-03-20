@@ -4,36 +4,11 @@ import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
 import {useCurrentUserState} from '../current-user'
-import {
-  compareConvoStoreStatesForTesting,
-  createConvoStoreForTesting,
-  type ConvoState,
-} from '../convostate'
+import {createConvoStoreForTesting, type ConvoState} from '../convostate'
 
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
 }))
-
-/*
- * Differential test example for future refactors:
- *
- * import {
- *   compareConvoStoreStatesForTesting,
- *   createConvoStoreForTesting,
- * } from '../convostate'
- * import {createConvoStoreForTesting as createBaseConvoStoreForTesting} from '../convostate.base'
- *
- * test('base and refactor stay equivalent', () => {
- *   const base = createBaseConvoStoreForTesting(convID)
- *   const next = createConvoStoreForTesting(convID)
- *   // seed both stores, drive the same actions, then compare:
- *   expect(compareConvoStoreStatesForTesting(base.getState(), next.getState())).toBe(true)
- * })
- *
- * `convostate.base.tsx` currently re-exports `./convostate`. When we want real
- * side-by-side validation again, replace that file with a copied baseline
- * implementation that preserves the same testing exports.
- */
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
@@ -250,30 +225,6 @@ test('testing store starts with initial state and helper selectors', () => {
   expect(state.getConvID()).toEqual(T.Chat.keyToConversationID(convID))
   expect(state.isCaughtUp()).toBe(true)
   expect(state.isMetaGood()).toBe(false)
-})
-
-test('comparison helper normalizes hidden strings and ignores messageID indexes', () => {
-  const left = createStore()
-  const right = createStore()
-  const messageLeft = makeTextMessage({text: 'same text'})
-  const messageRight = makeTextMessage({text: 'same text'})
-
-  applyState(left, {
-    loaded: true,
-    messageIDToOrdinal: new Map([[msgID, ordinal]]),
-    messageMap: new Map([[ordinal, messageLeft]]),
-    messageOrdinals: [ordinal],
-    meta: makeMeta(),
-  })
-  applyState(right, {
-    loaded: true,
-    messageIDToOrdinal: new Map([[T.Chat.numberToMessageID(999), ordinal]]),
-    messageMap: new Map([[ordinal, messageRight]]),
-    messageOrdinals: [ordinal],
-    meta: makeMeta(),
-  })
-
-  expect(compareConvoStoreStatesForTesting(left.getState(), right.getState())).toBe(true)
 })
 
 test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {

@@ -10,7 +10,7 @@ const initialStore: T.Waiting.State = {
 
 export interface State extends T.Waiting.State {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     clear: (keys: string | ReadonlyArray<string>) => void
     increment: (keys: string | ReadonlyArray<string>) => void
     decrement: (keys: string | ReadonlyArray<string>, error?: RPCError) => void
@@ -49,7 +49,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     })
   }
 
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     batch: changes => {
       changes.forEach(c => {
         if (c.increment) {

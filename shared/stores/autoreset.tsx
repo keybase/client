@@ -37,7 +37,7 @@ export interface State extends Store {
       onStartProvision: (username: string, fromReset: boolean) => void
     }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
@@ -45,7 +45,7 @@ export interface State extends Store {
 }
 
 export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     cancelReset: () => {
       set(s => {
         s.error = ''

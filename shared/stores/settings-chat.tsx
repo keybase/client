@@ -41,12 +41,12 @@ export interface State extends Store {
     contactSettingsRefresh: () => void
     unfurlSettingsRefresh: () => void
     unfurlSettingsSaved: (mode: T.RPCChat.UnfurlMode, whitelist: ReadonlyArray<string>) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
 export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     contactSettingsRefresh: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {

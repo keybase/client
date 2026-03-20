@@ -44,8 +44,7 @@ module.exports = function (api /*: any */) {
     return {
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
-        ['@babel/preset-react', {runtime: 'automatic'}],
-        '@babel/preset-flow',
+        ...(isTest ? [['@babel/preset-react', {runtime: 'automatic'}], '@babel/preset-flow'] : []),
         '@babel/preset-typescript',
       ],
       plugins: [

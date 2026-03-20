@@ -35,7 +35,7 @@ export interface State extends Store {
     loadPgpSettings: () => void
     loadRememberPassword: () => void
     notifyUsersPasswordChanged: (randomPW: boolean) => void
-    resetState: 'default'
+    resetState: () => void
     setPassword: (password: string) => void
     setPasswordConfirm: (confirm: string) => void
     setRememberPassword: (remember: boolean) => void
@@ -44,7 +44,7 @@ export interface State extends Store {
 }
 
 export const usePWState = Z.createZustand<State>('settings-password', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->
       // false (never the opposite way), and there are notifications set up when

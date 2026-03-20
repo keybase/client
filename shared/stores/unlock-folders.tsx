@@ -21,13 +21,13 @@ export interface State extends Store {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
 export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (set, _get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     onBackFromPaperKey: () => {
       set(s => {
         s.phase = 'promptOtherDevice'

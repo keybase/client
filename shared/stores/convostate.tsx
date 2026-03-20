@@ -25,7 +25,6 @@ import * as React from 'react'
 import * as Z from '@/util/zustand'
 import {navToPath} from '@/constants/fs'
 import HiddenString from '@/util/hidden-string'
-import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {DebouncedFunc} from 'lodash'
@@ -309,7 +308,7 @@ export interface ConvoState extends ConvoStore {
     replyJump: (messageID: T.Chat.MessageID) => void
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
-    resetState: 'default'
+    resetState: () => void
     resetDeleteMe: true
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
@@ -459,17 +458,15 @@ let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
 export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
   convoDeferImpl = impl
   if (__DEV__) globalThis.__hmr_convoDeferImpl = impl
-  for (const stores of [chatStores, shadowChatStores] as const) {
-    for (const store of stores.values()) {
-      const s = store.getState()
-      store.setState({
-        ...s,
-        dispatch: {
-          ...s.dispatch,
-          defer: impl,
-        },
-      })
-    }
+  for (const store of chatStores.values()) {
+    const s = store.getState()
+    store.setState({
+      ...s,
+      dispatch: {
+        ...s.dispatch,
+        defer: impl,
+      },
+    })
   }
 }
 
@@ -1369,7 +1366,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     ignorePromise(f())
   }
 
-  const dispatch: ConvoState['dispatch'] = {
+  const dispatch: Z.InitialDispatch<ConvoState['dispatch']> = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
         try {
@@ -3513,182 +3510,14 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 }
 
-const normalizeForComparison = (value: unknown): unknown => {
-  if (value instanceof HiddenString) {
-    return value.stringValue()
-  }
-  if (value instanceof Map) {
-    return [...value.entries()]
-      .map(([k, v]) => [normalizeForComparison(k), normalizeForComparison(v)] as const)
-      .sort((l, r) => JSON.stringify(l[0]).localeCompare(JSON.stringify(r[0])))
-  }
-  if (value instanceof Set) {
-    return [...value.values()]
-      .map(v => normalizeForComparison(v))
-      .sort((l, r) => JSON.stringify(l).localeCompare(JSON.stringify(r)))
-  }
-  if (value instanceof Uint8Array) {
-    return [...value]
-  }
-  if (Array.isArray(value)) {
-    return value.map(item => normalizeForComparison(item))
-  }
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>
-    return Object.fromEntries(
-      Object.keys(record)
-        .filter(key => typeof record[key] !== 'function')
-        .sort()
-        .map(key => [key, normalizeForComparison(record[key])])
-    )
-  }
-  return value
-}
-
-type ComparableConvoState = Pick<ConvoState, 'dispatch' | 'getConvID' | 'isCaughtUp' | 'isMetaGood'> & object
-
-const projectConvoStateForComparison = (state: ComparableConvoState) => {
-  const rest = {...(state as Record<string, unknown>)}
-  delete rest['dispatch']
-  delete rest['getConvID']
-  delete rest['isCaughtUp']
-  delete rest['isMetaGood']
-  delete rest['messageIDToOrdinal']
-  return normalizeForComparison(rest)
-}
-
-const compareConvoStates = (
-  id: T.Chat.ConversationIDKey,
-  reason: string,
-  primary: ComparableConvoState,
-  shadow: ComparableConvoState
-) => {
-  const left = projectConvoStateForComparison(primary)
-  const right = projectConvoStateForComparison(shadow)
-  if (!isEqual(left, right)) {
-    logger.warn(`Convo shadow mismatch for ${id} after ${reason}`)
-    logger.warn(JSON.stringify({id, left, reason, right}))
-  }
-}
-
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-const wrappedPrimaryStores = new WeakSet<object>()
-type ComparableStore = UseBoundStore<StoreApi<any>>
-
-let convoShadowEnabled: boolean = __DEV__ ? Boolean((globalThis as any).__hmr_convoShadowEnabled) : false
-
-export const setConvoStateShadowEnabled = (enabled: boolean) => {
-  convoShadowEnabled = enabled
-  if (__DEV__) {
-    ;(globalThis as any).__hmr_convoShadowEnabled = enabled
-  }
-  if (!enabled) {
-    shadowChatStores.clear()
-  }
-}
-
-export const getConvoStateShadowEnabled = () => convoShadowEnabled
 
 export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
   ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
   : new Map()
 
-const shadowChatStores: Map<T.Chat.ConversationIDKey, ComparableStore> = __DEV__
-  ? (((globalThis as any).__hmr_shadowChatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, ComparableStore>)
-  : new Map()
-
-const getShadowConvoStore = (id: T.Chat.ConversationIDKey) => {
-  const existing = shadowChatStores.get(id)
-  if (existing) return existing
-  const base = require('./convostate.base') as {
-    createConvoStoreForTesting: (id: T.Chat.ConversationIDKey) => ComparableStore
-    setConvoDefer?: (impl: ConvoState['dispatch']['defer']) => void
-  }
-  if (convoDeferImpl && base.setConvoDefer) {
-    base.setConvoDefer(convoDeferImpl)
-  }
-  const next = base.createConvoStoreForTesting(id)
-  shadowChatStores.set(id, next)
-  return next
-}
-
-const settleCompare = async (result: unknown): Promise<void> => {
-  if (result instanceof Promise) {
-    await result.then(
-      () => undefined,
-      () => undefined
-    )
-  }
-}
-
-const shadowComparableDispatches = new Set<keyof ConvoState['dispatch']>([
-  'messagesClear',
-  'messagesExploded',
-  'messagesWereDeleted',
-  'setMarkAsUnread',
-  'updateReactions',
-])
-
-const makeWrappedPrimaryDispatch = (
-  id: T.Chat.ConversationIDKey,
-  name: string,
-  orig: (...args: Array<unknown>) => unknown,
-  store: MadeStore,
-  actionDepthRef: {current: number}
-) => {
-  return (...args: Array<unknown>) => {
-    const isTopLevel = actionDepthRef.current === 0
-    actionDepthRef.current += 1
-    let primaryResult: unknown
-    try {
-      primaryResult = orig(...args)
-    } finally {
-      actionDepthRef.current -= 1
-    }
-
-    if (isTopLevel && convoShadowEnabled) {
-      const shadow = getShadowConvoStore(id)
-      const shadowDispatch = shadow.getState().dispatch as Record<string, unknown>
-      const shadowValue = shadowDispatch[name]
-      let shadowResult: unknown
-      try {
-        if (typeof shadowValue === 'function') {
-          shadowResult = shadowValue(...args)
-        }
-      } catch (error) {
-        logger.warn(`Convo shadow action ${name} threw for ${id}: ${String(error)}`)
-      }
-      ignorePromise(
-        (async () => {
-          await Promise.all([settleCompare(primaryResult), settleCompare(shadowResult)])
-          compareConvoStates(id, name, store.getState(), shadow.getState())
-        })()
-      )
-    }
-
-    return primaryResult
-  }
-}
-
-const wrapPrimaryDispatches = (id: T.Chat.ConversationIDKey, store: MadeStore) => {
-  if (!__DEV__ || wrappedPrimaryStores.has(store)) return
-  wrappedPrimaryStores.add(store)
-  const actionDepthRef = {current: 0}
-  const dispatch = store.getState().dispatch as Record<string, unknown>
-  for (const [name, value] of Object.entries(dispatch)) {
-    if (typeof value !== 'function' || !shadowComparableDispatches.has(name as keyof ConvoState['dispatch'])) {
-      continue
-    }
-    const orig = value as (...args: Array<unknown>) => unknown
-    const wrapped = makeWrappedPrimaryDispatch(id, name, orig, store, actionDepthRef)
-    Object.assign(wrapped, orig)
-    dispatch[name] = wrapped
-  }
-}
-
 export const clearChatStores = () => {
   chatStores.clear()
-  shadowChatStores.clear()
 }
 
 registerDebugClear(() => {
@@ -3701,7 +3530,6 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const next = Z.createZustand<ConvoState>(createSlice())
   next.setState({id})
   chatStores.set(id, next)
-  wrapPrimaryDispatches(id, next)
   return next
 }
 
@@ -3710,12 +3538,6 @@ export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
   next.setState({id})
   return next
 }
-
-export const compareConvoStoreStatesForTesting = (
-  left: ComparableConvoState,
-  right: ComparableConvoState
-) =>
-  isEqual(projectConvoStateForComparison(left), projectConvoStateForComparison(right))
 
 // debug only
 export function hasConvoState(id: T.Chat.ConversationIDKey) {

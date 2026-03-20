@@ -79,14 +79,14 @@ export interface State extends Store {
     loadDefaultPhoneCountry: () => void
     notifyPhoneNumberPhoneNumbersChanged: (list?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     resendVerificationForPhone: (phoneNumber: string) => void
-    resetState: 'default'
+    resetState: () => void
     setNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
 }
 
 export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     addPhoneNumber: (phoneNumber, searchable) => {
       const f = async () => {
         logger.info('adding phone number')

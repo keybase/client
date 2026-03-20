@@ -1,7 +1,7 @@
 // helpers for zustand
 import * as React from 'react'
 import isEqual from 'lodash/isEqual'
-import {type StateCreator} from 'zustand'
+import {type StateCreator, type StoreApi, type UseBoundStore} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {wrapErrors} from '@/util/debug'
@@ -13,8 +13,16 @@ type HasReset = {
   dispatch: {
     defer?: Record<string, unknown>
     resetDeleteMe?: boolean
-    resetState: 'default' | (() => void)
+    resetState: (...args: Array<unknown>) => void
   }
+}
+
+export type InitialDispatch<T extends HasReset['dispatch']> = Omit<T, 'resetState'> & {
+  resetState: 'default' | T['resetState']
+}
+
+type WithInitialReset<T extends HasReset> = Omit<T, 'dispatch'> & {
+  dispatch: InitialDispatch<T['dispatch']>
 }
 
 const resetters: ((isDebug?: boolean) => void)[] = []
@@ -27,21 +35,22 @@ const _hmrRegistry: Map<string, unknown> = __DEV__ ? ((globalThis as any).__ZUST
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
-  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]]>,
-  maybeInitializer?: StateCreator<T, [['zustand/immer', never]]>
+  hmrKeyOrInitializer: string | StateCreator<WithInitialReset<T>, [['zustand/immer', never]]>,
+  maybeInitializer?: StateCreator<WithInitialReset<T>, [['zustand/immer', never]]>
 ) => {
   const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
   const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
 
   const f = immerZustand(initializer)
-  const store = create<T, [['zustand/immer', never]]>(f)
+  const rawStore = create<WithInitialReset<T>, [['zustand/immer', never]]>(f)
+  const store = rawStore as unknown as UseBoundStore<StoreApi<T>>
 
   // During HMR, return the existing store to preserve state and subscribers
   if (__DEV__ && hmrKey && _hmrRegistry.has(hmrKey)) {
     return _hmrRegistry.get(hmrKey) as typeof store
   }
   // includes dispatch, custom overrides typically don't
-  const initialState = store.getState()
+  const initialState = rawStore.getState()
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
@@ -56,17 +65,17 @@ export const createZustand = <T extends HasReset>(
   }
 
   const reset = initialState.dispatch.resetState
-  let resetFunc: () => void
+  let resetFunc: (isDebug?: boolean) => void
   if (reset === 'default') {
     resetFunc = () => {
-      const currentDefer = store.getState().dispatch.defer
+      const currentDefer = rawStore.getState().dispatch.defer
       const hasInitialDefer = Object.hasOwn(initialState.dispatch, 'defer')
       const nextDispatch =
         hasInitialDefer || currentDefer !== undefined
           ? {...initialState.dispatch, defer: currentDefer}
           : initialState.dispatch
       // eslint-disable-next-line
-      store.setState({...initialState, dispatch: nextDispatch} as any, true)
+      rawStore.setState({...initialState, dispatch: nextDispatch} as any, true)
     }
     unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
@@ -96,7 +105,7 @@ export const resetAllStores = (isDebug?: boolean) => {
   resettersAndDelete.length = 0
 }
 
-export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
+export type ImmerStateCreator<T extends HasReset> = StateCreator<WithInitialReset<T>, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {

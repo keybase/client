@@ -26,11 +26,11 @@ interface State extends Store {
   dispatch: {
     load: () => void
     removeAccount: (accountID: string) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 export const useState = Z.createZustand<State>('wallets', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     load: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {

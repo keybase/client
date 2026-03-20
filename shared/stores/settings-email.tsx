@@ -62,12 +62,12 @@ export interface State extends Store {
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
 export const useSettingsEmailState = Z.createZustand<State>('settings-email', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     addEmail: (email, searchable) => {
       set(s => {
         const emailError = isValidEmail(email)

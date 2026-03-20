@@ -29,7 +29,7 @@ export interface State extends Store {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
     setLoadedAllBots: (loaded: boolean) => void
@@ -41,7 +41,7 @@ export interface State extends Store {
 
 const pageSize = 100
 export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     getFeaturedBots: (limit, page) => {
       const f = async () => {
         try {

@@ -76,7 +76,7 @@ export interface State extends Store {
     load: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     setBadges: (set: Set<string>) => void
-    resetState: 'default'
+    resetState: () => void
     createPersonalRepo: (name: string) => void
     createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
     deletePersonalRepo: (repoName: string) => void
@@ -124,7 +124,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
   const load = () => {
     ignorePromise(_load())
   }
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     clearBadges: () => {
       callAndHandleError(async () => {
         await T.RPCGen.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})

@@ -971,7 +971,7 @@ export interface State extends Store {
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
-    resetState: 'default'
+    resetState: () => void
     resetTeamJoin: () => void
     resetTeamMetaStale: () => void
     resetTeamProfileAddList: () => void
@@ -1060,7 +1060,7 @@ export interface State extends Store {
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
         // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the

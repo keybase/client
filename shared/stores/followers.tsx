@@ -12,14 +12,14 @@ const initialStore: Store = {
 
 export interface State extends Store {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     replace: (followers: ReadonlySet<string>, following: ReadonlySet<string>) => void
     updateFollowing: (user: string, add: boolean) => void
     updateFollowers: (user: string, add: boolean) => void
   }
 }
 export const useFollowerState = Z.createZustand<State>('followers', set => {
-  const dispatch: State['dispatch'] = {
+  const dispatch: Z.InitialDispatch<State['dispatch']> = {
     replace: (followers, following) => {
       set(s => {
         s.followers = T.castDraft(followers)

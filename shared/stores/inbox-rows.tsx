@@ -50,7 +50,7 @@ type State = T.Immutable<{
   rowsBig: Map<string, InboxRowBig>
   rowsSmall: Map<string, InboxRowSmall>
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
   }
 }>
 

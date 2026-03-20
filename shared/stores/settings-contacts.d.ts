@@ -22,7 +22,7 @@ export interface State extends Store {
     loadContactImportEnabled: () => void
     manageContactsCache: () => void
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => void
-    resetState: 'default' | (() => void)
+    resetState: () => void
   }
 }
 
