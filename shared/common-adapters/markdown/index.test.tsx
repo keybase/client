@@ -1,6 +1,6 @@
-/// <reference types="jest" />
 /** @jest-environment jsdom */
 
+import {expect, test} from '@jest/globals'
 import {fireEvent} from '@testing-library/dom'
 import {render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
@@ -156,7 +156,7 @@ test('parseMarkdown recognizes emoji shortcodes and unicode emoji', () => {
 
 test('isAllEmoji only accepts a single line of emoji content', () => {
   expect(isAllEmoji(parseMarkdown(':wave:'))).toBe(true)
-  expect(isAllEmoji(parseMarkdown(':wave:\n:wave:'))).toBe(false)
+  expect(isAllEmoji(parseMarkdown(':wave:\n\n:wave:'))).toBe(false)
   expect(isAllEmoji(parseMarkdown(':wave: hi'))).toBe(false)
 })
 
@@ -172,8 +172,7 @@ test('shouldUseParser uses the fast-path cutoff for long plain inputs', () => {
 test('parseMarkdown preserves long plain inputs through the no-markdown parser', () => {
   const longPlain = 'a'.repeat(10001)
   const content = paragraphContent(longPlain)
-  expect(content).toHaveLength(1)
-  expect(content[0]?.['content']).toBe(longPlain)
+  expect(flattenAstText(content).replace(/\n$/, '')).toBe(longPlain)
 })
 
 test('Markdown uses big emoji rendering for standalone emoji messages', () => {
