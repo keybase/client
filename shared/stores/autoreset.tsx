@@ -29,7 +29,7 @@ const initialStore: Store = {
   username: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     cancelReset: () => void
     defer: {
@@ -37,7 +37,7 @@ export interface State extends Store {
       onStartProvision: (username: string, fromReset: boolean) => void
     }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
@@ -173,7 +173,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     startAccountReset: (skipPassword, _username) => {
       const username = _username || get().dispatch.defer.onGetRecoverPasswordUsername() || ''
       set(s => {

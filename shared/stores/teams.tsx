@@ -864,7 +864,7 @@ const initialStore: Store = {
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onChatNavigateToInbox?: (allowSwitchTab?: boolean) => void
@@ -971,7 +971,7 @@ export interface State extends Store {
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
-    resetState: 'default'
+    resetState: () => void
     resetTeamJoin: () => void
     resetTeamMetaStale: () => void
     resetTeamProfileAddList: () => void
@@ -2524,7 +2524,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.errorInTeamCreation = ''
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     resetTeamJoin: () => {
       set(s => {
         s.errorInTeamJoin = ''

@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 export {}
 
 export type RequestIdleCallbackHandle = unknown

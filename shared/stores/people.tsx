@@ -346,7 +346,7 @@ const initialStore: Store = {
   resentEmail: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void

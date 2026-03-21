@@ -30,7 +30,7 @@ const initialStore: Store = {
   unfurl: {unfurlWhitelist: []},
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     contactSettingsSaved: (
       enabled: boolean,
@@ -41,7 +41,7 @@ export interface State extends Store {
     contactSettingsRefresh: () => void
     unfurlSettingsRefresh: () => void
     unfurlSettingsSaved: (mode: T.RPCChat.UnfurlMode, whitelist: ReadonlyArray<string>) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -97,7 +97,7 @@ export const useSettingsChatState = Z.createZustand<State>('settings-chat', (set
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     unfurlSettingsRefresh: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {

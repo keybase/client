@@ -74,7 +74,7 @@ const initialStore: Store = {
   kbfsJobsFreshness: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     start: (type: 'chatid' | 'chatname' | 'kbfs' | 'git', path: string, outPath: string) => void
     resetWaiters: () => void
@@ -86,7 +86,7 @@ export interface State extends Store {
     loadKBFSJobFreshness: (jobID: string) => void
     cancelOrDismissKBFS: (jobID: string) => Promise<void>
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -406,7 +406,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     resetWaiters: () =>
       set(s => {
         s.archiveAllFilesResponseWaiter = {state: 'idle'}

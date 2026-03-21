@@ -30,7 +30,7 @@ const initialStore: Store = {
   proxyData: undefined,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
     clearLogs: () => void
@@ -47,7 +47,7 @@ export interface State extends Store {
     loginBrowserViaWebAuthToken: () => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
-    resetState: 'default'
+    resetState: () => void
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
     setProxyData: (proxyData: T.RPCGen.ProxyData) => void
@@ -224,7 +224,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
         s.checkPasswordIsCorrect = undefined
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setDidToggleCertificatePinning: t => {
       set(s => {
         s.didToggleCertificatePinning = t

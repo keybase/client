@@ -161,7 +161,7 @@ const initialStore: Store = {
   usernameToNonUserDetails: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onShowUserProfile?: (username: string) => void
@@ -188,7 +188,7 @@ export interface State extends Store {
     notifyUserBlocked: (b: T.RPCGen.UserBlockedSummary) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
-    resetState: 'default'
+    resetState: () => void
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
     updateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
   }
@@ -581,7 +581,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         s.usernameToDetails = T.castDraft(usernameToDetails)
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     showUser: (username, asTracker, skipNav) => {
       get().dispatch.load({
         assertion: username,

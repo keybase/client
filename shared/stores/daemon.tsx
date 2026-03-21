@@ -28,7 +28,7 @@ const initialStore: Store = {
   handshakeWaiters: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     loadDaemonAccounts: (
       configuredAccountsLength: number,
