@@ -20,7 +20,7 @@ const initialStore: Store = {
   waiters: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     resetState: () => void
     wait: (name: string, version: number, increment: boolean) => void

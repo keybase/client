@@ -31,7 +31,7 @@ const initialStore: Store = {
   navState: undefined,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     clearModals: () => void
     defer: {

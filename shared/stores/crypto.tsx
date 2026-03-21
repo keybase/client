@@ -151,7 +151,7 @@ export type State = Store & {
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
-    resetState: 'default'
+    resetState: () => void
     resetOperation: (op: T.Crypto.Operations) => void
     runFileOperation: (op: T.Crypto.Operations, destinationDir: string) => void
     runTextOperation: (op: T.Crypto.Operations) => void
@@ -176,6 +176,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
     resetWarnings(o)
     o.bytesComplete = 0
     o.bytesTotal = 0
+    o.outputSigned = false
     o.output = new HiddenString('')
     o.outputStatus = undefined
     o.outputType = undefined
@@ -557,7 +558,7 @@ export const useCryptoState = Z.createZustand<State>('crypto', (set, get) => {
         }
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     runFileOperation: (op, destinationDir) => {
       set(s => {
         const o = s[op]

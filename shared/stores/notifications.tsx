@@ -27,13 +27,13 @@ const initialStore: Store = {
   widgetBadge: 'regular',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onFavoritesLoad?: () => void
     }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
   }
@@ -143,7 +143,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         default:
       }
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setBadgeCounts: counts => {
       set(s => {
         const chatCount = counts.get(Tabs.chatTab)

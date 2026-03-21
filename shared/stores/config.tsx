@@ -144,7 +144,7 @@ const initialStore: Store = {
   },
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       copyToClipboard: (s: string) => void

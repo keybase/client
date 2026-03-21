@@ -33,7 +33,12 @@
     "sourceMap": false,
     "strict": true,
     "target": "esnext",
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
+    "types": [
+      "jest",
+      "node",
+      "webpack-env"
+    ]
   },
   "include": [
     "./**/*.ts",

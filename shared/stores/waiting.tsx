@@ -8,9 +8,9 @@ const initialStore: T.Waiting.State = {
   errors: new Map(),
 }
 
-export interface State extends T.Waiting.State {
+export type State = T.Waiting.State & {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     clear: (keys: string | ReadonlyArray<string>) => void
     increment: (keys: string | ReadonlyArray<string>) => void
     decrement: (keys: string | ReadonlyArray<string>, error?: RPCError) => void
@@ -73,7 +73,7 @@ export const useWaitingState = Z.createZustand<State>('waiting', (set, get) => {
     increment: keys => {
       changeHelper(keys, 1)
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
   }
 
   return {

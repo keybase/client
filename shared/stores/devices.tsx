@@ -10,12 +10,12 @@ const initialStore: T.Devices.State = {
   isNew: new Set(),
 }
 
-export interface State extends T.Devices.State {
+export type State = T.Devices.State & {
   dispatch: {
     load: () => void
     clearBadges: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     setBadges: (set: Set<string>) => void
   }
 }
@@ -57,7 +57,7 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setBadges: b => {
       set(s => {
         s.isNew = b

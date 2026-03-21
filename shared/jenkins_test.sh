@@ -73,6 +73,10 @@ js_tests() {
 	echo 'yarn tsc'
 	yarn tsc --project ./tsconfig.json
 	check_rc $? 'tsc failed!' 1
+
+	echo 'yarn test'
+	yarn test
+	check_rc $? 'yarn test failed!' 1
 }
 
 js_tests

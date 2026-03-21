@@ -13,15 +13,15 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   pickerMap: new Map(),
 }
-interface State extends Store {
+type State = Store & {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     updatePickerMap: (key: PickKey, val?: PickerValue) => void
   }
 }
 export const usePickerState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
-    resetState: 'default',
+    resetState: Z.defaultReset,
     updatePickerMap: (key, val) => {
       set(state => {
         state.pickerMap.set(key, val)

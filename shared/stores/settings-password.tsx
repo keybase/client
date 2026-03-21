@@ -29,13 +29,13 @@ const initialStore: Store = {
   rememberPassword: true,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     loadHasRandomPw: () => void
     loadPgpSettings: () => void
     loadRememberPassword: () => void
     notifyUsersPasswordChanged: (randomPW: boolean) => void
-    resetState: 'default'
+    resetState: () => void
     setPassword: (password: string) => void
     setPasswordConfirm: (confirm: string) => void
     setRememberPassword: (remember: boolean) => void
@@ -102,7 +102,7 @@ export const usePWState = Z.createZustand<State>('settings-password', (set, get)
         s.randomPW = randomPW
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setPassword: password => {
       set(s => {
         s.error = ''

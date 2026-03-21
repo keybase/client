@@ -16,7 +16,7 @@ const initialStore: Store = {
   infoMap: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: ReadonlyArray<string>) => void
@@ -28,7 +28,7 @@ export interface State extends Store {
       includeTranscript: boolean
       conversationIDKey?: string
     }) => void
-    resetState: 'default'
+    resetState: () => void
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
     setUserBlocks: (blocks: ReadonlyArray<T.RPCGen.UserBlockArg>) => void
     updates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
@@ -123,7 +123,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {

@@ -26,7 +26,7 @@ export const usePushState = Z.createZustand<State>('push', () => {
     initialPermissionsCheck: () => {},
     rejectPermissions: () => {},
     requestPermissions: () => {},
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setPushToken: () => {},
     showPermissionsPrompt: () => {},
   }
