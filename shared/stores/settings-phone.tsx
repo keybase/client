@@ -69,7 +69,7 @@ const initialStore: Store = {
   verificationState: undefined,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     addPhoneNumber: (phoneNumber: string, searchable: boolean) => void
     clearAddedPhone: () => void
@@ -79,7 +79,7 @@ export interface State extends Store {
     loadDefaultPhoneCountry: () => void
     notifyPhoneNumberPhoneNumbersChanged: (list?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     resendVerificationForPhone: (phoneNumber: string) => void
-    resetState: 'default'
+    resetState: () => void
     setNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
@@ -204,7 +204,7 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setNumbers: phoneNumbers => {
       set(s => {
         s.phones = phoneNumbers?.reduce<Map<string, PhoneRow>>((map, row) => {

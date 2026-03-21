@@ -95,7 +95,7 @@ const initialStore: Store = {
   wotAuthorError: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     defer: {
       onTracker2GetDetails?: (username: string) => T.Tracker.Details | undefined

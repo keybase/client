@@ -10,12 +10,12 @@ const initialStore: Store = {
   counts: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     updated: (key: string) => void
     // used by remotes to update themselves
     replace: (m: Map<string, number>) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -26,7 +26,7 @@ export const useAvatarState = Z.createZustand<State>(set => {
         s.counts = m
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     updated: key => {
       set(s => {
         s.counts.set(key, (s.counts.get(key) ?? 0) + 1)

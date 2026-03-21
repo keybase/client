@@ -23,12 +23,12 @@ type Bootstrap = {
   username: string
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     // ONLY used by remote windows
     replaceUsername: (u: string) => void
     setBootstrap: (b: Bootstrap) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -39,7 +39,7 @@ export const useCurrentUserState = Z.createZustand<State>('current-user', set =>
         s.username = u
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setBootstrap: b => {
       set(s => {
         const {deviceID, deviceName, uid, username} = b

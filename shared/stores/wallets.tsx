@@ -22,11 +22,11 @@ const initialStore: Store = {
   accountMap: new Map(),
 }
 
-interface State extends Store {
+type State = Store & {
   dispatch: {
     load: () => void
     removeAccount: (accountID: string) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 export const useState = Z.createZustand<State>('wallets', (set, get) => {
@@ -68,7 +68,7 @@ export const useState = Z.createZustand<State>('wallets', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
   }
   return {
     ...initialStore,

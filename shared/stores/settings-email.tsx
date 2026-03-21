@@ -48,7 +48,7 @@ const initialStore: Store = {
   newEmail: '',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     addEmail: (email: string, searchable: boolean) => void
     editEmail: (p: {
@@ -62,7 +62,7 @@ export interface State extends Store {
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -186,7 +186,7 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         s.error = ''
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
   }
   return {
     ...initialStore,

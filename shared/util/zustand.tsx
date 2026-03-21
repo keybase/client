@@ -13,9 +13,11 @@ type HasReset = {
   dispatch: {
     defer?: Record<string, unknown>
     resetDeleteMe?: boolean
-    resetState: 'default' | (() => void)
+    resetState: (isDebug?: boolean) => void
   }
 }
+
+export const defaultReset = () => {}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
@@ -46,26 +48,37 @@ export const createZustand = <T extends HasReset>(
 
   const dispatches = Object.keys(initialState.dispatch)
   const unsafeISD = (initialState as {dispatch: {[key: string]: unknown}}).dispatch
+  const hasDefaultReset = initialState.dispatch.resetState === defaultReset
   for (const d of dispatches) {
     const orig = unsafeISD[d]
-    if (typeof orig === 'function') {
+    if (typeof orig === 'function' && orig !== defaultReset) {
       unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
       Object.assign(unsafeISD[d] as object, orig)
     }
   }
-
-  const reset = initialState.dispatch.resetState
-  let resetFunc: () => void
-  if (reset === 'default') {
+  let resetFunc: (isDebug?: boolean) => void
+  if (hasDefaultReset) {
     resetFunc = () => {
       const currentDefer = store.getState().dispatch.defer
+      const hasInitialDefer = Object.hasOwn(initialDispatch, 'defer')
+      const nextDispatch =
+        hasInitialDefer || currentDefer !== undefined
+          ? {...initialDispatch, defer: currentDefer}
+          : initialDispatch
       // eslint-disable-next-line
-      store.setState({...initialState, dispatch: {...initialState.dispatch, defer: currentDefer}} as any, true)
+      store.setState({...initialState, dispatch: nextDispatch} as any, true)
     }
+    unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
+    const reset = initialState.dispatch.resetState
+    if (typeof reset !== 'function') {
+      throw new Error('createZustand requires dispatch.resetState or Z.defaultReset')
+    }
     resetFunc = reset
   }
+
+  const initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {
     resettersAndDelete.push(resetFunc)
@@ -90,7 +103,7 @@ export const resetAllStores = (isDebug?: boolean) => {
   resettersAndDelete.length = 0
 }
 
-export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
+export type ImmerStateCreator<T extends HasReset> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {

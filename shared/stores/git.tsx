@@ -69,14 +69,14 @@ const initialStore: Store = {
   isNew: new Set(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void
     load: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     setBadges: (set: Set<string>) => void
-    resetState: 'default'
+    resetState: () => void
     createPersonalRepo: (name: string) => void
     createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
     deletePersonalRepo: (repoName: string) => void
@@ -175,7 +175,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setBadges: b => {
       set(s => {
         s.isNew = b

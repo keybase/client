@@ -24,12 +24,12 @@ const initialStore: Store = {
   featuredBotsPage: -1,
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    resetState: 'default'
+    resetState: () => void
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
     setLoadedAllBots: (loaded: boolean) => void
@@ -83,7 +83,7 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
         default:
       }
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     searchFeaturedAndUsers: query => {
       const f = async () => {
         let botRes: T.RPCGen.SearchRes | undefined

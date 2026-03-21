@@ -15,13 +15,13 @@ const initialStore: Store = {
   phase: 'dead',
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -65,7 +65,7 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
         s.devices = T.castDraft(devices)
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     toPaperKeyInput: () => {
       set(s => {
         s.phase = 'paperKeyInput'

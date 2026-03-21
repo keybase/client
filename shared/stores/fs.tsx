@@ -344,7 +344,7 @@ const initialStore: Store = {
   },
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void

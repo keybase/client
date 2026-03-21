@@ -23,7 +23,7 @@ export type State = Store & {
     requestPermissions: () => void
     setPushToken: (token: string) => void
     showPermissionsPrompt: (p: {show?: boolean; persistSkip?: boolean; justSignedUp?: boolean}) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 

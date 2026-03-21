@@ -51,9 +51,9 @@ const initialStore: Store = {
   groups: new Map(),
 }
 
-export interface State extends Store {
+export type State = Store & {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     toggle: (group: string, name?: string) => void
     refresh: () => void
   }
@@ -168,7 +168,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
       }
       ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     toggle: (group, name) => {
       const {groups} = get()
       if (!groups.get('email')) {
