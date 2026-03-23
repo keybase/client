@@ -575,7 +575,7 @@ function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
     : ''
   const actionNames = Object.keys(actions).sort()
   const actionSpec = actionNames
-    .map(name => `  "${name}": ${printPayload(actions[name])},`)
+    .map(name => `  '${name}': ${printPayload(actions[name])},`)
     .join('\n')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
