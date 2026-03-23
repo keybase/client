@@ -12,7 +12,7 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {createComponentForStaticNavigation} from '@react-navigation/core'
@@ -40,7 +40,7 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-const Tab = createBottomTabNavigator()
+const Tab = createNativeBottomTabNavigator()
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
@@ -136,7 +136,7 @@ function AppTabs() {
   const navBadges = useNotifState(s => s.navBadges)
   const hasPermissions = usePushState(s => s.hasPermissions)
   return (
-    <Tab.Navigator backBehavior="none" implementation="native">
+    <Tab.Navigator backBehavior="none">
       {tabs.map(tab => (
         <Tab.Screen
           key={tab}
