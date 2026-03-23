@@ -110,18 +110,19 @@ const getBadgeNumber = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, h
 }
 
 const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
+  const isIOS = Platform.OS === 'ios'
   return {
     headerShown: false,
     tabBarActiveIndicatorEnabled: false,
-    tabBarActiveTintColor: Kb.Styles.globalColors.white,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+    ...(isIOS ? {tabBarBlurEffect: Common.tabBarBlurEffect} : {tabBarActiveTintColor: Kb.Styles.globalColors.white}),
     tabBarControllerMode: C.isTablet ? 'auto' : undefined,
     tabBarIcon: getNativeTabIcon(routeName),
-    tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
+    ...(isIOS ? {} : {tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter}),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarLabelVisibilityMode: C.isTablet ? 'labeled' : 'selected',
-    tabBarStyle: Common.tabBarStyle,
+    ...(isIOS ? {} : {tabBarStyle: Common.tabBarStyle}),
     title: tabToLabel.get(routeName) ?? routeName,
   }
 }
