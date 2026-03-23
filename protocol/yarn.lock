@@ -39,11 +39,6 @@ avdl2json@2.2.5, avdl2json@^2.2.5:
     jison "^0.4.17"
     minimist "^1.2.0"
 
-camelcase@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-9.0.0.tgz#451bbe18e34a2d2646bd62340c9278edd36db381"
-  integrity sha512-TO9xmyXTZ9HUHI8M1OnvExxYB0eYVS/1e5s7IDMTAoIcwUd+aNcFODs6Xk83mobk0velyHFQgA1yIrvYc6wclw==
-
 cjson@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/cjson/-/cjson-0.3.0.tgz#e6439b90703d312ff6e2224097bea92ce3d02a14"
@@ -65,11 +60,6 @@ colors@^1.1.2:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.3.2.tgz#2df8ff573dfbf255af562f8ce7181d6b971a359b"
   integrity sha512-rhP0JSBGYvpcNQj4s5AdShMeE5ahMop96cTeDl/v9qQQm2fYClE2QXZRi8wLzc+GmXSxdIqqbOIAhyObEXDbfQ==
-
-colors@~0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/colors/-/colors-0.6.2.tgz#2423fe6678ac0c5dae8852e5d0e5be08c997abcc"
-  integrity sha1-JCP+ZnisDF2uiFLl0OW+CMmXq8w=
 
 deep-equal@>=0.2.1:
   version "1.0.1"
@@ -107,49 +97,12 @@ esutils@~1.0.0:
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-1.0.0.tgz#8151d358e20c8acc7fb745e7472c0025fe496570"
   integrity sha1-gVHTWOIMisx/t0XnRywAJf5JZXA=
 
-iced-coffee-script@108.0.14:
-  version "108.0.14"
-  resolved "https://registry.yarnpkg.com/iced-coffee-script/-/iced-coffee-script-108.0.14.tgz#9ca5b258decf4a5eafb16f5663ff7683227c4f1a"
-  integrity sha512-e0CNmz51UGWRa2glPnUMnJM7oKQE81cxeC0WAgCjJDRImv3FDHldZr/Ngkbrgdbf1drGGzYWp+PWeJwXIfHwDw==
-  dependencies:
-    iced-runtime ">=0.0.1"
-    uglify-js "^3.5.9"
-
-iced-error@0.0.13:
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/iced-error/-/iced-error-0.0.13.tgz#a4a8a4f1461a59c7a2a380b4f745ffd80718f08b"
-  integrity sha512-yEEaG8QfyyRL0SsbNNDw3rVgTyqwHFMCuV6jDvD43f/2shmdaFXkqvFLGhDlsYNSolzYHwVLM/CrXt9GygYopA==
-
 iced-error@0.0.9:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/iced-error/-/iced-error-0.0.9.tgz#c7c3057614c0a187d96b3d18c6d520e6b872ed37"
   integrity sha1-x8MFdhTAoYfZaz0YxtUg5rhy7Tc=
 
-iced-error@^0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/iced-error/-/iced-error-0.0.10.tgz#f82e4368f79f4afdf3ed20375acc28a8702809e8"
-  integrity sha1-+C5DaPefSv3z7SA3WswoqHAoCeg=
-
-iced-lock@^1.0.2:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/iced-lock/-/iced-lock-1.1.0.tgz#6116ef1cab3acd6e6b10893bb27ba622fd3fde72"
-  integrity sha1-YRbvHKs6zW5rEIk7snumIv0/3nI=
-  dependencies:
-    iced-runtime "^1.0.0"
-
-iced-logger@0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/iced-logger/-/iced-logger-0.0.6.tgz#3f38081e4df4742aab09b86bb0adf8ea6c12de82"
-  integrity sha1-PzgIHk30dCqrCbhrsK346mwS3oI=
-  dependencies:
-    colors "~0.6.2"
-
-iced-runtime@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/iced-runtime/-/iced-runtime-1.0.4.tgz#e9de26dfe98cd8621201f7f3dfb9f7f09c550990"
-  integrity sha512-rgiJXNF6ZgF2Clh/TKUlBDW3q51YPDJUXmxGQXx1b8tbZpVpTn+1RX9q1sjNkujXIIaVxZByQzPHHORg7KV51g==
-
-iced-runtime@>=0.0.1, "iced-runtime@>=0.0.1 <2.0.0-0", iced-runtime@^1.0.0, iced-runtime@^1.0.3:
+iced-runtime@>=0.0.1, iced-runtime@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/iced-runtime/-/iced-runtime-1.0.3.tgz#2d4f4fb999ab7aa5430b193c77a7fce4118319ce"
   integrity sha1-LU9PuZmreqVDCxk8d6f85BGDGc4=
@@ -163,15 +116,6 @@ iced-test@0.0.22:
     deep-equal ">=0.2.1"
     iced-runtime ">=0.0.1"
     minimist ">=0.0.8"
-
-iced-utils@0.1.27:
-  version "0.1.27"
-  resolved "https://registry.yarnpkg.com/iced-utils/-/iced-utils-0.1.27.tgz#dcd4da765dbe93f2af12576d0c2dac9a6b35a172"
-  integrity sha512-Yi17vdjWBXfdqYEA08mCVy1AcLCkj7UsUg3/wCJUMeE5/ZWilc2vhM7nlFpRXpa9LYgbPbg8fNAnP5V8L+TZdw==
-  dependencies:
-    iced-error "^0.0.10"
-    iced-lock "^1.0.2"
-    iced-runtime ">=0.0.1 <2.0.0-0"
 
 jison-lex@0.3.x:
   version "0.3.4"
@@ -231,22 +175,12 @@ nomnom@1.5.2, "nomnom@>= 1.5.x":
     colors "0.5.x"
     underscore "1.1.x"
 
-prettier@3.8.1:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.8.1.tgz#edf48977cf991558f4fcbd8a3ba6015ba2a3a173"
-  integrity sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==
-
 source-map@~0.1.33:
   version "0.1.43"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.1.43.tgz#c24bc146ca517c1471f5dacbe2571b2b7f9e3346"
   integrity sha1-wkvBRspRfBRx9drL4lcbK3+eM0Y=
   dependencies:
     amdefine ">=0.0.4"
-
-uglify-js@^3.5.9:
-  version "3.15.4"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.15.4.tgz#fa95c257e88f85614915b906204b9623d4fa340d"
-  integrity sha512-vMOPGDuvXecPs34V74qDKk4iJ/SN4vL3Ow/23ixafENYvtrNvtbcgUeugTcUGRGsOF/5fU8/NYSL5Hyb3l1OJA==
 
 underscore@1.1.x:
   version "1.1.7"
