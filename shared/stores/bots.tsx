@@ -71,7 +71,7 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
     },
     onEngineIncomingImpl: (action: EngineGen.Actions) => {
       switch (action.type) {
-        case 'keybase1NotifyFeaturedBotsFeaturedBotsUpdate':
+        case 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate':
           {
             const {bots, limit, offset} = action.payload.params
             const loadedAllBots = !bots || bots.length < pageSize

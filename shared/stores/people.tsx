@@ -448,10 +448,10 @@ export const usePeopleState = Z.createZustand<State>('people', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1HomeUIHomeUIRefresh':
+        case 'keybase.1.homeUI.homeUIRefresh':
           get().dispatch.loadPeople(false)
           break
-        case 'keybase1NotifyEmailAddressEmailAddressVerified':
+        case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
           get().dispatch.setResentEmail(action.payload.params.emailAddress)
           break
         default:

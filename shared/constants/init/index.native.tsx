@@ -167,7 +167,7 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.Conversation
 }
 
 const onChatWatchPosition = async (
-  action: EngineGen.EngineAction<'chat1ChatUiChatWatchPosition'>
+  action: EngineGen.EngineAction<'chat.1.chatUi.chatWatchPosition'>
 ) => {
   const response = action.payload.response
   response.result(0)
@@ -221,10 +221,10 @@ const onChatClearWatch = async () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   _onEngineIncoming(action)
   switch (action.type) {
-    case 'chat1ChatUiTriggerContactSync':
+    case 'chat.1.chatUi.triggerContactSync':
       useSettingsContactsState.getState().dispatch.manageContactsCache()
       break
-    case 'keybase1LogUiLog': {
+    case 'keybase.1.logUi.log': {
       const {params} = action.payload
       const {level, text} = params
       logger.info('keybase.1.logUi.log:', params.text.data)
@@ -233,10 +233,10 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     }
-    case 'chat1ChatUiChatWatchPosition':
+    case 'chat.1.chatUi.chatWatchPosition':
       ignorePromise(onChatWatchPosition(action))
       break
-    case 'chat1ChatUiChatClearWatch':
+    case 'chat.1.chatUi.chatClearWatch':
       ignorePromise(onChatClearWatch())
       break
     default:

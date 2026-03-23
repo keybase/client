@@ -80,7 +80,7 @@ test('engine archive status updates KBFS jobs and freshness entries', () => {
         },
       },
     },
-    type: 'keybase1NotifySimpleFSSimpleFSArchiveStatusChanged',
+    type: 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged',
   } as any)
 
   expect(store.getState().kbfsJobs.get('job-1')?.phase).toBe('Done')

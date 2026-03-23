@@ -48,7 +48,7 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
     ),
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1NotifyBadgesBadgeState': {
+        case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           const {newDevices, revokedDevices} = badgeState
           get().dispatch.setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))

@@ -25,7 +25,7 @@ test('updateARState and badge updates keep the reset state in sync', () => {
         },
       },
     },
-    type: 'keybase1NotifyBadgesBadgeState',
+    type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
   expect(store.getState().active).toBe(false)

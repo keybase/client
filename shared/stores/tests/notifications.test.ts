@@ -71,7 +71,7 @@ test('badge engine updates fan out into config and badge counts', () => {
 
   store.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {badgeState}},
-    type: 'keybase1NotifyBadgesBadgeState',
+    type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
   expect(useConfigState.getState().badgeState).toEqual(badgeState)

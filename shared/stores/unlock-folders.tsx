@@ -35,13 +35,13 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1RekeyUIRefresh': {
+        case 'keybase.1.rekeyUI.refresh': {
           const {problemSetDevices} = action.payload.params
           logger.info('Asked for rekey')
           useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
           break
         }
-        case 'keybase1RekeyUIDelegateRekeyUI': {
+        case 'keybase.1.rekeyUI.delegateRekeyUI': {
           // we get this with sessionID == 0 if we call openDialog
           // Dangling, never gets closed
           const session = getEngine().createSession({

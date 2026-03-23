@@ -55,7 +55,7 @@ test('email verification notifications clear the staged signup email', () => {
 
   useSignupState
     .getState()
-    .dispatch.onEngineIncomingImpl({type: 'keybase1NotifyEmailAddressEmailAddressVerified'} as any)
+    .dispatch.onEngineIncomingImpl({type: 'keybase.1.NotifyEmailAddress.emailAddressVerified'} as any)
 
   expect(useSignupState.getState().justSignedUpEmail).toBe('')
 })

@@ -527,19 +527,13 @@ async function writeActions(): Promise<void> {
       const callMap = projects[projectKey].incomingMaps
       callMap &&
         Object.keys(callMap).reduce((m, method) => {
-          const name = method
-            .replace(/'/g, '')
-            .split('.')
-            .map((p, idx) => (idx ? capitalize(p) : p))
-            .join('')
-
           seenProjects[projectKey] = true
           let response = ''
           if (projects[projectKey].customResponseIncomingMaps[method]) {
             response = `, response: ${projectKey}Types.RpcResponse<${method}>`
           }
 
-          m[name] = {
+          m[method] = {
             params: `${projectKey}Types.RpcIn<${method}> ${response}`,
           }
           return m
@@ -581,7 +575,7 @@ function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
     : ''
   const actionNames = Object.keys(actions).sort()
   const actionSpec = actionNames
-    .map(name => `  ${name}: ${printPayload(actions[name])},`)
+    .map(name => `  '${name}': ${printPayload(actions[name])},`)
     .join('\n')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate

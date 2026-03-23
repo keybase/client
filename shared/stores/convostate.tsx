@@ -915,7 +915,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 
   const onChatPaymentInfo = (
-    action: EngineGen.EngineAction<'chat1NotifyChatChatPaymentInfo'>
+    action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatPaymentInfo'>
   ) => {
     const {convID, info, msgID} = action.payload.params
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
@@ -931,7 +931,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   }
 
   const onGiphyToggleWindow = (
-    action: EngineGen.EngineAction<'chat1ChatUiChatGiphyToggleResultWindow'>
+    action: EngineGen.EngineAction<'chat.1.chatUi.chatGiphyToggleResultWindow'>
   ) => {
     const {show, clearInput} = action.payload.params
     if (clearInput) {
@@ -2437,17 +2437,17 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
-        case 'chat1NotifyChatChatAttachmentDownloadComplete': {
+        case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
           const {msgID} = action.payload.params
           onDownloadComplete(msgID)
           break
         }
-        case 'chat1NotifyChatChatAttachmentDownloadProgress': {
+        case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress': {
           const {msgID, bytesComplete, bytesTotal} = action.payload.params
           onDownloadProgress(msgID, bytesComplete, bytesTotal)
           break
         }
-        case 'chat1ChatUiChatCommandStatus': {
+        case 'chat.1.chatUi.chatCommandStatus': {
           const {displayText, typ, actions} = action.payload.params
           get().dispatch.setCommandStatusInfo({
             actions: T.castDraft(actions) || [],
@@ -2456,49 +2456,49 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           })
           break
         }
-        case 'chat1ChatUiChatBotCommandsUpdateStatus':
+        case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
           get().dispatch.botCommandsUpdateStatus(action.payload.params.status)
           break
-        case 'chat1ChatUiChatCommandMarkdown':
+        case 'chat.1.chatUi.chatCommandMarkdown':
           set(s => {
             s.commandMarkdown = action.payload.params.md || undefined
           })
           break
-        case 'chat1ChatUiChatGiphyToggleResultWindow': {
+        case 'chat.1.chatUi.chatGiphyToggleResultWindow': {
           onGiphyToggleWindow(action)
           break
         }
-        case 'chat1ChatUiChatGiphySearchResults':
+        case 'chat.1.chatUi.chatGiphySearchResults':
           set(s => {
             s.giphyResult = T.castDraft(action.payload.params.results)
           })
           break
-        case 'chat1NotifyChatChatRequestInfo':
+        case 'chat.1.NotifyChat.ChatRequestInfo':
           {
             const {info, msgID} = action.payload.params
             onChatRequestInfo(info, msgID)
           }
           break
-        case 'chat1NotifyChatChatPaymentInfo':
+        case 'chat.1.NotifyChat.ChatPaymentInfo':
           onChatPaymentInfo(action)
           break
-        case 'chat1NotifyChatChatPromptUnfurl': {
+        case 'chat.1.NotifyChat.ChatPromptUnfurl': {
           const {domain, msgID} = action.payload.params
           unfurlTogglePrompt(T.Chat.numberToMessageID(msgID), domain, true)
           break
         }
-        case 'chat1ChatUiChatInboxFailed': {
+        case 'chat.1.chatUi.chatInboxFailed': {
           const {convID, error} = action.payload.params
           onInboxFailed(convID, error)
           break
         }
-        case 'chat1NotifyChatChatSetConvSettings': {
+        case 'chat.1.NotifyChat.ChatSetConvSettings': {
           const {conv} = action.payload.params
           onSetConvSettings(conv)
           break
         }
-        case 'chat1NotifyChatChatAttachmentUploadStart': // fallthrough
-        case 'chat1NotifyChatChatAttachmentUploadProgress': {
+        case 'chat.1.NotifyChat.ChatAttachmentUploadStart': // fallthrough
+        case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
           const {params} = action.payload
           onAttachmentUpload(params)
           break

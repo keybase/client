@@ -167,7 +167,7 @@ export const useGitState = Z.createZustand<State>('git', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1NotifyBadgesBadgeState': {
+        case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           get().dispatch.setBadges(new Set(badgeState.newGitRepoGlobalUniqueIDs))
           break

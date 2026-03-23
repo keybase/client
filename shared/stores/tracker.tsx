@@ -495,7 +495,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1NotifyTrackingTrackingChanged': {
+        case 'keybase.1.NotifyTracking.trackingChanged': {
           // only refresh if we have tracked them before
           const {username} = action.payload.params
           if (get().usernameToDetails.get(username)) {
@@ -510,12 +510,12 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
           }
           break
         }
-        case 'keybase1Identify3UiIdentify3Result': {
+        case 'keybase.1.identify3Ui.identify3Result': {
           const {guiID, result} = action.payload.params
           get().dispatch.updateResult(guiID, rpcResultToStatus(result))
           break
         }
-        case 'keybase1Identify3UiIdentify3ShowTracker': {
+        case 'keybase.1.identify3Ui.identify3ShowTracker': {
           const {assertion, forceDisplay = false, guiID, reason} = action.payload.params
           get().dispatch.load({
             assertion,
@@ -529,7 +529,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
           break
         }
         // if we mutated somehow reload ourselves and reget the suggestions
-        case 'keybase1NotifyUsersUserChanged': {
+        case 'keybase.1.NotifyUsers.userChanged': {
           const cu = useCurrentUserState.getState()
           if (cu.uid !== action.payload.params.uid) {
             return
@@ -549,26 +549,26 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         // This allows the server to send us a notification to *remove* (not add)
         // arbitrary followers from arbitrary tracker results, so we can hide
         // blocked users from follower lists.
-        case 'keybase1NotifyTrackingNotifyUserBlocked': {
+        case 'keybase.1.NotifyTracking.notifyUserBlocked': {
           get().dispatch.notifyUserBlocked(action.payload.params.b)
           break
         }
-        case 'keybase1Identify3UiIdentify3UpdateRow': {
+        case 'keybase.1.identify3Ui.identify3UpdateRow': {
           const {row} = action.payload.params
           get().dispatch.notifyRow(row)
           break
         }
-        case 'keybase1Identify3UiIdentify3UserReset': {
+        case 'keybase.1.identify3Ui.identify3UserReset': {
           const {guiID} = action.payload.params
           get().dispatch.notifyReset(guiID)
           break
         }
-        case 'keybase1Identify3UiIdentify3UpdateUserCard': {
+        case 'keybase.1.identify3Ui.identify3UpdateUserCard': {
           const {guiID, card} = action.payload.params
           get().dispatch.notifyCard(guiID, card)
           break
         }
-        case 'keybase1Identify3UiIdentify3Summary': {
+        case 'keybase.1.identify3Ui.identify3Summary': {
           const {summary} = action.payload.params
           get().dispatch.notifySummary(summary)
           break

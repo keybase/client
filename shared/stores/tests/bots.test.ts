@@ -41,7 +41,7 @@ test('featured bot engine updates merge bots and derive the current page', () =>
         offset: 20,
       },
     },
-    type: 'keybase1NotifyFeaturedBotsFeaturedBotsUpdate',
+    type: 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate',
   } as any)
 
   expect(store.getState().featuredBotsPage).toBe(2)

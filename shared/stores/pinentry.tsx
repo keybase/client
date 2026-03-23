@@ -51,7 +51,7 @@ export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) =>
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase1SecretUiGetPassphrase': {
+        case 'keybase.1.secretUi.getPassphrase': {
           const {response, params} = action.payload
           const {pinentry} = params
           get().dispatch.secretUIWantsPassphrase(pinentry, response)
