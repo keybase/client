@@ -2,12 +2,9 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import camelcase from 'camelcase'
 import colors from 'colors'
 import json5 from 'json5'
-import prettier from 'prettier'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
@@ -138,13 +135,6 @@ type CompileActionsArgs = {
   actions: ActionMap
   prelude: Array<string>
 }
-
-type PrettierModule = {
-  format: (source: string, options: Record<string, unknown>) => string | Promise<string>
-  resolveConfig?: (filePath: string) => Promise<Record<string, unknown> | null>
-}
-
-const require = createRequire(import.meta.url)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8'))
@@ -695,33 +685,10 @@ function compileStateTypeConstant(ns: string, actionName: string): string {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-function loadSharedPrettier(): PrettierModule {
-  const sharedPrettierPath = path.join(__dirname, '../../shared/node_modules/prettier')
-  try {
-    return require(sharedPrettierPath)
-  } catch (_) {
-    return prettier
-  }
-}
-
-async function formatGeneratedTypeScript(
-  prettierModule: PrettierModule,
-  outPath: string,
-  source: string
-): Promise<string> {
-  const config = prettierModule.resolveConfig ? await prettierModule.resolveConfig(outPath) : null
-  return await prettierModule.format(source, {
-    ...config,
-    filepath: outPath,
-    parser: 'typescript',
-  })
-}
-
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {
   const ns = 'engine-gen'
   const outPath = path.join(__dirname, '../../shared/actions', `${ns}-gen.tsx`)
-  const generated = await formatGeneratedTypeScript(loadSharedPrettier(), outPath, compileActionsFile(ns, desc))
-  fs.writeFileSync(outPath, generated)
+  fs.writeFileSync(outPath, compileActionsFile(ns, desc))
 }
 
 async function writeAll(): Promise<void> {
@@ -744,9 +711,7 @@ async function writeAll(): Promise<void> {
     .join(' & ')}
   `
   const toWrite = [imports, exports].join('\n')
-  const outPath = path.join(__dirname, '../js/rpc-all-gen.tsx')
-  const formatted = await formatGeneratedTypeScript(prettier, outPath, toWrite)
-  fs.writeFileSync(`js/rpc-all-gen.tsx`, formatted as string)
+  fs.writeFileSync(`js/rpc-all-gen.tsx`, toWrite)
 }
 
 async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promise<void> {
@@ -832,13 +797,28 @@ ${messageTypesData}
   )}`
 
   const toWrite = [typePrelude, data, notEnabled].join('\n')
-  const outPath = path.join(__dirname, '../js', `${project.out}.tsx`)
-  const formatted = await formatGeneratedTypeScript(prettier, outPath, toWrite)
-  fs.writeFileSync(`js/${project.out}.tsx`, formatted as string)
+  fs.writeFileSync(`js/${project.out}.tsx`, toWrite)
 }
 
 function decapitalize(s: string): string {
   return s.charAt(0).toLowerCase() + s.slice(1)
+}
+
+function localCamelcase(s: string): string {
+  if (!/[^A-Za-z0-9]/.test(s)) {
+    return s
+  }
+
+  const parts = s.split(/[^A-Za-z0-9]+/).filter(Boolean)
+  if (!parts.length) {
+    return s
+  }
+
+  const [first, ...rest] = parts
+  return (
+    first.toLowerCase() +
+    rest.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join('')
+  )
 }
 
 const shorthands: ReadonlyArray<{
@@ -873,7 +853,7 @@ const shorthands: ReadonlyArray<{
 ]
 
 function camelcaseWithSpecialHandlings(s: string, shouldCapitalize: boolean): string {
-  const capitalized = capitalize(camelcase(s))
+  const capitalized = capitalize(localCamelcase(s))
   let specialized = capitalized
   for (const shorthand of shorthands) {
     specialized = specialized.replace(shorthand.re, shorthand.into)
