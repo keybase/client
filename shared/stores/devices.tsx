@@ -2,7 +2,7 @@ import * as Z from '@/util/zustand'
 import * as S from '@/constants/strings'
 import {ignorePromise, updateImmerMap} from '@/constants/utils'
 import * as T from '@/constants/types'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import debounce from 'lodash/debounce'
 
 const initialStore: T.Devices.State = {

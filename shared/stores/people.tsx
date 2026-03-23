@@ -1,4 +1,4 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'

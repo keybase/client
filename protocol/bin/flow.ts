@@ -553,7 +553,7 @@ async function writeActions(): Promise<void> {
 
   return writeEngineActions({
     prelude: Object.keys(seenProjects).map(
-      p => `import type * as ${p}Types from '@/constants/types/${projects[p as ProjectKey].out}'`
+      p => `import type * as ${p}Types from '@/constants/rpc/${projects[p as ProjectKey].out}'`
     ),
     ...data,
   })
@@ -580,7 +580,7 @@ function actionHasType(actions: ActionMap, toFind: RegExp): boolean {
 
 function compileActionsFile(ns: string, {prelude, actions}: CompileActionsArgs): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import type * as RPCTypes from '@/constants/types/rpc-gen'"
+    ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'"
     : ''
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -687,7 +687,7 @@ function compileStateTypeConstant(ns: string, actionName: string): string {
 
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {
   const ns = 'engine-gen'
-  const outPath = path.join(__dirname, '../../shared/actions', `${ns}-gen.tsx`)
+  const outPath = path.join(__dirname, '../../shared/constants/rpc', 'index.tsx')
   fs.writeFileSync(outPath, compileActionsFile(ns, desc))
 }
 

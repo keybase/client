@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'

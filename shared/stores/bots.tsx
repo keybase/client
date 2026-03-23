@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 import {ignorePromise, RPCError, isNetworkErr} from '@/constants/utils'
 import * as S from '@/constants/strings'

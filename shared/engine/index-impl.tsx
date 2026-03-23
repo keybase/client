@@ -10,7 +10,7 @@ import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
-import type * as EngineGen from '../actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 
 type WaitingKey = string | ReadonlyArray<string>
 

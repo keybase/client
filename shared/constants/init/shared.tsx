@@ -1,4 +1,4 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'

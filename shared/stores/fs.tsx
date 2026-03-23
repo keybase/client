@@ -1,4 +1,4 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
 import {requestPermissionsToWrite} from '@/util/platform-specific'

@@ -1,4 +1,4 @@
-import type * as StellarRPCTypes from './rpc-stellar-gen'
+import type * as StellarRPCTypes from '@/constants/rpc/rpc-stellar-gen'
 
 export type AccountID = string
 export const noAccountID = 'NOACCOUNTID'

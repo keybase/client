@@ -1,5 +1,5 @@
 import * as S from '@/constants/strings'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'

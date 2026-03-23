@@ -13,7 +13,7 @@ import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windows
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import * as RPCTypes from '@/constants/types/rpc-gen'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import type {Engine} from '@/engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'

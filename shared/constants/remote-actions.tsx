@@ -1,4 +1,4 @@
-import type * as RPCTypes from '@/constants/types/rpc-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type * as Tabs from '@/constants/tabs'
 import type HiddenString from '@/util/hidden-string'
 

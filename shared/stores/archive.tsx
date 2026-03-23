@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import * as EngineGen from '@/constants/rpc'
 import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {makeUUID} from '@/util/uuid'
