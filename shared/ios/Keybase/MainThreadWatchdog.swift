@@ -20,6 +20,7 @@ class MainThreadWatchdog {
   private let lock = NSLock()
   private var lastPong: CFAbsoluteTime = 0
   private var bgEnterTime: CFAbsoluteTime = 0
+  private var isBackgroundContext = false
 
   private var mainThreadPthread: pthread_t?
   private let appStartTime: CFAbsoluteTime
@@ -50,6 +51,7 @@ class MainThreadWatchdog {
     let now = CFAbsoluteTimeGetCurrent()
     lastPong = now
     bgEnterTime = now
+    isBackgroundContext = (context == "background entered")
     lock.unlock()
 
     writeLog("Watchdog: started (\(context))")
@@ -81,16 +83,20 @@ class MainThreadWatchdog {
       let isActive = active
       let lastPong = self.lastPong
       let bgEnterTime = self.bgEnterTime
+      let isBackgroundContext = self.isBackgroundContext
       lock.unlock()
       guard isActive else { break }
 
       let now = CFAbsoluteTimeGetCurrent()
       let blockDuration = now - lastPong
 
-      // If blockDuration is very large, the process was suspended by iOS (not a main thread hang).
-      // Reset the pong baseline and send one ping — the main thread should respond within a
-      // few seconds once unfrozen. If it doesn't, we'll start reporting a hang next iteration.
-      if blockDuration > 30.0 {
+      // If the process was suspended by iOS, blockDuration reflects the suspension gap rather
+      // than a real main-thread hang. Two cases:
+      //   1. Background-entered watchdog: ANY gap >= 3s is a suspension — iOS suspends apps
+      //      aggressively even after a few seconds in the background, so the 30s threshold
+      //      below is too coarse and produces false positives for 5–29s suspensions.
+      //   2. Cold-start or foreground watchdog: use the 30s threshold as before.
+      if blockDuration > 30.0 || (isBackgroundContext && blockDuration >= 3.0) {
         let bgElapsedSec = now - bgEnterTime
         let msg = String(format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)", blockDuration, bgElapsedSec)
         NSLog("[Startup] %@", msg)
@@ -110,8 +116,9 @@ class MainThreadWatchdog {
       let totalElapsedMs = (now - appStartTime) * 1000
 
       if blockDuration >= 3.0 {
-        // Log at first detection, then every 5s to avoid spam
-        if lastLogTime == 0 || (now - lastLogTime) >= 5.0 {
+        // Sample every 2s for the duration of the hang so we capture how the main thread
+        // evolves (e.g. keychain IPC → rendering → idle) rather than a single snapshot.
+        if lastLogTime == 0 || (now - lastLogTime) >= 2.0 {
           let bgElapsedSec = now - bgEnterTime
           let msg = String(format: "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
@@ -119,10 +126,8 @@ class MainThreadWatchdog {
           DispatchQueue.main.async { [weak self] in
             self?.writeLog(msg)
           }
-          // Capture main thread stack on first detection
-          if lastLogTime == 0 {
-            captureAndLogStackTrace()
-          }
+          // Capture a stack trace on every sample interval, not just the first.
+          captureAndLogStackTrace()
           lastLogTime = now
         }
       } else {
