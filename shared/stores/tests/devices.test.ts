@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
@@ -69,7 +68,7 @@ test('badge engine updates mark the affected devices as new', () => {
         },
       },
     },
-    type: EngineGen.keybase1NotifyBadgesBadgeState,
+    type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
   expect(store.getState().isNew).toEqual(new Set(['device-1', 'device-2']))

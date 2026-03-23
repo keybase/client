@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useAutoResetState} from '../autoreset'
 
@@ -26,7 +25,7 @@ test('updateARState and badge updates keep the reset state in sync', () => {
         },
       },
     },
-    type: EngineGen.keybase1NotifyBadgesBadgeState,
+    type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
   expect(store.getState().active).toBe(false)

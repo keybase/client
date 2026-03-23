@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import type * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
@@ -110,7 +110,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyAuditRootAuditError:
+        case 'keybase.1.NotifyAudit.rootAuditError':
           useConfigState
             .getState()
             .dispatch.setGlobalError(
@@ -118,7 +118,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
             )
 
           break
-        case EngineGen.keybase1NotifyAuditBoxAuditError:
+        case 'keybase.1.NotifyAudit.boxAuditError':
           useConfigState
             .getState()
             .dispatch.setGlobalError(
@@ -127,7 +127,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
               )
             )
           break
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
           useConfigState.getState().dispatch.setBadgeState(badgeState)
 

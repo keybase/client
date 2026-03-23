@@ -1,4 +1,4 @@
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
@@ -1460,15 +1460,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+        case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
           get().dispatch.syncStatusChanged(action.payload.params.status)
           break
-        case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
+        case 'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
           const {clientID, path, topics} = action.payload.params
           get().dispatch.onPathChange(clientID, path, topics ?? [])
           break
         }
-        case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
+        case 'keybase.1.NotifyFS.FSSubscriptionNotify': {
           const {clientID, topic} = action.payload.params
           get().dispatch.onSubscriptionNotify(clientID, topic)
           break

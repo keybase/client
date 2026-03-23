@@ -1,4 +1,4 @@
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
@@ -448,10 +448,10 @@ export const usePeopleState = Z.createZustand<State>('people', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1HomeUIHomeUIRefresh:
+        case 'keybase.1.homeUI.homeUIRefresh':
           get().dispatch.loadPeople(false)
           break
-        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+        case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
           get().dispatch.setResentEmail(action.payload.params.emailAddress)
           break
         default:

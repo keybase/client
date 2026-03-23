@@ -125,19 +125,32 @@ type ProjectState = {
   seenTypes: SeenTypes
 }
 
-type ActionValue = string | ReadonlyArray<string>
-type ActionDescription = {
-  _description?: string | ReadonlyArray<string>
-} & Record<string, ActionValue | undefined>
-type ActionMap = Record<string, ActionDescription>
+type GeneratedAction = {
+  hasResponse: boolean
+  method: string
+  projectKey: ProjectKey
+}
 
 type CompileActionsArgs = {
-  actions: ActionMap
+  actions: Array<GeneratedAction>
   prelude: Array<string>
 }
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8'))
+
+const primitiveTypeMap: Record<string, string> = {
+  bool: 'boolean',
+  boolean: 'boolean',
+  bytes: 'Uint8Array',
+  double: 'number',
+  int: 'number',
+  int64: 'number',
+  long: 'number',
+  string: 'string',
+  uint: 'number',
+  uint64: 'number',
+}
 
 // Sanity check this json file
 Object.keys(enabledCalls).forEach(rpc =>
@@ -288,18 +301,18 @@ function figureType(type: TypeRef | undefined, prefix = ''): string {
   if (Array.isArray(type)) {
     if (type.length === 2) {
       if (type[0] === null) {
-        return `${prefix}${capitalize(type[1])} | null`
+        return `${renderTypeName(type[1], prefix)} | null`
       }
       if (type[1] === null) {
-        return `${prefix}${capitalize(type[0])} | null`
+        return `${renderTypeName(type[0], prefix)} | null`
       }
     }
 
-    return `(${type.map(t => t || 'null').join(' | ')})`
+    return `(${type.map(t => (t === null ? 'null' : renderTypeName(t, prefix))).join(' | ')})`
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
-        return `ReadonlyArray<${prefix}${capitalize(type.items)}> | null`
+        return `ReadonlyArray<${renderTypeName(type.items, prefix)}> | null`
       case 'map':
         return `{[key: string]: ${figureType(type.values)}} | null`
       default:
@@ -308,21 +321,18 @@ function figureType(type: TypeRef | undefined, prefix = ''): string {
     }
   }
 
-  return prefix + capitalize(type)
+  return renderTypeName(type, prefix)
 }
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<string, MessageData> {
-  // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
-  // the core side doesn't have a consistent naming convention. (must be case insensitive to pass correctly)
-  const isUIProtocol =
-    ['notifyCtl'].indexOf(json.protocol) === -1 &&
-    !!json.protocol.match(/^(notify.*|.*ui|logsend)$/i) &&
-    !json.protocol.match(/NotifyFSRequest/)
+function renderTypeName(type: string, prefix = ''): string {
+  return primitiveTypeMap[type] ?? prefix + capitalize(type)
+}
 
+function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<string, MessageData> {
   return Object.keys(json.messages).reduce<Record<string, MessageData>>((map, m) => {
     const message = json.messages[m]
     lintMessage(m, message)
@@ -340,21 +350,28 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
-    const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
+    const hasIncoming = enabledCall(methodName, 'incoming')
+    const wantsCustom = enabledCall(methodName, 'custom')
+    if (wantsCustom && message.hasOwnProperty('notify')) {
+      console.log(colors.red('ERROR! Custom call cannot be a notify method:\n\n '), methodName)
+      process.exit(1)
+    }
+    const hasCustomResponse = wantsCustom && !message.hasOwnProperty('notify')
+    const isIncomingMethod = hasIncoming || hasCustomResponse
 
-    if (isUIMethod) {
-      project.incomingMaps[methodName] = `(params: MessageTypes[${methodName}]['inParam']) => void`
-      if (!message.hasOwnProperty('notify')) {
-        project.customResponseIncomingMaps[
-          methodName
-        ] = `(params: MessageTypes[${methodName}]['inParam'], response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => void`
-      }
+    if (isIncomingMethod) {
+      project.incomingMaps[methodName] = `(params: RpcIn<${methodName}>) => void`
+    }
+    if (hasCustomResponse) {
+      project.customResponseIncomingMaps[
+        methodName
+      ] = `(params: RpcIn<${methodName}>, response: RpcResponse<${methodName}>) => void`
     }
 
-    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false, json)
-    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true, json)
-    const engineListener = isUIMethod ? '' : engineListenerGen(methodName, name, false)
-    const engineListenerType = isUIMethod ? '' : engineListenerGen(methodName, name, true)
+    const rpcPromise = isIncomingMethod ? '' : rpcPromiseGen(methodName, name, false)
+    const rpcPromiseType = isIncomingMethod ? '' : rpcPromiseGen(methodName, name, true)
+    const engineListener = isIncomingMethod ? '' : engineListenerGen(methodName, name, false)
+    const engineListenerType = isIncomingMethod ? '' : engineListenerGen(methodName, name, true)
 
     if (rpcPromise.length) {
       project.hasEngine = true
@@ -369,7 +386,7 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     }
 
     // Must be an rpc we use
-    if (rpcPromiseType || engineListenerType || isUIMethod) {
+    if (rpcPromiseType || engineListenerType || isIncomingMethod) {
       map[methodName] = {
         inParam,
         outParam: outParam === 'null' ? 'void' : outParam,
@@ -383,9 +400,9 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
   }, {})
 }
 
-function enabledCall(methodName: string, type: EnabledCallType): boolean | undefined {
+function enabledCall(methodName: string, type: EnabledCallType): boolean {
   const cleanName = methodName.substring(1, methodName.length - 1)
-  return enabledCalls[cleanName] && enabledCalls[cleanName][type]
+  return Boolean(enabledCalls[cleanName]?.[type])
 }
 
 function engineListenerGen(methodName: string, name: string, justType: boolean): string {
@@ -393,36 +410,17 @@ function engineListenerGen(methodName: string, name: string, justType: boolean):
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcListener (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
-    : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}) => getEngineListener<typeof p, Promise<MessageTypes[${methodName}]['outParam']>>()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
+    ? `declare export const ${name}RpcListener: ListenerFn<${methodName}>`
+    : `export const ${name}RpcListener = createListener(${methodName})`
 }
 
-function rpcPromiseGen(
-  methodName: string,
-  name: string,
-  justType: boolean,
-  json: ProtocolJSON
-): string {
+function rpcPromiseGen(methodName: string, name: string, justType: boolean): string {
   if (!enabledCall(methodName, 'promise')) {
     return ''
   }
-
-  // if we have no params, make it optional
-  const lookupName = (methodName.split('.').at(-1) ?? '').replaceAll("'", '')
-  const r = json.messages[lookupName]?.request
-  const hasParams =
-    r !== null &&
-    (Array.isArray(r) &&
-      r.reduce((cnt, i) => {
-        if (i && i.name !== 'sessionID') {
-          cnt++
-        }
-        return cnt
-      }, 0)) > 0
-  const inParams = hasParams ? `params: MessageTypes[${methodName}]['inParam']` : 'params?: undefined'
   return justType
-    ? `declare export function ${name}RpcPromise (${inParams}, waitingKey?: WaitingKey): Promise<MessageTypes[${methodName}]['outParam']>`
-    : `export const ${name}RpcPromise = (${inParams}, waitingKey?: WaitingKey) => new Promise<MessageTypes[${methodName}]['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: SimpleError, result: MessageTypes[${methodName}]['outParam']) => error ? reject(error) : resolve(result), waitingKey}))`
+    ? `declare export const ${name}RpcPromise: RpcFn<${methodName}>`
+    : `export const ${name}RpcPromise = createRpc(${methodName})`
 }
 
 function maybeIfNot(s: string): string {
@@ -459,19 +457,18 @@ function parseUnion(unionTypes: ReadonlyArray<TypeRef | string>): string {
 function parseRecord(t: RecordDefinition): string {
   lintRecord(t)
   if (t.typedef) {
-    return capitalize(t.typedef)
+    return renderTypeName(t.typedef)
   }
 
   const fields = t.fields
     .map(f => {
       const innerType = parseInnerType(f.type)
       const innerOptional = innerType.endsWith('| null')
-      const capsInnerType = capitalize(innerType)
       const name = f.mpackkey || f.name
       const comment = f.mpackkey ? ` /* ${f.name} */ ` : ''
 
       // If we have a maybe type, let's also make the key optional
-      return `readonly ${name}${comment}${innerOptional ? '?' : ''}: ${capsInnerType},`
+      return `readonly ${name}${comment}${innerOptional ? '?' : ''}: ${innerType},`
     })
     .join('')
 
@@ -503,9 +500,9 @@ function parseVariant(t: VariantDefinition, project: ProjectState): string {
         if (c.body === null) {
           bodyType = 'null'
         } else if (typeof c.body === 'string') {
-          bodyType = capitalize(c.body)
+          bodyType = renderTypeName(c.body)
         } else if (c.body.type === 'array') {
-          bodyType = `ReadonlyArray<${capitalize(c.body.items)}>`
+          bodyType = `ReadonlyArray<${renderTypeName(c.body.items)}>`
         }
         const bodyStr = c.body ? `, ${label}: ${bodyType}` : ''
         return `{ ${t.switch.name}: ${type}.${label}${bodyStr} }`
@@ -520,35 +517,24 @@ function parseVariant(t: VariantDefinition, project: ProjectState): string {
 }
 
 async function writeActions(): Promise<void> {
-  const staticActions: ActionMap = {}
-
   const seenProjects: Partial<Record<ProjectKey, true>> = {}
 
   const data = {
-    actions: Object.keys(projects).reduce<ActionMap>((map, p) => {
+    actions: Object.keys(projects).reduce<Array<GeneratedAction>>((list, p) => {
       const projectKey = p as ProjectKey
       const callMap = projects[projectKey].incomingMaps
       callMap &&
-        Object.keys(callMap).reduce((m, method) => {
-          const name = method
-            .replace(/'/g, '')
-            .split('.')
-            .map((p, idx) => (idx ? capitalize(p) : p))
-            .join('')
-
+        Object.keys(callMap).reduce((actions, method) => {
           seenProjects[projectKey] = true
-          let response = ''
-          if (projects[projectKey].customResponseIncomingMaps[method]) {
-            response = `, response: {error: ${projectKey}Types.IncomingErrorCallback, result: (param: ${projectKey}Types.MessageTypes[${method}]['outParam']) => void}`
-          }
-
-          m[name] = {
-            params: `${projectKey}Types.MessageTypes[${method}]['inParam'] ${response}`,
-          }
-          return m
-        }, map)
-      return map
-    }, staticActions),
+          actions.push({
+            hasResponse: Boolean(projects[projectKey].customResponseIncomingMaps[method]),
+            method,
+            projectKey,
+          })
+          return actions
+        }, list)
+      return list
+    }, []),
   }
 
   return writeEngineActions({
@@ -559,136 +545,108 @@ async function writeActions(): Promise<void> {
   })
 }
 
-const reservedPayloadKeys = ['_description'] as const
+type GroupedActions = Partial<Record<ProjectKey, {incoming: Array<string>; response: Array<string>}>>
 
-function payloadHasType(payload: ActionDescription | undefined, toFind: RegExp): boolean {
-  return payload
-    ? Object.keys(payload).some(param => {
-        const ps = payload[param]
-        if (Array.isArray(ps)) {
-          return ps.some(p => toFind.test(p))
-        } else {
-          return toFind.test(ps || '')
-        }
-      })
-    : false
+function groupActions(actions: Array<GeneratedAction>): GroupedActions {
+  return actions.reduce<GroupedActions>((grouped, action) => {
+    const projectActions = grouped[action.projectKey] ?? {incoming: [], response: []}
+    const methods = action.hasResponse ? projectActions.response : projectActions.incoming
+    methods.push(action.method)
+    grouped[action.projectKey] = projectActions
+    return grouped
+  }, {})
 }
 
-function actionHasType(actions: ActionMap, toFind: RegExp): boolean {
-  return Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
+function renderActionTypeName(projectKey: ProjectKey, hasResponse: boolean): string {
+  return `${capitalize(projectKey)}${hasResponse ? 'Response' : 'Incoming'}Action`
 }
 
-function compileActionsFile(ns: string, {prelude, actions}: CompileActionsArgs): string {
-  const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'"
-    : ''
+function renderActionUnion(projectKey: ProjectKey, hasResponse: boolean, methods: Array<string>): string {
+  return `type ${renderActionTypeName(projectKey, hasResponse)} =
+  ${methods.sort().join(' |\n  ')}`
+}
+
+function renderActionHelper(projectKey: ProjectKey, hasResponse: boolean): string {
+  const typeName = `${renderActionTypeName(projectKey, hasResponse)}Map`
+  const rpcNamespace = `${projectKey}Types`
+  const payload = hasResponse
+    ? `{readonly params: ${rpcNamespace}.RpcIn<P>; readonly response: ${rpcNamespace}.RpcResponse<P>}`
+    : `{readonly params: ${rpcNamespace}.RpcIn<P>}`
+
+  return `type ${typeName}<K extends ${rpcNamespace}.MessageKey> = {
+  [P in K]: ${payload}
+}`
+}
+
+function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
+  const groupedActions = groupActions(actions)
+  const usedProjects = (Object.keys(projects) as Array<ProjectKey>).filter(projectKey =>
+    Boolean(groupedActions[projectKey])
+  )
+  const actionHelpers = usedProjects
+    .flatMap(projectKey => {
+      const projectActions = groupedActions[projectKey]
+      if (!projectActions) {
+        return []
+      }
+      const helpers: Array<string> = []
+      if (projectActions.incoming.length) {
+        helpers.push(renderActionUnion(projectKey, false, projectActions.incoming))
+        helpers.push(renderActionHelper(projectKey, false))
+      }
+      if (projectActions.response.length) {
+        helpers.push(renderActionUnion(projectKey, true, projectActions.response))
+        helpers.push(renderActionHelper(projectKey, true))
+      }
+      return helpers
+    })
+    .join('\n\n')
+  const actionSpec = usedProjects
+    .flatMap(projectKey => {
+      const projectActions = groupedActions[projectKey]
+      if (!projectActions) {
+        return []
+      }
+
+      const types: Array<string> = []
+      if (projectActions.incoming.length) {
+        types.push(`${renderActionTypeName(projectKey, false)}Map<${renderActionTypeName(projectKey, false)}>`)
+      }
+      if (projectActions.response.length) {
+        types.push(`${renderActionTypeName(projectKey, true)}Map<${renderActionTypeName(projectKey, true)}>`)
+      }
+      return types
+    })
+    .join(' &\n  ')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-${rpcGenImport}
 ${prelude.join('\n')}
 
-// Constants
-export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
-export const typePrefix = '${ns}:'
-${compileActions(ns, actions, compileStateTypeConstant)}
+${actionHelpers}
 
-// Action Creators
-${compileActions(ns, actions, compileActionCreator)}
+type ActionSpec =
+  ${actionSpec}
 
-// Action Payloads
-${compileActions(ns, actions, compileActionPayloads)}
+export type ActionKey = keyof ActionSpec
+type EngineActionMap = {
+  [K in ActionKey]: {readonly payload: ActionSpec[K]; readonly type: K}
+}
 
-// All Actions
-${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
+export type ActionPayload<K extends ActionKey = ActionKey> = ActionSpec[K]
+export type EngineAction<K extends ActionKey = ActionKey> = EngineActionMap[K]
+export type EngineActions = EngineAction
+export type Actions = EngineActions
+export type ActionType = ActionKey
+export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
+export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
+export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
+export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
 `
-}
-
-function compileAllActionsType(actions: ActionMap): string {
-  const actionsTypes = Object.keys(actions)
-    .map(name => `${capitalize(name)}Payload`)
-    .sort()
-    .join('\n  | ')
-  return `// prettier-ignore
-export type Actions =
-  | ${actionsTypes}
-`
-}
-
-function compileActions(
-  ns: string,
-  actions: ActionMap,
-  compileActionFn: (ns: string, actionName: string, actionDesc: ActionDescription) => string
-): string {
-  return Object.keys(actions)
-    .map(actionName => compileActionFn(ns, actionName, actions[actionName]))
-    .sort()
-    .join('\n')
-}
-
-function payloadKeys(p: ActionDescription): Array<string> {
-  return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
-}
-
-function payloadOptional(p: ActionDescription): boolean {
-  const keys = payloadKeys(p)
-  return keys.length > 0 && keys.every(key => key.endsWith('?'))
-}
-
-function printPayload(p: ActionDescription): string {
-  return payloadKeys(p).length
-    ? '{' +
-        payloadKeys(p)
-          .map(key => {
-            const val = p[key]
-            return `readonly ${key}: ${Array.isArray(val) ? val.join(' | ') : val}`
-          })
-          .join(',\n') +
-        '}'
-    : 'undefined'
-}
-
-function compileActionPayloads(ns: string, actionName: string): string {
-  const allowCreate = ns !== 'engine-gen'
-  if (allowCreate) {
-    return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
-  } else {
-    return `export type ${capitalize(actionName)}Payload = ReturnType<create${capitalize(actionName)}>`
-  }
-}
-
-function compileActionCreator(ns: string, actionName: string, actionDesc: ActionDescription): string {
-  const allowCreate = ns !== 'engine-gen'
-  const desc = actionDesc
-  const hasPayload = !!payloadKeys(desc).length
-  const assignPayload = payloadOptional(desc)
-  const comment = desc._description
-    ? `/**
-     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
-     */
-    `
-    : ''
-  const payload = hasPayload
-    ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
-    : 'payload?: undefined'
-  if (allowCreate) {
-    return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
-  {payload, type: ${actionName}} as const
-)`
-  } else {
-    return `${comment}type create${capitalize(actionName)} = (${payload}) => (
-  {payload: typeof payload; type: typeof ${actionName}}
-)`
-  }
-}
-
-function compileStateTypeConstant(ns: string, actionName: string): string {
-  return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {
-  const ns = 'engine-gen'
   const outPath = path.join(__dirname, '../../shared/constants/rpc', 'index.tsx')
-  fs.writeFileSync(outPath, compileActionsFile(ns, desc))
+  fs.writeFileSync(outPath, compileActionsFile(desc))
 }
 
 async function writeAll(): Promise<void> {
@@ -728,22 +686,67 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
     .filter(f => f.length)
     .join(', ')
   const engineImport = engineImports.length ? `import {${engineImports}} from '@/engine/require'` : ''
+  const messageKeys = Object.keys(typeDefs.messages).sort()
+  const promiseMethods = messageKeys.filter(k => typeDefs.messages[k].rpcPromise)
+  const listenerMethods = messageKeys.filter(k => typeDefs.messages[k].engineListener)
+  const incomingMethods = Object.keys(project.incomingMaps)
+    .filter(im => enabledCall(im, 'incoming'))
+    .sort()
+  const customIncomingMethods = Object.keys(project.customResponseIncomingMaps)
+    .filter(im => enabledCall(im, 'custom'))
+    .sort()
+  const promiseMethodUnion = promiseMethods.length ? promiseMethods.join(' | ') : 'never'
+  const listenerMethodUnion = listenerMethods.length ? listenerMethods.join(' | ') : 'never'
+  const incomingMethodUnion = incomingMethods.length ? incomingMethods.join(' | ') : 'never'
+  const customIncomingMethodUnion = customIncomingMethods.length ? customIncomingMethods.join(' | ') : 'never'
+  const rpcHelpers = [
+    `export type MessageKey = keyof MessageTypes`,
+    `export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']`,
+    `export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']`,
+    `export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}`,
+    project.hasEngine
+      ? `type PromiseMethod = ${promiseMethodUnion}
+export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
+  ? (params?: undefined, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
+  : (params: RpcIn<M>, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
+const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
+  ((params?: RpcIn<M>, waitingKey?: WaitingKey) =>
+    new Promise<RpcOut<M>>((resolve, reject) =>
+      engine()._rpcOutgoing({
+        method,
+        params,
+        callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
+        waitingKey,
+      }))) as RpcFn<M>`
+      : '',
+    project.hasEngineListener
+      ? `type ListenerMethod = ${listenerMethodUnion}
+type ListenerArgs<M extends ListenerMethod> = {
+  params: RpcIn<M>,
+  incomingCallMap: IncomingCallMapType,
+  customResponseIncomingCallMap?: CustomResponseIncomingCallMap,
+  waitingKey?: WaitingKey,
+}
+export type ListenerFn<M extends ListenerMethod> = (p: ListenerArgs<M>) => Promise<RpcOut<M>>
+const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
+  ((p: ListenerArgs<M>) =>
+    getEngineListener<ListenerArgs<M>, Promise<RpcOut<M>>>()({
+      method,
+      params: p.params,
+      incomingCallMap: p.incomingCallMap,
+      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
+      waitingKey: p.waitingKey,
+    })) as ListenerFn<M>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
   const typePrelude = `/* eslint-disable */
 
 // This file is auto-generated by client/protocol/Makefile.
 ${engineImport}
 ${project.import.map(n => importMap[n] || '').join('\n')}
 ${project.import.map(n => `export {${n}}`).join('\n')}
-export type Bool = boolean
-export type Boolean = boolean
-export type Bytes = Uint8Array
-export type Double = number
-export type Int = number
-export type Int64 = number
-export type Long = number
-export type String = string
-export type Uint = number
-export type Uint64 = number
 ${project.hasEngine ? 'type WaitingKey = string | ReadonlyArray<string>' : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
@@ -753,19 +756,11 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromise)
   const messageEngineListener = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineListener)
-  const incomingMap = `\nexport type IncomingCallMapType = {
-    ${Object.keys(project.incomingMaps)
-      .filter(im => enabledCall(im, 'incoming'))
-      .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
-      .join(',')}
-    }`
+  const incomingMap = `\ntype IncomingMethod = ${incomingMethodUnion}
+export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>`
 
-  const customResponseIncomingMap = `\nexport type CustomResponseIncomingCallMap = {
-    ${Object.keys(project.customResponseIncomingMaps)
-      .filter(im => enabledCall(im, 'custom'))
-      .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
-      .join(',')}
-    }`
+  const customResponseIncomingMap = `\ntype CustomIncomingMethod = ${customIncomingMethodUnion}
+export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>`
 
   const messageTypesData = Object.keys(typeDefs.messages)
     .map(k => {
@@ -784,6 +779,7 @@ ${messageTypesData}
 
   const data = [
     messageTypes,
+    rpcHelpers,
     ...[...consts, ...types].sort(),
     incomingMap,
     customResponseIncomingMap,

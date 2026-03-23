@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {invalidPasswordErrorString} from '@/constants/config'
@@ -51,7 +51,7 @@ export const usePinentryState = Z.createZustand<State>('pinentry', (set, get) =>
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1SecretUiGetPassphrase: {
+        case 'keybase.1.secretUi.getPassphrase': {
           const {response, params} = action.payload
           const {pinentry} = params
           get().dispatch.secretUIWantsPassphrase(pinentry, response)

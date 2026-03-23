@@ -11,7 +11,7 @@ import {useRouterState} from '@/stores/router'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
 import * as Clipboard from 'expo-clipboard'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as Tabs from '@/constants/tabs'
@@ -166,7 +166,9 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.Conversation
   })
 }
 
-const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
+const onChatWatchPosition = async (
+  action: EngineGen.EngineAction<'chat.1.chatUi.chatWatchPosition'>
+) => {
   const response = action.payload.response
   response.result(0)
   try {
@@ -219,10 +221,10 @@ const onChatClearWatch = async () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   _onEngineIncoming(action)
   switch (action.type) {
-    case EngineGen.chat1ChatUiTriggerContactSync:
+    case 'chat.1.chatUi.triggerContactSync':
       useSettingsContactsState.getState().dispatch.manageContactsCache()
       break
-    case EngineGen.keybase1LogUiLog: {
+    case 'keybase.1.logUi.log': {
       const {params} = action.payload
       const {level, text} = params
       logger.info('keybase.1.logUi.log:', params.text.data)
@@ -231,10 +233,10 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     }
-    case EngineGen.chat1ChatUiChatWatchPosition:
+    case 'chat.1.chatUi.chatWatchPosition':
       ignorePromise(onChatWatchPosition(action))
       break
-    case EngineGen.chat1ChatUiChatClearWatch:
+    case 'chat.1.chatUi.chatClearWatch':
       ignorePromise(onChatClearWatch())
       break
     default:

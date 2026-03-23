@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
 import {makeUUID} from '@/util/uuid'
@@ -383,13 +383,13 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
+        case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
           setKBFSJobStatus(action.payload.params.status)
           break
-        case EngineGen.chat1NotifyChatChatArchiveComplete:
+        case 'chat.1.NotifyChat.ChatArchiveComplete':
           loadChat()
           break
-        case EngineGen.chat1NotifyChatChatArchiveProgress:
+        case 'chat.1.NotifyChat.ChatArchiveProgress':
           setChatProgress(action.payload.params)
           break
         default:

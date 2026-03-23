@@ -7,7 +7,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useFSState} from '@/stores/fs'
 import {useProfileState} from '@/stores/profile'
 import {useRouterState} from '@/stores/router'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import InputMonitor from '@/util/platform-specific/input-monitor.desktop'
 import KB2 from '@/util/electron.desktop'
@@ -71,7 +71,7 @@ const maybePauseVideos = () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   _onEngineIncoming(action)
   switch (action.type) {
-    case EngineGen.keybase1LogsendPrepareLogsend: {
+    case 'keybase.1.logsend.prepareLogsend': {
       const f = async () => {
         const response = action.payload.response
         try {
@@ -83,14 +83,14 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       ignorePromise(f())
       break
     }
-    case EngineGen.keybase1NotifyAppExit:
+    case 'keybase.1.NotifyApp.exit':
       console.log('App exit requested')
       exitApp?.(0)
       break
-    case EngineGen.keybase1NotifyFSFSActivity:
+    case 'keybase.1.NotifyFS.FSActivity':
       kbfsNotification(action.payload.params.notification, NotifyPopup)
       break
-    case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
+    case 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': {
       const f = async () => {
         try {
           await T.RPCGen.pgpPgpStorageDismissRpcPromise()
@@ -101,7 +101,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       ignorePromise(f())
       break
     }
-    case EngineGen.keybase1NotifyServiceShutdown: {
+    case 'keybase.1.NotifyService.shutdown': {
       const {code} = action.payload.params
       if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
         console.log('Quitting due to service shutdown with code: ', code)
@@ -111,7 +111,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       break
     }
 
-    case EngineGen.keybase1LogUiLog: {
+    case 'keybase.1.logUi.log': {
       const {params} = action.payload
       const {level, text} = params
       logger.info('keybase.1.logUi.log:', params.text.data)
@@ -121,7 +121,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       break
     }
 
-    case EngineGen.keybase1NotifySessionClientOutOfDate: {
+    case 'keybase.1.NotifySession.clientOutOfDate': {
       const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)

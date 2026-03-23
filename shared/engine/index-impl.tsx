@@ -14,10 +14,6 @@ import type * as EngineGen from '@/constants/rpc'
 
 type WaitingKey = string | ReadonlyArray<string>
 
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
 class Engine {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
@@ -157,16 +153,13 @@ class Engine {
           // Not a custom response so we auto handle it
           response?.result?.()
         }
-        const type = method
-          .replace(/'/g, '')
-          .split('.')
-          .map((p, idx) => (idx ? capitalize(p) : p))
-          .join('')
-
-        const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
+        const act = {
+          payload: {params: param, ...extra},
+          type: method as EngineGen.ActionKey,
+        } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
           setTimeout(() => {
-            this._onEngineIncoming?.(act as EngineGen.Actions)
+            this._onEngineIncoming?.(act)
           }, 0)
         }
       }

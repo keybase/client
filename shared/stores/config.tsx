@@ -2,7 +2,7 @@ import type * as NetInfo from '@react-native-community/netinfo'
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {waitingKeyConfigLogin} from '@/constants/strings'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 import {noConversationIDKey} from '@/constants/types/chat/common'
 import isEqual from 'lodash/isEqual'
@@ -507,20 +507,20 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
-        case EngineGen.keybase1GregorUIPushState: {
+        case 'keybase.1.gregorUI.pushState': {
           const {state} = action.payload.params
           setGregorPushState(state)
           break
         }
-        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: {
+        case 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
           updateRuntimeStats(action.payload.params.stats ?? undefined)
           break
         }
-        case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
+        case 'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
           get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
           break
         }
-        case EngineGen.keybase1NotifySessionLoggedIn: {
+        case 'keybase.1.NotifySession.loggedIn': {
           logger.info('keybase.1.NotifySession.loggedIn')
           // only send this if we think we're not logged in
           const {loggedIn, dispatch} = get()
@@ -529,7 +529,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1NotifySessionLoggedOut: {
+        case 'keybase.1.NotifySession.loggedOut': {
           logger.info('keybase.1.NotifySession.loggedOut')
           const {loggedIn, dispatch} = get()
           // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
@@ -538,7 +538,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1ReachabilityReachabilityChanged:
+        case 'keybase.1.reachability.reachabilityChanged':
           if (get().loggedIn) {
             setGregorReachable(action.payload.params.reachability.reachable)
           }

@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useUnlockFoldersState} from '../unlock-folders'
 
@@ -48,7 +47,7 @@ test('rekey refresh actions forward the device list to config', () => {
         },
       },
     },
-    type: EngineGen.keybase1RekeyUIRefresh,
+    type: 'keybase.1.rekeyUI.refresh',
   } as any)
 
   expect(mockOpenUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
