@@ -54,7 +54,7 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 
 js/rpc.js: build-stamp | .config
 	@mkdir -p js/
-	node ./bin/flow.js
+	node ./bin/flow.ts
 	cp ./js/rpc*.tsx ../shared/constants/types
 
 build-go-bot-types: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDLC) | .config
