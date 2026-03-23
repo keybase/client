@@ -4,16 +4,6 @@
 
 
 
-export type Bool = boolean
-export type Boolean = boolean
-export type Bytes = Uint8Array
-export type Double = number
-export type Int = number
-export type Int64 = number
-export type Long = number
-export type String = string
-export type Uint = number
-export type Uint64 = number
 
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
@@ -30,36 +20,36 @@ export type RpcResponse<M extends MessageKey> = {
   error: IncomingErrorCallback
   result: (res: RpcOut<M>) => void
 }
-export type AuthResult = {readonly uid: UID,readonly username: String,readonly sid: SessionID,readonly isAdmin: Boolean,}
-export type Body = Bytes
-export type Category = String
-export type ConnectedDevice = {readonly deviceID: DeviceID,readonly deviceType: String,readonly devicePlatform: String,readonly userAgent: String,}
+export type AuthResult = {readonly uid: UID,readonly username: string,readonly sid: SessionID,readonly isAdmin: boolean,}
+export type Body = Uint8Array
+export type Category = string
+export type ConnectedDevice = {readonly deviceID: DeviceID,readonly deviceType: string,readonly devicePlatform: string,readonly userAgent: string,}
 export type ConnectedUser = {readonly uid: UID,readonly devices?: ReadonlyArray<ConnectedDevice> | null,}
-export type DeviceID = Bytes
+export type DeviceID = Uint8Array
 export type Dismissal = {readonly msgIDs?: ReadonlyArray<MsgID> | null,readonly ranges?: ReadonlyArray<MsgRange> | null,}
-export type DurationMsec = Int64
-export type DurationSec = Int64
+export type DurationMsec = number
+export type DurationSec = number
 export type InBandMessage = {readonly stateUpdate?: StateUpdateMessage | null,readonly stateSync?: StateSyncMessage | null,}
 export type Item = {readonly category: Category,readonly dtime: TimeOrOffset,readonly remindTimes?: ReadonlyArray<TimeOrOffset> | null,readonly body: Body,}
 export type ItemAndMetadata = {readonly md?: Metadata | null,readonly item?: Item | null,}
 export type Message = {readonly oobm?: OutOfBandMessage | null,readonly ibm?: InBandMessage | null,}
-export type Metadata = {readonly uid: UID,readonly msgID: MsgID,readonly ctime: Time,readonly deviceID: DeviceID,readonly inBandMsgType: Int,}
-export type MsgID = Bytes
+export type Metadata = {readonly uid: UID,readonly msgID: MsgID,readonly ctime: Time,readonly deviceID: DeviceID,readonly inBandMsgType: number,}
+export type MsgID = Uint8Array
 export type MsgRange = {readonly endTime: TimeOrOffset,readonly category: Category,readonly skipMsgIDs?: ReadonlyArray<MsgID> | null,}
 export type OutOfBandMessage = {readonly uid: UID,readonly system: System,readonly body: Body,}
-export type Reminder = {readonly item: ItemAndMetadata,readonly seqno: Int,readonly remindTime: Time,}
-export type ReminderID = {readonly uid: UID,readonly msgID: MsgID,readonly seqno: Int,}
-export type ReminderSet = {readonly reminders?: ReadonlyArray<Reminder> | null,readonly moreRemindersReady: Boolean,}
-export type SessionID = String
-export type SessionToken = String
+export type Reminder = {readonly item: ItemAndMetadata,readonly seqno: number,readonly remindTime: Time,}
+export type ReminderID = {readonly uid: UID,readonly msgID: MsgID,readonly seqno: number,}
+export type ReminderSet = {readonly reminders?: ReadonlyArray<Reminder> | null,readonly moreRemindersReady: boolean,}
+export type SessionID = string
+export type SessionToken = string
 export type State = {readonly items?: ReadonlyArray<ItemAndMetadata> | null,}
 export type StateSyncMessage = {readonly md: Metadata,}
 export type StateUpdateMessage = {readonly md: Metadata,readonly creation?: Item | null,readonly dismissal?: Dismissal | null,}
-export type SyncResult = {readonly msgs?: ReadonlyArray<InBandMessage> | null,readonly hash: Bytes,}
-export type System = String
-export type Time = Long
+export type SyncResult = {readonly msgs?: ReadonlyArray<InBandMessage> | null,readonly hash: Uint8Array,}
+export type System = string
+export type Time = number
 export type TimeOrOffset = {readonly time: Time,readonly offset: DurationMsec,}
-export type UID = Bytes
+export type UID = Uint8Array
 
 export type IncomingCallMapType = {
     

@@ -457,19 +457,18 @@ function parseUnion(unionTypes: ReadonlyArray<TypeRef | string>): string {
 function parseRecord(t: RecordDefinition): string {
   lintRecord(t)
   if (t.typedef) {
-    return capitalize(t.typedef)
+    return renderTypeName(t.typedef)
   }
 
   const fields = t.fields
     .map(f => {
       const innerType = parseInnerType(f.type)
       const innerOptional = innerType.endsWith('| null')
-      const capsInnerType = capitalize(innerType)
       const name = f.mpackkey || f.name
       const comment = f.mpackkey ? ` /* ${f.name} */ ` : ''
 
       // If we have a maybe type, let's also make the key optional
-      return `readonly ${name}${comment}${innerOptional ? '?' : ''}: ${capsInnerType},`
+      return `readonly ${name}${comment}${innerOptional ? '?' : ''}: ${innerType},`
     })
     .join('')
 

@@ -4,16 +4,6 @@
 import {getEngine as engine} from '@/engine/require'
 import * as Keybase1 from './rpc-gen'
 export {Keybase1}
-export type Bool = boolean
-export type Boolean = boolean
-export type Bytes = Uint8Array
-export type Double = number
-export type Int = number
-export type Int64 = number
-export type Long = number
-export type String = string
-export type Uint = number
-export type Uint64 = number
 type WaitingKey = string | ReadonlyArray<string>
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
@@ -22,7 +12,7 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
 export type MessageTypes = {
   'stellar.1.local.deleteWalletAccountLocal': {
-    inParam: {readonly accountID: AccountID,readonly userAcknowledged: String},
+    inParam: {readonly accountID: AccountID,readonly userAcknowledged: string},
     outParam: void,
   },
   'stellar.1.local.getWalletAccountSecretKeyLocal': {
@@ -35,7 +25,7 @@ export type MessageTypes = {
   },
   'stellar.1.local.hasAcceptedDisclaimerLocal': {
     inParam: undefined,
-    outParam: Bool,
+    outParam: boolean,
   },
   'stellar.1.notify.accountDetailsUpdate': {
     inParam: {readonly accountID: AccountID,readonly account: WalletAccountLocal},
@@ -180,118 +170,118 @@ export enum TransactionStatus {
   errorTransient = 3,
   errorPermanent = 4,
 }
-export type AccountAssetLocal = {readonly name: String,readonly assetCode: String,readonly issuerName: String,readonly issuerAccountID: String,readonly issuerVerifiedDomain: String,readonly balanceTotal: String,readonly balanceAvailableToSend: String,readonly worthCurrency: String,readonly worth: String,readonly availableToSendWorth: String,readonly reserves?: ReadonlyArray<AccountReserve> | null,readonly desc: String,readonly infoUrl: String,readonly infoUrlText: String,readonly showDepositButton: Boolean,readonly depositButtonText: String,readonly showWithdrawButton: Boolean,readonly withdrawButtonText: String,}
+export type AccountAssetLocal = {readonly name: string,readonly assetCode: string,readonly issuerName: string,readonly issuerAccountID: string,readonly issuerVerifiedDomain: string,readonly balanceTotal: string,readonly balanceAvailableToSend: string,readonly worthCurrency: string,readonly worth: string,readonly availableToSendWorth: string,readonly reserves?: ReadonlyArray<AccountReserve> | null,readonly desc: string,readonly infoUrl: string,readonly infoUrlText: string,readonly showDepositButton: boolean,readonly depositButtonText: string,readonly showWithdrawButton: boolean,readonly withdrawButtonText: string,}
 export type AccountBundle = {readonly prev: Hash,readonly ownHash: Hash,readonly accountID: AccountID,readonly signers?: ReadonlyArray<SecretKey> | null,}
 export type AccountBundleSecretUnsupported = {}
 export type AccountBundleSecretV1 = {readonly accountID: AccountID,readonly signers?: ReadonlyArray<SecretKey> | null,}
 export type AccountBundleSecretVersioned ={ version: AccountBundleVersion.v1, v1: AccountBundleSecretV1 } | { version: AccountBundleVersion.v2, v2: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v3, v3: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v4, v4: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v5, v5: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v6, v6: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v7, v7: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v8, v8: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v9, v9: AccountBundleSecretUnsupported } | { version: AccountBundleVersion.v10, v10: AccountBundleSecretUnsupported }
-export type AccountDetails = {readonly accountID: AccountID,readonly seqno: String,readonly balances?: ReadonlyArray<Balance> | null,readonly subentryCount: Int,readonly available: String,readonly reserves?: ReadonlyArray<AccountReserve> | null,readonly readTransactionID?: TransactionID | null,readonly unreadPayments: Int,readonly displayCurrency: String,readonly inflationDestination?: AccountID | null,}
-export type AccountID = String
-export type AccountReserve = {readonly amount: String,readonly description: String,}
-export type AirdropDetails = {readonly isPromoted: Boolean,readonly details: String,readonly disclaimer: String,}
-export type AirdropQualification = {readonly title: String,readonly subtitle: String,readonly valid: Boolean,}
-export type AirdropState = String
+export type AccountDetails = {readonly accountID: AccountID,readonly seqno: string,readonly balances?: ReadonlyArray<Balance> | null,readonly subentryCount: number,readonly available: string,readonly reserves?: ReadonlyArray<AccountReserve> | null,readonly readTransactionID?: TransactionID | null,readonly unreadPayments: number,readonly displayCurrency: string,readonly inflationDestination?: AccountID | null,}
+export type AccountID = string
+export type AccountReserve = {readonly amount: string,readonly description: string,}
+export type AirdropDetails = {readonly isPromoted: boolean,readonly details: string,readonly disclaimer: string,}
+export type AirdropQualification = {readonly title: string,readonly subtitle: string,readonly valid: boolean,}
+export type AirdropState = string
 export type AirdropStatus = {readonly state: AirdropState,readonly rows?: ReadonlyArray<AirdropQualification> | null,}
-export type Asset = {readonly type: String,readonly code: String,readonly issuer: String,readonly verifiedDomain: String,readonly issuerName: String,readonly desc: String,readonly infoUrl: String,readonly infoUrlText: String,readonly showDepositButton: Boolean,readonly depositButtonText: String,readonly showWithdrawButton: Boolean,readonly withdrawButtonText: String,readonly withdrawType: String,readonly transferServer: String,readonly authEndpoint: String,readonly depositReqAuth: Boolean,readonly withdrawReqAuth: Boolean,readonly useSep24: Boolean,}
-export type AssetActionResultLocal = {readonly externalUrl?: String | null,readonly messageFromAnchor?: String | null,}
-export type AssetCode = String
-export type AssetListResult = {readonly assets?: ReadonlyArray<Asset> | null,readonly totalCount: Int,}
+export type Asset = {readonly type: string,readonly code: string,readonly issuer: string,readonly verifiedDomain: string,readonly issuerName: string,readonly desc: string,readonly infoUrl: string,readonly infoUrlText: string,readonly showDepositButton: boolean,readonly depositButtonText: string,readonly showWithdrawButton: boolean,readonly withdrawButtonText: string,readonly withdrawType: string,readonly transferServer: string,readonly authEndpoint: string,readonly depositReqAuth: boolean,readonly withdrawReqAuth: boolean,readonly useSep24: boolean,}
+export type AssetActionResultLocal = {readonly externalUrl?: string | null,readonly messageFromAnchor?: string | null,}
+export type AssetCode = string
+export type AssetListResult = {readonly assets?: ReadonlyArray<Asset> | null,readonly totalCount: number,}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID,}
-export type Balance = {readonly asset: Asset,readonly amount: String,readonly limit: String,readonly isAuthorized: Boolean,}
-export type BatchPaymentArg = {readonly recipient: String,readonly amount: String,readonly message: String,}
-export type BatchPaymentError = {readonly message: String,readonly code: Int,}
-export type BatchPaymentResult = {readonly username: String,readonly startTime: TimeMs,readonly submittedTime: TimeMs,readonly endTime: TimeMs,readonly txID: TransactionID,readonly status: PaymentStatus,readonly statusDescription: String,readonly error?: BatchPaymentError | null,}
-export type BatchResultLocal = {readonly startTime: TimeMs,readonly preparedTime: TimeMs,readonly allSubmittedTime: TimeMs,readonly allCompleteTime: TimeMs,readonly endTime: TimeMs,readonly payments?: ReadonlyArray<BatchPaymentResult> | null,readonly overallDurationMs: TimeMs,readonly prepareDurationMs: TimeMs,readonly submitDurationMs: TimeMs,readonly waitPaymentsDurationMs: TimeMs,readonly waitChatDurationMs: TimeMs,readonly countSuccess: Int,readonly countDirect: Int,readonly countRelay: Int,readonly countError: Int,readonly countPending: Int,readonly avgDurationMs: TimeMs,readonly avgSuccessDurationMs: TimeMs,readonly avgDirectDurationMs: TimeMs,readonly avgRelayDurationMs: TimeMs,readonly avgErrorDurationMs: TimeMs,}
-export type BuildPaymentID = String
-export type BuildPaymentResLocal = {readonly readyToReview: Boolean,readonly from: AccountID,readonly toErrMsg: String,readonly amountErrMsg: String,readonly secretNoteErrMsg: String,readonly publicMemoErrMsg: String,readonly publicMemoOverride: String,readonly worthDescription: String,readonly worthInfo: String,readonly worthAmount: String,readonly worthCurrency: String,readonly displayAmountXLM: String,readonly displayAmountFiat: String,readonly sendingIntentionXLM: Boolean,readonly amountAvailable: String,readonly banners?: ReadonlyArray<SendBannerLocal> | null,}
-export type BuildRequestResLocal = {readonly readyToRequest: Boolean,readonly toErrMsg: String,readonly amountErrMsg: String,readonly secretNoteErrMsg: String,readonly worthDescription: String,readonly worthInfo: String,readonly displayAmountXLM: String,readonly displayAmountFiat: String,readonly sendingIntentionXLM: Boolean,readonly banners?: ReadonlyArray<SendBannerLocal> | null,}
+export type Balance = {readonly asset: Asset,readonly amount: string,readonly limit: string,readonly isAuthorized: boolean,}
+export type BatchPaymentArg = {readonly recipient: string,readonly amount: string,readonly message: string,}
+export type BatchPaymentError = {readonly message: string,readonly code: number,}
+export type BatchPaymentResult = {readonly username: string,readonly startTime: TimeMs,readonly submittedTime: TimeMs,readonly endTime: TimeMs,readonly txID: TransactionID,readonly status: PaymentStatus,readonly statusDescription: string,readonly error?: BatchPaymentError | null,}
+export type BatchResultLocal = {readonly startTime: TimeMs,readonly preparedTime: TimeMs,readonly allSubmittedTime: TimeMs,readonly allCompleteTime: TimeMs,readonly endTime: TimeMs,readonly payments?: ReadonlyArray<BatchPaymentResult> | null,readonly overallDurationMs: TimeMs,readonly prepareDurationMs: TimeMs,readonly submitDurationMs: TimeMs,readonly waitPaymentsDurationMs: TimeMs,readonly waitChatDurationMs: TimeMs,readonly countSuccess: number,readonly countDirect: number,readonly countRelay: number,readonly countError: number,readonly countPending: number,readonly avgDurationMs: TimeMs,readonly avgSuccessDurationMs: TimeMs,readonly avgDirectDurationMs: TimeMs,readonly avgRelayDurationMs: TimeMs,readonly avgErrorDurationMs: TimeMs,}
+export type BuildPaymentID = string
+export type BuildPaymentResLocal = {readonly readyToReview: boolean,readonly from: AccountID,readonly toErrMsg: string,readonly amountErrMsg: string,readonly secretNoteErrMsg: string,readonly publicMemoErrMsg: string,readonly publicMemoOverride: string,readonly worthDescription: string,readonly worthInfo: string,readonly worthAmount: string,readonly worthCurrency: string,readonly displayAmountXLM: string,readonly displayAmountFiat: string,readonly sendingIntentionXLM: boolean,readonly amountAvailable: string,readonly banners?: ReadonlyArray<SendBannerLocal> | null,}
+export type BuildRequestResLocal = {readonly readyToRequest: boolean,readonly toErrMsg: string,readonly amountErrMsg: string,readonly secretNoteErrMsg: string,readonly worthDescription: string,readonly worthInfo: string,readonly displayAmountXLM: string,readonly displayAmountFiat: string,readonly sendingIntentionXLM: boolean,readonly banners?: ReadonlyArray<SendBannerLocal> | null,}
 export type Bundle = {readonly revision: BundleRevision,readonly prev: Hash,readonly ownHash: Hash,readonly accounts?: ReadonlyArray<BundleEntry> | null,readonly accountBundles?: {[key: string]: AccountBundle} | null,}
-export type BundleEntry = {readonly accountID: AccountID,readonly mode: AccountMode,readonly isPrimary: Boolean,readonly name: String,readonly acctBundleRevision: BundleRevision,readonly encAcctBundleHash: Hash,}
-export type BundleRevision = Uint64
-export type BundleSecretEntryV2 = {readonly accountID: AccountID,readonly name: String,}
+export type BundleEntry = {readonly accountID: AccountID,readonly mode: AccountMode,readonly isPrimary: boolean,readonly name: string,readonly acctBundleRevision: BundleRevision,readonly encAcctBundleHash: Hash,}
+export type BundleRevision = number
+export type BundleSecretEntryV2 = {readonly accountID: AccountID,readonly name: string,}
 export type BundleSecretUnsupported = {}
 export type BundleSecretV2 = {readonly visibleHash: Hash,readonly accounts?: ReadonlyArray<BundleSecretEntryV2> | null,}
 export type BundleSecretVersioned ={ version: BundleVersion.v1, v1: BundleSecretUnsupported } | { version: BundleVersion.v2, v2: BundleSecretV2 } | { version: BundleVersion.v3, v3: BundleSecretUnsupported } | { version: BundleVersion.v4, v4: BundleSecretUnsupported } | { version: BundleVersion.v5, v5: BundleSecretUnsupported } | { version: BundleVersion.v6, v6: BundleSecretUnsupported } | { version: BundleVersion.v7, v7: BundleSecretUnsupported } | { version: BundleVersion.v8, v8: BundleSecretUnsupported } | { version: BundleVersion.v9, v9: BundleSecretUnsupported } | { version: BundleVersion.v10, v10: BundleSecretUnsupported }
-export type BundleVisibleEntryV2 = {readonly accountID: AccountID,readonly mode: AccountMode,readonly isPrimary: Boolean,readonly acctBundleRevision: BundleRevision,readonly encAcctBundleHash: Hash,}
+export type BundleVisibleEntryV2 = {readonly accountID: AccountID,readonly mode: AccountMode,readonly isPrimary: boolean,readonly acctBundleRevision: BundleRevision,readonly encAcctBundleHash: Hash,}
 export type BundleVisibleV2 = {readonly revision: BundleRevision,readonly prev: Hash,readonly accounts?: ReadonlyArray<BundleVisibleEntryV2> | null,}
-export type ChatConversationID = String
-export type ClaimSummary = {readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: String,readonly dir: RelayDirection,readonly toStellar: AccountID,readonly to: Keybase1.UserVersion,}
-export type CurrencyLocal = {readonly description: String,readonly code: OutsideCurrencyCode,readonly symbol: String,readonly name: String,}
-export type CurrencySymbol = {readonly symbol: String,readonly ambigious: Boolean,readonly postfix: Boolean,}
+export type ChatConversationID = string
+export type ClaimSummary = {readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: string,readonly dir: RelayDirection,readonly toStellar: AccountID,readonly to: Keybase1.UserVersion,}
+export type CurrencyLocal = {readonly description: string,readonly code: OutsideCurrencyCode,readonly symbol: string,readonly name: string,}
+export type CurrencySymbol = {readonly symbol: string,readonly ambigious: boolean,readonly postfix: boolean,}
 export type DetailsPlusPayments = {readonly details: AccountDetails,readonly recentPayments: PaymentsPage,readonly pendingPayments?: ReadonlyArray<PaymentSummary> | null,}
-export type DirectOp = {readonly noteB64: String,}
-export type EncryptedAccountBundle = {readonly v: Int,readonly e: Bytes,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerUserKeyGeneration,}
-export type EncryptedBundle = {readonly v: Int,readonly e: Bytes,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerUserKeyGeneration,}
-export type EncryptedNote = {readonly v: Int,readonly e: Bytes,readonly n: Keybase1.BoxNonce,readonly sender: NoteRecipient,readonly recipient?: NoteRecipient | null,}
-export type EncryptedRelaySecret = {readonly v: Int,readonly e: Bytes,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerTeamKeyGeneration,}
-export type Hash = Bytes
-export type InflationDestinationResultLocal = {readonly destination?: AccountID | null,readonly knownDestination?: PredefinedInflationDestination | null,readonly self: Boolean,}
-export type InflationDestinationTag = String
-export type KeybaseRequestID = String
-export type KeybaseTransactionID = String
-export type LookupResultCLILocal = {readonly accountID: AccountID,readonly username?: String | null,}
-export type NetworkOptions = {readonly baseFee: Uint64,}
-export type NoteContents = {readonly note: String,readonly stellarID: TransactionID,}
+export type DirectOp = {readonly noteB64: string,}
+export type EncryptedAccountBundle = {readonly v: number,readonly e: Uint8Array,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerUserKeyGeneration,}
+export type EncryptedBundle = {readonly v: number,readonly e: Uint8Array,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerUserKeyGeneration,}
+export type EncryptedNote = {readonly v: number,readonly e: Uint8Array,readonly n: Keybase1.BoxNonce,readonly sender: NoteRecipient,readonly recipient?: NoteRecipient | null,}
+export type EncryptedRelaySecret = {readonly v: number,readonly e: Uint8Array,readonly n: Keybase1.BoxNonce,readonly gen: Keybase1.PerTeamKeyGeneration,}
+export type Hash = Uint8Array
+export type InflationDestinationResultLocal = {readonly destination?: AccountID | null,readonly knownDestination?: PredefinedInflationDestination | null,readonly self: boolean,}
+export type InflationDestinationTag = string
+export type KeybaseRequestID = string
+export type KeybaseTransactionID = string
+export type LookupResultCLILocal = {readonly accountID: AccountID,readonly username?: string | null,}
+export type NetworkOptions = {readonly baseFee: number,}
+export type NoteContents = {readonly note: string,readonly stellarID: TransactionID,}
 export type NoteRecipient = {readonly user: Keybase1.UserVersion,readonly pukGen: Keybase1.PerUserKeyGeneration,}
-export type OutsideCurrencyCode = String
-export type OutsideCurrencyDefinition = {readonly name: String,readonly symbol: CurrencySymbol,}
-export type OutsideExchangeRate = {readonly currency: OutsideCurrencyCode,readonly rate: String,}
-export type OwnAccountCLILocal = {readonly accountID: AccountID,readonly isPrimary: Boolean,readonly name: String,readonly balance?: ReadonlyArray<Balance> | null,readonly exchangeRate?: OutsideExchangeRate | null,readonly accountMode: AccountMode,}
-export type PageCursor = {readonly horizonCursor: String,readonly directCursor: String,readonly relayCursor: String,}
-export type PartnerUrl = {readonly url: String,readonly title: String,readonly description: String,readonly iconFilename: String,readonly adminOnly: Boolean,readonly canPurchase: Boolean,readonly extra: String,}
-export type PathPaymentPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly noteB64: String,readonly signedTransaction: String,readonly quickReturn: Boolean,readonly chatConversationID?: ChatConversationID | null,}
-export type PaymentCLILocal = {readonly txID: TransactionID,readonly time: TimeMs,readonly status: String,readonly statusDetail: String,readonly amount: String,readonly asset: Asset,readonly displayAmount?: String | null,readonly displayCurrency?: String | null,readonly sourceAmountMax: String,readonly sourceAmountActual: String,readonly sourceAsset: Asset,readonly isAdvanced: Boolean,readonly summaryAdvanced: String,readonly operations?: ReadonlyArray<String> | null,readonly fromStellar: AccountID,readonly toStellar?: AccountID | null,readonly fromUsername?: String | null,readonly toUsername?: String | null,readonly toAssertion?: String | null,readonly note: String,readonly noteErr: String,readonly unread: Boolean,readonly publicNote: String,readonly publicNoteType: String,readonly feeChargedDescription: String,}
-export type PaymentDetails = {readonly summary: PaymentSummary,readonly memo: String,readonly memoType: String,readonly externalTxURL: String,readonly feeCharged: String,readonly pathIntermediate?: ReadonlyArray<Asset> | null,}
+export type OutsideCurrencyCode = string
+export type OutsideCurrencyDefinition = {readonly name: string,readonly symbol: CurrencySymbol,}
+export type OutsideExchangeRate = {readonly currency: OutsideCurrencyCode,readonly rate: string,}
+export type OwnAccountCLILocal = {readonly accountID: AccountID,readonly isPrimary: boolean,readonly name: string,readonly balance?: ReadonlyArray<Balance> | null,readonly exchangeRate?: OutsideExchangeRate | null,readonly accountMode: AccountMode,}
+export type PageCursor = {readonly horizonCursor: string,readonly directCursor: string,readonly relayCursor: string,}
+export type PartnerUrl = {readonly url: string,readonly title: string,readonly description: string,readonly iconFilename: string,readonly adminOnly: boolean,readonly canPurchase: boolean,readonly extra: string,}
+export type PathPaymentPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly noteB64: string,readonly signedTransaction: string,readonly quickReturn: boolean,readonly chatConversationID?: ChatConversationID | null,}
+export type PaymentCLILocal = {readonly txID: TransactionID,readonly time: TimeMs,readonly status: string,readonly statusDetail: string,readonly amount: string,readonly asset: Asset,readonly displayAmount?: string | null,readonly displayCurrency?: string | null,readonly sourceAmountMax: string,readonly sourceAmountActual: string,readonly sourceAsset: Asset,readonly isAdvanced: boolean,readonly summaryAdvanced: string,readonly operations?: ReadonlyArray<string> | null,readonly fromStellar: AccountID,readonly toStellar?: AccountID | null,readonly fromUsername?: string | null,readonly toUsername?: string | null,readonly toAssertion?: string | null,readonly note: string,readonly noteErr: string,readonly unread: boolean,readonly publicNote: string,readonly publicNoteType: string,readonly feeChargedDescription: string,}
+export type PaymentDetails = {readonly summary: PaymentSummary,readonly memo: string,readonly memoType: string,readonly externalTxURL: string,readonly feeCharged: string,readonly pathIntermediate?: ReadonlyArray<Asset> | null,}
 export type PaymentDetailsLocal = {readonly summary: PaymentLocal,readonly details: PaymentDetailsOnlyLocal,}
-export type PaymentDetailsOnlyLocal = {readonly publicNote: String,readonly publicNoteType: String,readonly externalTxURL: String,readonly feeChargedDescription: String,readonly pathIntermediate?: ReadonlyArray<Asset> | null,}
-export type PaymentDirectPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly displayAmount: String,readonly displayCurrency: String,readonly noteB64: String,readonly signedTransaction: String,readonly quickReturn: Boolean,readonly chatConversationID?: ChatConversationID | null,readonly batchID: String,}
-export type PaymentID = String
-export type PaymentLocal = {readonly id: PaymentID,readonly txID: TransactionID,readonly time: TimeMs,readonly statusSimplified: PaymentStatus,readonly statusDescription: String,readonly statusDetail: String,readonly showCancel: Boolean,readonly amountDescription: String,readonly delta: BalanceDelta,readonly worth: String,readonly worthAtSendTime: String,readonly issuerDescription: String,readonly issuerAccountID?: AccountID | null,readonly fromType: ParticipantType,readonly toType: ParticipantType,readonly assetCode: String,readonly fromAccountID: AccountID,readonly fromAccountName: String,readonly fromUsername: String,readonly toAccountID?: AccountID | null,readonly toAccountName: String,readonly toUsername: String,readonly toAssertion: String,readonly originalToAssertion: String,readonly note: String,readonly noteErr: String,readonly sourceAmountMax: String,readonly sourceAmountActual: String,readonly sourceAsset: Asset,readonly sourceConvRate: String,readonly isAdvanced: Boolean,readonly summaryAdvanced: String,readonly operations?: ReadonlyArray<String> | null,readonly unread: Boolean,readonly batchID: String,readonly fromAirdrop: Boolean,readonly isInflation: Boolean,readonly inflationSource?: String | null,readonly trustline?: PaymentTrustlineLocal | null,}
-export type PaymentMultiPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly signedTransaction: String,readonly operations?: ReadonlyArray<PaymentOp> | null,readonly batchID: String,}
+export type PaymentDetailsOnlyLocal = {readonly publicNote: string,readonly publicNoteType: string,readonly externalTxURL: string,readonly feeChargedDescription: string,readonly pathIntermediate?: ReadonlyArray<Asset> | null,}
+export type PaymentDirectPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly displayAmount: string,readonly displayCurrency: string,readonly noteB64: string,readonly signedTransaction: string,readonly quickReturn: boolean,readonly chatConversationID?: ChatConversationID | null,readonly batchID: string,}
+export type PaymentID = string
+export type PaymentLocal = {readonly id: PaymentID,readonly txID: TransactionID,readonly time: TimeMs,readonly statusSimplified: PaymentStatus,readonly statusDescription: string,readonly statusDetail: string,readonly showCancel: boolean,readonly amountDescription: string,readonly delta: BalanceDelta,readonly worth: string,readonly worthAtSendTime: string,readonly issuerDescription: string,readonly issuerAccountID?: AccountID | null,readonly fromType: ParticipantType,readonly toType: ParticipantType,readonly assetCode: string,readonly fromAccountID: AccountID,readonly fromAccountName: string,readonly fromUsername: string,readonly toAccountID?: AccountID | null,readonly toAccountName: string,readonly toUsername: string,readonly toAssertion: string,readonly originalToAssertion: string,readonly note: string,readonly noteErr: string,readonly sourceAmountMax: string,readonly sourceAmountActual: string,readonly sourceAsset: Asset,readonly sourceConvRate: string,readonly isAdvanced: boolean,readonly summaryAdvanced: string,readonly operations?: ReadonlyArray<string> | null,readonly unread: boolean,readonly batchID: string,readonly fromAirdrop: boolean,readonly isInflation: boolean,readonly inflationSource?: string | null,readonly trustline?: PaymentTrustlineLocal | null,}
+export type PaymentMultiPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly signedTransaction: string,readonly operations?: ReadonlyArray<PaymentOp> | null,readonly batchID: string,}
 export type PaymentNotificationMsg = {readonly accountID: AccountID,readonly paymentID: PaymentID,}
 export type PaymentOp = {readonly to?: Keybase1.UserVersion | null,readonly direct?: DirectOp | null,readonly relay?: RelayOp | null,}
-export type PaymentOrErrorCLILocal = {readonly payment?: PaymentCLILocal | null,readonly err?: String | null,}
-export type PaymentOrErrorLocal = {readonly payment?: PaymentLocal | null,readonly err?: String | null,}
-export type PaymentPath = {readonly sourceAmount: String,readonly sourceAmountMax: String,readonly sourceAsset: Asset,readonly path?: ReadonlyArray<Asset> | null,readonly destinationAmount: String,readonly destinationAsset: Asset,readonly sourceInsufficientBalance: String,}
-export type PaymentPathLocal = {readonly sourceDisplay: String,readonly sourceMaxDisplay: String,readonly destinationDisplay: String,readonly exchangeRate: String,readonly amountError: String,readonly destinationAccount: AccountID,readonly fullPath: PaymentPath,}
-export type PaymentPathQuery = {readonly source: AccountID,readonly destination: AccountID,readonly sourceAsset: Asset,readonly destinationAsset: Asset,readonly amount: String,}
-export type PaymentRelayPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly toAssertion: String,readonly relayAccount: AccountID,readonly teamID: Keybase1.TeamID,readonly displayAmount: String,readonly displayCurrency: String,readonly boxB64: String,readonly signedTransaction: String,readonly quickReturn: Boolean,readonly chatConversationID?: ChatConversationID | null,readonly batchID: String,}
-export type PaymentResult = {readonly senderAccountID: AccountID,readonly keybaseID: KeybaseTransactionID,readonly stellarID: TransactionID,readonly pending: Boolean,}
+export type PaymentOrErrorCLILocal = {readonly payment?: PaymentCLILocal | null,readonly err?: string | null,}
+export type PaymentOrErrorLocal = {readonly payment?: PaymentLocal | null,readonly err?: string | null,}
+export type PaymentPath = {readonly sourceAmount: string,readonly sourceAmountMax: string,readonly sourceAsset: Asset,readonly path?: ReadonlyArray<Asset> | null,readonly destinationAmount: string,readonly destinationAsset: Asset,readonly sourceInsufficientBalance: string,}
+export type PaymentPathLocal = {readonly sourceDisplay: string,readonly sourceMaxDisplay: string,readonly destinationDisplay: string,readonly exchangeRate: string,readonly amountError: string,readonly destinationAccount: AccountID,readonly fullPath: PaymentPath,}
+export type PaymentPathQuery = {readonly source: AccountID,readonly destination: AccountID,readonly sourceAsset: Asset,readonly destinationAsset: Asset,readonly amount: string,}
+export type PaymentRelayPost = {readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly toAssertion: string,readonly relayAccount: AccountID,readonly teamID: Keybase1.TeamID,readonly displayAmount: string,readonly displayCurrency: string,readonly boxB64: string,readonly signedTransaction: string,readonly quickReturn: boolean,readonly chatConversationID?: ChatConversationID | null,readonly batchID: string,}
+export type PaymentResult = {readonly senderAccountID: AccountID,readonly keybaseID: KeybaseTransactionID,readonly stellarID: TransactionID,readonly pending: boolean,}
 export type PaymentStatusMsg = {readonly accountID: AccountID,readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,}
 export type PaymentSummary ={ typ: PaymentSummaryType.stellar, stellar: PaymentSummaryStellar } | { typ: PaymentSummaryType.direct, direct: PaymentSummaryDirect } | { typ: PaymentSummaryType.relay, relay: PaymentSummaryRelay } | { typ: PaymentSummaryType.none}
-export type PaymentSummaryDirect = {readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: String,readonly fromStellar: AccountID,readonly from: Keybase1.UserVersion,readonly fromDeviceID: Keybase1.DeviceID,readonly toStellar: AccountID,readonly to?: Keybase1.UserVersion | null,readonly amount: String,readonly asset: Asset,readonly displayAmount?: String | null,readonly displayCurrency?: String | null,readonly noteB64: String,readonly fromDisplayAmount: String,readonly fromDisplayCurrency: String,readonly toDisplayAmount: String,readonly toDisplayCurrency: String,readonly ctime: TimeMs,readonly rtime: TimeMs,readonly cursorToken: String,readonly unread: Boolean,readonly fromPrimary: Boolean,readonly batchID: String,readonly fromAirdrop: Boolean,readonly sourceAmountMax: String,readonly sourceAmountActual: String,readonly sourceAsset: Asset,}
-export type PaymentSummaryRelay = {readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: String,readonly fromStellar: AccountID,readonly from: Keybase1.UserVersion,readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly toAssertion: String,readonly relayAccount: AccountID,readonly amount: String,readonly displayAmount?: String | null,readonly displayCurrency?: String | null,readonly ctime: TimeMs,readonly rtime: TimeMs,readonly boxB64: String,readonly teamID: Keybase1.TeamID,readonly claim?: ClaimSummary | null,readonly cursorToken: String,readonly batchID: String,readonly fromAirdrop: Boolean,}
-export type PaymentSummaryStellar = {readonly txID: TransactionID,readonly from: AccountID,readonly to: AccountID,readonly amount: String,readonly asset: Asset,readonly ctime: TimeMs,readonly cursorToken: String,readonly unread: Boolean,readonly isInflation: Boolean,readonly inflationSource?: String | null,readonly sourceAmountMax: String,readonly sourceAmountActual: String,readonly sourceAsset: Asset,readonly isAdvanced: Boolean,readonly summaryAdvanced: String,readonly operations?: ReadonlyArray<String> | null,readonly trustline?: PaymentTrustlineLocal | null,}
-export type PaymentTrustlineLocal = {readonly asset: Asset,readonly remove: Boolean,}
+export type PaymentSummaryDirect = {readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: string,readonly fromStellar: AccountID,readonly from: Keybase1.UserVersion,readonly fromDeviceID: Keybase1.DeviceID,readonly toStellar: AccountID,readonly to?: Keybase1.UserVersion | null,readonly amount: string,readonly asset: Asset,readonly displayAmount?: string | null,readonly displayCurrency?: string | null,readonly noteB64: string,readonly fromDisplayAmount: string,readonly fromDisplayCurrency: string,readonly toDisplayAmount: string,readonly toDisplayCurrency: string,readonly ctime: TimeMs,readonly rtime: TimeMs,readonly cursorToken: string,readonly unread: boolean,readonly fromPrimary: boolean,readonly batchID: string,readonly fromAirdrop: boolean,readonly sourceAmountMax: string,readonly sourceAmountActual: string,readonly sourceAsset: Asset,}
+export type PaymentSummaryRelay = {readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,readonly txStatus: TransactionStatus,readonly txErrMsg: string,readonly fromStellar: AccountID,readonly from: Keybase1.UserVersion,readonly fromDeviceID: Keybase1.DeviceID,readonly to?: Keybase1.UserVersion | null,readonly toAssertion: string,readonly relayAccount: AccountID,readonly amount: string,readonly displayAmount?: string | null,readonly displayCurrency?: string | null,readonly ctime: TimeMs,readonly rtime: TimeMs,readonly boxB64: string,readonly teamID: Keybase1.TeamID,readonly claim?: ClaimSummary | null,readonly cursorToken: string,readonly batchID: string,readonly fromAirdrop: boolean,}
+export type PaymentSummaryStellar = {readonly txID: TransactionID,readonly from: AccountID,readonly to: AccountID,readonly amount: string,readonly asset: Asset,readonly ctime: TimeMs,readonly cursorToken: string,readonly unread: boolean,readonly isInflation: boolean,readonly inflationSource?: string | null,readonly sourceAmountMax: string,readonly sourceAmountActual: string,readonly sourceAsset: Asset,readonly isAdvanced: boolean,readonly summaryAdvanced: string,readonly operations?: ReadonlyArray<string> | null,readonly trustline?: PaymentTrustlineLocal | null,}
+export type PaymentTrustlineLocal = {readonly asset: Asset,readonly remove: boolean,}
 export type PaymentsPage = {readonly payments?: ReadonlyArray<PaymentSummary> | null,readonly cursor?: PageCursor | null,readonly oldestUnread?: TransactionID | null,}
 export type PaymentsPageLocal = {readonly payments?: ReadonlyArray<PaymentOrErrorLocal> | null,readonly cursor?: PageCursor | null,readonly oldestUnread?: PaymentID | null,}
-export type PredefinedInflationDestination = {readonly tag: InflationDestinationTag,readonly name: String,readonly recommended: Boolean,readonly accountID: AccountID,readonly url: String,}
+export type PredefinedInflationDestination = {readonly tag: InflationDestinationTag,readonly name: string,readonly recommended: boolean,readonly accountID: AccountID,readonly url: string,}
 export type RecipientTrustlinesLocal = {readonly trustlines?: ReadonlyArray<Balance> | null,readonly recipientType: ParticipantType,}
-export type RelayClaimPost = {readonly keybaseID: KeybaseTransactionID,readonly dir: RelayDirection,readonly signedTransaction: String,readonly autoClaimToken?: String | null,}
+export type RelayClaimPost = {readonly keybaseID: KeybaseTransactionID,readonly dir: RelayDirection,readonly signedTransaction: string,readonly autoClaimToken?: string | null,}
 export type RelayClaimResult = {readonly claimStellarID: TransactionID,}
-export type RelayContents = {readonly stellarID: TransactionID,readonly sk: SecretKey,readonly note: String,}
-export type RelayOp = {readonly toAssertion: String,readonly relayAccount: AccountID,readonly teamID: Keybase1.TeamID,readonly boxB64: String,}
-export type RequestDetails = {readonly id: KeybaseRequestID,readonly fromUser: Keybase1.UserVersion,readonly toUser?: Keybase1.UserVersion | null,readonly toAssertion: String,readonly amount: String,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,readonly fromDisplayAmount: String,readonly fromDisplayCurrency: String,readonly toDisplayAmount: String,readonly toDisplayCurrency: String,readonly fundingKbTxID: KeybaseTransactionID,readonly status: RequestStatus,}
-export type RequestDetailsLocal = {readonly id: KeybaseRequestID,readonly fromAssertion: String,readonly fromCurrentUser: Boolean,readonly toUserType: ParticipantType,readonly toAssertion: String,readonly amount: String,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,readonly amountDescription: String,readonly worthAtRequestTime: String,readonly status: RequestStatus,}
-export type RequestPost = {readonly toUser?: Keybase1.UserVersion | null,readonly toAssertion: String,readonly amount: String,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,}
+export type RelayContents = {readonly stellarID: TransactionID,readonly sk: SecretKey,readonly note: string,}
+export type RelayOp = {readonly toAssertion: string,readonly relayAccount: AccountID,readonly teamID: Keybase1.TeamID,readonly boxB64: string,}
+export type RequestDetails = {readonly id: KeybaseRequestID,readonly fromUser: Keybase1.UserVersion,readonly toUser?: Keybase1.UserVersion | null,readonly toAssertion: string,readonly amount: string,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,readonly fromDisplayAmount: string,readonly fromDisplayCurrency: string,readonly toDisplayAmount: string,readonly toDisplayCurrency: string,readonly fundingKbTxID: KeybaseTransactionID,readonly status: RequestStatus,}
+export type RequestDetailsLocal = {readonly id: KeybaseRequestID,readonly fromAssertion: string,readonly fromCurrentUser: boolean,readonly toUserType: ParticipantType,readonly toAssertion: string,readonly amount: string,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,readonly amountDescription: string,readonly worthAtRequestTime: string,readonly status: RequestStatus,}
+export type RequestPost = {readonly toUser?: Keybase1.UserVersion | null,readonly toAssertion: string,readonly amount: string,readonly asset?: Asset | null,readonly currency?: OutsideCurrencyCode | null,}
 export type RequestStatusMsg = {readonly reqID: KeybaseRequestID,}
-export type SecretKey = String
-export type SendAssetChoiceLocal = {readonly asset: Asset,readonly enabled: Boolean,readonly left: String,readonly right: String,readonly subtext: String,}
-export type SendBannerLocal = {readonly level: String,readonly message: String,readonly proofsChanged: Boolean,readonly offerAdvancedSendForm: AdvancedBanner,}
-export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID,readonly pending: Boolean,readonly jumpToChat: String,}
+export type SecretKey = string
+export type SendAssetChoiceLocal = {readonly asset: Asset,readonly enabled: boolean,readonly left: string,readonly right: string,readonly subtext: string,}
+export type SendBannerLocal = {readonly level: string,readonly message: string,readonly proofsChanged: boolean,readonly offerAdvancedSendForm: AdvancedBanner,}
+export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID,readonly pending: boolean,readonly jumpToChat: string,}
 export type SendResultCLILocal = {readonly kbTxID: KeybaseTransactionID,readonly txID: TransactionID,}
-export type SignXdrResult = {readonly singedTx: String,readonly accountID: AccountID,readonly submitErr?: String | null,readonly submitTxID?: TransactionID | null,}
-export type StaticConfig = {readonly paymentNoteMaxLength: Int,readonly requestNoteMaxLength: Int,readonly publicMemoMaxLength: Int,}
-export type StellarServerDefinitions = {readonly revision: Int,readonly currencies?: {[key: string]: OutsideCurrencyDefinition} | null,}
+export type SignXdrResult = {readonly singedTx: string,readonly accountID: AccountID,readonly submitErr?: string | null,readonly submitTxID?: TransactionID | null,}
+export type StaticConfig = {readonly paymentNoteMaxLength: number,readonly requestNoteMaxLength: number,readonly publicMemoMaxLength: number,}
+export type StellarServerDefinitions = {readonly revision: number,readonly currencies?: {[key: string]: OutsideCurrencyDefinition} | null,}
 export type SubmitMultiRes = {readonly txID: TransactionID,}
-export type TimeMs = Long
-export type TimeboundsRecommendation = {readonly timeNow: Keybase1.UnixTime,readonly timeout: Int64,}
-export type TransactionID = String
+export type TimeMs = number
+export type TimeboundsRecommendation = {readonly timeNow: Keybase1.UnixTime,readonly timeout: number,}
+export type TransactionID = string
 export type Trustline = {readonly assetCode: AssetCode,readonly issuer: AccountID,}
-export type TxDisplaySummary = {readonly source: AccountID,readonly fee: Int,readonly memo: String,readonly memoType: String,readonly operations?: ReadonlyArray<String> | null,}
-export type UIPaymentReviewed = {readonly bid: BuildPaymentID,readonly reviewID: Int,readonly seqno: Int,readonly banners?: ReadonlyArray<SendBannerLocal> | null,readonly nextButton: String,}
-export type ValidateStellarURIResultLocal = {readonly operation: String,readonly originDomain: String,readonly message: String,readonly callbackURL: String,readonly xdr: String,readonly summary: TxDisplaySummary,readonly recipient: String,readonly amount: String,readonly assetCode: String,readonly assetIssuer: String,readonly memo: String,readonly memoType: String,readonly displayAmountFiat: String,readonly availableToSendNative: String,readonly availableToSendFiat: String,readonly signed: Boolean,}
-export type WalletAccountLocal = {readonly accountID: AccountID,readonly isDefault: Boolean,readonly name: String,readonly balanceDescription: String,readonly seqno: String,readonly currencyLocal: CurrencyLocal,readonly accountMode: AccountMode,readonly accountModeEditable: Boolean,readonly deviceReadOnly: Boolean,readonly isFunded: Boolean,readonly canSubmitTx: Boolean,readonly canAddTrustline: Boolean,}
+export type TxDisplaySummary = {readonly source: AccountID,readonly fee: number,readonly memo: string,readonly memoType: string,readonly operations?: ReadonlyArray<string> | null,}
+export type UIPaymentReviewed = {readonly bid: BuildPaymentID,readonly reviewID: number,readonly seqno: number,readonly banners?: ReadonlyArray<SendBannerLocal> | null,readonly nextButton: string,}
+export type ValidateStellarURIResultLocal = {readonly operation: string,readonly originDomain: string,readonly message: string,readonly callbackURL: string,readonly xdr: string,readonly summary: TxDisplaySummary,readonly recipient: string,readonly amount: string,readonly assetCode: string,readonly assetIssuer: string,readonly memo: string,readonly memoType: string,readonly displayAmountFiat: string,readonly availableToSendNative: string,readonly availableToSendFiat: string,readonly signed: boolean,}
+export type WalletAccountLocal = {readonly accountID: AccountID,readonly isDefault: boolean,readonly name: string,readonly balanceDescription: string,readonly seqno: string,readonly currencyLocal: CurrencyLocal,readonly accountMode: AccountMode,readonly accountModeEditable: boolean,readonly deviceReadOnly: boolean,readonly isFunded: boolean,readonly canSubmitTx: boolean,readonly canAddTrustline: boolean,}
 
 export type IncomingCallMapType = {
     
