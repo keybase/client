@@ -333,13 +333,6 @@ function renderTypeName(type: string, prefix = ''): string {
 }
 
 function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<string, MessageData> {
-  // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
-  // the core side doesn't have a consistent naming convention. (must be case insensitive to pass correctly)
-  const isUIProtocol =
-    ['notifyCtl'].indexOf(json.protocol) === -1 &&
-    !!json.protocol.match(/^(notify.*|.*ui|logsend)$/i) &&
-    !json.protocol.match(/NotifyFSRequest/)
-
   return Object.keys(json.messages).reduce<Record<string, MessageData>>((map, m) => {
     const message = json.messages[m]
     lintMessage(m, message)
@@ -357,21 +350,28 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
-    const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
+    const hasIncoming = enabledCall(methodName, 'incoming')
+    const wantsCustom = enabledCall(methodName, 'custom')
+    if (wantsCustom && message.hasOwnProperty('notify')) {
+      console.log(colors.red('ERROR! Custom call cannot be a notify method:\n\n '), methodName)
+      process.exit(1)
+    }
+    const hasCustomResponse = wantsCustom && !message.hasOwnProperty('notify')
+    const isIncomingMethod = hasIncoming || hasCustomResponse
 
-    if (isUIMethod) {
+    if (isIncomingMethod) {
       project.incomingMaps[methodName] = `(params: RpcIn<${methodName}>) => void`
-      if (!message.hasOwnProperty('notify')) {
-        project.customResponseIncomingMaps[
-          methodName
-        ] = `(params: RpcIn<${methodName}>, response: RpcResponse<${methodName}>) => void`
-      }
+    }
+    if (hasCustomResponse) {
+      project.customResponseIncomingMaps[
+        methodName
+      ] = `(params: RpcIn<${methodName}>, response: RpcResponse<${methodName}>) => void`
     }
 
-    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
-    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
-    const engineListener = isUIMethod ? '' : engineListenerGen(methodName, name, false)
-    const engineListenerType = isUIMethod ? '' : engineListenerGen(methodName, name, true)
+    const rpcPromise = isIncomingMethod ? '' : rpcPromiseGen(methodName, name, false)
+    const rpcPromiseType = isIncomingMethod ? '' : rpcPromiseGen(methodName, name, true)
+    const engineListener = isIncomingMethod ? '' : engineListenerGen(methodName, name, false)
+    const engineListenerType = isIncomingMethod ? '' : engineListenerGen(methodName, name, true)
 
     if (rpcPromise.length) {
       project.hasEngine = true
@@ -386,7 +386,7 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
     }
 
     // Must be an rpc we use
-    if (rpcPromiseType || engineListenerType || isUIMethod) {
+    if (rpcPromiseType || engineListenerType || isIncomingMethod) {
       map[methodName] = {
         inParam,
         outParam: outParam === 'null' ? 'void' : outParam,
@@ -400,9 +400,9 @@ function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<stri
   }, {})
 }
 
-function enabledCall(methodName: string, type: EnabledCallType): boolean | undefined {
+function enabledCall(methodName: string, type: EnabledCallType): boolean {
   const cleanName = methodName.substring(1, methodName.length - 1)
-  return enabledCalls[cleanName] && enabledCalls[cleanName][type]
+  return Boolean(enabledCalls[cleanName]?.[type])
 }
 
 function engineListenerGen(methodName: string, name: string, justType: boolean): string {
