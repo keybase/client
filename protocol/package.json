@@ -20,5 +20,8 @@
     "avdl-compiler": "github:keybase/node-avdl-compiler#master",
     "avdl2json": "2.2.5",
     "json5": "2.2.3"
+  },
+  "devDependencies": {
+    "typescript": "6.0.0-beta"
   }
 }
