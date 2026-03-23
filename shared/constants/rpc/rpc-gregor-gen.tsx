@@ -23,6 +23,13 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
 export type MessageTypes = {
 
 }
+export type MessageKey = keyof MessageTypes
+export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
+export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
+export type RpcResponse<M extends MessageKey> = {
+  error: IncomingErrorCallback
+  result: (res: RpcOut<M>) => void
+}
 export type AuthResult = {readonly uid: UID,readonly username: String,readonly sid: SessionID,readonly isAdmin: Boolean,}
 export type Body = Bytes
 export type Category = String

@@ -225,7 +225,7 @@ const actionNames = [
   'stellar1UiPaymentReviewed',
 ] as const
 
-type ActionPayloadMap = {
+type ActionSpec = {
   chat1ChatUiChatBotCommandsUpdateStatus: {readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] , response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}},
   chat1ChatUiChatClearWatch: {readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] , response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}},
   chat1ChatUiChatCoinFlipStatus: {readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'] , response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['outParam']) => void}},
@@ -455,10 +455,12 @@ const makeActionTypes = <T extends ReadonlyArray<string>>(names: T) =>
 export const actionTypes = makeActionTypes(actionNames)
 
 type EngineActionMap = {
-  [K in keyof typeof actionTypes]: {readonly payload: ActionPayloadMap[K]; readonly type: (typeof actionTypes)[K]}
+  [K in keyof typeof actionTypes]: {readonly payload: ActionSpec[K]; readonly type: (typeof actionTypes)[K]}
 }
 
-export type EngineActions = EngineActionMap[keyof EngineActionMap]
+export type ActionPayload<K extends ActionKey = ActionKey> = ActionSpec[K]
+export type EngineAction<K extends ActionKey = ActionKey> = EngineActionMap[K]
+export type EngineActions = EngineAction
 export type ResetStoreAction = {readonly type: typeof resetStore; readonly payload: undefined}
 export type Actions = EngineActions | ResetStoreAction
 export type ActionKey = keyof typeof actionTypes

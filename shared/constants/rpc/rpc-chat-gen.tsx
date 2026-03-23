@@ -683,6 +683,14 @@ export type MessageTypes = {
   },
 }
 
+export type MessageKey = keyof MessageTypes
+export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
+export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
+export type RpcResponse<M extends MessageKey> = {
+  error: IncomingErrorCallback
+  result: (res: RpcOut<M>) => void
+}
+
 export enum ArchiveChatJobStatus {
   running = 0,
   paused = 1,
