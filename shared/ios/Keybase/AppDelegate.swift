@@ -63,11 +63,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let wd = MainThreadWatchdog(appStartTime: AppDelegate.appStartTime, writeLog: { [weak self] msg in
       self?.writeStartupTimingLog(msg)
     })
-    wd.install()
     wd.start(context: "cold start")
     self.watchdog = wd
 
     self.didLaunchSetupBefore()
+    // Install the SIGUSR1 stack-capture handler after KeybaseInit — Go's runtime
+    // initializes its own signal handlers during KeybaseInit and would overwrite
+    // anything registered before it.
+    wd.install()
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
@@ -464,8 +467,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationWillEnterForeground(_ application: UIApplication) {
-    NSLog("applicationWillEnterForeground: hiding keyz screen.")
+    NSLog("applicationWillEnterForeground: start, hiding keyz screen.")
     hideCover()
+    NSLog("applicationWillEnterForeground: done")
   }
 
 }
