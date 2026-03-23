@@ -1,5 +1,14 @@
 'use strict'
 
+import fs from 'node:fs'
+import path from 'node:path'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+import camelcase from 'camelcase'
+import colors from 'colors'
+import json5 from 'json5'
+import prettier from 'prettier'
+
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
 type EnumMap = Record<string, number>
@@ -132,28 +141,12 @@ type CompileActionsArgs = {
 
 type PrettierModule = {
   format: (source: string, options: Record<string, unknown>) => string | Promise<string>
-  resolveConfig?: ((filePath: string) => Promise<Record<string, unknown> | null>) & {
-    sync?: (filePath: string) => Record<string, unknown> | null
-  }
+  resolveConfig?: (filePath: string) => Promise<Record<string, unknown> | null>
 }
 
-const prettier = require('prettier') as PrettierModule
-const fs = require('fs') as {
-  readFileSync: (filePath: string, encoding?: string) => string
-  readdirSync: (dirPath: string) => Array<string>
-  writeFileSync: (filePath: string, contents: string) => void
-}
-const path = require('path') as {
-  join: (...parts: Array<string>) => string
-}
-const camelcase = require('camelcase') as (input: string) => string
-const colors = require('colors') as {
-  red: (input: string) => string
-  yellow: (input: string) => string
-}
-const json5 = require('json5') as {
-  parse: (input: string) => EnabledCalls
-}
+const require = createRequire(import.meta.url)
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8'))
 
 // Sanity check this json file
@@ -716,14 +709,10 @@ async function formatGeneratedTypeScript(
   outPath: string,
   source: string
 ): Promise<string> {
-  const config =
-    prettierModule.resolveConfig && typeof prettierModule.resolveConfig.sync === 'function'
-      ? prettierModule.resolveConfig.sync(outPath)
-      : prettierModule.resolveConfig
-        ? await prettierModule.resolveConfig(outPath)
-        : null
+  const config = prettierModule.resolveConfig ? await prettierModule.resolveConfig(outPath) : null
   return await prettierModule.format(source, {
     ...config,
+    filepath: outPath,
     parser: 'typescript',
   })
 }
@@ -735,7 +724,7 @@ async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {
   fs.writeFileSync(outPath, generated)
 }
 
-function writeAll(): void {
+async function writeAll(): Promise<void> {
   const imports = Object.keys(projects)
     .map(
       p => `import type {
@@ -755,15 +744,12 @@ function writeAll(): void {
     .join(' & ')}
   `
   const toWrite = [imports, exports].join('\n')
-  const destinationFile = `types/rpc-all-gen.tsx` // Only used by prettier so we can set an override in .prettierrc
-  const formatted = prettier.format(toWrite, {
-    ...prettier.resolveConfig.sync(destinationFile),
-    parser: 'typescript',
-  })
+  const outPath = path.join(__dirname, '../js/rpc-all-gen.tsx')
+  const formatted = await formatGeneratedTypeScript(prettier, outPath, toWrite)
   fs.writeFileSync(`js/rpc-all-gen.tsx`, formatted as string)
 }
 
-function writeFlow(typeDefs: AnalysisResult, project: ProjectState): void {
+async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promise<void> {
   const importMap: Record<ProjectImport, string> = {
     Gregor1: "import * as Gregor1 from './rpc-gregor-gen'",
     Keybase1: "import * as Keybase1 from './rpc-gen'",
@@ -846,11 +832,8 @@ ${messageTypesData}
   )}`
 
   const toWrite = [typePrelude, data, notEnabled].join('\n')
-  const destinationFile = `types/${project.out}` // Only used by prettier so we can set an override in .prettierrc
-  const formatted = prettier.format(toWrite, {
-    ...prettier.resolveConfig.sync(destinationFile),
-    parser: 'typescript',
-  })
+  const outPath = path.join(__dirname, '../js', `${project.out}.tsx`)
+  const formatted = await formatGeneratedTypeScript(prettier, outPath, toWrite)
   fs.writeFileSync(`js/${project.out}.tsx`, formatted as string)
 }
 
@@ -977,7 +960,7 @@ function lintError(s: string, lint?: JsonLint): void {
 
 async function main(): Promise<void> {
   const keys = Object.keys(projects)
-  keys.forEach(key => {
+  for (const key of keys) {
     const project = projects[key as ProjectKey]
     const typeDefs = fs
       .readdirSync(project.root)
@@ -993,9 +976,9 @@ async function main(): Promise<void> {
         },
         {consts: {}, messages: {}, types: {}}
       )
-    writeFlow(typeDefs, project)
-  })
-  writeAll()
+    await writeFlow(typeDefs, project)
+  }
+  await writeAll()
   await writeActions()
 }
 
