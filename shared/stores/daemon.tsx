@@ -103,7 +103,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
-        const t = Date.now()
         logger.info('[Bootstrap] loadDaemonBootstrapStatus: starting')
         try {
           await get().dispatch.loadDaemonBootstrapStatus()

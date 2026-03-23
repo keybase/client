@@ -262,7 +262,7 @@ const Header = () => (
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const {presetRole} = props
   const filteredRole = filterRole(presetRole)
-  const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
+  const [selectedRole, setSelectedRole] = React.useState(
     filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   )
   React.useEffect(() => {

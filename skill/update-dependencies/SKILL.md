@@ -1,18 +1,30 @@
 ---
 name: update-dependencies
-description: Use when updating npm/yarn dependencies in shared/package.json. Use for routine dep bumps, security updates, or keeping packages current. Do NOT use for eslint, react-native, react, react-dom, react-is, react-native-*, or any package pinned to the Expo SDK version.
+description: Use when updating npm/yarn dependencies in shared/package.json. Use for routine dep bumps, security updates, or keeping packages current.
 ---
 
 # Updating Dependencies
 
 ## Packages to NEVER update with this skill
 
-These are pinned to specific versions for compatibility reasons — do not touch:
+Only these are pinned to the Expo SDK version — do not touch:
 - `react`, `react-dom`, `react-is`, `react-test-renderer` — must match Expo SDK
-- `react-native` and all `react-native-*` packages
-- `@react-native/*`
+
+Everything else — including `react-native`, `react-native-*`, and `@react-native/*` — is **not** Expo-locked and can be updated normally.
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
+
+## Packages held back — always skip and announce
+
+These are outdated but blocked due to known compatibility issues. Always echo that you are skipping them:
+
+```
+Skipping eslint — held back: eslint plugins not yet compatible with newer major versions
+Skipping react-error-boundary — held back: v6.x not compatible with our bundling setup
+```
+
+- **`eslint`** — plugins not yet updated for newer major version compatibility
+- **`react-error-boundary`** — v6.x not compatible with our bundling setup
 
 ## Process
 
@@ -26,7 +38,7 @@ This shows current, wanted, and latest versions.
 
 ### 2. For packages with beta/dev/canary versions
 
-If `yarn outdated` shows a pre-release version or you suspect one exists, check all available versions:
+If `yarn outdated` shows a pre-release version or you suspect one exists:
 
 ```bash
 cd shared && yarn info <package> versions
@@ -39,6 +51,7 @@ Choose the most recent **stable** version unless the project already tracks a pr
 - Use **exact versions only** — no `^` or `~`
 - Edit `shared/package.json` directly
 - Update only the packages you intend to change
+- Verify no `^` or `~` are present before saving
 
 ### 4. Install and validate
 
@@ -61,15 +74,8 @@ cd shared && ./desktop/extract-electron-shasums.sh <new-version>
 
 This regenerates `shared/desktop/electron-sums.tsx` with the correct SHA256 checksums for all platforms.
 
-## Packages held back — flag to user
-
-These are outdated but skipped until ecosystem support improves. Always mention them at the end so the user can decide:
-
-- **`eslint`** — v10 available but `typescript-eslint` v9 (required for eslint 10 compat) doesn't exist yet.
-- **`react-error-boundary`** — v6 available (major bump from v5); skipping until manually evaluated.
-
 ## Notes
 
 - `lodash` types (`@types/lodash`, `@types/lodash-es`) can be updated independently of lodash itself.
 - `@types/react`, `@types/react-dom`, `@types/react-is` should stay in sync with their runtime counterparts — update only if the runtime version changed.
-- When in doubt whether a package is Expo-managed, check if its version matches the `expo` SDK version pattern (e.g., `55.x.x`).
+- Packages with versions matching the `expo` SDK pattern (e.g., `55.x.x`) are `expo-*` packages and can be updated together.

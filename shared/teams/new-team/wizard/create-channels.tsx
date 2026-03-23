@@ -21,7 +21,7 @@ export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
-  const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
+  const [channels, setChannels] = React.useState([...initialChannels])
   const setChannel = (i: number, value: string) => {
     setChannels(prev => prev.map((channel, idx) => (idx === i ? value : channel)))
   }

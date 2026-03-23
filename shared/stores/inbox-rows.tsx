@@ -136,8 +136,8 @@ export const flushInboxRowUpdates = () => {
       const filtered = cs.participants.name.length
         ? cs.participants.name.filter((pp: string, _: number, list: readonly string[]) => list.length === 1 || pp !== you)
         : []
-      if (!shallowEqual(small.participants as string[], filtered as string[])) {
-        small.participants = filtered as string[]
+      if (!shallowEqual(small.participants, filtered)) {
+        small.participants = filtered
       }
       small.snippet = snippet
       small.snippetDecoration = m.snippetDecoration

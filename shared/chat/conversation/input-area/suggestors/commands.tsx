@@ -53,10 +53,10 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
 
     const botRestrictMap = getBotRestrictBlockMap(botSettings, s.id, [
       ...suggestBotCommands
-        .reduce<Set<string>>((s, c) => {
+        .reduce((s, c) => {
           c.username && s.add(c.username)
           return s
-        }, new Set())
+        }, new Set<string>())
         .values(),
     ])
     return !botRestrictMap.get(command.username ?? '')

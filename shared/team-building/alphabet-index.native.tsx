@@ -11,8 +11,8 @@ const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
 
 const AlphabetIndex = (props: Props) => {
   const topSectionRef = React.useRef<View>(null)
-  const sectionMeasureRef = React.useRef<{height: number; pageY: number}>(initMeasureRef)
-  const currIndex = React.useRef<number>(-1)
+  const sectionMeasureRef = React.useRef(initMeasureRef)
+  const currIndex = React.useRef(-1)
 
   // This timeout is long because our ref is set before the screen transition
   // finishes. Transition must be finished so we get accurate coords.

@@ -32,7 +32,7 @@ const Checkbox = (props: Props) => {
         props.disabled && styles.checkboxInactive,
         props.disabled && props.checked && styles.semiTransparent,
         props.checkboxStyle,
-      ])) as React.CSSProperties}>
+      ]))}>
         <Kb.Icon
           type="iconfont-check"
           style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}

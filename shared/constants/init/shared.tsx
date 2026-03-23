@@ -5,23 +5,23 @@ import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __hmr_startupOnce: boolean | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_devicesLoaded: boolean | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_gitLoaded: boolean | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_sharedUnsubs: Array<() => void> | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_platformUnsubs: Array<() => void> | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_oneTimeInitDone: boolean | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_convoDeferImpl: unknown
-  // eslint-disable-next-line no-var
+   
   var __hmr_chatStores: Map<unknown, unknown> | undefined
-  // eslint-disable-next-line no-var
+   
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseArchiveStateType from '@/stores/archive'

@@ -130,7 +130,7 @@ const RetentionPicker = (p: Props) => {
         if (showInheritOption) {
           policies.unshift(Teams.retentionPolicies.policyInherit)
         }
-        return policies.reduce<Kb.MenuItems>((arr, policy) => {
+        return policies.reduce((arr, policy) => {
           switch (policy.type) {
             case 'retain':
             case 'expire':
