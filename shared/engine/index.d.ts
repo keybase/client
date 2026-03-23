@@ -1,6 +1,6 @@
 import type Session from './session'
 import type {RPCError} from '@/util/errors'
-import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/types/rpc-all-gen'
+import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
 import type {CreateClientType} from './index.platform'
 
 export type BatchParams = Array<{key: string | ReadonlyArray<string>; increment: boolean; error?: RPCError}>

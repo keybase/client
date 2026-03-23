@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '../config'
@@ -72,7 +71,7 @@ test('badge engine updates fan out into config and badge counts', () => {
 
   store.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {badgeState}},
-    type: EngineGen.keybase1NotifyBadgesBadgeState,
+    type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
   expect(useConfigState.getState().badgeState).toEqual(badgeState)

@@ -4,7 +4,7 @@ import * as R from '@/constants/remote'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin, isLinux} from '@/constants/platform.desktop'
 import {makeEngine} from '@/engine'
 import {

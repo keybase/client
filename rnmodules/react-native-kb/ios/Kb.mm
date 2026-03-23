@@ -273,7 +273,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
+  NSLog(@"notifyJSReady: called from JS, queuing main thread block");
   dispatch_async(dispatch_get_main_queue(), ^{
+
     self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
 
     // Signal to Go that JS is ready

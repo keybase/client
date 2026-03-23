@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Common from './common'
-import * as RPCTypes from '../rpc-gen'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import * as _Message from './message'
 import type * as Meta from './meta'
 import {uint8ArrayToHex, hexToUint8Array} from 'uint8array-extras'

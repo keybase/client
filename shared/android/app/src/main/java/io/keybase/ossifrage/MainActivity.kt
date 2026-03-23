@@ -90,18 +90,19 @@ class MainActivity : ReactActivity() {
 
         scheduleHandleIntent()
 
-        // fix for keyboard avoiding not working on 35
-        if (Build.VERSION.SDK_INT >= 35) {
-            val rootView = findViewById<View>(android.R.id.content)
-            ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
-            val innerPadding = insets.getInsets(WindowInsetsCompat.Type.ime())
+        // edgeToEdgeEnabled=true in gradle.properties causes RN to call
+        // WindowCompat.setDecorFitsSystemWindows(false) on all API levels, which breaks
+        // adjustResize. Manually apply insets so the keyboard pushes content up.
+        val rootView = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val sysBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             rootView.setPadding(
-                innerPadding.left,
-                innerPadding.top,
-                innerPadding.right,
-                innerPadding.bottom)
+                sysBarInsets.left,
+                sysBarInsets.top,
+                sysBarInsets.right,
+                maxOf(imeInsets.bottom, sysBarInsets.bottom))
             insets
-            }
         }
     }
 

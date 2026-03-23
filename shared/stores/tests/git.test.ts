@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useGitState} from '../git'
@@ -70,7 +69,7 @@ test('badge updates are reflected in local state', () => {
           },
         },
       },
-      type: EngineGen.keybase1NotifyBadgesBadgeState,
+      type: 'keybase.1.NotifyBadges.badgeState',
     } as any)
 
   expect(useGitState.getState().isNew).toEqual(new Set(['repo-guid-1', 'repo-guid-2']))

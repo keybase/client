@@ -1,7 +1,7 @@
 import * as Platforms from '@/constants/platform'
 import {ignorePromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -212,7 +212,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+        case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
           get().dispatch.clearJustSignedUpEmail()
           break
         default:

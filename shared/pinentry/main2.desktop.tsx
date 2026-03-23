@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import type * as T from '@/constants/types'
 import Pinentry from './index.desktop'
 import load from '../desktop/remote/component-loader.desktop'

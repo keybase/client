@@ -1,7 +1,7 @@
 import {Dimensions, Platform} from 'react-native'
 import Constants from 'expo-constants'
 import * as ScreenCapture from 'expo-screen-capture'
-import * as RPCGen from '@/constants/types/rpc-gen'
+import * as RPCGen from '@/constants/rpc/rpc-gen'
 import {
   androidIsDeviceSecure,
   fsCacheDir,

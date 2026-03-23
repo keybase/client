@@ -2,7 +2,7 @@ import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {navigateAppend, navUpToScreen} from '@/constants/router'
@@ -95,7 +95,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           const {resetState} = badgeState
           get().dispatch.updateARState(resetState.active, resetState.endTime)

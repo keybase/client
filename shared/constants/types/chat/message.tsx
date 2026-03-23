@@ -1,7 +1,7 @@
 // Types related to a message
 import type * as Common from './common'
-import type * as RPCTypes from '../rpc-gen'
-import type * as RPCStellarTypes from '../rpc-stellar-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
+import type * as RPCStellarTypes from '@/constants/rpc/rpc-stellar-gen'
 import type * as WalletTypes from '../wallets'
 import type * as TeamTypes from '../teams'
 import type HiddenString from '@/util/hidden-string'

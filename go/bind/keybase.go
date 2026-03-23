@@ -524,6 +524,7 @@ func ReadArr() (data []byte, err error) {
 // ensureConnection establishes the loopback connection if not already connected.
 // Must be called with connMutex held.
 func ensureConnection() error {
+	start := time.Now()
 	if !isInited() {
 		return errors.New("keybase not initialized")
 	}
@@ -536,7 +537,7 @@ func ensureConnection() error {
 	if err != nil {
 		return fmt.Errorf("Failed to dial loopback listener: %s", err)
 	}
-	log("Go: Established loopback connection")
+	log("Go: Established loopback connection in %v", time.Since(start))
 	return nil
 }
 
@@ -590,6 +591,12 @@ func IsAppStateForeground() bool {
 	return kbCtx.MobileAppState.State() == keybase1.MobileAppState_FOREGROUND
 }
 
+// FlushLogs synchronously flushes any buffered log data to disk. Call this
+// before background suspension and after foreground resume to prevent log loss.
+func FlushLogs() {
+	logger.FlushLogFile()
+}
+
 func SetAppStateForeground() {
 	if !isInited() {
 		return
@@ -639,36 +646,39 @@ func waitForInit(maxDur time.Duration) error {
 	}
 }
 
-func BackgroundSync() {
+// BackgroundSync runs a short background sync pulse. Returns a non-empty status
+// string on early exit or error so Swift can log it via NSLog.
+func BackgroundSync() string {
 	// On Android there is a race where this function can be called before Init when starting up in the
 	// background. Let's wait a little bit here for Init to get run, and bail out if it never does.
 	if err := waitForInit(5 * time.Second); err != nil {
-		return
+		return fmt.Sprintf("waitForInit timeout: %v", err)
 	}
 	defer kbCtx.Trace("BackgroundSync", nil)()
 
 	// Skip the sync if we aren't in the background
 	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
-		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
-		return
+		msg := fmt.Sprintf("skipping, app not in background state: %v", state)
+		kbCtx.Log.Debug("BackgroundSync: %s", msg)
+		return msg
 	}
 
 	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
 	kbCtx.MobileAppState.Update(nextState)
-	doneCh := make(chan struct{})
+	resultCh := make(chan string, 1)
 	go func() {
-		defer func() { close(doneCh) }()
 		select {
 		case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
 			// if literally anything happens, let's get out of here
-			kbCtx.Log.Debug("BackgroundSync: bailing out early, appstate change: %v", state)
-			return
+			msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
+			kbCtx.Log.Debug("BackgroundSync: %s", msg)
+			resultCh <- msg
 		case <-time.After(10 * time.Second):
 			kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-			return
+			resultCh <- "completed 10s window"
 		}
 	}()
-	<-doneCh
+	return <-resultCh
 }
 
 // pushPendingMessageFailure sends at most one notification that a message

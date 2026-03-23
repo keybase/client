@@ -20,6 +20,9 @@ export const tabBarStyle = {
   },
 } as const
 
+export const tabBarBlurEffect = 'systemDefault' as const
+export const tabBarMinimizeBehavior = 'onScrollDown' as const
+
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
 

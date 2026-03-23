@@ -1,6 +1,6 @@
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
 import {isWindows, cacheRoot} from '@/constants/platform.desktop'
