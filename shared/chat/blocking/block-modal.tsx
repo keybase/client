@@ -205,7 +205,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const [finishClicked, setFinishClicked] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
   // "Finish" button. reports is the same thing for reporting.
-  const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(new Map())
+  const [newBlocks, setNewBlocks] = React.useState(new Map())
 
   const loadedOnceRef = React.useRef(false)
   React.useEffect(() => {

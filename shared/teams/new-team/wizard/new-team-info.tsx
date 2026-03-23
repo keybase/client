@@ -37,7 +37,7 @@ const NewTeamInfo = () => {
   )
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState<T.RPCGen.StatusCode>(
+  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState(
     T.RPCGen.StatusCode.scok
   )
   const [teamNameTaken, setTeamNameTaken] = React.useState(false)

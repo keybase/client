@@ -235,7 +235,7 @@ export const createLinkingConfig = (
     }
 
     // Lazy-require to break require cycle: linking.tsx → push.native.tsx → linking.tsx
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const {usePushState} = require('@/stores/push') as typeof UsePushStateType
     const pushState = usePushState.getState()
     const showMonster =
@@ -245,7 +245,7 @@ export const createLinkingConfig = (
     let deepLinkUrl: string | null = null
     if (isMobile) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         const RN: {Linking: {getInitialURL: () => Promise<string | null>}} = require('react-native')
         deepLinkUrl = await RN.Linking.getInitialURL()
       } catch {}
@@ -334,7 +334,7 @@ export const createLinkingConfig = (
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         const RN: {Linking: {addEventListener: (type: string, handler: (e: {url: string}) => void) => {remove: () => void}}} = require('react-native')
         const {Linking} = RN
         const sub = Linking.addEventListener('url', ({url}: {url: string}) => {

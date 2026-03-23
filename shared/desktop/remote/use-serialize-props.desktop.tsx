@@ -18,8 +18,8 @@ export default function useSerializeProps<P extends object>(
   windowComponent: string,
   windowParam: string
 ) {
-  const lastSent = React.useRef<string>('')
-  const lastForceUpdate = React.useRef<number>(-1)
+  const lastSent = React.useRef('')
+  const lastForceUpdate = React.useRef(-1)
   const currentForceUpdate = useConfigState(
     s => s.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0
   )

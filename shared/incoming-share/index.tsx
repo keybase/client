@@ -187,11 +187,11 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
-    const {dispatch} = Chat.getConvoState(selectedConversationIDKey!)
+    const {dispatch} = Chat.getConvoState(selectedConversationIDKey)
     text && dispatch.injectIntoInput(text)
     dispatch.navigateToThread('extension')
     if (sendPaths.length > 0) {
-      const meta = Chat.getConvoState(selectedConversationIDKey!).meta
+      const meta = Chat.getConvoState(selectedConversationIDKey).meta
       const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
         name: 'chatAttachmentGetTitles',

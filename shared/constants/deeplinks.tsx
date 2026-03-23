@@ -62,7 +62,7 @@ const handleKeybaseLink = (link: string) => {
   switch (parts[0]) {
     case 'convid':
       if (parts[1]) {
-        navToThread(parts[1] as T.Chat.ConversationIDKey)
+        navToThread(parts[1])
         return
       }
       break

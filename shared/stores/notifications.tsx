@@ -164,7 +164,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         //
         // This way the app badge count is always consistent with the badged
         // tabs.
-        s.desktopAppBadgeCount = [...counts.entries()].reduce<number>(
+        s.desktopAppBadgeCount = [...counts.entries()].reduce(
           (count, [k, v]) => count - (s.navBadges.get(k) || 0) + v,
           s.desktopAppBadgeCount
         )

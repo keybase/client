@@ -40,9 +40,9 @@ const Container = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-  const _teamNameToRole = [...teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
+  const _teamNameToRole = [...teams.values()].reduce(
     (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
-    new Map()
+    new Map<string, T.Teams.MaybeTeamRoleType>()
   )
   const onAddToTeams = (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, them)
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())

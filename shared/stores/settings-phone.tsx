@@ -207,13 +207,13 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
     resetState: Z.defaultReset,
     setNumbers: phoneNumbers => {
       set(s => {
-        s.phones = phoneNumbers?.reduce<Map<string, PhoneRow>>((map, row) => {
+        s.phones = phoneNumbers?.reduce((map, row) => {
           if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {
             return map
           }
           map.set(row.phoneNumber, toPhoneRow(row))
           return map
-        }, new Map())
+        }, new Map<string, PhoneRow>())
       })
     },
     verifyPhoneNumber: (phoneNumber, code) => {
