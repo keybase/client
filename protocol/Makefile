@@ -56,7 +56,7 @@ js/rpc.js: build-stamp | .config
 	@mkdir -p ../shared/constants/rpc
 	rm -f ../shared/constants/types/rpc*.tsx
 	rm -f ../shared/actions/engine-gen-gen.tsx
-	node ./bin/flow.ts
+	node ./bin/generate-ts.ts
 	cp ./js/rpc*.tsx ../shared/constants/rpc
 
 build-go-bot-types: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDLC) | .config
