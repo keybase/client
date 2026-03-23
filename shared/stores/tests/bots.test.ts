@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
 import {resetAllStores} from '@/util/zustand'
 import {useBotsState} from '../bots'
 
@@ -42,7 +41,7 @@ test('featured bot engine updates merge bots and derive the current page', () =>
         offset: 20,
       },
     },
-    type: EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate,
+    type: 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate',
   } as any)
 
   expect(store.getState().featuredBotsPage).toBe(2)

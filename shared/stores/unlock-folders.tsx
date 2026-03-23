@@ -1,4 +1,4 @@
-import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
@@ -35,13 +35,13 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1RekeyUIRefresh: {
+        case 'keybase.1.rekeyUI.refresh': {
           const {problemSetDevices} = action.payload.params
           logger.info('Asked for rekey')
           useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
           break
         }
-        case EngineGen.keybase1RekeyUIDelegateRekeyUI: {
+        case 'keybase.1.rekeyUI.delegateRekeyUI': {
           // we get this with sessionID == 0 if we call openDialog
           // Dangling, never gets closed
           const session = getEngine().createSession({

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '../actions/remote-gen'
+import * as RemoteGen from '../constants/remote-actions'
 import Tracker from './index.desktop'
 import load from '../desktop/remote/component-loader.desktop'
 import {useDarkModeState} from '@/stores/darkmode'

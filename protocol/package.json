@@ -2,7 +2,7 @@
   "name": "keybase-protocol",
   "version": "1.0.0",
   "description": "An IDL and protocol generator for Keybase components",
-  "main": "bin/compile.iced",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,13 +19,10 @@
   "dependencies": {
     "avdl-compiler": "github:keybase/node-avdl-compiler#master",
     "avdl2json": "2.2.5",
-    "camelcase": "6.3.0",
-    "iced-coffee-script": "108.0.14",
-    "iced-error": "0.0.13",
-    "iced-logger": "0.0.6",
-    "iced-runtime": "1.0.4",
-    "iced-utils": "0.1.27",
-    "json5": "2.2.1",
-    "prettier": "2.6.2"
+    "json5": "2.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.15",
+    "typescript": "6.0.0-beta"
   }
 }

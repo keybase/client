@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 import {ignorePromise, RPCError, isNetworkErr} from '@/constants/utils'
 import * as S from '@/constants/strings'
@@ -71,7 +71,7 @@ export const useBotsState = Z.createZustand<State>('bots', (set, get) => {
     },
     onEngineIncomingImpl: (action: EngineGen.Actions) => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+        case 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate':
           {
             const {bots, limit, offset} = action.payload.params
             const loadedAllBots = !bots || bots.length < pageSize

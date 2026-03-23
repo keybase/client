@@ -1,6 +1,6 @@
 import URL from 'url-parse'
 import * as Electron from 'electron'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'

@@ -1,12 +1,12 @@
 import * as Electron from 'electron'
-import type {Actions} from '@/actions/remote-gen'
+import type {Actions} from '@/constants/remote-actions'
 import {
   injectPreload,
   type KB2,
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from '@/util/electron.desktop'
-import type * as RPCTypes from '@/constants/types/rpc-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {Action} from '../app/ipctypes'
 
 const isRenderer = process.type === 'renderer'
