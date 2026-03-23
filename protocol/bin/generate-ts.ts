@@ -137,7 +137,9 @@ type CompileActionsArgs = {
 }
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8'))
+const enabledCalls = json5.parse(
+  fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8')
+) as EnabledCalls
 
 const primitiveTypeMap: Record<string, string> = {
   bool: 'boolean',
@@ -153,8 +155,8 @@ const primitiveTypeMap: Record<string, string> = {
 }
 
 // Sanity check this json file
-Object.keys(enabledCalls).forEach(rpc =>
-  Object.keys(enabledCalls[rpc]).forEach(type => {
+Object.entries(enabledCalls).forEach(([rpc, callTypes]) =>
+  Object.keys(callTypes).forEach(type => {
     if (!['promise', 'incoming', 'engineListener', 'custom'].includes(type)) {
       console.log(colors.red('ERROR! Invalid enabled call?\n\n '), rpc, type)
       process.exit(1)
@@ -223,7 +225,7 @@ function analyze(json: ProtocolJSON, project: ProjectState): AnalysisResult {
 }
 
 function fixCase(s: string): string {
-  return s.toLowerCase().replace(/(_\w)/g, s => capitalize(s[1]))
+  return s.toLowerCase().replace(/(_\w)/g, match => capitalize(match.charAt(1)))
 }
 
 function analyzeEnums(json: ProtocolJSON, project: ProjectState): Record<string, string> {
@@ -266,8 +268,9 @@ function analyzeTypes(json: ProtocolJSON, project: ProjectState): Record<string,
 
     project.seenTypes[t.name] = true
 
-    if (typeOverloads[t.name]) {
-      map[t.name] = typeOverloads[t.name]
+    const typeOverload = typeOverloads[t.name]
+    if (typeOverload !== undefined) {
+      map[t.name] = typeOverload
       return map
     }
 
@@ -310,15 +313,18 @@ function figureType(type: TypeRef | undefined, prefix = ''): string {
 
     return `(${type.map(t => (t === null ? 'null' : renderTypeName(t, prefix))).join(' | ')})`
   } else if (typeof type === 'object') {
-    switch (type.type) {
-      case 'array':
-        return `ReadonlyArray<${renderTypeName(type.items, prefix)}> | null`
-      case 'map':
-        return `{[key: string]: ${figureType(type.values)}} | null`
-      default:
-        console.log(`Unknown type: ${type}`)
-        return 'unknown'
+    if (isArrayTypeRef(type)) {
+      return `ReadonlyArray<${renderTypeName(type.items, prefix)}> | null`
     }
+    if (isMapTypeRef(type)) {
+      return `{[key: string]: ${figureType(type.values, prefix)}} | null`
+    }
+    if (isRecordDefinition(type)) {
+      return parseRecord(type)
+    }
+
+    console.log(`Unknown type: ${type}`)
+    return 'unknown'
   }
 
   return renderTypeName(type, prefix)
@@ -333,8 +339,7 @@ function renderTypeName(type: string, prefix = ''): string {
 }
 
 function analyzeMessages(json: ProtocolJSON, project: ProjectState): Record<string, MessageData> {
-  return Object.keys(json.messages).reduce<Record<string, MessageData>>((map, m) => {
-    const message = json.messages[m]
+  return Object.entries(json.messages).reduce<Record<string, MessageData>>((map, [m, message]) => {
     lintMessage(m, message)
 
     const arr = message.request
@@ -442,12 +447,15 @@ function parseInnerType(t: TypeRef | undefined): string {
     }
   }
 
-  switch (t.type) {
-    case 'record':
-      return parseRecord(t)
-    default:
-      return figureType(t)
+  if (typeof t === 'string') {
+    return figureType(t)
   }
+
+  if (isRecordDefinition(t)) {
+    return parseRecord(t)
+  }
+
+  return figureType(t)
 }
 
 function parseUnion(unionTypes: ReadonlyArray<TypeRef | string>): string {
@@ -486,6 +494,10 @@ function parseVariant(t: VariantDefinition, project: ProjectState): string {
 
   const rootType = t.switch.type
   const rootEnum = project.enums[rootType]
+  if (!rootEnum) {
+    console.log(colors.red(`ERROR! Missing enum for variant switch type:\n\n ${rootType}`))
+    process.exit(1)
+  }
 
   const unhandled = new Set(Object.keys(rootEnum))
   const type = parts.shift() ?? ''
@@ -501,7 +513,7 @@ function parseVariant(t: VariantDefinition, project: ProjectState): string {
           bodyType = 'null'
         } else if (typeof c.body === 'string') {
           bodyType = renderTypeName(c.body)
-        } else if (c.body.type === 'array') {
+        } else if (isArrayTypeRef(c.body)) {
           bodyType = `ReadonlyArray<${renderTypeName(c.body.items)}>`
         }
         const bodyStr = c.body ? `, ${label}: ${bodyType}` : ''
@@ -686,9 +698,9 @@ async function writeFlow(typeDefs: AnalysisResult, project: ProjectState): Promi
     .filter(f => f.length)
     .join(', ')
   const engineImport = engineImports.length ? `import {${engineImports}} from '@/engine/require'` : ''
-  const messageKeys = Object.keys(typeDefs.messages).sort()
-  const promiseMethods = messageKeys.filter(k => typeDefs.messages[k].rpcPromise)
-  const listenerMethods = messageKeys.filter(k => typeDefs.messages[k].engineListener)
+  const messageEntries = Object.entries(typeDefs.messages).sort(([left], [right]) => left.localeCompare(right))
+  const promiseMethods = messageEntries.filter(([, message]) => message.rpcPromise).map(([key]) => key)
+  const listenerMethods = messageEntries.filter(([, message]) => message.engineListener).map(([key]) => key)
   const incomingMethods = Object.keys(project.incomingMaps)
     .filter(im => enabledCall(im, 'incoming'))
     .sort()
@@ -754,17 +766,16 @@ export type IncomingErrorCallback = (err?: SimpleError | null) => void
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
-  const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromise)
-  const messageEngineListener = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineListener)
+  const messagePromise = messageEntries.map(([, message]) => message.rpcPromise)
+  const messageEngineListener = messageEntries.map(([, message]) => message.engineListener)
   const incomingMap = `\ntype IncomingMethod = ${incomingMethodUnion}
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>`
 
   const customResponseIncomingMap = `\ntype CustomIncomingMethod = ${customIncomingMethodUnion}
 export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>`
 
-  const messageTypesData = Object.keys(typeDefs.messages)
-    .map(k => {
-      const data = typeDefs.messages[k]
+  const messageTypesData = messageEntries
+    .map(([k, data]) => {
       return `  ${k}: {
     inParam: ${data.inParam},
     outParam: ${data.outParam || 'void'},
@@ -810,11 +821,29 @@ function localCamelcase(s: string): string {
     return s
   }
 
-  const [first, ...rest] = parts
+  const first = parts[0]
+  if (!first) {
+    return s
+  }
+  const rest = parts.slice(1)
   return (
     first.toLowerCase() +
     rest.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join('')
   )
+}
+
+function isArrayTypeRef(type: Exclude<TypeRef, string | null | ReadonlyArray<string | null>>): type is ArrayTypeRef {
+  return type.type === 'array'
+}
+
+function isMapTypeRef(type: Exclude<TypeRef, string | null | ReadonlyArray<string | null>>): type is MapTypeRef {
+  return type.type === 'map'
+}
+
+function isRecordDefinition(
+  type: Exclude<TypeRef, string | null | ReadonlyArray<string | null>>
+): type is RecordDefinition {
+  return type.type === 'record'
 }
 
 const shorthands: ReadonlyArray<{
