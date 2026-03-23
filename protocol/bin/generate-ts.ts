@@ -832,16 +832,20 @@ function localCamelcase(s: string): string {
   )
 }
 
+function isTaggedTypeRef(type: TypeRef | undefined): type is ArrayTypeRef | MapTypeRef | RecordDefinition {
+  return !!type && !Array.isArray(type) && typeof type === 'object' && 'type' in type
+}
+
 function isArrayTypeRef(type: TypeRef | undefined): type is ArrayTypeRef {
-  return !!type && !Array.isArray(type) && typeof type === 'object' && type.type === 'array'
+  return isTaggedTypeRef(type) && type.type === 'array'
 }
 
 function isMapTypeRef(type: TypeRef | undefined): type is MapTypeRef {
-  return !!type && !Array.isArray(type) && typeof type === 'object' && type.type === 'map'
+  return isTaggedTypeRef(type) && type.type === 'map'
 }
 
 function isRecordDefinition(type: TypeRef | undefined): type is RecordDefinition {
-  return !!type && !Array.isArray(type) && typeof type === 'object' && type.type === 'record'
+  return isTaggedTypeRef(type) && type.type === 'record'
 }
 
 const shorthands: ReadonlyArray<{
