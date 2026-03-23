@@ -146,17 +146,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
 
     if self.startupLogFileHandle == nil {
-      do {
-        if !FileManager.default.fileExists(atPath: logFilePath) {
-          FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
-        }
-
-        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-          fileHandle.seekToEndOfFile()
-          self.startupLogFileHandle = fileHandle
-        }
-      } catch {
-        NSLog("Error opening startup timing log file: \(error)")
+      if !FileManager.default.fileExists(atPath: logFilePath) {
+        FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+      }
+      if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
+        fileHandle.seekToEndOfFile()
+        self.startupLogFileHandle = fileHandle
+      } else {
+        NSLog("Error opening startup timing log file: \(logFilePath)")
         return
       }
     }
@@ -183,8 +180,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
 
     do {
-      fileHandle.write(logData)
-      fileHandle.synchronizeFile()
+      try fileHandle.write(contentsOf: logData)
+      try fileHandle.synchronize()
     } catch {
       NSLog("Error writing startup timing log: \(error)")
     }
@@ -192,8 +189,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   private func closeStartupLogFile() {
     if let fileHandle = self.startupLogFileHandle {
-      fileHandle.synchronizeFile()
-      fileHandle.closeFile()
+      do {
+        try fileHandle.synchronize()
+        try fileHandle.close()
+      } catch {
+        NSLog("Error closing startup timing log: \(error)")
+      }
       self.startupLogFileHandle = nil
     }
   }
