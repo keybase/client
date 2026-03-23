@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useArchiveState} from '../archive'
@@ -81,7 +80,7 @@ test('engine archive status updates KBFS jobs and freshness entries', () => {
         },
       },
     },
-    type: EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged,
+    type: 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged',
   } as any)
 
   expect(store.getState().kbfsJobs.get('job-1')?.phase).toBe('Done')

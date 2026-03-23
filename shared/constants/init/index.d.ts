@@ -1,5 +1,5 @@
 // links all the stores together, stores never import this
-import type * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 
 export declare function initPlatformListener(): void
 export declare function onEngineConnected(): void

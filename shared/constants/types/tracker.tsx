@@ -1,6 +1,6 @@
 import type * as T from '.'
 import type {WebOfTrustVerificationType} from './more'
-import type * as RPCTypes from './rpc-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
 export type TeamShowcase = {
   description: string

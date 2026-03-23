@@ -2,7 +2,7 @@ import * as Z from '@/util/zustand'
 import * as S from '@/constants/strings'
 import {ignorePromise, updateImmerMap} from '@/constants/utils'
 import * as T from '@/constants/types'
-import * as EngineGen from '@/actions/engine-gen-gen'
+import type * as EngineGen from '@/constants/rpc'
 import debounce from 'lodash/debounce'
 
 const initialStore: T.Devices.State = {
@@ -48,7 +48,7 @@ export const useDevicesState = Z.createZustand<State>('devices', (set, get) => {
     ),
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           const {newDevices, revokedDevices} = badgeState
           get().dispatch.setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))

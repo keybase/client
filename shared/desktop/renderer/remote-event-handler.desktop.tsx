@@ -1,4 +1,4 @@
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import * as Crypto from '@/constants/crypto'
 import * as Tabs from '@/constants/tabs'

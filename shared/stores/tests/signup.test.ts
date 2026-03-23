@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/actions/engine-gen-gen'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 
@@ -56,7 +55,7 @@ test('email verification notifications clear the staged signup email', () => {
 
   useSignupState
     .getState()
-    .dispatch.onEngineIncomingImpl({type: EngineGen.keybase1NotifyEmailAddressEmailAddressVerified} as any)
+    .dispatch.onEngineIncomingImpl({type: 'keybase.1.NotifyEmailAddress.emailAddressVerified'} as any)
 
   expect(useSignupState.getState().justSignedUpEmail).toBe('')
 })

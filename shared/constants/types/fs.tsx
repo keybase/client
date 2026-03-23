@@ -1,4 +1,4 @@
-import * as RPCTypes from './rpc-gen'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type * as Devices from './devices'
 import {isWindows} from '../platform'
 // lets not create cycles in flow, lets discuss how to fix this

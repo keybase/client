@@ -2,7 +2,7 @@ import {
   StatusCode,
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
-} from '@/constants/types/rpc-gen'
+} from '@/constants/rpc/rpc-gen'
 import {rpcLog, type InvokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
