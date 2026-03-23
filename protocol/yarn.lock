@@ -182,6 +182,11 @@ source-map@~0.1.33:
   dependencies:
     amdefine ">=0.0.4"
 
+typescript@6.0.0-beta:
+  version "6.0.0-beta"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.0-beta.tgz#2f87bd0cd1a291f675b3414a02a00bd4f7b48357"
+  integrity sha512-CldZdztDpQRLM1HC6WDQjQkQN5Ub5zRau737a1diGh3lPmb9oRsaWHk1y5iqK0o7+1bNJ0oXfEGRkAogFZBL+Q==
+
 underscore@1.1.x:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.1.7.tgz#40bab84bad19d230096e8d6ef628bff055d83db0"
