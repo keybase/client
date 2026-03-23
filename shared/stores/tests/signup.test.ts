@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 

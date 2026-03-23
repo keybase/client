@@ -1,7 +1,7 @@
 import * as Platforms from '@/constants/platform'
 import {ignorePromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'

@@ -1,7 +1,7 @@
 import * as S from '@/constants/strings'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
 import * as T from '@/constants/types'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import {
   getVisibleScreen,
   clearModals,

@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import type * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'

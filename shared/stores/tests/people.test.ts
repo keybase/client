@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import {resetAllStores} from '@/util/zustand'
 import {usePeopleState} from '../people'
 

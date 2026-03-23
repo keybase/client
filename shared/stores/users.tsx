@@ -1,4 +1,4 @@
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from '@/constants/types'

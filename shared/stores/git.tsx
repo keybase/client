@@ -1,7 +1,7 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as dateFns from 'date-fns'
 import * as Z from '@/util/zustand'
 import debounce from 'lodash/debounce'

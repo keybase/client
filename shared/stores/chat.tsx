@@ -1,5 +1,5 @@
 import * as Common from '@/constants/chat/common'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as S from '@/constants/strings'

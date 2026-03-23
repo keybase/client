@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import * as EngineGen from '@/constants/rpc'
+import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {invalidPasswordErrorString} from '@/constants/config'

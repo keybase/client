@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as EngineGen from '@/constants/rpc'
 import {resetAllStores} from '@/util/zustand'
 import {useBotsState} from '../bots'
 
