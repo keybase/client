@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import type * as chat1Types from '@/constants/rpc/rpc-chat-gen'
 import type * as keybase1Types from '@/constants/rpc/rpc-gen'
 import type * as stellar1Types from '@/constants/rpc/rpc-stellar-gen'
