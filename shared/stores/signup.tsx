@@ -212,7 +212,7 @@ export const useSignupState = Z.createZustand<State>('signup', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.actionTypes.keybase1NotifyEmailAddressEmailAddressVerified:
+        case 'keybase1NotifyEmailAddressEmailAddressVerified':
           get().dispatch.clearJustSignedUpEmail()
           break
         default:

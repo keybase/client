@@ -46,13 +46,13 @@ test('engine actions refresh people data and update verified email', () => {
 
   usePeopleState.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {}},
-    type: EngineGen.actionTypes.keybase1HomeUIHomeUIRefresh,
+    type: 'keybase1HomeUIHomeUIRefresh',
   } as never)
   expect(loadPeople).toHaveBeenCalledWith(false)
 
   usePeopleState.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {emailAddress: 'verified@keybase.io'}},
-    type: EngineGen.actionTypes.keybase1NotifyEmailAddressEmailAddressVerified,
+    type: 'keybase1NotifyEmailAddressEmailAddressVerified',
   } as never)
   expect(usePeopleState.getState().resentEmail).toBe('verified@keybase.io')
 })

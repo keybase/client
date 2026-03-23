@@ -350,17 +350,17 @@ export type State = Store & {
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (
-      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1NotifyChatChatThreadsStale>
+      action: EngineGen.EngineAction<'chat1NotifyChatChatThreadsStale'>
     ) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (
-      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1NotifyChatChatInboxSynced>
+      action: EngineGen.EngineAction<'chat1NotifyChatChatInboxSynced'>
     ) => void
     onGetInboxConvsUnboxed: (
-      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1ChatUiChatInboxConversation>
+      action: EngineGen.EngineAction<'chat1ChatUiChatInboxConversation'>
     ) => void
     onGetInboxUnverifiedConvs: (
-      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1ChatUiChatInboxUnverified>
+      action: EngineGen.EngineAction<'chat1ChatUiChatInboxUnverified'>
     ) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
@@ -1204,31 +1204,31 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.actionTypes.chat1ChatUiChatInboxFailed: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatSetConvSettings: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatPromptUnfurl: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatPaymentInfo: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatRequestInfo: // fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadProgress: //fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadComplete: //fallthrough
-        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadProgress: {
+        case 'chat1ChatUiChatInboxFailed': // fallthrough
+        case 'chat1NotifyChatChatSetConvSettings': // fallthrough
+        case 'chat1NotifyChatChatAttachmentUploadStart': // fallthrough
+        case 'chat1NotifyChatChatPromptUnfurl': // fallthrough
+        case 'chat1NotifyChatChatPaymentInfo': // fallthrough
+        case 'chat1NotifyChatChatRequestInfo': // fallthrough
+        case 'chat1NotifyChatChatAttachmentDownloadProgress': //fallthrough
+        case 'chat1NotifyChatChatAttachmentDownloadComplete': //fallthrough
+        case 'chat1NotifyChatChatAttachmentUploadProgress': {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.conversationIDToKey(convID)
           storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
-        case EngineGen.actionTypes.chat1ChatUiChatCommandMarkdown: //fallthrough
-        case EngineGen.actionTypes.chat1ChatUiChatGiphyToggleResultWindow: // fallthrough
-        case EngineGen.actionTypes.chat1ChatUiChatCommandStatus: // fallthrough
-        case EngineGen.actionTypes.chat1ChatUiChatBotCommandsUpdateStatus: //fallthrough
-        case EngineGen.actionTypes.chat1ChatUiChatGiphySearchResults: {
+        case 'chat1ChatUiChatCommandMarkdown': //fallthrough
+        case 'chat1ChatUiChatGiphyToggleResultWindow': // fallthrough
+        case 'chat1ChatUiChatCommandStatus': // fallthrough
+        case 'chat1ChatUiChatBotCommandsUpdateStatus': //fallthrough
+        case 'chat1ChatUiChatGiphySearchResults': {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.stringToConversationIDKey(convID)
           storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatParticipantsInfo: {
+        case 'chat1NotifyChatChatParticipantsInfo': {
           const {participants: participantMap} = action.payload.params
           Object.keys(participantMap ?? {}).forEach(convIDStr => {
             const participants = participantMap?.[convIDStr]
@@ -1241,12 +1241,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           })
           break
         }
-        case EngineGen.actionTypes.chat1ChatUiChatMaybeMentionUpdate: {
+        case 'chat1ChatUiChatMaybeMentionUpdate': {
           const {teamName, channel, info} = action.payload.params
           get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatConvUpdate: {
+        case 'chat1NotifyChatChatConvUpdate': {
           const {conv} = action.payload.params
           if (conv) {
             const meta = Meta.inboxUIItemToConversationMeta(conv)
@@ -1254,24 +1254,24 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.actionTypes.chat1ChatUiChatCoinFlipStatus: {
+        case 'chat1ChatUiChatCoinFlipStatus': {
           const {statuses} = action.payload.params
           get().dispatch.updateCoinFlipStatus(statuses || [])
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatThreadsStale:
+        case 'chat1NotifyChatChatThreadsStale':
           get().dispatch.onChatThreadStale(action)
           break
-        case EngineGen.actionTypes.chat1NotifyChatChatSubteamRename: {
+        case 'chat1NotifyChatChatSubteamRename': {
           const {convs} = action.payload.params
           const conversationIDKeys = (convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
           get().dispatch.unboxRows(conversationIDKeys, true)
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatTLFFinalize:
+        case 'chat1NotifyChatChatTLFFinalize':
           get().dispatch.unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
           break
-        case EngineGen.actionTypes.chat1NotifyChatChatIdentifyUpdate: {
+        case 'chat1NotifyChatChatIdentifyUpdate': {
           // Some participants are broken/fixed now
           const {update} = action.payload.params
           const usernames = update.CanonicalName.split(',')
@@ -1280,28 +1280,28 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           get().dispatch.defer.onUsersUpdates(updates)
           break
         }
-        case EngineGen.actionTypes.chat1ChatUiChatInboxUnverified:
+        case 'chat1ChatUiChatInboxUnverified':
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
-        case EngineGen.actionTypes.chat1NotifyChatChatInboxSyncStarted:
+        case 'chat1NotifyChatChatInboxSyncStarted':
           useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
           break
 
-        case EngineGen.actionTypes.chat1NotifyChatChatInboxSynced:
+        case 'chat1NotifyChatChatInboxSynced':
           get().dispatch.onChatInboxSynced(action)
           break
-        case EngineGen.actionTypes.chat1ChatUiChatInboxLayout:
+        case 'chat1ChatUiChatInboxLayout':
           get().dispatch.updateInboxLayout(action.payload.params.layout)
           get().dispatch.maybeChangeSelectedConv()
           get().dispatch.ensureWidgetMetas()
           break
-        case EngineGen.actionTypes.chat1NotifyChatChatInboxStale:
+        case 'chat1NotifyChatChatInboxStale':
           get().dispatch.inboxRefresh('inboxStale')
           break
-        case EngineGen.actionTypes.chat1ChatUiChatInboxConversation:
+        case 'chat1ChatUiChatInboxConversation':
           get().dispatch.onGetInboxConvsUnboxed(action)
           break
-        case EngineGen.actionTypes.chat1NotifyChatNewChatActivity: {
+        case 'chat1NotifyChatNewChatActivity': {
           const {activity} = action.payload.params
           switch (activity.activityType) {
             case T.RPCChat.ChatActivityType.incomingMessage: {
@@ -1420,7 +1420,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatTypingUpdate: {
+        case 'chat1NotifyChatChatTypingUpdate': {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
             storeRegistry
@@ -1429,7 +1429,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           })
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatSetConvRetention: {
+        case 'chat1NotifyChatChatSetConvRetention': {
           const {conv, convID} = action.payload.params
           if (!conv) {
             logger.warn('onChatSetConvRetention: no conv given')
@@ -1447,7 +1447,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.actionTypes.chat1NotifyChatChatSetTeamRetention: {
+        case 'chat1NotifyChatChatSetTeamRetention': {
           const {convs} = action.payload.params
           const metas = (convs ?? []).reduce<Array<T.Chat.ConversationMeta>>((l, c) => {
             const meta = Meta.inboxUIItemToConversationMeta(c)
@@ -1472,12 +1472,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState: {
+        case 'keybase1NotifyBadgesBadgeState': {
           const {badgeState} = action.payload.params
           get().dispatch.badgesUpdated(badgeState)
           break
         }
-        case EngineGen.actionTypes.keybase1GregorUIPushState: {
+        case 'keybase1GregorUIPushState': {
           const {state} = action.payload.params
           const items = state.items || []
           const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(

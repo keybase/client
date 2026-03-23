@@ -71,7 +71,7 @@ const maybePauseVideos = () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   _onEngineIncoming(action)
   switch (action.type) {
-    case EngineGen.actionTypes.keybase1LogsendPrepareLogsend: {
+    case 'keybase1LogsendPrepareLogsend': {
       const f = async () => {
         const response = action.payload.response
         try {
@@ -83,14 +83,14 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       ignorePromise(f())
       break
     }
-    case EngineGen.actionTypes.keybase1NotifyAppExit:
+    case 'keybase1NotifyAppExit':
       console.log('App exit requested')
       exitApp?.(0)
       break
-    case EngineGen.actionTypes.keybase1NotifyFSFSActivity:
+    case 'keybase1NotifyFSFSActivity':
       kbfsNotification(action.payload.params.notification, NotifyPopup)
       break
-    case EngineGen.actionTypes.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
+    case 'keybase1NotifyPGPPgpKeyInSecretStoreFile': {
       const f = async () => {
         try {
           await T.RPCGen.pgpPgpStorageDismissRpcPromise()
@@ -101,7 +101,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       ignorePromise(f())
       break
     }
-    case EngineGen.actionTypes.keybase1NotifyServiceShutdown: {
+    case 'keybase1NotifyServiceShutdown': {
       const {code} = action.payload.params
       if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
         console.log('Quitting due to service shutdown with code: ', code)
@@ -111,7 +111,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       break
     }
 
-    case EngineGen.actionTypes.keybase1LogUiLog: {
+    case 'keybase1LogUiLog': {
       const {params} = action.payload
       const {level, text} = params
       logger.info('keybase.1.logUi.log:', params.text.data)
@@ -121,7 +121,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       break
     }
 
-    case EngineGen.actionTypes.keybase1NotifySessionClientOutOfDate: {
+    case 'keybase1NotifySessionClientOutOfDate': {
       const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)

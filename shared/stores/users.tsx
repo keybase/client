@@ -73,7 +73,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.actionTypes.keybase1NotifyUsersIdentifyUpdate: {
+        case 'keybase1NotifyUsersIdentifyUpdate': {
           const {brokenUsernames, okUsernames} = action.payload.params
           const combined = [
             ...(brokenUsernames ?? []).map(name => ({info: {broken: true}, name})),
@@ -84,7 +84,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
           }
           break
         }
-        case EngineGen.actionTypes.keybase1NotifyTrackingNotifyUserBlocked: {
+        case 'keybase1NotifyTrackingNotifyUserBlocked': {
           const {blocks} = action.payload.params.b
           set(s => {
             for (const [username, bs] of Object.entries(blocks ?? {})) {

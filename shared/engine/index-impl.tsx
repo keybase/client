@@ -165,7 +165,7 @@ class Engine {
 
         const act = {
           payload: {params: param, ...extra},
-          type: `engine-gen:${actionName}` as EngineGen.EngineActions['type'],
+          type: actionName as EngineGen.ActionKey,
         } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
           setTimeout(() => {

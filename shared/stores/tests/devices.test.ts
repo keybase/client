@@ -69,7 +69,7 @@ test('badge engine updates mark the affected devices as new', () => {
         },
       },
     },
-    type: EngineGen.actionTypes.keybase1NotifyBadgesBadgeState,
+    type: 'keybase1NotifyBadgesBadgeState',
   } as any)
 
   expect(store.getState().isNew).toEqual(new Set(['device-1', 'device-2']))

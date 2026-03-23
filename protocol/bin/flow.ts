@@ -575,12 +575,11 @@ function actionHasType(actions: ActionMap, toFind: RegExp): boolean {
   return Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 }
 
-function compileActionsFile(ns: string, {prelude, actions}: CompileActionsArgs): string {
+function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
     ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'\n"
     : ''
   const actionNames = Object.keys(actions).sort()
-  const actionTypeEntries = actionNames.map(name => `  ${name}: '${ns}:${name}',`).join('\n')
   const actionSpec = actionNames
     .map(name => `  ${name}: ${printPayload(actions[name])},`)
     .join('\n')
@@ -588,28 +587,20 @@ function compileActionsFile(ns: string, {prelude, actions}: CompileActionsArgs):
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 ${rpcGenImport}${prelude.join('\n')}
 
-export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
-export const typePrefix = '${ns}:' as const
-
 type ActionSpec = {
 ${actionSpec}
 }
 
-export const actionTypes = {
-${actionTypeEntries}
-} as const
-
 export type ActionKey = keyof ActionSpec
 type EngineActionMap = {
-  [K in ActionKey]: {readonly payload: ActionSpec[K]; readonly type: (typeof actionTypes)[K]}
+  [K in ActionKey]: {readonly payload: ActionSpec[K]; readonly type: K}
 }
 
 export type ActionPayload<K extends ActionKey = ActionKey> = ActionSpec[K]
 export type EngineAction<K extends ActionKey = ActionKey> = EngineActionMap[K]
 export type EngineActions = EngineAction
-export type ResetStoreAction = {readonly type: typeof resetStore; readonly payload: undefined}
-export type Actions = EngineActions | ResetStoreAction
-export type ActionType = Actions['type']
+export type Actions = EngineActions
+export type ActionType = ActionKey
 export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
 export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
 export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
@@ -635,9 +626,8 @@ function printPayload(p: ActionDescription): string {
 }
 
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {
-  const ns = 'engine-gen'
   const outPath = path.join(__dirname, '../../shared/constants/rpc', 'index.tsx')
-  fs.writeFileSync(outPath, compileActionsFile(ns, desc))
+  fs.writeFileSync(outPath, compileActionsFile(desc))
 }
 
 async function writeAll(): Promise<void> {

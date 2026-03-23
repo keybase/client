@@ -70,7 +70,7 @@ test('badge updates are reflected in local state', () => {
           },
         },
       },
-      type: EngineGen.actionTypes.keybase1NotifyBadgesBadgeState,
+      type: 'keybase1NotifyBadgesBadgeState',
     } as any)
 
   expect(useGitState.getState().isNew).toEqual(new Set(['repo-guid-1', 'repo-guid-2']))

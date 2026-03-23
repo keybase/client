@@ -110,7 +110,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.actionTypes.keybase1NotifyAuditRootAuditError:
+        case 'keybase1NotifyAuditRootAuditError':
           useConfigState
             .getState()
             .dispatch.setGlobalError(
@@ -118,7 +118,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
             )
 
           break
-        case EngineGen.actionTypes.keybase1NotifyAuditBoxAuditError:
+        case 'keybase1NotifyAuditBoxAuditError':
           useConfigState
             .getState()
             .dispatch.setGlobalError(
@@ -127,7 +127,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
               )
             )
           break
-        case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState: {
+        case 'keybase1NotifyBadgesBadgeState': {
           const badgeState = action.payload.params.badgeState
           useConfigState.getState().dispatch.setBadgeState(badgeState)
 
