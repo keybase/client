@@ -402,7 +402,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
     watchdog?.start(context: "background entered")
-    application.ignoreSnapshotOnNextApplicationLaunch()
     PerfFPSMonitor.appDidEnterBackground()
     log.info("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
