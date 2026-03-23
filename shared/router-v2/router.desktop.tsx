@@ -17,7 +17,7 @@ import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens}
 import {registerDebugClear} from '@/util/debug'
 import {useDaemonState} from '@/stores/daemon'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import {createComponentForStaticNavigation} from '@react-navigation/core'
+
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import {makeLayout} from './screen-layout.desktop'
 import './router.css'
@@ -44,7 +44,7 @@ for (const tab of Tabs.desktopTabs) {
     screenOptions: Common.defaultNavigationOptions as NativeStackNavigationOptions,
     screens: tabScreensConfig,
   })
-  tabComponents[tab] = createComponentForStaticNavigation(nav, `TabStack_${tab}`)
+  tabComponents[tab] = nav.getComponent()
 }
 
 function AppTabsInner() {
@@ -70,7 +70,7 @@ const loggedOutNav = createNativeStackNavigator({
   screenOptions: loggedOutOptions,
   screens: loggedOutScreensConfig,
 })
-const LoggedOut = createComponentForStaticNavigation(loggedOutNav, 'LoggedOut')
+const LoggedOut = loggedOutNav.getComponent()
 
 const documentTitle = {
   formatter: () => {
@@ -170,7 +170,7 @@ const rootNav = createNativeStackNavigator({
     },
   },
 })
-const RootComponent = createComponentForStaticNavigation(rootNav, 'Root')
+const RootComponent = rootNav.getComponent()
 
 function ElectronApp() {
   useConnectNavToState()

@@ -17,7 +17,7 @@ const AddToChannel = (props: Props) => {
   const nav = useSafeNavigation()
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
-  const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
+  const [toAdd, setToAdd] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 

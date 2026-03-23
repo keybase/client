@@ -9,7 +9,7 @@ const CreateSubteams = () => {
   const teamname = useTeamsState(s => s.newTeamWizard.name)
   const initialSubteams = useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 
-  const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
+  const [subteams, setSubteams] = React.useState([...initialSubteams])
 
   const setSubteam = (i: number, value: string) => {
     setSubteams(prev => prev.map((s, idx) => (idx === i ? value : s)))

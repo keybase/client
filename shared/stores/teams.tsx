@@ -86,7 +86,7 @@ export const emptyInviteInfo = Object.freeze<T.Teams.InviteInfo>({
   username: '',
 })
 
-export const emptyEmailInviteError = Object.freeze<T.Teams.EmailInviteError>({
+export const emptyEmailInviteError = Object.freeze({
   malformed: new Set<string>(),
   message: '',
 })
@@ -1717,24 +1717,26 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       const f = async () => {
         try {
           const results = await T.RPCChat.localGetLastActiveForTeamsRpcPromise()
-          const teams = Object.entries(results.teams ?? {}).reduce<
-            Map<T.Teams.TeamID, T.Teams.ActivityLevel>
-          >((res, [teamID, status]) => {
-            if (status === T.RPCChat.LastActiveStatus.none) {
+          const teams = Object.entries(results.teams ?? {}).reduce(
+            (res, [teamID, status]) => {
+              if (status === T.RPCChat.LastActiveStatus.none) {
+                return res
+              }
+              res.set(teamID, lastActiveStatusToActivityLevel[status])
               return res
-            }
-            res.set(teamID, lastActiveStatusToActivityLevel[status])
-            return res
-          }, new Map())
-          const channels = Object.entries(results.channels ?? {}).reduce<
-            Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>
-          >((res, [conversationIDKey, status]) => {
-            if (status === T.RPCChat.LastActiveStatus.none) {
+            },
+            new Map<T.Teams.TeamID, T.Teams.ActivityLevel>()
+          )
+          const channels = Object.entries(results.channels ?? {}).reduce(
+            (res, [conversationIDKey, status]) => {
+              if (status === T.RPCChat.LastActiveStatus.none) {
+                return res
+              }
+              res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
               return res
-            }
-            res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
-            return res
-          }, new Map())
+            },
+            new Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>()
+          )
           set(s => {
             s.activityLevels = {channels, loaded: true, teams}
           })
@@ -2126,7 +2128,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             topicType: T.RPCChat.TopicType.chat,
           })
           const channels =
-            convs?.reduce<Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>((res, inboxUIItem) => {
+            convs?.reduce((res, inboxUIItem) => {
               const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
               res.set(conversationIDKey, {
                 channelname: inboxUIItem.channel,
@@ -2134,7 +2136,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                 description: inboxUIItem.headline,
               })
               return res
-            }, new Map()) ?? new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
+            }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ?? new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
 
           // ensure we refresh participants, but don't fail the saga if this somehow fails
           try {

@@ -160,7 +160,7 @@ export const useFsFileContext = (path: T.FS.Path) => {
       pathItem: FS.getPathItem(s.pathItems, path),
     }))
   )
-  const [urlError, setUrlError] = React.useState<string>('')
+  const [urlError, setUrlError] = React.useState('')
   React.useEffect(() => {
     urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === T.FS.PathType.File && loadFileContext(path)
@@ -222,7 +222,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
   : () => false
 
 export const useFuseClosedSourceConsent = (disabled: boolean, invert = false) => {
-  const [agreed, setAgreed] = React.useState<boolean>(false)
+  const [agreed, setAgreed] = React.useState(false)
 
   const component = C.isDarwin ? (
     <Kb.Checkbox

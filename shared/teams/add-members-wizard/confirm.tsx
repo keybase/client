@@ -57,7 +57,7 @@ const AddMembersConfirm = () => {
 
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
-  const [emailMessage, setEmailMessage] = React.useState<string>('')
+  const [emailMessage, setEmailMessage] = React.useState('')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
