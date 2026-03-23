@@ -2,7 +2,7 @@ import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electr
 import {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import menuHelper from './menu-helper.desktop'
 import fs from 'fs'
 import path from 'path'

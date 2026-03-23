@@ -16,8 +16,6 @@ type FileDesc = {
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) => string
 
 const reservedPayloadKeys = ['_description']
-const typeMap: Array<string> = []
-const cleanName = (c: string) => c.replace(/-/g, '')
 
 const payloadHasType = (payload: ActionDesc | undefined, toFind: RegExp) => {
   return payload
@@ -57,12 +55,6 @@ ${compileActions(ns, actions, compileActionPayloads)}
 // All Actions
 ${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
 `
-}
-
-const compileActionMap = (ns: ActionNS, actions: Actions) => {
-  Object.keys(actions).forEach(name => {
-    typeMap.push(`    '${ns}:${name}': ${cleanName(ns)}.${capitalize(name)}Payload`)
-  })
 }
 
 function compileAllActionsType(actions: Actions): string {
@@ -152,51 +144,23 @@ function compileStateTypeConstant(ns: ActionNS, actionName: ActionName) {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-// function makeTypedActions(created: Array<string>) {
-//   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-//   ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
-
-//   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
-
-//   type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
-//   type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
-//   export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
-// `
-// }
-
 async function main() {
   const root = path.join(__dirname, '../../actions/json')
-  const files = fs.readdirSync(root)
-  const created: Array<string> = []
-  const proms = files
-    .filter(file => path.extname(file) === '.json')
-    .map(async file => {
-      try {
-        const ns = path.basename(file, '.json')
-        created.push(ns)
-        console.log(`Generating ${ns}`)
-        const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
-        const outPath = path.join(root, '..', ns + '-gen.tsx')
-        const generated: string = await prettier.format(compile(ns, desc), {
-          ...(await prettier.resolveConfig(outPath)),
-          parser: 'typescript',
-        })
-        fs.writeFileSync(outPath, generated)
-        compileActionMap(ns, desc.actions)
-      } catch (e) {
-        console.error('Error generating', file, e)
-      }
-    })
-  await Promise.all(proms)
+  const file = 'engine-gen.json'
 
-  // console.log(`Generating typed-actions-gen`)
-  // const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
-  // const typedActions = makeTypedActions(created)
-  // const generated: string = await prettier.format(typedActions, {
-  //   ...(await prettier.resolveConfig(outPath)),
-  //   parser: 'typescript',
-  // })
-  // fs.writeFileSync(outPath, generated)
+  try {
+    const ns = path.basename(file, '.json')
+    console.log(`Generating ${ns}`)
+    const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+    const outPath = path.join(root, '..', ns + '-gen.tsx')
+    const generated: string = await prettier.format(compile(ns, desc), {
+      ...(await prettier.resolveConfig(outPath)),
+      parser: 'typescript',
+    })
+    fs.writeFileSync(outPath, generated)
+  } catch (e) {
+    console.error('Error generating', file, e)
+  }
 }
 
 main()

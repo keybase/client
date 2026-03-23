@@ -1,7 +1,6 @@
-// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '@/constants/types/rpc-gen'
-import type HiddenString from '@/util/hidden-string'
 import type * as Tabs from '@/constants/tabs'
+import type HiddenString from '@/util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
@@ -89,7 +88,7 @@ export const createShowMain = (payload?: undefined) => ({payload, type: showMain
 export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) =>
   ({payload, type: stop}) as const
 export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab}) => ({payload, type: switchTab}) as const
-export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) =>
+export const createTrackerChangeFollow = (payload: {readonly follow: boolean; readonly guiID: string}) =>
   ({payload, type: trackerChangeFollow}) as const
 export const createTrackerCloseTracker = (payload: {readonly guiID: string}) =>
   ({payload, type: trackerCloseTracker}) as const
@@ -101,8 +100,8 @@ export const createTrackerLoad = (payload: {
   readonly fromDaemon?: boolean
   readonly guiID: string
   readonly ignoreCache?: boolean
-  readonly reason: string
   readonly inTracker: boolean
+  readonly reason: string
 }) => ({payload, type: trackerLoad}) as const
 export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: string}) =>
   ({payload, type: unlockFoldersSubmitPaperKey}) as const
@@ -176,4 +175,4 @@ export type Actions =
   | UpdateWindowShownPayload
   | UpdateWindowStatePayload
   | UserFileEditsLoadPayload
-  | {readonly type: 'common:resetStore', readonly payload: undefined}
+  | {readonly payload: undefined; readonly type: 'common:resetStore'}
