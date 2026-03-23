@@ -27,38 +27,6 @@ export type MessageTypes = {
     inParam: undefined,
     outParam: boolean,
   },
-  'stellar.1.notify.accountDetailsUpdate': {
-    inParam: {readonly accountID: AccountID,readonly account: WalletAccountLocal},
-    outParam: void,
-  },
-  'stellar.1.notify.accountsUpdate': {
-    inParam: {readonly accounts?: ReadonlyArray<WalletAccountLocal> | null},
-    outParam: void,
-  },
-  'stellar.1.notify.paymentNotification': {
-    inParam: {readonly accountID: AccountID,readonly paymentID: PaymentID},
-    outParam: void,
-  },
-  'stellar.1.notify.paymentStatusNotification': {
-    inParam: {readonly accountID: AccountID,readonly paymentID: PaymentID},
-    outParam: void,
-  },
-  'stellar.1.notify.pendingPaymentsUpdate': {
-    inParam: {readonly accountID: AccountID,readonly pending?: ReadonlyArray<PaymentOrErrorLocal> | null},
-    outParam: void,
-  },
-  'stellar.1.notify.recentPaymentsUpdate': {
-    inParam: {readonly accountID: AccountID,readonly firstPage: PaymentsPageLocal},
-    outParam: void,
-  },
-  'stellar.1.notify.requestStatusNotification': {
-    inParam: {readonly reqID: KeybaseRequestID},
-    outParam: void,
-  },
-  'stellar.1.ui.paymentReviewed': {
-    inParam: {readonly msg: UIPaymentReviewed},
-    outParam: void,
-  },
 }
 export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']

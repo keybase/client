@@ -27,14 +27,6 @@ export type MessageTypes = {
     inParam: {readonly badgeState: BadgeState},
     outParam: void,
   },
-  'keybase.1.NotifyCanUserPerform.canUserPerformChanged': {
-    inParam: {readonly teamName: string},
-    outParam: void,
-  },
-  'keybase.1.NotifyDeviceClone.deviceCloneCountChanged': {
-    inParam: {readonly newClones: number},
-    outParam: void,
-  },
   'keybase.1.NotifyEmailAddress.emailAddressVerified': {
     inParam: {readonly emailAddress: EmailAddress},
     outParam: void,
@@ -43,40 +35,12 @@ export type MessageTypes = {
     inParam: {readonly list?: ReadonlyArray<Email> | null,readonly category: string,readonly email: EmailAddress},
     outParam: void,
   },
-  'keybase.1.NotifyEphemeral.newTeamEk': {
-    inParam: {readonly id: TeamID,readonly generation: EkGeneration},
-    outParam: void,
-  },
-  'keybase.1.NotifyEphemeral.newTeambotEk': {
-    inParam: {readonly id: TeamID,readonly generation: EkGeneration},
-    outParam: void,
-  },
-  'keybase.1.NotifyEphemeral.teambotEkNeeded': {
-    inParam: {readonly id: TeamID,readonly uid: UID,readonly generation: EkGeneration,readonly forceCreateGeneration?: EkGeneration | null},
-    outParam: void,
-  },
   'keybase.1.NotifyFS.FSActivity': {
     inParam: {readonly notification: FSNotification},
     outParam: void,
   },
-  'keybase.1.NotifyFS.FSEditListResponse': {
-    inParam: {readonly edits: FSFolderEditHistory,readonly requestID: number},
-    outParam: void,
-  },
-  'keybase.1.NotifyFS.FSFavoritesChanged': {
-    inParam: undefined,
-    outParam: void,
-  },
-  'keybase.1.NotifyFS.FSOnlineStatusChanged': {
-    inParam: {readonly online: boolean},
-    outParam: void,
-  },
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged': {
     inParam: {readonly status: FolderSyncStatus},
-    outParam: void,
-  },
-  'keybase.1.NotifyFS.FSPathUpdated': {
-    inParam: {readonly path: string},
     outParam: void,
   },
   'keybase.1.NotifyFS.FSSubscriptionNotify': {
@@ -87,36 +51,12 @@ export type MessageTypes = {
     inParam: {readonly clientID: string,readonly subscriptionIDs?: ReadonlyArray<string> | null,readonly path: string,readonly topics?: ReadonlyArray<PathSubscriptionTopic> | null},
     outParam: void,
   },
-  'keybase.1.NotifyFS.FSSyncActivity': {
-    inParam: {readonly status: FSPathSyncStatus},
-    outParam: void,
-  },
-  'keybase.1.NotifyFS.FSSyncStatusResponse': {
-    inParam: {readonly status: FSSyncStatus,readonly requestID: number},
-    outParam: void,
-  },
-  'keybase.1.NotifyFavorites.favoritesChanged': {
-    inParam: {readonly uid: UID},
-    outParam: void,
-  },
   'keybase.1.NotifyFeaturedBots.featuredBotsUpdate': {
     inParam: {readonly bots?: ReadonlyArray<FeaturedBot> | null,readonly limit: number,readonly offset: number},
     outParam: void,
   },
-  'keybase.1.NotifyInviteFriends.updateInviteCounts': {
-    inParam: {readonly counts: InviteCounts},
-    outParam: void,
-  },
-  'keybase.1.NotifyKeyfamily.keyfamilyChanged': {
-    inParam: {readonly uid: UID},
-    outParam: void,
-  },
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': {
     inParam: undefined,
-    outParam: void,
-  },
-  'keybase.1.NotifyPaperKey.paperKeyCached': {
-    inParam: {readonly uid: UID,readonly encKID: KID,readonly sigKID: KID},
     outParam: void,
   },
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
@@ -125,18 +65,6 @@ export type MessageTypes = {
   },
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
     inParam: {readonly stats?: RuntimeStats | null},
-    outParam: void,
-  },
-  'keybase.1.NotifySaltpack.saltpackOperationDone': {
-    inParam: {readonly opType: SaltpackOperationType,readonly filename: string},
-    outParam: void,
-  },
-  'keybase.1.NotifySaltpack.saltpackOperationProgress': {
-    inParam: {readonly opType: SaltpackOperationType,readonly filename: string,readonly bytesComplete: number,readonly bytesTotal: number},
-    outParam: void,
-  },
-  'keybase.1.NotifySaltpack.saltpackOperationStart': {
-    inParam: {readonly opType: SaltpackOperationType,readonly filename: string},
     outParam: void,
   },
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
@@ -171,20 +99,8 @@ export type MessageTypes = {
     inParam: {readonly name: string,readonly formats?: ReadonlyArray<AvatarFormat> | null,readonly typ: AvatarUpdateType},
     outParam: void,
   },
-  'keybase.1.NotifyTeam.newlyAddedToTeam': {
-    inParam: {readonly teamID: TeamID},
-    outParam: void,
-  },
-  'keybase.1.NotifyTeam.teamAbandoned': {
-    inParam: {readonly teamID: TeamID},
-    outParam: void,
-  },
   'keybase.1.NotifyTeam.teamChangedByID': {
     inParam: {readonly teamID: TeamID,readonly latestSeqno: Seqno,readonly implicitTeam: boolean,readonly changes: TeamChangeSet,readonly latestHiddenSeqno: Seqno,readonly latestOffchainSeqno: Seqno,readonly source: TeamChangedSource},
-    outParam: void,
-  },
-  'keybase.1.NotifyTeam.teamChangedByName': {
-    inParam: {readonly teamName: string,readonly latestSeqno: Seqno,readonly implicitTeam: boolean,readonly changes: TeamChangeSet,readonly latestHiddenSeqno: Seqno,readonly latestOffchainSeqno: Seqno,readonly source: TeamChangedSource},
     outParam: void,
   },
   'keybase.1.NotifyTeam.teamDeleted': {
@@ -211,14 +127,6 @@ export type MessageTypes = {
     inParam: {readonly membership: TeamTreeMembership},
     outParam: void,
   },
-  'keybase.1.NotifyTeambot.newTeambotKey': {
-    inParam: {readonly id: TeamID,readonly generation: TeambotKeyGeneration,readonly application: TeamApplication},
-    outParam: void,
-  },
-  'keybase.1.NotifyTeambot.teambotKeyNeeded': {
-    inParam: {readonly id: TeamID,readonly uid: UID,readonly generation: TeambotKeyGeneration,readonly application: TeamApplication},
-    outParam: void,
-  },
   'keybase.1.NotifyTracking.notifyUserBlocked': {
     inParam: {readonly b: UserBlockedSummary},
     outParam: void,
@@ -241,10 +149,6 @@ export type MessageTypes = {
   },
   'keybase.1.NotifyUsers.userChanged': {
     inParam: {readonly uid: UID},
-    outParam: void,
-  },
-  'keybase.1.NotifyUsers.webOfTrustChanged': {
-    inParam: {readonly username: string},
     outParam: void,
   },
   'keybase.1.SimpleFS.simpleFSArchiveAllFiles': {
@@ -707,28 +611,8 @@ export type MessageTypes = {
     inParam: {readonly folder: FolderHandle,readonly repoID: RepoID,readonly channelName?: string | null,readonly chatDisabled: boolean},
     outParam: void,
   },
-  'keybase.1.gpgUi.confirmDuplicateKeyChosen': {
-    inParam: undefined,
-    outParam: boolean,
-  },
-  'keybase.1.gpgUi.confirmImportSecretToExistingKey': {
-    inParam: undefined,
-    outParam: boolean,
-  },
-  'keybase.1.gpgUi.getTTY': {
-    inParam: undefined,
-    outParam: string,
-  },
   'keybase.1.gpgUi.selectKey': {
     inParam: {readonly keys?: ReadonlyArray<GPGKey> | null},
-    outParam: string,
-  },
-  'keybase.1.gpgUi.selectKeyAndPushOption': {
-    inParam: {readonly keys?: ReadonlyArray<GPGKey> | null},
-    outParam: SelectKeyRes,
-  },
-  'keybase.1.gpgUi.sign': {
-    inParam: {readonly msg: Uint8Array,readonly fingerprint: Uint8Array},
     outParam: string,
   },
   'keybase.1.gpgUi.wantToAddGPGKey': {
@@ -746,10 +630,6 @@ export type MessageTypes = {
   'keybase.1.gregor.updateCategory': {
     inParam: {readonly category: string,readonly body: string,readonly dtime: Gregor1.TimeOrOffset},
     outParam: Gregor1.MsgID,
-  },
-  'keybase.1.gregorUI.pushOutOfBandMessages': {
-    inParam: {readonly oobm?: ReadonlyArray<Gregor1.OutOfBandMessage> | null},
-    outParam: void,
   },
   'keybase.1.gregorUI.pushState': {
     inParam: {readonly state: Gregor1.State,readonly reason: PushReason},
@@ -799,10 +679,6 @@ export type MessageTypes = {
     inParam: {readonly summary: Identify3Summary},
     outParam: void,
   },
-  'keybase.1.identify3Ui.identify3TrackerTimedOut': {
-    inParam: {readonly guiID: Identify3GUIID},
-    outParam: void,
-  },
   'keybase.1.identify3Ui.identify3UpdateRow': {
     inParam: {readonly row: Identify3Row},
     outParam: void,
@@ -813,74 +689,6 @@ export type MessageTypes = {
   },
   'keybase.1.identify3Ui.identify3UserReset': {
     inParam: {readonly guiID: Identify3GUIID},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.cancel': {
-    inParam: undefined,
-    outParam: void,
-  },
-  'keybase.1.identifyUi.confirm': {
-    inParam: {readonly outcome: IdentifyOutcome},
-    outParam: ConfirmResult,
-  },
-  'keybase.1.identifyUi.delegateIdentifyUI': {
-    inParam: undefined,
-    outParam: number,
-  },
-  'keybase.1.identifyUi.dismiss': {
-    inParam: {readonly username: string,readonly reason: DismissReason},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayCryptocurrency': {
-    inParam: {readonly c: Cryptocurrency},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayKey': {
-    inParam: {readonly key: IdentifyKey},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayStellarAccount': {
-    inParam: {readonly a: StellarAccount},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayTLFCreateWithInvite': {
-    inParam: {readonly folderName: string,readonly isPrivate: boolean,readonly assertion: string,readonly socialAssertion: SocialAssertion,readonly inviteLink: string,readonly throttled: boolean},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayTrackStatement': {
-    inParam: {readonly stmt: string},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.displayUserCard': {
-    inParam: {readonly card: UserCard},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.finish': {
-    inParam: undefined,
-    outParam: void,
-  },
-  'keybase.1.identifyUi.finishSocialProofCheck': {
-    inParam: {readonly rp: RemoteProof,readonly lcr: LinkCheckResult},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.finishWebProofCheck': {
-    inParam: {readonly rp: RemoteProof,readonly lcr: LinkCheckResult},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.launchNetworkChecks': {
-    inParam: {readonly identity: Identity,readonly user: User},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.reportLastTrack': {
-    inParam: {readonly track?: TrackSummary | null},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.reportTrackToken': {
-    inParam: {readonly trackToken: TrackToken},
-    outParam: void,
-  },
-  'keybase.1.identifyUi.start': {
-    inParam: {readonly username: string,readonly reason: IdentifyReason,readonly forceDisplay?: boolean},
     outParam: void,
   },
   'keybase.1.incomingShare.getIncomingShareItems': {
@@ -983,10 +791,6 @@ export type MessageTypes = {
     inParam: {readonly phrase: string},
     outParam: void,
   },
-  'keybase.1.loginUi.displayResetMessage': {
-    inParam: {readonly kind: ResetMessage},
-    outParam: void,
-  },
   'keybase.1.loginUi.displayResetProgress': {
     inParam: {readonly text: string,readonly endTime: Time,readonly needVerify: boolean},
     outParam: void,
@@ -1033,18 +837,6 @@ export type MessageTypes = {
   },
   'keybase.1.pgpUi.keyGenerated': {
     inParam: {readonly kid: KID,readonly key: KeyInfo},
-    outParam: void,
-  },
-  'keybase.1.pgpUi.outputPGPWarning': {
-    inParam: {readonly warning: string},
-    outParam: void,
-  },
-  'keybase.1.pgpUi.outputSignatureNonKeybase': {
-    inParam: {readonly keyID: string,readonly signedAt: Time,readonly warnings?: ReadonlyArray<string> | null},
-    outParam: void,
-  },
-  'keybase.1.pgpUi.outputSignatureSuccess': {
-    inParam: {readonly fingerprint: string,readonly username: string,readonly signedAt: Time,readonly warnings?: ReadonlyArray<string> | null},
     outParam: void,
   },
   'keybase.1.pgpUi.shouldPushPrivate': {
@@ -1155,10 +947,6 @@ export type MessageTypes = {
     inParam: {readonly keys?: ReadonlyArray<GPGKey> | null},
     outParam: GPGMethod,
   },
-  'keybase.1.provisionUi.chooseProvisioningMethod': {
-    inParam: {readonly gpgOption: boolean},
-    outParam: ProvisionMethod,
-  },
   'keybase.1.provisionUi.switchToGPGSignOK': {
     inParam: {readonly key: GPGKey,readonly importError: string},
     outParam: boolean,
@@ -1251,25 +1039,9 @@ export type MessageTypes = {
     inParam: {readonly signedMsg: string},
     outParam: SaltpackVerifyResult,
   },
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt': {
-    inParam: {readonly signingKID: KID,readonly sender: SaltpackSender,readonly usedDelegateUI: boolean,readonly signed: boolean},
-    outParam: void,
-  },
-  'keybase.1.saltpackUi.saltpackVerifyBadSender': {
-    inParam: {readonly signingKID: KID,readonly sender: SaltpackSender},
-    outParam: void,
-  },
-  'keybase.1.saltpackUi.saltpackVerifySuccess': {
-    inParam: {readonly signingKID: KID,readonly sender: SaltpackSender},
-    outParam: void,
-  },
   'keybase.1.secretUi.getPassphrase': {
     inParam: {readonly pinentry: GUIEntryArg,readonly terminal?: SecretEntryArg | null},
     outParam: GetPassphraseRes,
-  },
-  'keybase.1.signup.checkInvitationCode': {
-    inParam: {readonly invitationCode: string},
-    outParam: void,
   },
   'keybase.1.signup.checkUsernameAvailable': {
     inParam: {readonly username: string},
@@ -1279,29 +1051,9 @@ export type MessageTypes = {
     inParam: undefined,
     outParam: string,
   },
-  'keybase.1.signup.inviteRequest': {
-    inParam: {readonly email: string,readonly fullname: string,readonly notes: string},
-    outParam: void,
-  },
   'keybase.1.signup.signup': {
     inParam: {readonly email: string,readonly inviteCode: string,readonly passphrase: string,readonly username: string,readonly deviceName: string,readonly deviceType: DeviceType,readonly storeSecret: boolean,readonly skipMail: boolean,readonly genPGPBatch: boolean,readonly genPaper: boolean,readonly randomPw: boolean,readonly verifyEmail: boolean,readonly botToken: BotToken,readonly skipGPG: boolean},
     outParam: SignupRes,
-  },
-  'keybase.1.streamUi.close': {
-    inParam: {readonly s: Stream},
-    outParam: void,
-  },
-  'keybase.1.streamUi.read': {
-    inParam: {readonly s: Stream,readonly sz: number},
-    outParam: Uint8Array,
-  },
-  'keybase.1.streamUi.reset': {
-    inParam: {readonly s: Stream},
-    outParam: void,
-  },
-  'keybase.1.streamUi.write': {
-    inParam: {readonly s: Stream,readonly buf: Uint8Array},
-    outParam: number,
   },
   'keybase.1.teams.findAssertionsInTeamNoResolve': {
     inParam: {readonly teamID: TeamID,readonly assertions?: ReadonlyArray<string> | null},
@@ -1366,10 +1118,6 @@ export type MessageTypes = {
   'keybase.1.teams.teamCreateFancy': {
     inParam: {readonly teamInfo: TeamCreateFancyInfo},
     outParam: TeamID,
-  },
-  'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration': {
-    inParam: {readonly teamname: string,readonly role: TeamRole,readonly maxUses: TeamInviteMaxUses,readonly expireAfter?: string | null},
-    outParam: Invitelink,
   },
   'keybase.1.teams.teamCreateSeitanTokenV2': {
     inParam: {readonly teamname: string,readonly role: TeamRole,readonly label: SeitanKeyLabel},
@@ -1441,14 +1189,6 @@ export type MessageTypes = {
   },
   'keybase.1.teamsUi.confirmSubteamDelete': {
     inParam: {readonly teamName: string},
-    outParam: boolean,
-  },
-  'keybase.1.track.untrack': {
-    inParam: {readonly username: string},
-    outParam: void,
-  },
-  'keybase.1.ui.promptYesNo': {
-    inParam: {readonly text: Text,readonly promptDefault: PromptDefault},
     outParam: boolean,
   },
   'keybase.1.user.blockUser': {
@@ -1532,7 +1272,7 @@ export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
 export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
 export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
-type PromiseMethod = 'keybase.1.SimpleFS.simpleFSArchiveAllFiles' | 'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos' | 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob' | 'keybase.1.SimpleFS.simpleFSArchiveStart' | 'keybase.1.SimpleFS.simpleFSCancelDownload' | 'keybase.1.SimpleFS.simpleFSCheckReachability' | 'keybase.1.SimpleFS.simpleFSClearConflictState' | 'keybase.1.SimpleFS.simpleFSConfigureDownload' | 'keybase.1.SimpleFS.simpleFSCopyRecursive' | 'keybase.1.SimpleFS.simpleFSDismissDownload' | 'keybase.1.SimpleFS.simpleFSDismissUpload' | 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict' | 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus' | 'keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness' | 'keybase.1.SimpleFS.simpleFSGetArchiveStatus' | 'keybase.1.SimpleFS.simpleFSGetDownloadInfo' | 'keybase.1.SimpleFS.simpleFSGetDownloadStatus' | 'keybase.1.SimpleFS.simpleFSGetFilesTabBadge' | 'keybase.1.SimpleFS.simpleFSGetFolder' | 'keybase.1.SimpleFS.simpleFSGetGUIFileContext' | 'keybase.1.SimpleFS.simpleFSGetOnlineStatus' | 'keybase.1.SimpleFS.simpleFSGetUploadStatus' | 'keybase.1.SimpleFS.simpleFSList' | 'keybase.1.SimpleFS.simpleFSListFavorites' | 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth' | 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload' | 'keybase.1.SimpleFS.simpleFSMove' | 'keybase.1.SimpleFS.simpleFSOpen' | 'keybase.1.SimpleFS.simpleFSReadList' | 'keybase.1.SimpleFS.simpleFSRemove' | 'keybase.1.SimpleFS.simpleFSSetDebugLevel' | 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig' | 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold' | 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed' | 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular' | 'keybase.1.SimpleFS.simpleFSSettings' | 'keybase.1.SimpleFS.simpleFSStartDownload' | 'keybase.1.SimpleFS.simpleFSStartUpload' | 'keybase.1.SimpleFS.simpleFSStat' | 'keybase.1.SimpleFS.simpleFSSubscribeNonPath' | 'keybase.1.SimpleFS.simpleFSSubscribePath' | 'keybase.1.SimpleFS.simpleFSSyncStatus' | 'keybase.1.SimpleFS.simpleFSUnsubscribe' | 'keybase.1.SimpleFS.simpleFSUserEditHistory' | 'keybase.1.SimpleFS.simpleFSUserIn' | 'keybase.1.SimpleFS.simpleFSUserOut' | 'keybase.1.SimpleFS.simpleFSWait' | 'keybase.1.account.cancelReset' | 'keybase.1.account.getLockdownMode' | 'keybase.1.account.guessCurrentLocation' | 'keybase.1.account.hasServerKeys' | 'keybase.1.account.passphraseChange' | 'keybase.1.account.passphraseCheck' | 'keybase.1.account.recoverUsernameWithEmail' | 'keybase.1.account.recoverUsernameWithPhone' | 'keybase.1.account.setLockdownMode' | 'keybase.1.account.userGetContactSettings' | 'keybase.1.account.userSetContactSettings' | 'keybase.1.apiserver.Delete' | 'keybase.1.apiserver.GetWithSession' | 'keybase.1.apiserver.Post' | 'keybase.1.apiserver.PostJSON' | 'keybase.1.appState.powerMonitorEvent' | 'keybase.1.appState.updateMobileNetState' | 'keybase.1.config.appendGUILogs' | 'keybase.1.config.generateWebAuthToken' | 'keybase.1.config.getBootstrapStatus' | 'keybase.1.config.getProxyData' | 'keybase.1.config.getRememberPassphrase' | 'keybase.1.config.getUpdateInfo' | 'keybase.1.config.getUpdateInfo2' | 'keybase.1.config.guiGetValue' | 'keybase.1.config.guiSetValue' | 'keybase.1.config.helloIAm' | 'keybase.1.config.logSend' | 'keybase.1.config.requestFollowingAndUnverifiedFollowers' | 'keybase.1.config.setProxyData' | 'keybase.1.config.setRememberPassphrase' | 'keybase.1.config.startUpdateIfNeeded' | 'keybase.1.config.toggleRuntimeStats' | 'keybase.1.config.updateLastLoggedInAndServerConfig' | 'keybase.1.config.waitForClient' | 'keybase.1.contacts.getContactsForUserRecommendations' | 'keybase.1.contacts.saveContactList' | 'keybase.1.cryptocurrency.registerAddress' | 'keybase.1.ctl.dbNuke' | 'keybase.1.ctl.getOnLoginStartup' | 'keybase.1.ctl.setOnLoginStartup' | 'keybase.1.ctl.stop' | 'keybase.1.delegateUiCtl.registerChatUI' | 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered' | 'keybase.1.delegateUiCtl.registerHomeUI' | 'keybase.1.delegateUiCtl.registerIdentify3UI' | 'keybase.1.delegateUiCtl.registerLogUI' | 'keybase.1.delegateUiCtl.registerRekeyUI' | 'keybase.1.delegateUiCtl.registerSecretUI' | 'keybase.1.device.checkDeviceNameFormat' | 'keybase.1.device.deviceHistoryList' | 'keybase.1.device.dismissDeviceChangeNotifications' | 'keybase.1.emails.addEmail' | 'keybase.1.emails.deleteEmail' | 'keybase.1.emails.sendVerificationEmail' | 'keybase.1.emails.setPrimaryEmail' | 'keybase.1.emails.setVisibilityEmail' | 'keybase.1.favorite.favoriteIgnore' | 'keybase.1.featuredBot.featuredBots' | 'keybase.1.featuredBot.search' | 'keybase.1.git.createPersonalRepo' | 'keybase.1.git.createTeamRepo' | 'keybase.1.git.deletePersonalRepo' | 'keybase.1.git.deleteTeamRepo' | 'keybase.1.git.getAllGitMetadata' | 'keybase.1.git.setTeamRepoSettings' | 'keybase.1.gregor.dismissCategory' | 'keybase.1.gregor.getState' | 'keybase.1.gregor.updateCategory' | 'keybase.1.home.homeDismissAnnouncement' | 'keybase.1.home.homeGetScreen' | 'keybase.1.home.homeMarkViewed' | 'keybase.1.home.homeSkipTodoType' | 'keybase.1.identify3.identify3FollowUser' | 'keybase.1.identify3.identify3IgnoreUser' | 'keybase.1.incomingShare.getIncomingShareItems' | 'keybase.1.incomingShare.getPreference' | 'keybase.1.incomingShare.setPreference' | 'keybase.1.install.fuseStatus' | 'keybase.1.install.installFuse' | 'keybase.1.install.installKBFS' | 'keybase.1.install.uninstallKBFS' | 'keybase.1.kbfsMount.GetCurrentMountDir' | 'keybase.1.kbfsMount.GetKBFSPathInfo' | 'keybase.1.kbfsMount.GetPreferredMountDirs' | 'keybase.1.kbfsMount.WaitForMounts' | 'keybase.1.log.perfLogPoint' | 'keybase.1.login.accountDelete' | 'keybase.1.login.deprovision' | 'keybase.1.login.getConfiguredAccounts' | 'keybase.1.login.isOnline' | 'keybase.1.login.logout' | 'keybase.1.login.paperKeySubmit' | 'keybase.1.notifyCtl.setNotifications' | 'keybase.1.pgp.pgpStorageDismiss' | 'keybase.1.phoneNumbers.addPhoneNumber' | 'keybase.1.phoneNumbers.deletePhoneNumber' | 'keybase.1.phoneNumbers.resendVerificationForPhoneNumber' | 'keybase.1.phoneNumbers.setVisibilityPhoneNumber' | 'keybase.1.phoneNumbers.verifyPhoneNumber' | 'keybase.1.pprof.logProcessorProfile' | 'keybase.1.pprof.logTrace' | 'keybase.1.prove.checkProof' | 'keybase.1.reachability.checkReachability' | 'keybase.1.reachability.startReachability' | 'keybase.1.rekey.getRevokeWarning' | 'keybase.1.rekey.rekeyStatusFinish' | 'keybase.1.rekey.showPendingRekeyStatus' | 'keybase.1.revoke.revokeDevice' | 'keybase.1.revoke.revokeKey' | 'keybase.1.revoke.revokeSigs' | 'keybase.1.saltpack.saltpackDecryptFile' | 'keybase.1.saltpack.saltpackDecryptString' | 'keybase.1.saltpack.saltpackEncryptFile' | 'keybase.1.saltpack.saltpackEncryptString' | 'keybase.1.saltpack.saltpackSaveCiphertextToFile' | 'keybase.1.saltpack.saltpackSaveSignedMsgToFile' | 'keybase.1.saltpack.saltpackSignFile' | 'keybase.1.saltpack.saltpackSignString' | 'keybase.1.saltpack.saltpackVerifyFile' | 'keybase.1.saltpack.saltpackVerifyString' | 'keybase.1.signup.checkInvitationCode' | 'keybase.1.signup.checkUsernameAvailable' | 'keybase.1.signup.getInvitationCode' | 'keybase.1.signup.inviteRequest' | 'keybase.1.teams.findAssertionsInTeamNoResolve' | 'keybase.1.teams.getAnnotatedTeam' | 'keybase.1.teams.getInviteLinkDetails' | 'keybase.1.teams.getTeamID' | 'keybase.1.teams.getTeamRoleMap' | 'keybase.1.teams.getUntrustedTeamInfo' | 'keybase.1.teams.loadTeamTreeMembershipsAsync' | 'keybase.1.teams.setTarsDisabled' | 'keybase.1.teams.setTeamMemberShowcase' | 'keybase.1.teams.setTeamShowcase' | 'keybase.1.teams.teamAddEmailsBulk' | 'keybase.1.teams.teamAddMember' | 'keybase.1.teams.teamAddMembersMultiRole' | 'keybase.1.teams.teamCreate' | 'keybase.1.teams.teamCreateFancy' | 'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration' | 'keybase.1.teams.teamCreateSeitanTokenV2' | 'keybase.1.teams.teamEditMembers' | 'keybase.1.teams.teamGetMembersByID' | 'keybase.1.teams.teamIgnoreRequest' | 'keybase.1.teams.teamLeave' | 'keybase.1.teams.teamListMyAccessRequests' | 'keybase.1.teams.teamListUnverified' | 'keybase.1.teams.teamProfileAddList' | 'keybase.1.teams.teamReAddMemberAfterReset' | 'keybase.1.teams.teamRemoveMember' | 'keybase.1.teams.teamRename' | 'keybase.1.teams.teamSetSettings' | 'keybase.1.teams.untrustedTeamExists' | 'keybase.1.teams.uploadTeamAvatar' | 'keybase.1.track.untrack' | 'keybase.1.user.blockUser' | 'keybase.1.user.canLogout' | 'keybase.1.user.dismissBlockButtons' | 'keybase.1.user.getUserBlocks' | 'keybase.1.user.interestingPeople' | 'keybase.1.user.listTrackersUnverified' | 'keybase.1.user.listTracking' | 'keybase.1.user.loadMySettings' | 'keybase.1.user.loadPassphraseState' | 'keybase.1.user.profileEdit' | 'keybase.1.user.proofSuggestions' | 'keybase.1.user.reportUser' | 'keybase.1.user.setUserBlocks' | 'keybase.1.user.unblockUser' | 'keybase.1.user.uploadUserAvatar' | 'keybase.1.user.userCard' | 'keybase.1.userSearch.bulkEmailOrPhoneSearch' | 'keybase.1.userSearch.getNonUserDetails' | 'keybase.1.userSearch.userSearch'
+type PromiseMethod = 'keybase.1.SimpleFS.simpleFSArchiveAllFiles' | 'keybase.1.SimpleFS.simpleFSArchiveAllGitRepos' | 'keybase.1.SimpleFS.simpleFSArchiveCancelOrDismissJob' | 'keybase.1.SimpleFS.simpleFSArchiveStart' | 'keybase.1.SimpleFS.simpleFSCancelDownload' | 'keybase.1.SimpleFS.simpleFSCheckReachability' | 'keybase.1.SimpleFS.simpleFSClearConflictState' | 'keybase.1.SimpleFS.simpleFSConfigureDownload' | 'keybase.1.SimpleFS.simpleFSCopyRecursive' | 'keybase.1.SimpleFS.simpleFSDismissDownload' | 'keybase.1.SimpleFS.simpleFSDismissUpload' | 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict' | 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus' | 'keybase.1.SimpleFS.simpleFSGetArchiveJobFreshness' | 'keybase.1.SimpleFS.simpleFSGetArchiveStatus' | 'keybase.1.SimpleFS.simpleFSGetDownloadInfo' | 'keybase.1.SimpleFS.simpleFSGetDownloadStatus' | 'keybase.1.SimpleFS.simpleFSGetFilesTabBadge' | 'keybase.1.SimpleFS.simpleFSGetFolder' | 'keybase.1.SimpleFS.simpleFSGetGUIFileContext' | 'keybase.1.SimpleFS.simpleFSGetOnlineStatus' | 'keybase.1.SimpleFS.simpleFSGetUploadStatus' | 'keybase.1.SimpleFS.simpleFSList' | 'keybase.1.SimpleFS.simpleFSListFavorites' | 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth' | 'keybase.1.SimpleFS.simpleFSMakeTempDirForUpload' | 'keybase.1.SimpleFS.simpleFSMove' | 'keybase.1.SimpleFS.simpleFSOpen' | 'keybase.1.SimpleFS.simpleFSReadList' | 'keybase.1.SimpleFS.simpleFSRemove' | 'keybase.1.SimpleFS.simpleFSSetDebugLevel' | 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig' | 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold' | 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed' | 'keybase.1.SimpleFS.simpleFSSetSyncOnCellular' | 'keybase.1.SimpleFS.simpleFSSettings' | 'keybase.1.SimpleFS.simpleFSStartDownload' | 'keybase.1.SimpleFS.simpleFSStartUpload' | 'keybase.1.SimpleFS.simpleFSStat' | 'keybase.1.SimpleFS.simpleFSSubscribeNonPath' | 'keybase.1.SimpleFS.simpleFSSubscribePath' | 'keybase.1.SimpleFS.simpleFSSyncStatus' | 'keybase.1.SimpleFS.simpleFSUnsubscribe' | 'keybase.1.SimpleFS.simpleFSUserEditHistory' | 'keybase.1.SimpleFS.simpleFSUserIn' | 'keybase.1.SimpleFS.simpleFSUserOut' | 'keybase.1.SimpleFS.simpleFSWait' | 'keybase.1.account.cancelReset' | 'keybase.1.account.getLockdownMode' | 'keybase.1.account.guessCurrentLocation' | 'keybase.1.account.hasServerKeys' | 'keybase.1.account.passphraseChange' | 'keybase.1.account.passphraseCheck' | 'keybase.1.account.recoverUsernameWithEmail' | 'keybase.1.account.recoverUsernameWithPhone' | 'keybase.1.account.setLockdownMode' | 'keybase.1.account.userGetContactSettings' | 'keybase.1.account.userSetContactSettings' | 'keybase.1.apiserver.Delete' | 'keybase.1.apiserver.GetWithSession' | 'keybase.1.apiserver.Post' | 'keybase.1.apiserver.PostJSON' | 'keybase.1.appState.powerMonitorEvent' | 'keybase.1.appState.updateMobileNetState' | 'keybase.1.config.appendGUILogs' | 'keybase.1.config.generateWebAuthToken' | 'keybase.1.config.getBootstrapStatus' | 'keybase.1.config.getProxyData' | 'keybase.1.config.getRememberPassphrase' | 'keybase.1.config.getUpdateInfo' | 'keybase.1.config.getUpdateInfo2' | 'keybase.1.config.guiGetValue' | 'keybase.1.config.guiSetValue' | 'keybase.1.config.helloIAm' | 'keybase.1.config.logSend' | 'keybase.1.config.requestFollowingAndUnverifiedFollowers' | 'keybase.1.config.setProxyData' | 'keybase.1.config.setRememberPassphrase' | 'keybase.1.config.startUpdateIfNeeded' | 'keybase.1.config.toggleRuntimeStats' | 'keybase.1.config.updateLastLoggedInAndServerConfig' | 'keybase.1.config.waitForClient' | 'keybase.1.contacts.getContactsForUserRecommendations' | 'keybase.1.contacts.saveContactList' | 'keybase.1.cryptocurrency.registerAddress' | 'keybase.1.ctl.dbNuke' | 'keybase.1.ctl.getOnLoginStartup' | 'keybase.1.ctl.setOnLoginStartup' | 'keybase.1.ctl.stop' | 'keybase.1.delegateUiCtl.registerChatUI' | 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered' | 'keybase.1.delegateUiCtl.registerHomeUI' | 'keybase.1.delegateUiCtl.registerIdentify3UI' | 'keybase.1.delegateUiCtl.registerLogUI' | 'keybase.1.delegateUiCtl.registerRekeyUI' | 'keybase.1.delegateUiCtl.registerSecretUI' | 'keybase.1.device.checkDeviceNameFormat' | 'keybase.1.device.deviceHistoryList' | 'keybase.1.device.dismissDeviceChangeNotifications' | 'keybase.1.emails.addEmail' | 'keybase.1.emails.deleteEmail' | 'keybase.1.emails.sendVerificationEmail' | 'keybase.1.emails.setPrimaryEmail' | 'keybase.1.emails.setVisibilityEmail' | 'keybase.1.favorite.favoriteIgnore' | 'keybase.1.featuredBot.featuredBots' | 'keybase.1.featuredBot.search' | 'keybase.1.git.createPersonalRepo' | 'keybase.1.git.createTeamRepo' | 'keybase.1.git.deletePersonalRepo' | 'keybase.1.git.deleteTeamRepo' | 'keybase.1.git.getAllGitMetadata' | 'keybase.1.git.setTeamRepoSettings' | 'keybase.1.gregor.dismissCategory' | 'keybase.1.gregor.getState' | 'keybase.1.gregor.updateCategory' | 'keybase.1.home.homeDismissAnnouncement' | 'keybase.1.home.homeGetScreen' | 'keybase.1.home.homeMarkViewed' | 'keybase.1.home.homeSkipTodoType' | 'keybase.1.identify3.identify3FollowUser' | 'keybase.1.identify3.identify3IgnoreUser' | 'keybase.1.incomingShare.getIncomingShareItems' | 'keybase.1.incomingShare.getPreference' | 'keybase.1.incomingShare.setPreference' | 'keybase.1.install.fuseStatus' | 'keybase.1.install.installFuse' | 'keybase.1.install.installKBFS' | 'keybase.1.install.uninstallKBFS' | 'keybase.1.kbfsMount.GetCurrentMountDir' | 'keybase.1.kbfsMount.GetKBFSPathInfo' | 'keybase.1.kbfsMount.GetPreferredMountDirs' | 'keybase.1.kbfsMount.WaitForMounts' | 'keybase.1.log.perfLogPoint' | 'keybase.1.login.accountDelete' | 'keybase.1.login.deprovision' | 'keybase.1.login.getConfiguredAccounts' | 'keybase.1.login.isOnline' | 'keybase.1.login.logout' | 'keybase.1.login.paperKeySubmit' | 'keybase.1.notifyCtl.setNotifications' | 'keybase.1.pgp.pgpStorageDismiss' | 'keybase.1.phoneNumbers.addPhoneNumber' | 'keybase.1.phoneNumbers.deletePhoneNumber' | 'keybase.1.phoneNumbers.resendVerificationForPhoneNumber' | 'keybase.1.phoneNumbers.setVisibilityPhoneNumber' | 'keybase.1.phoneNumbers.verifyPhoneNumber' | 'keybase.1.pprof.logProcessorProfile' | 'keybase.1.pprof.logTrace' | 'keybase.1.prove.checkProof' | 'keybase.1.reachability.checkReachability' | 'keybase.1.reachability.startReachability' | 'keybase.1.rekey.getRevokeWarning' | 'keybase.1.rekey.rekeyStatusFinish' | 'keybase.1.rekey.showPendingRekeyStatus' | 'keybase.1.revoke.revokeDevice' | 'keybase.1.revoke.revokeKey' | 'keybase.1.revoke.revokeSigs' | 'keybase.1.saltpack.saltpackDecryptFile' | 'keybase.1.saltpack.saltpackDecryptString' | 'keybase.1.saltpack.saltpackEncryptFile' | 'keybase.1.saltpack.saltpackEncryptString' | 'keybase.1.saltpack.saltpackSaveCiphertextToFile' | 'keybase.1.saltpack.saltpackSaveSignedMsgToFile' | 'keybase.1.saltpack.saltpackSignFile' | 'keybase.1.saltpack.saltpackSignString' | 'keybase.1.saltpack.saltpackVerifyFile' | 'keybase.1.saltpack.saltpackVerifyString' | 'keybase.1.signup.checkUsernameAvailable' | 'keybase.1.signup.getInvitationCode' | 'keybase.1.teams.findAssertionsInTeamNoResolve' | 'keybase.1.teams.getAnnotatedTeam' | 'keybase.1.teams.getInviteLinkDetails' | 'keybase.1.teams.getTeamID' | 'keybase.1.teams.getTeamRoleMap' | 'keybase.1.teams.getUntrustedTeamInfo' | 'keybase.1.teams.loadTeamTreeMembershipsAsync' | 'keybase.1.teams.setTarsDisabled' | 'keybase.1.teams.setTeamMemberShowcase' | 'keybase.1.teams.setTeamShowcase' | 'keybase.1.teams.teamAddEmailsBulk' | 'keybase.1.teams.teamAddMember' | 'keybase.1.teams.teamAddMembersMultiRole' | 'keybase.1.teams.teamCreate' | 'keybase.1.teams.teamCreateFancy' | 'keybase.1.teams.teamCreateSeitanTokenV2' | 'keybase.1.teams.teamEditMembers' | 'keybase.1.teams.teamGetMembersByID' | 'keybase.1.teams.teamIgnoreRequest' | 'keybase.1.teams.teamLeave' | 'keybase.1.teams.teamListMyAccessRequests' | 'keybase.1.teams.teamListUnverified' | 'keybase.1.teams.teamProfileAddList' | 'keybase.1.teams.teamReAddMemberAfterReset' | 'keybase.1.teams.teamRemoveMember' | 'keybase.1.teams.teamRename' | 'keybase.1.teams.teamSetSettings' | 'keybase.1.teams.untrustedTeamExists' | 'keybase.1.teams.uploadTeamAvatar' | 'keybase.1.user.blockUser' | 'keybase.1.user.canLogout' | 'keybase.1.user.dismissBlockButtons' | 'keybase.1.user.getUserBlocks' | 'keybase.1.user.interestingPeople' | 'keybase.1.user.listTrackersUnverified' | 'keybase.1.user.listTracking' | 'keybase.1.user.loadMySettings' | 'keybase.1.user.loadPassphraseState' | 'keybase.1.user.profileEdit' | 'keybase.1.user.proofSuggestions' | 'keybase.1.user.reportUser' | 'keybase.1.user.setUserBlocks' | 'keybase.1.user.unblockUser' | 'keybase.1.user.uploadUserAvatar' | 'keybase.1.user.userCard' | 'keybase.1.userSearch.bulkEmailOrPhoneSearch' | 'keybase.1.userSearch.getNonUserDetails' | 'keybase.1.userSearch.userSearch'
 export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
   ? (params?: undefined, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
   : (params: RpcIn<M>, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
@@ -3394,10 +3134,10 @@ export type WotUpdate = {readonly voucher: string,readonly vouchee: string,reado
 export type WotVouch = {readonly status: WotStatusType,readonly vouchProof: SigID,readonly vouchee: UserVersion,readonly voucheeUsername: string,readonly voucher: UserVersion,readonly voucherUsername: string,readonly vouchText: string,readonly vouchedAt: Time,readonly confidence: Confidence,readonly proofs?: ReadonlyArray<WotProofUI> | null,}
 export type WriteArgs = {readonly opID: OpID,readonly path: Path,readonly offset: number,}
 
-type IncomingMethod = 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.reachability.reachabilityChanged' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
+type IncomingMethod = 'keybase.1.NotifyAudit.boxAuditError' | 'keybase.1.NotifyAudit.rootAuditError' | 'keybase.1.NotifyBadges.badgeState' | 'keybase.1.NotifyFS.FSActivity' | 'keybase.1.NotifySession.loggedOut' | 'keybase.1.NotifyTracking.trackingChanged' | 'keybase.1.NotifyUsers.userChanged' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.pgpUi.finished' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.reachability.reachabilityChanged' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent'
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
-type CustomIncomingMethod = 'keybase.1.gpgUi.selectKey' | 'keybase.1.gpgUi.wantToAddGPGKey' | 'keybase.1.loginUi.chooseDeviceToRecoverWith' | 'keybase.1.loginUi.getEmailOrUsername' | 'keybase.1.loginUi.promptPassphraseRecovery' | 'keybase.1.loginUi.promptResetAccount' | 'keybase.1.loginUi.promptRevokePaperKeys' | 'keybase.1.pgpUi.keyGenerated' | 'keybase.1.pgpUi.shouldPushPrivate' | 'keybase.1.proveUi.checking' | 'keybase.1.proveUi.continueChecking' | 'keybase.1.proveUi.okToCheck' | 'keybase.1.proveUi.outputInstructions' | 'keybase.1.proveUi.preProofWarning' | 'keybase.1.proveUi.promptOverwrite' | 'keybase.1.proveUi.promptUsername' | 'keybase.1.provisionUi.DisplayAndPromptSecret' | 'keybase.1.provisionUi.PromptNewDeviceName' | 'keybase.1.provisionUi.chooseDevice' | 'keybase.1.provisionUi.chooseDeviceType' | 'keybase.1.provisionUi.chooseGPGMethod' | 'keybase.1.provisionUi.switchToGPGSignOK' | 'keybase.1.secretUi.getPassphrase' | 'keybase.1.teamsUi.confirmInviteLinkAccept' | 'keybase.1.teamsUi.confirmRootTeamDelete' | 'keybase.1.teamsUi.confirmSubteamDelete'
+type CustomIncomingMethod = 'keybase.1.NotifyApp.exit' | 'keybase.1.NotifyEmailAddress.emailAddressVerified' | 'keybase.1.NotifyEmailAddress.emailsChanged' | 'keybase.1.NotifyFS.FSOverallSyncStatusChanged' | 'keybase.1.NotifyFS.FSSubscriptionNotify' | 'keybase.1.NotifyFS.FSSubscriptionNotifyPath' | 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate' | 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' | 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged' | 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate' | 'keybase.1.NotifyService.HTTPSrvInfoUpdate' | 'keybase.1.NotifyService.handleKeybaseLink' | 'keybase.1.NotifyService.shutdown' | 'keybase.1.NotifySession.clientOutOfDate' | 'keybase.1.NotifySession.loggedIn' | 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' | 'keybase.1.NotifyTeam.avatarUpdated' | 'keybase.1.NotifyTeam.teamChangedByID' | 'keybase.1.NotifyTeam.teamDeleted' | 'keybase.1.NotifyTeam.teamExit' | 'keybase.1.NotifyTeam.teamMetadataUpdate' | 'keybase.1.NotifyTeam.teamRoleMapChanged' | 'keybase.1.NotifyTeam.teamTreeMembershipsDone' | 'keybase.1.NotifyTeam.teamTreeMembershipsPartial' | 'keybase.1.NotifyTracking.notifyUserBlocked' | 'keybase.1.NotifyTracking.trackingInfo' | 'keybase.1.NotifyUsers.identifyUpdate' | 'keybase.1.NotifyUsers.passwordChanged' | 'keybase.1.gpgUi.selectKey' | 'keybase.1.gpgUi.wantToAddGPGKey' | 'keybase.1.gregorUI.pushState' | 'keybase.1.homeUI.homeUIRefresh' | 'keybase.1.identify3Ui.identify3Result' | 'keybase.1.identify3Ui.identify3ShowTracker' | 'keybase.1.identify3Ui.identify3Summary' | 'keybase.1.identify3Ui.identify3UpdateRow' | 'keybase.1.identify3Ui.identify3UpdateUserCard' | 'keybase.1.identify3Ui.identify3UserReset' | 'keybase.1.logUi.log' | 'keybase.1.loginUi.chooseDeviceToRecoverWith' | 'keybase.1.loginUi.displayPaperKeyPhrase' | 'keybase.1.loginUi.displayPrimaryPaperKey' | 'keybase.1.loginUi.displayResetProgress' | 'keybase.1.loginUi.explainDeviceRecovery' | 'keybase.1.loginUi.getEmailOrUsername' | 'keybase.1.loginUi.promptPassphraseRecovery' | 'keybase.1.loginUi.promptResetAccount' | 'keybase.1.loginUi.promptRevokePaperKeys' | 'keybase.1.logsend.prepareLogsend' | 'keybase.1.pgpUi.finished' | 'keybase.1.pgpUi.keyGenerated' | 'keybase.1.pgpUi.shouldPushPrivate' | 'keybase.1.proveUi.checking' | 'keybase.1.proveUi.continueChecking' | 'keybase.1.proveUi.displayRecheckWarning' | 'keybase.1.proveUi.okToCheck' | 'keybase.1.proveUi.outputInstructions' | 'keybase.1.proveUi.outputPrechecks' | 'keybase.1.proveUi.preProofWarning' | 'keybase.1.proveUi.promptOverwrite' | 'keybase.1.proveUi.promptUsername' | 'keybase.1.provisionUi.DisplayAndPromptSecret' | 'keybase.1.provisionUi.DisplaySecretExchanged' | 'keybase.1.provisionUi.PromptNewDeviceName' | 'keybase.1.provisionUi.ProvisioneeSuccess' | 'keybase.1.provisionUi.ProvisionerSuccess' | 'keybase.1.provisionUi.chooseDevice' | 'keybase.1.provisionUi.chooseDeviceType' | 'keybase.1.provisionUi.chooseGPGMethod' | 'keybase.1.provisionUi.switchToGPGSignOK' | 'keybase.1.rekeyUI.delegateRekeyUI' | 'keybase.1.rekeyUI.refresh' | 'keybase.1.rekeyUI.rekeySendEvent' | 'keybase.1.secretUi.getPassphrase' | 'keybase.1.teamsUi.confirmInviteLinkAccept' | 'keybase.1.teamsUi.confirmRootTeamDelete' | 'keybase.1.teamsUi.confirmSubteamDelete'
 export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>
 export const SimpleFSSimpleFSArchiveAllFilesRpcPromise = createRpc('keybase.1.SimpleFS.simpleFSArchiveAllFiles')
 export const SimpleFSSimpleFSArchiveAllGitReposRpcPromise = createRpc('keybase.1.SimpleFS.simpleFSArchiveAllGitRepos')
@@ -3575,10 +3315,8 @@ export const saltpackSaltpackSignFileRpcPromise = createRpc('keybase.1.saltpack.
 export const saltpackSaltpackSignStringRpcPromise = createRpc('keybase.1.saltpack.saltpackSignString')
 export const saltpackSaltpackVerifyFileRpcPromise = createRpc('keybase.1.saltpack.saltpackVerifyFile')
 export const saltpackSaltpackVerifyStringRpcPromise = createRpc('keybase.1.saltpack.saltpackVerifyString')
-export const signupCheckInvitationCodeRpcPromise = createRpc('keybase.1.signup.checkInvitationCode')
 export const signupCheckUsernameAvailableRpcPromise = createRpc('keybase.1.signup.checkUsernameAvailable')
 export const signupGetInvitationCodeRpcPromise = createRpc('keybase.1.signup.getInvitationCode')
-export const signupInviteRequestRpcPromise = createRpc('keybase.1.signup.inviteRequest')
 export const signupSignupRpcListener = createListener('keybase.1.signup.signup')
 export const teamsFindAssertionsInTeamNoResolveRpcPromise = createRpc('keybase.1.teams.findAssertionsInTeamNoResolve')
 export const teamsGetAnnotatedTeamRpcPromise = createRpc('keybase.1.teams.getAnnotatedTeam')
@@ -3596,7 +3334,6 @@ export const teamsTeamAddMemberRpcPromise = createRpc('keybase.1.teams.teamAddMe
 export const teamsTeamAddMembersMultiRoleRpcPromise = createRpc('keybase.1.teams.teamAddMembersMultiRole')
 export const teamsTeamCreateFancyRpcPromise = createRpc('keybase.1.teams.teamCreateFancy')
 export const teamsTeamCreateRpcPromise = createRpc('keybase.1.teams.teamCreate')
-export const teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise = createRpc('keybase.1.teams.teamCreateSeitanInvitelinkWithDuration')
 export const teamsTeamCreateSeitanTokenV2RpcPromise = createRpc('keybase.1.teams.teamCreateSeitanTokenV2')
 export const teamsTeamDeleteRpcListener = createListener('keybase.1.teams.teamDelete')
 export const teamsTeamEditMembersRpcPromise = createRpc('keybase.1.teams.teamEditMembers')
@@ -3612,7 +3349,6 @@ export const teamsTeamRenameRpcPromise = createRpc('keybase.1.teams.teamRename')
 export const teamsTeamSetSettingsRpcPromise = createRpc('keybase.1.teams.teamSetSettings')
 export const teamsUntrustedTeamExistsRpcPromise = createRpc('keybase.1.teams.untrustedTeamExists')
 export const teamsUploadTeamAvatarRpcPromise = createRpc('keybase.1.teams.uploadTeamAvatar')
-export const trackUntrackRpcPromise = createRpc('keybase.1.track.untrack')
 export const userBlockUserRpcPromise = createRpc('keybase.1.user.blockUser')
 export const userCanLogoutRpcPromise = createRpc('keybase.1.user.canLogout')
 export const userDismissBlockButtonsRpcPromise = createRpc('keybase.1.user.dismissBlockButtons')
@@ -3729,23 +3465,15 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.gregor.injectItem'
 // 'keybase.1.gregor.dismissItem'
 // 'keybase.1.gregor.updateItem'
-// 'keybase.1.gregorUI.pushState'
 // 'keybase.1.gregorUI.pushOutOfBandMessages'
 // 'keybase.1.home.homeActionTaken'
-// 'keybase.1.homeUI.homeUIRefresh'
 // 'keybase.1.identify.Resolve3'
 // 'keybase.1.identify.identify2'
 // 'keybase.1.identify.identifyLite'
 // 'keybase.1.identify.resolveIdentifyImplicitTeam'
 // 'keybase.1.identify.resolveImplicitTeam'
 // 'keybase.1.identify.normalizeSocialAssertion'
-// 'keybase.1.identify3Ui.identify3ShowTracker'
-// 'keybase.1.identify3Ui.identify3Summary'
-// 'keybase.1.identify3Ui.identify3UpdateRow'
-// 'keybase.1.identify3Ui.identify3UserReset'
-// 'keybase.1.identify3Ui.identify3UpdateUserCard'
 // 'keybase.1.identify3Ui.identify3TrackerTimedOut'
-// 'keybase.1.identify3Ui.identify3Result'
 // 'keybase.1.identifyUi.displayTLFCreateWithInvite'
 // 'keybase.1.identifyUi.delegateIdentifyUI'
 // 'keybase.1.identifyUi.start'
@@ -3800,7 +3528,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
-// 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
 // 'keybase.1.login.recoverAccountFromEmailAddress'
@@ -3808,7 +3535,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.login.unlockWithPassphrase'
 // 'keybase.1.login.loginOneshot'
 // 'keybase.1.loginUi.displayResetMessage'
-// 'keybase.1.logsend.prepareLogsend'
 // 'keybase.1.merkle.getCurrentMerkleRoot'
 // 'keybase.1.merkle.verifyMerkleRootAndKBFS'
 // 'keybase.1.metadata.getChallenge'
@@ -3842,67 +3568,32 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.metadataUpdate.metadataUpdate'
 // 'keybase.1.metadataUpdate.folderNeedsRekey'
 // 'keybase.1.metadataUpdate.foldersNeedRekey'
-// 'keybase.1.NotifyApp.exit'
-// 'keybase.1.NotifyAudit.rootAuditError'
-// 'keybase.1.NotifyAudit.boxAuditError'
-// 'keybase.1.NotifyBadges.badgeState'
 // 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'
 // 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'
-// 'keybase.1.NotifyEmailAddress.emailAddressVerified'
-// 'keybase.1.NotifyEmailAddress.emailsChanged'
 // 'keybase.1.NotifyEphemeral.newTeamEk'
 // 'keybase.1.NotifyEphemeral.newTeambotEk'
 // 'keybase.1.NotifyEphemeral.teambotEkNeeded'
 // 'keybase.1.NotifyFavorites.favoritesChanged'
-// 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate'
-// 'keybase.1.NotifyFS.FSActivity'
 // 'keybase.1.NotifyFS.FSPathUpdated'
 // 'keybase.1.NotifyFS.FSSyncActivity'
 // 'keybase.1.NotifyFS.FSEditListResponse'
 // 'keybase.1.NotifyFS.FSSyncStatusResponse'
-// 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'
 // 'keybase.1.NotifyFS.FSFavoritesChanged'
 // 'keybase.1.NotifyFS.FSOnlineStatusChanged'
-// 'keybase.1.NotifyFS.FSSubscriptionNotifyPath'
-// 'keybase.1.NotifyFS.FSSubscriptionNotify'
 // 'keybase.1.NotifyFSRequest.FSEditListRequest'
 // 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'
 // 'keybase.1.NotifyInviteFriends.updateInviteCounts'
 // 'keybase.1.NotifyKeyfamily.keyfamilyChanged'
 // 'keybase.1.NotifyPaperKey.paperKeyCached'
-// 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'
-// 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'
-// 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'
 // 'keybase.1.NotifySaltpack.saltpackOperationStart'
 // 'keybase.1.NotifySaltpack.saltpackOperationProgress'
 // 'keybase.1.NotifySaltpack.saltpackOperationDone'
-// 'keybase.1.NotifyService.HTTPSrvInfoUpdate'
-// 'keybase.1.NotifyService.handleKeybaseLink'
-// 'keybase.1.NotifyService.shutdown'
-// 'keybase.1.NotifySession.loggedOut'
-// 'keybase.1.NotifySession.loggedIn'
-// 'keybase.1.NotifySession.clientOutOfDate'
-// 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'
-// 'keybase.1.NotifyTeam.teamChangedByID'
 // 'keybase.1.NotifyTeam.teamChangedByName'
-// 'keybase.1.NotifyTeam.teamDeleted'
 // 'keybase.1.NotifyTeam.teamAbandoned'
-// 'keybase.1.NotifyTeam.teamExit'
 // 'keybase.1.NotifyTeam.newlyAddedToTeam'
-// 'keybase.1.NotifyTeam.teamRoleMapChanged'
-// 'keybase.1.NotifyTeam.avatarUpdated'
-// 'keybase.1.NotifyTeam.teamMetadataUpdate'
-// 'keybase.1.NotifyTeam.teamTreeMembershipsPartial'
-// 'keybase.1.NotifyTeam.teamTreeMembershipsDone'
 // 'keybase.1.NotifyTeambot.newTeambotKey'
 // 'keybase.1.NotifyTeambot.teambotKeyNeeded'
-// 'keybase.1.NotifyTracking.trackingChanged'
-// 'keybase.1.NotifyTracking.trackingInfo'
-// 'keybase.1.NotifyTracking.notifyUserBlocked'
-// 'keybase.1.NotifyUsers.userChanged'
 // 'keybase.1.NotifyUsers.webOfTrustChanged'
-// 'keybase.1.NotifyUsers.passwordChanged'
-// 'keybase.1.NotifyUsers.identifyUpdate'
 // 'keybase.1.paperprovision.paperProvision'
 // 'keybase.1.pgp.pgpSign'
 // 'keybase.1.pgp.pgpPull'
@@ -3937,7 +3628,6 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.rekey.getPendingRekeyStatus'
 // 'keybase.1.rekey.debugShowRekeyStatus'
 // 'keybase.1.rekey.rekeySync'
-// 'keybase.1.rekeyUI.delegateRekeyUI'
 // 'keybase.1.saltpack.saltpackEncrypt'
 // 'keybase.1.saltpack.saltpackDecrypt'
 // 'keybase.1.saltpack.saltpackSign'
@@ -3952,6 +3642,8 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.selfprovision.selfProvision'
 // 'keybase.1.session.currentSession'
 // 'keybase.1.session.sessionPing'
+// 'keybase.1.signup.inviteRequest'
+// 'keybase.1.signup.checkInvitationCode'
 // 'keybase.1.sigs.sigList'
 // 'keybase.1.sigs.sigListJSON'
 // 'keybase.1.SimpleFS.simpleFSListRecursive'
@@ -4006,6 +3698,7 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.teams.teamGetSubteamsUnverified'
 // 'keybase.1.teams.teamCreateSeitanToken'
 // 'keybase.1.teams.teamCreateSeitanInvitelink'
+// 'keybase.1.teams.teamCreateSeitanInvitelinkWithDuration'
 // 'keybase.1.teams.lookupImplicitTeam'
 // 'keybase.1.teams.lookupOrCreateImplicitTeam'
 // 'keybase.1.teams.loadTeamPlusApplicationKeys'
@@ -4037,6 +3730,7 @@ export const userUserCardRpcPromise = createRpc('keybase.1.user.userCard')
 // 'keybase.1.track.track'
 // 'keybase.1.track.trackWithToken'
 // 'keybase.1.track.dismissWithToken'
+// 'keybase.1.track.untrack'
 // 'keybase.1.track.checkTracking'
 // 'keybase.1.track.fakeTrackingChanged'
 // 'keybase.1.ui.promptYesNo'

@@ -59,18 +59,6 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID,readonly syncRes: ChatSyncResult},
     outParam: void,
   },
-  'chat.1.NotifyChat.ChatJoinedConversation': {
-    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID,readonly conv?: InboxUIItem | null},
-    outParam: void,
-  },
-  'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade': {
-    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID},
-    outParam: void,
-  },
-  'chat.1.NotifyChat.ChatLeftConversation': {
-    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID},
-    outParam: void,
-  },
   'chat.1.NotifyChat.ChatParticipantsInfo': {
     inParam: {readonly participants?: {[key: string]: ReadonlyArray<UIParticipant> | null} | null},
     outParam: void,
@@ -85,10 +73,6 @@ export type MessageTypes = {
   },
   'chat.1.NotifyChat.ChatRequestInfo': {
     inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID,readonly msgID: MessageID,readonly info: UIRequestInfo},
-    outParam: void,
-  },
-  'chat.1.NotifyChat.ChatResetConversation': {
-    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatSetConvRetention': {
@@ -109,10 +93,6 @@ export type MessageTypes = {
   },
   'chat.1.NotifyChat.ChatTLFFinalize': {
     inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID,readonly finalizeInfo: ConversationFinalizeInfo,readonly conv?: InboxUIItem | null},
-    outParam: void,
-  },
-  'chat.1.NotifyChat.ChatTLFResolve': {
-    inParam: {readonly uid: Keybase1.UID,readonly convID: ConversationID,readonly resolveInfo: ConversationResolveInfo},
     outParam: void,
   },
   'chat.1.NotifyChat.ChatThreadsStale': {
@@ -150,10 +130,6 @@ export type MessageTypes = {
   'chat.1.chatUi.chatCommandStatus': {
     inParam: {readonly convID: ConvIDStr,readonly displayText: string,readonly typ: UICommandStatusDisplayTyp,readonly actions?: ReadonlyArray<UICommandStatusActionTyp> | null},
     outParam: void,
-  },
-  'chat.1.chatUi.chatConfirmChannelDelete': {
-    inParam: {readonly channel: string},
-    outParam: boolean,
   },
   'chat.1.chatUi.chatGiphySearchResults': {
     inParam: {readonly convID: ConvIDStr,readonly results: GiphySearchResults},
@@ -351,10 +327,6 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID,readonly cardType: JourneycardType},
     outParam: void,
   },
-  'chat.1.local.editBotMember': {
-    inParam: {readonly convID: ConversationID,readonly username: string,readonly botSettings?: Keybase1.TeamBotSettings | null,readonly role: Keybase1.TeamRole},
-    outParam: void,
-  },
   'chat.1.local.findConversationsLocal': {
     inParam: {readonly tlfName: string,readonly membersType: ConversationMembersType,readonly visibility: Keybase1.TLFVisibility,readonly topicType: TopicType,readonly topicName: string,readonly oneChatPerTLF?: boolean | null,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
     outParam: FindConversationsLocalRes,
@@ -375,10 +347,6 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID,readonly username: string},
     outParam: Keybase1.TeamBotSettings,
   },
-  'chat.1.local.getChannelMembershipsLocal': {
-    inParam: {readonly teamID: Keybase1.TeamID,readonly uid: Gregor1.UID},
-    outParam: GetChannelMembershipsLocalRes,
-  },
   'chat.1.local.getDefaultTeamChannelsLocal': {
     inParam: {readonly teamID: Keybase1.TeamID},
     outParam: GetDefaultTeamChannelsLocalRes,
@@ -387,17 +355,9 @@ export type MessageTypes = {
     inParam: undefined,
     outParam: GlobalAppNotificationSettings,
   },
-  'chat.1.local.getInboxAndUnboxUILocal': {
-    inParam: {readonly query?: GetInboxLocalQuery | null,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
-    outParam: GetInboxAndUnboxUILocalRes,
-  },
   'chat.1.local.getLastActiveAtMultiLocal': {
     inParam: {readonly teamIDs?: ReadonlyArray<Keybase1.TeamID> | null,readonly username: string},
     outParam: {[key: string]: Gregor1.Time} | null,
-  },
-  'chat.1.local.getLastActiveForTLF': {
-    inParam: {readonly tlfID: TLFIDStr},
-    outParam: LastActiveStatus,
   },
   'chat.1.local.getLastActiveForTeams': {
     inParam: undefined,
@@ -430,10 +390,6 @@ export type MessageTypes = {
   'chat.1.local.getTeamRoleInConversation': {
     inParam: {readonly convID: ConversationID,readonly username: string},
     outParam: Keybase1.TeamRole,
-  },
-  'chat.1.local.getThreadLocal': {
-    inParam: {readonly conversationID: ConversationID,readonly reason: GetThreadReason,readonly query?: GetThreadQuery | null,readonly pagination?: Pagination | null,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
-    outParam: GetThreadLocalRes,
   },
   'chat.1.local.getThreadNonblock': {
     inParam: {readonly conversationID: ConversationID,readonly cbMode: GetThreadNonblockCbMode,readonly reason: GetThreadReason,readonly pgmode: GetThreadNonblockPgMode,readonly query?: GetThreadQuery | null,readonly knownRemotes?: ReadonlyArray<string> | null,readonly pagination?: UIPagination | null,readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
@@ -481,10 +437,6 @@ export type MessageTypes = {
   },
   'chat.1.local.makeAudioPreview': {
     inParam: {readonly amps?: ReadonlyArray<number> | null,readonly duration: number},
-    outParam: MakePreviewRes,
-  },
-  'chat.1.local.makePreview': {
-    inParam: {readonly filename: string,readonly outboxID: OutboxID},
     outParam: MakePreviewRes,
   },
   'chat.1.local.makeUploadTempFile': {
@@ -546,10 +498,6 @@ export type MessageTypes = {
   'chat.1.local.previewConversationByIDLocal': {
     inParam: {readonly convID: ConversationID},
     outParam: PreviewConversationLocalRes,
-  },
-  'chat.1.local.profileChatSearch': {
-    inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior},
-    outParam: {[key: string]: ProfileSearchConvStats} | null,
   },
   'chat.1.local.putReacjiSkinTone': {
     inParam: {readonly skinTone: Keybase1.ReacjiSkinTone},
@@ -676,7 +624,7 @@ export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
 export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
 export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
-type PromiseMethod = 'chat.1.local.CancelPost' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.RetryPost' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.editBotMember' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getChannelMembershipsLocal' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getGlobalAppNotificationSettingsLocal' | 'chat.1.local.getInboxAndUnboxUILocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTLF' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getThreadLocal' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makePreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.postTextNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.profileChatSearch' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setGlobalAppNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
+type PromiseMethod = 'chat.1.local.CancelPost' | 'chat.1.local.ConfigureFileAttachmentDownloadLocal' | 'chat.1.local.DownloadFileAttachmentLocal' | 'chat.1.local.RetryPost' | 'chat.1.local.SetConversationStatusLocal' | 'chat.1.local.addBotConvSearch' | 'chat.1.local.addBotMember' | 'chat.1.local.addEmojiAlias' | 'chat.1.local.addEmojis' | 'chat.1.local.addTeamMemberAfterReset' | 'chat.1.local.archiveChat' | 'chat.1.local.archiveChatDelete' | 'chat.1.local.archiveChatList' | 'chat.1.local.archiveChatPause' | 'chat.1.local.archiveChatResume' | 'chat.1.local.bulkAddToConv' | 'chat.1.local.bulkAddToManyConvs' | 'chat.1.local.cancelActiveInboxSearch' | 'chat.1.local.cancelActiveSearch' | 'chat.1.local.cancelUploadTempFile' | 'chat.1.local.deleteConversationLocal' | 'chat.1.local.dismissJourneycard' | 'chat.1.local.findConversationsLocal' | 'chat.1.local.findGeneralConvFromTeamID' | 'chat.1.local.forwardMessageConvSearch' | 'chat.1.local.forwardMessageNonblock' | 'chat.1.local.getBotMemberSettings' | 'chat.1.local.getDefaultTeamChannelsLocal' | 'chat.1.local.getGlobalAppNotificationSettingsLocal' | 'chat.1.local.getLastActiveAtMultiLocal' | 'chat.1.local.getLastActiveForTeams' | 'chat.1.local.getMutualTeamsLocal' | 'chat.1.local.getNextAttachmentMessageLocal' | 'chat.1.local.getRecentJoinsLocal' | 'chat.1.local.getStaticConfig' | 'chat.1.local.getTLFConversationsLocal' | 'chat.1.local.getTeamRetentionLocal' | 'chat.1.local.getTeamRoleInConversation' | 'chat.1.local.getUnfurlSettings' | 'chat.1.local.getUnreadline' | 'chat.1.local.getUploadTempFile' | 'chat.1.local.getWelcomeMessage' | 'chat.1.local.ignorePinnedMessage' | 'chat.1.local.joinConversationByIDLocal' | 'chat.1.local.leaveConversationLocal' | 'chat.1.local.listPublicBotCommandsLocal' | 'chat.1.local.locationUpdate' | 'chat.1.local.makeAudioPreview' | 'chat.1.local.makeUploadTempFile' | 'chat.1.local.markAsReadLocal' | 'chat.1.local.markTLFAsReadLocal' | 'chat.1.local.newConversationLocal' | 'chat.1.local.pinMessage' | 'chat.1.local.postDeleteHistoryByAge' | 'chat.1.local.postDeleteNonblock' | 'chat.1.local.postEditNonblock' | 'chat.1.local.postFileAttachmentLocalNonblock' | 'chat.1.local.postHeadline' | 'chat.1.local.postHeadlineNonblock' | 'chat.1.local.postMetadata' | 'chat.1.local.postReactionNonblock' | 'chat.1.local.previewConversationByIDLocal' | 'chat.1.local.putReacjiSkinTone' | 'chat.1.local.refreshParticipants' | 'chat.1.local.removeBotMember' | 'chat.1.local.removeEmoji' | 'chat.1.local.removeFromConversationLocal' | 'chat.1.local.requestInboxLayout' | 'chat.1.local.requestInboxSmallIncrease' | 'chat.1.local.requestInboxSmallReset' | 'chat.1.local.requestInboxUnbox' | 'chat.1.local.resolveMaybeMention' | 'chat.1.local.resolveUnfurlPrompt' | 'chat.1.local.saveUnfurlSettings' | 'chat.1.local.setAppNotificationSettingsLocal' | 'chat.1.local.setBotMemberSettings' | 'chat.1.local.setConvMinWriterRoleLocal' | 'chat.1.local.setConvRetentionLocal' | 'chat.1.local.setDefaultTeamChannelsLocal' | 'chat.1.local.setGlobalAppNotificationSettingsLocal' | 'chat.1.local.setTeamRetentionLocal' | 'chat.1.local.setWelcomeMessage' | 'chat.1.local.simpleSearchInboxConvNames' | 'chat.1.local.toggleEmojiAnimations' | 'chat.1.local.toggleMessageCollapse' | 'chat.1.local.trackGiphySelect' | 'chat.1.local.unboxMobilePushNotification' | 'chat.1.local.unpinMessage' | 'chat.1.local.updateTyping' | 'chat.1.local.updateUnsentText' | 'chat.1.local.userEmojis'
 export type RpcFn<M extends PromiseMethod> = [RpcIn<M>] extends [undefined]
   ? (params?: undefined, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
   : (params: RpcIn<M>, waitingKey?: WaitingKey) => Promise<RpcOut<M>>
@@ -1643,10 +1591,10 @@ export type VersionKind = string
 export type WelcomeMessage = {readonly set: boolean,readonly raw: string,}
 export type WelcomeMessageDisplay = {readonly set: boolean,readonly display: string,readonly raw: string,}
 
-type IncomingMethod = 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
+type IncomingMethod = 'chat.1.NotifyChat.ChatArchiveComplete' | 'chat.1.NotifyChat.ChatArchiveProgress' | 'chat.1.NotifyChat.ChatAttachmentDownloadComplete' | 'chat.1.NotifyChat.ChatAttachmentDownloadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadProgress' | 'chat.1.NotifyChat.ChatAttachmentUploadStart' | 'chat.1.NotifyChat.ChatConvUpdate' | 'chat.1.NotifyChat.ChatIdentifyUpdate' | 'chat.1.NotifyChat.ChatInboxStale' | 'chat.1.NotifyChat.ChatInboxSyncStarted' | 'chat.1.NotifyChat.ChatInboxSynced' | 'chat.1.NotifyChat.ChatParticipantsInfo' | 'chat.1.NotifyChat.ChatPaymentInfo' | 'chat.1.NotifyChat.ChatPromptUnfurl' | 'chat.1.NotifyChat.ChatRequestInfo' | 'chat.1.NotifyChat.ChatSetConvRetention' | 'chat.1.NotifyChat.ChatSetConvSettings' | 'chat.1.NotifyChat.ChatSetTeamRetention' | 'chat.1.NotifyChat.ChatSubteamRename' | 'chat.1.NotifyChat.ChatTLFFinalize' | 'chat.1.NotifyChat.ChatThreadsStale' | 'chat.1.NotifyChat.ChatTypingUpdate' | 'chat.1.NotifyChat.ChatWelcomeMessageLoaded' | 'chat.1.NotifyChat.NewChatActivity' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus'
 export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
-type CustomIncomingMethod = 'chat.1.chatUi.chatStellarDataConfirm' | 'chat.1.chatUi.chatStellarDataError'
+type CustomIncomingMethod = 'chat.1.chatUi.chatBotCommandsUpdateStatus' | 'chat.1.chatUi.chatClearWatch' | 'chat.1.chatUi.chatCoinFlipStatus' | 'chat.1.chatUi.chatCommandMarkdown' | 'chat.1.chatUi.chatCommandStatus' | 'chat.1.chatUi.chatGiphySearchResults' | 'chat.1.chatUi.chatGiphyToggleResultWindow' | 'chat.1.chatUi.chatInboxConversation' | 'chat.1.chatUi.chatInboxFailed' | 'chat.1.chatUi.chatInboxLayout' | 'chat.1.chatUi.chatInboxUnverified' | 'chat.1.chatUi.chatLoadGalleryHit' | 'chat.1.chatUi.chatMaybeMentionUpdate' | 'chat.1.chatUi.chatSearchBotHits' | 'chat.1.chatUi.chatSearchConvHits' | 'chat.1.chatUi.chatSearchDone' | 'chat.1.chatUi.chatSearchHit' | 'chat.1.chatUi.chatSearchInboxDone' | 'chat.1.chatUi.chatSearchInboxHit' | 'chat.1.chatUi.chatSearchInboxStart' | 'chat.1.chatUi.chatSearchIndexStatus' | 'chat.1.chatUi.chatSearchTeamHits' | 'chat.1.chatUi.chatShowManageChannels' | 'chat.1.chatUi.chatStellarDataConfirm' | 'chat.1.chatUi.chatStellarDataError' | 'chat.1.chatUi.chatStellarDone' | 'chat.1.chatUi.chatStellarShowConfirm' | 'chat.1.chatUi.chatThreadCached' | 'chat.1.chatUi.chatThreadFull' | 'chat.1.chatUi.chatThreadStatus' | 'chat.1.chatUi.chatWatchPosition' | 'chat.1.chatUi.triggerContactSync'
 export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>
 export const localAddBotConvSearchRpcPromise = createRpc('chat.1.local.addBotConvSearch')
 export const localAddBotMemberRpcPromise = createRpc('chat.1.local.addBotMember')
@@ -1668,18 +1616,14 @@ export const localConfigureFileAttachmentDownloadLocalRpcPromise = createRpc('ch
 export const localDeleteConversationLocalRpcPromise = createRpc('chat.1.local.deleteConversationLocal')
 export const localDismissJourneycardRpcPromise = createRpc('chat.1.local.dismissJourneycard')
 export const localDownloadFileAttachmentLocalRpcPromise = createRpc('chat.1.local.DownloadFileAttachmentLocal')
-export const localEditBotMemberRpcPromise = createRpc('chat.1.local.editBotMember')
 export const localFindConversationsLocalRpcPromise = createRpc('chat.1.local.findConversationsLocal')
 export const localFindGeneralConvFromTeamIDRpcPromise = createRpc('chat.1.local.findGeneralConvFromTeamID')
 export const localForwardMessageConvSearchRpcPromise = createRpc('chat.1.local.forwardMessageConvSearch')
 export const localForwardMessageNonblockRpcPromise = createRpc('chat.1.local.forwardMessageNonblock')
 export const localGetBotMemberSettingsRpcPromise = createRpc('chat.1.local.getBotMemberSettings')
-export const localGetChannelMembershipsLocalRpcPromise = createRpc('chat.1.local.getChannelMembershipsLocal')
 export const localGetDefaultTeamChannelsLocalRpcPromise = createRpc('chat.1.local.getDefaultTeamChannelsLocal')
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = createRpc('chat.1.local.getGlobalAppNotificationSettingsLocal')
-export const localGetInboxAndUnboxUILocalRpcPromise = createRpc('chat.1.local.getInboxAndUnboxUILocal')
 export const localGetLastActiveAtMultiLocalRpcPromise = createRpc('chat.1.local.getLastActiveAtMultiLocal')
-export const localGetLastActiveForTLFRpcPromise = createRpc('chat.1.local.getLastActiveForTLF')
 export const localGetLastActiveForTeamsRpcPromise = createRpc('chat.1.local.getLastActiveForTeams')
 export const localGetMutualTeamsLocalRpcPromise = createRpc('chat.1.local.getMutualTeamsLocal')
 export const localGetNextAttachmentMessageLocalRpcPromise = createRpc('chat.1.local.getNextAttachmentMessageLocal')
@@ -1688,7 +1632,6 @@ export const localGetStaticConfigRpcPromise = createRpc('chat.1.local.getStaticC
 export const localGetTLFConversationsLocalRpcPromise = createRpc('chat.1.local.getTLFConversationsLocal')
 export const localGetTeamRetentionLocalRpcPromise = createRpc('chat.1.local.getTeamRetentionLocal')
 export const localGetTeamRoleInConversationRpcPromise = createRpc('chat.1.local.getTeamRoleInConversation')
-export const localGetThreadLocalRpcPromise = createRpc('chat.1.local.getThreadLocal')
 export const localGetThreadNonblockRpcListener = createListener('chat.1.local.getThreadNonblock')
 export const localGetUnfurlSettingsRpcPromise = createRpc('chat.1.local.getUnfurlSettings')
 export const localGetUnreadlineRpcPromise = createRpc('chat.1.local.getUnreadline')
@@ -1701,7 +1644,6 @@ export const localListPublicBotCommandsLocalRpcPromise = createRpc('chat.1.local
 export const localLoadGalleryRpcListener = createListener('chat.1.local.loadGallery')
 export const localLocationUpdateRpcPromise = createRpc('chat.1.local.locationUpdate')
 export const localMakeAudioPreviewRpcPromise = createRpc('chat.1.local.makeAudioPreview')
-export const localMakePreviewRpcPromise = createRpc('chat.1.local.makePreview')
 export const localMakeUploadTempFileRpcPromise = createRpc('chat.1.local.makeUploadTempFile')
 export const localMarkAsReadLocalRpcPromise = createRpc('chat.1.local.markAsReadLocal')
 export const localMarkTLFAsReadLocalRpcPromise = createRpc('chat.1.local.markTLFAsReadLocal')
@@ -1716,9 +1658,7 @@ export const localPostHeadlineRpcPromise = createRpc('chat.1.local.postHeadline'
 export const localPostMetadataRpcPromise = createRpc('chat.1.local.postMetadata')
 export const localPostReactionNonblockRpcPromise = createRpc('chat.1.local.postReactionNonblock')
 export const localPostTextNonblockRpcListener = createListener('chat.1.local.postTextNonblock')
-export const localPostTextNonblockRpcPromise = createRpc('chat.1.local.postTextNonblock')
 export const localPreviewConversationByIDLocalRpcPromise = createRpc('chat.1.local.previewConversationByIDLocal')
-export const localProfileChatSearchRpcPromise = createRpc('chat.1.local.profileChatSearch')
 export const localPutReacjiSkinToneRpcPromise = createRpc('chat.1.local.putReacjiSkinTone')
 export const localRefreshParticipantsRpcPromise = createRpc('chat.1.local.refreshParticipants')
 export const localRemoveBotMemberRpcPromise = createRpc('chat.1.local.removeBotMember')
@@ -1753,23 +1693,10 @@ export const localUpdateUnsentTextRpcPromise = createRpc('chat.1.local.updateUns
 export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'chat.1.blocking.blockConversations'
-// 'chat.1.chatUi.chatInboxLayout'
-// 'chat.1.chatUi.chatInboxUnverified'
-// 'chat.1.chatUi.chatInboxConversation'
-// 'chat.1.chatUi.chatInboxFailed'
 // 'chat.1.chatUi.chatConfirmChannelDelete'
-// 'chat.1.chatUi.chatGiphySearchResults'
-// 'chat.1.chatUi.chatGiphyToggleResultWindow'
-// 'chat.1.chatUi.chatShowManageChannels'
-// 'chat.1.chatUi.chatCoinFlipStatus'
-// 'chat.1.chatUi.chatCommandMarkdown'
-// 'chat.1.chatUi.chatMaybeMentionUpdate'
-// 'chat.1.chatUi.chatWatchPosition'
-// 'chat.1.chatUi.chatClearWatch'
-// 'chat.1.chatUi.chatCommandStatus'
-// 'chat.1.chatUi.chatBotCommandsUpdateStatus'
-// 'chat.1.chatUi.triggerContactSync'
+// 'chat.1.local.getThreadLocal'
 // 'chat.1.local.getInboxAndUnboxLocal'
+// 'chat.1.local.getInboxAndUnboxUILocal'
 // 'chat.1.local.getInboxNonblockLocal'
 // 'chat.1.local.postLocal'
 // 'chat.1.local.generateOutboxID'
@@ -1784,47 +1711,28 @@ export const localUserEmojisRpcPromise = createRpc('chat.1.local.userEmojis')
 // 'chat.1.local.GetMessagesLocal'
 // 'chat.1.local.postFileAttachmentLocal'
 // 'chat.1.local.DownloadAttachmentLocal'
+// 'chat.1.local.makePreview'
 // 'chat.1.local.joinConversationLocal'
+// 'chat.1.local.getChannelMembershipsLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.searchRegexp'
+// 'chat.1.local.profileChatSearch'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
+// 'chat.1.local.editBotMember'
 // 'chat.1.local.teamIDFromTLFName'
+// 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveAtLocal'
 // 'chat.1.local.getParticipants'
 // 'chat.1.local.addEmoji'
-// 'chat.1.NotifyChat.NewChatActivity'
-// 'chat.1.NotifyChat.ChatIdentifyUpdate'
-// 'chat.1.NotifyChat.ChatTLFFinalize'
 // 'chat.1.NotifyChat.ChatTLFResolve'
-// 'chat.1.NotifyChat.ChatInboxStale'
-// 'chat.1.NotifyChat.ChatThreadsStale'
-// 'chat.1.NotifyChat.ChatTypingUpdate'
 // 'chat.1.NotifyChat.ChatJoinedConversation'
 // 'chat.1.NotifyChat.ChatLeftConversation'
 // 'chat.1.NotifyChat.ChatResetConversation'
-// 'chat.1.NotifyChat.ChatInboxSyncStarted'
-// 'chat.1.NotifyChat.ChatInboxSynced'
-// 'chat.1.NotifyChat.ChatSetConvRetention'
-// 'chat.1.NotifyChat.ChatSetTeamRetention'
-// 'chat.1.NotifyChat.ChatSetConvSettings'
-// 'chat.1.NotifyChat.ChatSubteamRename'
 // 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'
-// 'chat.1.NotifyChat.ChatAttachmentUploadStart'
-// 'chat.1.NotifyChat.ChatAttachmentUploadProgress'
-// 'chat.1.NotifyChat.ChatAttachmentDownloadProgress'
-// 'chat.1.NotifyChat.ChatAttachmentDownloadComplete'
-// 'chat.1.NotifyChat.ChatArchiveProgress'
-// 'chat.1.NotifyChat.ChatArchiveComplete'
-// 'chat.1.NotifyChat.ChatPaymentInfo'
-// 'chat.1.NotifyChat.ChatRequestInfo'
-// 'chat.1.NotifyChat.ChatPromptUnfurl'
-// 'chat.1.NotifyChat.ChatConvUpdate'
-// 'chat.1.NotifyChat.ChatWelcomeMessageLoaded'
-// 'chat.1.NotifyChat.ChatParticipantsInfo'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'
