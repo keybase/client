@@ -202,7 +202,7 @@ if (isIOS) {
   iosDynamicColors = colors
 }
 
-export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
+export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce((obj, name) => {
   const {isDarkMode} = useDarkModeState.getState()
   if (isIOS) {
     // ios actually handles this nicely natively

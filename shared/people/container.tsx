@@ -16,7 +16,7 @@ const PeopleReloadable = () => {
   const oldItems = usePeopleState(s => s.oldItems)
   const signupEmail = useSignupState(s => s.justSignedUpEmail)
   const waiting = C.Waiting.useAnyWaiting(getPeopleDataWaitingKey)
-  const lastRefreshRef = React.useRef<number>(0)
+  const lastRefreshRef = React.useRef(0)
 
   const loadPeople = usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)

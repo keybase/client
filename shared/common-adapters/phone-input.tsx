@@ -265,7 +265,7 @@ const PhoneInput = (p: Props) => {
   const [country, setCountry] = React.useState(p.defaultCountry)
   const [focused, setFocused] = React.useState(false)
   const [formatted, setFormatted] = React.useState('')
-  const [formatter, setFormatter] = React.useState<libphonenumber.AsYouTypeFormatter | undefined>(
+  const [formatter, setFormatter] = React.useState(
     p.defaultCountry ? new AsYouTypeFormatter(p.defaultCountry) : undefined
   )
   const [prefix, setPrefix] = React.useState(p.defaultCountry && getCallingCode(p.defaultCountry).slice(1))

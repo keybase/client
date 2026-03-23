@@ -431,7 +431,7 @@ export const useAttachmentSections = (
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
-  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
+  const [selectedAttachmentView, onSelectAttachmentView] = React.useState(
     T.RPCChat.GalleryItemTyp.media
   )
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)

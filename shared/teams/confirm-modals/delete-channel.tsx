@@ -25,7 +25,7 @@ const DeleteChannel = (props: Props) => {
   const storeSelectedChannels = useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
-  const [channelIDs] = React.useState<T.Chat.ConversationIDKey[]>(
+  const [channelIDs] = React.useState(
     routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
   )
 

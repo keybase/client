@@ -10,7 +10,7 @@ const FloatingBox = (props: Props) => {
 
   const cur = attachTo?.current
 
-  const [targetRect, setTargetRect] = React.useState<DOMRect | undefined>(cur?.getBoundingClientRect())
+  const [targetRect, setTargetRect] = React.useState(cur?.getBoundingClientRect())
 
   React.useEffect(() => {
     const tr = cur?.getBoundingClientRect()

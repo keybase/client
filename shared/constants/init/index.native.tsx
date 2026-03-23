@@ -54,7 +54,6 @@ const finishedRegularDownloadIDs = new Set<string>()
 
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
-  const t = Date.now()
   const [routeState, initialUrl, push] = await Promise.all([
     neverThrowPromiseFunc(async () => {
       try {

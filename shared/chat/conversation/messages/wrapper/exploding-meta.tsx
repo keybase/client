@@ -5,7 +5,7 @@ import {useIsHighlighted, useOrdinal} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
-import SharedTimer, {type SharedTimerID} from './shared-timers'
+import SharedTimer from './shared-timers'
 import {animationDuration} from './exploding-height-retainer'
 
 export type OwnProps = {onClick?: () => void}
@@ -50,7 +50,7 @@ function ExplodingMetaContainer(p: OwnProps) {
     }
   }, [messageKey])
 
-  const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
+  const sharedTimerIDRef = React.useRef(0)
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = useIsHighlighted()
 
