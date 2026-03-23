@@ -16,10 +16,7 @@ export type MessageTypes = {
 export type MessageKey = keyof MessageTypes
 export type RpcIn<M extends MessageKey> = MessageTypes[M]['inParam']
 export type RpcOut<M extends MessageKey> = MessageTypes[M]['outParam']
-export type RpcResponse<M extends MessageKey> = {
-  error: IncomingErrorCallback
-  result: (res: RpcOut<M>) => void
-}
+export type RpcResponse<M extends MessageKey> = {error: IncomingErrorCallback, result: (res: RpcOut<M>) => void}
 export type AuthResult = {readonly uid: UID,readonly username: string,readonly sid: SessionID,readonly isAdmin: boolean,}
 export type Body = Uint8Array
 export type Category = string
@@ -51,13 +48,11 @@ export type Time = number
 export type TimeOrOffset = {readonly time: Time,readonly offset: DurationMsec,}
 export type UID = Uint8Array
 
-export type IncomingCallMapType = {
-    
-    }
+type IncomingMethod = never
+export type IncomingCallMapType = Partial<{[M in IncomingMethod]: (params: RpcIn<M>) => void}>
 
-export type CustomResponseIncomingCallMap = {
-    
-    }
+type CustomIncomingMethod = never
+export type CustomResponseIncomingCallMap = Partial<{[M in CustomIncomingMethod]: (params: RpcIn<M>, response: RpcResponse<M>) => void}>
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'gregor.1.auth.authenticateSessionToken'
 // 'gregor.1.authInternal.createGregorSuperUserSessionToken'
