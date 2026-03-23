@@ -24,7 +24,7 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-"avdl-compiler@github:keybase/node-avdl-compiler#master":
+"avdl-compiler@github:keybase/node-avdl-compiler#7fe780ac783fa214e2d0f54d8f48ea490e8c1612":
   version "1.4.10"
   resolved "https://codeload.github.com/keybase/node-avdl-compiler/tar.gz/4b29feaf4fdf84f90382b1fff1f09c2943874f13"
   dependencies:

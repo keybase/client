@@ -12,6 +12,7 @@ var (
 	globalLock                sync.Mutex
 	stderrIsTerminal          = isatty.IsTerminal(os.Stderr.Fd())
 	currentLogFileWriter      *LogFileWriter
+	currentBufferedWriter     *autoFlushingBufferedWriter
 	stdErrLoggingShutdown     chan<- struct{}
 	stdErrLoggingShutdownDone <-chan struct{}
 )

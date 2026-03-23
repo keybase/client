@@ -48,6 +48,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   var iph: ItemProviderHelper?
   var startupLogFileHandle: FileHandle?
 
+  private var watchdog: MainThreadWatchdog?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -61,8 +63,17 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
+    let wd = MainThreadWatchdog(appStartTime: AppDelegate.appStartTime, writeLog: { [weak self] msg in
+      self?.writeStartupTimingLog(msg)
+    })
+    wd.start(context: "cold start")
+    self.watchdog = wd
 
     self.didLaunchSetupBefore()
+    // Install the SIGUSR1 stack-capture handler after KeybaseInit — Go's runtime
+    // initializes its own signal handlers during KeybaseInit and would overwrite
+    // anything registered before it.
+    wd.install()
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
@@ -220,6 +231,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     case .inactive: Keybasego.KeybaseSetAppStateInactive()
     default: Keybasego.KeybaseSetAppStateForeground()
     }
+    NSLog("notifyAppState: done")
+    Keybasego.KeybaseFlushLogs()
   }
 
   func didLaunchSetupBefore() {
@@ -388,6 +401,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
+    watchdog?.start(context: "background entered")
+    application.ignoreSnapshotOnNextApplicationLaunch()
     PerfFPSMonitor.appDidEnterBackground()
     log.info("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
@@ -397,6 +412,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     log.info("applicationDidEnterBackground: after notifying go.")
+    Keybasego.KeybaseFlushLogs()
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
@@ -422,6 +438,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
+    watchdog?.stop()
+    Keybasego.KeybaseFlushLogs()
+    let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
+    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     log.info("applicationDidBecomeActive: notifying service.")
@@ -456,6 +476,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationWillEnterForeground: hiding keyz screen.")
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
+    NSLog("applicationWillEnterForeground: done")
   }
 
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
@@ -175,4 +176,69 @@ func TestBrowserWithCache(t *testing.T) {
 	cache, err := newLRUSharedInBrowserCache()
 	require.NoError(t, err)
 	testBrowser(t, cache)
+}
+
+func TestBrowserHeadResolution(t *testing.T) {
+	ctx, config, cancel, tempdir := initConfigForAutogit(t)
+	defer cancel()
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
+	require.NoError(t, err)
+	rootFS, err := libfs.NewFS(
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
+	require.NoError(t, err)
+
+	t.Log("Init a new repo directly into KBFS.")
+	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test-head", "")
+	require.NoError(t, err)
+
+	err = rootFS.MkdirAll("worktree-head", 0o600)
+	require.NoError(t, err)
+	worktreeFS, err := rootFS.Chroot("worktree-head")
+	require.NoError(t, err)
+	dotgitStorage, err := NewGitConfigWithoutRemotesStorer(dotgitFS)
+	require.NoError(t, err)
+	repo, err := gogit.Init(dotgitStorage, worktreeFS)
+	require.NoError(t, err)
+
+	t.Log("Set HEAD to point to refs/heads/main instead of master.")
+	newHead := plumbing.NewSymbolicReference(
+		plumbing.HEAD, "refs/heads/main")
+	err = repo.Storer.SetReference(newHead)
+	require.NoError(t, err)
+
+	t.Log("Commit a file — go-git creates the main branch since HEAD points there.")
+	addFileToWorktreeAndCommit(
+		ctx, t, config, h, repo, worktreeFS, "hello.txt", "world")
+
+	t.Log("NewBrowser with empty branch should resolve HEAD to main.")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "", noopSharedInBrowserCache{})
+	require.NoError(t, err)
+	require.NotNil(t, b.tree, "browser should have a non-nil tree")
+	fi, err := b.Stat("hello.txt")
+	require.NoError(t, err)
+	require.Equal(t, "hello.txt", fi.Name())
+
+	f, err := b.Open("hello.txt")
+	require.NoError(t, err)
+	defer func() { _ = f.Close() }()
+	fileData, err := io.ReadAll(f)
+	require.NoError(t, err)
+	require.Equal(t, "world", string(fileData))
+
+	t.Log("Test stale HEAD: point HEAD to a nonexistent ref.")
+	staleHead := plumbing.NewSymbolicReference(
+		plumbing.HEAD, "refs/heads/nonexistent")
+	err = repo.Storer.SetReference(staleHead)
+	require.NoError(t, err)
+
+	t.Log("NewBrowser should return an empty browser without error.")
+	b, err = NewBrowser(dotgitFS, config.Clock(), "", noopSharedInBrowserCache{})
+	require.NoError(t, err)
+	fis, err := b.ReadDir("")
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
 }

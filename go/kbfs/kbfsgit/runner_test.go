@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 type testErrput struct {
@@ -156,7 +157,7 @@ func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
 	gitExec(t, dotgit, gitDir, "init")
 
 	if branch != "" {
-		gitExec(t, dotgit, gitDir, "checkout", "-b", branch)
+		gitExec(t, dotgit, gitDir, "checkout", "-B", branch)
 	}
 
 	gitExec(t, dotgit, gitDir, "add", filename)
@@ -1288,4 +1289,43 @@ func TestRunnerLFS(t *testing.T) {
 	buf, err = io.ReadAll(pF)
 	require.NoError(t, err)
 	require.Equal(t, lfsData, buf)
+}
+
+// Test that when only a non-master branch (e.g. "main") is pushed,
+// HEAD correctly points to that branch instead of the nonexistent
+// "refs/heads/master".
+func TestRunnerListNonMasterDefault(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer func() { _ = os.RemoveAll(tempdir) }()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	gitDir, err := os.MkdirTemp(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer func() { _ = os.RemoveAll(gitDir) }()
+
+	makeLocalRepoWithOneFile(t, gitDir, "foo", "hello", "main")
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	testPush(ctx, t, config, gitDir,
+		"refs/heads/main:refs/heads/main")
+
+	// Verify the underlying KBFS repo HEAD symref was actually updated.
+	fs, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
+	require.NoError(t, err)
+	storage, err := libgit.NewGitConfigWithoutRemotesStorer(fs)
+	require.NoError(t, err)
+	headRef, err := storage.Reference(plumbing.HEAD)
+	require.NoError(t, err)
+	require.Equal(t, plumbing.SymbolicReference, headRef.Type())
+	require.Equal(t, plumbing.ReferenceName("refs/heads/main"), headRef.Target())
+
+	// List refs and verify HEAD points to refs/heads/main.
+	heads := testListAndGetHeads(ctx, t, config, gitDir,
+		[]string{"refs/heads/main", "HEAD"})
+	require.Equal(t, "@refs/heads/main", heads[1])
 }

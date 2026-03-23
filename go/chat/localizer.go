@@ -845,8 +845,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	var maxValidID chat1.MessageID
 	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
 	for _, mm := range maxMsgs {
-		if mm.IsValid() &&
-			utils.IsSnippetChatMessageType(mm.GetMessageType()) &&
+		isValidSnippet := mm.IsValid() && utils.IsSnippetChatMessageType(mm.GetMessageType())
+		isEphemeralErr := mm.IsError() && mm.Error().IsEphemeral
+		if (isValidSnippet || isEphemeralErr) &&
 			(conversationLocal.Info.SnippetMsg == nil ||
 				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID()) {
 			conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)

@@ -36,6 +36,7 @@
 		DB33CB6B2DFB02E9000472AA /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB33CB6A2DFB02E9000472AA /* ShareViewController.swift */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
 		DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB8CC202DF336C200D43215 /* AppDelegate.swift */; };
+		DBMT00012DF336C200D43215 /* MainThreadWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBMT00002DF336C200D43215 /* MainThreadWatchdog.swift */; };
 		DBBE59452DF394F700A74A2D /* keybasego.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBE59442DF394F700A74A2D /* keybasego.xcframework */; };
 		DBD252982DF32D5C008A43FF /* Fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD252972DF32D5C008A43FF /* Fs.swift */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
@@ -112,6 +113,7 @@
 		DB33CB6A2DFB02E9000472AA /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		DBB8CC202DF336C200D43215 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		DBMT00002DF336C200D43215 /* MainThreadWatchdog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainThreadWatchdog.swift; sourceTree = "<group>"; };
 		DBBE59442DF394F700A74A2D /* keybasego.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybasego.xcframework; sourceTree = "<group>"; };
 		DBD252972DF32D5C008A43FF /* Fs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fs.swift; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -270,6 +272,7 @@
 			children = (
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBB8CC202DF336C200D43215 /* AppDelegate.swift */,
+				DBMT00002DF336C200D43215 /* MainThreadWatchdog.swift */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
@@ -590,6 +593,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DBB8CC212DF336C200D43215 /* AppDelegate.swift in Sources */,
+				DBMT00012DF336C200D43215 /* MainThreadWatchdog.swift in Sources */,
 				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				DBDF89F62DF7779900EA18C2 /* Pusher.swift in Sources */,
 				DBF123462DF1234500A12345 /* ShareIntentDonatorImpl.swift in Sources */,

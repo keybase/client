@@ -113,12 +113,12 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 		xzCmd := exec.Command("xz")
 
 		archiveName := fmt.Sprintf("/keybase/team/%s/keybase-%s.tar.xz", c.archiveTeam, revision)
-		archiveHandle, err := os.OpenFile(archiveName, os.O_RDWR|os.O_CREATE, 0644)
+		archiveHandle, err := os.OpenFile(archiveName, os.O_RDWR|os.O_CREATE, 0o644)
 		if err != nil {
 			return err
 		}
 		defer archiveHandle.Close()
-		sigHandle, err := os.OpenFile(archiveName+".sig", os.O_RDWR|os.O_CREATE, 0644)
+		sigHandle, err := os.OpenFile(archiveName+".sig", os.O_RDWR|os.O_CREATE, 0o644)
 		if err != nil {
 			return err
 		}
@@ -228,7 +228,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 				return
 			}
 
-			if _, err := c.API().SendMessage(c.sendChannel, "!build-docker "+strings.Join(args, " ")); err != nil {
+			if _, err := c.API().SendMessage(c.sendChannel, "%s", "!build-docker "+strings.Join(args, " ")); err != nil {
 				c.Debug("unable to SendMessage: %v", err)
 			}
 		}()
@@ -444,7 +444,7 @@ func (c Tuxbot) Dispatch(msg chat1.MsgSummary, args []string) (err error) {
 }
 
 func execToFile(filename string, cmd *exec.Cmd) error {
-	handle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	handle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -461,6 +461,61 @@ func execToFile(filename string, cmd *exec.Cmd) error {
 		return errors.Wrap(err, execErr.String())
 	}
 	return nil
+}
+
+func (c Tuxbot) advertisement() kbchat.Advertisement {
+	commands := []chat1.UserBotCommandInput{
+		{
+			Name:        "release",
+			Description: "Build Linux release packages from HEAD or a specified revision.",
+		},
+		{
+			Name:        "nightly",
+			Description: "Build nightly Linux packages from HEAD or a specified revision.",
+		},
+		{
+			Name:        "test",
+			Description: "Build Linux test packages from HEAD or a specified revision.",
+		},
+		{
+			Name:        "archive",
+			Description: "Create and sign Linux source release artifacts for a revision.",
+		},
+		{
+			Name:        "build-docker",
+			Description: "Build and push Docker images for HEAD or a specified revision.",
+		},
+		{
+			Name:        "release-docker",
+			Description: "Promote an existing Docker tag as a release.",
+		},
+		{
+			Name:        "tuxjournal",
+			Description: "Write the recent tuxbot journal to the archive team folder.",
+		},
+		{
+			Name:        "journal",
+			Description: "Write the recent system journal to the archive team folder.",
+		},
+		{
+			Name:        "cleanup",
+			Description: "Run the local cleanup helper on the tuxbot host.",
+		},
+		{
+			Name:        "restartdocker",
+			Description: "Restart Docker on the tuxbot host.",
+		},
+	}
+
+	return kbchat.Advertisement{
+		Alias: c.Name,
+		Advertisements: []chat1.AdvertiseCommandAPIParam{
+			{
+				Typ:      "public",
+				Commands: commands,
+			},
+		},
+	}
 }
 
 func main() {
@@ -508,6 +563,10 @@ func main() {
 		dockerPassword: *dockerPassword,
 
 		archiveTeam: *infoTeam,
+	}
+
+	if _, err := tuxbot.API().AdvertiseCommands(tuxbot.advertisement()); err != nil {
+		tuxbot.Info("unable to advertise commands: %v", err)
 	}
 
 	if err := chatbot.Listen(tuxbot); err != nil {

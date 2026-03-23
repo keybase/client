@@ -53,6 +53,8 @@ import {getSecureFlagSetting} from '@/constants/platform.native'
 const finishedRegularDownloadIDs = new Set<string>()
 
 const loadStartupDetails = async () => {
+  logger.info('[Startup] loadStartupDetails: starting')
+  const t = Date.now()
   const [routeState, initialUrl, push] = await Promise.all([
     neverThrowPromiseFunc(async () => {
       try {
@@ -62,7 +64,18 @@ const loadStartupDetails = async () => {
         return Promise.resolve('')
       }
     }),
-    neverThrowPromiseFunc(async () => Linking.getInitialURL()),
+    neverThrowPromiseFunc(async () => {
+      const linkingStart = Date.now()
+      logger.info('[Startup] loadStartupDetails: calling Linking.getInitialURL')
+      const url = await Linking.getInitialURL()
+      const elapsed = Date.now() - linkingStart
+      if (url === null) {
+        logger.warn(`[Startup] loadStartupDetails: Linking.getInitialURL returned null in ${elapsed}ms`)
+      } else {
+        logger.info(`[Startup] loadStartupDetails: Linking.getInitialURL returned in ${elapsed}ms: ${url}`)
+      }
+      return url
+    }),
     neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
   ] as const)
 
