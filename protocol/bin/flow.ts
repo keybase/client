@@ -125,14 +125,14 @@ type ProjectState = {
   seenTypes: SeenTypes
 }
 
-type ActionValue = string | ReadonlyArray<string>
-type ActionDescription = {
-  _description?: string | ReadonlyArray<string>
-} & Record<string, ActionValue | undefined>
-type ActionMap = Record<string, ActionDescription>
+type GeneratedAction = {
+  hasResponse: boolean
+  method: string
+  projectKey: ProjectKey
+}
 
 type CompileActionsArgs = {
-  actions: ActionMap
+  actions: Array<GeneratedAction>
   prelude: Array<string>
 }
 const __filename = fileURLToPath(import.meta.url)
@@ -517,29 +517,24 @@ function parseVariant(t: VariantDefinition, project: ProjectState): string {
 }
 
 async function writeActions(): Promise<void> {
-  const staticActions: ActionMap = {}
-
   const seenProjects: Partial<Record<ProjectKey, true>> = {}
 
   const data = {
-    actions: Object.keys(projects).reduce<ActionMap>((map, p) => {
+    actions: Object.keys(projects).reduce<Array<GeneratedAction>>((list, p) => {
       const projectKey = p as ProjectKey
       const callMap = projects[projectKey].incomingMaps
       callMap &&
-        Object.keys(callMap).reduce((m, method) => {
+        Object.keys(callMap).reduce((actions, method) => {
           seenProjects[projectKey] = true
-          let response = ''
-          if (projects[projectKey].customResponseIncomingMaps[method]) {
-            response = `, response: ${projectKey}Types.RpcResponse<${method}>`
-          }
-
-          m[method] = {
-            params: `${projectKey}Types.RpcIn<${method}> ${response}`,
-          }
-          return m
-        }, map)
-      return map
-    }, staticActions),
+          actions.push({
+            hasResponse: Boolean(projects[projectKey].customResponseIncomingMaps[method]),
+            method,
+            projectKey,
+          })
+          return actions
+        }, list)
+      return list
+    }, []),
   }
 
   return writeEngineActions({
@@ -550,40 +545,87 @@ async function writeActions(): Promise<void> {
   })
 }
 
-const reservedPayloadKeys = ['_description'] as const
+type GroupedActions = Partial<Record<ProjectKey, {incoming: Array<string>; response: Array<string>}>>
 
-function payloadHasType(payload: ActionDescription | undefined, toFind: RegExp): boolean {
-  return payload
-    ? Object.keys(payload).some(param => {
-        const ps = payload[param]
-        if (Array.isArray(ps)) {
-          return ps.some(p => toFind.test(p))
-        } else {
-          return toFind.test(ps || '')
-        }
-      })
-    : false
+function groupActions(actions: Array<GeneratedAction>): GroupedActions {
+  return actions.reduce<GroupedActions>((grouped, action) => {
+    const projectActions = grouped[action.projectKey] ?? {incoming: [], response: []}
+    const methods = action.hasResponse ? projectActions.response : projectActions.incoming
+    methods.push(action.method)
+    grouped[action.projectKey] = projectActions
+    return grouped
+  }, {})
 }
 
-function actionHasType(actions: ActionMap, toFind: RegExp): boolean {
-  return Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
+function renderActionTypeName(projectKey: ProjectKey, hasResponse: boolean): string {
+  return `${capitalize(projectKey)}${hasResponse ? 'Response' : 'Incoming'}Action`
+}
+
+function renderActionUnion(projectKey: ProjectKey, hasResponse: boolean, methods: Array<string>): string {
+  return `type ${renderActionTypeName(projectKey, hasResponse)} =
+  ${methods.sort().join(' |\n  ')}`
+}
+
+function renderActionHelper(projectKey: ProjectKey, hasResponse: boolean): string {
+  const typeName = `${renderActionTypeName(projectKey, hasResponse)}Map`
+  const rpcNamespace = `${projectKey}Types`
+  const payload = hasResponse
+    ? `{readonly params: ${rpcNamespace}.RpcIn<P>; readonly response: ${rpcNamespace}.RpcResponse<P>}`
+    : `{readonly params: ${rpcNamespace}.RpcIn<P>}`
+
+  return `type ${typeName}<K extends ${rpcNamespace}.MessageKey> = {
+  [P in K]: ${payload}
+}`
 }
 
 function compileActionsFile({prelude, actions}: CompileActionsArgs): string {
-  const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'\n"
-    : ''
-  const actionNames = Object.keys(actions).sort()
-  const actionSpec = actionNames
-    .map(name => `  ${name}: ${printPayload(actions[name])},`)
-    .join('\n')
+  const groupedActions = groupActions(actions)
+  const usedProjects = (Object.keys(projects) as Array<ProjectKey>).filter(projectKey =>
+    Boolean(groupedActions[projectKey])
+  )
+  const actionHelpers = usedProjects
+    .flatMap(projectKey => {
+      const projectActions = groupedActions[projectKey]
+      if (!projectActions) {
+        return []
+      }
+      const helpers: Array<string> = []
+      if (projectActions.incoming.length) {
+        helpers.push(renderActionUnion(projectKey, false, projectActions.incoming))
+        helpers.push(renderActionHelper(projectKey, false))
+      }
+      if (projectActions.response.length) {
+        helpers.push(renderActionUnion(projectKey, true, projectActions.response))
+        helpers.push(renderActionHelper(projectKey, true))
+      }
+      return helpers
+    })
+    .join('\n\n')
+  const actionSpec = usedProjects
+    .flatMap(projectKey => {
+      const projectActions = groupedActions[projectKey]
+      if (!projectActions) {
+        return []
+      }
+
+      const types: Array<string> = []
+      if (projectActions.incoming.length) {
+        types.push(`${renderActionTypeName(projectKey, false)}Map<${renderActionTypeName(projectKey, false)}>`)
+      }
+      if (projectActions.response.length) {
+        types.push(`${renderActionTypeName(projectKey, true)}Map<${renderActionTypeName(projectKey, true)}>`)
+      }
+      return types
+    })
+    .join(' &\n  ')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-${rpcGenImport}${prelude.join('\n')}
+${prelude.join('\n')}
 
-type ActionSpec = {
-${actionSpec}
-}
+${actionHelpers}
+
+type ActionSpec =
+  ${actionSpec}
 
 export type ActionKey = keyof ActionSpec
 type EngineActionMap = {
@@ -600,23 +642,6 @@ export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payl
 export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
 export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
 `
-}
-
-function payloadKeys(p: ActionDescription): Array<string> {
-  return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
-}
-
-function printPayload(p: ActionDescription): string {
-  return payloadKeys(p).length
-    ? '{' +
-        payloadKeys(p)
-          .map(key => {
-            const val = p[key]
-            return `readonly ${key}: ${Array.isArray(val) ? val.join(' | ') : val}`
-          })
-          .join(',\n') +
-        '}'
-    : 'undefined'
 }
 
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {

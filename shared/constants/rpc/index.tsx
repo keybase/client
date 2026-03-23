@@ -3,224 +3,265 @@ import type * as chat1Types from '@/constants/rpc/rpc-chat-gen'
 import type * as keybase1Types from '@/constants/rpc/rpc-gen'
 import type * as stellar1Types from '@/constants/rpc/rpc-stellar-gen'
 
-type ActionSpec = {
-  'chat.1.NotifyChat.ChatArchiveComplete': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatArchiveComplete'> },
-  'chat.1.NotifyChat.ChatArchiveProgress': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatArchiveProgress'> },
-  'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatAttachmentDownloadComplete'> },
-  'chat.1.NotifyChat.ChatAttachmentDownloadProgress': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatAttachmentDownloadProgress'> },
-  'chat.1.NotifyChat.ChatAttachmentUploadProgress': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatAttachmentUploadProgress'> },
-  'chat.1.NotifyChat.ChatAttachmentUploadStart': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatAttachmentUploadStart'> },
-  'chat.1.NotifyChat.ChatConvUpdate': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatConvUpdate'> },
-  'chat.1.NotifyChat.ChatIdentifyUpdate': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatIdentifyUpdate'> },
-  'chat.1.NotifyChat.ChatInboxStale': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatInboxStale'> },
-  'chat.1.NotifyChat.ChatInboxSyncStarted': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatInboxSyncStarted'> },
-  'chat.1.NotifyChat.ChatInboxSynced': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatInboxSynced'> },
-  'chat.1.NotifyChat.ChatJoinedConversation': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatJoinedConversation'> },
-  'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'> },
-  'chat.1.NotifyChat.ChatLeftConversation': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatLeftConversation'> },
-  'chat.1.NotifyChat.ChatParticipantsInfo': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatParticipantsInfo'> },
-  'chat.1.NotifyChat.ChatPaymentInfo': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatPaymentInfo'> },
-  'chat.1.NotifyChat.ChatPromptUnfurl': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatPromptUnfurl'> },
-  'chat.1.NotifyChat.ChatRequestInfo': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatRequestInfo'> },
-  'chat.1.NotifyChat.ChatResetConversation': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatResetConversation'> },
-  'chat.1.NotifyChat.ChatSetConvRetention': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatSetConvRetention'> },
-  'chat.1.NotifyChat.ChatSetConvSettings': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatSetConvSettings'> },
-  'chat.1.NotifyChat.ChatSetTeamRetention': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatSetTeamRetention'> },
-  'chat.1.NotifyChat.ChatSubteamRename': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatSubteamRename'> },
-  'chat.1.NotifyChat.ChatTLFFinalize': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatTLFFinalize'> },
-  'chat.1.NotifyChat.ChatTLFResolve': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatTLFResolve'> },
-  'chat.1.NotifyChat.ChatThreadsStale': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatThreadsStale'> },
-  'chat.1.NotifyChat.ChatTypingUpdate': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatTypingUpdate'> },
-  'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.ChatWelcomeMessageLoaded'> },
-  'chat.1.NotifyChat.NewChatActivity': {readonly params: chat1Types.RpcIn<'chat.1.NotifyChat.NewChatActivity'> },
-  'chat.1.chatUi.chatBotCommandsUpdateStatus': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatBotCommandsUpdateStatus'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatBotCommandsUpdateStatus'>},
-  'chat.1.chatUi.chatClearWatch': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatClearWatch'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatClearWatch'>},
-  'chat.1.chatUi.chatCoinFlipStatus': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatCoinFlipStatus'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatCoinFlipStatus'>},
-  'chat.1.chatUi.chatCommandMarkdown': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatCommandMarkdown'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatCommandMarkdown'>},
-  'chat.1.chatUi.chatCommandStatus': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatCommandStatus'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatCommandStatus'>},
-  'chat.1.chatUi.chatConfirmChannelDelete': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatConfirmChannelDelete'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatConfirmChannelDelete'>},
-  'chat.1.chatUi.chatGiphySearchResults': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatGiphySearchResults'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatGiphySearchResults'>},
-  'chat.1.chatUi.chatGiphyToggleResultWindow': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatGiphyToggleResultWindow'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatGiphyToggleResultWindow'>},
-  'chat.1.chatUi.chatInboxConversation': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatInboxConversation'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatInboxConversation'>},
-  'chat.1.chatUi.chatInboxFailed': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatInboxFailed'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatInboxFailed'>},
-  'chat.1.chatUi.chatInboxLayout': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatInboxLayout'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatInboxLayout'>},
-  'chat.1.chatUi.chatInboxUnverified': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatInboxUnverified'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatInboxUnverified'>},
-  'chat.1.chatUi.chatLoadGalleryHit': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatLoadGalleryHit'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatLoadGalleryHit'>},
-  'chat.1.chatUi.chatMaybeMentionUpdate': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatMaybeMentionUpdate'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatMaybeMentionUpdate'>},
-  'chat.1.chatUi.chatSearchBotHits': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchBotHits'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchBotHits'>},
-  'chat.1.chatUi.chatSearchConvHits': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchConvHits'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchConvHits'>},
-  'chat.1.chatUi.chatSearchDone': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchDone'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchDone'>},
-  'chat.1.chatUi.chatSearchHit': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchHit'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchHit'>},
-  'chat.1.chatUi.chatSearchInboxDone': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchInboxDone'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchInboxDone'>},
-  'chat.1.chatUi.chatSearchInboxHit': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchInboxHit'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchInboxHit'>},
-  'chat.1.chatUi.chatSearchInboxStart': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchInboxStart'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchInboxStart'>},
-  'chat.1.chatUi.chatSearchIndexStatus': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchIndexStatus'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchIndexStatus'>},
-  'chat.1.chatUi.chatSearchTeamHits': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatSearchTeamHits'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatSearchTeamHits'>},
-  'chat.1.chatUi.chatShowManageChannels': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatShowManageChannels'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatShowManageChannels'>},
-  'chat.1.chatUi.chatStellarDataConfirm': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatStellarDataConfirm'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatStellarDataConfirm'>},
-  'chat.1.chatUi.chatStellarDataError': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatStellarDataError'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatStellarDataError'>},
-  'chat.1.chatUi.chatStellarDone': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatStellarDone'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatStellarDone'>},
-  'chat.1.chatUi.chatStellarShowConfirm': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatStellarShowConfirm'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatStellarShowConfirm'>},
-  'chat.1.chatUi.chatThreadCached': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatThreadCached'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatThreadCached'>},
-  'chat.1.chatUi.chatThreadFull': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatThreadFull'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatThreadFull'>},
-  'chat.1.chatUi.chatThreadStatus': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatThreadStatus'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatThreadStatus'>},
-  'chat.1.chatUi.chatWatchPosition': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.chatWatchPosition'> , response: chat1Types.RpcResponse<'chat.1.chatUi.chatWatchPosition'>},
-  'chat.1.chatUi.triggerContactSync': {readonly params: chat1Types.RpcIn<'chat.1.chatUi.triggerContactSync'> , response: chat1Types.RpcResponse<'chat.1.chatUi.triggerContactSync'>},
-  'keybase.1.NotifyApp.exit': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyApp.exit'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyApp.exit'>},
-  'keybase.1.NotifyAudit.boxAuditError': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyAudit.boxAuditError'> },
-  'keybase.1.NotifyAudit.rootAuditError': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyAudit.rootAuditError'> },
-  'keybase.1.NotifyBadges.badgeState': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyBadges.badgeState'> },
-  'keybase.1.NotifyCanUserPerform.canUserPerformChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyCanUserPerform.canUserPerformChanged'> },
-  'keybase.1.NotifyDeviceClone.deviceCloneCountChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'> },
-  'keybase.1.NotifyEmailAddress.emailAddressVerified': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyEmailAddress.emailAddressVerified'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyEmailAddress.emailAddressVerified'>},
-  'keybase.1.NotifyEmailAddress.emailsChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyEmailAddress.emailsChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyEmailAddress.emailsChanged'>},
-  'keybase.1.NotifyEphemeral.newTeamEk': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyEphemeral.newTeamEk'> },
-  'keybase.1.NotifyEphemeral.newTeambotEk': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyEphemeral.newTeambotEk'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyEphemeral.newTeambotEk'>},
-  'keybase.1.NotifyEphemeral.teambotEkNeeded': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyEphemeral.teambotEkNeeded'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyEphemeral.teambotEkNeeded'>},
-  'keybase.1.NotifyFS.FSActivity': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSActivity'> },
-  'keybase.1.NotifyFS.FSEditListResponse': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSEditListResponse'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSEditListResponse'>},
-  'keybase.1.NotifyFS.FSFavoritesChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSFavoritesChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSFavoritesChanged'>},
-  'keybase.1.NotifyFS.FSOnlineStatusChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSOnlineStatusChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSOnlineStatusChanged'>},
-  'keybase.1.NotifyFS.FSOverallSyncStatusChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSOverallSyncStatusChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>},
-  'keybase.1.NotifyFS.FSPathUpdated': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSPathUpdated'> },
-  'keybase.1.NotifyFS.FSSubscriptionNotify': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSSubscriptionNotify'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSSubscriptionNotify'>},
-  'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSSubscriptionNotifyPath'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSSubscriptionNotifyPath'>},
-  'keybase.1.NotifyFS.FSSyncActivity': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSSyncActivity'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSSyncActivity'>},
-  'keybase.1.NotifyFS.FSSyncStatusResponse': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFS.FSSyncStatusResponse'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFS.FSSyncStatusResponse'>},
-  'keybase.1.NotifyFavorites.favoritesChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFavorites.favoritesChanged'> },
-  'keybase.1.NotifyFeaturedBots.featuredBotsUpdate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyFeaturedBots.featuredBotsUpdate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyFeaturedBots.featuredBotsUpdate'>},
-  'keybase.1.NotifyInviteFriends.updateInviteCounts': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyInviteFriends.updateInviteCounts'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyInviteFriends.updateInviteCounts'>},
-  'keybase.1.NotifyKeyfamily.keyfamilyChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyKeyfamily.keyfamilyChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyKeyfamily.keyfamilyChanged'>},
-  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>},
-  'keybase.1.NotifyPaperKey.paperKeyCached': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyPaperKey.paperKeyCached'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyPaperKey.paperKeyCached'>},
-  'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'>},
-  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'>},
-  'keybase.1.NotifySaltpack.saltpackOperationDone': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySaltpack.saltpackOperationDone'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySaltpack.saltpackOperationDone'>},
-  'keybase.1.NotifySaltpack.saltpackOperationProgress': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySaltpack.saltpackOperationProgress'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySaltpack.saltpackOperationProgress'>},
-  'keybase.1.NotifySaltpack.saltpackOperationStart': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySaltpack.saltpackOperationStart'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySaltpack.saltpackOperationStart'>},
-  'keybase.1.NotifyService.HTTPSrvInfoUpdate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyService.HTTPSrvInfoUpdate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyService.HTTPSrvInfoUpdate'>},
-  'keybase.1.NotifyService.handleKeybaseLink': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyService.handleKeybaseLink'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyService.handleKeybaseLink'>},
-  'keybase.1.NotifyService.shutdown': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyService.shutdown'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyService.shutdown'>},
-  'keybase.1.NotifySession.clientOutOfDate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySession.clientOutOfDate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySession.clientOutOfDate'>},
-  'keybase.1.NotifySession.loggedIn': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySession.loggedIn'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySession.loggedIn'>},
-  'keybase.1.NotifySession.loggedOut': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySession.loggedOut'> },
-  'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged'>},
-  'keybase.1.NotifyTeam.avatarUpdated': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.avatarUpdated'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.avatarUpdated'>},
-  'keybase.1.NotifyTeam.newlyAddedToTeam': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.newlyAddedToTeam'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.newlyAddedToTeam'>},
-  'keybase.1.NotifyTeam.teamAbandoned': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamAbandoned'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamAbandoned'>},
-  'keybase.1.NotifyTeam.teamChangedByID': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamChangedByID'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamChangedByID'>},
-  'keybase.1.NotifyTeam.teamChangedByName': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamChangedByName'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamChangedByName'>},
-  'keybase.1.NotifyTeam.teamDeleted': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamDeleted'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamDeleted'>},
-  'keybase.1.NotifyTeam.teamExit': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamExit'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamExit'>},
-  'keybase.1.NotifyTeam.teamMetadataUpdate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamMetadataUpdate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamMetadataUpdate'>},
-  'keybase.1.NotifyTeam.teamRoleMapChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamRoleMapChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamRoleMapChanged'>},
-  'keybase.1.NotifyTeam.teamTreeMembershipsDone': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamTreeMembershipsDone'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamTreeMembershipsDone'>},
-  'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeam.teamTreeMembershipsPartial'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeam.teamTreeMembershipsPartial'>},
-  'keybase.1.NotifyTeambot.newTeambotKey': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeambot.newTeambotKey'> },
-  'keybase.1.NotifyTeambot.teambotKeyNeeded': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTeambot.teambotKeyNeeded'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTeambot.teambotKeyNeeded'>},
-  'keybase.1.NotifyTracking.notifyUserBlocked': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTracking.notifyUserBlocked'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTracking.notifyUserBlocked'>},
-  'keybase.1.NotifyTracking.trackingChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTracking.trackingChanged'> },
-  'keybase.1.NotifyTracking.trackingInfo': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyTracking.trackingInfo'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyTracking.trackingInfo'>},
-  'keybase.1.NotifyUsers.identifyUpdate': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyUsers.identifyUpdate'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyUsers.identifyUpdate'>},
-  'keybase.1.NotifyUsers.passwordChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyUsers.passwordChanged'> , response: keybase1Types.RpcResponse<'keybase.1.NotifyUsers.passwordChanged'>},
-  'keybase.1.NotifyUsers.userChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyUsers.userChanged'> },
-  'keybase.1.NotifyUsers.webOfTrustChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.NotifyUsers.webOfTrustChanged'> },
-  'keybase.1.gpgUi.confirmDuplicateKeyChosen': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.confirmDuplicateKeyChosen'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.confirmDuplicateKeyChosen'>},
-  'keybase.1.gpgUi.confirmImportSecretToExistingKey': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.confirmImportSecretToExistingKey'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.confirmImportSecretToExistingKey'>},
-  'keybase.1.gpgUi.getTTY': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.getTTY'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.getTTY'>},
-  'keybase.1.gpgUi.selectKey': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.selectKey'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.selectKey'>},
-  'keybase.1.gpgUi.selectKeyAndPushOption': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.selectKeyAndPushOption'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.selectKeyAndPushOption'>},
-  'keybase.1.gpgUi.sign': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.sign'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.sign'>},
-  'keybase.1.gpgUi.wantToAddGPGKey': {readonly params: keybase1Types.RpcIn<'keybase.1.gpgUi.wantToAddGPGKey'> , response: keybase1Types.RpcResponse<'keybase.1.gpgUi.wantToAddGPGKey'>},
-  'keybase.1.gregorUI.pushOutOfBandMessages': {readonly params: keybase1Types.RpcIn<'keybase.1.gregorUI.pushOutOfBandMessages'> , response: keybase1Types.RpcResponse<'keybase.1.gregorUI.pushOutOfBandMessages'>},
-  'keybase.1.gregorUI.pushState': {readonly params: keybase1Types.RpcIn<'keybase.1.gregorUI.pushState'> , response: keybase1Types.RpcResponse<'keybase.1.gregorUI.pushState'>},
-  'keybase.1.homeUI.homeUIRefresh': {readonly params: keybase1Types.RpcIn<'keybase.1.homeUI.homeUIRefresh'> , response: keybase1Types.RpcResponse<'keybase.1.homeUI.homeUIRefresh'>},
-  'keybase.1.identify3Ui.identify3Result': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3Result'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3Result'>},
-  'keybase.1.identify3Ui.identify3ShowTracker': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3ShowTracker'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3ShowTracker'>},
-  'keybase.1.identify3Ui.identify3Summary': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3Summary'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3Summary'>},
-  'keybase.1.identify3Ui.identify3TrackerTimedOut': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3TrackerTimedOut'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3TrackerTimedOut'>},
-  'keybase.1.identify3Ui.identify3UpdateRow': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3UpdateRow'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3UpdateRow'>},
-  'keybase.1.identify3Ui.identify3UpdateUserCard': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3UpdateUserCard'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3UpdateUserCard'>},
-  'keybase.1.identify3Ui.identify3UserReset': {readonly params: keybase1Types.RpcIn<'keybase.1.identify3Ui.identify3UserReset'> , response: keybase1Types.RpcResponse<'keybase.1.identify3Ui.identify3UserReset'>},
-  'keybase.1.identifyUi.cancel': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.cancel'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.cancel'>},
-  'keybase.1.identifyUi.confirm': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.confirm'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.confirm'>},
-  'keybase.1.identifyUi.delegateIdentifyUI': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.delegateIdentifyUI'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.delegateIdentifyUI'>},
-  'keybase.1.identifyUi.dismiss': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.dismiss'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.dismiss'>},
-  'keybase.1.identifyUi.displayCryptocurrency': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayCryptocurrency'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayCryptocurrency'>},
-  'keybase.1.identifyUi.displayKey': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayKey'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayKey'>},
-  'keybase.1.identifyUi.displayStellarAccount': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayStellarAccount'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayStellarAccount'>},
-  'keybase.1.identifyUi.displayTLFCreateWithInvite': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayTLFCreateWithInvite'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayTLFCreateWithInvite'>},
-  'keybase.1.identifyUi.displayTrackStatement': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayTrackStatement'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayTrackStatement'>},
-  'keybase.1.identifyUi.displayUserCard': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.displayUserCard'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.displayUserCard'>},
-  'keybase.1.identifyUi.finish': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.finish'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.finish'>},
-  'keybase.1.identifyUi.finishSocialProofCheck': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.finishSocialProofCheck'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.finishSocialProofCheck'>},
-  'keybase.1.identifyUi.finishWebProofCheck': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.finishWebProofCheck'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.finishWebProofCheck'>},
-  'keybase.1.identifyUi.launchNetworkChecks': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.launchNetworkChecks'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.launchNetworkChecks'>},
-  'keybase.1.identifyUi.reportLastTrack': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.reportLastTrack'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.reportLastTrack'>},
-  'keybase.1.identifyUi.reportTrackToken': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.reportTrackToken'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.reportTrackToken'>},
-  'keybase.1.identifyUi.start': {readonly params: keybase1Types.RpcIn<'keybase.1.identifyUi.start'> , response: keybase1Types.RpcResponse<'keybase.1.identifyUi.start'>},
-  'keybase.1.logUi.log': {readonly params: keybase1Types.RpcIn<'keybase.1.logUi.log'> , response: keybase1Types.RpcResponse<'keybase.1.logUi.log'>},
-  'keybase.1.loginUi.chooseDeviceToRecoverWith': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.chooseDeviceToRecoverWith'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.chooseDeviceToRecoverWith'>},
-  'keybase.1.loginUi.displayPaperKeyPhrase': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.displayPaperKeyPhrase'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.displayPaperKeyPhrase'>},
-  'keybase.1.loginUi.displayPrimaryPaperKey': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.displayPrimaryPaperKey'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.displayPrimaryPaperKey'>},
-  'keybase.1.loginUi.displayResetMessage': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.displayResetMessage'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.displayResetMessage'>},
-  'keybase.1.loginUi.displayResetProgress': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.displayResetProgress'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.displayResetProgress'>},
-  'keybase.1.loginUi.explainDeviceRecovery': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.explainDeviceRecovery'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.explainDeviceRecovery'>},
-  'keybase.1.loginUi.getEmailOrUsername': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.getEmailOrUsername'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.getEmailOrUsername'>},
-  'keybase.1.loginUi.promptPassphraseRecovery': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.promptPassphraseRecovery'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.promptPassphraseRecovery'>},
-  'keybase.1.loginUi.promptResetAccount': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.promptResetAccount'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.promptResetAccount'>},
-  'keybase.1.loginUi.promptRevokePaperKeys': {readonly params: keybase1Types.RpcIn<'keybase.1.loginUi.promptRevokePaperKeys'> , response: keybase1Types.RpcResponse<'keybase.1.loginUi.promptRevokePaperKeys'>},
-  'keybase.1.logsend.prepareLogsend': {readonly params: keybase1Types.RpcIn<'keybase.1.logsend.prepareLogsend'> , response: keybase1Types.RpcResponse<'keybase.1.logsend.prepareLogsend'>},
-  'keybase.1.pgpUi.finished': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.finished'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.finished'>},
-  'keybase.1.pgpUi.keyGenerated': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.keyGenerated'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.keyGenerated'>},
-  'keybase.1.pgpUi.outputPGPWarning': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.outputPGPWarning'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.outputPGPWarning'>},
-  'keybase.1.pgpUi.outputSignatureNonKeybase': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.outputSignatureNonKeybase'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.outputSignatureNonKeybase'>},
-  'keybase.1.pgpUi.outputSignatureSuccess': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.outputSignatureSuccess'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.outputSignatureSuccess'>},
-  'keybase.1.pgpUi.shouldPushPrivate': {readonly params: keybase1Types.RpcIn<'keybase.1.pgpUi.shouldPushPrivate'> , response: keybase1Types.RpcResponse<'keybase.1.pgpUi.shouldPushPrivate'>},
-  'keybase.1.proveUi.checking': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.checking'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.checking'>},
-  'keybase.1.proveUi.continueChecking': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.continueChecking'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.continueChecking'>},
-  'keybase.1.proveUi.displayRecheckWarning': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.displayRecheckWarning'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.displayRecheckWarning'>},
-  'keybase.1.proveUi.okToCheck': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.okToCheck'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.okToCheck'>},
-  'keybase.1.proveUi.outputInstructions': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.outputInstructions'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.outputInstructions'>},
-  'keybase.1.proveUi.outputPrechecks': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.outputPrechecks'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.outputPrechecks'>},
-  'keybase.1.proveUi.preProofWarning': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.preProofWarning'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.preProofWarning'>},
-  'keybase.1.proveUi.promptOverwrite': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.promptOverwrite'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.promptOverwrite'>},
-  'keybase.1.proveUi.promptUsername': {readonly params: keybase1Types.RpcIn<'keybase.1.proveUi.promptUsername'> , response: keybase1Types.RpcResponse<'keybase.1.proveUi.promptUsername'>},
-  'keybase.1.provisionUi.DisplayAndPromptSecret': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.DisplayAndPromptSecret'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.DisplayAndPromptSecret'>},
-  'keybase.1.provisionUi.DisplaySecretExchanged': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.DisplaySecretExchanged'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.DisplaySecretExchanged'>},
-  'keybase.1.provisionUi.PromptNewDeviceName': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.PromptNewDeviceName'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.PromptNewDeviceName'>},
-  'keybase.1.provisionUi.ProvisioneeSuccess': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.ProvisioneeSuccess'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.ProvisioneeSuccess'>},
-  'keybase.1.provisionUi.ProvisionerSuccess': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.ProvisionerSuccess'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.ProvisionerSuccess'>},
-  'keybase.1.provisionUi.chooseDevice': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.chooseDevice'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.chooseDevice'>},
-  'keybase.1.provisionUi.chooseDeviceType': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.chooseDeviceType'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.chooseDeviceType'>},
-  'keybase.1.provisionUi.chooseGPGMethod': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.chooseGPGMethod'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.chooseGPGMethod'>},
-  'keybase.1.provisionUi.chooseProvisioningMethod': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.chooseProvisioningMethod'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.chooseProvisioningMethod'>},
-  'keybase.1.provisionUi.switchToGPGSignOK': {readonly params: keybase1Types.RpcIn<'keybase.1.provisionUi.switchToGPGSignOK'> , response: keybase1Types.RpcResponse<'keybase.1.provisionUi.switchToGPGSignOK'>},
-  'keybase.1.reachability.reachabilityChanged': {readonly params: keybase1Types.RpcIn<'keybase.1.reachability.reachabilityChanged'> },
-  'keybase.1.rekeyUI.delegateRekeyUI': {readonly params: keybase1Types.RpcIn<'keybase.1.rekeyUI.delegateRekeyUI'> , response: keybase1Types.RpcResponse<'keybase.1.rekeyUI.delegateRekeyUI'>},
-  'keybase.1.rekeyUI.refresh': {readonly params: keybase1Types.RpcIn<'keybase.1.rekeyUI.refresh'> , response: keybase1Types.RpcResponse<'keybase.1.rekeyUI.refresh'>},
-  'keybase.1.rekeyUI.rekeySendEvent': {readonly params: keybase1Types.RpcIn<'keybase.1.rekeyUI.rekeySendEvent'> , response: keybase1Types.RpcResponse<'keybase.1.rekeyUI.rekeySendEvent'>},
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt': {readonly params: keybase1Types.RpcIn<'keybase.1.saltpackUi.saltpackPromptForDecrypt'> , response: keybase1Types.RpcResponse<'keybase.1.saltpackUi.saltpackPromptForDecrypt'>},
-  'keybase.1.saltpackUi.saltpackVerifyBadSender': {readonly params: keybase1Types.RpcIn<'keybase.1.saltpackUi.saltpackVerifyBadSender'> , response: keybase1Types.RpcResponse<'keybase.1.saltpackUi.saltpackVerifyBadSender'>},
-  'keybase.1.saltpackUi.saltpackVerifySuccess': {readonly params: keybase1Types.RpcIn<'keybase.1.saltpackUi.saltpackVerifySuccess'> , response: keybase1Types.RpcResponse<'keybase.1.saltpackUi.saltpackVerifySuccess'>},
-  'keybase.1.secretUi.getPassphrase': {readonly params: keybase1Types.RpcIn<'keybase.1.secretUi.getPassphrase'> , response: keybase1Types.RpcResponse<'keybase.1.secretUi.getPassphrase'>},
-  'keybase.1.streamUi.close': {readonly params: keybase1Types.RpcIn<'keybase.1.streamUi.close'> , response: keybase1Types.RpcResponse<'keybase.1.streamUi.close'>},
-  'keybase.1.streamUi.read': {readonly params: keybase1Types.RpcIn<'keybase.1.streamUi.read'> , response: keybase1Types.RpcResponse<'keybase.1.streamUi.read'>},
-  'keybase.1.streamUi.reset': {readonly params: keybase1Types.RpcIn<'keybase.1.streamUi.reset'> , response: keybase1Types.RpcResponse<'keybase.1.streamUi.reset'>},
-  'keybase.1.streamUi.write': {readonly params: keybase1Types.RpcIn<'keybase.1.streamUi.write'> , response: keybase1Types.RpcResponse<'keybase.1.streamUi.write'>},
-  'keybase.1.teamsUi.confirmInviteLinkAccept': {readonly params: keybase1Types.RpcIn<'keybase.1.teamsUi.confirmInviteLinkAccept'> , response: keybase1Types.RpcResponse<'keybase.1.teamsUi.confirmInviteLinkAccept'>},
-  'keybase.1.teamsUi.confirmRootTeamDelete': {readonly params: keybase1Types.RpcIn<'keybase.1.teamsUi.confirmRootTeamDelete'> , response: keybase1Types.RpcResponse<'keybase.1.teamsUi.confirmRootTeamDelete'>},
-  'keybase.1.teamsUi.confirmSubteamDelete': {readonly params: keybase1Types.RpcIn<'keybase.1.teamsUi.confirmSubteamDelete'> , response: keybase1Types.RpcResponse<'keybase.1.teamsUi.confirmSubteamDelete'>},
-  'keybase.1.ui.promptYesNo': {readonly params: keybase1Types.RpcIn<'keybase.1.ui.promptYesNo'> , response: keybase1Types.RpcResponse<'keybase.1.ui.promptYesNo'>},
-  'stellar.1.notify.accountDetailsUpdate': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.accountDetailsUpdate'> },
-  'stellar.1.notify.accountsUpdate': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.accountsUpdate'> },
-  'stellar.1.notify.paymentNotification': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.paymentNotification'> },
-  'stellar.1.notify.paymentStatusNotification': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.paymentStatusNotification'> },
-  'stellar.1.notify.pendingPaymentsUpdate': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.pendingPaymentsUpdate'> },
-  'stellar.1.notify.recentPaymentsUpdate': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.recentPaymentsUpdate'> },
-  'stellar.1.notify.requestStatusNotification': {readonly params: stellar1Types.RpcIn<'stellar.1.notify.requestStatusNotification'> },
-  'stellar.1.ui.paymentReviewed': {readonly params: stellar1Types.RpcIn<'stellar.1.ui.paymentReviewed'> , response: stellar1Types.RpcResponse<'stellar.1.ui.paymentReviewed'>},
+type Chat1IncomingAction =
+  'chat.1.NotifyChat.ChatArchiveComplete' |
+  'chat.1.NotifyChat.ChatArchiveProgress' |
+  'chat.1.NotifyChat.ChatAttachmentDownloadComplete' |
+  'chat.1.NotifyChat.ChatAttachmentDownloadProgress' |
+  'chat.1.NotifyChat.ChatAttachmentUploadProgress' |
+  'chat.1.NotifyChat.ChatAttachmentUploadStart' |
+  'chat.1.NotifyChat.ChatConvUpdate' |
+  'chat.1.NotifyChat.ChatIdentifyUpdate' |
+  'chat.1.NotifyChat.ChatInboxStale' |
+  'chat.1.NotifyChat.ChatInboxSyncStarted' |
+  'chat.1.NotifyChat.ChatInboxSynced' |
+  'chat.1.NotifyChat.ChatJoinedConversation' |
+  'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade' |
+  'chat.1.NotifyChat.ChatLeftConversation' |
+  'chat.1.NotifyChat.ChatParticipantsInfo' |
+  'chat.1.NotifyChat.ChatPaymentInfo' |
+  'chat.1.NotifyChat.ChatPromptUnfurl' |
+  'chat.1.NotifyChat.ChatRequestInfo' |
+  'chat.1.NotifyChat.ChatResetConversation' |
+  'chat.1.NotifyChat.ChatSetConvRetention' |
+  'chat.1.NotifyChat.ChatSetConvSettings' |
+  'chat.1.NotifyChat.ChatSetTeamRetention' |
+  'chat.1.NotifyChat.ChatSubteamRename' |
+  'chat.1.NotifyChat.ChatTLFFinalize' |
+  'chat.1.NotifyChat.ChatTLFResolve' |
+  'chat.1.NotifyChat.ChatThreadsStale' |
+  'chat.1.NotifyChat.ChatTypingUpdate' |
+  'chat.1.NotifyChat.ChatWelcomeMessageLoaded' |
+  'chat.1.NotifyChat.NewChatActivity'
+
+type Chat1IncomingActionMap<K extends chat1Types.MessageKey> = {
+  [P in K]: {readonly params: chat1Types.RpcIn<P>}
 }
+
+type Chat1ResponseAction =
+  'chat.1.chatUi.chatBotCommandsUpdateStatus' |
+  'chat.1.chatUi.chatClearWatch' |
+  'chat.1.chatUi.chatCoinFlipStatus' |
+  'chat.1.chatUi.chatCommandMarkdown' |
+  'chat.1.chatUi.chatCommandStatus' |
+  'chat.1.chatUi.chatConfirmChannelDelete' |
+  'chat.1.chatUi.chatGiphySearchResults' |
+  'chat.1.chatUi.chatGiphyToggleResultWindow' |
+  'chat.1.chatUi.chatInboxConversation' |
+  'chat.1.chatUi.chatInboxFailed' |
+  'chat.1.chatUi.chatInboxLayout' |
+  'chat.1.chatUi.chatInboxUnverified' |
+  'chat.1.chatUi.chatLoadGalleryHit' |
+  'chat.1.chatUi.chatMaybeMentionUpdate' |
+  'chat.1.chatUi.chatSearchBotHits' |
+  'chat.1.chatUi.chatSearchConvHits' |
+  'chat.1.chatUi.chatSearchDone' |
+  'chat.1.chatUi.chatSearchHit' |
+  'chat.1.chatUi.chatSearchInboxDone' |
+  'chat.1.chatUi.chatSearchInboxHit' |
+  'chat.1.chatUi.chatSearchInboxStart' |
+  'chat.1.chatUi.chatSearchIndexStatus' |
+  'chat.1.chatUi.chatSearchTeamHits' |
+  'chat.1.chatUi.chatShowManageChannels' |
+  'chat.1.chatUi.chatStellarDataConfirm' |
+  'chat.1.chatUi.chatStellarDataError' |
+  'chat.1.chatUi.chatStellarDone' |
+  'chat.1.chatUi.chatStellarShowConfirm' |
+  'chat.1.chatUi.chatThreadCached' |
+  'chat.1.chatUi.chatThreadFull' |
+  'chat.1.chatUi.chatThreadStatus' |
+  'chat.1.chatUi.chatWatchPosition' |
+  'chat.1.chatUi.triggerContactSync'
+
+type Chat1ResponseActionMap<K extends chat1Types.MessageKey> = {
+  [P in K]: {readonly params: chat1Types.RpcIn<P>; readonly response: chat1Types.RpcResponse<P>}
+}
+
+type Keybase1IncomingAction =
+  'keybase.1.NotifyAudit.boxAuditError' |
+  'keybase.1.NotifyAudit.rootAuditError' |
+  'keybase.1.NotifyBadges.badgeState' |
+  'keybase.1.NotifyCanUserPerform.canUserPerformChanged' |
+  'keybase.1.NotifyDeviceClone.deviceCloneCountChanged' |
+  'keybase.1.NotifyEphemeral.newTeamEk' |
+  'keybase.1.NotifyFS.FSActivity' |
+  'keybase.1.NotifyFS.FSPathUpdated' |
+  'keybase.1.NotifyFavorites.favoritesChanged' |
+  'keybase.1.NotifySession.loggedOut' |
+  'keybase.1.NotifyTeambot.newTeambotKey' |
+  'keybase.1.NotifyTracking.trackingChanged' |
+  'keybase.1.NotifyUsers.userChanged' |
+  'keybase.1.NotifyUsers.webOfTrustChanged' |
+  'keybase.1.reachability.reachabilityChanged'
+
+type Keybase1IncomingActionMap<K extends keybase1Types.MessageKey> = {
+  [P in K]: {readonly params: keybase1Types.RpcIn<P>}
+}
+
+type Keybase1ResponseAction =
+  'keybase.1.NotifyApp.exit' |
+  'keybase.1.NotifyEmailAddress.emailAddressVerified' |
+  'keybase.1.NotifyEmailAddress.emailsChanged' |
+  'keybase.1.NotifyEphemeral.newTeambotEk' |
+  'keybase.1.NotifyEphemeral.teambotEkNeeded' |
+  'keybase.1.NotifyFS.FSEditListResponse' |
+  'keybase.1.NotifyFS.FSFavoritesChanged' |
+  'keybase.1.NotifyFS.FSOnlineStatusChanged' |
+  'keybase.1.NotifyFS.FSOverallSyncStatusChanged' |
+  'keybase.1.NotifyFS.FSSubscriptionNotify' |
+  'keybase.1.NotifyFS.FSSubscriptionNotifyPath' |
+  'keybase.1.NotifyFS.FSSyncActivity' |
+  'keybase.1.NotifyFS.FSSyncStatusResponse' |
+  'keybase.1.NotifyFeaturedBots.featuredBotsUpdate' |
+  'keybase.1.NotifyInviteFriends.updateInviteCounts' |
+  'keybase.1.NotifyKeyfamily.keyfamilyChanged' |
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' |
+  'keybase.1.NotifyPaperKey.paperKeyCached' |
+  'keybase.1.NotifyPhoneNumber.phoneNumbersChanged' |
+  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate' |
+  'keybase.1.NotifySaltpack.saltpackOperationDone' |
+  'keybase.1.NotifySaltpack.saltpackOperationProgress' |
+  'keybase.1.NotifySaltpack.saltpackOperationStart' |
+  'keybase.1.NotifyService.HTTPSrvInfoUpdate' |
+  'keybase.1.NotifyService.handleKeybaseLink' |
+  'keybase.1.NotifyService.shutdown' |
+  'keybase.1.NotifySession.clientOutOfDate' |
+  'keybase.1.NotifySession.loggedIn' |
+  'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged' |
+  'keybase.1.NotifyTeam.avatarUpdated' |
+  'keybase.1.NotifyTeam.newlyAddedToTeam' |
+  'keybase.1.NotifyTeam.teamAbandoned' |
+  'keybase.1.NotifyTeam.teamChangedByID' |
+  'keybase.1.NotifyTeam.teamChangedByName' |
+  'keybase.1.NotifyTeam.teamDeleted' |
+  'keybase.1.NotifyTeam.teamExit' |
+  'keybase.1.NotifyTeam.teamMetadataUpdate' |
+  'keybase.1.NotifyTeam.teamRoleMapChanged' |
+  'keybase.1.NotifyTeam.teamTreeMembershipsDone' |
+  'keybase.1.NotifyTeam.teamTreeMembershipsPartial' |
+  'keybase.1.NotifyTeambot.teambotKeyNeeded' |
+  'keybase.1.NotifyTracking.notifyUserBlocked' |
+  'keybase.1.NotifyTracking.trackingInfo' |
+  'keybase.1.NotifyUsers.identifyUpdate' |
+  'keybase.1.NotifyUsers.passwordChanged' |
+  'keybase.1.gpgUi.confirmDuplicateKeyChosen' |
+  'keybase.1.gpgUi.confirmImportSecretToExistingKey' |
+  'keybase.1.gpgUi.getTTY' |
+  'keybase.1.gpgUi.selectKey' |
+  'keybase.1.gpgUi.selectKeyAndPushOption' |
+  'keybase.1.gpgUi.sign' |
+  'keybase.1.gpgUi.wantToAddGPGKey' |
+  'keybase.1.gregorUI.pushOutOfBandMessages' |
+  'keybase.1.gregorUI.pushState' |
+  'keybase.1.homeUI.homeUIRefresh' |
+  'keybase.1.identify3Ui.identify3Result' |
+  'keybase.1.identify3Ui.identify3ShowTracker' |
+  'keybase.1.identify3Ui.identify3Summary' |
+  'keybase.1.identify3Ui.identify3TrackerTimedOut' |
+  'keybase.1.identify3Ui.identify3UpdateRow' |
+  'keybase.1.identify3Ui.identify3UpdateUserCard' |
+  'keybase.1.identify3Ui.identify3UserReset' |
+  'keybase.1.identifyUi.cancel' |
+  'keybase.1.identifyUi.confirm' |
+  'keybase.1.identifyUi.delegateIdentifyUI' |
+  'keybase.1.identifyUi.dismiss' |
+  'keybase.1.identifyUi.displayCryptocurrency' |
+  'keybase.1.identifyUi.displayKey' |
+  'keybase.1.identifyUi.displayStellarAccount' |
+  'keybase.1.identifyUi.displayTLFCreateWithInvite' |
+  'keybase.1.identifyUi.displayTrackStatement' |
+  'keybase.1.identifyUi.displayUserCard' |
+  'keybase.1.identifyUi.finish' |
+  'keybase.1.identifyUi.finishSocialProofCheck' |
+  'keybase.1.identifyUi.finishWebProofCheck' |
+  'keybase.1.identifyUi.launchNetworkChecks' |
+  'keybase.1.identifyUi.reportLastTrack' |
+  'keybase.1.identifyUi.reportTrackToken' |
+  'keybase.1.identifyUi.start' |
+  'keybase.1.logUi.log' |
+  'keybase.1.loginUi.chooseDeviceToRecoverWith' |
+  'keybase.1.loginUi.displayPaperKeyPhrase' |
+  'keybase.1.loginUi.displayPrimaryPaperKey' |
+  'keybase.1.loginUi.displayResetMessage' |
+  'keybase.1.loginUi.displayResetProgress' |
+  'keybase.1.loginUi.explainDeviceRecovery' |
+  'keybase.1.loginUi.getEmailOrUsername' |
+  'keybase.1.loginUi.promptPassphraseRecovery' |
+  'keybase.1.loginUi.promptResetAccount' |
+  'keybase.1.loginUi.promptRevokePaperKeys' |
+  'keybase.1.logsend.prepareLogsend' |
+  'keybase.1.pgpUi.finished' |
+  'keybase.1.pgpUi.keyGenerated' |
+  'keybase.1.pgpUi.outputPGPWarning' |
+  'keybase.1.pgpUi.outputSignatureNonKeybase' |
+  'keybase.1.pgpUi.outputSignatureSuccess' |
+  'keybase.1.pgpUi.shouldPushPrivate' |
+  'keybase.1.proveUi.checking' |
+  'keybase.1.proveUi.continueChecking' |
+  'keybase.1.proveUi.displayRecheckWarning' |
+  'keybase.1.proveUi.okToCheck' |
+  'keybase.1.proveUi.outputInstructions' |
+  'keybase.1.proveUi.outputPrechecks' |
+  'keybase.1.proveUi.preProofWarning' |
+  'keybase.1.proveUi.promptOverwrite' |
+  'keybase.1.proveUi.promptUsername' |
+  'keybase.1.provisionUi.DisplayAndPromptSecret' |
+  'keybase.1.provisionUi.DisplaySecretExchanged' |
+  'keybase.1.provisionUi.PromptNewDeviceName' |
+  'keybase.1.provisionUi.ProvisioneeSuccess' |
+  'keybase.1.provisionUi.ProvisionerSuccess' |
+  'keybase.1.provisionUi.chooseDevice' |
+  'keybase.1.provisionUi.chooseDeviceType' |
+  'keybase.1.provisionUi.chooseGPGMethod' |
+  'keybase.1.provisionUi.chooseProvisioningMethod' |
+  'keybase.1.provisionUi.switchToGPGSignOK' |
+  'keybase.1.rekeyUI.delegateRekeyUI' |
+  'keybase.1.rekeyUI.refresh' |
+  'keybase.1.rekeyUI.rekeySendEvent' |
+  'keybase.1.saltpackUi.saltpackPromptForDecrypt' |
+  'keybase.1.saltpackUi.saltpackVerifyBadSender' |
+  'keybase.1.saltpackUi.saltpackVerifySuccess' |
+  'keybase.1.secretUi.getPassphrase' |
+  'keybase.1.streamUi.close' |
+  'keybase.1.streamUi.read' |
+  'keybase.1.streamUi.reset' |
+  'keybase.1.streamUi.write' |
+  'keybase.1.teamsUi.confirmInviteLinkAccept' |
+  'keybase.1.teamsUi.confirmRootTeamDelete' |
+  'keybase.1.teamsUi.confirmSubteamDelete' |
+  'keybase.1.ui.promptYesNo'
+
+type Keybase1ResponseActionMap<K extends keybase1Types.MessageKey> = {
+  [P in K]: {readonly params: keybase1Types.RpcIn<P>; readonly response: keybase1Types.RpcResponse<P>}
+}
+
+type Stellar1IncomingAction =
+  'stellar.1.notify.accountDetailsUpdate' |
+  'stellar.1.notify.accountsUpdate' |
+  'stellar.1.notify.paymentNotification' |
+  'stellar.1.notify.paymentStatusNotification' |
+  'stellar.1.notify.pendingPaymentsUpdate' |
+  'stellar.1.notify.recentPaymentsUpdate' |
+  'stellar.1.notify.requestStatusNotification'
+
+type Stellar1IncomingActionMap<K extends stellar1Types.MessageKey> = {
+  [P in K]: {readonly params: stellar1Types.RpcIn<P>}
+}
+
+type Stellar1ResponseAction =
+  'stellar.1.ui.paymentReviewed'
+
+type Stellar1ResponseActionMap<K extends stellar1Types.MessageKey> = {
+  [P in K]: {readonly params: stellar1Types.RpcIn<P>; readonly response: stellar1Types.RpcResponse<P>}
+}
+
+type ActionSpec =
+  Chat1IncomingActionMap<Chat1IncomingAction> &
+  Chat1ResponseActionMap<Chat1ResponseAction> &
+  Keybase1IncomingActionMap<Keybase1IncomingAction> &
+  Keybase1ResponseActionMap<Keybase1ResponseAction> &
+  Stellar1IncomingActionMap<Stellar1IncomingAction> &
+  Stellar1ResponseActionMap<Stellar1ResponseAction>
 
 export type ActionKey = keyof ActionSpec
 type EngineActionMap = {
