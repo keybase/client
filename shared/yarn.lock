@@ -11817,9 +11817,9 @@ test-exclude@^6.0.0:
     minimatch "^3.0.4"
 
 thingies@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/thingies/-/thingies-2.5.0.tgz#5f7b882c933b85989f8466b528a6247a6881e04f"
-  integrity sha512-s+2Bwztg6PhWUD7XMfeYm5qliDdSiZm7M7n8KjTkIsm3l/2lgVRc2/Gx/v+ZX8lT4FMA+i8aQvhcWylldc+ZNw==
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/thingies/-/thingies-2.6.0.tgz#e09b98b9e6f6caf8a759eca8481fea1de974d2b1"
+  integrity sha512-rMHRjmlFLM1R96UYPvpmnc3LYtdFrT33JIB7L9hetGue1qAPfn1N2LJeEjxUSidu1Iku+haLZXDuEXUHNGO/lg==
 
 throat@^5.0.0:
   version "5.0.0"
