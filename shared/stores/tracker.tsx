@@ -495,7 +495,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+        case EngineGen.actionTypes.keybase1NotifyTrackingTrackingChanged: {
           // only refresh if we have tracked them before
           const {username} = action.payload.params
           if (get().usernameToDetails.get(username)) {
@@ -510,12 +510,12 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3Result: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3Result: {
           const {guiID, result} = action.payload.params
           get().dispatch.updateResult(guiID, rpcResultToStatus(result))
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3ShowTracker: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3ShowTracker: {
           const {assertion, forceDisplay = false, guiID, reason} = action.payload.params
           get().dispatch.load({
             assertion,
@@ -529,7 +529,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
           break
         }
         // if we mutated somehow reload ourselves and reget the suggestions
-        case EngineGen.keybase1NotifyUsersUserChanged: {
+        case EngineGen.actionTypes.keybase1NotifyUsersUserChanged: {
           const cu = useCurrentUserState.getState()
           if (cu.uid !== action.payload.params.uid) {
             return
@@ -549,26 +549,26 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         // This allows the server to send us a notification to *remove* (not add)
         // arbitrary followers from arbitrary tracker results, so we can hide
         // blocked users from follower lists.
-        case EngineGen.keybase1NotifyTrackingNotifyUserBlocked: {
+        case EngineGen.actionTypes.keybase1NotifyTrackingNotifyUserBlocked: {
           get().dispatch.notifyUserBlocked(action.payload.params.b)
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3UpdateRow: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3UpdateRow: {
           const {row} = action.payload.params
           get().dispatch.notifyRow(row)
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3UserReset: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3UserReset: {
           const {guiID} = action.payload.params
           get().dispatch.notifyReset(guiID)
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3UpdateUserCard: {
           const {guiID, card} = action.payload.params
           get().dispatch.notifyCard(guiID, card)
           break
         }
-        case EngineGen.keybase1Identify3UiIdentify3Summary: {
+        case EngineGen.actionTypes.keybase1Identify3UiIdentify3Summary: {
           const {summary} = action.payload.params
           get().dispatch.notifySummary(summary)
           break

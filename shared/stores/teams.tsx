@@ -1034,7 +1034,9 @@ export type State = Store & {
       addMembers?: boolean
     ) => void
     startAddMembersWizard: (teamID: T.Teams.TeamID) => void
-    teamChangedByID: (c: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload['payload']['params']) => void
+    teamChangedByID: (
+      c: EngineGen.ParamsOf<typeof EngineGen.actionTypes.keybase1NotifyTeamTeamChangedByID>
+    ) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
     toggleInvitesCollapsed: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamDetails: (teamID: T.Teams.TeamID) => void
@@ -2285,51 +2287,51 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.chat1ChatUiChatShowManageChannels: {
+        case EngineGen.actionTypes.chat1ChatUiChatShowManageChannels: {
           const {teamname} = action.payload.params
           const teamID = get().teamNameToID.get(teamname) ?? T.Teams.noTeamID
           get().dispatch.manageChatChannels(teamID)
           break
         }
-        case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamMetadataUpdate:
           get().dispatch.eagerLoadTeams()
           get().dispatch.resetTeamMetaStale()
           break
-        case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: {
+        case EngineGen.actionTypes.chat1NotifyChatChatWelcomeMessageLoaded: {
           const {teamID, message} = action.payload.params
           get().dispatch.loadedWelcomeMessage(teamID, message)
           break
         }
-        case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial: {
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamTreeMembershipsPartial: {
           const {membership} = action.payload.params
           get().dispatch.notifyTreeMembershipsPartial(membership)
           break
         }
-        case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone: {
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamTreeMembershipsDone: {
           const {result} = action.payload.params
           get().dispatch.notifyTreeMembershipsDone(result)
           break
         }
-        case EngineGen.keybase1NotifyTeamTeamRoleMapChanged: {
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamRoleMapChanged: {
           const {newVersion} = action.payload.params
           get().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
           break
         }
-        case EngineGen.keybase1NotifyTeamTeamChangedByID:
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamChangedByID:
           get().dispatch.teamChangedByID(action.payload.params)
           break
-        case EngineGen.keybase1NotifyTeamTeamDeleted:
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamDeleted:
           // likely wrong?
           if (getTab()) {
             navUpToScreen('teamsRoot')
           }
           break
-        case EngineGen.keybase1NotifyTeamTeamExit:
+        case EngineGen.actionTypes.keybase1NotifyTeamTeamExit:
           if (getTab()) {
             navUpToScreen('teamsRoot')
           }
           break
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params
           const loggedIn = useConfigState.getState().loggedIn
           if (loggedIn) {
@@ -2346,7 +2348,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1GregorUIPushState: {
+        case EngineGen.actionTypes.keybase1GregorUIPushState: {
           const {state} = action.payload.params
           const items = state.items || []
           const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(

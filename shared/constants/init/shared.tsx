@@ -717,15 +717,15 @@ export const initSharedSubscriptions = () => {
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   switch (action.type) {
-    case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
-    case EngineGen.chat1NotifyChatChatArchiveComplete:
-    case EngineGen.chat1NotifyChatChatArchiveProgress:
+    case EngineGen.actionTypes.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
+    case EngineGen.actionTypes.chat1NotifyChatChatArchiveComplete:
+    case EngineGen.actionTypes.chat1NotifyChatChatArchiveProgress:
       {
         const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
         useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyBadgesBadgeState:
+    case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState:
       {
         const {useAutoResetState} = require('@/stores/autoreset') as typeof UseAutoResetStateType
         useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
@@ -758,16 +758,16 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.chat1ChatUiChatShowManageChannels:
-    case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
-    case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded:
-    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial:
-    case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone:
-    case EngineGen.keybase1NotifyTeamTeamRoleMapChanged:
-    case EngineGen.keybase1NotifyTeamTeamChangedByID:
-    case EngineGen.keybase1NotifyTeamTeamDeleted:
-    case EngineGen.keybase1NotifyTeamTeamExit:
-    case EngineGen.keybase1GregorUIPushState:
+    case EngineGen.actionTypes.chat1ChatUiChatShowManageChannels:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamMetadataUpdate:
+    case EngineGen.actionTypes.chat1NotifyChatChatWelcomeMessageLoaded:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamTreeMembershipsPartial:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamTreeMembershipsDone:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamRoleMapChanged:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamChangedByID:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamDeleted:
+    case EngineGen.actionTypes.keybase1NotifyTeamTeamExit:
+    case EngineGen.actionTypes.keybase1GregorUIPushState:
       {
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
@@ -775,29 +775,29 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+    case EngineGen.actionTypes.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
       {
         const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
         useBotsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
-    case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
-    case EngineGen.keybase1NotifyFSFSSubscriptionNotify:
+    case EngineGen.actionTypes.keybase1NotifyFSFSOverallSyncStatusChanged:
+    case EngineGen.actionTypes.keybase1NotifyFSFSSubscriptionNotifyPath:
+    case EngineGen.actionTypes.keybase1NotifyFSFSSubscriptionNotify:
       {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyAuditRootAuditError:
-    case EngineGen.keybase1NotifyAuditBoxAuditError:
+    case EngineGen.actionTypes.keybase1NotifyAuditRootAuditError:
+    case EngineGen.actionTypes.keybase1NotifyAuditBoxAuditError:
       {
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1HomeUIHomeUIRefresh:
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+    case EngineGen.actionTypes.keybase1HomeUIHomeUIRefresh:
+    case EngineGen.actionTypes.keybase1NotifyEmailAddressEmailAddressVerified:
       {
         const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
         usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
@@ -809,69 +809,69 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useSignupState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1SecretUiGetPassphrase:
+    case EngineGen.actionTypes.keybase1SecretUiGetPassphrase:
       {
         const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
         usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyUsersPasswordChanged:
+    case EngineGen.actionTypes.keybase1NotifyUsersPasswordChanged:
       {
         const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
         const {usePWState} = require('@/stores/settings-password') as typeof UseSettingsPasswordStateType
         usePWState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
       }
       break
-    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+    case EngineGen.actionTypes.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
       const {list} = action.payload.params
       storeRegistry
         .getState('settings-phone')
         .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
       break
     }
-    case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+    case EngineGen.actionTypes.keybase1NotifyEmailAddressEmailsChanged: {
       const list = action.payload.params.list ?? []
       storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
       break
     }
-    case EngineGen.chat1ChatUiChatInboxFailed:
-    case EngineGen.chat1NotifyChatChatSetConvSettings:
-    case EngineGen.chat1NotifyChatChatAttachmentUploadStart:
-    case EngineGen.chat1NotifyChatChatPromptUnfurl:
-    case EngineGen.chat1NotifyChatChatPaymentInfo:
-    case EngineGen.chat1NotifyChatChatRequestInfo:
-    case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress:
-    case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete:
-    case EngineGen.chat1NotifyChatChatAttachmentUploadProgress:
-    case EngineGen.chat1ChatUiChatCommandMarkdown:
-    case EngineGen.chat1ChatUiChatGiphyToggleResultWindow:
-    case EngineGen.chat1ChatUiChatCommandStatus:
-    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
-    case EngineGen.chat1ChatUiChatGiphySearchResults:
-    case EngineGen.chat1NotifyChatChatParticipantsInfo:
-    case EngineGen.chat1ChatUiChatMaybeMentionUpdate:
-    case EngineGen.chat1NotifyChatChatConvUpdate:
-    case EngineGen.chat1ChatUiChatCoinFlipStatus:
-    case EngineGen.chat1NotifyChatChatThreadsStale:
-    case EngineGen.chat1NotifyChatChatSubteamRename:
-    case EngineGen.chat1NotifyChatChatTLFFinalize:
-    case EngineGen.chat1NotifyChatChatIdentifyUpdate:
-    case EngineGen.chat1ChatUiChatInboxUnverified:
-    case EngineGen.chat1NotifyChatChatInboxSyncStarted:
-    case EngineGen.chat1NotifyChatChatInboxSynced:
-    case EngineGen.chat1ChatUiChatInboxLayout:
-    case EngineGen.chat1NotifyChatChatInboxStale:
-    case EngineGen.chat1ChatUiChatInboxConversation:
-    case EngineGen.chat1NotifyChatNewChatActivity:
-    case EngineGen.chat1NotifyChatChatTypingUpdate:
-    case EngineGen.chat1NotifyChatChatSetConvRetention:
-    case EngineGen.chat1NotifyChatChatSetTeamRetention:
+    case EngineGen.actionTypes.chat1ChatUiChatInboxFailed:
+    case EngineGen.actionTypes.chat1NotifyChatChatSetConvSettings:
+    case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadStart:
+    case EngineGen.actionTypes.chat1NotifyChatChatPromptUnfurl:
+    case EngineGen.actionTypes.chat1NotifyChatChatPaymentInfo:
+    case EngineGen.actionTypes.chat1NotifyChatChatRequestInfo:
+    case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadProgress:
+    case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadComplete:
+    case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadProgress:
+    case EngineGen.actionTypes.chat1ChatUiChatCommandMarkdown:
+    case EngineGen.actionTypes.chat1ChatUiChatGiphyToggleResultWindow:
+    case EngineGen.actionTypes.chat1ChatUiChatCommandStatus:
+    case EngineGen.actionTypes.chat1ChatUiChatBotCommandsUpdateStatus:
+    case EngineGen.actionTypes.chat1ChatUiChatGiphySearchResults:
+    case EngineGen.actionTypes.chat1NotifyChatChatParticipantsInfo:
+    case EngineGen.actionTypes.chat1ChatUiChatMaybeMentionUpdate:
+    case EngineGen.actionTypes.chat1NotifyChatChatConvUpdate:
+    case EngineGen.actionTypes.chat1ChatUiChatCoinFlipStatus:
+    case EngineGen.actionTypes.chat1NotifyChatChatThreadsStale:
+    case EngineGen.actionTypes.chat1NotifyChatChatSubteamRename:
+    case EngineGen.actionTypes.chat1NotifyChatChatTLFFinalize:
+    case EngineGen.actionTypes.chat1NotifyChatChatIdentifyUpdate:
+    case EngineGen.actionTypes.chat1ChatUiChatInboxUnverified:
+    case EngineGen.actionTypes.chat1NotifyChatChatInboxSyncStarted:
+    case EngineGen.actionTypes.chat1NotifyChatChatInboxSynced:
+    case EngineGen.actionTypes.chat1ChatUiChatInboxLayout:
+    case EngineGen.actionTypes.chat1NotifyChatChatInboxStale:
+    case EngineGen.actionTypes.chat1ChatUiChatInboxConversation:
+    case EngineGen.actionTypes.chat1NotifyChatNewChatActivity:
+    case EngineGen.actionTypes.chat1NotifyChatChatTypingUpdate:
+    case EngineGen.actionTypes.chat1NotifyChatChatSetConvRetention:
+    case EngineGen.actionTypes.chat1NotifyChatChatSetTeamRetention:
       {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyServiceHandleKeybaseLink:
+    case EngineGen.actionTypes.keybase1NotifyServiceHandleKeybaseLink:
       {
         const {link, deferred} = action.payload.params
         if (deferred && !link.startsWith('keybase://team-invite-link/')) {
@@ -883,19 +883,19 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         emitDeepLink(fullUrl)
       }
       break
-    case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+    case EngineGen.actionTypes.keybase1NotifyTeamAvatarUpdated: {
       const {name} = action.payload.params
       useAvatarState.getState().dispatch.updated(name)
       break
     }
-    case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+    case EngineGen.actionTypes.keybase1NotifyTrackingTrackingChanged: {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
       const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
       useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
-    case EngineGen.keybase1NotifyTrackingTrackingInfo: {
+    case EngineGen.actionTypes.keybase1NotifyTrackingTrackingInfo: {
       const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
       if (useCurrentUserState.getState().uid !== uid) {
         break
@@ -908,14 +908,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       dispatch.replace(followers, following)
       break
     }
-    case EngineGen.keybase1Identify3UiIdentify3Result:
-    case EngineGen.keybase1Identify3UiIdentify3ShowTracker:
-    case EngineGen.keybase1NotifyUsersUserChanged:
-    case EngineGen.keybase1NotifyTrackingNotifyUserBlocked:
-    case EngineGen.keybase1Identify3UiIdentify3UpdateRow:
-    case EngineGen.keybase1Identify3UiIdentify3UserReset:
-    case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard:
-    case EngineGen.keybase1Identify3UiIdentify3Summary:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3Result:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3ShowTracker:
+    case EngineGen.actionTypes.keybase1NotifyUsersUserChanged:
+    case EngineGen.actionTypes.keybase1NotifyTrackingNotifyUserBlocked:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3UpdateRow:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3UserReset:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3UpdateUserCard:
+    case EngineGen.actionTypes.keybase1Identify3UiIdentify3Summary:
       {
         const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
         useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
@@ -925,14 +925,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1NotifyUsersIdentifyUpdate:
+    case EngineGen.actionTypes.keybase1NotifyUsersIdentifyUpdate:
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case EngineGen.keybase1RekeyUIRefresh:
-    case EngineGen.keybase1RekeyUIDelegateRekeyUI:
+    case EngineGen.actionTypes.keybase1RekeyUIRefresh:
+    case EngineGen.actionTypes.keybase1RekeyUIDelegateRekeyUI:
       {
         const {useUnlockFoldersState} = require('@/stores/unlock-folders') as typeof UseUnlockFoldersStateType
         useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl(action)

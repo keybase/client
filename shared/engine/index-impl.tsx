@@ -157,16 +157,19 @@ class Engine {
           // Not a custom response so we auto handle it
           response?.result?.()
         }
-        const type = method
+        const actionName = method
           .replace(/'/g, '')
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
 
-        const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
+        const act = {
+          payload: {params: param, ...extra},
+          type: `engine-gen:${actionName}` as EngineGen.EngineActions['type'],
+        } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
           setTimeout(() => {
-            this._onEngineIncoming?.(act as EngineGen.Actions)
+            this._onEngineIncoming?.(act)
           }, 0)
         }
       }

@@ -349,11 +349,19 @@ export type State = Store & {
       removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
-    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
+    onChatThreadStale: (
+      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1NotifyChatChatThreadsStale>
+    ) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
-    onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
-    onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
+    onChatInboxSynced: (
+      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1NotifyChatChatInboxSynced>
+    ) => void
+    onGetInboxConvsUnboxed: (
+      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1ChatUiChatInboxConversation>
+    ) => void
+    onGetInboxUnverifiedConvs: (
+      action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1ChatUiChatInboxUnverified>
+    ) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
@@ -1153,7 +1161,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           inboxRefresh('inboxSyncedUnknown')
       }
     },
-    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
+    onChatThreadStale: action => {
       const {updates} = action.payload.params
       const keys = ['clear', 'newactivity'] as const
       if (__DEV__) {
@@ -1196,31 +1204,31 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
-        case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
-        case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
-        case EngineGen.chat1NotifyChatChatPromptUnfurl: // fallthrough
-        case EngineGen.chat1NotifyChatChatPaymentInfo: // fallthrough
-        case EngineGen.chat1NotifyChatChatRequestInfo: // fallthrough
-        case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: //fallthrough
-        case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: //fallthrough
-        case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
+        case EngineGen.actionTypes.chat1ChatUiChatInboxFailed: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatSetConvSettings: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatPromptUnfurl: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatPaymentInfo: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatRequestInfo: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadProgress: //fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadComplete: //fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.conversationIDToKey(convID)
           storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
-        case EngineGen.chat1ChatUiChatCommandMarkdown: //fallthrough
-        case EngineGen.chat1ChatUiChatGiphyToggleResultWindow: // fallthrough
-        case EngineGen.chat1ChatUiChatCommandStatus: // fallthrough
-        case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus: //fallthrough
-        case EngineGen.chat1ChatUiChatGiphySearchResults: {
+        case EngineGen.actionTypes.chat1ChatUiChatCommandMarkdown: //fallthrough
+        case EngineGen.actionTypes.chat1ChatUiChatGiphyToggleResultWindow: // fallthrough
+        case EngineGen.actionTypes.chat1ChatUiChatCommandStatus: // fallthrough
+        case EngineGen.actionTypes.chat1ChatUiChatBotCommandsUpdateStatus: //fallthrough
+        case EngineGen.actionTypes.chat1ChatUiChatGiphySearchResults: {
           const {convID} = action.payload.params
           const conversationIDKey = T.Chat.stringToConversationIDKey(convID)
           storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
-        case EngineGen.chat1NotifyChatChatParticipantsInfo: {
+        case EngineGen.actionTypes.chat1NotifyChatChatParticipantsInfo: {
           const {participants: participantMap} = action.payload.params
           Object.keys(participantMap ?? {}).forEach(convIDStr => {
             const participants = participantMap?.[convIDStr]
@@ -1233,12 +1241,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           })
           break
         }
-        case EngineGen.chat1ChatUiChatMaybeMentionUpdate: {
+        case EngineGen.actionTypes.chat1ChatUiChatMaybeMentionUpdate: {
           const {teamName, channel, info} = action.payload.params
           get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
           break
         }
-        case EngineGen.chat1NotifyChatChatConvUpdate: {
+        case EngineGen.actionTypes.chat1NotifyChatChatConvUpdate: {
           const {conv} = action.payload.params
           if (conv) {
             const meta = Meta.inboxUIItemToConversationMeta(conv)
@@ -1246,24 +1254,24 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.chat1ChatUiChatCoinFlipStatus: {
+        case EngineGen.actionTypes.chat1ChatUiChatCoinFlipStatus: {
           const {statuses} = action.payload.params
           get().dispatch.updateCoinFlipStatus(statuses || [])
           break
         }
-        case EngineGen.chat1NotifyChatChatThreadsStale:
+        case EngineGen.actionTypes.chat1NotifyChatChatThreadsStale:
           get().dispatch.onChatThreadStale(action)
           break
-        case EngineGen.chat1NotifyChatChatSubteamRename: {
+        case EngineGen.actionTypes.chat1NotifyChatChatSubteamRename: {
           const {convs} = action.payload.params
           const conversationIDKeys = (convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
           get().dispatch.unboxRows(conversationIDKeys, true)
           break
         }
-        case EngineGen.chat1NotifyChatChatTLFFinalize:
+        case EngineGen.actionTypes.chat1NotifyChatChatTLFFinalize:
           get().dispatch.unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
           break
-        case EngineGen.chat1NotifyChatChatIdentifyUpdate: {
+        case EngineGen.actionTypes.chat1NotifyChatChatIdentifyUpdate: {
           // Some participants are broken/fixed now
           const {update} = action.payload.params
           const usernames = update.CanonicalName.split(',')
@@ -1272,28 +1280,28 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           get().dispatch.defer.onUsersUpdates(updates)
           break
         }
-        case EngineGen.chat1ChatUiChatInboxUnverified:
+        case EngineGen.actionTypes.chat1ChatUiChatInboxUnverified:
           get().dispatch.onGetInboxUnverifiedConvs(action)
           break
-        case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+        case EngineGen.actionTypes.chat1NotifyChatChatInboxSyncStarted:
           useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
           break
 
-        case EngineGen.chat1NotifyChatChatInboxSynced:
+        case EngineGen.actionTypes.chat1NotifyChatChatInboxSynced:
           get().dispatch.onChatInboxSynced(action)
           break
-        case EngineGen.chat1ChatUiChatInboxLayout:
+        case EngineGen.actionTypes.chat1ChatUiChatInboxLayout:
           get().dispatch.updateInboxLayout(action.payload.params.layout)
           get().dispatch.maybeChangeSelectedConv()
           get().dispatch.ensureWidgetMetas()
           break
-        case EngineGen.chat1NotifyChatChatInboxStale:
+        case EngineGen.actionTypes.chat1NotifyChatChatInboxStale:
           get().dispatch.inboxRefresh('inboxStale')
           break
-        case EngineGen.chat1ChatUiChatInboxConversation:
+        case EngineGen.actionTypes.chat1ChatUiChatInboxConversation:
           get().dispatch.onGetInboxConvsUnboxed(action)
           break
-        case EngineGen.chat1NotifyChatNewChatActivity: {
+        case EngineGen.actionTypes.chat1NotifyChatNewChatActivity: {
           const {activity} = action.payload.params
           switch (activity.activityType) {
             case T.RPCChat.ChatActivityType.incomingMessage: {
@@ -1412,7 +1420,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.chat1NotifyChatChatTypingUpdate: {
+        case EngineGen.actionTypes.chat1NotifyChatChatTypingUpdate: {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
             storeRegistry
@@ -1421,7 +1429,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           })
           break
         }
-        case EngineGen.chat1NotifyChatChatSetConvRetention: {
+        case EngineGen.actionTypes.chat1NotifyChatChatSetConvRetention: {
           const {conv, convID} = action.payload.params
           if (!conv) {
             logger.warn('onChatSetConvRetention: no conv given')
@@ -1439,7 +1447,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.chat1NotifyChatChatSetTeamRetention: {
+        case EngineGen.actionTypes.chat1NotifyChatChatSetTeamRetention: {
           const {convs} = action.payload.params
           const metas = (convs ?? []).reduce<Array<T.Chat.ConversationMeta>>((l, c) => {
             const meta = Meta.inboxUIItemToConversationMeta(c)
@@ -1464,12 +1472,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params
           get().dispatch.badgesUpdated(badgeState)
           break
         }
-        case EngineGen.keybase1GregorUIPushState: {
+        case EngineGen.actionTypes.keybase1GregorUIPushState: {
           const {state} = action.payload.params
           const items = state.items || []
           const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
@@ -1488,7 +1496,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         default:
       }
     },
-    onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
+    onGetInboxConvsUnboxed: action => {
       // TODO not reactive
       const infoMap = get().dispatch.defer.onGetUsersInfoMap()
       const {convs} = action.payload.params
@@ -1527,7 +1535,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         get().dispatch.metasReceived(metas)
       }
     },
-    onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
+    onGetInboxUnverifiedConvs: action => {
       const {inbox} = action.payload.params
       const result = JSON.parse(inbox) as T.RPCChat.UnverifiedInboxUIItems
       const items: ReadonlyArray<T.RPCChat.UnverifiedInboxUIItem> = result.items ?? []

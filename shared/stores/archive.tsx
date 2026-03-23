@@ -383,13 +383,13 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
+        case EngineGen.actionTypes.keybase1NotifySimpleFSSimpleFSArchiveStatusChanged:
           setKBFSJobStatus(action.payload.params.status)
           break
-        case EngineGen.chat1NotifyChatChatArchiveComplete:
+        case EngineGen.actionTypes.chat1NotifyChatChatArchiveComplete:
           loadChat()
           break
-        case EngineGen.chat1NotifyChatChatArchiveProgress:
+        case EngineGen.actionTypes.chat1NotifyChatChatArchiveProgress:
           setChatProgress(action.payload.params)
           break
         default:

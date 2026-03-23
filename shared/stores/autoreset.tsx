@@ -95,7 +95,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyBadgesBadgeState: {
+        case EngineGen.actionTypes.keybase1NotifyBadgesBadgeState: {
           const {badgeState} = action.payload.params
           const {resetState} = badgeState
           get().dispatch.updateARState(resetState.active, resetState.endTime)

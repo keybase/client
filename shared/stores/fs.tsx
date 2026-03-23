@@ -1460,15 +1460,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+        case EngineGen.actionTypes.keybase1NotifyFSFSOverallSyncStatusChanged:
           get().dispatch.syncStatusChanged(action.payload.params.status)
           break
-        case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
+        case EngineGen.actionTypes.keybase1NotifyFSFSSubscriptionNotifyPath: {
           const {clientID, path, topics} = action.payload.params
           get().dispatch.onPathChange(clientID, path, topics ?? [])
           break
         }
-        case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
+        case EngineGen.actionTypes.keybase1NotifyFSFSSubscriptionNotify: {
           const {clientID, topic} = action.payload.params
           get().dispatch.onSubscriptionNotify(clientID, topic)
           break

@@ -507,20 +507,20 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
-        case EngineGen.keybase1GregorUIPushState: {
+        case EngineGen.actionTypes.keybase1GregorUIPushState: {
           const {state} = action.payload.params
           setGregorPushState(state)
           break
         }
-        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: {
+        case EngineGen.actionTypes.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: {
           updateRuntimeStats(action.payload.params.stats ?? undefined)
           break
         }
-        case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
+        case EngineGen.actionTypes.keybase1NotifyServiceHTTPSrvInfoUpdate: {
           get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
           break
         }
-        case EngineGen.keybase1NotifySessionLoggedIn: {
+        case EngineGen.actionTypes.keybase1NotifySessionLoggedIn: {
           logger.info('keybase.1.NotifySession.loggedIn')
           // only send this if we think we're not logged in
           const {loggedIn, dispatch} = get()
@@ -529,7 +529,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1NotifySessionLoggedOut: {
+        case EngineGen.actionTypes.keybase1NotifySessionLoggedOut: {
           logger.info('keybase.1.NotifySession.loggedOut')
           const {loggedIn, dispatch} = get()
           // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
@@ -538,7 +538,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           }
           break
         }
-        case EngineGen.keybase1ReachabilityReachabilityChanged:
+        case EngineGen.actionTypes.keybase1ReachabilityReachabilityChanged:
           if (get().loggedIn) {
             setGregorReachable(action.payload.params.reachability.reachable)
           }

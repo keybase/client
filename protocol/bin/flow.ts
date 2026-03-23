@@ -580,58 +580,56 @@ function actionHasType(actions: ActionMap, toFind: RegExp): boolean {
 
 function compileActionsFile(ns: string, {prelude, actions}: CompileActionsArgs): string {
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
-    ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'"
+    ? "import type * as RPCTypes from '@/constants/rpc/rpc-gen'\n"
     : ''
+  const actionNames = Object.keys(actions).sort()
+  const actionNameLiterals = actionNames.map(name => `  '${name}',`).join('\n')
+  const actionPayloadMap = actionNames
+    .map(name => `  ${name}: ${printPayload(actions[name])},`)
+    .join('\n')
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-${rpcGenImport}
-${prelude.join('\n')}
+${rpcGenImport}${prelude.join('\n')}
 
-// Constants
 export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
-export const typePrefix = '${ns}:'
-${compileActions(ns, actions, compileStateTypeConstant)}
+export const typePrefix = '${ns}:' as const
 
-// Action Creators
-${compileActions(ns, actions, compileActionCreator)}
+const actionNames = [
+${actionNameLiterals}
+] as const
 
-// Action Payloads
-${compileActions(ns, actions, compileActionPayloads)}
-
-// All Actions
-${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
-`
+type ActionPayloadMap = {
+${actionPayloadMap}
 }
 
-function compileAllActionsType(actions: ActionMap): string {
-  const actionsTypes = Object.keys(actions)
-    .map(name => `${capitalize(name)}Payload`)
-    .sort()
-    .join('\n  | ')
-  return `// prettier-ignore
-export type Actions =
-  | ${actionsTypes}
-`
+const makeActionTypes = <T extends ReadonlyArray<string>>(names: T) =>
+  Object.freeze(
+    names.reduce((map, name) => {
+      map[name] = \`\${typePrefix}\${name}\`
+      return map
+    }, {} as Record<string, string>)
+  ) as {[K in T[number]]: \`\${typeof typePrefix}\${K}\`}
+
+export const actionTypes = makeActionTypes(actionNames)
+
+type EngineActionMap = {
+  [K in keyof typeof actionTypes]: {readonly payload: ActionPayloadMap[K]; readonly type: (typeof actionTypes)[K]}
 }
 
-function compileActions(
-  ns: string,
-  actions: ActionMap,
-  compileActionFn: (ns: string, actionName: string, actionDesc: ActionDescription) => string
-): string {
-  return Object.keys(actions)
-    .map(actionName => compileActionFn(ns, actionName, actions[actionName]))
-    .sort()
-    .join('\n')
+export type EngineActions = EngineActionMap[keyof EngineActionMap]
+export type ResetStoreAction = {readonly type: typeof resetStore; readonly payload: undefined}
+export type Actions = EngineActions | ResetStoreAction
+export type ActionKey = keyof typeof actionTypes
+export type ActionType = Actions['type']
+export type ActionOf<T extends ActionType> = Extract<Actions, {readonly type: T}>
+export type PayloadOf<T extends ActionType> = ActionOf<T> extends {readonly payload: infer P} ? P : never
+export type ParamsOf<T extends ActionType> = PayloadOf<T> extends {readonly params: infer P} ? P : never
+export type ResponseOf<T extends ActionType> = PayloadOf<T> extends {readonly response: infer R} ? R : never
+`
 }
 
 function payloadKeys(p: ActionDescription): Array<string> {
   return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
-}
-
-function payloadOptional(p: ActionDescription): boolean {
-  const keys = payloadKeys(p)
-  return keys.length > 0 && keys.every(key => key.endsWith('?'))
 }
 
 function printPayload(p: ActionDescription): string {
@@ -645,44 +643,6 @@ function printPayload(p: ActionDescription): string {
           .join(',\n') +
         '}'
     : 'undefined'
-}
-
-function compileActionPayloads(ns: string, actionName: string): string {
-  const allowCreate = ns !== 'engine-gen'
-  if (allowCreate) {
-    return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
-  } else {
-    return `export type ${capitalize(actionName)}Payload = ReturnType<create${capitalize(actionName)}>`
-  }
-}
-
-function compileActionCreator(ns: string, actionName: string, actionDesc: ActionDescription): string {
-  const allowCreate = ns !== 'engine-gen'
-  const desc = actionDesc
-  const hasPayload = !!payloadKeys(desc).length
-  const assignPayload = payloadOptional(desc)
-  const comment = desc._description
-    ? `/**
-     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
-     */
-    `
-    : ''
-  const payload = hasPayload
-    ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
-    : 'payload?: undefined'
-  if (allowCreate) {
-    return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
-  {payload, type: ${actionName}} as const
-)`
-  } else {
-    return `${comment}type create${capitalize(actionName)} = (${payload}) => (
-  {payload: typeof payload; type: typeof ${actionName}}
-)`
-  }
-}
-
-function compileStateTypeConstant(ns: string, actionName: string): string {
-  return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
 async function writeEngineActions(desc: CompileActionsArgs): Promise<void> {

@@ -48,7 +48,7 @@ test('rekey refresh actions forward the device list to config', () => {
         },
       },
     },
-    type: EngineGen.keybase1RekeyUIRefresh,
+    type: EngineGen.actionTypes.keybase1RekeyUIRefresh,
   } as any)
 
   expect(mockOpenUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])

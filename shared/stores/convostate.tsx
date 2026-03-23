@@ -914,7 +914,9 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     }
   }
 
-  const onChatPaymentInfo = (action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
+  const onChatPaymentInfo = (
+    action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1NotifyChatChatPaymentInfo>
+  ) => {
     const {convID, info, msgID} = action.payload.params
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
@@ -928,7 +930,9 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
   }
 
-  const onGiphyToggleWindow = (action: EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload) => {
+  const onGiphyToggleWindow = (
+    action: EngineGen.ActionOf<typeof EngineGen.actionTypes.chat1ChatUiChatGiphyToggleResultWindow>
+  ) => {
     const {show, clearInput} = action.payload.params
     if (clearInput) {
       get().dispatch.injectIntoInput('')
@@ -2433,17 +2437,17 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
-        case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: {
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadComplete: {
           const {msgID} = action.payload.params
           onDownloadComplete(msgID)
           break
         }
-        case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: {
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentDownloadProgress: {
           const {msgID, bytesComplete, bytesTotal} = action.payload.params
           onDownloadProgress(msgID, bytesComplete, bytesTotal)
           break
         }
-        case EngineGen.chat1ChatUiChatCommandStatus: {
+        case EngineGen.actionTypes.chat1ChatUiChatCommandStatus: {
           const {displayText, typ, actions} = action.payload.params
           get().dispatch.setCommandStatusInfo({
             actions: T.castDraft(actions) || [],
@@ -2452,49 +2456,49 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
           })
           break
         }
-        case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+        case EngineGen.actionTypes.chat1ChatUiChatBotCommandsUpdateStatus:
           get().dispatch.botCommandsUpdateStatus(action.payload.params.status)
           break
-        case EngineGen.chat1ChatUiChatCommandMarkdown:
+        case EngineGen.actionTypes.chat1ChatUiChatCommandMarkdown:
           set(s => {
             s.commandMarkdown = action.payload.params.md || undefined
           })
           break
-        case EngineGen.chat1ChatUiChatGiphyToggleResultWindow: {
+        case EngineGen.actionTypes.chat1ChatUiChatGiphyToggleResultWindow: {
           onGiphyToggleWindow(action)
           break
         }
-        case EngineGen.chat1ChatUiChatGiphySearchResults:
+        case EngineGen.actionTypes.chat1ChatUiChatGiphySearchResults:
           set(s => {
             s.giphyResult = T.castDraft(action.payload.params.results)
           })
           break
-        case EngineGen.chat1NotifyChatChatRequestInfo:
+        case EngineGen.actionTypes.chat1NotifyChatChatRequestInfo:
           {
             const {info, msgID} = action.payload.params
             onChatRequestInfo(info, msgID)
           }
           break
-        case EngineGen.chat1NotifyChatChatPaymentInfo:
+        case EngineGen.actionTypes.chat1NotifyChatChatPaymentInfo:
           onChatPaymentInfo(action)
           break
-        case EngineGen.chat1NotifyChatChatPromptUnfurl: {
+        case EngineGen.actionTypes.chat1NotifyChatChatPromptUnfurl: {
           const {domain, msgID} = action.payload.params
           unfurlTogglePrompt(T.Chat.numberToMessageID(msgID), domain, true)
           break
         }
-        case EngineGen.chat1ChatUiChatInboxFailed: {
+        case EngineGen.actionTypes.chat1ChatUiChatInboxFailed: {
           const {convID, error} = action.payload.params
           onInboxFailed(convID, error)
           break
         }
-        case EngineGen.chat1NotifyChatChatSetConvSettings: {
+        case EngineGen.actionTypes.chat1NotifyChatChatSetConvSettings: {
           const {conv} = action.payload.params
           onSetConvSettings(conv)
           break
         }
-        case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
-        case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.actionTypes.chat1NotifyChatChatAttachmentUploadProgress: {
           const {params} = action.payload
           onAttachmentUpload(params)
           break
