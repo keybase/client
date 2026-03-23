@@ -56,7 +56,6 @@ js/rpc.js: build-stamp | .config
 	@mkdir -p js/
 	node ./bin/flow.js
 	cp ./js/rpc*.tsx ../shared/constants/types
-	cp ./js/engine-gen.json ../shared/actions/json
 
 build-go-bot-types: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDLC) | .config
 	$(AVDLC) -b -l go -m -t -o ../../go-keybase-chat-bot/kbchat/types/keybase1 avdl/keybase1/*.avdl

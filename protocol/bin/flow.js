@@ -1,6 +1,5 @@
 'use strict'
 const prettier = require('prettier')
-const util = require('util')
 const fs = require('fs')
 const path = require('path')
 const camelcase = require('camelcase')
@@ -389,7 +388,7 @@ function parseVariant(t, project) {
   return s || 'void'
 }
 
-function writeActions() {
+async function writeActions() {
   const staticActions = {}
 
   const seenProjects = {}
@@ -420,17 +419,163 @@ function writeActions() {
     }, staticActions),
   }
 
-  const toWrite = JSON.stringify(
-    {
-      prelude: Object.keys(seenProjects).map(
-        p => `import type * as ${p}Types from '@/constants/types/${projects[p].out}'`
-      ),
-      ...data,
-    },
-    null,
-    4
-  )
-  fs.writeFileSync(`js/engine-gen.json`, toWrite)
+  return writeEngineActions({
+    prelude: Object.keys(seenProjects).map(
+      p => `import type * as ${p}Types from '@/constants/types/${projects[p].out}'`
+    ),
+    ...data,
+  })
+}
+
+const reservedPayloadKeys = ['_description']
+
+function payloadHasType(payload, toFind) {
+  return payload
+    ? Object.keys(payload).some(param => {
+        const ps = payload[param]
+        if (Array.isArray(ps)) {
+          return ps.some(p => toFind.test(p))
+        } else {
+          return toFind.test(ps || '')
+        }
+      })
+    : false
+}
+
+function actionHasType(actions, toFind) {
+  return Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
+}
+
+function compileActionsFile(ns, {prelude, actions}) {
+  const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
+    ? "import type * as RPCTypes from '@/constants/types/rpc-gen'"
+    : ''
+
+  return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+${rpcGenImport}
+${prelude.join('\n')}
+
+// Constants
+export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
+export const typePrefix = '${ns}:'
+${compileActions(ns, actions, compileStateTypeConstant)}
+
+// Action Creators
+${compileActions(ns, actions, compileActionCreator)}
+
+// Action Payloads
+${compileActions(ns, actions, compileActionPayloads)}
+
+// All Actions
+${compileAllActionsType(actions)}  | {readonly type: 'common:resetStore', readonly payload: undefined}
+`
+}
+
+function compileAllActionsType(actions) {
+  const actionsTypes = Object.keys(actions)
+    .map(name => `${capitalize(name)}Payload`)
+    .sort()
+    .join('\n  | ')
+  return `// prettier-ignore
+export type Actions =
+  | ${actionsTypes}
+`
+}
+
+function compileActions(ns, actions, compileActionFn) {
+  return Object.keys(actions)
+    .map(actionName => compileActionFn && compileActionFn(ns, actionName, actions[actionName]))
+    .sort()
+    .join('\n')
+}
+
+function payloadKeys(p) {
+  return Object.keys(p).filter(key => !reservedPayloadKeys.includes(key))
+}
+
+function payloadOptional(p) {
+  const keys = payloadKeys(p)
+  return keys.length && keys.every(key => key.endsWith('?'))
+}
+
+function printPayload(p) {
+  return payloadKeys(p).length
+    ? '{' +
+        payloadKeys(p)
+          .map(key => {
+            const val = p[key]
+            return `readonly ${key}: ${Array.isArray(val) ? val.join(' | ') : val}`
+          })
+          .join(',\n') +
+        '}'
+    : 'undefined'
+}
+
+function compileActionPayloads(ns, actionName) {
+  const allowCreate = ns !== 'engine-gen'
+  if (allowCreate) {
+    return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
+  } else {
+    return `export type ${capitalize(actionName)}Payload = ReturnType<create${capitalize(actionName)}>`
+  }
+}
+
+function compileActionCreator(ns, actionName, actionDesc) {
+  const allowCreate = ns !== 'engine-gen'
+  const desc = actionDesc || {}
+  const hasPayload = !!payloadKeys(desc).length
+  const assignPayload = payloadOptional(desc)
+  const comment = desc._description
+    ? `/**
+     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
+     */
+    `
+    : ''
+  const payload = hasPayload
+    ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
+    : 'payload?: undefined'
+  if (allowCreate) {
+    return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  {payload, type: ${actionName}} as const
+)`
+  } else {
+    return `${comment}type create${capitalize(actionName)} = (${payload}) => (
+  {payload: typeof payload; type: typeof ${actionName}}
+)`
+  }
+}
+
+function compileStateTypeConstant(ns, actionName) {
+  return `export const ${actionName} = '${ns}:${actionName}'`
+}
+
+function loadSharedPrettier() {
+  const sharedPrettierPath = path.join(__dirname, '../../shared/node_modules/prettier')
+  try {
+    return require(sharedPrettierPath)
+  } catch (_) {
+    return prettier
+  }
+}
+
+async function formatGeneratedTypeScript(prettierModule, outPath, source) {
+  const config =
+    prettierModule.resolveConfig && typeof prettierModule.resolveConfig.sync === 'function'
+      ? prettierModule.resolveConfig.sync(outPath)
+      : prettierModule.resolveConfig
+        ? await prettierModule.resolveConfig(outPath)
+        : null
+  return await prettierModule.format(source, {
+    ...config,
+    parser: 'typescript',
+  })
+}
+
+async function writeEngineActions(desc) {
+  const ns = 'engine-gen'
+  const outPath = path.join(__dirname, '../../shared/actions', `${ns}-gen.tsx`)
+  const generated = await formatGeneratedTypeScript(loadSharedPrettier(), outPath, compileActionsFile(ns, desc))
+  fs.writeFileSync(outPath, generated)
 }
 
 function writeAll() {
@@ -698,21 +843,28 @@ function lintError(s, lint) {
   }
 }
 
-const keys = Object.keys(projects)
-keys.forEach(key => {
-  const project = projects[key]
-  const typeDefs = fs
-    .readdirSync(project.root)
-    .filter(jsonOnly)
-    .map(file => load(file, project))
-    .map(json => analyze(json, project))
-    .reduce((map, next) => {
-      map.consts = {...map.consts, ...next.consts}
-      map.types = {...map.types, ...next.types}
-      map.messages = {...map.messages, ...next.messages}
-      return map
-    }, {})
-  writeFlow(typeDefs, project)
+async function main() {
+  const keys = Object.keys(projects)
+  keys.forEach(key => {
+    const project = projects[key]
+    const typeDefs = fs
+      .readdirSync(project.root)
+      .filter(jsonOnly)
+      .map(file => load(file, project))
+      .map(json => analyze(json, project))
+      .reduce((map, next) => {
+        map.consts = {...map.consts, ...next.consts}
+        map.types = {...map.types, ...next.types}
+        map.messages = {...map.messages, ...next.messages}
+        return map
+      }, {})
+    writeFlow(typeDefs, project)
+  })
+  writeAll()
+  await writeActions()
+}
+
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
 })
-writeAll()
-writeActions()
