@@ -1124,6 +1124,11 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@callstack/liquid-glass@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@callstack/liquid-glass/-/liquid-glass-0.7.0.tgz#d48dc2d348cac4da11178382fc445a9d7b2825e7"
+  integrity sha512-ztPuQnXG3z9kPWT0srf+yIbVZih/aifbynzormDzsFMWR6IQk3e0h8DEYic3sgW7PUa7A/GyaBBCpq10ZZvboA==
+
 "@csstools/color-helpers@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@csstools/color-helpers/-/color-helpers-5.1.0.tgz#106c54c808cabfd1ab4c602d8505ee584c2996ef"
@@ -3480,6 +3485,13 @@
   version "0.28.9"
   resolved "https://registry.yarnpkg.com/@types/react-reconciler/-/react-reconciler-0.28.9.tgz#d24b4864c384e770c83275b3fe73fba00269c83b"
   integrity sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg==
+
+"@types/react-test-renderer@^19.1.0":
+  version "19.1.0"
+  resolved "https://registry.yarnpkg.com/@types/react-test-renderer/-/react-test-renderer-19.1.0.tgz#1d0af8f2e1b5931e245b8b5b234d1502b854dc10"
+  integrity sha512-XD0WZrHqjNrxA/MaR9O22w/RNidWR9YZmBdRGI7wcnWGrv/3dA8wKCJ8m63Sn+tLJhcjmuhOi629N66W6kgWzQ==
+  dependencies:
+    "@types/react" "*"
 
 "@types/react@*", "@types/react@19.2.14":
   version "19.2.14"
@@ -10549,11 +10561,12 @@ react-is@^19.1.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.4.tgz#a080758243c572ccd4a63386537654298c99d135"
   integrity sha512-W+EWGn2v0ApPKgKKCy/7s7WHXkboGcsrXE+2joLyVxkbyVQfO3MUEaUQDHoSmb8TFFrSKYa9mw64WZHNHSDzYA==
 
-react-native-gesture-handler@3.0.0-beta.2:
-  version "3.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-3.0.0-beta.2.tgz#aa92e7bda4e437d2ec032d467828099bf4e38152"
-  integrity sha512-naMQknkhjjpDhouEE62qbH6sKTTs2+B1Or01QcpAaF+TAk7PSb6bxcsv4zBiLhoqY0iwH4No6Ib4W3nbdFPtEw==
+react-native-gesture-handler@3.0.0-nightly-20260323-b33f704b6:
+  version "3.0.0-nightly-20260323-b33f704b6"
+  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-3.0.0-nightly-20260323-b33f704b6.tgz#6167058c91892922e060c3a39638b097eb34673d"
+  integrity sha512-QnYIO+MSQDdXTGyx6LF7DVv7gHgAAj2oMhsx1JoA0L8poy+F9kCHcV4op1rOqkE1tNhaFCgBItQJQN2c016Mew==
   dependencies:
+    "@types/react-test-renderer" "^19.1.0"
     invariant "^2.2.4"
 
 react-native-is-edge-to-edge@^1.2.1:

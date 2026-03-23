@@ -80,6 +80,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@callstack/liquid-glass": "0.7.0",
     "@gorhom/bottom-sheet": "5.2.8",
     "@gorhom/portal": "1.0.14",
     "@khanacademy/simple-markdown": "2.2.2",
@@ -128,7 +129,7 @@
     "react-error-boundary": "5.0.0",
     "react-is": "19.2.0",
     "react-native": "0.83.2",
-    "react-native-gesture-handler": "3.0.0-beta.2",
+    "react-native-gesture-handler": "3.0.0-nightly-20260323-b33f704b6",
     "react-native-kb": "file:../rnmodules/react-native-kb",
     "react-native-keyboard-controller": "1.21.2",
     "react-native-reanimated": "4.2.3",

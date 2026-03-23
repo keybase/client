@@ -12,7 +12,7 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
@@ -40,7 +40,7 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-const Tab = createNativeBottomTabNavigator()
+const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
@@ -106,11 +106,18 @@ const getNativeTabIcon = (tab: Tabs.Tab) => {
 const getBadgeNumber = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-  const count = tabsToCount.reduce((res, tab) => res + (navBadges.get(tab) || 0), onSettings && !hasPermissions ? 1 : 0)
+  const count = tabsToCount.reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    onSettings && !hasPermissions ? 1 : 0
+  )
   return count || undefined
 }
 
-const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
+const appTabsScreenOptions = (
+  routeName: Tabs.Tab,
+  navBadges: Map<Tabs.Tab, number>,
+  hasPermissions: boolean
+) => {
   const isIOS = Platform.OS === 'ios'
   return {
     headerShown: false,
