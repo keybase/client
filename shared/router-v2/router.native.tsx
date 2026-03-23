@@ -49,6 +49,7 @@ delete phoneTabRoutes.chatConversation
 
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
+  ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.transparent}} : {}),
 } as const
 
 const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false, true)
@@ -116,7 +117,12 @@ const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, numb
     tabBarActiveIndicatorEnabled: false,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-    ...(isIOS ? {tabBarBlurEffect: Common.tabBarBlurEffect} : {tabBarActiveTintColor: Kb.Styles.globalColors.white}),
+    ...(isIOS
+      ? {
+          tabBarBlurEffect: Common.tabBarBlurEffect,
+          tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
+        }
+      : {tabBarActiveTintColor: Kb.Styles.globalColors.white}),
     tabBarControllerMode: C.isTablet ? 'auto' : undefined,
     tabBarIcon: getNativeTabIcon(routeName),
     ...(isIOS ? {} : {tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter}),
