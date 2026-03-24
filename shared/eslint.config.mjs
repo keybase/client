@@ -162,11 +162,11 @@ export default [
   },
   ...tseslint.configs.recommended.map(config => ({
     ...config,
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
   })),
   ...tseslint.configs.recommendedTypeChecked.map(config => ({
     ...config,
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
     languageOptions: {
       ...config.languageOptions,
       parserOptions: {
@@ -194,7 +194,7 @@ export default [
   },
   {
     ignores: [...ignores, '**/*.js'],
-    files: ['**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -204,7 +204,6 @@ export default [
         __FILE_SUFFIX__: false,
         cancelAnimationFrame: 'readonly',
         requestAnimationFrame: 'readonly',
-        require: 'readonly',
       },
     },
     linterOptions: {

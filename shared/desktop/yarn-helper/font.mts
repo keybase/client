@@ -4,6 +4,11 @@ import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
 import crypto from 'crypto'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const commands = {
   'update-icon-font': {

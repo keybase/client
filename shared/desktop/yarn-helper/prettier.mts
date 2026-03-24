@@ -1,6 +1,9 @@
 import path from 'path'
 import fs from 'fs'
 import {execSync} from 'child_process'
+import {fileURLToPath} from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const getFilesToTest = () => {
   const blacklist = fs
@@ -9,7 +12,7 @@ const getFilesToTest = () => {
     .filter(Boolean)
 
   const blackReg = new RegExp(`^(${blacklist.join('|')})`)
-  const jsFileReg = /\.(ts|tsx|js)$/
+  const jsFileReg = /\.(mts|ts|tsx|js)$/
 
   console.log('Using blacklist:', blackReg)
 

@@ -4,9 +4,14 @@ import os from 'os'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
-import rootConfig from './webpack.config.babel'
+import rootConfig from './webpack.config.babel.js'
 import {readdir} from 'node:fs/promises'
-import {electronChecksums} from './electron-sums'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+import {electronChecksums} from './electron-sums.mts'
+
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const TEMP_SKIP_BUILD: boolean = false
 

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": false,
+    "allowImportingTsExtensions": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "checkJs": false,
@@ -41,6 +42,7 @@
     ]
   },
   "include": [
+    "./**/*.mts",
     "./**/*.ts",
     "./**/*.tsx"
   ],
