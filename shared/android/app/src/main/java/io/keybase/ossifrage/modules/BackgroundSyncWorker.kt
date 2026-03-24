@@ -11,8 +11,8 @@ class BackgroundSyncWorker(
         params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): Result {
         Log.d(TAG, "Background sync start.")
-        Keybase.backgroundSync()
-        Log.d(TAG, "Background sync complete.")
+        val result = Keybase.backgroundSync()
+        Log.d(TAG, "Background sync complete: $result")
         return Result.success()
     }
 

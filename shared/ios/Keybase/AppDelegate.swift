@@ -146,6 +146,13 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
   private static var appStartTime: CFAbsoluteTime = 0
 
+  private static let logDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    f.timeZone = TimeZone(secondsFromGMT: 0)
+    return f
+  }()
+
   private func writeStartupTimingLog(_ message: String, file: String = #file, line: Int = #line) {
     guard let logFilePath = self.fsPaths["logFile"], !logFilePath.isEmpty else {
       return
@@ -168,12 +175,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
     let now = Date()
     let timeInterval = now.timeIntervalSince1970
-    let seconds = Int(timeInterval)
-    let microseconds = Int((timeInterval - Double(seconds)) * 1_000_000)
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-    let dateString = dateFormatter.string(from: now)
+    let microseconds = Int(timeInterval.truncatingRemainder(dividingBy: 1) * 1_000_000)
+    let dateString = AppDelegate.logDateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
 
     let fileName = URL(fileURLWithPath: file).lastPathComponent
@@ -258,7 +261,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
-    self.window?.addSubview(self.resignImageView!)
+    if let view = self.resignImageView { self.window?.addSubview(view) }
 
     BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
       self.handleAppRefresh(task: task as! BGAppRefreshTask)
@@ -390,7 +393,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   override func applicationWillResignActive(_ application: UIApplication) {
     log.info("applicationWillResignActive: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
-    self.resignImageView?.superview?.bringSubviewToFront(self.resignImageView!)
+    if let view = self.resignImageView { view.superview?.bringSubviewToFront(view) }
     log.info("applicationWillResignActive: rendering keyz screen...")
     UIView.animate(withDuration: 0.3, delay: 0.1, options: .beginFromCurrentState) {
       self.resignImageView?.alpha = 1

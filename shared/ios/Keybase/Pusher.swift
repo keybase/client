@@ -6,7 +6,7 @@ import os
 private let log = Logger(subsystem: "com.keybase.app", category: "push")
 
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
-   func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
+  func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
     let content = UNMutableNotificationContent()
     if let soundName = soundName {
       content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
@@ -32,8 +32,8 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
       let username = message.from?.keybaseUsername ?? ""
       let convName = notification.conversationName
       msg = (username == convName || convName.isEmpty)
-      ? "\(username): \(message.plaintext)"
-      : "\(username) (\(convName)): \(message.plaintext)"
+        ? "\(username): \(message.plaintext)"
+        : "\(username) (\(convName)): \(message.plaintext)"
     } else {
       msg = message.serverMessage
     }
