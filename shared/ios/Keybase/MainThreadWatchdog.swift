@@ -153,10 +153,12 @@ class MainThreadWatchdog {
   }
 
   // Send SIGUSR1 to the main thread, wait briefly for the handler to run, then log the stack.
+  // Frames are collected synchronously here on the watchdog thread, then dispatched to the main
+  // thread via writeLog so they appear in ios.log (captured by logsend).
   private func captureAndLogStackTrace() {
     gMainStackReady = false
     guard let tid = mainThreadPthread else {
-      NSLog("[Startup] Watchdog: main thread pthread not captured")
+      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: main thread pthread not captured") }
       return
     }
     pthread_kill(tid, SIGUSR1)
@@ -166,21 +168,28 @@ class MainThreadWatchdog {
       Thread.sleep(forTimeInterval: 0.01)
     }
     guard gMainStackReady else {
-      NSLog("[Startup] Watchdog: stack capture timed out")
+      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: stack capture timed out") }
       return
     }
     let count = Int(gMainStackFrameCount)
-    // Log the binary load slide so addresses can be symbolicated offline:
+    // Collect the binary load slide so addresses can be symbolicated offline:
     //   atos -o Keybase.app.dSYM/Contents/Resources/DWARF/Keybase -l <slide> <address>
     let slide = _dyld_get_image_vmaddr_slide(0)
-    NSLog("[Startup] Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide)
+    // Build the frame strings synchronously while the globals are still valid, then
+    // dispatch a single block to write them all once the main thread unblocks.
+    var lines = [String]()
+    lines.append(String(format: "Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide))
     gMainStackFrames.withUnsafeMutableBufferPointer { buf in
       if let syms = backtrace_symbols(buf.baseAddress, Int32(count)) {
         for i in 0..<count {
-          NSLog("[Startup]   %s", syms[i]!)
+          lines.append("  \(String(cString: syms[i]!))")
         }
         free(syms)
       }
+    }
+    DispatchQueue.main.async { [weak self] in
+      guard let self else { return }
+      for line in lines { self.writeLog(line) }
     }
   }
 }
