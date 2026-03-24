@@ -8,12 +8,12 @@ import {showDevTools} from '@/local-debug'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron.desktop'
 
 const {env} = KB2.constants
 
-let htmlFile = `${htmlPrefix}${assetRoot}main${__FILE_SUFFIX__}.html`
+let htmlFile = htmlURL('main')
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -322,7 +322,7 @@ const MainWindow = () => {
       devTools: showDevTools,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
-      preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
+      preload: preloadPath,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,

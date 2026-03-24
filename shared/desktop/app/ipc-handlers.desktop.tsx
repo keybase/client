@@ -12,14 +12,14 @@ import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform.desktop'
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlURL, preloadPath} from './html-root.desktop'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import type {Engine} from '@/engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
-  `${htmlPrefix}${assetRoot}${windowComponent}${__FILE_SUFFIX__}.html?param=${windowParam}`
+  htmlURL(windowComponent, `param=${windowParam}`)
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
@@ -550,7 +550,7 @@ export const setupIPCHandlers = (deps: {
             contextIsolation: true,
             nodeIntegration: false,
             nodeIntegrationInWorker: false,
-            preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
+            preload: preloadPath,
           },
           ...action.payload.windowOpts,
         }
