@@ -147,7 +147,6 @@
   },
   "devDependencies": {
     "@babel/core": "7.29.0",
-    "@babel/node": "7.29.0",
     "@babel/preset-env": "7.29.2",
     "@babel/preset-flow": "7.27.1",
     "@babel/preset-react": "7.28.5",
