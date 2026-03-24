@@ -27,11 +27,6 @@ const commands = {
     help: 'Make a profile build of the js code',
     shell: `${webpackCmd} --mode production --progress --profile`,
   },
-  'hot-server': {
-    env: {HOT: 'true'},
-    help: 'Start the renderer webpack dev server used by yarn run start-hot',
-    shell: `webpack-dev-server --disable-interpret --mode development --config=./desktop/webpack.config.mts --config-name renderer`,
-  },
   package: {
     help: 'Package up the production js code',
     nodeEnv: 'production',
