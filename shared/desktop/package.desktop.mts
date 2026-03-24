@@ -4,6 +4,7 @@ import os from 'os'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
+import type {Configuration} from 'webpack'
 import rootConfig from './webpack.config.mts'
 import {readdir} from 'node:fs/promises'
 import {createRequire} from 'node:module'
@@ -190,12 +191,12 @@ async function main() {
 async function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
   process.env['APP_VERSION'] = appVersion
-  const webpackConfig = rootConfig(null, {mode: 'production'})
+  const webpackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
   try {
     if (TEMP_SKIP_BUILD) {
     } else {
       const stats = await new Promise<webpack.Stats | undefined>((resolve, reject) => {
-        webpack(webpackConfig, (err, stats: webpack.Stats | undefined) => {
+        webpack(webpackConfig, (err: Error | null, stats: webpack.Stats | undefined) => {
           if (err) {
             reject(err)
           } else {

@@ -10,12 +10,13 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
+import type {Configuration, RuleSetRule, WebpackPluginInstance} from 'webpack'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const ignoredModules = require('../ignored-modules')
-const enableWDYR = require('../util/why-did-you-render-enabled')
-const elecVersion = require('../package.json').devDependencies.electron
+const ignoredModules = require('../ignored-modules') as Array<string>
+const enableWDYR = require('../util/why-did-you-render-enabled') as boolean
+const elecVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies.electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
 const debugUnusedChunks = false
 const evalDevtools = false
@@ -24,7 +25,7 @@ if (enableWDYR || debugUnusedChunks || evalDevtools) {
   console.error('*** Webpack debugging on! ***', {enableWDYR, debugUnusedChunks, evalDevtools})
 }
 
-const config = (_, {mode}) => {
+const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production'}): Array<Configuration> => {
   const isDev = mode !== 'production'
   const isHot = isDev && !!process.env['HOT']
   const isProfile = !isDev && !!process.env['PROFILE']
@@ -37,7 +38,7 @@ const config = (_, {mode}) => {
   console.error('Flags: ', {isDev, isHot, isProfile})
   console.error('Detected electron from package.json: ', elecVersion)
 
-  const makeRules = nodeThread => {
+  const makeRules = (nodeThread: boolean): Array<RuleSetRule> => {
     const babelRule = {
       loader: 'babel-loader',
       options: {
@@ -141,12 +142,12 @@ const config = (_, {mode}) => {
     __PROFILE__: isProfile,
     __DEV__: isDev,
     __HOT__: isHot,
-    __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
+    __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
   }
   console.warn('Injecting defines: ', defines)
 
-  const alias = ignoredModules.reduce(
-    (acc, name) => {
+  const alias = ignoredModules.reduce<Record<string, string | false>>(
+    (acc, name: string) => {
       acc[name] = path.resolve(__dirname, '../null-module.js')
       return acc
     },
@@ -160,7 +161,7 @@ const config = (_, {mode}) => {
     alias['@welldone-software/why-did-you-render'] = false
   }
 
-  const commonConfig = {
+  const commonConfig: Configuration = {
     bail: true,
     context: path.resolve(__dirname, '..'),
     devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
@@ -205,7 +206,7 @@ const config = (_, {mode}) => {
         }),
   }
 
-  const nodeConfig = merge(commonConfig, {
+  const nodeConfig: Configuration = merge<Configuration>(commonConfig, {
     entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
@@ -219,7 +220,7 @@ const config = (_, {mode}) => {
     target: 'electron-main',
   })
 
-  const makeViewPlugins = names =>
+  const makeViewPlugins = (names: Array<string>): Array<WebpackPluginInstance> =>
     [
       ...(debugUnusedChunks
         ? [
@@ -231,11 +232,11 @@ const config = (_, {mode}) => {
       // needed to help webpack and electron renderer
       new webpack.DefinePlugin({
         global: 'globalThis',
-        'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
+        'process.env.NODE_DEBUG': JSON.stringify(process.env['NODE_DEBUG']),
       }),
       ...(isHot ? [new ReactRefreshWebpackPlugin({forceEnable: true})] : []),
       ...names.map(
-        name =>
+        (name: string) =>
           new HtmlWebpackPlugin({
             chunks: [name],
             filename: `${name}${fileSuffix}.html`,
@@ -273,7 +274,7 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
             <div title="loading..." style="flex: 1"></div>
         </div>
         <div id="modal-root"></div>
-        ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>
+        ${(htmlWebpackPlugin.files.js ?? []).map((js: string) => `<script src="${js}"></script>`).join('\n')} </body>
 </html>
               `,
           })
@@ -281,11 +282,11 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
     ].filter(Boolean)
 
   // just keeping main in its old place
-  const entryOverride = {main: 'desktop/renderer'}
+  const entryOverride: Record<string, string> = {main: 'desktop/renderer'}
 
   // multiple entries so we can chunk shared parts
   const entries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
-  const viewConfig = merge(commonConfig, {
+  const viewConfig: Configuration = merge<Configuration>(commonConfig, {
     devServer: {
       compress: false,
       hot: isHot,
@@ -306,7 +307,7 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
         publicPath: '/dist',
       },
     },
-    entry: entries.reduce((map, name) => {
+    entry: entries.reduce<Record<string, string>>((map, name: string) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
@@ -330,7 +331,7 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
     },
     target: 'web',
   })
-  const preloadConfig = merge(commonConfig, {
+  const preloadConfig: Configuration = merge<Configuration>(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},
     name: 'preload',
