@@ -3,7 +3,7 @@
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
 import TerserPlugin from 'terser-webpack-plugin'
-import merge from 'webpack-merge'
+import {merge} from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
