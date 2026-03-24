@@ -8,7 +8,11 @@ import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
 
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ignoredModules = require('../ignored-modules')
 const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron

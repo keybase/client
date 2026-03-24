@@ -14,7 +14,7 @@ const ignores = [
   'desktop/dist/**',
   'desktop/release/**',
   'desktop/renderer/renderer-load.desktop.js',
-  'desktop/webpack.config.babel.js',
+  'desktop/webpack.config.mjs',
   'lodash.4.17.5.strict/**',
   'markdown/parser.js',
   'metro.config.js',

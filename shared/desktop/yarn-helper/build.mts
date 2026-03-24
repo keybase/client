@@ -1,7 +1,7 @@
 import os from 'os'
 
 const webpackCmd =
-  'node --trace-deprecation node_modules/webpack/bin/webpack.js --config ./desktop/webpack.config.babel.js'
+  'node --trace-deprecation node_modules/webpack/bin/webpack.js --config ./desktop/webpack.config.mjs'
 const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
 // set to true if you want to analyze the webpack output
 const outputStats = false as boolean
@@ -40,7 +40,7 @@ const commands = {
 
 function hotServer(info: {env?: object}, exec: (...a: Array<unknown>) => void) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})
-  exec(`webpack-dev-server --mode development --config=./desktop/webpack.config.babel.js`, {
+  exec(`webpack-dev-server --mode development --config=./desktop/webpack.config.mjs`, {
     ...info.env,
     HOT: 'true',
   })
