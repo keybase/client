@@ -1,10 +1,11 @@
-import UIKit
 import Darwin
+import UIKit
 
 // File-scope globals required by the SIGUSR1 signal handler.
 // Signal handlers cannot safely reference Swift objects, so these must be C-compatible globals.
 private let kMaxStackFrames: Int32 = 128
-private var gMainStackFrames = [UnsafeMutableRawPointer?](repeating: nil, count: Int(kMaxStackFrames))
+private var gMainStackFrames = [UnsafeMutableRawPointer?](
+  repeating: nil, count: Int(kMaxStackFrames))
 private var gMainStackFrameCount: Int32 = 0
 private var gMainStackReady: Bool = false
 
@@ -98,7 +99,9 @@ class MainThreadWatchdog {
       //   2. Cold-start or foreground watchdog: use the 30s threshold as before.
       if blockDuration > 30.0 || (isBackgroundContext && blockDuration >= 3.0) {
         let bgElapsedSec = now - bgEnterTime
-        let msg = String(format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)", blockDuration, bgElapsedSec)
+        let msg = String(
+          format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)",
+          blockDuration, bgElapsedSec)
         NSLog("[Startup] %@", msg)
         lock.lock()
         self.lastPong = now
@@ -120,7 +123,10 @@ class MainThreadWatchdog {
         // evolves (e.g. keychain IPC → rendering → idle) rather than a single snapshot.
         if lastLogTime == 0 || (now - lastLogTime) >= 2.0 {
           let bgElapsedSec = now - bgEnterTime
-          let msg = String(format: "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
+          let msg = String(
+            format:
+              "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)",
+            blockDuration, bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
           // Enqueue a write for when the main thread recovers
           DispatchQueue.main.async { [weak self] in
@@ -133,7 +139,9 @@ class MainThreadWatchdog {
       } else {
         if lastLogTime != 0 {
           let bgElapsedSec = now - bgEnterTime
-          let msg = String(format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)", bgElapsedSec, totalElapsedMs)
+          let msg = String(
+            format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)",
+            bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
           DispatchQueue.main.async { [weak self] in
             self?.writeLog(msg)
@@ -158,7 +166,9 @@ class MainThreadWatchdog {
   private func captureAndLogStackTrace() {
     gMainStackReady = false
     guard let tid = mainThreadPthread else {
-      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: main thread pthread not captured") }
+      DispatchQueue.main.async { [weak self] in
+        self?.writeLog("Watchdog: main thread pthread not captured")
+      }
       return
     }
     pthread_kill(tid, SIGUSR1)
@@ -168,7 +178,8 @@ class MainThreadWatchdog {
       Thread.sleep(forTimeInterval: 0.01)
     }
     guard gMainStackReady else {
-      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: stack capture timed out") }
+      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: stack capture timed out")
+      }
       return
     }
     let count = Int(gMainStackFrameCount)
@@ -178,7 +189,8 @@ class MainThreadWatchdog {
     // Build the frame strings synchronously while the globals are still valid, then
     // dispatch a single block to write them all once the main thread unblocks.
     var lines = [String]()
-    lines.append(String(format: "Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide))
+    lines.append(
+      String(format: "Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide))
     gMainStackFrames.withUnsafeMutableBufferPointer { buf in
       if let syms = backtrace_symbols(buf.baseAddress, Int32(count)) {
         for i in 0..<count {
