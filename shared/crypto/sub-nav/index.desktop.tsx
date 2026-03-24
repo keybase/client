@@ -9,7 +9,7 @@ import {
   createNavigatorFactory,
   type NavigationContainerRef,
 } from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
+import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {routeMapToScreenElements} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout.desktop'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
@@ -98,10 +98,7 @@ type NavType = NavigatorTypeBagBase & {
   }
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
-  NavType,
-  StaticConfig<NavigatorTypeBagBase>
->
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
 const TabNavigator = createLeftTabNavigator()
 const makeOptions = (rd: RouteDef) => {
   return ({route, navigation}: GetOptionsParams) => {
@@ -110,7 +107,7 @@ const makeOptions = (rd: RouteDef) => {
     return {...opt}
   }
 }
-const cryptoScreens = routeMapToScreenElements(cryptoSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false)
+const cryptoScreens = routeMapToScreenElements(cryptoSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
     {cryptoScreens}

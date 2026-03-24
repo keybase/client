@@ -223,8 +223,9 @@ export const ListBody = (
   }
 ) => {
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
-  const recommendedHideYourself = params.recommendedHideYourself ?? false
-  const teamID = params.teamID
+  const p = params as {recommendedHideYourself?: boolean; teamID?: string} | undefined
+  const recommendedHideYourself = p?.recommendedHideYourself ?? false
+  const teamID = p?.teamID
   const {searchString, selectedService} = props
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
