@@ -83,29 +83,31 @@ const androidTabIcons = new Map<Tabs.Tab, number>([
   [Tabs.teamsTab, require('../images/icons/icon-folder-team-32.png')],
 ])
 
-const iosTabIcons = new Map<Tabs.Tab, {active: SFSymbol; inactive: SFSymbol}>([
-  [Tabs.chatTab, {active: 'message.fill', inactive: 'message'}],
-  [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
-  [Tabs.peopleTab, {active: 'person.crop.circle.fill', inactive: 'person.crop.circle'}],
-  [Tabs.settingsTab, {active: 'ellipsis.circle.fill', inactive: 'ellipsis.circle'}],
-  [Tabs.teamsTab, {active: 'person.3.fill', inactive: 'person.3'}],
+const iosTabIcons = new Map<Tabs.Tab, string>([
+  [Tabs.chatTab, 'kb-nav-chat'],
+  [Tabs.fsTab, 'kb-nav-files'],
+  [Tabs.peopleTab, 'kb-nav-people'],
+  [Tabs.settingsTab, 'kb-nav-settings'],
+  [Tabs.teamsTab, 'kb-nav-teams'],
 ])
 
 const getNativeTabIcon = (tab: Tabs.Tab) => {
   if (Platform.OS === 'ios') {
-    const icon = iosTabIcons.get(tab)
-    return icon
-      ? ({focused}: {focused: boolean}) => ({
-          name: focused ? icon.active : icon.inactive,
-          type: 'sfSymbol' as const,
-        })
+    const name = iosTabIcons.get(tab)
+    // Cast: custom asset catalog symbols are strings, not in the SFSymbol union
+    return name
+      ? (_: {focused: boolean}) => ({name: name as unknown as SFSymbol, type: 'sfSymbol' as const})
       : undefined
   }
   const source = androidTabIcons.get(tab)
   return source ? {source, type: 'image' as const} : undefined
 }
 
-const getBadgeNumber = (routeName: Tabs.Tab, navBadges: ReadonlyMap<Tabs.Tab, number>, hasPermissions: boolean) => {
+const getBadgeNumber = (
+  routeName: Tabs.Tab,
+  navBadges: ReadonlyMap<Tabs.Tab, number>,
+  hasPermissions: boolean
+) => {
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
   const count = tabsToCount.reduce(
@@ -171,6 +173,7 @@ const LoggedOut = loggedOutNav.getComponent()
 
 const rootStackScreenOptions = {} satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
+  ...Common.defaultNavigationOptions,
   headerLeft: () => <HeaderLeftButton mode="cancel" />,
   headerShown: true,
   presentation: 'modal',
