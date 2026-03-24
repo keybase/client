@@ -7,7 +7,7 @@ import {isDarwin, isWindows, isLinux, getAssetPath} from '@/constants/platform.d
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window.desktop'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlURL, preloadPath} from './html-root.desktop'
 import type {BadgeType} from '@/stores/notifications'
 
 const getIcons = (iconType: BadgeType, badges: number) => {
@@ -37,7 +37,7 @@ const getIcons = (iconType: BadgeType, badges: number) => {
   }
 }
 
-const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
+const htmlFile = htmlURL('menubar', 'param=menubar')
 
 let badgeType: BadgeType = 'regular'
 let badges = 0
@@ -70,7 +70,7 @@ const MenuBar = () => {
         contextIsolation: true,
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
-        preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
+        preload: preloadPath,
       },
       width: 360,
     },

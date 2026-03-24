@@ -23,14 +23,13 @@ yarn modules
 
 The following `yarn run` commands, to build, run or package the app:
 
-| Command    | Description                                         |
-| ---------- | --------------------------------------------------- |
-| start      | Build a development bundle and start app            |
-| hot-server | Start the hot-reloading server (with start-hot)     |
-| start-hot  | Connect to a hot-reloading server (with hot-server) |
-| build-dev  | Build development bundle                            |
-| build-prod | Build prod bundle                                   |
-| package    | Package app                                         |
+| Command    | Description                              |
+| ---------- | ---------------------------------------- |
+| start      | Build a development bundle and start app |
+| start-hot  | Electron with hot reloading              |
+| build-dev  | Build development bundle                 |
+| build-prod | Build prod bundle                        |
+| package    | Package app                              |
 
 You can set environment variables for debugging:
 

@@ -27,23 +27,11 @@ const commands = {
     help: 'Make a profile build of the js code',
     shell: `${webpackCmd} --mode production --progress --profile`,
   },
-  'hot-server': {
-    code: hotServer,
-    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
-  },
   package: {
     help: 'Package up the production js code',
     nodeEnv: 'production',
     shell: `node ${spaceArg} desktop/package.desktop.mts`,
   },
 } as const
-
-function hotServer(info: {env?: object}, exec: (...a: Array<unknown>) => void) {
-  exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})
-  exec(`webpack-dev-server --disable-interpret --mode development --config=./desktop/webpack.config.mts`, {
-    ...info.env,
-    HOT: 'true',
-  })
-}
 
 export default commands

@@ -27,8 +27,6 @@
     "build-emoji": "node common-adapters/markdown/generate-emoji-parser.mts && cd ../go; go run ./chat/emoji/main.go -i ../shared/node_modules/emoji-datasource-apple/emoji.json -o ../go/chat/storage/emoji_codemap.go",
     "build-prod": "yarn run _helper build-prod",
     "package": "yarn run _helper package",
-    "hot-server": "yarn run _helper hot-server",
-    "hot-server-dumb": "cross-env-shell DUMB=true yarn run _helper hot-server",
     "inject-code-prod": "yarn run _helper inject-code-prod",
     "inject-sourcemaps-prod": "yarn run _helper inject-sourcemaps-prod",
     "profile": "yarn run _helper profile",

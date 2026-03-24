@@ -337,7 +337,7 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
       return map
     }, {}),
     module: {rules: makeRules(false)},
-    name: 'Keybase',
+    name: 'renderer',
     ...(isHot
       ? {}
       : {
