@@ -2,7 +2,6 @@
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'

@@ -12,11 +12,12 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
+import type {SFSymbol} from 'sf-symbols-typescript'
 import {makeLayout} from './screen-layout.native'
 import {useRootKey} from './hooks.native'
 import {createLinkingConfig} from './linking'
@@ -40,12 +41,11 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-const Tab = createNativeBottomTabNavigator()
+const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
-const phoneTabRoutes = {...tabRoutes}
-delete phoneTabRoutes.chatConversation
+const {chatConversation: _chatConversation, ...phoneTabRoutes} = tabRoutes
 
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
@@ -81,7 +81,7 @@ const androidTabIcons = new Map<Tabs.Tab, number>([
   [Tabs.teamsTab, require('../images/icons/icon-folder-team-32.png')],
 ])
 
-const iosTabIcons = new Map<Tabs.Tab, {active: string; inactive: string}>([
+const iosTabIcons = new Map<Tabs.Tab, {active: SFSymbol; inactive: SFSymbol}>([
   [Tabs.chatTab, {active: 'message.fill', inactive: 'message'}],
   [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
   [Tabs.peopleTab, {active: 'person.crop.circle.fill', inactive: 'person.crop.circle'}],
@@ -95,22 +95,29 @@ const getNativeTabIcon = (tab: Tabs.Tab) => {
     return icon
       ? ({focused}: {focused: boolean}) => ({
           name: focused ? icon.active : icon.inactive,
-          type: 'sfSymbol',
+          type: 'sfSymbol' as const,
         })
       : undefined
   }
   const source = androidTabIcons.get(tab)
-  return source ? {source, type: 'image'} : undefined
+  return source ? {source, type: 'image' as const} : undefined
 }
 
-const getBadgeNumber = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
+const getBadgeNumber = (routeName: Tabs.Tab, navBadges: ReadonlyMap<Tabs.Tab, number>, hasPermissions: boolean) => {
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-  const count = tabsToCount.reduce((res, tab) => res + (navBadges.get(tab) || 0), onSettings && !hasPermissions ? 1 : 0)
+  const count = tabsToCount.reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    onSettings && !hasPermissions ? 1 : 0
+  )
   return count || undefined
 }
 
-const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, number>, hasPermissions: boolean) => {
+const appTabsScreenOptions = (
+  routeName: Tabs.Tab,
+  navBadges: ReadonlyMap<Tabs.Tab, number>,
+  hasPermissions: boolean
+) => {
   const isIOS = Platform.OS === 'ios'
   return {
     headerShown: false,
@@ -123,11 +130,11 @@ const appTabsScreenOptions = (routeName: Tabs.Tab, navBadges: Map<Tabs.Tab, numb
           tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
         }
       : {tabBarActiveTintColor: Kb.Styles.globalColors.white}),
-    tabBarControllerMode: C.isTablet ? 'auto' : undefined,
+    tabBarControllerMode: (isIOS && C.isTablet ? 'auto' : undefined) as 'auto' | undefined,
     tabBarIcon: getNativeTabIcon(routeName),
     ...(isIOS ? {} : {tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter}),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
-    tabBarLabelVisibilityMode: C.isTablet ? 'labeled' : 'selected',
+    tabBarLabelVisibilityMode: (C.isTablet ? 'labeled' : 'selected') as 'labeled' | 'selected',
     ...(isIOS ? {} : {tabBarStyle: Common.tabBarStyle}),
     title: tabToLabel.get(routeName) ?? routeName,
   }

@@ -6,7 +6,7 @@ import {makeLayout} from '@/router-v2/screen-layout.desktop'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
+import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import type {RootParamList} from '@/router-v2/route-params'
 import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/constants/settings'
@@ -76,10 +76,7 @@ type NavType = NavigatorTypeBagBase & {
   ParamList: Pick<RootParamList, keyof typeof settingsDesktopTabRoutes>
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
-  NavType,
-  StaticConfig<NavigatorTypeBagBase>
->
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
 const TabNavigator = createLeftTabNavigator()
 const makeOptions = (rd: RouteDef) => {
   return ({route, navigation}: GetOptionsParams) => {

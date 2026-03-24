@@ -176,7 +176,7 @@ type LayoutProps = {
   navigation: GetOptionsParams['navigation']
 }
 
-export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, getOptions?: GetOptions) => {
+export const makeLayout = (isModal: boolean, _isLoggedOut: boolean, _isTabScreen: boolean, getOptions?: GetOptions) => {
   return ({children, route, navigation}: LayoutProps) => {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
 
