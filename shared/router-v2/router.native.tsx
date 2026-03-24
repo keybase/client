@@ -48,8 +48,6 @@ const Tab = createNativeBottomTabNavigator() // NAV7
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
-const {chatConversation: _chatConversation, ...phoneTabRoutes} = tabRoutes
-
 const tabStackOptions = ({navigation}: {navigation: {canGoBack: () => boolean}}): NativeStackNavigationOptions => ({
   ...Common.defaultNavigationOptions,
   ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.transparent}} : {}),
@@ -59,10 +57,16 @@ const tabStackOptions = ({navigation}: {navigation: {canGoBack: () => boolean}})
   headerLeft: undefined,
 })
 
+// On phones, each tab stack only contains its root screen. All other routes live in
+// the root stack (alongside chatConversation) so they render above the tab bar.
+const tabRootNameSet = new Set(Object.values(tabRoots).filter(Boolean))
+const phoneRootRoutes = Object.fromEntries(
+  Object.entries(tabRoutes).filter(([name]) => !tabRootNameSet.has(name))
+) as typeof tabRoutes
+
 const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false, true)
-const phoneTabScreensConfig = routeMapToStaticScreens(phoneTabRoutes, makeLayout, false, false, true)
 const phoneRootScreensConfig = routeMapToStaticScreens(
-  C.isTablet ? {} : {chatConversation: tabRoutes.chatConversation},
+  C.isTablet ? {} : phoneRootRoutes,
   makeLayout,
   false,
   false,
@@ -71,13 +75,29 @@ const phoneRootScreensConfig = routeMapToStaticScreens(
 
 const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of tabs) {
-  const screens = C.isTablet ? tabScreensConfig : phoneTabScreensConfig
-  const nav = createNativeStackNavigator({
-    initialRouteName: tabRoots[tab],
-    screenOptions: tabStackOptions,
-    screens,
-  })
-  tabComponents[tab] = nav.getComponent()
+  if (C.isTablet) {
+    const nav = createNativeStackNavigator({
+      initialRouteName: tabRoots[tab],
+      screenOptions: tabStackOptions,
+      screens: tabScreensConfig,
+    })
+    tabComponents[tab] = nav.getComponent()
+  } else {
+    const rootName = tabRoots[tab]
+    const rootScreenConfig = routeMapToStaticScreens(
+      {[rootName]: tabRoutes[rootName as keyof typeof tabRoutes]} as typeof tabRoutes,
+      makeLayout,
+      false,
+      false,
+      true
+    )
+    const nav = createNativeStackNavigator({
+      initialRouteName: rootName,
+      screenOptions: tabStackOptions,
+      screens: rootScreenConfig,
+    })
+    tabComponents[tab] = nav.getComponent()
+  }
 }
 
 const androidTabIcons = new Map<Tabs.Tab, number>([
