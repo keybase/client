@@ -44,24 +44,42 @@ const TBHeaderRight = ({
   return null
 }
 
-// Writes action state to ModalHeaderStore from inside TBProvider context
-const HeaderRightUpdater = ({namespace}: {namespace: T.TB.AllowedNamespace}) => {
+// Writes action state to ModalHeaderStore from inside TBProvider context.
+// On iOS, also drives unstable_headerRightItems directly to avoid empty glass circles
+// when no members are selected (opacity:0 components still create a glass circle on iOS 26).
+const HeaderRightUpdater = ({
+  namespace,
+  goButtonLabel,
+}: {
+  namespace: T.TB.AllowedNamespace
+  goButtonLabel?: string
+}) => {
+  const navigation = useNavigation()
   const hasTeamSoFar = useTBContext(s => s.teamSoFar.size > 0)
   const finishTeamBuilding = useTBContext(s => s.dispatch.finishTeamBuilding)
   const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
   React.useEffect(() => {
     if (!Kb.Styles.isMobile) return
+    if (namespace !== 'teams' && namespace !== 'chat' && namespace !== 'crypto') return
     const onFinish = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
-    if (namespace === 'teams' || namespace === 'chat' || namespace === 'crypto') {
-      useModalHeaderState.setState({
-        actionEnabled: hasTeamSoFar,
-        onAction: onFinish,
-      })
+    if (Kb.Styles.isIOS) {
+      const label = namespace === 'teams' ? 'Add' : (goButtonLabel ?? 'Start')
+      navigation.setOptions({
+        unstable_headerRightItems: hasTeamSoFar
+          ? () => [{label, onPress: onFinish, type: 'button' as const}]
+          : () => [],
+      } as object)
+    } else {
+      useModalHeaderState.setState({actionEnabled: hasTeamSoFar, onAction: onFinish})
     }
     return () => {
-      useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
+      if (Kb.Styles.isIOS) {
+        navigation.setOptions({unstable_headerRightItems: () => []} as object)
+      } else {
+        useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
+      }
     }
-  }, [namespace, hasTeamSoFar, finishTeamBuilding, finishedTeamBuilding])
+  }, [namespace, hasTeamSoFar, finishTeamBuilding, finishedTeamBuilding, goButtonLabel, navigation])
   return null
 }
 
@@ -80,7 +98,6 @@ const getOptions = ({route}: OwnProps) => {
   const title = typeof route.params.title === 'string' ? route.params.title : ''
   const goButtonLabel = route.params.goButtonLabel
   const common = {
-    headerRight: () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />,
     modalStyle: {height: 560} as const,
     overlayAvoidTabs: false,
     overlayStyle: {alignSelf: 'center'} as const,
@@ -107,13 +124,21 @@ const getOptions = ({route}: OwnProps) => {
   if (namespace === 'teams') {
     return {
       ...common,
+      // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
+      headerRight: Kb.Styles.isIOS ? undefined : () => <TBHeaderRight namespace={namespace} />,
       headerTitle: () => (
         <TeamsModalTitle teamID={route.params.teamID ?? T.Teams.noTeamID} title="Search people" />
       ),
     }
   }
 
-  return common
+  return {
+    ...common,
+    // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
+    headerRight: Kb.Styles.isIOS
+      ? undefined
+      : () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />,
+  }
 }
 
 const Building = React.lazy(async () => import('./container'))
@@ -122,7 +147,7 @@ type OwnProps = StaticScreenProps<React.ComponentProps<typeof Building>>
 const Screen = (p: OwnProps) => (
   <TBProvider namespace={p.route.params.namespace}>
     <CancelOnRemove />
-    <HeaderRightUpdater namespace={p.route.params.namespace} />
+    <HeaderRightUpdater namespace={p.route.params.namespace} goButtonLabel={p.route.params.goButtonLabel} />
     <Building {...p.route.params} />
   </TBProvider>
 )

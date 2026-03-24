@@ -12,6 +12,7 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
+import type {NavigationProp} from '@react-navigation/native'
 // NAV8: import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable' // NAV7
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
@@ -49,10 +50,14 @@ const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as 
 
 const {chatConversation: _chatConversation, ...phoneTabRoutes} = tabRoutes
 
-const tabStackOptions = {
+const tabStackOptions = ({navigation}: {navigation: {canGoBack: () => boolean}}): NativeStackNavigationOptions => ({
   ...Common.defaultNavigationOptions,
   ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.transparent}} : {}),
-} as const
+  // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
+  // omit headerLeft entirely on root screens so no empty glass circle appears.
+  headerBackVisible: navigation.canGoBack(),
+  headerLeft: undefined,
+})
 
 const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false, true)
 const phoneTabScreensConfig = routeMapToStaticScreens(phoneTabRoutes, makeLayout, false, false, true)
@@ -69,7 +74,7 @@ for (const tab of tabs) {
   const screens = C.isTablet ? tabScreensConfig : phoneTabScreensConfig
   const nav = createNativeStackNavigator({
     initialRouteName: tabRoots[tab],
-    screenOptions: tabStackOptions as NativeStackNavigationOptions,
+    screenOptions: tabStackOptions,
     screens,
   })
   tabComponents[tab] = nav.getComponent()
@@ -173,13 +178,25 @@ const loggedOutNav = createNativeStackNavigator({
 })
 const LoggedOut = loggedOutNav.getComponent()
 
-const rootStackScreenOptions = {} satisfies NativeStackNavigationOptions
-const modalScreenOptions = {
-  headerLeft: () => <HeaderLeftButton mode="cancel" />,
-  headerShown: true,
-  presentation: 'modal',
-  title: '',
-} as const
+const rootStackScreenOptions = {headerBackButtonDisplayMode: 'minimal'} satisfies NativeStackNavigationOptions
+const modalScreenOptions = ({
+  navigation,
+}: {navigation: NavigationProp<ReactNavigation.RootParamList>}): NativeStackNavigationOptions => {
+  const cancelItem: NativeStackNavigationOptions =
+    Platform.OS === 'ios'
+      ? {
+          unstable_headerLeftItems: () => [
+            {label: 'Cancel', onPress: () => navigation.goBack(), type: 'button' as const},
+          ],
+        }
+      : {headerLeft: () => <HeaderLeftButton mode="cancel" />}
+  return {
+    ...cancelItem,
+    headerShown: true,
+    presentation: 'modal',
+    title: '',
+  }
+}
 
 const useIsLoggedIn = () => useConfigState(s => s.loggedIn)
 const useIsLoggedOut = () => !useConfigState(s => s.loggedIn)

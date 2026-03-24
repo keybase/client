@@ -30,6 +30,7 @@ type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 
 // Options used by default on all navigators
 export const defaultNavigationOptions = {
+  headerBackButtonDisplayMode: 'minimal',
   headerBackTitle: '',
   headerBackVisible: false,
   headerBackgroundContainerStyle: {

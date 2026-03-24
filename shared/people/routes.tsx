@@ -16,8 +16,7 @@ const HeaderAvatar = () => {
 export const newRoutes = {
   peopleRoot: {
     getOptions: {
-      headerLeft: () => null,
-      headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
+      headerRight: () => <HeaderAvatar />,
       headerTitle: () => <ProfileSearch />,
     },
     screen: React.lazy(async () => import('./container')),

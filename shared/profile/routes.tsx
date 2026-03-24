@@ -53,11 +53,6 @@ export const newRoutes = {
     React.lazy(async () => import('./user')),
     {
       getOptions: {
-        headerLeft: p => {
-          return (
-            <HeaderLeftButton autoDetectCanGoBack={true} tintColor={p.tintColor} />
-          )
-        },
         headerShown: true,
         headerStyle: {backgroundColor: 'transparent'},
         headerTitle: () => (
