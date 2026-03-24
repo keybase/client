@@ -4,7 +4,7 @@ import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
 import webpack from 'webpack'
 import WebpackDevServer from 'webpack-dev-server'
-import type {Configuration, MultiStats, Stats, Watching} from 'webpack'
+import type {Configuration, MultiStats, Stats} from 'webpack'
 import rootConfig from '../webpack.config.mts'
 
 const require = createRequire(import.meta.url)
@@ -124,26 +124,6 @@ async function startHotLoop() {
   let rendererReady = false
   let restartingElectron = false
   let shuttingDown = false
-  let watching: Watching | undefined
-
-  const stop = async (code: number) => {
-    if (shuttingDown) {
-      return
-    }
-    shuttingDown = true
-
-    if (electronProcess) {
-      electronProcess.kill()
-      electronProcess = undefined
-    }
-
-    if (watching) {
-      await new Promise<void>(resolve => watching?.close(() => resolve()))
-    }
-
-    await server.stop().catch(() => {})
-    process.exit(code)
-  }
 
   const maybeLaunchElectron = () => {
     if (shuttingDown || !mainReady || !rendererReady || electronProcess) {
@@ -201,7 +181,26 @@ async function startHotLoop() {
     void stop(0)
   })
 
-  watching = mainCompiler.watch({}, (error, stats) => {
+  async function stop(code: number) {
+    if (shuttingDown) {
+      return
+    }
+    shuttingDown = true
+
+    if (electronProcess) {
+      electronProcess.kill()
+      electronProcess = undefined
+    }
+
+    if (watching) {
+      await new Promise<void>(resolve => watching.close(() => resolve()))
+    }
+
+    await server.stop().catch(() => {})
+    process.exit(code)
+  }
+
+  const watching = mainCompiler.watch({}, (error, stats) => {
     if (error) {
       console.error(error)
       return
