@@ -140,6 +140,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   private static var appStartTime: CFAbsoluteTime = 0
 
+  private static let logDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+    f.timeZone = TimeZone(secondsFromGMT: 0)
+    return f
+  }()
+
   private func writeStartupTimingLog(_ message: String, file: String = #file, line: Int = #line) {
     guard let logFilePath = self.fsPaths["logFile"], !logFilePath.isEmpty else {
       return
@@ -164,15 +171,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     let now = Date()
     let timeInterval = now.timeIntervalSince1970
-    let seconds = Int(timeInterval)
-    let microseconds = Int((timeInterval - Double(seconds)) * 1_000_000)
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-    let dateString = dateFormatter.string(from: now)
+    let microseconds = Int(timeInterval.truncatingRemainder(dividingBy: 1) * 1_000_000)
+    let dateString = AppDelegate.logDateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
 
-    let fileName = (file as NSString).lastPathComponent
+    let fileName = URL(fileURLWithPath: file).lastPathComponent
     let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
 
     guard let logData = logMessage.data(using: .utf8) else {
@@ -261,7 +264,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.alpha = 0
     self.resignImageView?.backgroundColor = rootView.backgroundColor
     self.resignImageView?.image = UIImage(named: "LaunchImage")
-    self.window?.addSubview(self.resignImageView!)
+    if let view = self.resignImageView { self.window?.addSubview(view) }
 
     UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
   }
@@ -384,7 +387,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func applicationWillResignActive(_ application: UIApplication) {
     NSLog("applicationWillResignActive: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
-    self.resignImageView?.superview?.bringSubviewToFront(self.resignImageView!)
+    if let view = self.resignImageView { view.superview?.bringSubviewToFront(view) }
     NSLog("applicationWillResignActive: rendering keyz screen...")
     UIView.animate(withDuration: 0.3, delay: 0.1, options: .beginFromCurrentState) {
       self.resignImageView?.alpha = 1
@@ -444,8 +447,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     // This handles the case where app was backgrounded and notification was clicked
     // but React Native wasn't ready yet
     if let storedNotification = KbGetAndClearInitialNotification() {
-      let type = storedNotification["type"] as? String ?? "unknown"
-      let convID = storedNotification["convID"] as? String ?? storedNotification["c"] as? String ?? "unknown"
       let userInteraction = storedNotification["userInteraction"] as? Bool ?? false
 
       if userInteraction {
@@ -457,7 +458,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
           KbEmitPushNotification(storedNotification)
           var copy = Dictionary(uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
           copy["reEmittedInBecomeActive"] = true
-          KbSetInitialNotification(copy as NSDictionary as! [AnyHashable : Any])
+          KbSetInitialNotification(copy)
         }
       } else {
         NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")

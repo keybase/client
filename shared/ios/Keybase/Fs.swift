@@ -16,19 +16,22 @@ import Foundation
 
         let appKeybasePath = Self.getAppKeybasePath()
         // Put logs in a subdir that is entirely background readable
-        let oldLogPath = ("~/Library/Caches/Keybase" as NSString).expandingTildeInPath
-        let logPath = (oldLogPath as NSString).appendingPathComponent("logs")
-        let serviceLogFile = skipLogFile ? "" : (logPath as NSString).appendingPathComponent("ios.log")
+        let oldLogURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Keybase")
+        let serviceLogFile = skipLogFile ? "" : oldLogURL
+            .appendingPathComponent("logs")
+            .appendingPathComponent("ios.log").path
 
         if !skipLogFile {
             // cleanup old log files
             let fm = FileManager.default
             ["ios.log", "ios.log.ek"].forEach {
-                try? fm.removeItem(atPath: (oldLogPath as NSString).appendingPathComponent($0))
+                try? fm.removeItem(at: oldLogURL.appendingPathComponent($0))
             }
         }
         // Create LevelDB and log directories with a slightly lower data protection
         // mode so we can use them in the background
+        let appKeybaseURL = URL(fileURLWithPath: appKeybasePath)
         [
             "keybase.chat.leveldb",
             "keybase.leveldb",
@@ -44,10 +47,10 @@ import Foundation
             "synced_tlf_config",
             "logs"
         ].forEach {
-            createBackgroundReadableDirectory(path: (appKeybasePath as NSString).appendingPathComponent($0), setAllFiles: true)
+            createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
         }
         // Mark avatars, which are in the caches dir
-        createBackgroundReadableDirectory(path: (oldLogPath as NSString).appendingPathComponent("avatars"), setAllFiles: true)
+        createBackgroundReadableDirectory(path: oldLogURL.appendingPathComponent("avatars").path, setAllFiles: true)
 
         let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
         NSLog("setupFs: completed in %.3f seconds", setupFsElapsed)
@@ -60,9 +63,11 @@ import Foundation
     }
 
     private func addSkipBackupAttribute(to path: String) -> Bool {
-        let url = Foundation.URL(fileURLWithPath: path)
+        var url = URL(fileURLWithPath: path)
         do {
-            try (url as NSURL).setResourceValue(true, forKey: URLResourceKey.isExcludedFromBackupKey)
+            var resourceValues = URLResourceValues()
+            resourceValues.isExcludedFromBackup = true
+            try url.setResourceValues(resourceValues)
             return true
         } catch {
             NSLog("Error excluding \(url.lastPathComponent) from backup \(error)")
@@ -93,10 +98,11 @@ import Foundation
         NSLog("setAllFiles is true charging forward")
 
         // Recursively set attributes on all subdirectories and files
+        let baseURL = URL(fileURLWithPath: path)
         var fileCount = 0
         if let enumerator = fm.enumerator(atPath: path) {
             for case let file as String in enumerator {
-                let filePath = (path as NSString).appendingPathComponent(file)
+                let filePath = baseURL.appendingPathComponent(file).path
                 do {
                     try fm.setAttributes(noProt, ofItemAtPath: filePath)
                     fileCount += 1
@@ -113,12 +119,14 @@ import Foundation
 
     private func maybeMigrateDirectory(source: String, dest: String) -> Bool {
         let fm = FileManager.default
+        let sourceURL = URL(fileURLWithPath: source)
+        let destURL = URL(fileURLWithPath: dest)
         do {
-          // Always do this move in case it doesn't work on previous attempts.
+            // Always do this move in case it doesn't work on previous attempts.
             let sourceContents = try fm.contentsOfDirectory(atPath: source)
             for file in sourceContents {
-                let path = (source as NSString).appendingPathComponent(file)
-                let destPath = (dest as NSString).appendingPathComponent(file)
+                let path = sourceURL.appendingPathComponent(file).path
+                let destPath = destURL.appendingPathComponent(file).path
                 var isDir: ObjCBool = false
                 if fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue {
                     NSLog("skipping directory: \(file)")
@@ -142,18 +150,20 @@ import Foundation
     }
 
     @objc static func getAppKeybasePath() -> String {
-        return ("~/Library/Application Support/Keybase" as NSString).expandingTildeInPath
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Keybase").path
     }
 
     @objc static func getEraseableKVPath() -> String {
-        return (getAppKeybasePath() as NSString).appendingPathComponent("eraseablekvstore/device-eks")
+        return URL(fileURLWithPath: getAppKeybasePath())
+            .appendingPathComponent("eraseablekvstore/device-eks").path
     }
 
     private func setupAppHome(home: String, sharedHome: String) -> String {
         let tempUrl = FileManager.default.temporaryDirectory
-      // workaround a problem where iOS dyld3 loader crashes if accessing .closure files
-       // with complete data protection on
-        let dyldDir = (tempUrl.path as NSString).appendingPathComponent("com.apple.dyld")
+        // workaround a problem where iOS dyld3 loader crashes if accessing .closure files
+        // with complete data protection on
+        let dyldDir = tempUrl.appendingPathComponent("com.apple.dyld").path
         let appKeybasePath = Self.getAppKeybasePath()
         let appEraseableKVPath = Self.getEraseableKVPath()
 
@@ -168,8 +178,10 @@ import Foundation
     private func setupSharedHome(home: String, sharedHome: String) -> String {
         let appKeybasePath = Self.getAppKeybasePath()
         let appEraseableKVPath = Self.getEraseableKVPath()
-        let sharedKeybasePath = (sharedHome as NSString).appendingPathComponent("Library/Application Support/Keybase")
-        let sharedEraseableKVPath = (sharedKeybasePath as NSString).appendingPathComponent("eraseablekvstore/device-eks")
+        let sharedKeybasePath = URL(fileURLWithPath: sharedHome)
+            .appendingPathComponent("Library/Application Support/Keybase").path
+        let sharedEraseableKVPath = URL(fileURLWithPath: sharedKeybasePath)
+            .appendingPathComponent("eraseablekvstore/device-eks").path
 
         createBackgroundReadableDirectory(path: sharedKeybasePath, setAllFiles: true)
         createBackgroundReadableDirectory(path: sharedEraseableKVPath, setAllFiles: true)
