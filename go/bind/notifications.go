@@ -37,10 +37,12 @@ func hasMultipleLoggedInAccounts(ctx context.Context) bool {
 	if multipleAccountsCached != nil {
 		return *multipleAccountsCached
 	}
-	result := false
-	if users, err := kbCtx.GetUsersWithStoredSecrets(ctx); err == nil {
-		result = len(users) > 1
+	users, err := kbCtx.GetUsersWithStoredSecrets(ctx)
+	if err != nil {
+		// Don't cache on error; retry next time.
+		return false
 	}
+	result := len(users) > 1
 	multipleAccountsCached = &result
 	return result
 }
