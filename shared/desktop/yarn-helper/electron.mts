@@ -99,7 +99,14 @@ function startHot() {
 }
 
 async function startHotLoop() {
+  const prevHot = process.env['HOT']
+  process.env['HOT'] = 'true'
   const configs = rootConfig(null, {mode: 'development'})
+  if (prevHot === undefined) {
+    delete process.env['HOT']
+  } else {
+    process.env['HOT'] = prevHot
+  }
   const nodeConfig = findConfig(configs, 'node')
   const preloadConfig = findConfig(configs, 'preload')
   const rendererConfig = findConfig(configs, 'renderer') as RendererConfig
