@@ -12,6 +12,29 @@ import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
 import type {Configuration, RuleSetRule, WebpackPluginInstance} from 'webpack'
 
+type DesktopDevServerConfiguration = Configuration & {
+  devServer?: {
+    client?: {
+      overlay?: boolean
+      webSocketURL?: {
+        hostname?: string
+        pathname?: string
+        port?: number
+      }
+    }
+    compress?: boolean
+    devMiddleware?: {
+      publicPath?: string
+    }
+    hot?: boolean
+    port?: number
+    static?: {
+      directory?: string
+      publicPath?: string
+    }
+  }
+}
+
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ignoredModules = require('../ignored-modules') as Array<string>
@@ -286,7 +309,9 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
 
   // multiple entries so we can chunk shared parts
   const entries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
-  const viewConfig: Configuration = merge<Configuration>(commonConfig, {
+  const viewConfig: DesktopDevServerConfiguration = merge<DesktopDevServerConfiguration>(
+    commonConfig as DesktopDevServerConfiguration,
+    {
     devServer: {
       compress: false,
       hot: isHot,
@@ -324,13 +349,14 @@ ${htmlWebpackPlugin.options.isDev && name === 'main' ? '<script src="http://loca
     plugins: makeViewPlugins(entries),
     resolve: {
       alias: {
-        ...commonConfig.resolve.alias,
+        ...alias,
         'path-parse': false,
       },
       fallback: {process: false, url: false},
     },
     target: 'web',
-  })
+    }
+  )
   const preloadConfig: Configuration = merge<Configuration>(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules(true)},

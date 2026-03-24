@@ -195,8 +195,8 @@ async function startPack() {
   try {
     if (TEMP_SKIP_BUILD) {
     } else {
-      const stats = await new Promise<webpack.Stats | undefined>((resolve, reject) => {
-        webpack(webpackConfig, (err: Error | null, stats: webpack.Stats | undefined) => {
+      const stats = await new Promise<webpack.MultiStats | undefined>((resolve, reject) => {
+        webpack(webpackConfig, (err: Error | null, stats: webpack.MultiStats | undefined) => {
           if (err) {
             reject(err)
           } else {
