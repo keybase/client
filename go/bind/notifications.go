@@ -26,7 +26,24 @@ import (
 var (
 	seenNotificationsMtx sync.Mutex
 	seenNotifications, _ = lru.New(100)
+
+	multipleAccountsMtx    sync.Mutex
+	multipleAccountsCached *bool
 )
+
+func hasMultipleLoggedInAccounts(ctx context.Context) bool {
+	multipleAccountsMtx.Lock()
+	defer multipleAccountsMtx.Unlock()
+	if multipleAccountsCached != nil {
+		return *multipleAccountsCached
+	}
+	result := false
+	if users, err := kbCtx.GetUsersWithStoredSecrets(ctx); err == nil {
+		result = len(users) > 1
+	}
+	multipleAccountsCached = &result
+	return result
+}
 
 type Person struct {
 	KeybaseUsername string
@@ -147,6 +164,10 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	}
 
 	currentUsername := string(kbCtx.Env.GetUsername())
+	title := "Keybase"
+	if hasMultipleLoggedInAccounts(ctx) {
+		title = fmt.Sprintf("%s@keybase", currentUsername)
+	}
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
@@ -162,7 +183,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		ConversationName:    utils.FormatConversationName(conv.Info, currentUsername),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
-		Title:               fmt.Sprintf("%s@keybase", currentUsername),
+		Title:               title,
 	}
 	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: title=%s", chatNotification.Title)
 
