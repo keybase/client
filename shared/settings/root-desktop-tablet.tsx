@@ -6,7 +6,7 @@ import {makeLayout} from '@/router-v2/screen-layout.desktop'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
+import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {sharedNewRoutes} from './routes'
 import {settingsAccountTab} from '@/stores/settings'
 
@@ -81,10 +81,7 @@ type NavType = NavigatorTypeBagBase & {
   }
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
-  NavType,
-  StaticConfig<NavigatorTypeBagBase>
->
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
 const TabNavigator = createLeftTabNavigator()
 const makeOptions = (rd: RouteDef) => {
   return ({route, navigation}: GetOptionsParams) => {
@@ -93,7 +90,7 @@ const makeOptions = (rd: RouteDef) => {
     return {...opt}
   }
 }
-const settingsScreens = routeMapToScreenElements(settingsSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false)
+const settingsScreens = routeMapToScreenElements(settingsSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false, false)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack

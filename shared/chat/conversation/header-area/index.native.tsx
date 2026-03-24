@@ -100,7 +100,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
     headerLeft: (props: HeaderBackButtonProps) => {
-      const {onLabelLayout, labelStyle, ...rest} = props
+      const {labelStyle, ...rest} = props
       return (
         <Chat.ChatProvider id={conversationIDKey}>
           <BadgeHeaderLeftArray {...rest} />

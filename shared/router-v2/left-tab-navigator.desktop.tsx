@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
+import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import type * as Tabs from '@/constants/tabs'
 import {useRouterState} from '@/stores/router'
 import {getModalStack} from '@/constants/router'
@@ -68,7 +68,4 @@ type NavType = NavigatorTypeBagBase & {
   }
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
-  NavType,
-  StaticConfig<NavigatorTypeBagBase>
->
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>

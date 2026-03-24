@@ -124,11 +124,11 @@ const styles = Kb.Styles.styleSheetCreate(
         isAndroid: {height: 56},
         isIOS: {height: 44},
       }),
+      filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
       filesTabStatusIcon: {
         height: Kb.Styles.globalMargins.small,
         width: Kb.Styles.globalMargins.small,
       },
-      filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
       headerContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderBottomColor: Kb.Styles.globalColors.black_10,
