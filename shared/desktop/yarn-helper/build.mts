@@ -34,7 +34,7 @@ const commands = {
   package: {
     help: 'Package up the production js code',
     nodeEnv: 'production',
-    shell: `yarn _node ${spaceArg} desktop/package.desktop.mts`,
+    shell: `node ${spaceArg} desktop/package.desktop.mts`,
   },
 } as const
 
