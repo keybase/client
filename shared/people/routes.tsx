@@ -27,7 +27,11 @@ export const newRoutes = {
 const AccountSignOutButton = () => {
   const navigateAppend = C.Router2.navigateAppend
   return (
-    <Kb.Text type="BodyBigLink" onClick={() => navigateAppend(settingsLogOutTab)} style={{color: Kb.Styles.globalColors.red}}>
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => navigateAppend(settingsLogOutTab)}
+      style={{color: Kb.Styles.globalColors.red, padding: 8}}
+    >
       Sign out
     </Kb.Text>
   )

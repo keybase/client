@@ -22,6 +22,7 @@ export function Text(p: Props) {
       selectable={p.selectable}
       numberOfLines={p.lineClamp}
       ellipsizeMode={p.lineClamp ? (p.ellipsizeMode ?? 'tail') : undefined}
+      suppressHighlighting={true}
     >
       {p.children}
     </RNText>
@@ -30,6 +31,9 @@ export function Text(p: Props) {
 
 export default Text
 
-const styles = Styles.styleSheetCreate(() => ({
-  center: {textAlign: 'center'},
-}) as const)
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      center: {textAlign: 'center'},
+    }) as const
+)

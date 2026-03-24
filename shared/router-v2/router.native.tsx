@@ -105,7 +105,11 @@ const getNativeTabIcon = (tab: Tabs.Tab) => {
   return source ? {source, type: 'image' as const} : undefined
 }
 
-const getBadgeNumber = (routeName: Tabs.Tab, navBadges: ReadonlyMap<Tabs.Tab, number>, hasPermissions: boolean) => {
+const getBadgeNumber = (
+  routeName: Tabs.Tab,
+  navBadges: ReadonlyMap<Tabs.Tab, number>,
+  hasPermissions: boolean
+) => {
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
   const count = tabsToCount.reduce(
