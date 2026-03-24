@@ -210,17 +210,18 @@ export const initPushListener = () => {
     if (s.uid === old.uid) return
     const pushState = storeRegistry.getState('push')
     const pending = pushState.pendingPushNotification
-    if (!pending || !('forUid' in pending)) return
     const forUid = (pending as {forUid?: string}).forUid
     if (!forUid || forUid !== s.uid) return
     pushState.dispatch.clearPendingPushNotification()
     pushState.dispatch.handlePush(pending)
   })
 
-  // Clear pending push on logout
+  // Clear pending push on logout, but not during an account switch — the switch
+  // flow sets userSwitching=true before triggering logout, and the pending
+  // notification must survive until the new account finishes bootstrapping.
   storeRegistry.getStore('config').subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    if (!s.loggedIn) {
+    if (!s.loggedIn && !s.userSwitching) {
       storeRegistry.getState('push').dispatch.clearPendingPushNotification()
     }
   })

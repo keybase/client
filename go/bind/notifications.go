@@ -23,20 +23,10 @@ import (
 	"github.com/kyokomi/emoji"
 )
 
-const seenNotificationsCacheSize = 100
-
 var (
-	seenNotificationsMtx  sync.Mutex
-	seenNotifications     *lru.Cache
-	seenNotificationsOnce sync.Once
+	seenNotificationsMtx sync.Mutex
+	seenNotifications, _ = lru.New(100)
 )
-
-func getSeenNotificationsCache() *lru.Cache {
-	seenNotificationsOnce.Do(func() {
-		seenNotifications, _ = lru.New(seenNotificationsCacheSize)
-	})
-	return seenNotifications
-}
 
 type Person struct {
 	KeybaseUsername string
@@ -126,10 +116,13 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	mp := chat.NewMobilePush(gc)
 	// Dedupe by convID||msgID
 	dupKey := strConvID + "||" + strconv.Itoa(intMessageID)
-	// Check if we've already processed this notification but without
-	// serializing the whole function. We check the map again while holding
-	// a lock before anything is displayed.
-	if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
+	// Optimistic early-exit: check under the mutex so that if another goroutine
+	// is currently in the display+add critical section below, we wait for it to
+	// finish and then see the cache entry rather than proceeding with redundant work.
+	seenNotificationsMtx.Lock()
+	_, isDup := seenNotifications.Get(dupKey)
+	seenNotificationsMtx.Unlock()
+	if isDup {
 		// Cancel any duplicate visible notifications
 		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
@@ -230,7 +223,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		// Lock and check if we've already processed this notification.
 		seenNotificationsMtx.Lock()
 		defer seenNotificationsMtx.Unlock()
-		if _, ok := getSeenNotificationsCache().Get(dupKey); ok {
+		if _, ok := seenNotifications.Get(dupKey); ok {
 			// Cancel any duplicate visible notifications
 			if len(pushID) > 0 {
 				mp.AckNotificationSuccess(ctx, []string{pushID})
@@ -240,7 +233,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 			return nil
 		}
 		pusher.DisplayChatNotification(&chatNotification)
-		getSeenNotificationsCache().Add(dupKey, struct{}{})
+		seenNotifications.Add(dupKey, struct{}{})
 		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}
