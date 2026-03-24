@@ -7,7 +7,7 @@ import * as React from 'react'
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {usePanGesture, GestureDetector, type PanGestureActiveEvent} from 'react-native-gesture-handler'
+import {usePanGesture, GestureDetector, type PanGestureEvent} from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
@@ -214,7 +214,7 @@ const useIconAndOverlay = (p: {
         panStartSV.set(Date.now())
       }
     },
-    onUpdate: (e: PanGestureActiveEvent) => {
+    onUpdate: (e: PanGestureEvent) => {
       'worklet'
       if (lockedSV.value || canceledSV.value) {
         return
@@ -222,9 +222,7 @@ const useIconAndOverlay = (p: {
       const maxCancelDrift = -120
       const maxLockDrift = -100
       dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
-      dragXSV.set(
-        interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
-      )
+      dragXSV.set(interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP))
       if (e.translationX < maxCancelDrift) {
         canceledSV.set(1)
       } else if (e.translationY < maxLockDrift) {
@@ -476,7 +474,8 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onResetRef.current()
+      onResetRef
+        .current()
         .then(() => {})
         .catch(() => {})
     }
