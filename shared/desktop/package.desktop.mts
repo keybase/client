@@ -4,9 +4,15 @@ import os from 'os'
 import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
-import rootConfig from './webpack.config.babel'
+import type {Configuration} from 'webpack'
+import rootConfig from './webpack.config.mts'
 import {readdir} from 'node:fs/promises'
-import {electronChecksums} from './electron-sums'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+import {electronChecksums} from './electron-sums.mts'
+
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const TEMP_SKIP_BUILD: boolean = false
 
@@ -185,12 +191,12 @@ async function main() {
 async function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
   process.env['APP_VERSION'] = appVersion
-  const webpackConfig = rootConfig(null, {mode: 'production'})
+  const webpackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
   try {
     if (TEMP_SKIP_BUILD) {
     } else {
-      const stats = await new Promise<webpack.Stats | undefined>((resolve, reject) => {
-        webpack(webpackConfig, (err, stats: webpack.Stats | undefined) => {
+      const stats = await new Promise<webpack.MultiStats | undefined>((resolve, reject) => {
+        webpack(webpackConfig, (err: Error | null, stats: webpack.MultiStats | undefined) => {
           if (err) {
             reject(err)
           } else {

@@ -3,6 +3,9 @@ import path from 'path'
 import emojiData from 'emoji-datasource-apple'
 import escapeRegExp from 'lodash/escapeRegExp'
 import prettier from 'prettier'
+import {fileURLToPath} from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const commonTlds = [
   'com',
@@ -29,9 +32,8 @@ const commonTlds = [
 ]
 
 /**
- * Note on above: importing a non-transpiled module that uses modern JS features
- * (e.g. `import`) will break this! babel-node does not transpile imports from
- * node_modules/ by default. See this thread for more:
+ * Note on above: this script runs directly in Node, so importing a dependency
+ * that expects an extra transpilation step will break here. See this thread for more:
  * https://github.com/babel/babel/issues/7566
  */
 

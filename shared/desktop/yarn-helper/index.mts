@@ -1,12 +1,15 @@
 // Helper for cross platform yarn run script commands
-import buildCommands from './build'
-import electronComands from './electron'
-import fontCommands from './font'
-import prettierCommands from './prettier'
+import buildCommands from './build.mts'
+import electronComands from './electron.mts'
+import fontCommands from './font.mts'
+import prettierCommands from './prettier.mts'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import {rimrafSync} from 'rimraf'
+import {fileURLToPath} from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const [, , command, ...rest] = process.argv
 

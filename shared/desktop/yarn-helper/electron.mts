@@ -2,6 +2,11 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import {spawn} from 'child_process'
+import {createRequire} from 'node:module'
+import {fileURLToPath} from 'node:url'
+
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const isLinux = process.platform === 'linux'
 const debugInNode = (false as boolean) ? '--inspect-brk' : ''

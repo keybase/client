@@ -72,7 +72,7 @@ After bumping the `electron` version in `package.json` and running `yarn`, updat
 cd shared && ./desktop/extract-electron-shasums.sh <new-version>
 ```
 
-This regenerates `shared/desktop/electron-sums.tsx` with the correct SHA256 checksums for all platforms.
+This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 checksums for all platforms.
 
 ## Notes
 
