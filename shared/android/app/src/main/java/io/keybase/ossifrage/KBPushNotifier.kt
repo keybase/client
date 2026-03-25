@@ -122,6 +122,7 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
             val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
+                .setContentTitle(chatNotification.title ?: "")
                 .setContentIntent(pending_intent)
                 .setAutoCancel(true)
         var notificationDefaults = NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE
@@ -228,9 +229,9 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         notificationManager.notify(uniqueTag, 0, builder.build())
     }
 
-    override fun localNotification(ident: String, msg: String, badgeCount: Long, soundName: String, convID: String,
+    override fun localNotification(ident: String, title: String, msg: String, badgeCount: Long, soundName: String, convID: String,
                                    typ: String) {
-        genericNotification(ident, "", msg, bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID)
+        genericNotification(ident, title, msg, bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID)
     }
 
     companion object {

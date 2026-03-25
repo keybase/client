@@ -26,7 +26,26 @@ import (
 var (
 	seenNotificationsMtx sync.Mutex
 	seenNotifications, _ = lru.New(100)
+
+	multipleAccountsMtx    sync.Mutex
+	multipleAccountsCached *bool
 )
+
+func hasMultipleLoggedInAccounts(ctx context.Context) bool {
+	multipleAccountsMtx.Lock()
+	defer multipleAccountsMtx.Unlock()
+	if multipleAccountsCached != nil {
+		return *multipleAccountsCached
+	}
+	users, err := kbCtx.GetUsersWithStoredSecrets(ctx)
+	if err != nil {
+		// Don't cache on error; retry next time.
+		return false
+	}
+	result := len(users) > 1
+	multipleAccountsCached = &result
+	return result
+}
 
 type Person struct {
 	KeybaseUsername string
@@ -55,6 +74,8 @@ type ChatNotification struct {
 	IsPlaintext         bool
 	SoundName           string
 	BadgeCount          int
+	// Title is the notification title, e.g. "username@keybase"
+	Title string
 }
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
@@ -144,6 +165,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return err
 	}
 
+	currentUsername := string(kbCtx.Env.GetUsername())
+	title := "Keybase"
+	if hasMultipleLoggedInAccounts(ctx) {
+		title = fmt.Sprintf("%s@keybase", currentUsername)
+	}
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
@@ -156,10 +182,12 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
+		ConversationName:    utils.FormatConversationName(conv.Info, currentUsername),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
+		Title:               title,
 	}
+	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: title=%s", chatNotification.Title)
 
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
 	if err == nil && msgUnboxed.IsValid() {
