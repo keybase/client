@@ -60,6 +60,39 @@ export type Section = Kb.SectionType<Item> & {
   title?: string
 }
 
+const areMembersStillLoading = (meta: T.Teams.TeamMeta, details: T.Teams.TeamDetails) =>
+  meta.memberCount > 0 && !details.members.size
+
+const renderLoadingRow = () => <LoadingRow />
+
+const makeLoadingSection = (type: 'channel-loading' | 'members-loading'): Section => ({
+  data: [{type}],
+  renderItem: renderLoadingRow,
+})
+
+const sortChannels = (
+  a: {c: {channelname: string}},
+  b: {c: {channelname: string}}
+) =>
+  a.c.channelname === 'general'
+    ? -1
+    : b.c.channelname === 'general'
+      ? 1
+      : a.c.channelname.localeCompare(b.c.channelname)
+
+const useInvitesCollapseState = (teamID: T.Teams.TeamID) => {
+  const {invitesCollapsed, toggleInvitesCollapsed} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      invitesCollapsed: s.invitesCollapsed,
+      toggleInvitesCollapsed: s.dispatch.toggleInvitesCollapsed,
+    }))
+  )
+  return {
+    collapsed: invitesCollapsed.has(teamID),
+    onToggleCollapsed: () => toggleInvitesCollapsed(teamID),
+  }
+}
+
 export const useMembersSections = (
   teamID: T.Teams.TeamID,
   meta: T.Teams.TeamMeta,
@@ -67,13 +100,11 @@ export const useMembersSections = (
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const yourUsername = useCurrentUserState(s => s.username)
-  // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
-  // TODO: consider moving this to the parent
-  const stillLoading = meta.memberCount > 0 && !details.members.size
-  if (stillLoading) {
-    return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
+  if (areMembersStillLoading(meta, details)) {
+    return [makeLoadingSection('members-loading')]
   }
+
   const sections: Array<Section> = [
     {
       data: getOrderedMemberArray(details.members, yourUsername, yourOperations).map(mi => ({
@@ -104,11 +135,10 @@ export const useBotSections = (
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const stillLoading = meta.memberCount > 0 && !details.members.size
-  if (stillLoading) {
-    return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
+  if (areMembersStillLoading(meta, details)) {
+    return [makeLoadingSection('members-loading')]
   }
-  // TODO: is there an empty state here?
+
   return [
     {
       data: getOrderedBotsArray(details.members).map(b => ({
@@ -125,11 +155,7 @@ export const useBotSections = (
 }
 
 export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Teams.useTeamsState(s => s.invitesCollapsed)
-  const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = Teams.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
-  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
-
+  const {collapsed, onToggleCollapsed} = useInvitesCollapseState(teamID)
   const sections: Array<Section> = []
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
@@ -190,8 +216,12 @@ export const useChannelsSections = (
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
+  const {canCreate, channels} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      canCreate: Teams.getCanPerformByID(s, teamID).createChannel,
+      channels: s.channelInfo.get(teamID),
+    }))
+  )
 
   if (!isBig) {
     return [
@@ -202,7 +232,7 @@ export const useChannelsSections = (
     ]
   }
   if (!channels) {
-    return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
+    return [makeLoadingSection('channel-loading')]
   }
   const createRow = canCreate
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
@@ -212,15 +242,7 @@ export const useChannelsSections = (
   return [
     ...createRow,
     {
-      data: channelsValues
-        .map(c => ({c, type: 'channel-channels'}))
-        .sort((a, b) =>
-          a.c.channelname === 'general'
-            ? -1
-            : b.c.channelname === 'general'
-              ? 1
-              : a.c.channelname.localeCompare(b.c.channelname)
-        ),
+      data: channelsValues.map(c => ({c, type: 'channel-channels'})).sort(sortChannels),
       renderItem: ({item}: {item: Item}) =>
         item.type === 'channel-channels' ? (
           <ChannelRow teamID={teamID} conversationIDKey={item.c.conversationIDKey} />
@@ -274,8 +296,12 @@ export const useSubteamsSections = (
 
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
-  const generalConvID = Chat.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
-  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const {findGeneralConvIDFromTeamID, generalConvID} = Chat.useChatState(
+    C.useShallow(s => ({
+      findGeneralConvIDFromTeamID: s.dispatch.findGeneralConvIDFromTeamID,
+      generalConvID: teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined,
+    }))
+  )
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {
@@ -336,10 +362,8 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     doGetUserEmoji()
   })
 
-  let filteredEmoji: T.RPCChat.Emoji[] = customEmoji
-  if (filter !== '') {
-    filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
-  }
+  const filteredEmoji =
+    filter === '' ? customEmoji : customEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
 
   const sections: Array<Section> = []
   sections.push({

@@ -24,42 +24,61 @@ type Props = {
   teamID: T.Teams.TeamID
   initialTab?: T.Teams.TabKey
 }
+type SetSelectedTab = (tab: T.Teams.TabKey) => void
+type TeamSectionsByTab = {
+  botSections: Array<Section>
+  channelsSections: Array<Section>
+  emojiSections: Array<Section>
+  invitesSections: Array<Section>
+  membersSections: Array<Section>
+  settingsSection: Section
+  subteamsSections: Array<Section>
+  yourOperations: T.Teams.TeamOperations
+}
 
 // keep track during session
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
 const defaultTab: T.Teams.TabKey = 'members'
 
+const updateTabSelection = (
+  currentTab: T.Teams.TabKey,
+  nextTab: T.Teams.TabKey,
+  teamID: T.Teams.TeamID,
+  resetErrorInSettings: () => void,
+  loadTeamChannelList: (teamID: T.Teams.TeamID) => void
+) => {
+  lastSelectedTabs.set(teamID, nextTab)
+  if (currentTab !== 'settings' && nextTab === 'settings') {
+    resetErrorInSettings()
+  }
+  if (currentTab !== 'channels' && nextTab === 'channels') {
+    loadTeamChannelList(teamID)
+  }
+}
+
 const useTabsState = (
   teamID: T.Teams.TeamID,
   providedTab?: T.Teams.TabKey
-): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
+): [T.Teams.TabKey, SetSelectedTab] => {
+  const {loadTeamChannelList, resetErrorInSettings} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      loadTeamChannelList: s.dispatch.loadTeamChannelList,
+      resetErrorInSettings: s.dispatch.resetErrorInSettings,
+    }))
+  )
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
-  const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
-  const setSelectedTab = (t: T.Teams.TabKey) => {
-      lastSelectedTabs.set(teamID, t)
-      if (selectedTab !== 'settings' && t === 'settings') {
-        resetErrorInSettings()
-      }
-      if (selectedTab !== 'channels' && t === 'channels') {
-        loadTeamChannelList(teamID)
-      }
-      _setSelectedTab(t)
-    }
+  const setSelectedTab = (nextTab: T.Teams.TabKey) => {
+    updateTabSelection(selectedTab, nextTab, teamID, resetErrorInSettings, loadTeamChannelList)
+    _setSelectedTab(nextTab)
+  }
 
   const prevTeamIDRef = React.useRef(teamID)
 
   React.useEffect(() => {
     if (teamID !== prevTeamIDRef.current) {
       prevTeamIDRef.current = teamID
-      lastSelectedTabs.set(teamID, defaultSelectedTab)
-      if (defaultSelectedTab === 'settings') {
-        resetErrorInSettings()
-      }
-      if (defaultSelectedTab === 'channels') {
-        loadTeamChannelList(teamID)
-      }
+      updateTabSelection(defaultTab, defaultSelectedTab, teamID, resetErrorInSettings, loadTeamChannelList)
       _setSelectedTab(defaultSelectedTab)
     }
   }, [teamID, defaultSelectedTab, resetErrorInSettings, loadTeamChannelList])
@@ -81,15 +100,75 @@ const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boole
   }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots])
 }
 
-const Team = (props: Props) => {
-  const teamID = props.teamID
-  const initialTab = props.initialTab
-  const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
+const makeHeaderSection = (
+  teamID: T.Teams.TeamID,
+  selectedTab: T.Teams.TabKey,
+  setSelectedTab: SetSelectedTab
+) =>
+  ({
+    data: [{type: 'header'}, {type: 'tabs'}],
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'header' ? (
+        <NewTeamHeader teamID={teamID} />
+      ) : item.type === 'tabs' ? (
+        <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      ) : null,
+  }) as const
 
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
+const getSectionsForTab = (selectedTab: T.Teams.TabKey, sectionsByTab: TeamSectionsByTab): Array<Section> => {
+  const {
+    botSections,
+    channelsSections,
+    emojiSections,
+    invitesSections,
+    membersSections,
+    settingsSection,
+    subteamsSections,
+    yourOperations,
+  } = sectionsByTab
+
+  switch (selectedTab) {
+    case 'members':
+      return yourOperations.manageMembers ? [...invitesSections, ...membersSections] : membersSections
+    case 'bots':
+      return botSections
+    case 'invites':
+      return invitesSections
+    case 'settings':
+      return [settingsSection]
+    case 'channels':
+      return channelsSections
+    case 'subteams':
+      return subteamsSections
+    case 'emoji':
+      return emojiSections
+  }
+}
+
+const renderSectionHeader = ({section}: {section: Section}) =>
+  section.title ? (
+    <Kb.SectionDivider
+      label={section.title}
+      collapsed={section.collapsed}
+      onToggleCollapsed={section.onToggleCollapsed}
+    />
+  ) : null
+
+const getSelectionPopupTab = (selectedTab: T.Teams.TabKey) =>
+  selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+
+const getItemHeight = () => 48
+
+const Team = ({initialTab, teamID}: Props) => {
+  const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
   const teamMeta = Teams.useTeamsState(C.useDeep(s => Teams.getTeamMeta(s, teamID)))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
+  const {teamDetails, teamSeen, yourOperations} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      teamDetails: s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails,
+      teamSeen: s.dispatch.teamSeen,
+      yourOperations: Teams.getCanPerformByID(s, teamID),
+    }))
+  )
 
   C.Router2.useSafeFocusEffect(
     () => {
@@ -102,81 +181,37 @@ const Team = (props: Props) => {
   useLoadFeaturedBots(teamDetails, selectedTab === 'bots' /* shouldLoad */)
   useActivityLevels()
 
-  // Sections
-  const headerSection = {
-    data: [{type: 'header'}, {type: 'tabs'}],
-    renderItem: ({item}: {item: Item}) =>
-      item.type === 'header' ? (
-        <NewTeamHeader teamID={teamID} />
-      ) : item.type === 'tabs' ? (
-        <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      ) : null,
-  } as const
-
-  const sections: Array<Section> = [headerSection]
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
   const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails)
   const channelsSections = useChannelsSections(teamID, yourOperations)
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
-
-  switch (selectedTab) {
-    case 'members':
-      if (yourOperations.manageMembers) {
-        sections.push(...invitesSections)
-      }
-      sections.push(...membersSections)
-      break
-    case 'bots':
-      sections.push(...botSections)
-      break
-    case 'invites':
-      sections.push(...invitesSections)
-      break
-    case 'settings':
-      sections.push({data: [{type: 'settings'}], renderItem: () => <Settings teamID={teamID} />})
-      break
-    case 'channels':
-      sections.push(...channelsSections)
-      break
-    case 'subteams':
-      sections.push(...subteamsSections)
-      break
-    case 'emoji':
-      sections.push(...emojiSections)
-      break
-  }
-
-  const renderSectionHeader = ({section}: {section: Section}) =>
-      section.title ? (
-        <Kb.SectionDivider
-          label={section.title}
-          collapsed={section.collapsed}
-          onToggleCollapsed={section.onToggleCollapsed}
-        />
-      ) : null
-
-  const getItemHeight = () => {
-    return 48
-  }
+  const sections: Array<Section> = [
+    makeHeaderSection(teamID, selectedTab, setSelectedTab),
+    ...getSectionsForTab(selectedTab, {
+      botSections,
+      channelsSections,
+      emojiSections,
+      invitesSections,
+      membersSections,
+      settingsSection: {data: [{type: 'settings'}], renderItem: () => <Settings teamID={teamID} />},
+      subteamsSections,
+      yourOperations,
+    }),
+  ]
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
-        <Kb.SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Kb.Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
-          getItemHeight={getItemHeight}
-        />
-        <SelectionPopup
-          selectedTab={
-            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-          }
-          teamID={teamID}
-        />
+      <Kb.SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Kb.Styles.isMobile}
+        sections={sections}
+        contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
+        getItemHeight={getItemHeight}
+      />
+      <SelectionPopup selectedTab={getSelectionPopupTab(selectedTab)} teamID={teamID} />
     </Kb.Box2>
   )
 }

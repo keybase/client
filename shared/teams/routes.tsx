@@ -11,60 +11,70 @@ import teamsTeamBuilder from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 
+const useAddMembersWizardTeamID = () => Teams.useTeamsState(s => s.addMembersWizard.teamID)
+
+const useModalHeaderActionState = () =>
+  useModalHeaderState(
+    C.useShallow(s => ({
+      enabled: s.actionEnabled,
+      onAction: s.onAction,
+      title: s.title,
+      waiting: s.actionWaiting,
+    }))
+  )
+
+const AddMembersWizardHeaderTitle = ({title}: {title: string}) => {
+  const teamID = useAddMembersWizardTeamID()
+  return <ModalTitle teamID={teamID} title={title} />
+}
+
+const HeaderLink = ({
+  label,
+  onClick,
+  style,
+}: {
+  label: string
+  onClick?: (() => void) | undefined
+  style?: Kb.Styles.StylesCrossPlatform | undefined
+}) => (
+  <Kb.Text type="BodyBigLink" onClick={onClick} style={style}>
+    {label}
+  </Kb.Text>
+)
+
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
   return <ModalTitle teamID={teamID} title={title || 'Browse all channels'} />
 }
 
 const AddToChannelsHeaderRight = () => {
-  const {enabled, waiting, onAction} = useModalHeaderState(
-    C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
-  )
+  const {enabled, waiting, onAction} = useModalHeaderActionState()
   if (!onAction) return null
   if (waiting) return <Kb.ProgressIndicator type="Large" />
-  return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={onAction}
-      style={!enabled ? {opacity: 0.4} : undefined}
-    >
-      Add
-    </Kb.Text>
-  )
+  return <HeaderLink label="Add" onClick={onAction} style={!enabled ? {opacity: 0.4} : undefined} />
 }
 
 const SubteamMembersHeaderRight = () => {
-  const {onAction, title} = useModalHeaderState(
-    C.useShallow(s => ({onAction: s.onAction, title: s.title}))
-  )
+  const {onAction, title} = useModalHeaderActionState()
   if (!Kb.Styles.isMobile) return null
   return (
     <Kb.Box2 direction="horizontal" style={{width: 48}} justifyContent="flex-end">
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
-        {title || 'Skip'}
-      </Kb.Text>
+      <HeaderLink label={title || 'Skip'} onClick={onAction} />
     </Kb.Box2>
   )
 }
 
-const AddContactsHeaderTitle = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  return <ModalTitle teamID={teamID} title="Add members" />
-}
+const AddContactsHeaderTitle = () => <AddMembersWizardHeaderTitle title="Add members" />
 
 const AddContactsHeaderRight = () => {
-  const {enabled, waiting, onAction} = useModalHeaderState(
-    C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
-  )
+  const {enabled, waiting, onAction} = useModalHeaderActionState()
   return (
     <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
-      <Kb.Text
-        type="BodyBigLink"
+      <HeaderLink
+        label="Done"
         onClick={!waiting && enabled ? onAction : undefined}
         style={!enabled ? {opacity: 0} : waiting ? {opacity: 0.4} : undefined}
-      >
-        Done
-      </Kb.Text>
+      />
       {waiting && (
         <Kb.Box2
           direction="horizontal"
@@ -78,15 +88,9 @@ const AddContactsHeaderRight = () => {
   )
 }
 
-const WizardEmailHeaderTitle = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  return <ModalTitle teamID={teamID} title="Email list" />
-}
+const WizardEmailHeaderTitle = () => <AddMembersWizardHeaderTitle title="Email list" />
 
-const WizardPhoneHeaderTitle = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  return <ModalTitle teamID={teamID} title="Phone list" />
-}
+const WizardPhoneHeaderTitle = () => <AddMembersWizardHeaderTitle title="Phone list" />
 
 const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
@@ -106,29 +110,25 @@ const ConfirmHeaderTitle = () => {
 }
 
 const ConfirmHeaderLeft = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = useAddMembersWizardTeamID()
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   if (newTeam) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={() => navUpToScreen('teamAddToTeamFromWhere')} />
   }
-  return (
-    <Kb.Text type="BodyBigLink" onClick={cancelAddMembersWizard}>
-      Cancel
-    </Kb.Text>
-  )
+  return <HeaderLink label="Cancel" onClick={cancelAddMembersWizard} />
 }
 
 const AddFromWhereHeaderLeft = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = useAddMembersWizardTeamID()
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   if (newTeam) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
   }
-  return <Kb.Text type="BodyBigLink" onClick={cancelAddMembersWizard}>Cancel</Kb.Text>
+  return <HeaderLink label="Cancel" onClick={cancelAddMembersWizard} />
 }
 
 const AddFromWhereSkip = () => {
@@ -138,22 +138,21 @@ const AddFromWhereSkip = () => {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
-      <Kb.Text type="BodyBigLink" onClick={finishNewTeamWizard}>Skip</Kb.Text>
+      <HeaderLink label="Skip" onClick={finishNewTeamWizard} />
     )
   }
   return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={finishNewTeamWizard} waiting={waiting} />
 }
 
 const AddFromWhereHeaderRight = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = useAddMembersWizardTeamID()
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   return newTeam ? <AddFromWhereSkip /> : null
 }
 
-const AddFromWhereHeaderTitle = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
-}
+const AddFromWhereHeaderTitle = () => (
+  <AddMembersWizardHeaderTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} />
+)
 
 const JoinTeamHeaderTitle = () => {
   const success = Teams.useTeamsState(s => s.teamJoinSuccess)
@@ -183,11 +182,7 @@ const NewTeamInfoHeaderLeft = () => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   if (isSubteam) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={clearModals}>
-        Cancel
-      </Kb.Text>
-    )
+    return <HeaderLink label="Cancel" onClick={clearModals} />
   }
   return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
 }

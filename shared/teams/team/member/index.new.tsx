@@ -19,10 +19,6 @@ type Props = {
   teamID: T.Teams.TeamID
   username: string
 }
-type OwnProps = {
-  teamID: T.Teams.TeamID
-  username: string
-}
 
 type TeamTreeRowNotIn = {
   teamID: T.Teams.TeamID
@@ -118,6 +114,42 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   }
 }
 
+const useTeamTreeLoading = (teamID: T.Teams.TeamID, username: string) =>
+  Teams.useTeamsState(
+    C.useShallow(s => {
+      const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
+      let loading = true
+      if (memberships?.expectedCount) {
+        const got = memberships.memberships.length
+        const want = memberships.expectedCount
+        if (got > want) {
+          logger.error(`got ${got} notifications for ${teamID}; only wanted ${want}`)
+        }
+        loading = got < want
+      }
+      return {
+        loadTeamTree: s.dispatch.loadTeamTree,
+        loading,
+      }
+    })
+  )
+
+const useExpandedMembershipSet = () => {
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
+  const setExpanded = (teamID: T.Teams.TeamID, expanded: boolean) => {
+    setExpandedSet(prev => {
+      const next = new Set(prev)
+      if (expanded) {
+        next.add(teamID)
+      } else {
+        next.delete(teamID)
+      }
+      return next
+    })
+  }
+  return {expandedSet, setExpanded}
+}
+
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = useSafeNavigation()
   const waitingKey = C.waitingKeyTeamsRemoveMember(teamID, username)
@@ -141,131 +173,128 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}
 type Section = Kb.SectionType<Item>
 
-const TeamMember = (props: OwnProps) => {
-  const username = props.username
-  const teamID = props.teamID
-  const isMe = username === useCurrentUserState(s => s.username)
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
-      let loading = true
-      if (memberships?.expectedCount) {
-        const got = memberships.memberships.length
-        const want = memberships.expectedCount
-        if (got > want) {
-          logger.error(`got ${got} notifications for ${teamID}; only wanted ${want}`)
-        }
-        loading = got < want
-      }
-      return {
-        loadTeamTree: s.dispatch.loadTeamTree,
-        loading,
-      }
-    })
-  )
-  const {loadTeamTree, loading} = teamsState
+const MembershipSectionTitle = ({label, loading}: {label: string; loading: boolean}) => (
+  <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
+    <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
+    {loading && <Kb.ProgressIndicator type="Small" />}
+  </Kb.Box2>
+)
 
-  // Load up the memberships when the page is opened
+const formatMembershipError = (error: T.RPCGen.TeamTreeMembership) => {
+  if (T.RPCGen.TeamTreeMembershipStatus.error !== error.result.s) {
+    return ''
+  }
+
+  const failedAt = [error.teamName]
+  if (error.result.error.willSkipSubtree) {
+    failedAt.push('its subteams')
+  }
+  if (error.result.error.willSkipAncestors) {
+    failedAt.push('its parent teams')
+  }
+  if (failedAt.length === 1) {
+    return failedAt[0] ?? ''
+  }
+
+  const last = failedAt.pop()
+  return `${failedAt.join(', ')}, and ${last ?? ''}`
+}
+
+const TeamTreeErrorBanner = (props: {
+  errors: Array<T.RPCGen.TeamTreeMembership>
+  loading: boolean
+  onReload: () => void
+}) =>
+  props.errors.length > 0 ? (
+    <Kb.Banner color="red">
+      {props.loading ? <Kb.ProgressIndicator type="Small" /> : null}
+      <Kb.BannerParagraph
+        key="teamTreeErrorHeader"
+        bannerColor="red"
+        content={[
+          'The following teams could not be loaded. ',
+          {
+            onClick: props.onReload,
+            text: 'Click to reload.',
+          },
+        ]}
+      />
+      <>
+        {props.errors.map((error, idx) => {
+          const failedAt = formatMembershipError(error)
+          return failedAt ? (
+            <Kb.BannerParagraph
+              key={'teamTreeErrorRow' + idx.toString()}
+              bannerColor="red"
+              content={'• ' + failedAt}
+            />
+          ) : null
+        })}
+      </>
+    </Kb.Banner>
+  ) : null
+
+const useMembershipSections = (
+  teamID: T.Teams.TeamID,
+  username: string,
+  isMe: boolean,
+  loading: boolean,
+  nodesIn: Array<TeamTreeRowIn>,
+  nodesNotIn: Array<TeamTreeRowNotIn>
+): Array<Section> => {
+  const {expandedSet, setExpanded} = useExpandedMembershipSet()
+  return [
+    {
+      data: nodesIn.map(node => ({tri: node, type: 'section-nodes'})),
+      renderItem: ({item, index}: {item: Item; index: number}) =>
+        item.type === 'section-nodes' ? (
+          <NodeInRow
+            node={item.tri}
+            idx={index}
+            isParentTeamMe={isMe && teamID === item.tri.teamID}
+            username={username}
+            expanded={expandedSet.has(item.tri.teamID)}
+            setExpanded={expanded => setExpanded(item.tri.teamID, expanded)}
+          />
+        ) : null,
+      title: (
+        <MembershipSectionTitle
+          label={isMe ? 'You are a member of:' : `${username} is a member of:`}
+          loading={loading}
+        />
+      ),
+    },
+    {
+      data: nodesNotIn.map(node => ({tni: node, type: 'section-add-nodes'})),
+      renderItem: ({item, index}: {item: Item; index: number}) =>
+        item.type === 'section-add-nodes' ? (
+          <NodeNotInRow node={item.tni} idx={index} username={username} />
+        ) : null,
+      title: (
+        <MembershipSectionTitle
+          label={isMe ? 'You are not in:' : `${username} is not in:`}
+          loading={loading}
+        />
+      ),
+    },
+  ]
+}
+
+const TeamMember = ({teamID, username}: Props) => {
+  const isMe = username === useCurrentUserState(s => s.username)
+  const {loadTeamTree, loading} = useTeamTreeLoading(teamID, username)
+  const {errors, nodesIn, nodesNotIn} = useMemberships(teamID, username)
+
   React.useEffect(() => {
     loadTeamTree(teamID, username)
   }, [loadTeamTree, teamID, username])
 
-  const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
+  const sections = useMembershipSections(teamID, username, isMe, loading, nodesIn, nodesNotIn)
+  const onReload = () => loadTeamTree(teamID, username)
 
-  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
-
-  const makeTitle = (label: string) => {
-    return (
-      <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
-        <Kb.Text type="BodySmallSemibold">{label}</Kb.Text>
-        {loading && <Kb.ProgressIndicator type="Small" />}
-      </Kb.Box2>
-    )
-  }
-
-  const nodesInSection: Section = {
-    data: nodesIn.map(n => ({tri: n, type: 'section-nodes'})),
-    renderItem: ({item, index}: {item: Item; index: number}) =>
-      item.type === 'section-nodes' ? (
-        <NodeInRow
-          node={item.tri}
-          idx={index}
-          isParentTeamMe={isMe && teamID === item.tri.teamID}
-          username={username}
-          expanded={expandedSet.has(item.tri.teamID)}
-          setExpanded={newExpanded => {
-            if (newExpanded) {
-              expandedSet.add(item.tri.teamID)
-            } else {
-              expandedSet.delete(item.tri.teamID)
-            }
-            setExpandedSet(new Set([...expandedSet]))
-          }}
-        />
-      ) : null,
-    title: makeTitle(isMe ? 'You are a member of:' : `${username} is a member of:`),
-  }
-
-  const nodesNotInSection: Section = {
-    data: nodesNotIn.map(n => ({
-      tni: n,
-      type: 'section-add-nodes',
-    })),
-    renderItem: ({item, index}: {item: Item; index: number}) =>
-      item.type === 'section-add-nodes' ? (
-        <NodeNotInRow node={item.tni} idx={index} username={username} />
-      ) : null,
-    title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
-  }
-
-  const sections: Array<Section> = [nodesInSection, nodesNotInSection]
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true}>
-      {errors.length > 0 && (
-        <Kb.Banner color="red">
-          {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}
-          <Kb.BannerParagraph
-            key="teamTreeErrorHeader"
-            bannerColor="red"
-            content={[
-              'The following teams could not be loaded. ',
-              {
-                onClick: () => loadTeamTree(teamID, username),
-                text: 'Click to reload.',
-              },
-            ]}
-          />
-          <>
-            {errors.map((error, idx) => {
-              if (T.RPCGen.TeamTreeMembershipStatus.error !== error.result.s) {
-                return <></>
-              }
-
-              const failedAt = [error.teamName]
-              if (error.result.error.willSkipSubtree) {
-                failedAt.push('its subteams')
-              }
-              if (error.result.error.willSkipAncestors) {
-                failedAt.push('its parent teams')
-              }
-              let failedAtStr = ''
-              if (failedAt.length > 1) {
-                const last = failedAt.pop()
-                failedAtStr = failedAt.join(', ') + ', and ' + last
-              } else {
-                failedAtStr = failedAt[0] ?? ''
-              }
-              return (
-                <Kb.BannerParagraph
-                  key={'teamTreeErrorRow' + idx.toString()}
-                  bannerColor="red"
-                  content={'• ' + failedAtStr}
-                />
-              )
-            })}
-          </>
-        </Kb.Banner>
-      )}
+      <TeamTreeErrorBanner errors={errors} loading={loading} onReload={onReload} />
       <Kb.SectionList
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
@@ -689,22 +718,21 @@ export const TeamMemberHeader = (props: Props) => {
   )
 }
 
-const BlockDropdown = (props: {username: string}) => {
-  const {username} = props
+const BlockDropdown = ({username}: {username: string}) => {
   const nav = useSafeNavigation()
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+      />
+    )
+  }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
@@ -781,10 +809,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {paddingBottom: Kb.Styles.globalMargins.tiny},
     isTablet: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
-  membershipIcon: {
-    flexShrink: 0,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
   membershipTeamText: {justifyContent: 'center'},
   membershipTeamTextExpanded: Kb.Styles.platformStyles({
     isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
