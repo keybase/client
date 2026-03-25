@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 import {useColorScheme} from 'react-native'
 
 export type Props = {

@@ -1,8 +1,8 @@
 // HiddenString tries to wrap a string value to prevent it from being easily
-// output as a string to log, file or console
+// output as a string to log, file or console.
 const valueKey = Symbol('valueKey')
 
-class HiddenString {
+export class HiddenString {
   private [valueKey]: string = ''
 
   constructor(stringValue: string) {
@@ -32,4 +32,3 @@ class HiddenString {
 }
 
 export default HiddenString
-

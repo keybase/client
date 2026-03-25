@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
 
