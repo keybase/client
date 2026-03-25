@@ -110,7 +110,7 @@ PODS:
     - UMAppLoader
   - fast_float (8.0.0)
   - FBLazyVector (0.81.5)
-  - fmt (11.0.2)
+  - fmt (12.1.0)
   - glog (0.3.5)
   - hermes-engine (0.81.5):
     - hermes-engine/Pre-built (= 0.81.5)
@@ -167,20 +167,20 @@ PODS:
     - boost
     - DoubleConversion
     - fast_float (= 8.0.0)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - RCT-Folly/Default (= 2024.11.18.00)
   - RCT-Folly/Default (2024.11.18.00):
     - boost
     - DoubleConversion
     - fast_float (= 8.0.0)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
   - RCT-Folly/Fabric (2024.11.18.00):
     - boost
     - DoubleConversion
     - fast_float (= 8.0.0)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
   - RCTDeprecation (0.81.5)
   - RCTRequired (0.81.5)
@@ -3342,7 +3342,7 @@ SPEC CHECKSUMS:
   EXTaskManager: 6f1a66e4c8cc6df6e24c3d90928704bc3013eae5
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 5beb8028d5a2e75dd9634917f23e23d3a061d2aa
-  fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
+  fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
   KBCommon: bd1f35bb07924f4cc57417b00dab6734747b6423
@@ -3351,7 +3351,7 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
   lottie-react-native: b01c4b468aed88931afefbde03d790fc4f8b010a
-  RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
+  RCT-Folly: b29feb752b08042c62badaef7d453f3bb5e6ae23
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
   RCTTypeSafety: b99aa872829ee18f6e777e0ef55852521c5a6788
@@ -3434,6 +3434,6 @@ SPEC CHECKSUMS:
   Yoga: cc4a6600d61e4e9276e860d4d68eebb834a050ba
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: 3afa944c1a159bdd57b3aa134ffed0193619be93
+PODFILE CHECKSUM: 1230fa854271c97af86d67b7424a7496e5f328a8
 
 COCOAPODS: 1.16.2
