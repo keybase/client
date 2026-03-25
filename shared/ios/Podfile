@@ -32,6 +32,24 @@ target 'Keybase' do
        :mac_catalyst_enabled => false,
        # :ccache_enabled => true
      )
+
+     # fmt 11.0.2 bug: Apple clang 16+ (Xcode 16+) enforces consteval more strictly,
+     # breaking several FMT_STRING call sites in format-inl.h. Disable consteval for
+     # all Apple clang by removing the version guard in base.h.
+     fmt_base_h = "#{installer.sandbox.pod_dir('fmt')}/include/fmt/base.h"
+     if File.exist?(fmt_base_h)
+       content = File.read(fmt_base_h)
+       patched = content.gsub(
+         "#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L\n" \
+         "#  define FMT_USE_CONSTEVAL 0  // consteval is broken in Apple clang < 14.",
+         "#elif defined(__apple_build_version__)\n" \
+         "#  define FMT_USE_CONSTEVAL 0  // consteval is broken in Apple clang."
+       )
+       if patched != content
+         FileUtils.chmod('u+w', fmt_base_h)
+         File.write(fmt_base_h, patched)
+       end
+     end
    end
 end
 
