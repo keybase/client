@@ -48,7 +48,11 @@ const Tab = createNativeBottomTabNavigator() // NAV7
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 
-const tabStackOptions = ({navigation}: {navigation: {canGoBack: () => boolean}}): NativeStackNavigationOptions => ({
+const tabStackOptions = ({
+  navigation,
+}: {
+  navigation: {canGoBack: () => boolean}
+}): NativeStackNavigationOptions => ({
   ...Common.defaultNavigationOptions,
   ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.transparent}} : {}),
   // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
@@ -201,7 +205,9 @@ const LoggedOut = loggedOutNav.getComponent()
 const rootStackScreenOptions = {headerBackButtonDisplayMode: 'minimal'} satisfies NativeStackNavigationOptions
 const modalScreenOptions = ({
   navigation,
-}: {navigation: NavigationProp<ReactNavigation.RootParamList>}): NativeStackNavigationOptions => {
+}: {
+  navigation: NavigationProp<ReactNavigation.RootParamList>
+}): NativeStackNavigationOptions => {
   const cancelItem: NativeStackNavigationOptions =
     Platform.OS === 'ios'
       ? {

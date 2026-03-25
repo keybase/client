@@ -29,6 +29,7 @@ export type Props = {
   // mobile only
   bounces?: boolean
   contentInset?: {top?: number; left?: number; bottom?: number; right?: number}
+  contentInsetAdjustmentBehavior?: 'automatic' | 'scrollableAxes' | 'never' | 'always'
   centerContent?: boolean
   zoomScale?: number
   minimumZoomScale?: number
