@@ -4,19 +4,100 @@ import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 import * as Provision from '@/stores/provision'
 import {useSignupState} from '@/stores/signup'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {ignorePromise} from '@/constants/utils'
+import * as Platforms from '@/constants/platform'
+import logger from '@/logger'
 
 const ConnectedEnterDevicename = () => {
-  const error = useSignupState(s => s.devicenameError)
-  const initialDevicename = useSignupState(s => s.devicename)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const checkDeviceName = useSignupState(s => s.dispatch.checkDeviceName)
-  const onBack = goBackAndClearErrors
-  const onContinue = checkDeviceName
+  const {initialDevicename, inviteCode, username} = useSignupState(
+    C.useShallow(s => ({
+      initialDevicename: s.devicename,
+      inviteCode: s.inviteCode,
+      username: s.username,
+    }))
+  )
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
+  const {resetState, setDevicename, showPermissionsPrompt} = useSignupState(
+    C.useShallow(s => ({
+      resetState: s.dispatch.resetState,
+      setDevicename: s.dispatch.setDevicename,
+      showPermissionsPrompt: s.dispatch.defer.onShowPermissionsPrompt,
+    }))
+  )
+  const {navigateAppend, navigateUp} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      navigateUp: s.dispatch.navigateUp,
+    }))
+  )
+  const [error, setError] = React.useState('')
+  const onContinue = (devicename: string) => {
+    setError('')
+    setDevicename(devicename)
+    const f = async () => {
+      try {
+        await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          setError(error_.desc)
+        }
+        return
+      }
+
+      if (!username || !devicename) {
+        logger.warn('Missing data during signup phase', username, devicename)
+        return
+      }
+
+      try {
+        showPermissionsPrompt?.({justSignedUp: true})
+        await T.RPCGen.signupSignupRpcListener({
+          customResponseIncomingCallMap: {
+            'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+              response.result(false)
+            },
+          },
+          incomingCallMap: {
+            'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+          },
+          params: {
+            botToken: '',
+            deviceName: devicename,
+            deviceType: Platforms.isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+            email: '',
+            genPGPBatch: false,
+            genPaper: false,
+            inviteCode,
+            passphrase: '',
+            randomPw: true,
+            skipGPG: true,
+            skipMail: true,
+            storeSecret: true,
+            username,
+            verifyEmail: true,
+          },
+          waitingKey: C.waitingKeySignup,
+        })
+        resetState()
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          showPermissionsPrompt?.({justSignedUp: false})
+          navigateAppend({
+            name: 'signupError',
+            params: {errorCode: error_.code, errorMessage: error_.desc},
+          })
+        }
+      }
+    }
+    ignorePromise(f())
+  }
+
   const props = {
     error,
     initialDevicename,
-    onBack,
+    onBack: navigateUp,
     onContinue,
     waiting,
   }

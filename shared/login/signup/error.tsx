@@ -1,15 +1,17 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {Wrapper, ContinueButton} from './common'
-import {useSignupState} from '@/stores/signup'
+import type {StaticScreenProps} from '@react-navigation/core'
 
-const ConnectedSignupError = () => {
-  const error = useSignupState(s => s.signupError)
-  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const onBack = goBackAndClearErrors
+type Props = StaticScreenProps<{errorCode?: number; errorMessage?: string}>
+
+const ConnectedSignupError = (p: Props) => {
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const errorCode = p.route.params?.errorCode
+  const errorMessage = p.route.params?.errorMessage ?? ''
   let header = 'Ah Shoot! Something went wrong, try again?'
-  let body = error ? error.desc : ''
-  if (!!error && C.isNetworkErr(error.code)) {
+  let body = errorMessage
+  if (errorCode !== undefined && C.isNetworkErr(errorCode)) {
     header = 'Hit an unexpected error; try again?'
     body = 'This might be due to a bad connection.'
   }
@@ -21,7 +23,7 @@ const ConnectedSignupError = () => {
       <Kb.Text type="Body" center={true}>
         {body}
       </Kb.Text>
-      <ContinueButton label="Back" onClick={onBack} />
+      <ContinueButton label="Back" onClick={navigateUp} />
     </Wrapper>
   )
 }

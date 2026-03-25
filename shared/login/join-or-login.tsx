@@ -19,12 +19,19 @@ const Intro = () => {
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const checkIsOnline = loadIsOnline
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = () => {
     startProvision()
   }
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const {autoInviteState, requestAutoInvite, resetAutoInviteState} = useSignupState(
+    C.useShallow(s => ({
+      autoInviteState: s.autoInviteState,
+      requestAutoInvite: s.dispatch.requestAutoInvite,
+      resetAutoInviteState: s.dispatch.resetAutoInviteState,
+    }))
+  )
   const onSignup = () => {
     requestAutoInvite()
   }
@@ -38,6 +45,14 @@ const Intro = () => {
     setShowing(true)
     return () => setShowing(false)
   })
+
+  React.useEffect(() => {
+    if (autoInviteState === 'ready') {
+      resetAutoInviteState()
+      navigateUp()
+      navigateAppend('signupEnterUsername')
+    }
+  }, [autoInviteState, navigateAppend, navigateUp, resetAutoInviteState])
 
   return (
     <Kb.Box2

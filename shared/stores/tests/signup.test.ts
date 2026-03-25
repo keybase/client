@@ -1,52 +1,39 @@
 /// <reference types="jest" />
+import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 
-jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual('@/constants/router')
-  return {
-    ...actual,
-    navigateAppend: jest.fn(),
-    navigateUp: jest.fn(),
-  }
-})
-
 import {useSignupState} from '../signup'
-
-const {navigateAppend: mockNavigateAppend, navigateUp: mockNavigateUp} = require('@/constants/router') as {
-  navigateAppend: jest.Mock
-  navigateUp: jest.Mock
-}
 
 afterEach(() => {
   jest.restoreAllMocks()
-  mockNavigateAppend.mockReset()
-  mockNavigateUp.mockReset()
   resetAllStores()
 })
 
 const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
 
-test('invalid usernames are rejected locally without calling the RPC', () => {
-  const checkUsername = jest.spyOn(T.RPCGen, 'signupCheckUsernameAvailableRpcPromise')
-
-  useSignupState.getState().dispatch.checkUsername('bad username')
-
-  expect(useSignupState.getState().username).toBe('bad username')
-  expect(useSignupState.getState().usernameError).not.toBe('')
-  expect(checkUsername).not.toHaveBeenCalled()
-})
-
-test('checkUsername accepts a valid username and navigates to device setup', async () => {
-  jest.spyOn(T.RPCGen, 'signupCheckUsernameAvailableRpcPromise').mockResolvedValue(undefined as any)
-
-  useSignupState.getState().dispatch.checkUsername('alice123')
-  await flush()
+test('setUsername stages the validated signup username', () => {
+  useSignupState.getState().dispatch.setUsername('alice123')
 
   expect(useSignupState.getState().username).toBe('alice123')
-  expect(useSignupState.getState().usernameError).toBe('')
-  expect(useSignupState.getState().usernameTaken).toBe('')
-  expect(mockNavigateAppend).toHaveBeenCalledWith('signupEnterDevicename')
+})
+
+test('setDevicename stages the selected signup device name', () => {
+  useSignupState.getState().dispatch.setDevicename('Phone 2')
+
+  expect(useSignupState.getState().devicename).toBe('Phone 2')
+})
+
+test('requestAutoInvite marks signup as ready once the invite code request completes', async () => {
+  jest.spyOn(T.RPCGen, 'signupGetInvitationCodeRpcPromise').mockResolvedValue('invite-code')
+
+  useSignupState.getState().dispatch.requestAutoInvite('alice')
+  await flush()
+
+  const state = useSignupState.getState()
+  expect(state.autoInviteState).toBe('ready')
+  expect(state.inviteCode).toBe('invite-code')
+  expect(state.username).toBe('alice')
 })
 
 test('email verification notifications clear the staged signup email', () => {
@@ -58,4 +45,24 @@ test('email verification notifications clear the staged signup email', () => {
     .dispatch.onEngineIncomingImpl({type: 'keybase.1.NotifyEmailAddress.emailAddressVerified'} as any)
 
   expect(useSignupState.getState().justSignedUpEmail).toBe('')
+})
+
+test('resetState clears staged signup values back to defaults', () => {
+  useSignupState.setState(s => ({
+    ...s,
+    autoInviteState: 'ready',
+    devicename: 'Phone 2',
+    inviteCode: 'invite-code',
+    justSignedUpEmail: 'alice@example.com',
+    username: 'alice',
+  }))
+
+  useSignupState.getState().dispatch.resetState()
+
+  const state = useSignupState.getState()
+  expect(state.autoInviteState).toBe('idle')
+  expect(state.devicename).toBe(S.defaultDevicename)
+  expect(state.inviteCode).toBe('')
+  expect(state.justSignedUpEmail).toBe('')
+  expect(state.username).toBe('')
 })

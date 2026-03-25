@@ -50,8 +50,13 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const onBack = useSafeSubmit(navigateUp, hasError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = () => navigateAppend('forgotUsername')
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
-  const _onGoToSignup = requestAutoInvite
+  const {autoInviteState, requestAutoInvite, resetAutoInviteState} = useSignupState(
+    C.useShallow(s => ({
+      autoInviteState: s.autoInviteState,
+      requestAutoInvite: s.dispatch.requestAutoInvite,
+      resetAutoInviteState: s.dispatch.resetAutoInviteState,
+    }))
+  )
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
   const _onSubmit = (username: string) => {
     !waiting && _setUsername?.(username)
@@ -66,8 +71,16 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     _onSubmit(username)
   }
   const onGoToSignup = () => {
-    _onGoToSignup(username)
+    requestAutoInvite(username)
   }
+
+  React.useEffect(() => {
+    if (autoInviteState === 'ready') {
+      resetAutoInviteState()
+      navigateUp()
+      navigateAppend('signupEnterUsername')
+    }
+  }, [autoInviteState, navigateAppend, navigateUp, resetAutoInviteState])
 
   return (
     <SignupScreen
