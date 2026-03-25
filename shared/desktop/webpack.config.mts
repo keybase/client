@@ -232,7 +232,7 @@ const makeCsp = (isDev: boolean) =>
       'https://pbs.twimg.com/',
       'https://avatars.githubusercontent.com/',
       'https://s3.amazonaws.com/keybase_processed_uploads/',
-      isDev && devServerDistURL.slice(0, -1),
+      isDev && devServerURL.slice(0, -1),
     ])}`,
     "style-src 'unsafe-inline'",
     `script-src ${joinCspSources(
@@ -389,10 +389,10 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
           port: devServerPort,
         },
       },
-      static: {
-        directory: distDir,
-        publicPath: devServerDistPath,
-      },
+      static: [
+        {directory: distDir, publicPath: devServerDistPath},
+        {directory: rootDir, publicPath: '/', watch: false},
+      ],
     },
     entry: viewEntries.reduce<Record<string, string>>((map, name: string) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
