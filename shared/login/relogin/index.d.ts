@@ -16,7 +16,6 @@ export type Props = {
   showTypingChange: (typingChange: boolean) => void
   onSubmit: () => void
   onFeedback: () => void
-  onLogin: (user: string, password: string) => void
 }
 declare const Login: (p: Props) => React.ReactNode
 export default Login

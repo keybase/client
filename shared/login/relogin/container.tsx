@@ -6,94 +6,87 @@ import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/stores/recover-password'
 import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/stores/provision'
+import {getReloginNeedPassword, isNeedPasswordError} from '../flow'
 
-const needPasswordError = 'passphrase cannot be empty'
-
-const ReloginContainer = () => {
-  const _users = useConfigState(s => s.configuredAccounts)
-  const perror = useConfigState(s => s.loginError)
-  const pselectedUser = useConfigState(s => s.defaultUsername)
+const useReloginState = () => {
+  const {configuredAccounts, defaultUsername, login, loginError, setLoginError} = useConfigState(
+    C.useShallow(s => ({
+      configuredAccounts: s.configuredAccounts,
+      defaultUsername: s.defaultUsername,
+      login: s.dispatch.login,
+      loginError: s.loginError,
+      setLoginError: s.dispatch.setLoginError,
+    }))
+  )
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
-  const onForgotPassword = (username: string) => {
-    startRecoverPassword({username})
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onFeedback = () => {
-    navigateAppend('signupSendFeedbackLoggedOut')
-  }
-  const onLogin = useConfigState(s => s.dispatch.login)
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
-  const onSignup = () => requestAutoInvite()
-  const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
-  const error = perror?.desc || ''
-  const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
-  const users = sortBy(_users, 'username')
+  const startProvision = useProvisionState(s => s.dispatch.startProvision)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+
+  const error = loginError?.desc || ''
+  const users = sortBy(configuredAccounts, 'username')
+  const loggedInMap = new Map(users.map(account => [account.username, account.hasStoredSecret]))
 
   const [password, setPassword] = React.useState('')
-  const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
+  const [selectedUser, setSelectedUser] = React.useState(defaultUsername)
   const [showTyping, setShowTyping] = React.useState(false)
-
-  const setLoginError = useConfigState(s => s.dispatch.setLoginError)
-  const prevPasswordRef = React.useRef(password)
-  const prevErrorRef = React.useRef(error)
+  const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
+  const previousErrorRef = React.useRef(error)
 
   React.useEffect(() => {
-    if (password.length && !prevPasswordRef.current.length) {
-      setLoginError()
-    }
-    prevPasswordRef.current = password
-  }, [password, setLoginError])
-
-  React.useEffect(() => {
-    if (error.length && !prevErrorRef.current.length) {
+    if (error.length && !previousErrorRef.current.length) {
       setPassword('')
     }
-  }, [error, setPassword])
-
-  const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
-
-  const onSubmit = () => {
-    onLogin(selectedUser, password)
-  }
-
-  const selectedUserChange = (user: string) => {
-    setLoginError()
-    setPassword('')
-    setSelectedUser(user)
-    if (loggedInMap.get(user)) {
-      onLogin(user, '')
-    }
-  }
+    previousErrorRef.current = error
+  }, [error])
 
   React.useEffect(() => {
-    setSelectedUser(pselectedUser)
-  }, [pselectedUser, setSelectedUser])
+    setSelectedUser(defaultUsername)
+  }, [defaultUsername])
 
   React.useEffect(() => {
-    if (error === needPasswordError) {
+    if (isNeedPasswordError(error)) {
       setGotNeedPasswordError(true)
     }
-  }, [error, setGotNeedPasswordError])
+  }, [error])
 
-  return (
-    <Login
-      error={error}
-      needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
-      onFeedback={onFeedback}
-      onForgotPassword={() => onForgotPassword(selectedUser)}
-      onLogin={onLogin}
-      onSignup={onSignup}
-      onSomeoneElse={onSomeoneElse}
-      onSubmit={onSubmit}
-      password={password}
-      passwordChange={setPassword}
-      selectedUser={selectedUser}
-      selectedUserChange={selectedUserChange}
-      showTypingChange={setShowTyping}
-      showTyping={showTyping}
-      users={users}
-    />
-  )
+  const passwordChange = (nextPassword: string) => {
+    if (nextPassword.length && !password.length) {
+      setLoginError()
+    }
+    setPassword(nextPassword)
+  }
+
+  const selectedUserChange = (username: string) => {
+    setLoginError()
+    setPassword('')
+    setSelectedUser(username)
+    if (loggedInMap.get(username)) {
+      login(username, '')
+    }
+  }
+
+  return {
+    error,
+    needPassword: getReloginNeedPassword(!!loggedInMap.get(selectedUser), gotNeedPasswordError),
+    onFeedback: () => navigateAppend('signupSendFeedbackLoggedOut'),
+    onForgotPassword: () => startRecoverPassword({username: selectedUser}),
+    onSignup: () => requestAutoInvite(),
+    onSomeoneElse: startProvision,
+    onSubmit: () => login(selectedUser, password),
+    password,
+    passwordChange,
+    selectedUser,
+    selectedUserChange,
+    showTyping,
+    showTypingChange: setShowTyping,
+    users,
+  }
+}
+
+const ReloginContainer = () => {
+  const props = useReloginState()
+  return <Login {...props} />
 }
 
 export default ReloginContainer

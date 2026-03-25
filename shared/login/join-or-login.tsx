@@ -5,39 +5,39 @@ import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
 import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/stores/provision'
+import {getLoggedOutBannerMessage} from './flow'
 
-const Intro = () => {
-  const justDeletedSelf = useConfigState(s => s.justDeletedSelf)
-  const justRevokedSelf = useConfigState(s => s.justRevokedSelf)
-  const bannerMessage = justDeletedSelf
-    ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
-    : justRevokedSelf
-      ? `${justRevokedSelf} was revoked successfully`
-      : ''
-
-  const isOnline = useConfigState(s => s.isOnline)
-  const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
-
+const useLoggedOutIntroState = () => {
+  const {isOnline, justDeletedSelf, justRevokedSelf, loadIsOnline} = useConfigState(
+    C.useShallow(s => ({
+      isOnline: s.isOnline,
+      justDeletedSelf: s.justDeletedSelf,
+      justRevokedSelf: s.justRevokedSelf,
+      loadIsOnline: s.dispatch.loadIsOnline,
+    }))
+  )
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const checkIsOnline = loadIsOnline
-  const startProvision = useProvisionState(s => s.dispatch.startProvision)
-  const onLogin = () => {
-    startProvision()
-  }
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
-  const onSignup = () => {
-    requestAutoInvite()
-  }
-  const showProxySettings = () => {
-    navigateAppend('proxySettingsModal')
-  }
+  const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const [showing, setShowing] = React.useState(true)
-  Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
+  Kb.useInterval(loadIsOnline, showing ? 5000 : undefined)
 
   C.Router2.useSafeFocusEffect(() => {
     setShowing(true)
     return () => setShowing(false)
   })
+
+  return {
+    bannerMessage: getLoggedOutBannerMessage({justDeletedSelf, justRevokedSelf}),
+    isOnline,
+    onLogin: () => startProvision(),
+    onSignup: () => requestAutoInvite(),
+    showProxySettings: () => navigateAppend('proxySettingsModal'),
+  }
+}
+
+const Intro = () => {
+  const {bannerMessage, isOnline, onLogin, onSignup, showProxySettings} = useLoggedOutIntroState()
 
   return (
     <Kb.Box2
