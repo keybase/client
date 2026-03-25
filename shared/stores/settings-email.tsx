@@ -1,25 +1,7 @@
 import * as Z from '@/util/zustand'
-import {addEmailWaitingKey} from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
-import {isValidEmail} from '@/util/simple-validators'
-import {RPCError} from '@/util/errors'
 import logger from '@/logger'
-
-const makeAddEmailError = (err: RPCError): string => {
-  switch (err.code) {
-    case T.RPCGen.StatusCode.scratelimit:
-      return "Sorry, you've added too many email addresses lately. Please try again later."
-    case T.RPCGen.StatusCode.scemailtaken:
-      return 'This email is already claimed by another user.'
-    case T.RPCGen.StatusCode.scemaillimitexceeded:
-      return 'You have too many emails, delete one and try again.'
-    case T.RPCGen.StatusCode.scinputerror:
-      return 'Invalid email.'
-    default:
-      return err.message
-  }
-}
 
 const makeEmailRow = (): EmailRow => ({
   email: '',
@@ -34,23 +16,16 @@ type EmailRow = Writeable<T.RPCGen.Email>
 
 type Store = T.Immutable<{
   addedEmail: string // show banner with dismiss on account settings
-  addingEmail: string
   emails: Map<string, EmailRow>
-  error: string
-  newEmail: string
 }>
 
 const initialStore: Store = {
   addedEmail: '',
-  addingEmail: '',
   emails: new Map(),
-  error: '',
-  newEmail: '',
 }
 
 export type State = Store & {
   dispatch: {
-    addEmail: (email: string, searchable: boolean) => void
     editEmail: (p: {
       email: string
       delete?: boolean
@@ -61,62 +36,13 @@ export type State = Store & {
     notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
-    resetAddingEmail: () => void
     resetState: () => void
+    setAddedEmail: (email: string) => void
   }
 }
 
 export const useSettingsEmailState = Z.createZustand<State>('settings-email', (set, get) => {
   const dispatch: State['dispatch'] = {
-    addEmail: (email, searchable) => {
-      set(s => {
-        const emailError = isValidEmail(email)
-        s.addingEmail = email
-        s.error = emailError
-      })
-      const f = async () => {
-        if (get().error) {
-          logger.info('email error; bailing')
-          return
-        }
-        try {
-          await T.RPCGen.emailsAddEmailRpcPromise(
-            {
-              email,
-              visibility: searchable
-                ? T.RPCGen.IdentityVisibility.public
-                : T.RPCGen.IdentityVisibility.private,
-            },
-            addEmailWaitingKey
-          )
-          logger.info('success')
-          if (email !== get().addingEmail) {
-            logger.warn("addedEmail: doesn't match")
-            return
-          }
-          set(s => {
-            s.addedEmail = email
-            s.addingEmail = ''
-            s.error = ''
-          })
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          logger.warn(`error: ${error.message}`)
-          const msg = makeAddEmailError(error)
-          if (email !== get().addingEmail) {
-            logger.warn("addedEmail: doesn't match")
-            return
-          }
-          set(s => {
-            s.addedEmail = ''
-            s.error = msg
-          })
-        }
-      }
-      ignorePromise(f())
-    },
     editEmail: p => {
       const f = async () => {
         // TODO: consider allowing more than one action here
@@ -180,10 +106,9 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         s.addedEmail = ''
       })
     },
-    resetAddingEmail: () => {
+    setAddedEmail: email => {
       set(s => {
-        s.addingEmail = ''
-        s.error = ''
+        s.addedEmail = email
       })
     },
     resetState: Z.defaultReset,

@@ -31,7 +31,7 @@ Status:
 - [ ] `recover-password`
 - [ ] `settings`
 - [ ] `settings-chat`
-- [ ] `settings-email`
+- [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
 - [ ] `settings-notifications`
 - [x] `settings-password` kept only `randomPW` in store; moved submit/load flows into settings screens
 - [ ] `settings-phone`

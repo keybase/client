@@ -216,12 +216,7 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const {addingEmail, editEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addingEmail: s.addingEmail,
-      editEmail: s.dispatch.editEmail,
-    }))
-  )
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
@@ -251,7 +246,6 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
             label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
             onClick: () => onConfirm(meta.email),
             type: 'Success' as const,
-            waiting: addingEmail ? addingEmail === meta.email : false,
           },
         ]
       : []),
