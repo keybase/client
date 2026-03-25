@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../constants/remote-actions'
 import UnlockFolders from './index.desktop'
-import load from '../desktop/remote/component-loader.desktop'
-import {useDarkModeState} from '@/stores/darkmode'
+import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
+import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 import type {State as ConfigStore} from '@/stores/config'
 
 export type ProxyProps = {
@@ -11,15 +11,6 @@ export type ProxyProps = {
   devices: ConfigStore['unlockFoldersDevices']
   paperKeyError: string
   waiting: boolean
-}
-
-const DarkModeSync = ({darkMode, children}: {darkMode: boolean; children: React.ReactNode}) => {
-  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  React.useEffect(() => {
-    const id = setTimeout(() => setSystemDarkMode(darkMode), 1)
-    return () => clearTimeout(id)
-  }, [setSystemDarkMode, darkMode])
-  return <>{children}</>
 }
 
 type Phase = 'promptOtherDevice' | 'paperKeyInput' | 'success'
@@ -46,7 +37,7 @@ const UnlockFoldersWrapper = (p: ProxyProps) => {
   }, [phase])
 
   return (
-    <DarkModeSync darkMode={darkMode}>
+    <RemoteDarkModeSync darkMode={darkMode}>
       <UnlockFolders
         devices={devices}
         waiting={waiting}
@@ -60,11 +51,11 @@ const UnlockFoldersWrapper = (p: ProxyProps) => {
         onFinish={() => R.remoteDispatch(RemoteGen.createCloseUnlockFolders())}
         toPaperKeyInput={() => setPhase('paperKeyInput')}
       />
-    </DarkModeSync>
+    </RemoteDarkModeSync>
   )
 }
 
-load<ProxyProps>({
-  child: (p: ProxyProps) => <UnlockFoldersWrapper {...p} />,
-  name: 'unlock-folders',
+loadRemoteComponent<ProxyProps>({
+  Component: UnlockFoldersWrapper,
+  component: 'unlock-folders',
 })
