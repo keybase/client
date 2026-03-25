@@ -3,7 +3,7 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useSignupState} from '@/stores/signup'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useProvisionState} from '@/stores/provision'
 
 const Intro = () => {
@@ -19,19 +19,12 @@ const Intro = () => {
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const checkIsOnline = loadIsOnline
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = () => {
     startProvision()
   }
-  const {autoInviteState, requestAutoInvite, resetAutoInviteState} = useSignupState(
-    C.useShallow(s => ({
-      autoInviteState: s.autoInviteState,
-      requestAutoInvite: s.dispatch.requestAutoInvite,
-      resetAutoInviteState: s.dispatch.resetAutoInviteState,
-    }))
-  )
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => {
     requestAutoInvite()
   }
@@ -45,14 +38,6 @@ const Intro = () => {
     setShowing(true)
     return () => setShowing(false)
   })
-
-  React.useEffect(() => {
-    if (autoInviteState === 'ready') {
-      resetAutoInviteState()
-      navigateUp()
-      navigateAppend('signupEnterUsername')
-    }
-  }, [autoInviteState, navigateAppend, navigateUp, resetAutoInviteState])
 
   return (
     <Kb.Box2

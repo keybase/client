@@ -10,7 +10,6 @@ const ConnectedEnterEmail = () => {
   const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const addedEmail = useSettingsEmailState(s => s.addedEmail)
   const error = useSettingsEmailState(s => s.error)
-  const initialEmail = useSignupState(s => s.email)
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -38,7 +37,7 @@ const ConnectedEnterEmail = () => {
     setAddEmailInProgress(email)
   }
 
-  const [email, onChangeEmail] = React.useState(initialEmail || '')
+  const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !email.trim()
   const onContinue = () => (disabled ? {} : onCreate(email.trim(), searchable))

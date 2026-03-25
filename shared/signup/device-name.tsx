@@ -9,15 +9,14 @@ import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import * as Platforms from '@/constants/platform'
 import logger from '@/logger'
+import type {StaticScreenProps} from '@react-navigation/core'
 
-const ConnectedEnterDevicename = () => {
-  const {initialDevicename, inviteCode, username} = useSignupState(
-    C.useShallow(s => ({
-      initialDevicename: s.devicename,
-      inviteCode: s.inviteCode,
-      username: s.username,
-    }))
-  )
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterDevicename = (p: Props) => {
+  const initialDevicename = useSignupState(s => s.devicename)
+  const inviteCode = p.route.params?.inviteCode ?? ''
+  const username = p.route.params?.username ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {resetState, setDevicename, showPermissionsPrompt} = useSignupState(
     C.useShallow(s => ({
@@ -106,7 +105,7 @@ const ConnectedEnterDevicename = () => {
 
 export default ConnectedEnterDevicename
 
-type Props = {
+type EnterDevicenameProps = {
   error: string
   initialDevicename?: string
   onBack: () => void
@@ -120,7 +119,7 @@ const makeCleanDeviceName = (d: string) => {
   return good
 }
 
-const EnterDevicename = (props: Props) => {
+const EnterDevicename = (props: EnterDevicenameProps) => {
   const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {

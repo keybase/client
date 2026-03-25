@@ -9,15 +9,14 @@ import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {isValidUsername} from '@/util/simple-validators'
+import type {StaticScreenProps} from '@react-navigation/core'
 
-const ConnectedEnterUsername = () => {
-  const initialUsername = useSignupState(s => s.username)
-  const {resetState, setUsername} = useSignupState(
-    C.useShallow(s => ({
-      resetState: s.dispatch.resetState,
-      setUsername: s.dispatch.setUsername,
-    }))
-  )
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterUsername = (p: Props) => {
+  const initialUsername = p.route.params?.username ?? ''
+  const inviteCode = p.route.params?.inviteCode ?? ''
+  const resetState = useSignupState(s => s.dispatch.resetState)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {navigateAppend, navigateUp} = C.useRouterState(
     C.useShallow(s => ({
@@ -47,8 +46,7 @@ const ConnectedEnterUsername = () => {
       try {
         await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, C.waitingKeySignup)
         logger.info(`${username} success`)
-        setUsername(username)
-        navigateAppend('signupEnterDevicename')
+        navigateAppend({name: 'signupEnterDevicename', params: {inviteCode, username}})
       } catch (error_) {
         if (error_ instanceof RPCError) {
           logger.warn(`${username} error: ${error_.message}`)
@@ -80,7 +78,7 @@ const ConnectedEnterUsername = () => {
   return <EnterUsername {...props} />
 }
 
-type Props = {
+type EnterUsernameProps = {
   error: string
   initialUsername?: string
   onBack: () => void
@@ -91,7 +89,7 @@ type Props = {
   waiting: boolean
 }
 
-const EnterUsername = (props: Props) => {
+const EnterUsername = (props: EnterUsernameProps) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
