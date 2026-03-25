@@ -84,13 +84,6 @@ const MenuBar = () => {
     showOnAllWorkspaces: true,
   })
 
-  Electron.app.on('ready', () => {
-    mb.window
-      ?.loadURL(htmlFile)
-      .then(() => {})
-      .catch(() => {})
-  })
-
   const updateIcon = () => {
     try {
       mb.tray.setImage(getIcon())
@@ -132,6 +125,11 @@ const MenuBar = () => {
   })
 
   mb.on('ready', () => {
+    mb.window
+      ?.loadURL(htmlFile)
+      .then(() => {})
+      .catch(() => {})
+
     // ask for an update in case we missed one
     R.remoteDispatch(
       RemoteGen.createRemoteWindowWantsProps({
