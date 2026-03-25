@@ -30,6 +30,7 @@ const evalDevtools = false
 const debugWebpack = enableWDYR || debugUnusedChunks || evalDevtools || !!process.env['DEBUG_WEBPACK']
 const devServerPort = 4000
 const devServerDistPath = '/dist'
+const devServerURL = `http://localhost:${devServerPort}/`
 const devServerDistURL = `http://localhost:${devServerPort}${devServerDistPath}/`
 const remoteDebugURL = 'http://localhost:8097'
 const nullLoadedAssetDirectories = [
@@ -219,11 +220,9 @@ const joinCspSources = (sources: Array<string | false | undefined>) => sources.f
 const makeCsp = (isDev: boolean) =>
   [
     "default-src 'none'",
-    "base-uri 'none'",
-    "form-action 'none'",
     "object-src 'self' http://127.0.0.1:*",
     'frame-src http://127.0.0.1:*',
-    `font-src ${joinCspSources(["'self'", isDev && devServerDistURL.slice(0, -1)])}`,
+    `font-src ${joinCspSources(["'self'", isDev && devServerURL.slice(0, -1)])}`,
     "media-src 'self' http://127.0.0.1:*",
     `img-src ${joinCspSources([
       "'self'",
@@ -237,16 +236,16 @@ const makeCsp = (isDev: boolean) =>
     ])}`,
     "style-src 'unsafe-inline'",
     `script-src ${joinCspSources(
-      isDev ? ['file:', devServerDistURL.slice(0, -1), remoteDebugURL, "'unsafe-eval'"] : ["'self'"]
+      isDev ? ['file:', devServerURL.slice(0, -1), remoteDebugURL, "'unsafe-eval'"] : ["'self'"]
     )}`,
     `connect-src ${joinCspSources([
       'http://127.0.0.1:*',
       isDev && 'webpack:',
       isDev && `ws://localhost:${devServerPort}`,
-      isDev && devServerDistURL.slice(0, -1),
+      isDev && devServerURL.slice(0, -1),
       isDev && 'ws://localhost:8097',
     ])}`,
-  ].join('; ')
+  ].join(';\n ')
 
 const renderHtmlTemplate = ({
   files,
