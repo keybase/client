@@ -22,7 +22,8 @@ const babelConfigPath = path.resolve(rootDir, 'babel.config.js')
 const nullModulePath = path.resolve(__dirname, '../null-module.js')
 const ignoredModules = require('../ignored-modules') as Array<string>
 const enableWDYR = require('../util/why-did-you-render-enabled') as boolean
-const elecVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies.electron
+const elecVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies
+  .electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
 const debugUnusedChunks = false
 const evalDevtools = false
@@ -32,7 +33,10 @@ const devServerDistPath = '/dist'
 const devServerDistURL = `http://localhost:${devServerPort}${devServerDistPath}/`
 const remoteDebugURL = 'http://localhost:8097'
 const nullLoadedAssetDirectories = [
-  path.resolve(__dirname, '../node_modules/@react-navigation/native-stack/node_modules/@react-navigation/elements/lib/module/assets'),
+  path.resolve(
+    __dirname,
+    '../node_modules/@react-navigation/native-stack/node_modules/@react-navigation/elements/lib/module/assets'
+  ),
   path.resolve(__dirname, '../node_modules/@react-navigation/elements/lib/module/assets'),
   path.resolve(__dirname, '../images/icons'),
 ]
@@ -41,7 +45,9 @@ const resourceAssetDirectories = [
   path.resolve(__dirname, '../images/install'),
 ]
 const entryOverride: Record<string, string> = {main: 'desktop/renderer'}
-const viewEntries = debugUnusedChunks ? ['main'] : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
+const viewEntries = debugUnusedChunks
+  ? ['main']
+  : ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker']
 
 type DesktopConfiguration = Configuration & {
   devServer?: WebpackDevServerConfiguration
@@ -215,9 +221,8 @@ const makeCsp = (isDev: boolean) =>
     "default-src 'none'",
     "base-uri 'none'",
     "form-action 'none'",
-    "frame-ancestors 'none'",
     "object-src 'self' http://127.0.0.1:*",
-    "frame-src http://127.0.0.1:*",
+    'frame-src http://127.0.0.1:*',
     `font-src ${joinCspSources(["'self'", isDev && devServerDistURL.slice(0, -1)])}`,
     "media-src 'self' http://127.0.0.1:*",
     `img-src ${joinCspSources([
@@ -278,37 +283,36 @@ const makeViewPlugins = ({
   isDev: boolean
   isHot: boolean
   names: Array<string>
-}): Array<WebpackPluginInstance> =>
-  [
-    ...(debugUnusedChunks
-      ? [
-          new webpack.optimize.LimitChunkCountPlugin({
-            maxChunks: 1,
+}): Array<WebpackPluginInstance> => [
+  ...(debugUnusedChunks
+    ? [
+        new webpack.optimize.LimitChunkCountPlugin({
+          maxChunks: 1,
+        }),
+      ]
+    : []),
+  new webpack.DefinePlugin({
+    global: 'globalThis',
+    'process.env.NODE_DEBUG': JSON.stringify(process.env['NODE_DEBUG']),
+  }),
+  ...(isHot ? [new ReactRefreshWebpackPlugin({forceEnable: true})] : []),
+  ...names.map(
+    (name: string) =>
+      new HtmlWebpackPlugin({
+        chunks: [name],
+        filename: `${name}${fileSuffix}.html`,
+        inject: false,
+        isDev,
+        name,
+        templateContent: ({htmlWebpackPlugin}) =>
+          renderHtmlTemplate({
+            files: htmlWebpackPlugin.files,
+            isDev: htmlWebpackPlugin.options.isDev,
+            name,
           }),
-        ]
-      : []),
-    new webpack.DefinePlugin({
-      global: 'globalThis',
-      'process.env.NODE_DEBUG': JSON.stringify(process.env['NODE_DEBUG']),
-    }),
-    ...(isHot ? [new ReactRefreshWebpackPlugin({forceEnable: true})] : []),
-    ...names.map(
-      (name: string) =>
-        new HtmlWebpackPlugin({
-          chunks: [name],
-          filename: `${name}${fileSuffix}.html`,
-          inject: false,
-          isDev,
-          name,
-          templateContent: ({htmlWebpackPlugin}) =>
-            renderHtmlTemplate({
-              files: htmlWebpackPlugin.files,
-              isDev: htmlWebpackPlugin.options.isDev,
-              name,
-            }),
-        })
-    ),
-  ]
+      })
+  ),
+]
 
 const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production'}): Array<Configuration> => {
   const isDev = mode !== 'production'
@@ -370,51 +374,48 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     target: 'electron-main',
   })
 
-  const viewConfig: DesktopConfiguration = merge<DesktopConfiguration>(
-    commonConfig as DesktopConfiguration,
-    {
-      devServer: {
-        compress: false,
-        hot: isHot,
-        port: devServerPort,
-        devMiddleware: {
-          publicPath: devServerDistURL.slice(0, -1),
-        },
-        client: {
-          overlay: true,
-          webSocketURL: {
-            hostname: 'localhost',
-            pathname: '/ws',
-            port: devServerPort,
-          },
-        },
-        static: {
-          directory: distDir,
-          publicPath: devServerDistPath,
+  const viewConfig: DesktopConfiguration = merge<DesktopConfiguration>(commonConfig as DesktopConfiguration, {
+    devServer: {
+      compress: false,
+      hot: isHot,
+      port: devServerPort,
+      devMiddleware: {
+        publicPath: devServerDistURL.slice(0, -1),
+      },
+      client: {
+        overlay: true,
+        webSocketURL: {
+          hostname: 'localhost',
+          pathname: '/ws',
+          port: devServerPort,
         },
       },
-      entry: viewEntries.reduce<Record<string, string>>((map, name: string) => {
-        map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
-        return map
-      }, {}),
-      module: {rules: makeRules({isDev, isHot, nodeThread: false})},
-      name: 'renderer',
-      ...(isHot
-        ? {}
-        : {
-            optimization: makeRendererOptimization(isDev, isProfile),
-          }),
-      plugins: makeViewPlugins({fileSuffix, isDev, isHot, names: viewEntries}),
-      resolve: {
-        alias: {
-          ...alias,
-          'path-parse': false,
-        },
-        fallback: {process: false, url: false},
+      static: {
+        directory: distDir,
+        publicPath: devServerDistPath,
       },
-      target: 'web',
-    }
-  )
+    },
+    entry: viewEntries.reduce<Record<string, string>>((map, name: string) => {
+      map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
+      return map
+    }, {}),
+    module: {rules: makeRules({isDev, isHot, nodeThread: false})},
+    name: 'renderer',
+    ...(isHot
+      ? {}
+      : {
+          optimization: makeRendererOptimization(isDev, isProfile),
+        }),
+    plugins: makeViewPlugins({fileSuffix, isDev, isHot, names: viewEntries}),
+    resolve: {
+      alias: {
+        ...alias,
+        'path-parse': false,
+      },
+      fallback: {process: false, url: false},
+    },
+    target: 'web',
+  })
   const preloadConfig: Configuration = merge<Configuration>(commonConfig, {
     entry: {preload: `./desktop/renderer/preload.desktop.tsx`},
     module: {rules: makeRules({isDev, isHot, nodeThread: true})},
