@@ -6,33 +6,35 @@ import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/stores/provision'
 
 const ConnectedEnterUsername = () => {
-  const error = useSignupState(s => s.usernameError)
-  const initialUsername = useSignupState(s => s.username)
-  const usernameTaken = useSignupState(s => s.usernameTaken)
-  const checkUsername = useSignupState(s => s.dispatch.checkUsername)
+  const {checkUsername, error, initialUsername, resetState, usernameTaken} = useSignupState(
+    C.useShallow(s => ({
+      checkUsername: s.dispatch.checkUsername,
+      error: s.usernameError,
+      initialUsername: s.username,
+      resetState: s.dispatch.resetState,
+      usernameTaken: s.usernameTaken,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const resetState = useSignupState(s => s.dispatch.resetState)
+
   const onBack = () => {
     resetState()
     navigateUp()
   }
-  const onContinue = checkUsername
-
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
-  const onLogin = (initUsername: string) => {
-    startProvision(initUsername)
-  }
-  const props = {
-    error,
-    initialUsername,
-    onBack,
-    onContinue,
-    onLogin,
-    usernameTaken,
-    waiting,
-  }
-  return <EnterUsername {...props} />
+
+  return (
+    <EnterUsername
+      error={error}
+      initialUsername={initialUsername}
+      onBack={onBack}
+      onContinue={checkUsername}
+      onLogin={startProvision}
+      usernameTaken={usernameTaken}
+      waiting={waiting}
+    />
+  )
 }
 
 type Props = {
@@ -55,23 +57,24 @@ const EnterUsername = (props: Props) => {
     if (disabled) {
       return
     }
+
     onChangeUsername(usernameTrimmed) // maybe trim the input
     props.onContinue(usernameTrimmed)
   }
-  const eulaLabel = (
-    <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
-      I accept the{' '}
-      <Kb.Text
-        type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
-        {...eulaUrlProps}
-      >
-        Keybase Acceptable Use Policy
-      </Kb.Text>
-    </Kb.Text>
-  )
+  const eulaTextType = Kb.Styles.isMobile ? 'BodySmall' : 'Body'
+  const eulaLinkType = Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'
   const eulaBlock = (
-    <Kb.Checkbox label={eulaLabel} checked={acceptedEULA} onCheck={() => setAcceptedEULA(s => !s)} />
+    <Kb.Checkbox
+      label={
+        <Kb.Text type={eulaTextType} style={{alignSelf: 'center'}}>
+          I accept the <Kb.Text type={eulaLinkType} {...eulaUrlProps}>Keybase Acceptable Use Policy</Kb.Text>
+        </Kb.Text>
+      }
+      checked={acceptedEULA}
+      onCheck={() => setAcceptedEULA(s => !s)}
+    />
   )
+
   return (
     <SignupScreen
       banners={

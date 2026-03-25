@@ -274,7 +274,6 @@ export const VerifyPhone = () => {
         <VerifyBody
           onResend={onResend}
           resendWaiting={resendWaiting}
-          code={code}
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>

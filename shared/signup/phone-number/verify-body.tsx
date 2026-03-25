@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 
 type BodyProps = {
   onChangeCode: (code: string) => void
-  code: string
   onResend: () => void
   resendWaiting: boolean
 }

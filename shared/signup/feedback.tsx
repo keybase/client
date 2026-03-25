@@ -11,27 +11,26 @@ const SignupFeedback = () => {
   const loggedOut = useConfigState(s => !s.loggedIn)
   const sending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
+  const onBack = () => navigateUp()
   const [feedbackSent, setFeedbackSent] = React.useState(false)
+  const banners = (
+    <>
+      {feedbackSent ? (
+        <Kb.Banner key="feedbackSent" color="green">
+          <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+        </Kb.Banner>
+      ) : null}
+      {sendError ? errorBanner(sendError) : null}
+    </>
+  )
 
   return (
     <SignupScreen
-      banners={
-        <>
-          {feedbackSent ? (
-            <Kb.Banner key="feedbackSent" color="green">
-              <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
-            </Kb.Banner>
-          ) : null}
-          {sendError ? errorBanner(sendError) : null}
-        </>
-      }
+      banners={banners}
       title="Send feedback"
       onBack={onBack}
-      showHeaderInfoicon={false}
-      showHeaderInfoiconRow={!loggedOut}
+      showHeaderInfoIcon={false}
+      showHeaderInfoIconRow={!loggedOut}
     >
       <FeedbackForm
         sendError=""

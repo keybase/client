@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../common'
+import {useNavigateToSignupEmail} from '../navigation'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 type BodyProps = {
@@ -71,25 +72,32 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedEnterPhoneNumber = () => {
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  const error = useSettingsPhoneState(s => s.error)
-  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
+  const {
+    addPhoneNumber,
+    clearPhoneNumberErrors,
+    defaultCountry,
+    error,
+    loadDefaultPhoneCountry,
+    pendingVerification,
+  } = useSettingsPhoneState(
+    C.useShallow(s => ({
+      addPhoneNumber: s.dispatch.addPhoneNumber,
+      clearPhoneNumberErrors: s.dispatch.clearPhoneNumberErrors,
+      defaultCountry: s.defaultCountry,
+      error: s.error,
+      loadDefaultPhoneCountry: s.dispatch.loadDefaultPhoneCountry,
+      pendingVerification: s.pendingVerification,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
-  const clearPhoneNumberErrors = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
-  const onClear = clearPhoneNumberErrors
-  const addPhoneNumber = useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSkip = () => {
-    clearPhoneNumberAdd()
-    navigateAppend('signupEnterEmail', true)
-  }
+  const onSkip = useNavigateToSignupEmail()
 
   React.useEffect(() => {
     return () => {
-      onClear()
+      clearPhoneNumberErrors()
     }
-  }, [onClear])
+  }, [clearPhoneNumberErrors])
 
   const lastPendingVerificationRef = React.useRef(pendingVerification)
   React.useEffect(() => {
@@ -100,15 +108,22 @@ const ConnectedEnterPhoneNumber = () => {
   }, [pendingVerification, error, navigateAppend])
 
   // trigger a default phone number country rpc if it's not already loaded
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   React.useEffect(() => {
-    !defaultCountry && loadDefaultPhoneCountry()
+    if (!defaultCountry) {
+      loadDefaultPhoneCountry()
+    }
   }, [defaultCountry, loadDefaultPhoneCountry])
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   const disabled = !valid
-  const onContinue = () => (disabled || waiting ? {} : addPhoneNumber(phoneNumber, true /* searchable */))
+  const onContinue = () => {
+    if (disabled || waiting) {
+      return
+    }
+
+    addPhoneNumber(phoneNumber, true)
+  }
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     onChangePhoneNumber(phoneNumber)
     onChangeValidity(validity)
@@ -128,7 +143,7 @@ const ConnectedEnterPhoneNumber = () => {
       rightActionLabel="Skip"
       onRightAction={onSkip}
       title="Your phone number"
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
       <EnterPhoneNumberBody
         autoFocus={!Kb.Styles.isMobile}

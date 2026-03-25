@@ -1,40 +1,31 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 
 const Container = () => {
-  const error = useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
-  const phoneNumber = useSettingsPhoneState(s => s.pendingVerification)
+  const {clearPhoneNumberAdd, error, phoneNumber, resendVerificationForPhone, verificationStatus, verifyPhoneNumber} =
+    useSettingsPhoneState(
+      C.useShallow(s => ({
+        clearPhoneNumberAdd: s.dispatch.clearPhoneNumberAdd,
+        error: s.verificationState === 'error' ? s.error : '',
+        phoneNumber: s.pendingVerification,
+        resendVerificationForPhone: s.dispatch.resendVerificationForPhone,
+        verificationStatus: s.verificationState,
+        verifyPhoneNumber: s.dispatch.verifyPhoneNumber,
+      }))
+    )
   const resendWaiting = C.Waiting.useAnyWaiting([
     C.waitingKeySettingsPhoneResendVerification,
     C.waitingKeySettingsPhoneAddPhoneNumber,
   ])
-  const verificationStatus = useSettingsPhoneState(s => s.verificationState)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
-
-  const verifyPhoneNumber = useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
-  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
-
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
-
-  const _onContinue = (phoneNumber: string, code: string) => {
-    verifyPhoneNumber(phoneNumber, code)
-  }
-  const _onResend = (phoneNumber: string) => {
-    resendVerificationForPhone(phoneNumber)
-  }
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
-  const onCleanup = clearPhoneNumberAdd
   const onSuccess = C.useRouterState(s => s.dispatch.clearModals)
-  const ponContinue = (code: string) => _onContinue(phoneNumber, code)
-  const onResend = () => _onResend(phoneNumber)
+  const onBack = () => navigateUp()
 
   React.useEffect(() => {
     if (verificationStatus === 'success') {
@@ -44,29 +35,25 @@ const Container = () => {
 
   React.useEffect(() => {
     return () => {
-      onCleanup()
+      clearPhoneNumberAdd()
     }
-  }, [onCleanup])
+  }, [clearPhoneNumberAdd])
 
   const [code, onChangeCode] = React.useState('')
-  const disabled = !code
-  const onContinue = disabled
-    ? () => {}
-    : () => {
-        ponContinue(code)
-      }
+  const onContinue = () => {
+    if (!code) {
+      return
+    }
+
+    verifyPhoneNumber(phoneNumber, code)
+  }
+  const onResend = () => resendVerificationForPhone(phoneNumber)
 
   const displayPhone = e164ToDisplay(phoneNumber)
   return (
     <SignupScreen
       onBack={onBack}
-      banners={
-        error ? (
-          <Kb.Banner key="error" color="red">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
+      banners={errorBanner(error)}
       buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: verifyWaiting}]}
       titleComponent={
         <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
@@ -87,9 +74,9 @@ const Container = () => {
         </Kb.Box2>
       }
       negativeHeader={true}
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
-      <VerifyBody onChangeCode={onChangeCode} code={code} onResend={onResend} resendWaiting={resendWaiting} />
+      <VerifyBody onChangeCode={onChangeCode} onResend={onResend} resendWaiting={resendWaiting} />
     </SignupScreen>
   )
 }

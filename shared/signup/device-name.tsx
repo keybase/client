@@ -6,21 +6,25 @@ import * as Provision from '@/stores/provision'
 import {useSignupState} from '@/stores/signup'
 
 const ConnectedEnterDevicename = () => {
-  const error = useSignupState(s => s.devicenameError)
-  const initialDevicename = useSignupState(s => s.devicename)
+  const {checkDeviceName, error, goBackAndClearErrors, initialDevicename} = useSignupState(
+    C.useShallow(s => ({
+      checkDeviceName: s.dispatch.checkDeviceName,
+      error: s.devicenameError,
+      goBackAndClearErrors: s.dispatch.goBackAndClearErrors,
+      initialDevicename: s.devicename,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const checkDeviceName = useSignupState(s => s.dispatch.checkDeviceName)
-  const onBack = goBackAndClearErrors
-  const onContinue = checkDeviceName
-  const props = {
-    error,
-    initialDevicename,
-    onBack,
-    onContinue,
-    waiting,
-  }
-  return <EnterDevicename {...props} />
+
+  return (
+    <EnterDevicename
+      error={error}
+      initialDevicename={initialDevicename}
+      onBack={goBackAndClearErrors}
+      onContinue={checkDeviceName}
+      waiting={waiting}
+    />
+  )
 }
 
 export default ConnectedEnterDevicename
@@ -53,12 +57,18 @@ const EnterDevicename = (props: Props) => {
     !Provision.goodDeviceRE.test(cleanDeviceName) ||
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
-  const _setDeviceName = (deviceName: string) => {
-    setDeviceName(deviceName)
+  const onChangeDeviceName = (nextDeviceName: string) => {
+    setDeviceName(nextDeviceName)
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
-  const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
+  const onContinue = () => {
+    if (disabled) {
+      return
+    }
+
+    props.onContinue(cleanDeviceName)
+  }
 
   React.useEffect(() => {
     if (cleanDeviceName !== deviceName) {
@@ -97,7 +107,7 @@ const EnterDevicename = (props: Props) => {
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            onChangeText={_setDeviceName}
+            onChangeText={onChangeDeviceName}
             onEnterKeyDown={onContinue}
             value={deviceName}
           />

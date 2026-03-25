@@ -1,40 +1,23 @@
 import * as React from 'react'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
-import {useSignupState} from '@/stores/signup'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
-import {usePushState} from '@/stores/push'
+import {useNavigateToSignupEmail, useSkipSignupEmail} from './navigation'
 
 const EmailSkipButton = () => {
-  const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
+  const onSkip = useSkipSignupEmail()
+
   return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        setJustSignedUpEmail(C.noEmail)
-        showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
-      }}
-    >
+    <Kb.Text type="BodyBigLink" onClick={onSkip}>
       Skip
     </Kb.Text>
   )
 }
 
 const PhoneSkipButton = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const onSkip = useNavigateToSignupEmail()
+
   return (
-    <Kb.Text
-      type="BodyBigLink"
-      onClick={() => {
-        clearPhoneNumberAdd()
-        navigateAppend('signupEnterEmail', true)
-      }}
-    >
+    <Kb.Text type="BodyBigLink" onClick={onSkip}>
       Skip
     </Kb.Text>
   )
