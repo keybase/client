@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -20,11 +20,11 @@ const Breadcrumb = (props: Props) => {
           .slice(1, -1)
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
   const {inDestinationPicker} = props
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const onOpenPath = (path: T.FS.Path) => {
     inDestinationPicker
       ? FS.makeActionsForDestinationPickerOpen(0, path)
-      : nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+      : nav.navigateAppend({name: 'fsRoot', params: {path}})
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {

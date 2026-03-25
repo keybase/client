@@ -13,7 +13,7 @@ import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -119,7 +119,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 }
 
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const waitingKey = C.waitingKeyTeamsRemoveMember(teamID, username)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
@@ -128,7 +128,7 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
   React.useEffect(() => {
     if (wasWaitingRef.current && !waiting) {
       setLeaving(true)
-      nav.safeNavigateUp()
+      nav.navigateUp()
     } else {
       setLeaving(false)
     }
@@ -283,7 +283,7 @@ type NodeNotInRowProps = {
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
   const {addToTeam, disabledRoles} = Teams.useTeamsState(
     C.useShallow(s => ({
@@ -294,7 +294,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
-  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
+  const openTeam = () => nav.navigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -395,9 +395,9 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   useTeamDetailsSubscribe(props.node.teamID)
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const onAddToChannels = () =>
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamAddToChannels',
       params: {teamID: props.node.teamID, usernames: [props.username]},
     })
@@ -405,11 +405,11 @@ const NodeInRow = (props: NodeInRowProps) => {
   const onKickOut = () => {
     removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
-      nav.safeNavigateUp()
+      nav.navigateUp()
     }
   }
 
-  const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
+  const openTeam = () => nav.navigateAppend({name: 'team', params: {teamID: props.node.teamID}})
 
   const {expanded, setExpanded} = props
 
@@ -431,7 +431,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     editMembership(props.node.teamID, [props.username], role)
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
-      nav.safeNavigateUp()
+      nav.navigateUp()
     }
   }
   const changingRole = C.Waiting.useAnyWaiting(
@@ -607,7 +607,7 @@ const NodeInRow = (props: NodeInRowProps) => {
 // exported for stories
 export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
   const {teamDetails, teamMeta} = Teams.useTeamsState(
@@ -621,7 +621,7 @@ export const TeamMemberHeader = (props: Props) => {
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
-  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
+  const onViewTeam = () => nav.navigateAppend({name: 'team', params: {teamID}})
 
   const member = teamDetails?.members.get(username)
   if (!member) {
@@ -691,10 +691,10 @@ export const TeamMemberHeader = (props: Props) => {
 
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
+      const onBlock = () => nav.navigateAppend({name: 'chatBlockingModal', params: {username}})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}

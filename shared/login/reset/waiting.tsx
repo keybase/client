@@ -4,7 +4,7 @@ import {SignupScreen} from '@/signup/common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
 type Props = {pipelineStarted: boolean}
@@ -19,8 +19,8 @@ const Waiting = (props: Props) => {
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
-  const nav = useSafeNavigation()
-  const onClose = () => nav.safeNavigateAppend('login', true)
+  const nav = useRouteNavigation()
+  const onClose = () => nav.navigateAppend('login', true)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = () => {
     setHasSentAgain(true)
@@ -47,7 +47,7 @@ const Waiting = (props: Props) => {
         setFormattedTime(newFormattedTime)
       }
       if (endTime < Date.now()) {
-        nav.safeNavigateAppend('resetEnterPassword', true)
+        nav.navigateAppend('resetEnterPassword', true)
       }
     }
 

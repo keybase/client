@@ -6,6 +6,7 @@ import {
   CommonActions,
   type NavigationContainerRef,
   useFocusEffect,
+  useRoute,
   createNavigationContainerRef,
   type NavigationState,
 } from '@react-navigation/core'
@@ -181,6 +182,13 @@ export const navigateUp = () => {
   return n?.dispatch(CommonActions.goBack())
 }
 
+const _routeIsVisible = (routeKey: string) => getVisibleScreen()?.key === routeKey
+
+export const navigateUpFromRoute = (routeKey: string) => {
+  if (!_routeIsVisible(routeKey)) return
+  return navigateUp()
+}
+
 export const popStack = () => {
   DEBUG_NAV && console.log('[Nav] popStack')
   const n = _getNavigator()
@@ -236,6 +244,20 @@ export const navigateAppend = (path: PathParam, replace?: boolean) => {
   }
 
   n.dispatch(StackActions.push(routeName, params))
+}
+
+export const navigateAppendFromRoute = (routeKey: string, path: PathParam, replace?: boolean) => {
+  if (!_routeIsVisible(routeKey)) return
+  return navigateAppend(path, replace)
+}
+
+export const useRouteNavigation = () => {
+  const route = useRoute() as {key: string}
+  const routeKey = route.key
+  return {
+    navigateAppend: (path: PathParam, replace?: boolean) => navigateAppendFromRoute(routeKey, path, replace),
+    navigateUp: () => navigateUpFromRoute(routeKey),
+  }
 }
 
 export const switchTab = (name: Tabs.AppTab) => {

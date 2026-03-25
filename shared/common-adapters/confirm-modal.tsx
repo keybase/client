@@ -87,6 +87,7 @@ const ConfirmModal = (props: Props) => (
           disabled={props.onConfirmDeactivated || !props.onConfirm}
           type="Danger"
           label={props.confirmText || 'Confirm'}
+          lockOnClick={!!props.waitingKey}
           onClick={props.onConfirm}
           style={styles.button}
           waitingKey={props.waitingKey}

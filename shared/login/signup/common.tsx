@@ -33,6 +33,7 @@ export const ContinueButton = ({
 }) => (
   <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
     <Kb.WaitingButton
+      lockOnClick={true}
       waitingKey={C.waitingKeySignup}
       label={label || 'Continue'}
       disabled={disabled}

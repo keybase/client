@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {
   channelname: string
@@ -18,7 +18,7 @@ const EditChannel = (props: Props) => {
   const oldName = props.channelname
   const oldDescription = props.description
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
@@ -37,7 +37,7 @@ const EditChannel = (props: Props) => {
     ]
     Promise.all(ps)
       .then(() => {
-        nav.safeNavigateUp()
+        nav.navigateUp()
         loadTeamChannelList(teamID)
       })
       .catch(() => {})

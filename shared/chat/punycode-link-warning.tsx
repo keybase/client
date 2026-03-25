@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import openURL from '@/util/open-url'
 
 type PunycodeLinkWarningProps = {
@@ -10,11 +10,11 @@ type PunycodeLinkWarningProps = {
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   const {url, display, punycode} = props
-  const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onCancel = () => nav.navigateUp()
   const onConfirm = () => {
     openURL(url)
-    nav.safeNavigateUp()
+    nav.navigateUp()
   }
   const description = `The link you clicked on appears to be ${display}, but actually points to ${punycode}.`
   return (

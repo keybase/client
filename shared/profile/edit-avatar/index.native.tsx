@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props} from '.'
 import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 import {useModalHeaderState} from '@/stores/modal-header'
 import useHooks from './hooks'
@@ -14,8 +14,8 @@ const AvatarUploadWrapper = (p: Props) => {
   const {wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
-  const nav = useSafeNavigation()
-  const navUp = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const navUp = () => nav.navigateUp()
 
   const onChooseNewAvatar = () => {
     const f = async () => {
@@ -54,7 +54,7 @@ const AvatarUploadWrapper = (p: Props) => {
           if (!result.canceled && first) {
             setSelectedImage(first)
           } else {
-            nav.safeNavigateUp()
+            nav.navigateUp()
           }
         } catch (error) {
           setImageError(String(error))

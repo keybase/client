@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
 import {useSignupState} from '@/stores/signup'
-import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import type {RPCError} from '@/util/errors'
@@ -44,10 +43,9 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   // So we can clear the error if the name is changed
   const _username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = useSafeSubmit(navigateUp, hasError)
+  const nav = C.useRouteNavigation()
+  const onBack = nav.navigateUp
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = () => navigateAppend('forgotUsername')
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)

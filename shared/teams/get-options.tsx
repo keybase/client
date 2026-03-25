@@ -1,14 +1,14 @@
 import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useTeamsState} from '@/stores/teams'
 
 const useHeaderActions = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
+    onJoinTeam: () => nav.navigateAppend('teamJoinTeamDialog'),
   }
 }
 

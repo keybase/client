@@ -5,7 +5,7 @@ import type * as T from '@/constants/types'
 import Main from './main'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -73,9 +73,9 @@ const Connected = () => {
   // reload activity levels
   useActivityLevels(true)
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const onCreateTeam = () => launchNewTeamWizardOrModal()
-  const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
+  const onJoinTeam = () => nav.navigateAppend('teamJoinTeamDialog')
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={getTeams}>

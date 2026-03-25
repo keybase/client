@@ -32,14 +32,14 @@ export type Props = {
 
 type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
 
-const useSafeNavigation: SafeNavigationHook = Styles.isMobile
+const useMenuNavigation: SafeNavigationHook = Styles.isMobile
   ? (useNavigation as SafeNavigationHook)
   : () => null
 
 function FloatingMenu(props: Props) {
   const {items, visible, onHidden, mode} = props
 
-  const navigation = useSafeNavigation()
+  const navigation = useMenuNavigation()
 
   React.useEffect(() => {
     const unsub = navigation?.addListener('state', () => {

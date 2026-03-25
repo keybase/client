@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
 import {useChannelParticipants} from '@/teams/common'
@@ -14,7 +14,7 @@ type Props = {teamID: T.Teams.TeamID}
 
 const AddToChannel = (props: Props) => {
   const {teamID} = props
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState(new Set<string>())
@@ -37,7 +37,7 @@ const AddToChannel = (props: Props) => {
   const [error, setError] = React.useState('')
   const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
-  const onClose = () => nav.safeNavigateUp()
+  const onClose = () => nav.navigateUp()
   const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
@@ -65,7 +65,7 @@ const AddToChannel = (props: Props) => {
         () => {
           setWaiting(false)
           loadTeamChannelList(teamID)
-          nav.safeNavigateUp()
+          nav.navigateUp()
         },
         (e: {message: string}) => {
           setError(e.message)

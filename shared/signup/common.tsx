@@ -209,6 +209,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
                 key={b.label}
                 style={styles.button}
                 {...b}
+                lockOnClick={true}
                 // TS doesn't narrow the type inside ButtonMeta, so still thinks
                 // waitingKey can be undefined unless we pull it out
                 waitingKey={b.waitingKey}

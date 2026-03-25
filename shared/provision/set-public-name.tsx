@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Devices from '@/stores/devices'
-import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
@@ -11,8 +10,8 @@ const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)
   const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const ponBack = useSafeSubmit(navigateUp, !!error)
+  const nav = C.useRouteNavigation()
+  const ponBack = nav.navigateUp
   const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = (name: string) => {
     !waiting && psetDeviceName?.(name)

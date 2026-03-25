@@ -4,7 +4,7 @@ import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {
   members: string[]
@@ -28,8 +28,8 @@ const ConfirmKickOut = (props: Props) => {
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
-  const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onCancel = () => nav.navigateUp()
 
   const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
   const removeMember = useTeamsState(s => s.dispatch.removeMember)

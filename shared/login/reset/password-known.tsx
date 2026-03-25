@@ -2,14 +2,14 @@ import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const KnowPassword = () => {
   const error = AutoReset.useAutoResetState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
-  const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
-  const onYes = () => nav.safeNavigateAppend('resetEnterPassword')
+  const nav = useRouteNavigation()
+  const onCancel = () => nav.navigateUp()
+  const onYes = () => nav.navigateAppend('resetEnterPassword')
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onNo = () => resetAccount()
   return (

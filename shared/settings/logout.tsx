@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
@@ -51,8 +50,6 @@ const LogoutContainer = () => {
     submitNewPassword(true)
   }
 
-  const onLogout = useSafeSubmit(_onLogout, false)
-
   const [loggingOut, setLoggingOut] = React.useState(false)
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
@@ -63,7 +60,7 @@ const LogoutContainer = () => {
 
   const logOut = () => {
     if (loggingOut) return
-    onLogout()
+    _onLogout()
     setLoggingOut(true)
   }
 

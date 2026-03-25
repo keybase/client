@@ -8,6 +8,7 @@ const Kb = {
 }
 
 export type Props = {
+  lockOnClick?: boolean
   onlyDisable?: boolean
   waitingKey?: Array<string> | string
 } & ButtonProps
@@ -25,22 +26,41 @@ export type Props = {
  */
 
 function WaitingButton(props: Props & {ref?: React.Ref<MeasureRef>}) {
-  const {onlyDisable, waitingKey, ref, ...buttonProps} = props
+  const {lockOnClick, onlyDisable, waitingKey, ref, ...buttonProps} = props
   const storeWaiting = C.Waiting.useAnyWaiting(waitingKey)
 
   const [localWaiting, setLocalWaiting] = React.useState(false)
+  const [trackingStoreWaiting, setTrackingStoreWaiting] = React.useState(false)
 
   if (onlyDisable && !waitingKey) {
     throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
   }
+
+  React.useEffect(() => {
+    if (!lockOnClick || !waitingKey || !localWaiting) {
+      return
+    }
+    if (storeWaiting) {
+      setTrackingStoreWaiting(true)
+      return
+    }
+    if (trackingStoreWaiting) {
+      setLocalWaiting(false)
+      setTrackingStoreWaiting(false)
+      return
+    }
+    setLocalWaiting(false)
+  }, [lockOnClick, localWaiting, storeWaiting, trackingStoreWaiting, waitingKey])
+
   const waiting = storeWaiting || localWaiting
   return (
     <Kb.Button
       ref={ref}
       {...buttonProps}
       onClick={event => {
-        if (!waitingKey) {
+        if (lockOnClick || !waitingKey) {
           setLocalWaiting(true)
+          setTrackingStoreWaiting(false)
         }
         buttonProps.onClick?.(event)
       }}

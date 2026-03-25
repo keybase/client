@@ -12,7 +12,7 @@ import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
@@ -193,7 +193,7 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
 }
 
 const AddMoreMembers = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const {appendNewTeamBuilder} = C.useRouterState(
     C.useShallow(s => ({
       appendNewTeamBuilder: s.appendNewTeamBuilder,
@@ -203,9 +203,9 @@ const AddMoreMembers = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
-      const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
-      const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
-      const onAddEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
+      const onAddContacts = () => nav.navigateAppend('teamAddToTeamContacts')
+      const onAddPhone = () => nav.navigateAppend('teamAddToTeamPhone')
+      const onAddEmail = () => nav.navigateAppend('teamAddToTeamEmail')
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}

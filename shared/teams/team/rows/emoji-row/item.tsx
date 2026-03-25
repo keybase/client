@@ -6,7 +6,7 @@ import * as dateFns from 'date-fns'
 import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
@@ -18,13 +18,13 @@ type OwnProps = {
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const username = useCurrentUserState(s => s.username)
   const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = () => {
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamAddEmojiAlias',
       params: {conversationIDKey, defaultSelected: emojiData},
     })

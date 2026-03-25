@@ -1,11 +1,11 @@
 import * as Chat from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const BlockButtons = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
   const team = Chat.useChatContext(s => s.meta.teamname)
@@ -27,9 +27,9 @@ const BlockButtons = () => {
   )
 
   const onViewProfile = () => showUserProfile(adder)
-  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
+  const onViewTeam = () => nav.navigateAppend({name: 'team', params: {teamID}})
   const onBlock = () =>
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'chatBlockingModal',
       params: {
         blockUserByDefault: true,

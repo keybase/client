@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
@@ -9,7 +9,7 @@ import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
 export const Email = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
 
   const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
@@ -51,7 +51,7 @@ export const Email = () => {
     }
   }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
-  const onClose = () => nav.safeNavigateUp()
+  const onClose = () => nav.navigateUp()
   const onContinue = () => {
     if (disabled || waiting) {
       return
@@ -109,7 +109,7 @@ export const Email = () => {
   )
 }
 export const Phone = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
@@ -141,7 +141,7 @@ export const Phone = () => {
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
-      nav.safeNavigateAppend('settingsVerifyPhone')
+      nav.navigateAppend('settingsVerifyPhone')
     }
   }, [error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
@@ -151,7 +151,7 @@ export const Phone = () => {
 
   const onClose = () => {
     clearPhoneNumberAdd()
-    nav.safeNavigateUp()
+    nav.navigateUp()
   }
 
   const onContinue = () => {

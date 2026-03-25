@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
@@ -80,7 +80,7 @@ export const TeamMemberRow = (props: Props) => {
   const isYou = props.you === props.username
   const teamID = props.teamID
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const teamSelectedMembers = Teams.useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)
@@ -158,7 +158,7 @@ export const TeamMemberRow = (props: Props) => {
               {
                 icon: 'iconfont-chat',
                 onClick: () =>
-                  nav.safeNavigateAppend({
+                  nav.navigateAppend({
                     name: 'teamAddToChannels',
                     params: {teamID, usernames: [username]},
                   }),

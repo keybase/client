@@ -3,15 +3,15 @@ import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
   const error = AutoReset.useAutoResetState(s => s.error)
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onBack = () => nav.navigateUp()
 
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onContinue = () => {

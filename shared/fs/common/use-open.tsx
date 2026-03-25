@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -16,10 +16,10 @@ export const useOpen = (props: Props) => {
       return {destPicker: destinationPicker, pathItems}
     })
   )
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {
-    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
+    return () => nav.navigateAppend({name: 'fsRoot', params: {path: props.path}})
   }
 
   const isFolder =

@@ -8,7 +8,7 @@ import * as Teams from '@/stores/teams'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {teamname: string}
 
@@ -132,10 +132,10 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 }
 
 const Header = ({info}: ExternalTeamProps) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
-    nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
+    nav.navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (

@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as PhoneUtil from '@/util/phone-numbers'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
@@ -12,13 +12,13 @@ type OwnProps = {
 }
 
 const DeleteModal = (props: OwnProps) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const itemAddress = props.address
   const itemType = props.type
   const itemSearchable = props.searchable
   const lastEmail = props.lastEmail ?? false
 
-  const onCancel = () => nav.safeNavigateUp()
+  const onCancel = () => nav.navigateUp()
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = () => {
@@ -28,7 +28,7 @@ const DeleteModal = (props: OwnProps) => {
       editEmail({delete: true, email: itemAddress})
     }
 
-    nav.safeNavigateUp()
+    nav.navigateUp()
   }
 
   const icon =

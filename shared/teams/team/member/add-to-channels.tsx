@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 
@@ -48,7 +48,7 @@ const AddToChannels = function AddToChannels(props: Props) {
   const justMe = [myUsername]
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
@@ -97,7 +97,7 @@ const AddToChannels = function AddToChannels(props: Props) {
   }
   const onSelectAll = () => setSelected(new Set(convIDKeysAvailable))
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
-  const onCancel = () => nav.safeNavigateUp()
+  const onCancel = () => nav.navigateUp()
 
   const submit = C.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
@@ -204,7 +204,7 @@ const AddToChannels = function AddToChannels(props: Props) {
     if (mode !== 'others') return
     const handleFinish = () => {
       if (!selected.size) {
-        nav.safeNavigateUp()
+        nav.navigateUp()
         return
       }
       setWaiting(true)
@@ -212,7 +212,7 @@ const AddToChannels = function AddToChannels(props: Props) {
         [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
         () => {
           setWaiting(false)
-          nav.safeNavigateUp()
+          nav.navigateUp()
         },
         error => {
           console.error(error)
@@ -274,8 +274,8 @@ const HeaderRow = function HeaderRow(p: {
   onSelectNone?: () => void
 }) {
   const {mode, teamID, onSelectAll, onSelectNone} = p
-  const nav = useSafeNavigation()
-  const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
+  const nav = useRouteNavigation()
+  const onCreate = () => nav.navigateAppend({name: 'chatCreateChannel', params: {teamID}})
   const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   return (
@@ -313,7 +313,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   selfMode: boolean
 }) {
   const {meta, reloadChannels, selfMode} = p
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
@@ -323,7 +323,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   const stopWaiting = () => setWaiting(false)
 
   const onEditChannel = () => {
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamEditChannel',
       params: {
         channelname: meta.channelname,
@@ -344,7 +344,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
   }
   const onDelete = () => {
     // TODO: consider not using the confirm modal
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamDeleteChannel',
       params: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
     })

@@ -7,7 +7,7 @@ import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsState} from '@/stores/teams'
 
@@ -282,7 +282,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const {addMembersWizardPushMembers, meta, startAddMembersWizard, yourOperations} = Teams.useTeamsState(
     C.useShallow(s => ({
       addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
@@ -301,13 +301,13 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
-        nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
+        nav.navigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => nav.safeNavigateAppend({name: 'teamEditTeamInfo', params: {teamID}})
+    ? () => nav.navigateAppend({name: 'teamEditTeamInfo', params: {teamID}})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () => nav.safeNavigateAppend({name: 'teamRename', params: {teamname: meta.teamname}})
+    ? () => nav.navigateAppend({name: 'teamRename', params: {teamname: meta.teamname}})
     : undefined
   return {
     onAddSelf,

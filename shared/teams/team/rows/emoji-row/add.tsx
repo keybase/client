@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 
@@ -11,15 +11,15 @@ type OwnProps = {
   setFilter: (filter: string) => void
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const canManageEmoji = useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamAddEmoji',
       params: {conversationIDKey: convID, teamID},
     })
   const onAddAlias = () =>
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamAddEmojiAlias',
       params: {conversationIDKey: convID},
     })

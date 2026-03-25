@@ -7,7 +7,7 @@ import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
@@ -43,11 +43,11 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     description: description,
     teamID,
   }
-  const nav = useSafeNavigation()
-  const onEditChannel = () => nav.safeNavigateAppend({name: 'teamEditChannel', params: editChannelProps})
+  const nav = useRouteNavigation()
+  const onEditChannel = () => nav.navigateAppend({name: 'teamEditChannel', params: editChannelProps})
   const onAddMembers = () =>
-    nav.safeNavigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
-  const onNavToTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
+    nav.navigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
+  const onNavToTeam = () => nav.navigateAppend({name: 'team', params: {teamID}})
   const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
@@ -78,7 +78,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             {
               danger: true,
               onClick: () => {
-                nav.safeNavigateUp()
+                nav.navigateUp()
                 deleteChannelConfirmed(teamID, conversationIDKey)
               },
               title: 'Delete channel',

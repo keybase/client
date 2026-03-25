@@ -1,7 +1,7 @@
 export * from './platform'
 export * from './values'
 export * from './strings'
-export {useRouterState, makeScreen} from '@/stores/router'
+export {useRouterState, makeScreen, useRouteNavigation} from '@/stores/router'
 export * as Router2 from '@/stores/router'
 export * as Tabs from './tabs'
 export {useWaitingState} from '@/stores/waiting'

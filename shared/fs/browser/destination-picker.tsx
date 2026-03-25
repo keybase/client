@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
 import * as RowCommon from './rows/common'
@@ -46,7 +46,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     })
   )
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onBackUp =
     isShare || !canBackUp(parentPath)
@@ -57,14 +57,14 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     ? () => {
         moveOrCopy(parentPath, 'copy')
         clearModals()
-        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+        nav.navigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
     : undefined
   const onMoveHere = isMovable
     ? () => {
         moveOrCopy(parentPath, 'move')
         clearModals()
-        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+        nav.navigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
     : undefined
   const onNewFolder =

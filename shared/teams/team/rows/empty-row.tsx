@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -28,14 +28,14 @@ const buttonLabel = {
 
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
         if (conversationIDKey) {
-          nav.safeNavigateAppend({
+          nav.navigateAppend({
             name: 'chatAddToChannel',
             params: {conversationIDKey: conversationIDKey, teamID},
           })
@@ -47,10 +47,10 @@ const useSecondaryAction = (props: Props) => {
         launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
-        nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
+        nav.navigateAppend({name: 'chatCreateChannel', params: {teamID}})
         break
       case 'channelsEmpty':
-        nav.safeNavigateAppend({name: 'teamCreateChannels', params: {teamID}})
+        nav.navigateAppend({name: 'teamCreateChannels', params: {teamID}})
         break
     }
   }

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const onCreateChannel = () =>
-    nav.safeNavigateAppend({name: 'chatCreateChannel', params: {...props, navToChatOnSuccess: false}})
+    nav.navigateAppend({name: 'chatCreateChannel', params: {...props, navToChatOnSuccess: false}})
 
   const waitingKey = C.waitingKeyTeamsGetChannels(props.teamID)
   const waitingForGet = C.Waiting.useAnyWaiting(waitingKey)

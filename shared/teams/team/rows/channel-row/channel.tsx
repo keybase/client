@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 
@@ -24,14 +24,14 @@ const ChannelRow = (props: ChannelRowProps) => {
   const hasAllMembers = details?.members.size === numParticipants
   const activityLevel = useTeamsState(s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none')
 
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = () => {
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamEditChannel',
       params: {
         channelname: channel.channelname,
@@ -42,7 +42,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     })
   }
   const onNavToChannel = () => {
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamChannel',
       params: {
         conversationIDKey: channel.conversationIDKey,
@@ -51,7 +51,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     })
   }
   const onNavToSettings = () => {
-    nav.safeNavigateAppend({
+    nav.navigateAppend({
       name: 'teamChannel',
       params: {
         ...props,

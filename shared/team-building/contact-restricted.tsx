@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {
   source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'misc'
@@ -7,8 +7,8 @@ type Props = {
 }
 
 export const ContactRestricted = (props: Props) => {
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onBack = () => nav.navigateUp()
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []

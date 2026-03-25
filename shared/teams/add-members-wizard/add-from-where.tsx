@@ -2,19 +2,19 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 const AddFromWhere = () => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
   const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
   const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
-  const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
-  const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
-  const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
+  const onContinuePhone = () => nav.navigateAppend('teamAddToTeamPhone')
+  const onContinueContacts = () => nav.navigateAppend('teamAddToTeamContacts')
+  const onContinueEmail = () => nav.navigateAppend('teamAddToTeamEmail')
 
   return (
     <>

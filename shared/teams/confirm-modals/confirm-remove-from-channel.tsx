@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type Props = {
   members: string[]
@@ -22,8 +22,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
-  const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onCancel = () => nav.navigateUp()
 
   const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
@@ -37,7 +37,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       _ => {
         setWaiting(false)
         channelSetMemberSelected(conversationIDKey, '', false, true)
-        nav.safeNavigateUp()
+        nav.navigateUp()
         loadTeamChannelList(teamID)
       },
       err => {

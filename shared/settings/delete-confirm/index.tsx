@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -42,8 +42,8 @@ const DeleteConfirm = () => {
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
-  const nav = useSafeNavigation()
-  const onCancel = () => nav.safeNavigateUp()
+  const nav = useRouteNavigation()
+  const onCancel = () => nav.navigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
     if (C.androidIsTestDevice) {

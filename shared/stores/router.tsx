@@ -19,6 +19,7 @@ export {
   getRouteTab,
   getRouteLoggedIn,
   useSafeFocusEffect,
+  useRouteNavigation,
   makeScreen,
 } from '@/constants/router'
 export type {PathParam, Navigator} from '@/constants/router'

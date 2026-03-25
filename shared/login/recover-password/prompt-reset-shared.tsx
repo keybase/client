@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
@@ -12,7 +12,7 @@ export type Props = {
 }
 
 const PromptReset = (props: Props) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const skipPassword = AutoReset.useAutoResetState(s => s.skipPassword)
   const error = AutoReset.useAutoResetState(s => s.error)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
@@ -25,7 +25,7 @@ const PromptReset = (props: Props) => {
   const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
-      nav.safeNavigateUp()
+      nav.navigateUp()
       return
     }
     if (resetPassword) {
@@ -34,14 +34,14 @@ const PromptReset = (props: Props) => {
     if (skipPassword) {
       resetAccount()
     } else {
-      nav.safeNavigateAppend('resetKnowPassword', true)
+      nav.navigateAppend('resetKnowPassword', true)
     }
   }
   const onBack = () => {
     if (skipPassword) {
       startRecoverPassword({replaceRoute: true, username})
     } else {
-      nav.safeNavigateUp()
+      nav.navigateUp()
     }
   }
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'

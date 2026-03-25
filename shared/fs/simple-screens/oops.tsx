@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
+import {useRouteNavigation} from '@/constants/router'
 
 type OwnProps = {
   path: T.FS.Path
@@ -98,9 +98,9 @@ const NonExistent = (props: Props) => (
 )
 
 const Oops = (props: OwnProps) => {
-  const nav = useSafeNavigation()
+  const nav = useRouteNavigation()
   const openParent = () =>
-    nav.safeNavigateAppend({name: 'fsRoot', params: {path: T.FS.getPathParent(props.path)}})
+    nav.navigateAppend({name: 'fsRoot', params: {path: T.FS.getPathParent(props.path)}})
   switch (props.reason) {
     case T.FS.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />
