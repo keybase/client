@@ -1,8 +1,9 @@
 import * as React from 'react'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {UpdatePassword} from './password'
+import {UpdatePassword, useSubmitNewPassword} from './password'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
 import {useLogoutState} from '@/stores/logout'
@@ -15,40 +16,23 @@ const LogoutContainer = () => {
       resetCheckPassword: s.dispatch.resetCheckPassword,
     }))
   )
-  const pwState = usePWState(
+  const {hasRandomPW, loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
-      _setPassword: s.dispatch.setPassword,
-      hasPGPKeyOnServer: !!s.hasPGPKeyOnServer,
       hasRandomPW: s.randomPW,
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      onUpdatePGPSettings: s.dispatch.loadPgpSettings,
-      setPasswordConfirm: s.dispatch.setPasswordConfirm,
-      submitNewPassword: s.dispatch.submitNewPassword,
     }))
   )
-  const {hasPGPKeyOnServer, hasRandomPW, loadHasRandomPw, onUpdatePGPSettings} = pwState
-  const {setPasswordConfirm, submitNewPassword, _setPassword} = pwState
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
+  const {error, onSave, waitingForResponse} = useSubmitNewPassword(true)
+  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState(false)
+  const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
+  const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
   const onBootstrap = loadHasRandomPw
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    resetCheckPassword()
-    navigateUp()
-  }
   const onCheckPassword = checkPassword
-
-  const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
   const _onLogout = () => {
     requestLogout()
     resetCheckPassword()
-  }
-
-  const onSavePassword = (password: string) => {
-    _setPassword(password)
-    setPasswordConfirm(password)
-    submitNewPassword(true)
   }
 
   const onLogout = useSafeSubmit(_onLogout, false)
@@ -60,6 +44,21 @@ const LogoutContainer = () => {
   React.useEffect(() => {
     onBootstrap()
   }, [onBootstrap])
+
+  React.useEffect(() => {
+    if (!hasRandomPW) {
+      return
+    }
+    loadPgpSettings(
+      [undefined],
+      ({hasServerKeys}) => {
+        setHasPGPKeyOnServer(hasServerKeys)
+      },
+      () => {
+        setHasPGPKeyOnServer(false)
+      }
+    )
+  }, [hasRandomPW, loadPgpSettings])
 
   const logOut = () => {
     if (loggingOut) return
@@ -73,12 +72,9 @@ const LogoutContainer = () => {
     <Kb.ProgressIndicator style={styles.progress} type="Huge" />
   ) : hasRandomPW ? (
     <UpdatePassword
-      error=""
-      onUpdatePGPSettings={onUpdatePGPSettings}
+      error={error}
       hasPGPKeyOnServer={hasPGPKeyOnServer}
-      hasRandomPW={hasRandomPW}
-      onCancel={onCancel}
-      onSave={onSavePassword}
+      onSave={onSave}
       saveLabel="Sign out"
       waitingForResponse={waitingForResponse}
     />

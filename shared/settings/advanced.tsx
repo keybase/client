@@ -84,16 +84,12 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
-  const pwState = usePWState(
+  const {hasRandomPW, loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       hasRandomPW: !!s.randomPW,
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      loadRememberPassword: s.dispatch.loadRememberPassword,
-      rememberPassword: s.rememberPassword,
-      setRememberPassword: s.dispatch.setRememberPassword,
     }))
   )
-  const {hasRandomPW, loadHasRandomPw, loadRememberPassword, rememberPassword, setRememberPassword} = pwState
   const {onSetOpenAtLogin, openAtLogin} = useConfigState(
     C.useShallow(s => ({
       onSetOpenAtLogin: s.dispatch.setOpenAtLogin,
@@ -106,10 +102,12 @@ const Advanced = () => {
     }))
   )
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
-  const onChangeRememberPassword = setRememberPassword
+  const [rememberPassword, setRememberPassword] = React.useState<boolean | undefined>(undefined)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
+  const loadRememberPassword = C.useRPC(T.RPCGen.configGetRememberPassphraseRpcPromise)
+  const submitRememberPassword = C.useRPC(T.RPCGen.configSetRememberPassphraseRpcPromise)
 
   // load it
   React.useEffect(() => {
@@ -133,7 +131,32 @@ const Advanced = () => {
     }
   }, [disableSpellCheck, loadDisableSpellcheck])
 
+  React.useEffect(() => {
+    if (rememberPassword === undefined) {
+      loadRememberPassword(
+        [undefined],
+        remember => {
+          setRememberPassword(remember)
+        },
+        () => {
+          setRememberPassword(true)
+        }
+      )
+    }
+  }, [loadRememberPassword, rememberPassword])
+
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
+  const onChangeRememberPassword = (remember: boolean) => {
+    const previous = rememberPassword
+    setRememberPassword(remember)
+    submitRememberPassword(
+      [{remember}],
+      () => {},
+      () => {
+        setRememberPassword(previous)
+      }
+    )
+  }
 
   const onToggleDisableSpellcheck = () => {
     const next = !disableSpellCheck
@@ -156,8 +179,7 @@ const Advanced = () => {
   React.useEffect(() => {
     loadHasRandomPw()
     loadLockdownMode()
-    loadRememberPassword()
-  }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
+  }, [loadHasRandomPw, loadLockdownMode])
 
   return (
     <Kb.KeyboardAvoidingView2>
@@ -173,7 +195,8 @@ const Advanced = () => {
             )}
             {!hasRandomPW && (
               <Kb.Checkbox
-                checked={rememberPassword}
+                checked={!!rememberPassword}
+                disabled={rememberPassword === undefined}
                 labelComponent={
                   <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                     <Kb.Text type="Body">Always stay logged in</Kb.Text>

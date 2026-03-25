@@ -9,7 +9,7 @@ const Password = () => {
   const onSave = (p: string) => {
     submitPassword?.(p)
   }
-  return <UpdatePassword error={error} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
+  return <UpdatePassword error={error} onSave={onSave} waitingForResponse={waiting} />
 }
 
 export default Password
