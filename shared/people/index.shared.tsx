@@ -10,10 +10,7 @@ import Todo from './todo'
 import {clearSignupEmail} from './signup-email'
 // import WotTask from './wot-task'
 
-const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
-  item,
-  props
-) => {
+const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
   switch (item.type) {
     case 'todo':
       return (
@@ -62,6 +59,17 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
       return null
   }
 }
+
+const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signupEmail: string) =>
+  item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !signupEmail
+
+const PeopleItems = ({
+  items,
+  props,
+}: {
+  items: ReadonlyArray<T.Immutable<T.People.PeopleScreenItem>>
+  props: Props
+}) => items.map(item => renderPeopleItem(item, props))
 
 function EmailVerificationBanner(props: {signupEmail: string}) {
   const {signupEmail} = props
@@ -117,13 +125,13 @@ function ResentEmailVerificationBanner(props: {
 }
 
 export function PeoplePageList(props: Props) {
+  const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
       <EmailVerificationBanner signupEmail={props.signupEmail} />
       <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
-      {props.newItems
-        .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-        .map((item): React.ReactNode => itemToComponent(item, props))}
+      <PeopleItems items={visibleNewItems} props={props} />
       {/*Array.from(props.wotUpdates, ([key, item]) => (
         <WotTask
           key={key}
@@ -135,7 +143,7 @@ export function PeoplePageList(props: Props) {
       ))*/}
 
       <FollowSuggestions suggestions={props.followSuggestions} />
-      {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
+      <PeopleItems items={props.oldItems} props={props} />
     </Kb.Box2>
   )
 }
