@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import type * as T from '@/constants/types'
 import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
@@ -7,6 +8,24 @@ import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
 
 type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
+type TeamSoFar = ReadonlyArray<{userId: string}>
+
+type TeamAlphabetIndexProps = {
+  recommendations?: Array<Types.SearchRecSection>
+  teamSoFar: TeamSoFar
+  sectionListRef: RefType
+}
+
+type RecsAndRecosProps = {
+  highlightedIndex: number
+  recommendations?: Array<Types.SearchRecSection>
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
+  onAdd: (userId: string) => void
+  onRemove: (userId: string) => void
+  teamSoFar: TeamSoFar
+  recommendedHideYourself: boolean
+}
 
 export const numSectionLabel = '0-9'
 
@@ -18,12 +37,7 @@ const SearchHintText = () => (
   </Kb.Box2>
 )
 
-const TeamAlphabetIndex = (
-  props: Pick<Types.Props, 'recommendations' | 'teamSoFar'> & {
-    sectionListRef: RefType
-  }
-) => {
-  const {recommendations, teamSoFar, sectionListRef} = props
+const TeamAlphabetIndex = ({recommendations, teamSoFar, sectionListRef}: TeamAlphabetIndexProps) => {
   let showNumSection = false
   let labels: Array<string> = []
   if (recommendations && recommendations.length > 0) {
@@ -31,7 +45,7 @@ const TeamAlphabetIndex = (
     labels = recommendations.filter(r => r.shortcut && r.label !== numSectionLabel).map(r => r.label)
   }
 
-  const _onScrollToSection = (label: string) => {
+  const onScrollToSection = (label: string) => {
     if (sectionListRef.current) {
       const sectionIndex =
         (recommendations &&
@@ -54,18 +68,18 @@ const TeamAlphabetIndex = (
   }
   return (
     <>
-      <AlphabetIndex
-        labels={labels}
-        showNumSection={showNumSection}
-        onScroll={_onScrollToSection}
-        style={styles.alphabetIndex}
-        measureKey={!!teamSoFar.length}
-      />
+        <AlphabetIndex
+          labels={labels}
+          showNumSection={showNumSection}
+          onScroll={onScrollToSection}
+          style={styles.alphabetIndex}
+          measureKey={!!teamSoFar.length}
+        />
     </>
   )
 }
 
-const _listIndexToSectionAndLocalIndex = (
+const listIndexToSectionAndLocalIndex = (
   highlightedIndex?: number,
   sections?: Types.SearchRecSection[]
 ): {index: number; section: Types.SearchRecSection} | undefined => {
@@ -81,24 +95,13 @@ const _listIndexToSectionAndLocalIndex = (
   }
   return
 }
-export const RecsAndRecos = (
-  props: Pick<
-    Types.Props,
-    | 'highlightedIndex'
-    | 'recommendations'
-    | 'namespace'
-    | 'selectedService'
-    | 'onAdd'
-    | 'onRemove'
-    | 'teamSoFar'
-  > & {recommendedHideYourself: boolean}
-) => {
+export const RecsAndRecos = (props: RecsAndRecosProps) => {
   const {highlightedIndex, recommendations, recommendedHideYourself, namespace} = props
   const {selectedService, onAdd, onRemove, teamSoFar} = props
   const sectionListRef = React.useRef<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection>>(null)
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
-  const highlightDetails = _listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
+  const highlightDetails = listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
 
   React.useEffect(() => {
     highlightedIndex >= 0 &&

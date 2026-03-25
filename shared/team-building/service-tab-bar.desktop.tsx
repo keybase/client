@@ -6,6 +6,26 @@ import type * as T from '@/constants/types'
 import type {Props, IconProps} from './service-tab-bar'
 import {useColorScheme} from 'react-native'
 
+const getDesktopServicesLayout = (
+  services: ReadonlyArray<T.TB.ServiceIdWithContact>,
+  selectedService: T.TB.ServiceIdWithContact,
+  servicesShown: number,
+  lastSelectedUnlockedService?: T.TB.ServiceIdWithContact
+) => {
+  const lockedServices = services.slice(0, servicesShown)
+  const selectedServiceIsLocked = services.indexOf(selectedService) < servicesShown
+  const frontServices = selectedServiceIsLocked
+    ? lastSelectedUnlockedService === undefined
+      ? services.slice(0, servicesShown + 1)
+      : lockedServices.concat(lastSelectedUnlockedService)
+    : lockedServices.concat(selectedService)
+
+  return {
+    frontServices,
+    moreServices: difference(services, frontServices),
+  }
+}
+
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
   const isDarkMode = useColorScheme() === 'dark'
@@ -72,21 +92,21 @@ const MoreNetworksButton = (props: {
 }) => {
   const {services, onChangeService} = props
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={services.map(service => ({
-            onClick: () => onChangeService(service),
-            title: service,
-            view: <MoreNetworkItem service={service} />,
-          }))}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={services.map(service => ({
+          onClick: () => onChangeService(service),
+          title: service,
+          view: <MoreNetworkItem service={service} />,
+        }))}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -135,24 +155,19 @@ export const ServiceTabBar = (props: Props) => {
   >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = (service: T.TB.ServiceIdWithContact) => {
-      if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
-        setLastSelectedUnlockedService(service)
-      }
-      propsOnChangeService(service)
+    if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
+      setLastSelectedUnlockedService(service)
     }
-  const lockedServices = services.slice(0, nLocked)
-  let frontServices = new Array<T.TB.ServiceIdWithContact>()
-  if (services.indexOf(props.selectedService) < nLocked) {
-    // Selected service is locked
-    if (lastSelectedUnlockedService === undefined) {
-      frontServices = services.slice(0, nLocked + 1)
-    } else {
-      frontServices = lockedServices.concat([lastSelectedUnlockedService])
-    }
-  } else {
-    frontServices = lockedServices.concat([props.selectedService])
+    propsOnChangeService(service)
   }
-  const moreServices = difference(services, frontServices)
+
+  const {frontServices, moreServices} = getDesktopServicesLayout(
+    services,
+    props.selectedService,
+    nLocked,
+    lastSelectedUnlockedService
+  )
+
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
       {frontServices.map(service => (

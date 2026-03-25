@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {useColorScheme} from 'react-native'
@@ -41,7 +40,6 @@ const AnimatedScrollView = createAnimatedComponent(ScrollView)
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: {
   offset?: SharedValue<number>
-  servicesCount: number
 }) {
   'use no memo'
   const {offset} = props
@@ -159,9 +157,6 @@ export const ServiceTabBar = (props: Props) => {
   'use no memo'
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
-  const onClick = (service: T.TB.ServiceIdWithContact) => {
-      onChangeService(service)
-    }
 
   React.useEffect(() => {
     bounceX.set(0)
@@ -208,13 +203,11 @@ export const ServiceTabBar = (props: Props) => {
           offset={offset}
           service={service}
           label={serviceIdToLongLabel(service)}
-          onClick={onClick}
+          onClick={onChangeService}
           isActive={selectedService === service}
         />
       ))}
-      {Kb.Styles.isTablet ? (
-        <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
-      ) : null}
+      {Kb.Styles.isTablet ? <TabletBottomBorderExtension offset={offset} /> : null}
     </AnimatedScrollView>
   )
 }
