@@ -1,69 +1,163 @@
 import * as C from '@/constants'
-import * as T from '@/constants/types'
+import * as FS from '@/stores/fs'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import FollowButton from './follow-button'
+import * as T from '@/constants/types'
 import ChatButton from '@/chat/chat-button'
+import FollowButton from './follow-button'
 import {useBotsState} from '@/stores/bots'
-import {useTrackerState} from '@/stores/tracker'
-import * as FS from '@/stores/fs'
-import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useFollowerState} from '@/stores/followers'
+import {useTrackerState} from '@/stores/tracker'
 
 type OwnProps = {username: string}
 
-const Container = (ownProps: OwnProps) => {
-  const username = ownProps.username
-  const d = useTrackerState(s => s.getDetails(username))
+type ActionState = {
+  chatButton: React.ReactNode
+  dropdown: React.ReactNode
+  followThem: boolean
+  followsYou: boolean
+  onAccept: () => void
+  onEditProfile?: () => void
+  onFollow: () => void
+  onOpenFolder: () => void
+  onReload: () => void
+  onUnfollow: () => void
+  state: T.Tracker.DetailsState
+}
+
+const ActionRow = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+    {children}
+  </Kb.Box2>
+)
+
+const getButtons = ({
+  chatButton,
+  dropdown,
+  followThem,
+  followsYou,
+  onAccept,
+  onEditProfile,
+  onFollow,
+  onOpenFolder,
+  onReload,
+  onUnfollow,
+  state,
+}: ActionState): Array<React.ReactNode> => {
+  if (state === 'notAUserYet') {
+    return [
+      chatButton,
+      <Kb.Button key="Open folder" mode="Secondary" label="Open folder" onClick={onOpenFolder} />,
+    ]
+  }
+
+  if (onEditProfile) {
+    return [
+      <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={onEditProfile} />,
+      chatButton,
+    ]
+  }
+
+  if (followThem) {
+    switch (state) {
+      case 'valid':
+        return [
+          <FollowButton
+            key="Unfollow"
+            following={true}
+            onUnfollow={onUnfollow}
+            waitingKey={C.waitingKeyTracker}
+          />,
+          chatButton,
+          dropdown,
+        ]
+      case 'needsUpgrade':
+        return [
+          chatButton,
+          <Kb.WaitingButton
+            key="Accept"
+            type="Success"
+            label="Accept"
+            waitingKey={C.waitingKeyTracker}
+            onClick={onAccept}
+          />,
+          dropdown,
+        ]
+      default:
+        return [
+          <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
+          <Kb.WaitingButton
+            key="Accept"
+            type="Success"
+            label="Accept"
+            waitingKey={C.waitingKeyTracker}
+            onClick={onAccept}
+          />,
+          dropdown,
+        ]
+    }
+  }
+
+  if (state === 'error') {
+    return [
+      <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
+      chatButton,
+      dropdown,
+    ]
+  }
+
+  return [
+    <FollowButton
+      key="Follow"
+      following={false}
+      followsYou={followsYou}
+      onFollow={onFollow}
+      waitingKey={C.waitingKeyTracker}
+    />,
+    chatButton,
+    dropdown,
+  ]
+}
+
+const Container = ({username}: OwnProps) => {
+  const {blocked, guiID, hidFromFollowers, state} = useTrackerState(s => s.getDetails(username))
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const isBot = useBotsState(s => s.featuredBotsMap.has(username))
+  const currentUsername = useCurrentUserState(s => s.username)
+  const {changeFollow, showUser} = useTrackerState(
+    C.useShallow(s => ({
+      changeFollow: s.dispatch.changeFollow,
+      showUser: s.dispatch.showUser,
+    }))
+  )
+  const {navigateAppend} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+    }))
+  )
 
-  const _guiID = d.guiID
-  const _you = useCurrentUserState(s => s.username)
-  const blocked = d.blocked
-  const hidFromFollowers = d.hidFromFollowers
-  const state = d.state
-
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
-  const _onBrowsePublicFolder = (username: string) =>
-    FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
-  const _onEditProfile = () => navigateAppend('profileEdit')
-
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _onFollow = changeFollow
-  const _onInstallBot = (username: string) => {
-    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
-  }
-  const _onManageBlocking = (username: string) =>
-    navigateAppend({name: 'chatBlockingModal', params: {username}})
-  const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const _onReload = (username: string) => {
-    showUser(username, false)
-  }
-  const onAccept = () => _onFollow(_guiID, true)
-  const onAddToTeam = () => _onAddToTeam(username)
-  const onBrowsePublicFolder = () => _onBrowsePublicFolder(username)
-  const onEditProfile = _you === username ? _onEditProfile : undefined
-  const onFollow = () => _onFollow(_guiID, true)
-  const onInstallBot = () => _onInstallBot(username)
-  const onManageBlocking = () => _onManageBlocking(username)
-  const onOpenPrivateFolder = () => _onOpenPrivateFolder(_you, username)
-  const onReload = () => _onReload(username)
-  const onUnfollow = () => _onFollow(_guiID, false)
+  const onAddToTeam = () => navigateAppend({name: 'profileAddToTeam', params: {username}})
+  const onBrowsePublicFolder = () => FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
+  const onEditProfile = currentUsername === username ? () => navigateAppend('profileEdit') : undefined
+  const onFollow = () => changeFollow(guiID, true)
+  const onInstallBot = () => navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
+  const onManageBlocking = () => navigateAppend({name: 'chatBlockingModal', params: {username}})
+  const onOpenPrivateFolder = () =>
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${username},${currentUsername}`))
+  const onReload = () => showUser(username, false)
+  const onUnfollow = () => changeFollow(guiID, false)
+  const onAccept = onFollow
 
   const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  // load featured bots on first render
   React.useEffect(() => {
-    // TODO likely don't do this all the time, just once
     getFeaturedBots()
   }, [getFeaturedBots])
+
   if (blocked) {
     return (
-      <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+      <ActionRow>
         <Kb.Button
           key="Manage blocking"
           mode="Secondary"
@@ -71,11 +165,9 @@ const Container = (ownProps: OwnProps) => {
           label="Manage blocking"
           onClick={onManageBlocking}
         />
-      </Kb.Box2>
+      </ActionRow>
     )
   }
-
-  let buttons: Array<React.ReactNode>
 
   const dropdown = (
     <DropdownButton
@@ -83,136 +175,85 @@ const Container = (ownProps: OwnProps) => {
       key="dropdown"
       isBot={isBot}
       onAddToTeam={onAddToTeam}
-      onOpenPrivateFolder={onOpenPrivateFolder}
       onBrowsePublicFolder={onBrowsePublicFolder}
       onInstallBot={onInstallBot}
-      onUnfollow={followThem && state !== 'valid' ? onUnfollow : undefined}
       onManageBlocking={onManageBlocking}
+      onOpenPrivateFolder={onOpenPrivateFolder}
+      onUnfollow={followThem && state !== 'valid' ? onUnfollow : undefined}
     />
   )
 
-  const chatButton = <ChatButton key="Chat" username={username} />
-
-  if (state === 'notAUserYet') {
-    buttons = [
-      chatButton,
-      <Kb.Button key="Open folder" mode="Secondary" label="Open folder" onClick={onOpenPrivateFolder} />,
-    ]
-  } else if (onEditProfile) {
-    buttons = [
-      <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={onEditProfile} />,
-      chatButton,
-    ]
-  } else if (followThem) {
-    if (state === 'valid') {
-      buttons = [
-        <FollowButton
-          key="Unfollow"
-          following={true}
-          onUnfollow={onUnfollow}
-          waitingKey={C.waitingKeyTracker}
-        />,
-        chatButton,
-        dropdown,
-      ]
-    } else if (state === 'needsUpgrade') {
-      buttons = [
-        chatButton,
-        <Kb.WaitingButton
-          key="Accept"
-          type="Success"
-          label="Accept"
-          waitingKey={C.waitingKeyTracker}
-          onClick={onAccept}
-        />,
-        dropdown,
-      ]
-    } else {
-      buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
-        <Kb.WaitingButton
-          key="Accept"
-          type="Success"
-          label="Accept"
-          waitingKey={C.waitingKeyTracker}
-          onClick={onAccept}
-        />,
-        dropdown,
-      ]
-    }
-  } else {
-    if (state === 'error') {
-      buttons = [
-        <Kb.WaitingButton key="Reload" label="Reload" waitingKey={C.waitingKeyTracker} onClick={onReload} />,
-        chatButton,
-        dropdown,
-      ]
-    } else {
-      buttons = [
-        <FollowButton
-          key="Follow"
-          following={false}
-          followsYou={followsYou}
-          onFollow={onFollow}
-          waitingKey={C.waitingKeyTracker}
-        />,
-        chatButton,
-        dropdown,
-      ]
-    }
-  }
+  const buttons = getButtons({
+    chatButton: <ChatButton key="Chat" username={username} />,
+    dropdown,
+    followThem,
+    followsYou,
+    onAccept,
+    onEditProfile,
+    onFollow,
+    onOpenFolder: onOpenPrivateFolder,
+    onReload,
+    onUnfollow,
+    state,
+  })
 
   return (
-    <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
-      {state === 'checking' ? <Kb.ProgressIndicator type="Small" /> : buttons}
-    </Kb.Box2>
+    <ActionRow>{state === 'checking' ? <Kb.ProgressIndicator type="Small" /> : buttons}</ActionRow>
   )
 }
 
 type DropdownProps = {
-  onManageBlocking: () => void
-  onInstallBot: () => void
-  onBrowsePublicFolder: () => void
-  onOpenPrivateFolder: () => void
-  onAddToTeam: () => void
-  isBot: boolean
   blockedOrHidFromFollowers: boolean
+  isBot: boolean
+  onAddToTeam: () => void
+  onBrowsePublicFolder: () => void
+  onInstallBot: () => void
+  onManageBlocking: () => void
+  onOpenPrivateFolder: () => void
   onUnfollow?: () => void
 }
 
-const DropdownButton = (p: DropdownProps) => {
-  const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
-  const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    const items: Kb.MenuItems = [
-      isBot
-        ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
-        : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
-      {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
-      {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
-      onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
-      {
-        danger: true,
-        icon: 'iconfont-remove',
-        onClick: onManageBlocking,
-        title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
-      },
-    ].reduce<Kb.MenuItems>((arr, i) => {
-      i && arr.push(i as Kb.MenuItem)
-      return arr
-    }, [])
-    return (
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        attachTo={attachTo}
-        items={items}
-        onHidden={hidePopup}
-        position="bottom right"
-        visible={true}
-      />
-    )
-  }
+const makeMenuItems = ({
+  blockedOrHidFromFollowers,
+  isBot,
+  onAddToTeam,
+  onBrowsePublicFolder,
+  onInstallBot,
+  onManageBlocking,
+  onOpenPrivateFolder,
+  onUnfollow,
+}: DropdownProps): Kb.MenuItems =>
+  [
+    isBot
+      ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
+      : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
+    {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
+    {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
+    onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
+    {
+      danger: true,
+      icon: 'iconfont-remove',
+      onClick: onManageBlocking,
+      title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+    },
+  ].reduce<Kb.MenuItems>((items, item) => {
+    if (item) {
+      items.push(item as Kb.MenuItem)
+    }
+    return items
+  }, [])
+
+const DropdownButton = (props: DropdownProps) => {
+  const makePopup = ({attachTo, hidePopup}: Kb.Popup2Parms) => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      attachTo={attachTo}
+      items={makeMenuItems(props)}
+      onHidden={hidePopup}
+      position="bottom right"
+      visible={true}
+    />
+  )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

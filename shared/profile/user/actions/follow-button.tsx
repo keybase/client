@@ -1,11 +1,5 @@
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '@/styles'
-import WaitingButton from '@/common-adapters/waiting-button'
-
-const Kb = {
-  Styles,
-  WaitingButton,
-}
 
 type Props = {
   disabled?: boolean
@@ -18,45 +12,58 @@ type Props = {
   onUnfollow?: () => void
 }
 
-const FollowButton = (props: Props) => {
-  const [mouseOver, setMouseover] = React.useState(false)
-  const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = props
+const getButtonStyle = (small: boolean | undefined, style: object | undefined) =>
+  small ? style : {...styleButton, ...style}
 
-  if (following) {
-    const button = (
-      <Kb.WaitingButton
-        type="Success"
-        mode="Secondary"
-        label={mouseOver ? 'Unfollow' : 'Following'}
-        onClick={onUnfollow}
-        waitingKey={waitingKey}
-        style={props.small ? style : {...styleButton, ...style}}
-        {...otherProps}
-      />
-    )
-    if (Kb.Styles.isMobile) {
-      return button
-    }
-    return (
-      <div
-        onMouseEnter={() => setMouseover(true)}
-        onMouseLeave={() => setMouseover(false)}
-      >
-        {button}
-      </div>
-    )
-  } else {
+const FollowButton = ({
+  following,
+  followsYou,
+  onFollow,
+  onUnfollow,
+  small,
+  style,
+  waitingKey,
+  ...buttonProps
+}: Props) => {
+  const [mouseOver, setMouseOver] = React.useState(false)
+  const sharedProps = {
+    ...buttonProps,
+    style: getButtonStyle(small, style),
+    waitingKey,
+  }
+
+  if (!following) {
     return (
       <Kb.WaitingButton
+        {...sharedProps}
         type="Success"
         label={followsYou ? 'Follow back' : 'Follow'}
         onClick={onFollow}
-        waitingKey={waitingKey}
-        style={props.small ? style : {...styleButton, ...style}}
-        {...otherProps}
       />
     )
   }
+
+  const button = (
+    <Kb.WaitingButton
+      {...sharedProps}
+      type="Success"
+      mode="Secondary"
+      label={mouseOver ? 'Unfollow' : 'Following'}
+      onClick={onUnfollow}
+    />
+  )
+
+  return Kb.Styles.isMobile ? (
+    button
+  ) : (
+    <Kb.Box2
+      direction="vertical"
+      onMouseOver={() => setMouseOver(true)}
+      onMouseLeave={() => setMouseOver(false)}
+    >
+      {button}
+    </Kb.Box2>
+  )
 }
 
 const styleButton = Kb.Styles.platformStyles({

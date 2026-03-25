@@ -1,7 +1,7 @@
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
-import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
+import {useProfileState} from '@/stores/profile'
+import {useUsersState} from '@/stores/users'
 
 type OwnProps = {
   username: string
@@ -12,25 +12,25 @@ const followSizeToStyle = {
   64: {bottom: 0, left: 44, position: 'absolute'} as const,
 }
 
-const Container = (ownProps: OwnProps) => {
-  const {username: _username, width} = ownProps
-  const _fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
+const getFollowIconType = (following: boolean, followsYou: boolean) => {
+  if (following === followsYou) {
+    return followsYou ? ('icon-mutual-follow-21' as const) : undefined
+  }
+  return followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
+}
+
+const Friend = ({username, width}: OwnProps) => {
+  const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const _onClick = showUserProfile
-  const fullname = _fullname || ''
-  const onClick = () => _onClick(username)
-  const username = _username
-  const following = useFollowerState(s => (username ? s.following.has(username) : false))
-  const followsYou = useFollowerState(s => (username ? s.followers.has(username) : false))
-  const followIconType = followsYou === following
-    ? (followsYou ? ('icon-mutual-follow-21' as const) : undefined)
-    : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
+  const following = useFollowerState(s => s.following.has(username))
+  const followsYou = useFollowerState(s => s.followers.has(username))
+  const followIconType = getFollowIconType(following, followsYou)
 
   return (
-    <Kb.ClickableBox onClick={onClick} style={{width: width}}>
+    <Kb.ClickableBox onClick={() => showUserProfile(username)} style={{width}}>
       <Kb.Box2
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
+        style={Kb.Styles.collapseStyles([styles.container, {width}])}
         centerChildren={true}
       >
         <Kb.Avatar size={64} username={username} style={styles.avatar}>
@@ -69,4 +69,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Container
+export default Friend
