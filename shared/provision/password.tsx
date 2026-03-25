@@ -7,9 +7,14 @@ import {useState as useRecoverState} from '@/stores/recover-password'
 import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
-  const error = useProvisionState(s => s.error)
+  const {error, submitPassphrase, username} = useProvisionState(
+    C.useShallow(s => ({
+      error: s.session.prompt?.type === 'passphrase' ? s.session.prompt.error : '',
+      submitPassphrase: s.dispatch.submitPassphrase,
+      username: s.username,
+    }))
+  )
   const resetEmailSent = useRecoverState(s => s.resetEmailSent)
-  const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
@@ -19,8 +24,7 @@ const Password = () => {
   const onBack = () => {
     navigateUp()
   }
-  const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
+  const onSubmit = (password: string) => !waiting && submitPassphrase(password)
   const [password, setPassword] = React.useState('')
   const _onSubmitClick = () => onSubmit(password)
   const resetState = useRecoverState(s => s.dispatch.resetState)

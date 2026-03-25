@@ -5,9 +5,13 @@ import SelectOtherDevice from './select-other-device'
 import {useProvisionState} from '@/stores/provision'
 
 const SelectOtherDeviceContainer = () => {
-  const devices = useProvisionState(s => s.devices)
-  const submitDeviceSelect = useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const username = useProvisionState(s => s.username)
+  const {devices, submitDeviceSelect, username} = useProvisionState(
+    C.useShallow(s => ({
+      devices: s.devices,
+      submitDeviceSelect: s.dispatch.submitDeviceSelect,
+      username: s.username,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
@@ -19,7 +23,7 @@ const SelectOtherDeviceContainer = () => {
   }
 
   const onSelect = (name: string) => {
-    if (!waiting) submitDeviceSelect?.(name)
+    if (!waiting) submitDeviceSelect(name)
   }
 
   return (

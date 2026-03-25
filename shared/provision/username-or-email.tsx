@@ -36,11 +36,10 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = AutoReset.useAutoResetState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
-  const _error = useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = useProvisionState(
     C.useShallow(s => decodeInlineError(s.inlineError))
   )
-  const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
+  const error = inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
   const _username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
@@ -52,16 +51,16 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const onForgotUsername = () => navigateAppend('forgotUsername')
   const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
   const _onGoToSignup = requestAutoInvite
-  const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
+  const submitUsername = useProvisionState(s => s.dispatch.submitUsername)
   const _onSubmit = (username: string) => {
-    !waiting && _setUsername?.(username)
+    !waiting && submitUsername(username)
   }
   const [username, setUsername] = React.useState(op.username ?? _username)
   React.useEffect(() => {
     if (op.username && op.username !== _username) {
-      _setUsername?.(op.username)
+      submitUsername(op.username)
     }
-  }, [op.username, _username, _setUsername])
+  }, [op.username, _username, submitUsername])
   const onSubmit = () => {
     _onSubmit(username)
   }

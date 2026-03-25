@@ -8,14 +8,18 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import * as Provision from '@/stores/provision'
 
 const SetPublicName = () => {
-  const devices = Provision.useProvisionState(s => s.devices)
-  const error = Provision.useProvisionState(s => s.error)
+  const {devices, error, submitDeviceName} = Provision.useProvisionState(
+    C.useShallow(s => ({
+      devices: s.devices,
+      error: s.session.prompt?.type === 'deviceName' ? s.session.prompt.error : '',
+      submitDeviceName: s.dispatch.submitDeviceName,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const ponBack = useSafeSubmit(navigateUp, !!error)
-  const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = (name: string) => {
-    !waiting && psetDeviceName?.(name)
+    !waiting && submitDeviceName(name)
   }
   const deviceNumbers = devices
     .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))

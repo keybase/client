@@ -7,13 +7,13 @@ import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {useProvisionState} from '@/stores/provision'
 
 const AddDeviceCancelButton = () => {
-  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
+  const cancel = useProvisionState(s => s.dispatch.cancel)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   return (
     <Kb.Text
       type="BodyBigLink"
       onClick={() => {
-        cancel?.()
+        cancel()
         navigateUp()
       }}
     >

@@ -5,20 +5,24 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {useProvisionState} from '@/stores/provision'
 
 const Container = () => {
-  const error = useProvisionState(s => s.error)
-  const hint = useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
+  const {error, hint, submitPassphrase} = useProvisionState(
+    C.useShallow(s => ({
+      error: s.session.prompt?.type === 'paperKey' ? s.session.prompt.error : '',
+      hint: `${s.codePageOtherDevice.name || ''}...`,
+      submitPassphrase: s.dispatch.submitPassphrase,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
-    error: error,
-    hint: hint,
-    onBack: onBack,
-    onSubmit: (paperkey: string) => !waiting && onSubmit?.(paperkey),
-    waiting: waiting,
+    error,
+    hint,
+    onBack,
+    onSubmit: (paperkey: string) => !waiting && submitPassphrase(paperkey),
+    waiting,
   }
   return <PaperKey {...props} />
 }

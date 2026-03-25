@@ -19,11 +19,11 @@ const CodePageContainer = () => {
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   const provisionState = useProvisionState(
     C.useShallow(s => ({
-      error: s.error,
       otherDevice: s.codePageOtherDevice,
       provisionDeviceName: s.deviceName,
-      submitTextCode: s.dispatch.dynamic.submitTextCode,
-      textCode: s.codePageIncomingTextCode,
+      submitTextCode: s.dispatch.submitTextCode,
+      textCode: s.session.prompt?.type === 'promptSecret' ? s.session.prompt.phrase : '',
+      error: s.session.prompt?.type === 'promptSecret' ? s.session.prompt.error : '',
     }))
   )
   const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
@@ -36,7 +36,7 @@ const CodePageContainer = () => {
   const onBack = navigateUp
 
   const _onSubmitTextCode = (code: string) => {
-    !waiting && submitTextCode?.(code)
+    !waiting && submitTextCode(code)
   }
 
   const [code, setCode] = React.useState('')

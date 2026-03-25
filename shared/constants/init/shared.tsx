@@ -343,7 +343,7 @@ export const initRecoverPasswordCallbacks = () => {
       defer: {
         ...currentState.dispatch.defer,
         onProvisionCancel: (ignoreWarning?: boolean) => {
-          useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
+          useProvisionState.getState().dispatch.cancel(ignoreWarning)
         },
         onStartAccountReset: (skipPassword: boolean, username: string) => {
           useAutoResetState.getState().dispatch.startAccountReset(skipPassword, username)
