@@ -72,7 +72,7 @@ require (
 	github.com/vividcortex/ewma v1.1.2-0.20170804035156-43880d236f69
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.49.0
-	golang.org/x/image v0.34.0
+	golang.org/x/image v0.38.0
 	golang.org/x/mobile v0.0.0-20251209145715-2553ed8ce294 // indirect
 	golang.org/x/net v0.52.0
 	golang.org/x/sync v0.20.0
