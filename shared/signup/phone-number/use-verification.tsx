@@ -73,7 +73,7 @@ export const usePhoneVerification = ({
   const initialResendDone = React.useRef(false)
   const mountedRef = useMountedRef()
 
-  const resendVerificationForPhone = (phoneNumberToVerify: string) => {
+  const resendVerificationForPhone = React.useCallback((phoneNumberToVerify: string) => {
     setError('')
     resendVerification(
       [{phoneNumber: phoneNumberToVerify}, C.waitingKeySettingsPhoneResendVerification],
@@ -84,9 +84,9 @@ export const usePhoneVerification = ({
         }
       }
     )
-  }
+  }, [mountedRef, resendVerification])
 
-  const verifyPhoneNumber = (phoneNumberToVerify: string, code: string) => {
+  const verifyPhoneNumber = React.useCallback((phoneNumberToVerify: string, code: string) => {
     setError('')
     verifyPhoneNumberRpc(
       [{code, phoneNumber: phoneNumberToVerify}, C.waitingKeySettingsPhoneVerifyPhoneNumber],
@@ -102,7 +102,7 @@ export const usePhoneVerification = ({
         }
       }
     )
-  }
+  }, [mountedRef, onSuccess, verifyPhoneNumberRpc])
 
   React.useEffect(() => {
     if (!initialResend || initialResendDone.current) {

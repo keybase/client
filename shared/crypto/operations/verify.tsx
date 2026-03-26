@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from '../output'
 import {
@@ -159,7 +159,7 @@ const useVerifyState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(verify())
+        C.ignorePromise(verify().then(() => undefined))
       }
     },
     [clearInput, verify]
@@ -290,7 +290,7 @@ export const VerifyIO = () => {
             outputTextType="plain"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.verify(destinationDir))
+              C.ignorePromise(controller.verify(destinationDir).then(() => undefined))
             }}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />

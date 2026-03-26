@@ -207,9 +207,9 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-const loadDefaultPhoneCountry = () => {
+const loadDefaultPhoneCountry = async () => {
   if (_defaultPhoneCountry) {
-    return Promise.resolve(_defaultPhoneCountry)
+    return _defaultPhoneCountry
   }
   if (!_defaultPhoneCountryPromise) {
     _defaultPhoneCountryPromise = T.RPCGen.accountGuessCurrentLocationRpcPromise({

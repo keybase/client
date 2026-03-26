@@ -1,4 +1,5 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
+import * as RPCGen from '@/constants/rpc/rpc-gen'
 import {RPCError} from '@/util/errors'
 
 export type OutputStatus = 'success' | 'pending'
@@ -84,34 +85,34 @@ export const getStatusCodeMessage = (
     wrongTypeHelpText = ' Did you mean to verify it?'
   }
 
-  const fields = error.fields as Array<{key: string; value: T.RPCGen.StatusCode}> | undefined
+  const fields = error.fields as Array<{key: string; value: RPCGen.StatusCode}> | undefined
   const field = fields?.[1]
-  const causeStatusCode = field?.key === 'Code' ? field.value : T.RPCGen.StatusCode.scgeneric
+  const causeStatusCode = field?.key === 'Code' ? field.value : RPCGen.StatusCode.scgeneric
   const causeStatusCodeToMessage = new Map([
-    [T.RPCGen.StatusCode.scapinetworkerror, offlineMessage],
+    [RPCGen.StatusCode.scapinetworkerror, offlineMessage],
     [
-      T.RPCGen.StatusCode.scdecryptionkeynotfound,
+      RPCGen.StatusCode.scdecryptionkeynotfound,
       "This message was encrypted for someone else or for a key you don't have.",
     ],
     [
-      T.RPCGen.StatusCode.scverificationkeynotfound,
+      RPCGen.StatusCode.scverificationkeynotfound,
       "This message couldn't be verified, because the signing key wasn't recognized.",
     ],
-    [T.RPCGen.StatusCode.scwrongcryptomsgtype, `This Saltpack format is unexpected.${wrongTypeHelpText}`],
+    [RPCGen.StatusCode.scwrongcryptomsgtype, `This Saltpack format is unexpected.${wrongTypeHelpText}`],
   ])
 
   const statusCodeToMessage = new Map([
-    [T.RPCGen.StatusCode.scapinetworkerror, offlineMessage],
+    [RPCGen.StatusCode.scapinetworkerror, offlineMessage],
     [
-      T.RPCGen.StatusCode.scgeneric,
+      RPCGen.StatusCode.scgeneric,
       error.message.includes('API network error') ? offlineMessage : genericMessage,
     ],
     [
-      T.RPCGen.StatusCode.scstreamunknown,
+      RPCGen.StatusCode.scstreamunknown,
       `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
     ],
-    [T.RPCGen.StatusCode.scsigcannotverify, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
-    [T.RPCGen.StatusCode.scdecryptionerror, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
+    [RPCGen.StatusCode.scsigcannotverify, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
+    [RPCGen.StatusCode.scdecryptionerror, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
   ])
 
   return statusCodeToMessage.get(error.code) ?? genericMessage

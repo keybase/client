@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from '../output'
 import {
@@ -159,7 +159,7 @@ const useDecryptState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(decrypt())
+        C.ignorePromise(decrypt().then(() => undefined))
       }
     },
     [clearInput, decrypt]
@@ -293,7 +293,7 @@ export const DecryptIO = () => {
             outputTextType="plain"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.decrypt(destinationDir))
+              C.ignorePromise(controller.decrypt(destinationDir).then(() => undefined))
             }}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />

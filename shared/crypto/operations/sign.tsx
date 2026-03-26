@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '../output'
@@ -143,7 +143,7 @@ const useSignState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(sign())
+        C.ignorePromise(sign().then(() => undefined))
       }
     },
     [clearInput, sign]
@@ -303,7 +303,7 @@ export const SignIO = () => {
             outputTextType="cipher"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.sign(destinationDir))
+              C.ignorePromise(controller.sign(destinationDir).then(() => undefined))
             }}
           />
           <CryptoOutputActionsBar
@@ -311,7 +311,7 @@ export const SignIO = () => {
             canSaveAsText={true}
             state={controller.state}
             onSaveAsText={() => {
-              C.ignorePromise(controller.saveOutputAsText())
+              C.ignorePromise(controller.saveOutputAsText().then(() => undefined))
             }}
           />
         </Kb.Box2>

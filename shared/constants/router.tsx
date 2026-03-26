@@ -210,7 +210,7 @@ export const navigateAppend = (path: PathParam, replace?: boolean) => {
   if (typeof path === 'string') {
     routeName = path
   } else {
-    routeName = path.name
+    routeName = typeof path.name === 'string' ? path.name : String(path.name)
     params = path.params as object
   }
   if (!routeName) {
@@ -272,9 +272,9 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // A single reset on the tab navigator atomically switches tabs and sets params.
     const tabNavState = rs.routes?.[0]?.state
     if (!tabNavState?.key) return
-    const chatTabIndex = tabNavState.routes.findIndex(r => r.name === Tabs.chatTab)
+    const chatTabIndex = tabNavState.routes.findIndex((r: Route) => r.name === Tabs.chatTab)
     if (chatTabIndex < 0) return
-    const updatedRoutes = tabNavState.routes.map((route, i) => {
+    const updatedRoutes = tabNavState.routes.map((route: Route, i: number) => {
       if (i !== chatTabIndex) return route
       return {...route, state: {...(route.state ?? {}), index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]}}
     })
@@ -335,8 +335,8 @@ export const appendEncryptRecipientsBuilder = () => {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       goButtonLabel: 'Add',
       namespace: 'crypto',
-      teamBuilderNonce: makeUUID(),
       recommendedHideYourself: true,
+      teamBuilderNonce: makeUUID(),
       title: 'Recipients',
     },
   })

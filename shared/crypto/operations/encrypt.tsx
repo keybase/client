@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import Recipients from '../recipients'
 import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
@@ -135,7 +135,7 @@ const nextOptionState = (
 const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const [state, setState] = React.useState(() => createEncryptState(params))
   const stateRef = React.useRef(state)
-  const handledTeamBuilderNonceRef = React.useRef<string | undefined>()
+  const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
 
   React.useEffect(() => {
     stateRef.current = state
@@ -220,7 +220,7 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt())
+        C.ignorePromise(runEncrypt().then(() => undefined))
       }
     },
     [clearInput, runEncrypt]
@@ -242,7 +242,7 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
       setState(prev => nextRecipientState(prev, recipients, hasSBS))
       if (stateRef.current.inputType === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt())
+        C.ignorePromise(runEncrypt().then(() => undefined))
       }
     },
     [runEncrypt]
@@ -271,7 +271,7 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
       setState(prev => nextOptionState(prev, options, hideIncludeSelf))
       if (stateRef.current.inputType === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt())
+        C.ignorePromise(runEncrypt().then(() => undefined))
       }
     },
     [runEncrypt]
@@ -613,7 +613,7 @@ export const EncryptIO = () => {
             outputTextType="cipher"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.runEncrypt(destinationDir))
+              C.ignorePromise(controller.runEncrypt(destinationDir).then(() => undefined))
             }}
           />
           <CryptoOutputActionsBar
@@ -621,7 +621,7 @@ export const EncryptIO = () => {
             canSaveAsText={true}
             state={controller.state}
             onSaveAsText={() => {
-              C.ignorePromise(controller.saveOutputAsText())
+              C.ignorePromise(controller.saveOutputAsText().then(() => undefined))
             }}
           />
         </Kb.Box2>

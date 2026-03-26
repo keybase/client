@@ -64,11 +64,10 @@ test('teamBuilderResultToRecipients converts SBS assertions', () => {
 })
 
 test('getStatusCodeMessage maps wrong-format verify errors with the decrypt hint', () => {
-  const error = new RPCError({
-    code: T.RPCGen.StatusCode.scwrongcryptomsgtype,
-    desc: 'wrong type',
-    fields: [{key: 'ignored', value: T.RPCGen.StatusCode.scgeneric}, {key: 'Code', value: T.RPCGen.StatusCode.scwrongcryptomsgtype}],
-  } as any)
+  const error = new RPCError('wrong type', T.RPCGen.StatusCode.scwrongcryptomsgtype, [
+    {key: 'ignored', value: T.RPCGen.StatusCode.scgeneric},
+    {key: 'Code', value: T.RPCGen.StatusCode.scwrongcryptomsgtype},
+  ])
 
   expect(getStatusCodeMessage(error, 'verify', 'text')).toContain('Did you mean to decrypt it?')
 })

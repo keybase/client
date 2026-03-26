@@ -1,4 +1,5 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
+import * as RPCGen from '@/constants/rpc/rpc-gen'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
@@ -17,7 +18,7 @@ const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
     ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),
     e164: p.phoneNumber,
-    searchable: p.visibility === T.RPCGen.IdentityVisibility.public,
+    searchable: p.visibility === RPCGen.IdentityVisibility.public,
     superseded: p.superseded,
     verified: p.verified,
   }
@@ -25,15 +26,15 @@ const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
 
 export const makePhoneError = (e: RPCError) => {
   switch (e.code) {
-    case T.RPCGen.StatusCode.scphonenumberwrongverificationcode:
+    case RPCGen.StatusCode.scphonenumberwrongverificationcode:
       return 'Incorrect code, please try again.'
-    case T.RPCGen.StatusCode.scphonenumberunknown:
+    case RPCGen.StatusCode.scphonenumberunknown:
       return e.desc
-    case T.RPCGen.StatusCode.scphonenumberalreadyverified:
+    case RPCGen.StatusCode.scphonenumberalreadyverified:
       return 'This phone number is already verified.'
-    case T.RPCGen.StatusCode.scphonenumberverificationcodeexpired:
+    case RPCGen.StatusCode.scphonenumberverificationcodeexpired:
       return 'Verification code expired, resend and try again.'
-    case T.RPCGen.StatusCode.scratelimit:
+    case RPCGen.StatusCode.scratelimit:
       return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
     default:
       return e.message
@@ -79,14 +80,14 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', se
     editPhone: (phoneNumber, del, setSearchable) => {
       const f = async () => {
         if (del) {
-          await T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber})
+          await RPCGen.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber})
         }
         if (setSearchable !== undefined) {
-          await T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
+          await RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
             phoneNumber,
             visibility: setSearchable
-              ? T.RPCChat.Keybase1.IdentityVisibility.public
-              : T.RPCChat.Keybase1.IdentityVisibility.private,
+              ? RPCGen.IdentityVisibility.public
+              : RPCGen.IdentityVisibility.private,
           })
         }
       }
