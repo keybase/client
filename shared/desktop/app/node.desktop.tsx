@@ -97,6 +97,10 @@ const startApp = () => {
     getMainWindow,
     markAppStartedUp: () => {
       if (runtime.appStartedUp) {
+        // Renderer reloaded (e.g. Command+R): re-notify it that the engine is
+        // connected so it can complete its handshake and register UIs.
+        nodeEngine.listenersAreReady()
+        R.remoteDispatch(RemoteGen.createInstallerRan())
         return
       }
 
