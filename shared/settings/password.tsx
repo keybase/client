@@ -213,7 +213,7 @@ const Container = () => {
   const saveLabel = randomPW ? 'Create password' : 'Save'
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(false)
 
-  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState(false)
+  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
   const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
   React.useEffect(() => {
     loadPgpSettings(
@@ -221,9 +221,7 @@ const Container = () => {
       ({hasServerKeys}) => {
         setHasPGPKeyOnServer(hasServerKeys)
       },
-      () => {
-        setHasPGPKeyOnServer(false)
-      }
+      () => {}
     )
   }, [loadPgpSettings])
 

@@ -23,7 +23,7 @@ const LogoutContainer = () => {
     }))
   )
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(true)
-  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState(false)
+  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
   const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
   const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
@@ -54,9 +54,7 @@ const LogoutContainer = () => {
       ({hasServerKeys}) => {
         setHasPGPKeyOnServer(hasServerKeys)
       },
-      () => {
-        setHasPGPKeyOnServer(false)
-      }
+      () => {}
     )
   }, [hasRandomPW, loadPgpSettings])
 

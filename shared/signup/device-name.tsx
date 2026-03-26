@@ -138,7 +138,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
-  const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(cleanDeviceName))
 
   React.useEffect(() => {
     if (cleanDeviceName !== deviceName) {

@@ -100,7 +100,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
     props.onUsernameChange()
   }
   const onContinue = () => {
-    if (disabled) {
+    if (disabled || props.waiting) {
       return
     }
     onChangeUsername(usernameTrimmed) // maybe trim the input
