@@ -38,7 +38,7 @@ PODS:
     - ExpoModulesCore
   - ExpoAudio (55.0.9):
     - ExpoModulesCore
-  - ExpoCamera (55.0.10):
+  - ExpoCamera (55.0.11):
     - ExpoModulesCore
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
@@ -2933,7 +2933,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.2.3):
+  - RNReanimated (4.3.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2960,11 +2960,12 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.2.3)
+    - RNReanimated/apple (= 4.3.0)
+    - RNReanimated/common (= 4.3.0)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated (4.2.3):
+  - RNReanimated/apple (4.3.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2991,11 +2992,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.2.3)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated/apple (4.2.3):
+  - RNReanimated/common (4.3.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3571,7 +3571,7 @@ SPEC CHECKSUMS:
   Expo: d71e8873b622a5b3e7e7ca5325cd3f813884c110
   ExpoAsset: 4efd0227e808dfa84d286aa3663ded641ef73479
   ExpoAudio: 9c6c4b4c9669be8e8892b423cc967c09d801bad4
-  ExpoCamera: 902c2dd5f3eff8d0388686fa75f22272aca459d4
+  ExpoCamera: fee0aadc5cc2968f39a51d0b2f1ddbdf4dfe5d72
   ExpoClipboard: fba6501fed478667b1cc888e999f82fb2838c685
   ExpoContacts: 837744e7930c50abe3e261708f5774e628ede673
   ExpoDocumentPicker: 27adca9e8272af64a4bc0d5460bffd64b406c878
@@ -3681,7 +3681,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: d707a83784c67099b54b37d056ababb2767ce15e
   RNCPicker: 35fc66f352403cdfe99d53b541f5180482ca2bc5
   RNGestureHandler: 7c754ff0794b76c3fb05e28a8cc05fa129f285e3
-  RNReanimated: a0068c25e0b27d5418d66289a915f53eb97380df
+  RNReanimated: 63187e23286e126741b17a3f654dff8ca1bf4529
   RNScreens: e902eba58a27d3ad399a495d578e8aba3ea0f490
   RNWorklets: 6daa3975bebe6047822c7485666d501a716674ca
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
