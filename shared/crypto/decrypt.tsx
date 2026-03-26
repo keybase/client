@@ -68,7 +68,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
 
   const clearInput = React.useCallback(() => {
     commitState(clearInputState(stateRef.current))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const decrypt = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
     commitState(beginRun(snapshot))
@@ -110,7 +110,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'decrypt', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -121,7 +121,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, decrypt)
     },
-    [clearInput, commitState, decrypt]
+    [clearInput, commitState, decrypt, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -129,7 +129,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
     const current = stateRef.current
     if (current.inProgress) return
     commitState(nextOpenedFileState(current, path))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   useSeededCryptoInput(params, openFile, setInput)
 

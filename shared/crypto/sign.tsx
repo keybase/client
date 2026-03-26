@@ -65,7 +65,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
 
   const clearInput = React.useCallback(() => {
     commitState(clearInputState(stateRef.current))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const sign = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
     commitState(beginRun(snapshot))
@@ -95,7 +95,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'sign', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -106,7 +106,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, sign)
     },
-    [clearInput, commitState, sign]
+    [clearInput, commitState, sign, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -114,7 +114,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
     const current = stateRef.current
     if (current.inProgress) return
     commitState(nextOpenedFileState(current, path))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const saveOutputAsText = React.useCallback(async () => {
     const output = await T.RPCGen.saltpackSaltpackSaveSignedMsgToFileRpcPromise({signedMsg: stateRef.current.output})
@@ -125,7 +125,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
       outputType: 'file' as const,
     }
     return commitState(next)
-  }, [commitState])
+  }, [commitState, stateRef])
 
   useSeededCryptoInput(params, openFile, setInput)
 

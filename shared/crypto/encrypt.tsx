@@ -167,11 +167,11 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'encrypt', snapshot.inputType))
       return commitState(next)
     }
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const clearInput = React.useCallback(() => {
     commitState(clearInputState(stateRef.current))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -182,7 +182,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       const committed = commitState(nextInputState(stateRef.current, type, value))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [clearInput, commitState, runEncrypt]
+    [clearInput, commitState, runEncrypt, stateRef]
   )
 
   const openFile = React.useCallback((path: string) => {
@@ -190,14 +190,14 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     const current = stateRef.current
     if (current.inProgress) return
     commitState(nextOpenedFileState(current, path))
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const setRecipients = React.useCallback(
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
       const committed = commitState(nextRecipientState(stateRef.current, recipients, hasSBS))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt]
+    [commitState, runEncrypt, stateRef]
   )
 
   const clearRecipients = React.useCallback(() => {
@@ -215,14 +215,14 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       },
       recipients: [],
     })
-  }, [commitState])
+  }, [commitState, stateRef])
 
   const setEncryptOptions = React.useCallback(
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
       const committed = commitState(nextOptionState(stateRef.current, options, hideIncludeSelf))
       maybeAutoRunTextOperation(committed, runEncrypt)
     },
-    [commitState, runEncrypt]
+    [commitState, runEncrypt, stateRef]
   )
 
   const saveOutputAsText = React.useCallback(async () => {
@@ -236,7 +236,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
       outputType: 'file' as const,
     }
     return commitState(next)
-  }, [commitState])
+  }, [commitState, stateRef])
 
   useSeededCryptoInput(params, openFile, setInput)
 

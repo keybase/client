@@ -81,7 +81,10 @@ export const maybeAutoRunTextOperation = <State extends CommonState>(
   run: (destinationDir?: string, snapshot?: State) => Promise<unknown>
 ) => {
   if (snapshot.inputType !== 'text' || C.isMobile) return
-  C.ignorePromise(run('', snapshot))
+  const f = async () => {
+    await run('', snapshot)
+  }
+  C.ignorePromise(f())
 }
 
 export const useSeededCryptoInput = (
