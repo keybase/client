@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import * as RPCGen from '@/constants/rpc/rpc-gen'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
 
 export type OutputStatus = 'success' | 'pending'
 
@@ -69,11 +69,9 @@ export const getStatusCodeMessage = (
   kind: CryptoKind,
   type: T.Crypto.InputTypes
 ): string => {
-  const inputType =
-    type === 'text' ? (kind === 'verify' ? 'signed message' : 'ciphertext') : 'file'
+  const inputType = type === 'text' ? (kind === 'verify' ? 'signed message' : 'ciphertext') : 'file'
   const action = type === 'text' ? (kind === 'verify' ? 'enter a' : 'enter') : 'drop a'
-  const addInput =
-    type === 'text' ? (kind === 'verify' ? 'signed message' : 'ciphertext') : 'encrypted file'
+  const addInput = type === 'text' ? (kind === 'verify' ? 'signed message' : 'ciphertext') : 'encrypted file'
 
   const offlineMessage = 'You are offline.'
   const genericMessage = `Failed to ${kind} ${type}.`

@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as RPCGen from '@/constants/rpc/rpc-gen'
 import * as Z from '@/util/zustand'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 export const makePhoneRow = (): PhoneRow => ({
@@ -85,9 +85,7 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', se
         if (setSearchable !== undefined) {
           await RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
             phoneNumber,
-            visibility: setSearchable
-              ? RPCGen.IdentityVisibility.public
-              : RPCGen.IdentityVisibility.private,
+            visibility: setSearchable ? RPCGen.IdentityVisibility.public : RPCGen.IdentityVisibility.private,
           })
         }
       }
