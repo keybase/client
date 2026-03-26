@@ -77,25 +77,28 @@ const onSuccess = (
   outputValid,
 })
 
-const useSignState = (params?: CryptoInputRouteParams) => {
+export const useSignState = (params?: CryptoInputRouteParams) => {
   const [state, setState] = React.useState(() => createCommonState(params))
   const stateRef = React.useRef(state)
-  React.useEffect(() => {
-    stateRef.current = state
-  }, [state])
+
+  const commitState = React.useCallback((next: CommonState) => {
+    stateRef.current = next
+    setState(next)
+    return next
+  }, [])
 
   const clearInput = React.useCallback(() => {
-    setState(prev => ({
-      ...resetOutput(prev),
+    const next = {
+      ...resetOutput(stateRef.current),
       input: '',
       inputType: 'text',
       outputValid: true,
-    }))
-  }, [])
+    }
+    commitState(next)
+  }, [commitState])
 
-  const sign = React.useCallback(async (destinationDir = '') => {
-    const snapshot = stateRef.current
-    setState(prev => beginRun(prev))
+  const sign = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+    commitState(beginRun(snapshot))
     try {
       const username = useCurrentUserState.getState().username
       const output =
@@ -115,16 +118,14 @@ const useSignState = (params?: CryptoInputRouteParams) => {
         snapshot.inputType,
         username
       )
-      setState(next)
-      return next
+      return commitState(next)
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'sign', snapshot.inputType))
-      setState(next)
-      return next
+      return commitState(next)
     }
-  }, [])
+  }, [commitState])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -132,37 +133,35 @@ const useSignState = (params?: CryptoInputRouteParams) => {
         clearInput()
         return
       }
-      setState(prev => {
-        const outputValid = prev.input === value
-        const next = {
-          ...resetWarnings(prev),
-          input: value,
-          inputType: type,
-          outputValid,
-        }
-        return type === 'file' ? resetOutput(next) : next
-      })
+      const current = stateRef.current
+      const outputValid = current.input === value
+      const next = {
+        ...resetWarnings(current),
+        input: value,
+        inputType: type,
+        outputValid,
+      }
+      const committed = commitState(type === 'file' ? resetOutput(next) : next)
       if (type === 'text' && !C.isMobile) {
         const f = async () => {
-          await sign()
+          await sign('', committed)
         }
         C.ignorePromise(f())
       }
     },
-    [clearInput, sign]
+    [clearInput, commitState, sign]
   )
 
   const openFile = React.useCallback((path: string) => {
     if (!path) return
-    setState(prev => {
-      if (prev.inProgress) return prev
-      return {
-        ...resetOutput(prev),
-        input: path,
-        inputType: 'file',
-      }
+    const current = stateRef.current
+    if (current.inProgress) return
+    commitState({
+      ...resetOutput(current),
+      input: path,
+      inputType: 'file',
     })
-  }, [])
+  }, [commitState])
 
   const saveOutputAsText = React.useCallback(async () => {
     const output = await T.RPCGen.saltpackSaltpackSaveSignedMsgToFileRpcPromise({signedMsg: stateRef.current.output})
@@ -172,9 +171,8 @@ const useSignState = (params?: CryptoInputRouteParams) => {
       outputStatus: 'success' as const,
       outputType: 'file' as const,
     }
-    setState(next)
-    return next
-  }, [])
+    return commitState(next)
+  }, [commitState])
 
   React.useEffect(() => {
     if (!params?.seedInputPath) return

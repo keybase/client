@@ -80,25 +80,28 @@ const onSuccess = (
   outputValid,
 })
 
-const useVerifyState = (params?: CryptoInputRouteParams) => {
+export const useVerifyState = (params?: CryptoInputRouteParams) => {
   const [state, setState] = React.useState(() => createCommonState(params))
   const stateRef = React.useRef(state)
-  React.useEffect(() => {
-    stateRef.current = state
-  }, [state])
+
+  const commitState = React.useCallback((next: CommonState) => {
+    stateRef.current = next
+    setState(next)
+    return next
+  }, [])
 
   const clearInput = React.useCallback(() => {
-    setState(prev => ({
-      ...resetOutput(prev),
+    const next = {
+      ...resetOutput(stateRef.current),
       input: '',
       inputType: 'text',
       outputValid: true,
-    }))
-  }, [])
+    }
+    commitState(next)
+  }, [commitState])
 
-  const verify = React.useCallback(async (destinationDir = '') => {
-    const snapshot = stateRef.current
-    setState(prev => beginRun(prev))
+  const verify = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
+    commitState(beginRun(snapshot))
     try {
       if (snapshot.inputType === 'text') {
         const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise(
@@ -114,8 +117,7 @@ const useVerifyState = (params?: CryptoInputRouteParams) => {
           res.sender.username,
           res.sender.fullname
         )
-        setState(next)
-        return next
+        return commitState(next)
       }
 
       const res = await T.RPCGen.saltpackSaltpackVerifyFileRpcPromise(
@@ -131,16 +133,14 @@ const useVerifyState = (params?: CryptoInputRouteParams) => {
         res.sender.username,
         res.sender.fullname
       )
-      setState(next)
-      return next
+      return commitState(next)
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'verify', snapshot.inputType))
-      setState(next)
-      return next
+      return commitState(next)
     }
-  }, [])
+  }, [commitState])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -148,37 +148,35 @@ const useVerifyState = (params?: CryptoInputRouteParams) => {
         clearInput()
         return
       }
-      setState(prev => {
-        const outputValid = prev.input === value
-        const next = {
-          ...resetWarnings(prev),
-          input: value,
-          inputType: type,
-          outputValid,
-        }
-        return type === 'file' ? resetOutput(next) : next
-      })
+      const current = stateRef.current
+      const outputValid = current.input === value
+      const next = {
+        ...resetWarnings(current),
+        input: value,
+        inputType: type,
+        outputValid,
+      }
+      const committed = commitState(type === 'file' ? resetOutput(next) : next)
       if (type === 'text' && !C.isMobile) {
         const f = async () => {
-          await verify()
+          await verify('', committed)
         }
         C.ignorePromise(f())
       }
     },
-    [clearInput, verify]
+    [clearInput, commitState, verify]
   )
 
   const openFile = React.useCallback((path: string) => {
     if (!path) return
-    setState(prev => {
-      if (prev.inProgress) return prev
-      return {
-        ...resetOutput(prev),
-        input: path,
-        inputType: 'file',
-      }
+    const current = stateRef.current
+    if (current.inProgress) return
+    commitState({
+      ...resetOutput(current),
+      input: path,
+      inputType: 'file',
     })
-  }, [])
+  }, [commitState])
 
   React.useEffect(() => {
     if (!params?.seedInputPath) return

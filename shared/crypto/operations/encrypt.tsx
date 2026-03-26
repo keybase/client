@@ -132,17 +132,18 @@ const nextOptionState = (
   }
 }
 
-const useEncryptScreenState = (params?: EncryptRouteParams) => {
+export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const [state, setState] = React.useState(() => createEncryptState(params))
   const stateRef = React.useRef(state)
   const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
 
-  React.useEffect(() => {
-    stateRef.current = state
-  }, [state])
+  const commitState = React.useCallback((next: EncryptState) => {
+    stateRef.current = next
+    setState(next)
+    return next
+  }, [])
 
-  const runEncrypt = React.useCallback(async (destinationDir = '') => {
-    const snapshot = stateRef.current
+  const runEncrypt = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
     const username = useCurrentUserState.getState().username
     const signed = snapshot.options.sign
     const opts = {
@@ -151,7 +152,7 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
       signed,
     }
 
-    setState(prev => beginRun(prev))
+    commitState(beginRun(snapshot))
     try {
       let output = ''
       let unresolvedSBSAssertion = ''
@@ -183,25 +184,24 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
         signed,
         username
       )
-      setState(next)
-      return next
+      return commitState(next)
     } catch (_error) {
       if (!(_error instanceof RPCError)) throw _error
       logger.error(_error)
       const next = onError(stateRef.current, getStatusCodeMessage(_error, 'encrypt', snapshot.inputType))
-      setState(next)
-      return next
+      return commitState(next)
     }
-  }, [])
+  }, [commitState])
 
   const clearInput = React.useCallback(() => {
-    setState(prev => ({
-      ...resetOutput(prev),
+    const next = {
+      ...resetOutput(stateRef.current),
       input: '',
       inputType: 'text',
       outputValid: true,
-    }))
-  }, [])
+    }
+    commitState(next)
+  }, [commitState])
 
   const setInput = React.useCallback(
     (type: T.Crypto.InputTypes, value: string) => {
@@ -209,81 +209,77 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
         clearInput()
         return
       }
-      setState(prev => {
-        const outputValid = prev.input === value
-        const next = {
-          ...resetWarnings(prev),
-          input: value,
-          inputType: type,
-          outputValid,
-        }
-        return type === 'file' ? resetOutput(next) : next
-      })
+      const current = stateRef.current
+      const outputValid = current.input === value
+      const next = {
+        ...resetWarnings(current),
+        input: value,
+        inputType: type,
+        outputValid,
+      }
+      const committed = commitState(type === 'file' ? resetOutput(next) : next)
       if (type === 'text' && !C.isMobile) {
         const f = async () => {
-          await runEncrypt()
+          await runEncrypt('', committed)
         }
         C.ignorePromise(f())
       }
     },
-    [clearInput, runEncrypt]
+    [clearInput, commitState, runEncrypt]
   )
 
   const openFile = React.useCallback((path: string) => {
     if (!path) return
-    setState(prev => {
-      if (prev.inProgress) return prev
-      return {
-        ...resetOutput(prev),
-        input: path,
-        inputType: 'file',
-      }
+    const current = stateRef.current
+    if (current.inProgress) return
+    commitState({
+      ...resetOutput(current),
+      input: path,
+      inputType: 'file',
     })
-  }, [])
+  }, [commitState])
 
   const setRecipients = React.useCallback(
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
-      setState(prev => nextRecipientState(prev, recipients, hasSBS))
-      if (stateRef.current.inputType === 'text' && !C.isMobile) {
+      const committed = commitState(nextRecipientState(stateRef.current, recipients, hasSBS))
+      if (committed.inputType === 'text' && !C.isMobile) {
         const f = async () => {
-          await runEncrypt()
+          await runEncrypt('', committed)
         }
         C.ignorePromise(f())
       }
     },
-    [runEncrypt]
+    [commitState, runEncrypt]
   )
 
   const clearRecipients = React.useCallback(() => {
-    setState(prev => {
-      const next = resetOutput(prev)
-      return {
-        ...next,
-        meta: {
-          hasRecipients: false,
-          hasSBS: false,
-          hideIncludeSelf: false,
-        },
-        options: {
-          includeSelf: true,
-          sign: true,
-        },
-        recipients: [],
-      }
+    const next = resetOutput(stateRef.current)
+    commitState({
+      ...next,
+      meta: {
+        hasRecipients: false,
+        hasSBS: false,
+        hideIncludeSelf: false,
+      },
+      options: {
+        includeSelf: true,
+        sign: true,
+      },
+      recipients: [],
     })
-  }, [])
+  }, [commitState])
 
   const setEncryptOptions = React.useCallback(
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
-      setState(prev => nextOptionState(prev, options, hideIncludeSelf))
-      if (stateRef.current.inputType === 'text' && !C.isMobile) {
+      const committed = commitState(nextOptionState(stateRef.current, options, hideIncludeSelf))
+      if (committed.inputType === 'text' && !C.isMobile) {
         const f = async () => {
-          await runEncrypt()
+          await runEncrypt('', committed)
         }
         C.ignorePromise(f())
       }
     },
-    [runEncrypt]
+    [commitState, runEncrypt]
   )
 
   const saveOutputAsText = React.useCallback(async () => {
@@ -296,9 +292,8 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
       outputStatus: 'success' as const,
       outputType: 'file' as const,
     }
-    setState(next)
-    return next
-  }, [])
+    return commitState(next)
+  }, [commitState])
 
   React.useEffect(() => {
     if (!params?.seedInputPath) return
