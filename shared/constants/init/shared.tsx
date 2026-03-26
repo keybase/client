@@ -38,7 +38,7 @@ import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
-import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
+import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {createTBStore, getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
@@ -948,8 +948,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.rekeyUI.refresh':
     case 'keybase.1.rekeyUI.delegateRekeyUI':
       {
-        const {useUnlockFoldersState} = require('@/stores/unlock-folders') as typeof UseUnlockFoldersStateType
-        useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl(action)
+        const {onUnlockFoldersEngineIncoming} = require('@/stores/unlock-folders') as typeof UnlockFoldersType
+        onUnlockFoldersEngineIncoming(action)
       }
       break
     default:

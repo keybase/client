@@ -3,10 +3,6 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '@/util/zustand'
-import {settingsPasswordTab} from '@/constants/settings'
-import {navigateAppend} from '@/constants/router'
-import {isMobile} from '@/constants/platform'
-import * as Tabs from '@/constants/tabs'
 
 // This store has no dependencies on other stores and is safe to import directly from other stores.
 type Store = T.Immutable<{
@@ -25,32 +21,11 @@ export type State = Store & {
     resetState: () => void
     wait: (name: string, version: number, increment: boolean) => void
     start: () => void
-    requestLogout: () => void
   }
 }
 
 export const useLogoutState = Z.createZustand<State>('logout', (set, get) => {
   const dispatch: State['dispatch'] = {
-    requestLogout: () => {
-      // Figure out whether we can log out using CanLogout, if so,
-      // startLogoutHandshake, else do what's needed - right now only
-      // redirect to set password screen.
-      const f = async () => {
-        const canLogoutRes = await T.RPCGen.userCanLogoutRpcPromise()
-        if (canLogoutRes.canLogout) {
-          get().dispatch.start()
-          return
-        } else {
-          if (isMobile) {
-            navigateAppend(settingsPasswordTab)
-          } else {
-            navigateAppend(Tabs.settingsTab)
-            navigateAppend(settingsPasswordTab)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     resetState: () => {
       set(s => ({
         ...s,

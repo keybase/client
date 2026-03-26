@@ -14,14 +14,14 @@ Status:
 - [ ] `archive`
 - [ ] `autoreset`
 - [ ] `bots`
-- [ ] `crypto`
+- [x] `crypto`
 - [ ] `daemon`
 - [ ] `darkmode`
 - [ ] `devices`
 - [ ] `followers`
 - [ ] `git`
 - [ ] `inbox-rows`
-- [ ] `logout`
+- [x] `logout` kept handshake `version`/`waiters` in store; moved can-logout RPC and password redirect into settings hook
 - [ ] `modal-header`
 - [ ] `notifications`
 - [ ] `people`
@@ -38,7 +38,7 @@ Status:
 - [ ] `signup`
 - [ ] `team-building`
 - [ ] `tracker`
-- [ ] `unlock-folders`
+- [x] `unlock-folders` removed dead phase/device state; kept only engine callback forwarding into `config`
 - [ ] `users`
 - [ ] `wallets`
 

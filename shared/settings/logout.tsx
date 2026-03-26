@@ -4,9 +4,9 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword, useSubmitNewPassword} from './password'
+import {useRequestLogout} from './use-request-logout'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
-import {useLogoutState} from '@/stores/logout'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(
@@ -25,7 +25,7 @@ const LogoutContainer = () => {
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(true)
   const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
   const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
-  const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
+  const requestLogout = useRequestLogout()
 
   const onBootstrap = loadHasRandomPw
   const onCheckPassword = checkPassword

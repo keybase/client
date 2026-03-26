@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import {useRequestLogout} from './use-request-logout'
 import {usePWState} from '@/stores/settings-password'
-import {useLogoutState} from '@/stores/logout'
 
 type Props = {
   error: string
@@ -179,7 +179,7 @@ export const useSubmitNewPassword = (thenLogout: boolean) => {
   const [error, setError] = React.useState('')
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
+  const requestLogout = useRequestLogout()
   const submitNewPassword = C.useRPC(T.RPCGen.accountPassphraseChangeRpcPromise)
 
   const onSave = (password: string) => {
