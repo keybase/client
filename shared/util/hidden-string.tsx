@@ -1,10 +1,9 @@
 // HiddenString tries to wrap a string value to prevent it from being easily
 // output as a string to log, file or console.
 const valueKey = Symbol('valueKey')
+type WithValue = {[valueKey]: string}
 
 export class HiddenString {
-  private [valueKey]: string = ''
-
   constructor(stringValue: string) {
     Object.defineProperty(this, valueKey, {
       configurable: false,
@@ -15,11 +14,11 @@ export class HiddenString {
   }
 
   stringValue() {
-    return this[valueKey]
+    return (this as unknown as WithValue)[valueKey]
   }
 
   equals(other: HiddenString) {
-    return this[valueKey] === other[valueKey]
+    return (this as unknown as WithValue)[valueKey] === (other as unknown as WithValue)[valueKey]
   }
 
   toString() {
