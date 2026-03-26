@@ -1,13 +1,11 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
+import {createEncryptState, encryptToOutputParams, teamBuilderResultToRecipients} from '@/crypto/encrypt'
 import {
   createCommonState,
-  createEncryptState,
-  encryptToOutputParams,
   getStatusCodeMessage,
-  teamBuilderResultToRecipients,
-} from '@/crypto/state'
+} from '@/crypto/helpers'
 
 test('createCommonState seeds route-provided input', () => {
   expect(

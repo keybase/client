@@ -8,8 +8,12 @@ import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
+  CommonOutputRouteParams,
+  CryptoInputRouteParams,
   beginRun,
   clearInputState,
+  createCommonState,
+  getStatusCodeMessage,
   maybeAutoRunTextOperation,
   nextInputState,
   nextOpenedFileState,
@@ -18,16 +22,6 @@ import {
   useCommittedState,
   useSeededCryptoInput,
 } from './helpers'
-import {
-  createEncryptState,
-  encryptToOutputParams,
-  getStatusCodeMessage,
-  outputParamsToCommonState,
-  teamBuilderResultToRecipients,
-  type EncryptOutputRouteParams,
-  type EncryptRouteParams,
-  type EncryptState,
-} from './state'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -42,6 +36,78 @@ const inputPlaceholder = C.isMobile ? 'Enter text to encrypt' : 'Enter text, dro
 
 const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
+
+export type EncryptOptions = {
+  includeSelf: boolean
+  sign: boolean
+}
+
+export type EncryptMeta = {
+  hasRecipients: boolean
+  hasSBS: boolean
+  hideIncludeSelf: boolean
+}
+
+export type EncryptState = CommonOutputRouteParams & {
+  meta: EncryptMeta
+  options: EncryptOptions
+  recipients: Array<string>
+}
+
+export type CryptoTeamBuilderResult = Array<{
+  serviceId: T.TB.ServiceIdWithContact
+  username: string
+}>
+
+export type EncryptRouteParams = CryptoInputRouteParams & {
+  teamBuilderNonce?: string
+  teamBuilderUsers?: CryptoTeamBuilderResult
+}
+
+export type EncryptOutputRouteParams = CommonOutputRouteParams & {
+  hasRecipients: boolean
+  includeSelf: boolean
+  recipients: Array<string>
+}
+
+export const createEncryptState = (params?: EncryptRouteParams): EncryptState => ({
+  ...createCommonState(params),
+  meta: {
+    hasRecipients: false,
+    hasSBS: false,
+    hideIncludeSelf: false,
+  },
+  options: {
+    includeSelf: true,
+    sign: true,
+  },
+  recipients: [],
+})
+
+export const encryptToOutputParams = (state: EncryptState): EncryptOutputRouteParams => ({
+  ...state,
+  hasRecipients: state.meta.hasRecipients,
+  includeSelf: state.options.includeSelf,
+  recipients: state.recipients,
+})
+
+export const teamBuilderResultToRecipients = (
+  users: ReadonlyArray<{serviceId: T.TB.ServiceIdWithContact; username: string}>
+) => {
+  let hasSBS = false
+  const recipients = users.map(user => {
+    if (user.serviceId === 'email') {
+      hasSBS = true
+      return `[${user.username}]@email`
+    }
+    if (user.serviceId !== 'keybase') {
+      hasSBS = true
+      return `${user.username}@${user.serviceId}`
+    }
+    return user.username
+  })
+  return {hasSBS, recipients}
+}
 
 const onError = (state: EncryptState, errorMessage: string): EncryptState => ({
   ...resetOutput(state),
@@ -471,19 +537,19 @@ const EncryptOutputBody = ({params}: {params: EncryptOutputRouteParams}) => (
       outputType={params.outputType}
       recipients={params.recipients}
     />
-    <CryptoSignedSender isSelfSigned={true} state={outputParamsToCommonState(params)} />
+    <CryptoSignedSender isSelfSigned={true} state={params} />
     {C.isMobile ? <Kb.Divider /> : null}
     <CryptoOutput
       actionLabel="Encrypt"
       outputFileIcon="icon-file-saltpack-64"
       outputTextType="cipher"
-      state={outputParamsToCommonState(params)}
+      state={params}
       onChooseOutputFolder={() => undefined}
     />
     <CryptoOutputActionsBar
       canReplyInChat={false}
       canSaveAsText={true}
-      state={outputParamsToCommonState(params)}
+      state={params}
     />
   </Kb.Box2>
 )

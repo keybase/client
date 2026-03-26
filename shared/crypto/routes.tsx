@@ -7,10 +7,8 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import type {
   CommonOutputRouteParams,
   CryptoInputRouteParams,
-  CryptoTeamBuilderResult,
-  EncryptOutputRouteParams,
-  EncryptRouteParams,
-} from './state'
+} from './helpers'
+import type {CryptoTeamBuilderResult, EncryptOutputRouteParams, EncryptRouteParams} from './encrypt'
 
 type CryptoTeamBuilderRouteParams = Parameters<typeof cryptoTeamBuilder.screen>[0]['route']['params'] & {
   teamBuilderNonce?: string

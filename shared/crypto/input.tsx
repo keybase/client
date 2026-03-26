@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import type {CommonState} from './state'
+import type {CommonState} from './helpers'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'

@@ -19,11 +19,10 @@ import {
 import {
   createCommonState,
   getStatusCodeMessage,
-  outputParamsToCommonState,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
-} from './state'
+} from './helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import type {RootRouteProps} from '@/router-v2/route-params'
@@ -180,7 +179,7 @@ export const DecryptInput = (_props: unknown) => {
 }
 
 export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}}) => {
-  const state = outputParamsToCommonState(route.params)
+  const state = route.params
   const content = (
     <>
       {C.isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}

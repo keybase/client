@@ -20,11 +20,10 @@ import {
 import {
   createCommonState,
   getStatusCodeMessage,
-  outputParamsToCommonState,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
-} from './state'
+} from './helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -191,7 +190,7 @@ export const SignInput = (_props: unknown) => {
 }
 
 export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) => {
-  const state = outputParamsToCommonState(route.params)
+  const state = route.params
   const content = (
     <>
       <SignOutputBanner state={route.params} />
