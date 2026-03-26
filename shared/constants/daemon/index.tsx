@@ -175,7 +175,10 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const {setBootstrap} = storeRegistry.getState('current-user').dispatch
         const {setDefaultUsername} = storeRegistry.getState('config').dispatch
+        const tBootstrap = Date.now()
+        logger.info('[Bootstrap] configGetBootstrapStatus: starting')
         const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+        logger.info(`[Bootstrap] configGetBootstrapStatus: done in ${Date.now() - tBootstrap}ms`)
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
         setBootstrap({deviceID, deviceName, uid, username})
         if (username) {
@@ -209,7 +212,10 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     refreshAccounts: async () => {
+      const tAccounts = Date.now()
+      logger.info('[Bootstrap] loginGetConfiguredAccounts: starting')
       const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+      logger.info(`[Bootstrap] loginGetConfiguredAccounts: done in ${Date.now() - tAccounts}ms`)
       // already have one?
       const {defaultUsername} = storeRegistry.getState('config')
       const {setAccounts, setDefaultUsername} = storeRegistry.getState('config').dispatch

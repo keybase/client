@@ -119,11 +119,22 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 		res.DeviceEkNames = dekNames
 	}
 
-	res.LocalDbStats = strings.Split(g.LocalDb.Stats(), "\n")
-	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
-	if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
-		res.CacheDirSizeInfo = cacheSizeInfo
-	}
+	func() {
+		defer mctx.Trace("LocalDb.Stats", nil)()
+		res.LocalDbStats = strings.Split(g.LocalDb.Stats(), "\n")
+	}()
+
+	func() {
+		defer mctx.Trace("LocalChatDb.Stats", nil)()
+		res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
+	}()
+
+	func() {
+		defer mctx.Trace("CacheSizeInfo", nil)()
+		if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
+			res.CacheDirSizeInfo = cacheSizeInfo
+		}
+	}()
 
 	if g.ConnectionManager != nil {
 		xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
@@ -134,13 +145,16 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 				Cli: rpc.NewClient(
 					xp, libkb.NewContextifiedErrorUnwrapper(g), nil),
 			}
-			stats, err := cli.SimpleFSGetStats(mctx.Ctx())
-			if err != nil {
-				mctx.Debug("| KBFS stats error: %+v", err)
-			} else {
-				res.LocalBlockCacheDbStats = stats.BlockCacheDbStats
-				res.LocalSyncCacheDbStats = stats.SyncCacheDbStats
-			}
+			func() {
+				defer mctx.Trace("SimpleFSGetStats", nil)()
+				stats, err := cli.SimpleFSGetStats(mctx.Ctx())
+				if err != nil {
+					mctx.Debug("| KBFS stats error: %+v", err)
+				} else {
+					res.LocalBlockCacheDbStats = stats.BlockCacheDbStats
+					res.LocalSyncCacheDbStats = stats.SyncCacheDbStats
+				}
+			}()
 		}
 	}
 

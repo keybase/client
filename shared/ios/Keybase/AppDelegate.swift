@@ -46,6 +46,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   var startupLogFileHandle: FileHandle?
 
   private var watchdog: MainThreadWatchdog?
+  private var bgEnterWallTime: CFAbsoluteTime = 0
 
   public override func application(
     _ application: UIApplication,
@@ -398,6 +399,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationDidEnterBackground(_ application: UIApplication) {
+    bgEnterWallTime = CFAbsoluteTimeGetCurrent()
     watchdog?.start(context: "background entered")
     application.ignoreSnapshotOnNextApplicationLaunch()
     NSLog("applicationDidEnterBackground: cancelling outstanding animations...")
@@ -469,7 +471,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationWillEnterForeground(_ application: UIApplication) {
-    NSLog("applicationWillEnterForeground: start, hiding keyz screen.")
+    let bgDuration = CFAbsoluteTimeGetCurrent() - bgEnterWallTime
+    NSLog("applicationWillEnterForeground: start, hiding keyz screen (%.1fs since background)", bgDuration)
     hideCover()
     NSLog("applicationWillEnterForeground: done")
   }

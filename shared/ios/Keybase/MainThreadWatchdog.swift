@@ -1,10 +1,11 @@
-import UIKit
 import Darwin
+import UIKit
 
 // File-scope globals required by the SIGUSR1 signal handler.
 // Signal handlers cannot safely reference Swift objects, so these must be C-compatible globals.
 private let kMaxStackFrames: Int32 = 128
-private var gMainStackFrames = [UnsafeMutableRawPointer?](repeating: nil, count: Int(kMaxStackFrames))
+private var gMainStackFrames = [UnsafeMutableRawPointer?](
+  repeating: nil, count: Int(kMaxStackFrames))
 private var gMainStackFrameCount: Int32 = 0
 private var gMainStackReady: Bool = false
 
@@ -98,8 +99,14 @@ class MainThreadWatchdog {
       //   2. Cold-start or foreground watchdog: use the 30s threshold as before.
       if blockDuration > 30.0 || (isBackgroundContext && blockDuration >= 3.0) {
         let bgElapsedSec = now - bgEnterTime
-        let msg = String(format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)", blockDuration, bgElapsedSec)
+        let msg = String(
+          format: "Watchdog: process resumed after %.0fs suspension (%.0fs since background)",
+          blockDuration, bgElapsedSec)
         NSLog("[Startup] %@", msg)
+        // Capture a stack trace even on suspected suspension: if the main thread is actually
+        // hung during foreground re-entry (not truly suspended by iOS), the trace will show it.
+        // If truly suspended the signal will time out and log "stack capture timed out".
+        captureAndLogStackTrace()
         lock.lock()
         self.lastPong = now
         lock.unlock()
@@ -120,7 +127,10 @@ class MainThreadWatchdog {
         // evolves (e.g. keychain IPC → rendering → idle) rather than a single snapshot.
         if lastLogTime == 0 || (now - lastLogTime) >= 1.0 {
           let bgElapsedSec = now - bgEnterTime
-          let msg = String(format: "Watchdog: main thread blocked %.1fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
+          let msg = String(
+            format:
+              "Watchdog: main thread blocked %.1fs after foreground resume (%.0fs since background, %.0fms since launch)",
+            blockDuration, bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
           // Enqueue a write for when the main thread recovers
           DispatchQueue.main.async { [weak self] in
@@ -133,7 +143,9 @@ class MainThreadWatchdog {
       } else {
         if lastLogTime != 0 {
           let bgElapsedSec = now - bgEnterTime
-          let msg = String(format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)", bgElapsedSec, totalElapsedMs)
+          let msg = String(
+            format: "Watchdog: main thread unblocked (%.0fs since background, %.0fms since launch)",
+            bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
           DispatchQueue.main.async { [weak self] in
             self?.writeLog(msg)
@@ -153,12 +165,15 @@ class MainThreadWatchdog {
   }
 
   // Send SIGUSR1 to the main thread, wait briefly for the handler to run, then log the stack.
-  // Frames are collected synchronously here on the watchdog thread, then dispatched to the main
-  // thread via writeLog so they appear in ios.log (captured by logsend).
+  // Frames are written via NSLog immediately (so they survive if the app is killed before the
+  // main thread recovers) and also dispatched to writeLog for ios.log / logsend.
   private func captureAndLogStackTrace() {
     gMainStackReady = false
     guard let tid = mainThreadPthread else {
-      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: main thread pthread not captured") }
+      NSLog("[Startup] Watchdog: main thread pthread not captured")
+      DispatchQueue.main.async { [weak self] in
+        self?.writeLog("Watchdog: main thread pthread not captured")
+      }
       return
     }
     pthread_kill(tid, SIGUSR1)
@@ -168,17 +183,19 @@ class MainThreadWatchdog {
       Thread.sleep(forTimeInterval: 0.01)
     }
     guard gMainStackReady else {
-      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: stack capture timed out") }
+      NSLog("[Startup] Watchdog: stack capture timed out")
+      DispatchQueue.main.async { [weak self] in self?.writeLog("Watchdog: stack capture timed out")
+      }
       return
     }
     let count = Int(gMainStackFrameCount)
     // Collect the binary load slide so addresses can be symbolicated offline:
     //   atos -o Keybase.app.dSYM/Contents/Resources/DWARF/Keybase -l <slide> <address>
     let slide = _dyld_get_image_vmaddr_slide(0)
-    // Build the frame strings synchronously while the globals are still valid, then
-    // dispatch a single block to write them all once the main thread unblocks.
+    // Build the frame strings synchronously while the globals are still valid.
     var lines = [String]()
-    lines.append(String(format: "Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide))
+    lines.append(
+      String(format: "Watchdog: main thread stack trace (%d frames, slide=0x%lx):", count, slide))
     gMainStackFrames.withUnsafeMutableBufferPointer { buf in
       if let syms = backtrace_symbols(buf.baseAddress, Int32(count)) {
         for i in 0..<count {
@@ -187,6 +204,10 @@ class MainThreadWatchdog {
         free(syms)
       }
     }
+    // Write via NSLog immediately so the trace is captured even if the app is killed
+    // before the main thread unblocks.
+    for line in lines { NSLog("[Startup] %@", line) }
+    // Also dispatch to writeLog so frames appear in ios.log when main recovers.
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       for line in lines { self.writeLog(line) }
