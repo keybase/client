@@ -233,7 +233,7 @@ function useMenubarRemoteProps(): Props {
 
   const upDown = {
     endEstimate: uploads.endEstimate ?? 0,
-    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[1] || T.FS.stringToPath('')) : undefined,
+    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
