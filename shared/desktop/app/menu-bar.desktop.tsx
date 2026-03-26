@@ -3,12 +3,15 @@ import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
 import * as Electron from 'electron'
 import logger from '@/logger'
-import {isDarwin, isWindows, isLinux, getAssetPath} from '@/constants/platform.desktop'
+import {isDarwin, isWindows, isLinux} from '@/constants/platform.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '@/local-debug'
 import {getMainWindow} from './main-window.desktop'
 import {htmlURL, preloadPath} from './html-root.desktop'
+import path from 'path'
 import type {BadgeType} from '@/stores/notifications'
+
+const fsAssetRoot = path.resolve(__DEV__ || __PROFILE__ ? '.' : Electron.app.getAppPath()).replaceAll('\\', '/') + '/'
 
 const getIcons = (iconType: BadgeType, badges: number) => {
   const size = isWindows ? 16 : 22
@@ -44,7 +47,7 @@ let badges = 0
 
 const getIcon = () => {
   const path = getIcons(badgeType, badges)
-  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', path))
+  const icon = Electron.nativeImage.createFromPath(fsAssetRoot + 'images/menubarIcon/' + path)
   // template it always, else the color is just wrong, lose the orange sadly
   icon.setTemplateImage(true)
   return icon
@@ -125,7 +128,7 @@ const MenuBar = () => {
       const mw = getMainWindow()
       const overlay =
         action.payload.desktopAppBadgeCount > 0
-          ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
+          ? fsAssetRoot + 'images/icons/icon-windows-badge.png'
           : null
       overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
     }
