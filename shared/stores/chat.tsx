@@ -585,6 +585,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             storeRegistry
               .getConvoState(conversationIDKey)
               .dispatch.navigateToThread('justCreated', highlightMessageID)
+            get().dispatch.inboxRefresh('joinedAConversation')
           }
         } catch (error) {
           if (error instanceof RPCError) {
