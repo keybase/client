@@ -192,7 +192,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
   const n = _getNavigator()
   if (!n) return
-  n.dispatch(StackActions.popTo(name))
+  n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
 export const navigateAppend = (path: PathParam, replace?: boolean) => {
