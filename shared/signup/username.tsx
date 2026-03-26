@@ -14,8 +14,8 @@ import type {StaticScreenProps} from '@react-navigation/core'
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
 const ConnectedEnterUsername = (p: Props) => {
-  const initialUsername = p.route.params?.username ?? ''
-  const inviteCode = p.route.params?.inviteCode ?? ''
+  const initialUsername = p.route.params.username ?? ''
+  const inviteCode = p.route.params.inviteCode ?? ''
   const resetState = useSignupState(s => s.dispatch.resetState)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {navigateAppend, navigateUp} = C.useRouterState(

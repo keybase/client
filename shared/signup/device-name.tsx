@@ -15,8 +15,8 @@ type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
 const ConnectedEnterDevicename = (p: Props) => {
   const initialDevicename = useSignupState(s => s.devicename)
-  const inviteCode = p.route.params?.inviteCode ?? ''
-  const username = p.route.params?.username ?? ''
+  const inviteCode = p.route.params.inviteCode ?? ''
+  const username = p.route.params.username ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {resetState, setDevicename, showPermissionsPrompt} = useSignupState(
     C.useShallow(s => ({

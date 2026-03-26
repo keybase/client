@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
 import {isValidEmail} from '@/util/simple-validators'
 
 const makeAddEmailError = (err: RPCError): string => {
@@ -58,9 +58,7 @@ export const useAddEmail = () => {
       ],
       () => {
         setAddedEmail(email)
-        if (mountedRef.current) {
-          onSuccess(email)
-        }
+        onSuccess(email)
       },
       error_ => {
         if (mountedRef.current) {

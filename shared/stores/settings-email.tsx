@@ -106,12 +106,12 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         s.addedEmail = ''
       })
     },
+    resetState: Z.defaultReset,
     setAddedEmail: email => {
       set(s => {
         s.addedEmail = email
       })
     },
-    resetState: Z.defaultReset,
   }
   return {
     ...initialStore,

@@ -45,6 +45,13 @@ const LogoutContainer = () => {
     onBootstrap()
   }, [onBootstrap])
 
+  React.useEffect(
+    () => () => {
+      resetCheckPassword()
+    },
+    [resetCheckPassword]
+  )
+
   React.useEffect(() => {
     if (!hasRandomPW) {
       return

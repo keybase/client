@@ -1,6 +1,6 @@
 import * as S from '@/constants/strings'
 import type * as EngineGen from '@/constants/rpc'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
 type Store = T.Immutable<{
