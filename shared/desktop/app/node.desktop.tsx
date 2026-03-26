@@ -6,13 +6,25 @@ import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform.desktop'
 import KB2 from '@/util/electron.desktop'
 import {configOverload} from './dynamic-config'
-import type * as MainWindowType from './main-window.desktop'
-import type * as DevToolsType from './dev-tools.desktop'
-import type * as InstallerType from './installer.desktop'
-import type * as MenuBarType from './menu-bar.desktop'
-import type * as EngineType from '@/engine'
-import type * as AppEventsType from './app-events.desktop'
-import type * as IPCHandlersType from './ipc-handlers.desktop'
+import MainWindow from './main-window.desktop'
+import devTools from './dev-tools.desktop'
+import installer from './installer.desktop'
+import menuBar from './menu-bar.desktop'
+import {makeEngine} from '@/engine'
+import {
+  installCrashReporter,
+  appShouldDieOnStartup,
+  changeCommandLineSwitches,
+  fixWindowsNotifications,
+  getStartupProcessArgs,
+  registerCrashHandling,
+  registerLifecycleHandlers,
+  registerNavigationGuards,
+  registerOpenHandlers,
+  registerPowerMonitorEvents,
+  registerSecondInstanceHandler,
+} from './app-events.desktop'
+import {setupIPCHandlers} from './ipc-handlers.desktop'
 
 type DeferredLaunch = {
   saltpackFilePath?: string
@@ -23,48 +35,6 @@ type AppRuntime = {
   appStartedUp: boolean
   deferredLaunch: DeferredLaunch
   mainWindow: Electron.BrowserWindow | null
-}
-
-const loadStartupModules = () => {
-  const {default: MainWindow} = require('./main-window.desktop') as typeof MainWindowType
-  const {default: devTools} = require('./dev-tools.desktop') as typeof DevToolsType
-  const {default: installer} = require('./installer.desktop') as typeof InstallerType
-  const {default: menuBar} = require('./menu-bar.desktop') as typeof MenuBarType
-  const {makeEngine} = require('@/engine') as typeof EngineType
-  const {
-    installCrashReporter,
-    appShouldDieOnStartup,
-    changeCommandLineSwitches,
-    fixWindowsNotifications,
-    getStartupProcessArgs,
-    registerCrashHandling,
-    registerLifecycleHandlers,
-    registerNavigationGuards,
-    registerOpenHandlers,
-    registerPowerMonitorEvents,
-    registerSecondInstanceHandler,
-  } = require('./app-events.desktop') as typeof AppEventsType
-  const {setupIPCHandlers} = require('./ipc-handlers.desktop') as typeof IPCHandlersType
-
-  return {
-    MainWindow,
-    appShouldDieOnStartup,
-    changeCommandLineSwitches,
-    devTools,
-    fixWindowsNotifications,
-    getStartupProcessArgs,
-    installCrashReporter,
-    installer,
-    makeEngine,
-    menuBar,
-    registerCrashHandling,
-    registerLifecycleHandlers,
-    registerNavigationGuards,
-    registerOpenHandlers,
-    registerPowerMonitorEvents,
-    registerSecondInstanceHandler,
-    setupIPCHandlers,
-  }
 }
 
 const dispatchStartupURL = (link: string) => {
@@ -92,26 +62,6 @@ const flushDeferredLaunch = (
 }
 
 const startApp = () => {
-  const {
-    MainWindow,
-    appShouldDieOnStartup,
-    changeCommandLineSwitches,
-    devTools,
-    fixWindowsNotifications,
-    getStartupProcessArgs,
-    installCrashReporter,
-    installer,
-    makeEngine,
-    menuBar,
-    registerCrashHandling,
-    registerLifecycleHandlers,
-    registerNavigationGuards,
-    registerOpenHandlers,
-    registerPowerMonitorEvents,
-    registerSecondInstanceHandler,
-    setupIPCHandlers,
-  } = loadStartupModules()
-
   const runtime: AppRuntime = {
     appStartedUp: false,
     deferredLaunch: {},
