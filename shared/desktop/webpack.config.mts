@@ -220,7 +220,9 @@ const joinCspSources = (sources: Array<string | false | undefined>) => sources.f
 const makeCsp = (isDev: boolean) =>
   [
     "default-src 'none'",
-    "object-src 'self' http://127.0.0.1:*",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
     'frame-src http://127.0.0.1:*',
     `font-src ${joinCspSources(["'self'", isDev && devServerURL.slice(0, -1)])}`,
     "media-src 'self' http://127.0.0.1:*",
