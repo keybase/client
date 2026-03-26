@@ -1,8 +1,5 @@
 import * as T from '@/constants/types'
-import * as S from '@/constants/strings'
-import {ignorePromise} from '@/constants/utils'
 import * as Z from '@/util/zustand'
-import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
@@ -53,87 +50,30 @@ export type PhoneRow = {
 
 type Store = T.Immutable<{
   addedPhone: boolean
-  defaultCountry?: string
-  error: string
-  pendingVerification: string
   phones?: Map<string, PhoneRow>
-  verificationState?: 'success' | 'error'
 }>
 
 const initialStore: Store = {
   addedPhone: false,
-  defaultCountry: undefined,
-  error: '',
-  pendingVerification: '',
   phones: undefined,
-  verificationState: undefined,
 }
 
 export type State = Store & {
   dispatch: {
-    addPhoneNumber: (phoneNumber: string, searchable: boolean) => void
     clearAddedPhone: () => void
-    clearPhoneNumberAdd: () => void
-    clearPhoneNumberErrors: () => void
     editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
-    loadDefaultPhoneCountry: () => void
     notifyPhoneNumberPhoneNumbersChanged: (list?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
-    resendVerificationForPhone: (phoneNumber: string) => void
     resetState: () => void
+    setAddedPhone: (added: boolean) => void
     setNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
-    verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
 }
 
-export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (set, get) => {
+export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', set => {
   const dispatch: State['dispatch'] = {
-    addPhoneNumber: (phoneNumber, searchable) => {
-      const f = async () => {
-        logger.info('adding phone number')
-        const visibility = searchable
-          ? T.RPCGen.IdentityVisibility.public
-          : T.RPCGen.IdentityVisibility.private
-        try {
-          await T.RPCGen.phoneNumbersAddPhoneNumberRpcPromise(
-            {phoneNumber, visibility},
-            S.waitingKeySettingsPhoneAddPhoneNumber
-          )
-          logger.info('success')
-          set(s => {
-            s.error = ''
-            s.pendingVerification = phoneNumber
-            s.verificationState = undefined
-          })
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          logger.warn('error ', error.message)
-          const message = makePhoneError(error)
-          set(s => {
-            s.error = message
-            s.pendingVerification = phoneNumber
-            s.verificationState = undefined
-          })
-        }
-      }
-      ignorePromise(f())
-    },
     clearAddedPhone: () => {
       set(s => {
         s.addedPhone = false
-      })
-    },
-    clearPhoneNumberAdd: () => {
-      set(s => {
-        s.error = ''
-        s.pendingVerification = ''
-        s.verificationState = undefined
-      })
-    },
-    clearPhoneNumberErrors: () => {
-      set(s => {
-        s.error = ''
       })
     },
     editPhone: (phoneNumber, del, setSearchable) => {
@@ -150,61 +90,19 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
           })
         }
       }
-      ignorePromise(f())
-    },
-    loadDefaultPhoneCountry: () => {
-      const f = async () => {
-        // noop if we've already loaded it
-        if (get().defaultCountry) {
-          return
-        }
-        const country = await T.RPCGen.accountGuessCurrentLocationRpcPromise({
-          defaultCountry: 'US',
-        })
-        set(s => {
-          s.defaultCountry = country
-        })
-      }
-      ignorePromise(f())
+      void f()
     },
     notifyPhoneNumberPhoneNumbersChanged: list => {
       set(s => {
         s.phones = new Map((list ?? []).map(row => [row.phoneNumber, toPhoneRow(row)]))
       })
     },
-    resendVerificationForPhone: phoneNumber => {
-      set(s => {
-        s.error = ''
-        s.pendingVerification = phoneNumber
-        s.verificationState = undefined
-      })
-      const f = async () => {
-        logger.info(`resending verification code for ${phoneNumber}`)
-        try {
-          await T.RPCGen.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
-            {phoneNumber},
-            S.waitingKeySettingsPhoneResendVerification
-          )
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          const message = makePhoneError(error)
-          logger.warn('error ', message)
-          set(s => {
-            if (phoneNumber !== s.pendingVerification) {
-              logger.warn("Got verifiedPhoneNumber but number doesn't match")
-              return
-            }
-            s.addedPhone = false
-            s.error = message
-            s.verificationState = 'error'
-          })
-        }
-      }
-      ignorePromise(f())
-    },
     resetState: Z.defaultReset,
+    setAddedPhone: added => {
+      set(s => {
+        s.addedPhone = added
+      })
+    },
     setNumbers: phoneNumbers => {
       set(s => {
         s.phones = phoneNumbers?.reduce((map, row) => {
@@ -215,43 +113,6 @@ export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', (s
           return map
         }, new Map<string, PhoneRow>())
       })
-    },
-    verifyPhoneNumber: (phoneNumber, code) => {
-      const f = async () => {
-        logger.info('verifying phone number')
-        try {
-          await T.RPCGen.phoneNumbersVerifyPhoneNumberRpcPromise(
-            {code, phoneNumber},
-            S.waitingKeySettingsPhoneVerifyPhoneNumber
-          )
-          logger.info('success')
-          set(s => {
-            if (phoneNumber !== s.pendingVerification) {
-              logger.warn("Got verifiedPhoneNumber but number doesn't match")
-              return
-            }
-            s.addedPhone = true
-            s.error = ''
-            s.verificationState = 'success'
-          })
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          const message = makePhoneError(error)
-          logger.warn('error ', message)
-          set(s => {
-            if (phoneNumber !== s.pendingVerification) {
-              logger.warn("Got verifiedPhoneNumber but number doesn't match")
-              return
-            }
-            s.addedPhone = false
-            s.error = message
-            s.verificationState = 'error'
-          })
-        }
-      }
-      ignorePromise(f())
     },
   }
   return {

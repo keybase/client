@@ -8,8 +8,9 @@ import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsState} from '@/stores/settings'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {e164ToDisplay} from '@/util/phone-numbers'
+import {useRoute} from '@react-navigation/native'
+import type {RootRouteProps} from '@/router-v2/route-params'
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
@@ -50,8 +51,8 @@ const CheckPassphraseCancelButton = () => {
 }
 
 const VerifyPhoneHeaderTitle = () => {
-  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
-  const displayPhone = e164ToDisplay(pendingVerification)
+  const {params} = useRoute<RootRouteProps<'settingsVerifyPhone'>>()
+  const displayPhone = e164ToDisplay(params.phoneNumber)
   return (
     <Kb.Text type="BodySmall" negative={true} center={true}>
       {displayPhone || 'Unknown number'}
@@ -60,12 +61,10 @@ const VerifyPhoneHeaderTitle = () => {
 }
 
 const VerifyPhoneHeaderLeft = () => {
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   return (
     <Kb.BackButton
       onClick={() => {
-        clearPhoneNumberAdd()
         clearModals()
       }}
       iconColor={Kb.Styles.globalColors.white}

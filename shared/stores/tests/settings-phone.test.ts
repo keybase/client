@@ -9,8 +9,6 @@ afterEach(() => {
   resetAllStores()
 })
 
-const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
-
 test('makePhoneError maps the expected RPC errors', () => {
   expect(
     makePhoneError(new RPCError('wrong code', T.RPCGen.StatusCode.scphonenumberwrongverificationcode))
@@ -43,26 +41,10 @@ test('setNumbers keeps the first non-superseded row for a phone number', () => {
   expect(row?.verified).toBe(false)
 })
 
-test('successful addPhoneNumber updates pending verification and can be cleared', async () => {
-  const addPhone = jest
-    .spyOn(T.RPCGen, 'phoneNumbersAddPhoneNumberRpcPromise')
-    .mockResolvedValue(undefined as any)
+test('setAddedPhone and clearAddedPhone only update the success banner state', () => {
+  useSettingsPhoneState.getState().dispatch.setAddedPhone(true)
+  expect(useSettingsPhoneState.getState().addedPhone).toBe(true)
 
-  useSettingsPhoneState.getState().dispatch.addPhoneNumber('+15555550124', true)
-  await flush()
-
-  expect(addPhone).toHaveBeenCalledWith(
-    {
-      phoneNumber: '+15555550124',
-      visibility: T.RPCGen.IdentityVisibility.public,
-    },
-    expect.any(String)
-  )
-  expect(useSettingsPhoneState.getState().pendingVerification).toBe('+15555550124')
-  expect(useSettingsPhoneState.getState().error).toBe('')
-
-  useSettingsPhoneState.getState().dispatch.clearPhoneNumberAdd()
-
-  expect(useSettingsPhoneState.getState().pendingVerification).toBe('')
-  expect(useSettingsPhoneState.getState().verificationState).toBeUndefined()
+  useSettingsPhoneState.getState().dispatch.clearAddedPhone()
+  expect(useSettingsPhoneState.getState().addedPhone).toBe(false)
 })

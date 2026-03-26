@@ -34,7 +34,7 @@ Status:
 - [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
 - [ ] `settings-notifications`
 - [x] `settings-password` kept only `randomPW` in store; moved submit/load flows into settings screens
-- [ ] `settings-phone`
+- [x] `settings-phone` kept notification-backed `phones` and `addedPhone`; moved add/verify/default-country flow into local hooks and route params
 - [ ] `signup`
 - [ ] `team-building`
 - [ ] `tracker`

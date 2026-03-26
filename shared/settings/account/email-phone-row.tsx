@@ -209,7 +209,6 @@ const useData = (contactKey: string) => {
   }
 
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
-  const resendVerificationForPhoneNumber = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const dispatchProps = {
@@ -233,8 +232,7 @@ const useData = (contactKey: string) => {
         editPhone(contactKey, undefined, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
-        resendVerificationForPhoneNumber(phoneNumber)
-        navigateAppend('settingsVerifyPhone')
+        navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
       },
       onMakePrimary: () => {}, // this is not a supported phone action
     },

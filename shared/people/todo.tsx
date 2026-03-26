@@ -6,7 +6,6 @@ import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
@@ -259,7 +258,6 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const {navigateAppend, switchTab} = C.useRouterState(
     C.useShallow(s => ({
       navigateAppend: s.dispatch.navigateAppend,
@@ -267,8 +265,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
     }))
   )
   const onConfirm = (phoneNumber: string) => {
-    resendVerificationForPhone(phoneNumber)
-    navigateAppend('settingsVerifyPhone')
+    navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
   }
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
