@@ -32,7 +32,7 @@ afterEach(() => {
 test('encrypt auto-run uses the latest text snapshot and keeps output valid', async () => {
   const encryptSpy = jest
     .spyOn(T.RPCGen, 'saltpackSaltpackEncryptStringRpcPromise')
-    .mockImplementation(({plaintext}) =>
+    .mockImplementation(async ({plaintext}) =>
       Promise.resolve({
         ciphertext: `cipher:${plaintext}`,
         unresolvedSBSAssertion: '',
@@ -60,7 +60,7 @@ test('encrypt auto-run uses the latest text snapshot and keeps output valid', as
 test('decrypt auto-run uses the pasted ciphertext instead of the previous input', async () => {
   const decryptSpy = jest
     .spyOn(T.RPCGen, 'saltpackSaltpackDecryptStringRpcPromise')
-    .mockImplementation(({ciphertext}) =>
+    .mockImplementation(async ({ciphertext}) =>
       Promise.resolve({
         info: {sender: {fullname: 'Bob', username: 'bob'}},
         plaintext: `plain:${ciphertext}`,
@@ -88,7 +88,7 @@ test('decrypt auto-run uses the pasted ciphertext instead of the previous input'
 test('sign auto-run uses the latest text snapshot and keeps output valid', async () => {
   const signSpy = jest
     .spyOn(T.RPCGen, 'saltpackSaltpackSignStringRpcPromise')
-    .mockImplementation(({plaintext}) => Promise.resolve(`signed:${plaintext}` as never))
+    .mockImplementation(async ({plaintext}) => Promise.resolve(`signed:${plaintext}` as never))
 
   const {result} = renderHook((): HookController => useSignState())
   act(() => {
@@ -110,7 +110,7 @@ test('sign auto-run uses the latest text snapshot and keeps output valid', async
 test('verify auto-run uses the latest text snapshot and keeps output valid', async () => {
   const verifySpy = jest
     .spyOn(T.RPCGen, 'saltpackSaltpackVerifyStringRpcPromise')
-    .mockImplementation(({signedMsg}) =>
+    .mockImplementation(async ({signedMsg}) =>
       Promise.resolve({
         plaintext: `verified:${signedMsg}`,
         sender: {fullname: 'Bob', username: 'bob'},
