@@ -143,7 +143,10 @@ const useSignState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(sign().then(() => undefined))
+        const f = async () => {
+          await sign()
+        }
+        C.ignorePromise(f())
       }
     },
     [clearInput, sign]
@@ -303,7 +306,10 @@ export const SignIO = () => {
             outputTextType="cipher"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.sign(destinationDir).then(() => undefined))
+              const f = async () => {
+                await controller.sign(destinationDir)
+              }
+              C.ignorePromise(f())
             }}
           />
           <CryptoOutputActionsBar
@@ -311,7 +317,10 @@ export const SignIO = () => {
             canSaveAsText={true}
             state={controller.state}
             onSaveAsText={() => {
-              C.ignorePromise(controller.saveOutputAsText().then(() => undefined))
+              const f = async () => {
+                await controller.saveOutputAsText()
+              }
+              C.ignorePromise(f())
             }}
           />
         </Kb.Box2>

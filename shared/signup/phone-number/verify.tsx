@@ -1,13 +1,14 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {ScreenProps} from '@/constants/types/router'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import VerifyBody from './verify-body'
 import {usePhoneVerification} from './use-verification'
 
-const Container = ({route}: ScreenProps<'signupVerifyPhoneNumber'>) => {
+type Props = {route: {params: {phoneNumber: string}}}
+
+const Container = ({route}: Props) => {
   const {phoneNumber} = route.params
   const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)

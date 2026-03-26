@@ -159,7 +159,10 @@ const useVerifyState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(verify().then(() => undefined))
+        const f = async () => {
+          await verify()
+        }
+        C.ignorePromise(f())
       }
     },
     [clearInput, verify]
@@ -290,7 +293,10 @@ export const VerifyIO = () => {
             outputTextType="plain"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.verify(destinationDir).then(() => undefined))
+              const f = async () => {
+                await controller.verify(destinationDir)
+              }
+              C.ignorePromise(f())
             }}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />

@@ -65,10 +65,7 @@ export const newRoutes = {
 }
 
 // Some screens in signup show up after we've actually signed up
-export const newModalRoutes: Record<
-  string,
-  {getOptions: unknown; screen: React.LazyExoticComponent<React.ComponentType<object>>}
-> = {
+export const newModalRoutes = {
   signupEnterEmail: {
     getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
     screen: React.lazy(async () => import('./email')),

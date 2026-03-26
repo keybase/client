@@ -220,7 +220,10 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt().then(() => undefined))
+        const f = async () => {
+          await runEncrypt()
+        }
+        C.ignorePromise(f())
       }
     },
     [clearInput, runEncrypt]
@@ -242,7 +245,10 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
       setState(prev => nextRecipientState(prev, recipients, hasSBS))
       if (stateRef.current.inputType === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt().then(() => undefined))
+        const f = async () => {
+          await runEncrypt()
+        }
+        C.ignorePromise(f())
       }
     },
     [runEncrypt]
@@ -271,7 +277,10 @@ const useEncryptScreenState = (params?: EncryptRouteParams) => {
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
       setState(prev => nextOptionState(prev, options, hideIncludeSelf))
       if (stateRef.current.inputType === 'text' && !C.isMobile) {
-        C.ignorePromise(runEncrypt().then(() => undefined))
+        const f = async () => {
+          await runEncrypt()
+        }
+        C.ignorePromise(f())
       }
     },
     [runEncrypt]
@@ -613,7 +622,10 @@ export const EncryptIO = () => {
             outputTextType="cipher"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.runEncrypt(destinationDir).then(() => undefined))
+              const f = async () => {
+                await controller.runEncrypt(destinationDir)
+              }
+              C.ignorePromise(f())
             }}
           />
           <CryptoOutputActionsBar
@@ -621,7 +633,10 @@ export const EncryptIO = () => {
             canSaveAsText={true}
             state={controller.state}
             onSaveAsText={() => {
-              C.ignorePromise(controller.saveOutputAsText().then(() => undefined))
+              const f = async () => {
+                await controller.saveOutputAsText()
+              }
+              C.ignorePromise(f())
             }}
           />
         </Kb.Box2>

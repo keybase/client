@@ -159,7 +159,10 @@ const useDecryptState = (params?: CryptoInputRouteParams) => {
         return type === 'file' ? resetOutput(next) : next
       })
       if (type === 'text' && !C.isMobile) {
-        C.ignorePromise(decrypt().then(() => undefined))
+        const f = async () => {
+          await decrypt()
+        }
+        C.ignorePromise(f())
       }
     },
     [clearInput, decrypt]
@@ -293,7 +296,10 @@ export const DecryptIO = () => {
             outputTextType="plain"
             state={controller.state}
             onChooseOutputFolder={destinationDir => {
-              C.ignorePromise(controller.decrypt(destinationDir).then(() => undefined))
+              const f = async () => {
+                await controller.decrypt(destinationDir)
+              }
+              C.ignorePromise(f())
             }}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
