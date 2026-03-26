@@ -6,6 +6,13 @@ import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform.desktop'
 import KB2 from '@/util/electron.desktop'
 import {configOverload} from './dynamic-config'
+import type * as MainWindowType from './main-window.desktop'
+import type * as DevToolsType from './dev-tools.desktop'
+import type * as InstallerType from './installer.desktop'
+import type * as MenuBarType from './menu-bar.desktop'
+import type * as EngineType from '@/engine'
+import type * as AppEventsType from './app-events.desktop'
+import type * as IPCHandlersType from './ipc-handlers.desktop'
 
 type DeferredLaunch = {
   saltpackFilePath?: string
@@ -19,11 +26,11 @@ type AppRuntime = {
 }
 
 const loadStartupModules = () => {
-  const {default: MainWindow} = require('./main-window.desktop') as typeof import('./main-window.desktop')
-  const {default: devTools} = require('./dev-tools.desktop') as typeof import('./dev-tools.desktop')
-  const {default: installer} = require('./installer.desktop') as typeof import('./installer.desktop')
-  const {default: menuBar} = require('./menu-bar.desktop') as typeof import('./menu-bar.desktop')
-  const {makeEngine} = require('@/engine') as typeof import('@/engine')
+  const {default: MainWindow} = require('./main-window.desktop') as typeof MainWindowType
+  const {default: devTools} = require('./dev-tools.desktop') as typeof DevToolsType
+  const {default: installer} = require('./installer.desktop') as typeof InstallerType
+  const {default: menuBar} = require('./menu-bar.desktop') as typeof MenuBarType
+  const {makeEngine} = require('@/engine') as typeof EngineType
   const {
     installCrashReporter,
     appShouldDieOnStartup,
@@ -36,8 +43,8 @@ const loadStartupModules = () => {
     registerOpenHandlers,
     registerPowerMonitorEvents,
     registerSecondInstanceHandler,
-  } = require('./app-events.desktop') as typeof import('./app-events.desktop')
-  const {setupIPCHandlers} = require('./ipc-handlers.desktop') as typeof import('./ipc-handlers.desktop')
+  } = require('./app-events.desktop') as typeof AppEventsType
+  const {setupIPCHandlers} = require('./ipc-handlers.desktop') as typeof IPCHandlersType
 
   return {
     MainWindow,
