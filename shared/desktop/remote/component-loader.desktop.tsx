@@ -1,6 +1,6 @@
 /// <reference types="webpack-env" />
 // Loads a remote component. Receives props from the main window via IPC.
-import * as React from 'react'
+import type * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
@@ -38,7 +38,7 @@ function RemoteComponentLoader<P>(p: Props<P>) {
       direction="vertical"
       fullHeight={true}
       fullWidth={true}
-      style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}
+      style={Kb.Styles.collapseStyles([p.style ?? styles.container])}
     >
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
         <GlobalKeyEventHandler>

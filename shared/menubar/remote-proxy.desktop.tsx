@@ -108,7 +108,7 @@ const sameConversation = (a: Conversation, b: Conversation) =>
 const sameConversationList = (a: ReadonlyArray<Conversation>, b: ReadonlyArray<Conversation>) =>
   a.length === b.length && a.every((conversation, index) => sameConversation(conversation, b[index]!))
 
-const toNavBadges = (navBadgesMap: Map<string, number>) => {
+const toNavBadges = (navBadgesMap: ReadonlyMap<string, number>) => {
   const navBadges: {[tab: string]: number} = {}
   for (const [tab, badgeCount] of navBadgesMap) {
     navBadges[tab] = badgeCount
@@ -136,7 +136,7 @@ const getWidgetConversationSnapshot = (
 const useWidgetConversationList = (
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
 ) => {
-  const snapshotRef = React.useRef<ReadonlyArray<Conversation>>(emptyConversations)
+  const snapshotRef = React.useRef(emptyConversations)
 
   const subscribe = React.useCallback(
     (onStoreChange: () => void) => {
@@ -212,7 +212,7 @@ function useMenubarRemoteProps(): Props {
     C.useShallow(s => ({
       ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
       inboxRefresh: s.dispatch.inboxRefresh,
-      widgetList: s.inboxLayout?.widgetList,
+      widgetList: s.inboxLayout?.widgetList ?? undefined,
     }))
   )
   useEnsureWidgetData(loggedIn, widgetList, inboxRefresh, ensureWidgetMetas)

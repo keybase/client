@@ -13,5 +13,5 @@ const RemoteProxies = () => (
   </Kb.Box2>
 )
 
-const style = {display: 'none'}
+const style = {display: 'none' as const}
 export default RemoteProxies
