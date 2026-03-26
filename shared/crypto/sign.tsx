@@ -4,8 +4,19 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
-import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '../output'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
+import {
+  beginRun,
+  clearInputState,
+  maybeAutoRunTextOperation,
+  nextInputState,
+  nextOpenedFileState,
+  resetOutput,
+  resetWarnings,
+  useCommittedState,
+  useSeededCryptoInput,
+} from './helpers'
 import {
   createCommonState,
   getStatusCodeMessage,
@@ -13,7 +24,7 @@ import {
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
-} from '../state'
+} from './state'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -25,34 +36,6 @@ const filePrompt = 'Drop a file to sign'
 const inputEmptyWidth = 207
 const inputFileIcon = 'icon-file-64' as const
 const inputPlaceholder = C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'
-
-const resetWarnings = (state: CommonState): CommonState => ({
-  ...state,
-  errorMessage: '',
-  warningMessage: '',
-})
-
-const resetOutput = (state: CommonState): CommonState => ({
-  ...resetWarnings(state),
-  bytesComplete: 0,
-  bytesTotal: 0,
-  output: '',
-  outputSenderFullname: undefined,
-  outputSenderUsername: undefined,
-  outputSigned: false,
-  outputStatus: undefined,
-  outputType: undefined,
-  outputValid: false,
-})
-
-const beginRun = (state: CommonState): CommonState => ({
-  ...resetWarnings(state),
-  bytesComplete: 0,
-  bytesTotal: 0,
-  inProgress: true,
-  outputStatus: 'pending',
-  outputValid: false,
-})
 
 const onError = (state: CommonState, errorMessage: string): CommonState => ({
   ...resetOutput(state),
@@ -78,23 +61,10 @@ const onSuccess = (
 })
 
 export const useSignState = (params?: CryptoInputRouteParams) => {
-  const [state, setState] = React.useState(() => createCommonState(params))
-  const stateRef = React.useRef(state)
-
-  const commitState = React.useCallback((next: CommonState) => {
-    stateRef.current = next
-    setState(next)
-    return next
-  }, [])
+  const {commitState, state, stateRef} = useCommittedState(() => createCommonState(params))
 
   const clearInput = React.useCallback(() => {
-    const next = {
-      ...resetOutput(stateRef.current),
-      input: '',
-      inputType: 'text',
-      outputValid: true,
-    }
-    commitState(next)
+    commitState(clearInputState(stateRef.current))
   }, [commitState])
 
   const sign = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
@@ -133,21 +103,8 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
         clearInput()
         return
       }
-      const current = stateRef.current
-      const outputValid = current.input === value
-      const next = {
-        ...resetWarnings(current),
-        input: value,
-        inputType: type,
-        outputValid,
-      }
-      const committed = commitState(type === 'file' ? resetOutput(next) : next)
-      if (type === 'text' && !C.isMobile) {
-        const f = async () => {
-          await sign('', committed)
-        }
-        C.ignorePromise(f())
-      }
+      const committed = commitState(nextInputState(stateRef.current, type, value))
+      maybeAutoRunTextOperation(committed, sign)
     },
     [clearInput, commitState, sign]
   )
@@ -156,11 +113,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
     if (!path) return
     const current = stateRef.current
     if (current.inProgress) return
-    commitState({
-      ...resetOutput(current),
-      input: path,
-      inputType: 'file',
-    })
+    commitState(nextOpenedFileState(current, path))
   }, [commitState])
 
   const saveOutputAsText = React.useCallback(async () => {
@@ -174,14 +127,7 @@ export const useSignState = (params?: CryptoInputRouteParams) => {
     return commitState(next)
   }, [commitState])
 
-  React.useEffect(() => {
-    if (!params?.seedInputPath) return
-    if ((params.seedInputType ?? 'file') === 'file') {
-      openFile(params.seedInputPath)
-    } else {
-      setInput('text', params.seedInputPath)
-    }
-  }, [openFile, params?.entryNonce, params?.seedInputPath, params?.seedInputType, setInput])
+  useSeededCryptoInput(params, openFile, setInput)
 
   return {clearInput, openFile, saveOutputAsText, setInput, sign, state}
 }

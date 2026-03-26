@@ -18,56 +18,56 @@ type CryptoTeamBuilderRouteParams = Parameters<typeof cryptoTeamBuilder.screen>[
 }
 
 const DecryptInputScreen = React.lazy(async () => {
-  const {DecryptInput} = await import('./operations/decrypt')
+  const {DecryptInput} = await import('./decrypt')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <DecryptInput />,
   }
 })
 
 const EncryptInputScreen = React.lazy(async () => {
-  const {EncryptInput} = await import('./operations/encrypt')
+  const {EncryptInput} = await import('./encrypt')
   return {
     default: (_p: StaticScreenProps<EncryptRouteParams>) => <EncryptInput />,
   }
 })
 
 const SignInputScreen = React.lazy(async () => {
-  const {SignInput} = await import('./operations/sign')
+  const {SignInput} = await import('./sign')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <SignInput />,
   }
 })
 
 const VerifyInputScreen = React.lazy(async () => {
-  const {VerifyInput} = await import('./operations/verify')
+  const {VerifyInput} = await import('./verify')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <VerifyInput />,
   }
 })
 
 const DecryptOutputScreen = React.lazy(async () => {
-  const {DecryptOutput} = await import('./operations/decrypt')
+  const {DecryptOutput} = await import('./decrypt')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <DecryptOutput route={p.route} />,
   }
 })
 
 const EncryptOutputScreen = React.lazy(async () => {
-  const {EncryptOutput} = await import('./operations/encrypt')
+  const {EncryptOutput} = await import('./encrypt')
   return {
     default: (p: StaticScreenProps<EncryptOutputRouteParams>) => <EncryptOutput route={p.route} />,
   }
 })
 
 const SignOutputScreen = React.lazy(async () => {
-  const {SignOutput} = await import('./operations/sign')
+  const {SignOutput} = await import('./sign')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <SignOutput route={p.route} />,
   }
 })
 
 const VerifyOutputScreen = React.lazy(async () => {
-  const {VerifyOutput} = await import('./operations/verify')
+  const {VerifyOutput} = await import('./verify')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <VerifyOutput route={p.route} />,
   }

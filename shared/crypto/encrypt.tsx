@@ -3,10 +3,21 @@ import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import Recipients from '../recipients'
+import Recipients from './recipients'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
-import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '../output'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
+import {
+  beginRun,
+  clearInputState,
+  maybeAutoRunTextOperation,
+  nextInputState,
+  nextOpenedFileState,
+  resetOutput,
+  resetWarnings,
+  useCommittedState,
+  useSeededCryptoInput,
+} from './helpers'
 import {
   createEncryptState,
   encryptToOutputParams,
@@ -16,7 +27,7 @@ import {
   type EncryptOutputRouteParams,
   type EncryptRouteParams,
   type EncryptState,
-} from '../state'
+} from './state'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -31,34 +42,6 @@ const inputPlaceholder = C.isMobile ? 'Enter text to encrypt' : 'Enter text, dro
 
 const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
-
-const resetWarnings = (state: EncryptState): EncryptState => ({
-  ...state,
-  errorMessage: '',
-  warningMessage: '',
-})
-
-const resetOutput = (state: EncryptState): EncryptState => ({
-  ...resetWarnings(state),
-  bytesComplete: 0,
-  bytesTotal: 0,
-  output: '',
-  outputSenderFullname: undefined,
-  outputSenderUsername: undefined,
-  outputSigned: false,
-  outputStatus: undefined,
-  outputType: undefined,
-  outputValid: false,
-})
-
-const beginRun = (state: EncryptState): EncryptState => ({
-  ...resetWarnings(state),
-  bytesComplete: 0,
-  bytesTotal: 0,
-  inProgress: true,
-  outputStatus: 'pending',
-  outputValid: false,
-})
 
 const onError = (state: EncryptState, errorMessage: string): EncryptState => ({
   ...resetOutput(state),
@@ -133,15 +116,8 @@ const nextOptionState = (
 }
 
 export const useEncryptScreenState = (params?: EncryptRouteParams) => {
-  const [state, setState] = React.useState(() => createEncryptState(params))
-  const stateRef = React.useRef(state)
+  const {commitState, state, stateRef} = useCommittedState(() => createEncryptState(params))
   const handledTeamBuilderNonceRef = React.useRef<string | undefined>(undefined)
-
-  const commitState = React.useCallback((next: EncryptState) => {
-    stateRef.current = next
-    setState(next)
-    return next
-  }, [])
 
   const runEncrypt = React.useCallback(async (destinationDir = '', snapshot = stateRef.current) => {
     const username = useCurrentUserState.getState().username
@@ -194,13 +170,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   }, [commitState])
 
   const clearInput = React.useCallback(() => {
-    const next = {
-      ...resetOutput(stateRef.current),
-      input: '',
-      inputType: 'text',
-      outputValid: true,
-    }
-    commitState(next)
+    commitState(clearInputState(stateRef.current))
   }, [commitState])
 
   const setInput = React.useCallback(
@@ -209,21 +179,8 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
         clearInput()
         return
       }
-      const current = stateRef.current
-      const outputValid = current.input === value
-      const next = {
-        ...resetWarnings(current),
-        input: value,
-        inputType: type,
-        outputValid,
-      }
-      const committed = commitState(type === 'file' ? resetOutput(next) : next)
-      if (type === 'text' && !C.isMobile) {
-        const f = async () => {
-          await runEncrypt('', committed)
-        }
-        C.ignorePromise(f())
-      }
+      const committed = commitState(nextInputState(stateRef.current, type, value))
+      maybeAutoRunTextOperation(committed, runEncrypt)
     },
     [clearInput, commitState, runEncrypt]
   )
@@ -232,22 +189,13 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     if (!path) return
     const current = stateRef.current
     if (current.inProgress) return
-    commitState({
-      ...resetOutput(current),
-      input: path,
-      inputType: 'file',
-    })
+    commitState(nextOpenedFileState(current, path))
   }, [commitState])
 
   const setRecipients = React.useCallback(
     (recipients: ReadonlyArray<string>, hasSBS: boolean) => {
       const committed = commitState(nextRecipientState(stateRef.current, recipients, hasSBS))
-      if (committed.inputType === 'text' && !C.isMobile) {
-        const f = async () => {
-          await runEncrypt('', committed)
-        }
-        C.ignorePromise(f())
-      }
+      maybeAutoRunTextOperation(committed, runEncrypt)
     },
     [commitState, runEncrypt]
   )
@@ -272,12 +220,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   const setEncryptOptions = React.useCallback(
     (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => {
       const committed = commitState(nextOptionState(stateRef.current, options, hideIncludeSelf))
-      if (committed.inputType === 'text' && !C.isMobile) {
-        const f = async () => {
-          await runEncrypt('', committed)
-        }
-        C.ignorePromise(f())
-      }
+      maybeAutoRunTextOperation(committed, runEncrypt)
     },
     [commitState, runEncrypt]
   )
@@ -295,14 +238,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
     return commitState(next)
   }, [commitState])
 
-  React.useEffect(() => {
-    if (!params?.seedInputPath) return
-    if ((params.seedInputType ?? 'file') === 'file') {
-      openFile(params.seedInputPath)
-    } else {
-      setInput('text', params.seedInputPath)
-    }
-  }, [openFile, params?.entryNonce, params?.seedInputPath, params?.seedInputType, setInput])
+  useSeededCryptoInput(params, openFile, setInput)
 
   React.useEffect(() => {
     if (!params?.teamBuilderNonce || !params.teamBuilderUsers) return
