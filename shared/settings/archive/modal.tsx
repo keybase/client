@@ -1,13 +1,35 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {pathToRPCPath} from '@/constants/fs'
+import {fsCacheDir, isAndroid} from '@/constants/platform'
 import {pickSave} from '@/util/misc'
 import * as FsCommon from '@/fs/common'
 import {useArchiveState} from '@/stores/archive'
 import {settingsArchiveTab} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 import {getConvoState} from '@/stores/convostate'
+import {makeUUID} from '@/util/uuid'
+
+type ArchiveAllFilesResponseWaiter =
+  | {state: 'idle'}
+  | {state: 'waiting'}
+  | {
+      errors: Map<string, string>
+      skipped: number
+      started: number
+      state: 'finished'
+    }
+
+type ArchiveAllGitResponseWaiter =
+  | {state: 'idle'}
+  | {state: 'waiting'}
+  | {
+      errors: Map<string, string>
+      started: number
+      state: 'finished'
+    }
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
@@ -70,10 +92,15 @@ const ArchiveModal = (p: Props) => {
 
   const [outpath, setOutpath] = React.useState(defaultPath)
   const [started, setStarted] = React.useState(false)
-  const start = useArchiveState(s => s.dispatch.start)
-  const resetWaiters = useArchiveState(s => s.dispatch.resetWaiters)
-  const archiveAllFilesResponseWaiter = useArchiveState(s => s.archiveAllFilesResponseWaiter)
-  const archiveAllGitResponseWaiter = useArchiveState(s => s.archiveAllGitResponseWaiter)
+  const [archiveAllFilesResponseWaiter, setArchiveAllFilesResponseWaiter] =
+    React.useState<ArchiveAllFilesResponseWaiter>({state: 'idle'})
+  const [archiveAllGitResponseWaiter, setArchiveAllGitResponseWaiter] =
+    React.useState<ArchiveAllGitResponseWaiter>({state: 'idle'})
+  const load = useArchiveState(s => s.dispatch.load)
+  const startChatArchive = C.useRPC(T.RPCChat.localArchiveChatRpcPromise)
+  const startArchiveAllFiles = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise)
+  const startArchiveAllGitRepos = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise)
+  const startArchiveSingle = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
 
@@ -82,37 +109,124 @@ const ArchiveModal = (p: Props) => {
   const onStart = () => {
     if (!canStart) return
     setStarted(true)
+
+    const startChat = (query: T.RPCChat.GetInboxLocalQuery | null) => {
+      const jobID = makeUUID()
+      const outputPath = outpath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbchat-${jobID}` : '')
+      startChatArchive(
+        [
+          {
+            req: {
+              compress: true,
+              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+              jobID,
+              outputPath,
+              query,
+            },
+          },
+        ],
+        () => {
+          load()
+        },
+        () => {}
+      )
+    }
+
+    const startSingle = (type: 'kbfs' | 'git', target: string) => {
+      const prefix = type === 'kbfs' ? 'kbfs-backup' : 'git-backup'
+      const outputPath = outpath || (isAndroid && fsCacheDir ? `${fsCacheDir}/${prefix}-${Date.now()}` : '')
+      startArchiveSingle(
+        [
+          {
+            archiveJobStartPath:
+              type === 'kbfs'
+                ? {
+                    archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs,
+                    kbfs: pathToRPCPath(target).kbfs,
+                  }
+                : {archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git, git: target},
+            outputPath,
+            overwriteZip: true,
+          },
+        ],
+        () => {},
+        () => {}
+      )
+    }
+
     switch (p.type) {
       case 'chatID':
-        start('chatid', p.conversationIDKey, outpath)
+        startChat({
+          computeActiveList: false,
+          convIDs: [T.Chat.keyToConversationID(p.conversationIDKey)],
+          readOnly: false,
+          unreadOnly: false,
+        })
         break
       case 'chatAll':
-        start('chatname', '.', outpath)
+        startChat(null)
         break
       case 'fsAll':
-        start('kbfs', '/keybase', C.isMobile ? '' : outpath)
+        setArchiveAllFilesResponseWaiter({state: 'waiting'})
+        startArchiveAllFiles(
+          [
+            {
+              includePublicReadonly: false,
+              outputDir: outpath || (isAndroid && fsCacheDir ? fsCacheDir : ''),
+              overwriteZip: false,
+            },
+          ],
+          response => {
+            setArchiveAllFilesResponseWaiter({
+              errors: new Map(Object.entries(response.tlfPathToError ?? {})),
+              skipped: (response.skippedTLFPaths ?? []).length,
+              started: Object.keys(response.tlfPathToJobDesc ?? {}).length,
+              state: 'finished',
+            })
+          },
+          () => {}
+        )
         break
       case 'gitAll':
-        start('git', '.', C.isMobile ? '' : outpath)
+        setArchiveAllGitResponseWaiter({state: 'waiting'})
+        startArchiveAllGitRepos(
+          [
+            {
+              outputDir: outpath || (isAndroid && fsCacheDir ? fsCacheDir : ''),
+              overwriteZip: false,
+            },
+          ],
+          response => {
+            setArchiveAllGitResponseWaiter({
+              errors: new Map(Object.entries(response.gitRepoToError ?? {})),
+              started: Object.keys(response.gitRepoToJobDesc ?? {}).length,
+              state: 'finished',
+            })
+          },
+          () => {}
+        )
         break
       case 'chatTeam':
-        start('chatname', p.teamname, outpath)
+        startChat({
+          computeActiveList: false,
+          name: {membersType: T.RPCChat.ConversationMembersType.team, name: p.teamname},
+          readOnly: false,
+          unreadOnly: false,
+        })
         break
       case 'fsPath':
-        start('kbfs', p.path, C.isMobile ? '' : outpath)
+        startSingle('kbfs', p.path)
         break
       case 'git':
-        start('git', p.gitURL, C.isMobile ? '' : outpath)
+        startSingle('git', p.gitURL)
         break
     }
   }
   const onClose = () => {
-    resetWaiters()
     navigateUp()
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onProgress = () => {
-    resetWaiters()
     navigateUp()
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
@@ -248,11 +362,11 @@ const ArchiveModal = (p: Props) => {
         </Kb.Box2>
       </Kb.ScrollView>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar small={true}>
-            {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
-            {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
-            {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
-          </Kb.ButtonBar>
+        <Kb.ButtonBar small={true}>
+          {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
+          {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
+          {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )

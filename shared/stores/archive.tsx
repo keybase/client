@@ -2,10 +2,7 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {ignorePromise} from '@/constants/utils'
 import type * as EngineGen from '@/constants/rpc'
-import {pathToRPCPath} from '@/constants/fs'
 import {formatTimeForPopup} from '@/util/timestamp'
-import {makeUUID} from '@/util/uuid'
-import {fsCacheDir, isAndroid, isMobile} from '@/constants/platform'
 
 type ChatJob = {
   id: string
@@ -36,55 +33,18 @@ type KBFSJob = {
   errorNextRetry?: Date
 }
 
-type ArchiveAllFilesResponseWaiter =
-  | {state: 'idle'}
-  | {
-      state: 'waiting'
-    }
-  | {
-      errors: Map<string, string> // tlf -> error
-      skipped: number
-      started: number
-      state: 'finished'
-    }
-
-type ArchiveAllGitResponseWaiter =
-  | {state: 'idle'}
-  | {
-      state: 'waiting'
-    }
-  | {
-      errors: Map<string, string> // gitRepo -> error
-      started: number
-      state: 'finished'
-    }
-
 type Store = T.Immutable<{
-  archiveAllFilesResponseWaiter: ArchiveAllFilesResponseWaiter
-  archiveAllGitResponseWaiter: ArchiveAllGitResponseWaiter
   chatJobs: Map<string, ChatJob>
   kbfsJobs: Map<string, KBFSJob> // id -> KBFSJob
-  kbfsJobsFreshness: Map<string, number> // id -> KBFS TLF Revision
 }>
 const initialStore: Store = {
-  archiveAllFilesResponseWaiter: {state: 'idle'},
-  archiveAllGitResponseWaiter: {state: 'idle'},
   chatJobs: new Map(),
   kbfsJobs: new Map(),
-  kbfsJobsFreshness: new Map(),
 }
 
 export type State = Store & {
   dispatch: {
-    start: (type: 'chatid' | 'chatname' | 'kbfs' | 'git', path: string, outPath: string) => void
-    resetWaiters: () => void
-    cancelChat: (id: string) => void
-    pauseChat: (id: string) => void
-    resumeChat: (id: string) => void
-    clearCompleted: () => void
     load: () => void
-    loadKBFSJobFreshness: (jobID: string) => void
-    cancelOrDismissKBFS: (jobID: string) => Promise<void>
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
   }
@@ -125,11 +85,6 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           } as KBFSJob,
         ])
       )
-      for (const id of s.kbfsJobsFreshness.keys()) {
-        if (!s.kbfsJobs.has(id)) {
-          s.kbfsJobsFreshness.delete(id)
-        }
-      }
     })
   }
 
@@ -146,91 +101,6 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
         job.status = T.RPCChat.ArchiveChatJobStatus.running
       }
     })
-  }
-
-  const startChatArchiveAll = (outPath: string) => {
-    startChatArchive(null, outPath)
-  }
-  const startChatArchiveTeam = (team: string, outPath: string) => {
-    startChatArchive(
-      {
-        computeActiveList: false,
-        name: {membersType: T.RPCChat.ConversationMembersType.team, name: team},
-        readOnly: false,
-        unreadOnly: false,
-      },
-      outPath
-    )
-  }
-  const startChatArchiveCID = (conversationIDKey: T.Chat.ConversationIDKey, outPath: string) => {
-    startChatArchive(
-      {
-        computeActiveList: false,
-        convIDs: [T.Chat.keyToConversationID(conversationIDKey)],
-        readOnly: false,
-        unreadOnly: false,
-      },
-      outPath
-    )
-  }
-
-  const startChatArchive = (query: T.RPCChat.GetInboxLocalQuery | null, outPath: string) => {
-    const f = async () => {
-      const id = makeUUID()
-      const actualOutPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/kbchat-${id}` : '')
-      try {
-        await T.RPCChat.localArchiveChatRpcPromise({
-          req: {
-            compress: true,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-            jobID: id,
-            outputPath: actualOutPath,
-            query,
-          },
-        })
-        loadChat()
-      } catch (e) {
-        set(s => {
-          const old = s.chatJobs.get(id)
-          if (old) {
-            old.error = String(e)
-          }
-        })
-      }
-    }
-    ignorePromise(f())
-  }
-
-  const clearCompletedChat = () => {
-    const f = async () => {
-      await Promise.allSettled(
-        [...get().chatJobs.values()].map(async job => {
-          if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
-            await T.RPCChat.localArchiveChatDeleteRpcPromise({
-              deleteOutputPath: isMobile,
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-              jobID: job.id,
-            })
-          }
-        })
-      )
-      loadChat()
-    }
-    ignorePromise(f())
-  }
-
-  const clearCompletedKBFS = () => {
-    const f = async () => {
-      await Promise.allSettled(
-        [...get().kbfsJobs.values()].map(async job => {
-          if (job.phase === 'Done') {
-            return get().dispatch.cancelOrDismissKBFS(job.id)
-          }
-        })
-      )
-      loadKBFS()
-    }
-    ignorePromise(f())
   }
 
   const loadChat = () => {
@@ -281,105 +151,10 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
     ignorePromise(f())
   }
 
-  const startArchiveSingle = (type: 'kbfs' | 'git', pathOrRepo: string, outPath: string) => {
-    const prefix = type === 'kbfs' ? 'kbfs-backup' : 'git-backup'
-    ignorePromise(
-      (async () => {
-        const actualPath = outPath || (isAndroid && fsCacheDir ? `${fsCacheDir}/${prefix}-${Date.now()}` : '')
-        await T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise({
-          archiveJobStartPath:
-            type === 'kbfs'
-              ? {archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.kbfs, kbfs: pathToRPCPath(pathOrRepo).kbfs}
-              : {archiveJobStartPathType: T.RPCGen.ArchiveJobStartPathType.git, git: pathOrRepo},
-          outputPath: actualPath,
-          overwriteZip: true,
-        })
-      })()
-    )
-  }
-
-  const startFSArchiveAll = (outputDir: string) => {
-    set(s => {
-      s.archiveAllFilesResponseWaiter.state = 'waiting'
-    })
-    const f = async () => {
-      const actualDir = outputDir || (isAndroid && fsCacheDir ? fsCacheDir : '')
-      const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise({
-        includePublicReadonly: false,
-        outputDir: actualDir,
-        overwriteZip: false,
-      })
-      set(s => {
-        if (s.archiveAllFilesResponseWaiter.state !== 'waiting') {
-          return
-        }
-        s.archiveAllFilesResponseWaiter = {
-          errors: new Map(Object.entries(response.tlfPathToError ?? {})),
-          skipped: (response.skippedTLFPaths ?? []).length,
-          started: Object.keys(response.tlfPathToJobDesc ?? {}).length,
-          state: 'finished',
-        }
-      })
-    }
-    ignorePromise(f())
-  }
-
-  const startGitArchiveAll = (outputDir: string) => {
-    set(s => {
-      s.archiveAllGitResponseWaiter.state = 'waiting'
-    })
-    const f = async () => {
-      const actualDir = outputDir || (isAndroid && fsCacheDir ? fsCacheDir : '')
-      const response = await T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise({
-        outputDir: actualDir,
-        overwriteZip: false,
-      })
-      set(s => {
-        if (s.archiveAllGitResponseWaiter.state !== 'waiting') {
-          return
-        }
-        s.archiveAllGitResponseWaiter = {
-          errors: new Map(Object.entries(response.gitRepoToError ?? {})),
-          started: Object.keys(response.gitRepoToJobDesc ?? {}).length,
-          state: 'finished',
-        }
-      })
-    }
-    ignorePromise(f())
-  }
-
   const dispatch: State['dispatch'] = {
-    cancelChat: jobID => {
-      const f = async () => {
-        await T.RPCChat.localArchiveChatDeleteRpcPromise({
-          deleteOutputPath: true,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-          jobID,
-        })
-        loadChat()
-      }
-      ignorePromise(f())
-    },
-    cancelOrDismissKBFS: async (jobID: string) => {
-      await T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID})
-    },
-    clearCompleted: () => {
-      clearCompletedChat()
-      clearCompletedKBFS()
-    },
     load: () => {
       loadChat()
       loadKBFS()
-    },
-    loadKBFSJobFreshness: (jobID: string) => {
-      const f = async () => {
-        const resp = await T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise({jobID})
-        set(s => {
-          // ordering doesn't matter here
-          s.kbfsJobsFreshness.set(jobID, resp.currentTLFRevision)
-        })
-      }
-      ignorePromise(f())
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
@@ -396,52 +171,7 @@ export const useArchiveState = Z.createZustand<State>('archive', (set, get) => {
           break
       }
     },
-    pauseChat: jobID => {
-      const f = async () => {
-        await T.RPCChat.localArchiveChatPauseRpcPromise({
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-          jobID,
-        })
-        loadChat()
-      }
-      ignorePromise(f())
-    },
     resetState: Z.defaultReset,
-    resetWaiters: () =>
-      set(s => {
-        s.archiveAllFilesResponseWaiter = {state: 'idle'}
-        s.archiveAllGitResponseWaiter = {state: 'idle'}
-      }),
-    resumeChat: jobID => {
-      const f = async () => {
-        await T.RPCChat.localArchiveChatResumeRpcPromise({
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
-          jobID,
-        })
-        // don't reload here, resume doesn't block for the job to actually restart
-      }
-      ignorePromise(f())
-    },
-    start: (type, target, outPath) => {
-      switch (type) {
-        case 'chatid':
-          startChatArchiveCID(target, outPath)
-          return
-        case 'chatname':
-          if (target === '.') {
-            startChatArchiveAll(outPath)
-          } else {
-            startChatArchiveTeam(target, outPath)
-          }
-          break
-        case 'kbfs':
-          target === '/keybase' ? startFSArchiveAll(outPath) : startArchiveSingle('kbfs', target, outPath)
-          return
-        case 'git':
-          target === '.' ? startGitArchiveAll(outPath) : startArchiveSingle('git', target, outPath)
-          return
-      }
-    },
   }
   return {
     ...initialStore,

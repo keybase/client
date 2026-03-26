@@ -11,7 +11,7 @@ Status:
 
 ## Smaller / Likely Early Passes
 
-- [ ] `archive`
+- [x] `archive` kept notification-backed chat/KBFS job caches plus engine/load plumbing; moved modal waiters, start RPCs, row action RPCs, and KBFS freshness lookup into settings components
 - [ ] `autoreset`
 - [ ] `bots`
 - [x] `crypto`
