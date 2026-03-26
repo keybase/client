@@ -208,6 +208,23 @@ function Inbox(props: InboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
+  // onViewableItemsChanged doesn't fire on initial render, only on scroll.
+  // Unbox the initially visible rows when rows first become available.
+  const didInitialUnboxRef = React.useRef(false)
+  React.useEffect(() => {
+    if (didInitialUnboxRef.current || rows.length === 0) return
+    didInitialUnboxRef.current = true
+    const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
+      if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
+        arr.push(r.conversationIDKey)
+      }
+      return arr
+    }, [])
+    if (toUnbox.length > 0) {
+      onUntrustedInboxVisible(toUnbox)
+    }
+  }, [rows, onUntrustedInboxVisible])
+
   const itemHeight = {
     getSize: (item: RowItem) => getRowHeight(item.type, item.type === 'divider' && item.showButton),
     type: 'perItem' as const,
