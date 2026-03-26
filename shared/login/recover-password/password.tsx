@@ -11,7 +11,7 @@ const Password = ({route}: Props) => {
   const onSave = (p: string) => {
     submitPassword?.(p)
   }
-  return <UpdatePassword error={error} onSave={onSave} waitingForResponse={waiting} />
+  return <UpdatePassword error={error ?? ''} onSave={onSave} waitingForResponse={waiting} />
 }
 
 export default Password
