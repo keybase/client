@@ -55,10 +55,3 @@ export const Tabs = [
     title: 'Verify',
   },
 ] as const
-
-export const Operations = {
-  Decrypt: 'decrypt',
-  Encrypt: 'encrypt',
-  Sign: 'sign',
-  Verify: 'verify',
-} as const

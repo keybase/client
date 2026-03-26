@@ -1,52 +1,236 @@
 import * as C from '@/constants'
-import * as Crypto from '@/stores/crypto'
+import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
-import {Input, DragAndDrop, OperationBanner, InputActionsBar} from '../input'
-import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '../output'
+import {
+  createCommonState,
+  getStatusCodeMessage,
+  outputParamsToCommonState,
+  type CommonOutputRouteParams,
+  type CryptoInputRouteParams,
+  type CommonState,
+} from '../state'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
+import {useCurrentUserState} from '@/stores/current-user'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {useRoute} from '@react-navigation/core'
 
-const operation = Crypto.Operations.Sign
+const bannerMessage = Crypto.infoMessage.sign
+const filePrompt = 'Drop a file to sign'
+const inputEmptyWidth = 207
+const inputFileIcon = 'icon-file-64' as const
+const inputPlaceholder = C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'
 
-const SignOutputBanner = () => {
-  const outputType = Crypto.useCryptoState(s => s.sign.outputType)
-  return (
-    <OutputInfoBanner operation={operation}>
-      <Kb.Text type="BodySmallSemibold" center={true}>
-        This is your signed {outputType === 'file' ? 'file' : 'message'}, using{` `}
-        <Kb.Text
-          type="BodySecondaryLink"
-          underline={true}
-          onClick={() => openURL(Crypto.saltpackDocumentation)}
-        >
-          Saltpack
-        </Kb.Text>
-        .{` `}Anyone who has it can verify you signed it.
-      </Kb.Text>
-    </OutputInfoBanner>
+const resetWarnings = (state: CommonState): CommonState => ({
+  ...state,
+  errorMessage: '',
+  warningMessage: '',
+})
+
+const resetOutput = (state: CommonState): CommonState => ({
+  ...resetWarnings(state),
+  bytesComplete: 0,
+  bytesTotal: 0,
+  output: '',
+  outputSenderFullname: undefined,
+  outputSenderUsername: undefined,
+  outputSigned: false,
+  outputStatus: undefined,
+  outputType: undefined,
+  outputValid: false,
+})
+
+const beginRun = (state: CommonState): CommonState => ({
+  ...resetWarnings(state),
+  bytesComplete: 0,
+  bytesTotal: 0,
+  inProgress: true,
+  outputStatus: 'pending',
+  outputValid: false,
+})
+
+const onError = (state: CommonState, errorMessage: string): CommonState => ({
+  ...resetOutput(state),
+  errorMessage,
+  inProgress: false,
+})
+
+const onSuccess = (
+  state: CommonState,
+  outputValid: boolean,
+  output: string,
+  inputType: 'file' | 'text',
+  username: string
+): CommonState => ({
+  ...resetWarnings(state),
+  inProgress: false,
+  output,
+  outputSenderUsername: username,
+  outputSigned: true,
+  outputStatus: 'success',
+  outputType: inputType,
+  outputValid,
+})
+
+const useSignState = (params?: CryptoInputRouteParams) => {
+  const [state, setState] = React.useState(() => createCommonState(params))
+  const stateRef = React.useRef(state)
+  React.useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  const clearInput = React.useCallback(() => {
+    setState(prev => ({
+      ...resetOutput(prev),
+      input: '',
+      inputType: 'text',
+      outputValid: true,
+    }))
+  }, [])
+
+  const sign = React.useCallback(async (destinationDir = '') => {
+    const snapshot = stateRef.current
+    setState(prev => beginRun(prev))
+    try {
+      const username = useCurrentUserState.getState().username
+      const output =
+        snapshot.inputType === 'text'
+          ? await T.RPCGen.saltpackSaltpackSignStringRpcPromise(
+              {plaintext: snapshot.input},
+              C.waitingKeyCrypto
+            )
+          : await T.RPCGen.saltpackSaltpackSignFileRpcPromise(
+              {destinationDir, filename: snapshot.input},
+              C.waitingKeyCrypto
+            )
+      const next = onSuccess(
+        stateRef.current,
+        stateRef.current.input === snapshot.input,
+        output,
+        snapshot.inputType,
+        username
+      )
+      setState(next)
+      return next
+    } catch (_error) {
+      if (!(_error instanceof RPCError)) throw _error
+      logger.error(_error)
+      const next = onError(stateRef.current, getStatusCodeMessage(_error, 'sign', snapshot.inputType))
+      setState(next)
+      return next
+    }
+  }, [])
+
+  const setInput = React.useCallback(
+    (type: T.Crypto.InputTypes, value: string) => {
+      if (!value) {
+        clearInput()
+        return
+      }
+      setState(prev => {
+        const outputValid = prev.input === value
+        const next = {
+          ...resetWarnings(prev),
+          input: value,
+          inputType: type,
+          outputValid,
+        }
+        return type === 'file' ? resetOutput(next) : next
+      })
+      if (type === 'text' && !C.isMobile) {
+        C.ignorePromise(sign())
+      }
+    },
+    [clearInput, sign]
   )
+
+  const openFile = React.useCallback((path: string) => {
+    if (!path) return
+    setState(prev => {
+      if (prev.inProgress) return prev
+      return {
+        ...resetOutput(prev),
+        input: path,
+        inputType: 'file',
+      }
+    })
+  }, [])
+
+  const saveOutputAsText = React.useCallback(async () => {
+    const output = await T.RPCGen.saltpackSaltpackSaveSignedMsgToFileRpcPromise({signedMsg: stateRef.current.output})
+    const next = {
+      ...resetWarnings(stateRef.current),
+      output,
+      outputStatus: 'success' as const,
+      outputType: 'file' as const,
+    }
+    setState(next)
+    return next
+  }, [])
+
+  React.useEffect(() => {
+    if (!params?.seedInputPath) return
+    if ((params.seedInputType ?? 'file') === 'file') {
+      openFile(params.seedInputPath)
+    } else {
+      setInput('text', params.seedInputPath)
+    }
+  }, [openFile, params?.entryNonce, params?.seedInputPath, params?.seedInputType, setInput])
+
+  return {clearInput, openFile, saveOutputAsText, setInput, sign, state}
 }
 
-export const SignInput = () => {
+const SignOutputBanner = ({state}: {state: CommonOutputRouteParams}) => (
+  <OutputInfoBanner outputStatus={state.outputStatus}>
+    <Kb.Text type="BodySmallSemibold" center={true}>
+      This is your signed {state.outputType === 'file' ? 'file' : 'message'}, using{' '}
+      <Kb.Text type="BodySecondaryLink" underline={true} onClick={() => openURL(Crypto.saltpackDocumentation)}>
+        Saltpack
+      </Kb.Text>
+      . Anyone who has it can verify you signed it.
+    </Kb.Text>
+  </OutputInfoBanner>
+)
+
+export const SignInput = (_props: unknown) => {
+  const {params} = useRoute<RootRouteProps<'signTab'>>()
+  const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
   }
 
-  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
-  React.useEffect(() => {
-    return () => {
+  const onRun = () => {
+    const f = async () => {
+      const next = await controller.sign()
       if (C.isMobile) {
-        resetOperation(operation)
+        navigateAppend({name: Crypto.signOutput, params: next})
       }
     }
-  }, [resetOperation])
+    C.ignorePromise(f())
+  }
 
   const content = (
     <>
-      <OperationBanner operation={operation} />
-      <Input operation={operation} setBlurCB={setBlurCB} />
-      {C.isMobile ? <InputActionsBar operation={operation} blurCBRef={blurCBRef} /> : null}
+      <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
+      <Input
+        allowDirectories={true}
+        emptyInputWidth={inputEmptyWidth}
+        fileIcon={inputFileIcon}
+        inputPlaceholder={inputPlaceholder}
+        state={controller.state}
+        setBlurCB={setBlurCB}
+        textInputType="plain"
+        onSetInput={controller.setInput}
+        onClearInput={controller.clearInput}
+      />
+      {C.isMobile ? <InputActionsBar runLabel="Sign" blurCBRef={blurCBRef} onRun={onRun} /> : null}
     </>
   )
 
@@ -59,16 +243,24 @@ export const SignInput = () => {
   )
 }
 
-export const SignOutput = () => {
+export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) => {
+  const state = outputParamsToCommonState(route.params)
   const content = (
     <>
-      <SignOutputBanner />
-      <SignedSender operation={operation} />
+      <SignOutputBanner state={route.params} />
+      <CryptoSignedSender isSelfSigned={true} state={state} />
       {C.isMobile ? <Kb.Divider /> : null}
-      <OperationOutput operation={operation} />
-      <OutputActionsBar operation={operation} />
+      <CryptoOutput
+        actionLabel="Sign"
+        outputFileIcon="icon-file-saltpack-64"
+        outputTextType="cipher"
+        state={state}
+        onChooseOutputFolder={() => undefined}
+      />
+      <CryptoOutputActionsBar canReplyInChat={false} canSaveAsText={true} state={state} />
     </>
   )
+
   return C.isMobile ? (
     content
   ) : (
@@ -79,11 +271,50 @@ export const SignOutput = () => {
 }
 
 export const SignIO = () => {
+  const {params} = useRoute<RootRouteProps<'signTab'>>()
+  const controller = useSignState(params)
   return (
-    <DragAndDrop operation={operation} prompt="Drop a file to sign">
+    <DragAndDrop
+      allowFolders={true}
+      prompt={filePrompt}
+      inProgress={controller.state.inProgress}
+      onAttach={controller.openFile}
+    >
       <Kb.Box2 direction="vertical" fullHeight={true}>
-        <SignInput />
-        <SignOutput />
+        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+          <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
+          <Input
+            allowDirectories={true}
+            emptyInputWidth={inputEmptyWidth}
+            fileIcon={inputFileIcon}
+            inputPlaceholder={inputPlaceholder}
+            state={controller.state}
+            textInputType="plain"
+            onSetInput={controller.setInput}
+            onClearInput={controller.clearInput}
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
+          <SignOutputBanner state={controller.state} />
+          <CryptoSignedSender isSelfSigned={true} state={controller.state} />
+          <CryptoOutput
+            actionLabel="Sign"
+            outputFileIcon="icon-file-saltpack-64"
+            outputTextType="cipher"
+            state={controller.state}
+            onChooseOutputFolder={destinationDir => {
+              C.ignorePromise(controller.sign(destinationDir))
+            }}
+          />
+          <CryptoOutputActionsBar
+            canReplyInChat={false}
+            canSaveAsText={true}
+            state={controller.state}
+            onSaveAsText={() => {
+              C.ignorePromise(controller.saveOutputAsText())
+            }}
+          />
+        </Kb.Box2>
       </Kb.Box2>
     </DragAndDrop>
   )

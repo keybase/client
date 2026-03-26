@@ -1,14 +1,14 @@
 import * as C from '@/constants'
+import * as CryptoRoutes from '@/constants/crypto'
 import * as Chat from '@/stores/chat'
-import * as Crypto from '@/stores/crypto'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import type * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
 import {useFSState} from '@/stores/fs'
+import {makeUUID} from '@/util/uuid'
 
 type OwnProps = {showPopup: () => void}
 
@@ -46,11 +46,18 @@ function FileContainer(p: OwnProps) {
   const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
   const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
 
-  const saltpackOpenFile = Crypto.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onSaltpackFileOpen = (path: string, operation: T.Crypto.Operations) => {
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSaltpackFileOpen = (path: string, name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab) => {
     switchTab(C.Tabs.cryptoTab)
-    saltpackOpenFile(operation, path)
+    navigateAppend({
+      name,
+      params: {
+        entryNonce: makeUUID(),
+        seedInputPath: path,
+        seedInputType: 'file',
+      },
+    }, true)
   }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
@@ -59,7 +66,6 @@ function FileContainer(p: OwnProps) {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDownload = () => {
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal, true)
@@ -100,12 +106,12 @@ function FileContainer(p: OwnProps) {
 
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = isPathSaltpackEncrypted(fileName)
-    ? Crypto.Operations.Decrypt
+  const cryptoRoute = isPathSaltpackEncrypted(fileName)
+    ? CryptoRoutes.decryptTab
     : isPathSaltpackSigned(fileName)
-      ? Crypto.Operations.Verify
+      ? CryptoRoutes.verifyTab
       : undefined
-  const operationTitle = captialize(operation)
+  const actionTitle = captialize(cryptoRoute?.replace('Tab', ''))
 
   const styleOverride = Kb.Styles.isMobile
     ? ({paragraph: getEditStyle(isEditing)} as StyleOverride)
@@ -159,14 +165,14 @@ function FileContainer(p: OwnProps) {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        {!Kb.Styles.isMobile && isSaltpackFile && operation && (
+        {!Kb.Styles.isMobile && isSaltpackFile && cryptoRoute && (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
               small={true}
-              label={operationTitle}
+              label={actionTitle}
               style={styles.saltpackOperation}
-              onClick={() => onSaltpackFileOpen(fileName, operation)}
+              onClick={() => onSaltpackFileOpen(fileName, cryptoRoute)}
             />
           </Kb.Box2>
         )}

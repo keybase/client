@@ -4,7 +4,7 @@ import * as Crypto from '@/constants/crypto'
 import * as Tabs from '@/constants/tabs'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import {switchTab} from '@/constants/router'
+import {navigateAppend, switchTab} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
 import {emitDeepLink} from '@/router-v2/linking'
@@ -12,8 +12,8 @@ import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
 import {useConfigState} from '@/stores/config'
 import {usePinentryState} from '@/stores/pinentry'
-import {useCryptoState} from '@/stores/crypto'
 import logger from '@/logger'
+import {makeUUID} from '@/util/uuid'
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
   const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -22,19 +22,26 @@ const handleSaltPackOpen = (_path: string | HiddenString) => {
     console.warn('Tried to open a saltpack file before being logged in')
     return
   }
-  let operation: T.Crypto.Operations | undefined
+  let name: typeof Crypto.decryptTab | typeof Crypto.verifyTab | undefined
   if (isPathSaltpackEncrypted(path)) {
-    operation = Crypto.Operations.Decrypt
+    name = Crypto.decryptTab
   } else if (isPathSaltpackSigned(path)) {
-    operation = Crypto.Operations.Verify
+    name = Crypto.verifyTab
   } else {
     logger.warn(
       'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
     )
     return
   }
-  useCryptoState.getState().dispatch.onSaltpackOpenFile(operation, path)
   switchTab(Tabs.cryptoTab)
+  navigateAppend({
+    name,
+    params: {
+      entryNonce: makeUUID(),
+      seedInputPath: path,
+      seedInputType: 'file',
+    },
+  }, true)
 }
 
 const updateApp = () => {

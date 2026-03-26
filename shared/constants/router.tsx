@@ -16,6 +16,7 @@ import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
 import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
+import {makeUUID} from '@/util/uuid'
 
 type InferComponentProps<T> =
   T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
@@ -334,6 +335,7 @@ export const appendEncryptRecipientsBuilder = () => {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       goButtonLabel: 'Add',
       namespace: 'crypto',
+      teamBuilderNonce: makeUUID(),
       recommendedHideYourself: true,
       title: 'Recipients',
     },

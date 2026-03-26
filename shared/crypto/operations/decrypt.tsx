@@ -1,31 +1,229 @@
 import * as C from '@/constants'
-import * as Crypto from '@/stores/crypto'
+import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {Input, DragAndDrop, InputActionsBar, OperationBanner} from '../input'
-import {OperationOutput, OutputActionsBar, SignedSender} from '../output'
+import type * as T from '@/constants/types'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '../input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from '../output'
+import {
+  createCommonState,
+  getStatusCodeMessage,
+  outputParamsToCommonState,
+  type CommonOutputRouteParams,
+  type CryptoInputRouteParams,
+  type CommonState,
+} from '../state'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {useRoute} from '@react-navigation/core'
 
-const operation = Crypto.Operations.Decrypt
+const bannerMessage = Crypto.infoMessage.decrypt
+const filePrompt = 'Drop a file to decrypt'
+const inputEmptyWidth = 320
+const inputFileIcon = 'icon-file-saltpack-64' as const
+const inputPlaceholder = C.isMobile
+  ? 'Enter text to decrypt'
+  : 'Enter ciphertext, drop an encrypted file or folder, or'
 
-export const DecryptInput = () => {
-  const resetOperation = Crypto.useCryptoState(s => s.dispatch.resetOperation)
+const resetWarnings = (state: CommonState): CommonState => ({
+  ...state,
+  errorMessage: '',
+  warningMessage: '',
+})
+
+const resetOutput = (state: CommonState): CommonState => ({
+  ...resetWarnings(state),
+  bytesComplete: 0,
+  bytesTotal: 0,
+  output: '',
+  outputSenderFullname: undefined,
+  outputSenderUsername: undefined,
+  outputSigned: false,
+  outputStatus: undefined,
+  outputType: undefined,
+  outputValid: false,
+})
+
+const beginRun = (state: CommonState): CommonState => ({
+  ...resetWarnings(state),
+  bytesComplete: 0,
+  bytesTotal: 0,
+  inProgress: true,
+  outputStatus: 'pending',
+  outputValid: false,
+})
+
+const onError = (state: CommonState, errorMessage: string): CommonState => ({
+  ...resetOutput(state),
+  errorMessage,
+  inProgress: false,
+})
+
+const onSuccess = (
+  state: CommonState,
+  outputValid: boolean,
+  output: string,
+  inputType: 'file' | 'text',
+  signed: boolean,
+  senderUsername: string,
+  senderFullname: string
+): CommonState => ({
+  ...resetWarnings(state),
+  inProgress: false,
+  output,
+  outputSenderFullname: signed ? senderFullname : undefined,
+  outputSenderUsername: signed ? senderUsername : undefined,
+  outputSigned: signed,
+  outputStatus: 'success',
+  outputType: inputType,
+  outputValid,
+})
+
+const useDecryptState = (params?: CryptoInputRouteParams) => {
+  const [state, setState] = React.useState(() => createCommonState(params))
+  const stateRef = React.useRef(state)
   React.useEffect(() => {
-    return () => {
+    stateRef.current = state
+  }, [state])
+
+  const clearInput = React.useCallback(() => {
+    setState(prev => ({
+      ...resetOutput(prev),
+      input: '',
+      inputType: 'text',
+      outputValid: true,
+    }))
+  }, [])
+
+  const decrypt = React.useCallback(async (destinationDir = '') => {
+    const snapshot = stateRef.current
+    setState(prev => beginRun(prev))
+    try {
+      if (snapshot.inputType === 'text') {
+        const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise(
+          {ciphertext: snapshot.input},
+          C.waitingKeyCrypto
+        )
+        const next = onSuccess(
+          stateRef.current,
+          stateRef.current.input === snapshot.input,
+          res.plaintext,
+          'text',
+          res.signed,
+          res.info.sender.username,
+          res.info.sender.fullname
+        )
+        setState(next)
+        return next
+      }
+
+      const res = await T.RPCGen.saltpackSaltpackDecryptFileRpcPromise(
+        {destinationDir, encryptedFilename: snapshot.input},
+        C.waitingKeyCrypto
+      )
+      const next = onSuccess(
+        stateRef.current,
+        stateRef.current.input === snapshot.input,
+        res.decryptedFilename,
+        'file',
+        res.signed,
+        res.info.sender.username,
+        res.info.sender.fullname
+      )
+      setState(next)
+      return next
+    } catch (_error) {
+      if (!(_error instanceof RPCError)) throw _error
+      logger.error(_error)
+      const next = onError(stateRef.current, getStatusCodeMessage(_error, 'decrypt', snapshot.inputType))
+      setState(next)
+      return next
+    }
+  }, [])
+
+  const setInput = React.useCallback(
+    (type: T.Crypto.InputTypes, value: string) => {
+      if (!value) {
+        clearInput()
+        return
+      }
+      setState(prev => {
+        const outputValid = prev.input === value
+        const next = {
+          ...resetWarnings(prev),
+          input: value,
+          inputType: type,
+          outputValid,
+        }
+        return type === 'file' ? resetOutput(next) : next
+      })
+      if (type === 'text' && !C.isMobile) {
+        C.ignorePromise(decrypt())
+      }
+    },
+    [clearInput, decrypt]
+  )
+
+  const openFile = React.useCallback((path: string) => {
+    if (!path) return
+    setState(prev => {
+      if (prev.inProgress) return prev
+      return {
+        ...resetOutput(prev),
+        input: path,
+        inputType: 'file',
+      }
+    })
+  }, [])
+
+  React.useEffect(() => {
+    if (!params?.seedInputPath) return
+    if ((params.seedInputType ?? 'file') === 'file') {
+      openFile(params.seedInputPath)
+    } else {
+      setInput('text', params.seedInputPath)
+    }
+  }, [openFile, params?.entryNonce, params?.seedInputPath, params?.seedInputType, setInput])
+
+  return {clearInput, decrypt, openFile, setInput, state}
+}
+
+export const DecryptInput = (_props: unknown) => {
+  const {params} = useRoute<RootRouteProps<'decryptTab'>>()
+  const controller = useDecryptState(params)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+
+  const onRun = () => {
+    const f = async () => {
+      const next = await controller.decrypt()
       if (C.isMobile) {
-        resetOperation(operation)
+        navigateAppend({name: Crypto.decryptOutput, params: next})
       }
     }
-  }, [resetOperation])
+    C.ignorePromise(f())
+  }
+
   const contents = (
     <>
-      <OperationBanner key="banner" operation={operation} />
-      <Input key="input" operation={operation} />
+      <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
+      <Input
+        allowDirectories={false}
+        emptyInputWidth={inputEmptyWidth}
+        fileIcon={inputFileIcon}
+        inputPlaceholder={inputPlaceholder}
+        state={controller.state}
+        textInputType="cipher"
+        onSetInput={controller.setInput}
+        onClearInput={controller.clearInput}
+      />
     </>
   )
+
   return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>
       {contents}
-      <InputActionsBar operation={operation} />
+      <InputActionsBar runLabel="Decrypt" onRun={onRun} />
     </Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
@@ -34,17 +232,25 @@ export const DecryptInput = () => {
   )
 }
 
-export const DecryptOutput = () => {
-  const errorMessage = Crypto.useCryptoState(s => s[operation].errorMessage.stringValue())
+export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}}) => {
+  const state = outputParamsToCommonState(route.params)
   const content = (
     <>
-      {C.isMobile && errorMessage ? <OperationBanner key="banner" operation={operation} /> : null}
-      <SignedSender key="sender" operation={operation} />
+      {C.isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}
+      <CryptoSignedSender key="sender" isSelfSigned={false} state={state} />
       {C.isMobile ? <Kb.Divider key="div" /> : null}
-      <OperationOutput key="output" operation={operation} />
-      <OutputActionsBar key="bar" operation={operation} />
+      <CryptoOutput
+        key="output"
+        actionLabel="Decrypt"
+        outputFileIcon="icon-file-64"
+        outputTextType="plain"
+        state={state}
+        onChooseOutputFolder={() => undefined}
+      />
+      <CryptoOutputActionsBar key="bar" canReplyInChat={true} canSaveAsText={false} state={state} />
     </>
   )
+
   return C.isMobile ? (
     content
   ) : (
@@ -55,12 +261,43 @@ export const DecryptOutput = () => {
 }
 
 export const DecryptIO = () => {
+  const {params} = useRoute<RootRouteProps<'decryptTab'>>()
+  const controller = useDecryptState(params)
   return (
-    <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
+    <DragAndDrop
+      allowFolders={false}
+      prompt={filePrompt}
+      inProgress={controller.state.inProgress}
+      onAttach={controller.openFile}
+    >
       <Kb.Box2 direction="vertical" fullHeight={true}>
-        <DecryptInput />
+        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+          <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
+          <Input
+            allowDirectories={false}
+            emptyInputWidth={inputEmptyWidth}
+            fileIcon={inputFileIcon}
+            inputPlaceholder={inputPlaceholder}
+            state={controller.state}
+            textInputType="cipher"
+            onSetInput={controller.setInput}
+            onClearInput={controller.clearInput}
+          />
+        </Kb.Box2>
         <Kb.Divider />
-        <DecryptOutput />
+        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>
+          <CryptoSignedSender isSelfSigned={false} state={controller.state} />
+          <CryptoOutput
+            actionLabel="Decrypt"
+            outputFileIcon="icon-file-64"
+            outputTextType="plain"
+            state={controller.state}
+            onChooseOutputFolder={destinationDir => {
+              C.ignorePromise(controller.decrypt(destinationDir))
+            }}
+          />
+          <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
+        </Kb.Box2>
       </Kb.Box2>
     </DragAndDrop>
   )

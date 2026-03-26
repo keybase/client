@@ -1,25 +1,15 @@
-import * as C from '@/constants'
-import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
+
+type Props = {
+  inProgress: boolean
+  onAddRecipients: () => void
+  onClearRecipients: () => void
+  recipients: ReadonlyArray<string>
+}
 
 const placeholder = 'Search people'
 
-const Recipients = () => {
-  const recipients = Crypto.useCryptoState(s => s.encrypt.recipients)
-  const inProgress = Crypto.useCryptoState(s => s.encrypt.inProgress)
-  const clearRecipients = Crypto.useCryptoState(s => s.dispatch.clearRecipients)
-  const appendEncryptRecipientsBuilder = C.useRouterState(s => s.appendEncryptRecipientsBuilder)
-
-  const onAddRecipients = () => {
-    if (inProgress) return
-    appendEncryptRecipientsBuilder()
-  }
-
-  const onClearRecipients = () => {
-    if (inProgress) return
-    clearRecipients()
-  }
-
+const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
@@ -43,7 +33,7 @@ const Recipients = () => {
               type="iconfont-remove"
               color={Kb.Styles.globalColors.black_20}
               hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
-              onClick={onClearRecipients}
+              onClick={inProgress ? undefined : onClearRecipients}
             />
           </Kb.Box2>
         ) : null}
