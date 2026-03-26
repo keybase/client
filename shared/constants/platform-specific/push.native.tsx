@@ -205,11 +205,15 @@ export const initPushListener = () => {
 
   storeRegistry.getState('push').dispatch.initialPermissionsCheck()
 
-  // When current-user.uid changes, run pending push if it was for this account
+  // Second half of the account-switch-for-notification flow: when the uid
+  // changes (i.e. login completes after a switch initiated in handlePush in
+  // constants/push.native.tsx), replay the pending notification for the new
+  // account if it was addressed to them.
   storeRegistry.getStore('current-user').subscribe((s, old) => {
     if (s.uid === old.uid) return
     const pushState = storeRegistry.getState('push')
     const pending = pushState.pendingPushNotification
+    if (!pending) return
     const forUid = (pending as {forUid?: string}).forUid
     if (!forUid || forUid !== s.uid) return
     pushState.dispatch.clearPendingPushNotification()

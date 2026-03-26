@@ -31,6 +31,18 @@ var (
 	multipleAccountsCached *bool
 )
 
+// accountCacheLogoutHook implements libkb.LogoutHook. It clears the cached
+// result of hasMultipleLoggedInAccounts so that the next background
+// notification recomputes it against the post-logout account list.
+type accountCacheLogoutHook struct{}
+
+func (accountCacheLogoutHook) OnLogout(_ libkb.MetaContext) error {
+	multipleAccountsMtx.Lock()
+	multipleAccountsCached = nil
+	multipleAccountsMtx.Unlock()
+	return nil
+}
+
 func hasMultipleLoggedInAccounts(ctx context.Context) bool {
 	multipleAccountsMtx.Lock()
 	defer multipleAccountsMtx.Unlock()
@@ -260,8 +272,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 			// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
 			return nil
 		}
-		pusher.DisplayChatNotification(&chatNotification)
+		// Add to cache before displaying so that any concurrent goroutine that
+		// reaches the second check while DisplayChatNotification is running will
+		// see the entry and bail out rather than displaying a duplicate.
 		seenNotifications.Add(dupKey, struct{}{})
+		pusher.DisplayChatNotification(&chatNotification)
 		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
 		}

@@ -304,6 +304,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
+	kbCtx.AddLogoutHook(accountCacheLogoutHook{}, "notifications/accountCache")
 
 	var suffix string
 	if isIPad {

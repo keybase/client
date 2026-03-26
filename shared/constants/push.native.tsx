@@ -162,6 +162,10 @@ export const usePushState = Z.createZustand<State>((set, get) => {
                 logger.info('[Push] account has no stored secret, cannot switch')
                 return
               }
+              // Store the notification and trigger an account switch. We do NOT
+              // process the notification here — execution continues once the uid
+              // changes, picked up by the subscriber in
+              // constants/platform-specific/push.native.tsx (initPushListener).
               logger.info('[Push] switching to account for notification tap')
               set(s => {
                 s.pendingPushNotification = notification
