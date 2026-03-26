@@ -3,7 +3,7 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
-import {isWindows, cacheRoot} from '@/constants/platform.desktop'
+import {isLinux, isWindows, cacheRoot} from '@/constants/platform.desktop'
 import {ctlQuit} from './ctl.desktop'
 import {allowMultipleInstances} from '@/local-debug.desktop'
 import KB2 from '@/util/electron.desktop'
@@ -77,7 +77,7 @@ export const fixWindowsNotifications = () => {
   Electron.app.setAppUserModelId('Keybase.Keybase.GUI')
 }
 
-export const handleCrashes = () => {
+export const registerCrashHandling = () => {
   process.on('uncaughtException', e => {
     console.log('Uncaught exception on main thread:', e)
   })
@@ -100,7 +100,7 @@ export const handleCrashes = () => {
   })
 }
 
-export const stopNav = () => {
+export const registerNavigationGuards = () => {
   Electron.app.on('web-contents-created', (_, contents) => {
     contents.on('will-navigate', event => {
       event.preventDefault()
@@ -111,7 +111,7 @@ export const stopNav = () => {
   })
 }
 
-export const focusSelfOnAnotherInstanceLaunching = (
+const focusSelfOnAnotherInstanceLaunching = (
   getMainWindow: () => Electron.BrowserWindow | null,
   commandLine: Array<string>
 ) => {
@@ -141,6 +141,14 @@ export const focusSelfOnAnotherInstanceLaunching = (
       }
     }
   }
+}
+
+export const registerSecondInstanceHandler = (deps: {
+  getMainWindow: () => Electron.BrowserWindow | null
+}) => {
+  Electron.app.on('second-instance', (_, commandLine) =>
+    focusSelfOnAnotherInstanceLaunching(deps.getMainWindow, commandLine)
+  )
 }
 
 // On Windows and Linux startup, open-file and open-url arguments will be
@@ -177,7 +185,7 @@ export const getStartupProcessArgs = () => {
   }
 }
 
-export const handleActivate = (getMainWindow: () => Electron.BrowserWindow | null) => {
+const handleActivate = (getMainWindow: () => Electron.BrowserWindow | null) => {
   getMainWindow()?.show()
   const dock = Electron.app.dock
   dock
@@ -186,32 +194,65 @@ export const handleActivate = (getMainWindow: () => Electron.BrowserWindow | nul
     .catch(() => {})
 }
 
-export const handleQuitting = (event: Electron.Event) => {
+const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')
   event.preventDefault()
   ctlQuit()
 }
 
-export const willFinishLaunching = (deps: {
-  getAppStartedUp: () => boolean
-  setSaltpackFilePath: (path: string) => void
-  setStartupURL: (url: string) => void
+export const registerLifecycleHandlers = (deps: {
+  getMainWindow: () => Electron.BrowserWindow | null
 }) => {
-  Electron.app.on('open-file', (event, path) => {
-    event.preventDefault()
-    if (!deps.getAppStartedUp()) {
-      deps.setSaltpackFilePath(path)
-    } else {
-      R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path}))
-    }
-  })
+  Electron.app.on('activate', () => handleActivate(deps.getMainWindow))
+  Electron.app.once('before-quit', handleQuitting)
+}
 
-  Electron.app.on('open-url', (event, link) => {
-    event.preventDefault()
-    if (!deps.getAppStartedUp()) {
-      deps.setStartupURL(link)
-    } else {
-      R.remoteDispatch(RemoteGen.createLink({link}))
-    }
+export const registerOpenHandlers = (deps: {
+  getAppStartedUp: () => boolean
+  queueSaltpackFilePath: (path: string) => void
+  queueStartupURL: (url: string) => void
+  openSaltpackFile: (path: string) => void
+  openURL: (url: string) => void
+}) => {
+  Electron.app.once('will-finish-launching', () => {
+    Electron.app.on('open-file', (event, path) => {
+      event.preventDefault()
+      if (!deps.getAppStartedUp()) {
+        deps.queueSaltpackFilePath(path)
+      } else {
+        deps.openSaltpackFile(path)
+      }
+    })
+
+    Electron.app.on('open-url', (event, link) => {
+      event.preventDefault()
+      if (!deps.getAppStartedUp()) {
+        deps.queueStartupURL(link)
+      } else {
+        deps.openURL(link)
+      }
+    })
+  })
+}
+
+export const registerPowerMonitorEvents = () => {
+  if (isLinux) {
+    return
+  }
+
+  Electron.powerMonitor.on('suspend', () => {
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
+  })
+  Electron.powerMonitor.on('resume', () => {
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
+  })
+  Electron.powerMonitor.on('shutdown', () => {
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
+  })
+  Electron.powerMonitor.on('lock-screen', () => {
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
+  })
+  Electron.powerMonitor.on('unlock-screen', () => {
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
   })
 }
