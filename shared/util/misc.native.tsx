@@ -40,7 +40,7 @@ export const pickFiles = async (_options: OpenDialogOptions): Promise<Array<stri
   return result.canceled ? [] : result.assets.map(a => a.uri)
 }
 
-export const pickSave = (_options: SaveDialogOptions): Promise<string> => {
+export const pickSave = (_options: SaveDialogOptions): never => {
   throw new Error('No supported platform')
 }
 

@@ -13,7 +13,7 @@ import KB2 from '@/util/electron'
 
 const {getPathForFile} = KB2.functions
 
-const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
+const pickEmojisPromise = async () => await pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey

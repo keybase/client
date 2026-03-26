@@ -17,7 +17,7 @@ const rateLimitPayloads: {
     | undefined
 } = {}
 
-export const openURL = (url?: string) => {
+export const openURL = async (url?: string) => {
   if (!url) {
     console.log('Skipping null url click')
     return
