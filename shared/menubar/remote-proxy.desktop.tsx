@@ -24,25 +24,18 @@ type WidgetProps = {
   widgetBadge: NotifConstants.BadgeType
 }
 
-function useWidgetBrowserWindow(p: WidgetProps) {
-  const {widgetBadge, desktopAppBadgeCount} = p
+const emptyConversations: ReadonlyArray<Conversation> = []
+
+function useWidgetTray(p: WidgetProps) {
+  const {desktopAppBadgeCount, widgetBadge} = p
   const systemDarkMode = useDarkModeState(s => s.systemDarkMode)
+
   React.useEffect(() => {
     showTray?.(desktopAppBadgeCount, widgetBadge)
   }, [widgetBadge, desktopAppBadgeCount, systemDarkMode])
 }
 
-const Widget = (p: Props & WidgetProps) => {
-  const windowComponent = 'menubar'
-  const windowParam = 'menubar'
-
-  const {desktopAppBadgeCount, widgetBadge, ...toSend} = p
-  useWidgetBrowserWindow({desktopAppBadgeCount, widgetBadge})
-  useSerializeProps(toSend, windowComponent, windowParam)
-  return null
-}
-
-const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfUpdates => ({
+const toRemoteTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfUpdates => ({
   timestamp: t.serverTime,
   tlf: t.path,
   updates: t.history.map(u => {
@@ -78,95 +71,157 @@ const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
   return false
 }
 
-function MenubarRemoteProxy() {
-  const username = useCurrentUserState(s => s.username)
-  const configState = useConfigState(
-    C.useShallow(s => {
-      const {httpSrv, loggedIn, outOfDate, windowShownCount} = s
-      return {httpSrv, loggedIn, outOfDate, windowShownCount}
-    })
+const toRemoteConversation = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  conversation: Chat.ConvoState
+): Conversation | undefined => {
+  if (!conversation.isMetaGood()) {
+    return undefined
+  }
+
+  const {badge, unread, participants, meta} = conversation
+
+  return {
+    channelname: meta.channelname,
+    conversationIDKey,
+    snippetDecorated: meta.snippetDecorated,
+    teamType: meta.teamType,
+    timestamp: meta.timestamp,
+    tlfname: meta.tlfname,
+    ...(badge > 0 ? {hasBadge: true as const} : {}),
+    ...(unread > 0 ? {hasUnread: true as const} : {}),
+    ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
+  }
+}
+
+const sameConversation = (a: Conversation, b: Conversation) =>
+  a.channelname === b.channelname &&
+  a.conversationIDKey === b.conversationIDKey &&
+  a.hasBadge === b.hasBadge &&
+  a.hasUnread === b.hasUnread &&
+  C.shallowEqual(a.participants ?? [], b.participants ?? []) &&
+  a.snippetDecorated === b.snippetDecorated &&
+  a.teamType === b.teamType &&
+  a.timestamp === b.timestamp &&
+  a.tlfname === b.tlfname
+
+const sameConversationList = (a: ReadonlyArray<Conversation>, b: ReadonlyArray<Conversation>) =>
+  a.length === b.length && a.every((conversation, index) => sameConversation(conversation, b[index]!))
+
+const toNavBadges = (navBadgesMap: ReadonlyMap<string, number>) => {
+  const navBadges: {[tab: string]: number} = {}
+  for (const [tab, badgeCount] of navBadgesMap) {
+    navBadges[tab] = badgeCount
+  }
+  return navBadges
+}
+
+const getWidgetConversationSnapshot = (
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+) => {
+  if (!widgetList?.length) {
+    return emptyConversations
+  }
+
+  const conversations: Array<Conversation> = []
+  for (const widget of widgetList) {
+    const conversation = toRemoteConversation(widget.convID, Chat.getConvoState(widget.convID))
+    if (conversation) {
+      conversations.push(conversation)
+    }
+  }
+  return conversations
+}
+
+const useWidgetConversationList = (
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+) => {
+  const snapshotRef = React.useRef(emptyConversations)
+
+  const subscribe = React.useCallback(
+    (onStoreChange: () => void) => {
+      if (!widgetList?.length) {
+        return () => {}
+      }
+
+      const unsubs = widgetList.map(widget => {
+        Chat.getConvoState(widget.convID)
+        return Chat.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
+          if (convoDiff(state, oldState)) {
+            onStoreChange()
+          }
+        })
+      })
+
+      return () => {
+        for (const unsub of unsubs) {
+          unsub?.()
+        }
+      }
+    },
+    [widgetList]
   )
-  const {httpSrv, loggedIn, outOfDate, windowShownCount} = configState
-  const fsState = useFSState(
-    C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads}
-    })
-  )
-  const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = fsState
-  const {desktopAppBadgeCount, navBadges: navBadgesMap, widgetBadge} = useNotifState(
-    C.useShallow(s => {
-      const {desktopAppBadgeCount, navBadges, widgetBadge} = s
-      return {desktopAppBadgeCount, navBadges, widgetBadge}
-    })
-  )
-  const {widgetList, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
-    C.useShallow(s => ({
-      ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
-      inboxRefresh: s.dispatch.inboxRefresh,
-      widgetList: s.inboxLayout?.widgetList,
-    }))
-  )
-  // Ensure widgetList is populated by triggering an inbox refresh if needed
+
+  const getSnapshot = React.useCallback(() => {
+    const nextSnapshot = getWidgetConversationSnapshot(widgetList)
+    if (sameConversationList(snapshotRef.current, nextSnapshot)) {
+      return snapshotRef.current
+    }
+    snapshotRef.current = nextSnapshot
+    return nextSnapshot
+  }, [widgetList])
+
+  return React.useSyncExternalStore(subscribe, getSnapshot, () => emptyConversations)
+}
+
+function useEnsureWidgetData(
+  loggedIn: boolean,
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
+  inboxRefresh: (reason: Chat.RefreshReason) => void,
+  ensureWidgetMetas: () => void
+) {
   React.useEffect(() => {
     if (loggedIn && !widgetList) {
       inboxRefresh('widgetRefresh')
     }
   }, [loggedIn, widgetList, inboxRefresh])
-  // Ensure conversation metadata is loaded for widget conversations
+
   React.useEffect(() => {
     if (widgetList) {
       ensureWidgetMetas()
     }
   }, [widgetList, ensureWidgetMetas])
+}
+
+function useMenubarRemoteProps(): Props {
+  const username = useCurrentUserState(s => s.username)
+  const {httpSrv, loggedIn, outOfDate, windowShownCount} = useConfigState(
+    C.useShallow(s => {
+      const {httpSrv, loggedIn, outOfDate, windowShownCount} = s
+      return {httpSrv, loggedIn, outOfDate, windowShownCount}
+    })
+  )
+  const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = useFSState(
+    C.useShallow(s => {
+      const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = s
+      return {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads}
+    })
+  )
+  const navBadgesMap = useNotifState(s => s.navBadges)
+  const {widgetList, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
+    C.useShallow(s => ({
+      ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
+      inboxRefresh: s.dispatch.inboxRefresh,
+      widgetList: s.inboxLayout?.widgetList ?? undefined,
+    }))
+  )
+  useEnsureWidgetData(loggedIn, widgetList, inboxRefresh, ensureWidgetMetas)
+  const conversationsToSend = useWidgetConversationList(widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
 
-  const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
-
-  const [conversationsToSend, setConversationsToSend] = React.useState<ReadonlyArray<Conversation>>([])
-  React.useEffect(() => {
-    if (!widgetList) return
-
-    const computeConversations = () => {
-      const result: Array<Conversation> = []
-      widgetList.forEach(v => {
-        const cs = Chat.getConvoState(v.convID)
-        if (!cs.isMetaGood()) return
-        const {badge, unread, participants, meta: c} = cs
-        result.push({
-          channelname: c.channelname,
-          conversationIDKey: v.convID,
-          snippetDecorated: c.snippetDecorated,
-          teamType: c.teamType,
-          timestamp: c.timestamp,
-          tlfname: c.tlfname,
-          ...(badge > 0 ? {hasBadge: true as const} : {}),
-          ...(unread > 0 ? {hasUnread: true as const} : {}),
-          ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
-        })
-      })
-      setConversationsToSend(result)
-    }
-
-    computeConversations()
-
-    const unsubs = widgetList.map(v => {
-      Chat.getConvoState(v.convID)
-      return Chat.chatStores.get(v.convID)?.subscribe((s, old) => {
-        if (convoDiff(s, old)) {
-          computeConversations()
-        }
-      })
-    })
-
-    return () => {
-      for (const unsub of unsubs) {
-        unsub?.()
-      }
-    }
-  }, [widgetList])
+  const remoteTlfUpdates = tlfUpdates.map(t => toRemoteTlfUpdate(t, uploads))
 
   // Filter some data based on visible users.
   // We just use syncingPaths rather than merging with writingToJournal here
@@ -178,7 +233,7 @@ function MenubarRemoteProxy() {
 
   const upDown = {
     endEstimate: uploads.endEstimate ?? 0,
-    filename: T.FS.getPathName(filePaths[1] || T.FS.stringToPath('')),
+    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
@@ -187,21 +242,11 @@ function MenubarRemoteProxy() {
   const followingSet = useFollowerState(s => s.following)
   const following = [...followingSet]
 
-  // Convert navBadges Map to plain object
-  const navBadges: {[tab: string]: number} = (() => {
-    const obj: {[tab: string]: number} = {}
-    for (const [k, v] of navBadgesMap) {
-      obj[k] = v
-    }
-    return obj
-  })()
-
-  const p: Props & WidgetProps = {
+  return {
     ...upDown,
     conversationsToSend,
     daemonHandshakeState,
     darkMode: isDarkMode,
-    desktopAppBadgeCount,
     diskSpaceStatus,
     following,
     httpSrvAddress: httpSrv.address,
@@ -209,16 +254,28 @@ function MenubarRemoteProxy() {
     kbfsDaemonStatus,
     kbfsEnabled,
     loggedIn,
-    navBadges,
+    navBadges: toNavBadges(navBadgesMap),
     outOfDate,
     remoteTlfUpdates,
     showingDiskSpaceBanner: showingBanner,
     username,
-    widgetBadge,
     windowShownCount: windowShownCount.get('menu') ?? 0,
   }
+}
 
-  return <Widget {...p} />
+function MenubarRemoteProxy() {
+  const {desktopAppBadgeCount, widgetBadge} = useNotifState(
+    C.useShallow(s => {
+      const {desktopAppBadgeCount, widgetBadge} = s
+      return {desktopAppBadgeCount, widgetBadge}
+    })
+  )
+  const props = useMenubarRemoteProps()
+
+  useWidgetTray({desktopAppBadgeCount, widgetBadge})
+  useSerializeProps(props, 'menubar', 'menubar')
+
+  return null
 }
 
 export default MenubarRemoteProxy
