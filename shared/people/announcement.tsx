@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
 import * as Settings from '@/constants/settings'

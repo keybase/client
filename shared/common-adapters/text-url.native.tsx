@@ -1,4 +1,4 @@
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as Clipboard from 'expo-clipboard'
 import {Alert} from 'react-native'
 

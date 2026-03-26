@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters/index'
 import * as Chat from '@/stores/chat'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 
 export type Props = {
   autoplayVideo: boolean

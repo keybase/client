@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 
 type PunycodeLinkWarningProps = {
   display: string

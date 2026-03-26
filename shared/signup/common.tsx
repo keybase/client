@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type ButtonProps} from '@/common-adapters/button'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import {useConfigState} from '@/stores/config'
 
 type InfoIconProps = {

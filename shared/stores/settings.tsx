@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
 import {androidIsTestDevice, pprofDir} from '@/constants/platform'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '@/constants/tabs'
@@ -105,7 +105,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
     },
     clearLogs: () => {
       const f = async () => {
-        const clearLocalLogs = (await import('@/util/clear-logs')).default
+        const {clearLocalLogs} = await import('@/util/misc')
         await clearLocalLogs()
       }
       ignorePromise(f())

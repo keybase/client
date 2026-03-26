@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 
 type Props = {
   self: boolean

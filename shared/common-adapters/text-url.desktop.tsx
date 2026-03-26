@@ -1,4 +1,4 @@
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import KB2 from '@/util/electron.desktop'
 const {showContextMenu} = KB2.functions
 
