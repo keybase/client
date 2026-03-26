@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useState as useRecoverState} from '@/stores/recover-password'
 import {useConfigState} from '@/stores/config'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -23,9 +22,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const ConnectedErrorModal = () => {
+type Props = {route: {params: {error: string}}}
+
+const ConnectedErrorModal = ({route}: Props) => {
   const loggedIn = useConfigState(s => s.loggedIn)
-  const error = useRecoverState(s => s.error)
+  const {error} = route.params
   const popStack = C.useRouterState(s => s.dispatch.popStack)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {

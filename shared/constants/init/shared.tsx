@@ -211,9 +211,6 @@ export const initAutoResetCallbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       defer: {
-        onGetRecoverPasswordUsername: () => {
-          return storeRegistry.getState('recover-password').username
-        },
         onStartProvision: (username: string, fromReset: boolean) => {
           storeRegistry.getState('provision').dispatch.startProvision(username, fromReset)
         },

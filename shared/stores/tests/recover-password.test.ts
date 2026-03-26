@@ -60,13 +60,25 @@ test('startRecoverPassword exposes device selection handlers', async () => {
     await flush()
 
     const state = useRecoverPasswordState.getState()
-    expect(state.username).toBe('alice')
-    expect(state.devices).toHaveLength(1)
     expect(state.dispatch.dynamic.submitDeviceSelect).toBeDefined()
     expect(state.dispatch.dynamic.cancel).toBeDefined()
-    expect(mockNavigateAppend).toHaveBeenCalledWith('recoverPasswordDeviceSelector', false)
+    expect(mockNavigateAppend).toHaveBeenCalledWith(
+      {
+        name: 'recoverPasswordDeviceSelector',
+        params: {
+          devices: [
+            expect.objectContaining({
+              id: T.Devices.stringToDeviceID('device-1'),
+              name: 'phone',
+              type: 'mobile',
+            }),
+          ],
+        },
+      },
+      false
+    )
 
-    state.dispatch.dynamic.submitDeviceSelect?.('phone')
+    state.dispatch.dynamic.submitDeviceSelect?.(T.Devices.stringToDeviceID('device-1'))
 
     expect(chooserResponse?.result).toHaveBeenCalledWith(T.Devices.stringToDeviceID('device-1'))
     expect(useRecoverPasswordState.getState().dispatch.dynamic.submitDeviceSelect).toBeUndefined()
@@ -98,13 +110,11 @@ test('resetState clears recover-password state after it has been populated', asy
   try {
     useRecoverPasswordState.getState().dispatch.startRecoverPassword({username: 'alice'})
     await flush()
-    expect(useRecoverPasswordState.getState().devices).toHaveLength(1)
+    expect(useRecoverPasswordState.getState().dispatch.dynamic.submitDeviceSelect).toBeDefined()
 
     useRecoverPasswordState.getState().dispatch.resetState()
 
-    expect(useRecoverPasswordState.getState().username).toBe('')
-    expect(useRecoverPasswordState.getState().devices).toHaveLength(0)
-    expect(useRecoverPasswordState.getState().error).toBe('')
+    expect(useRecoverPasswordState.getState().resetEmailSent).toBe(false)
     expect(useRecoverPasswordState.getState().dispatch.dynamic.submitDeviceSelect).toBeUndefined()
   } finally {
     finishListener()

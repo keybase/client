@@ -4,32 +4,16 @@ import {waitingKeyRecoverPassword} from '@/constants/strings'
 import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {type Device} from '@/stores/provision'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{
-  devices: Array<Device>
-  error: string
-  paperKeyError: string
-  passwordError: string
-  explainedDevice?: {
-    name: string
-    type: T.RPCGen.DeviceType
-  }
   resetEmailSent?: boolean
-  username: string
 }>
 
 const initialStore: Store = {
-  devices: [],
-  error: '',
-  explainedDevice: undefined,
-  paperKeyError: '',
-  passwordError: '',
   resetEmailSent: false,
-  username: '',
 }
 
 export type State = Store & {
@@ -40,7 +24,7 @@ export type State = Store & {
     }
     dynamic: {
       cancel?: () => void
-      submitDeviceSelect?: (name: string) => void
+      submitDeviceSelect?: (deviceID?: T.Devices.DeviceID) => void
       submitPaperKey?: (key: string) => void
       submitPassword?: (pw: string) => void
       submitResetPassword?: (action: T.RPCGen.ResetPromptResponse) => void
@@ -79,11 +63,6 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
       }))
     },
     startRecoverPassword: p => {
-      set(s => {
-        s.paperKeyError = ''
-        s.username = p.username
-      })
-
       const f = async () => {
         if (p.abortProvisioning) {
           get().dispatch.defer.onProvisionCancel?.()
@@ -107,25 +86,23 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     navigateUp()
                   })
-                  s.devices = devices
                   s.dispatch.dynamic.cancel = cancel
-                  s.dispatch.dynamic.submitDeviceSelect = wrapErrors((name: string) => {
+                  s.dispatch.dynamic.submitDeviceSelect = wrapErrors((deviceID?: T.Devices.DeviceID) => {
                     clear()
-                    const d = get().devices.find(d => d.name === name)
-                    if (d) {
-                      response.result(d.id)
+                    if (deviceID) {
+                      response.result(deviceID)
                     } else {
                       cancel()
                     }
                   })
                 })
-                navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
+                navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, replaceRoute)
               },
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
                 if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
-                  navigateAppend('recoverPasswordPromptResetPassword')
+                  navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {username: p.username}})
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitResetPassword = undefined
@@ -150,7 +127,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     })
                   })
                 } else {
-                  get().dispatch.defer.onStartAccountReset?.(true, '')
+                  get().dispatch.defer.onStartAccountReset?.(true, p.username)
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },
@@ -163,13 +140,12 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     })
                   }
                   set(s => {
-                    s.paperKeyError = params.pinentry.retryLabel
                     s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       get().dispatch.startRecoverPassword({
                         replaceRoute: true,
-                        username: get().username,
+                        username: p.username,
                       })
                     })
                     s.dispatch.dynamic.submitPaperKey = wrapErrors((passphrase: string) => {
@@ -177,7 +153,13 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                       response.result({passphrase, storeSecret: false})
                     })
                   })
-                  navigateAppend('recoverPasswordPaperKey', true)
+                  navigateAppend(
+                    {
+                      name: 'recoverPasswordPaperKey',
+                      params: {error: params.pinentry.retryLabel || undefined},
+                    },
+                    true
+                  )
                 } else {
                   const clear = () => {
                     set(s => {
@@ -186,31 +168,39 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     })
                   }
                   set(s => {
-                    s.passwordError = params.pinentry.retryLabel
                     s.dispatch.dynamic.cancel = wrapErrors(() => {
                       clear()
                       response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     })
+                    s.dispatch.dynamic.submitPassword = wrapErrors((passphrase: string) => {
+                      clear()
+                      response.result({passphrase, storeSecret: true})
+                    })
                   })
                   if (!params.pinentry.retryLabel) {
-                    set(s => {
-                      s.dispatch.dynamic.submitPassword = wrapErrors((passphrase: string) => {
-                        clear()
-                        response.result({passphrase, storeSecret: true})
-                      })
-                    })
                     // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                    navigateAppend('recoverPasswordSetPassword')
+                    navigateAppend({name: 'recoverPasswordSetPassword', params: {error: undefined}})
+                  } else {
+                    navigateAppend(
+                      {
+                        name: 'recoverPasswordSetPassword',
+                        params: {error: params.pinentry.retryLabel},
+                      },
+                      true
+                    )
                   }
                 }
               },
             },
             incomingCallMap: {
               'keybase.1.loginUi.explainDeviceRecovery': params => {
-                set(s => {
-                  s.explainedDevice = {name: params.name, type: params.kind}
-                })
-                navigateAppend('recoverPasswordExplainDevice', true)
+                navigateAppend(
+                  {
+                    name: 'recoverPasswordExplainDevice',
+                    params: {deviceName: params.name, deviceType: params.kind, username: p.username},
+                  },
+                  true
+                )
               },
             },
             params: {username: p.username},
@@ -231,11 +221,13 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
             )
           ) {
             const msg = error.message
-            set(s => {
-              s.error = msg
-            })
             navigateAppend(
-              useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+              {
+                name: useConfigState.getState().loggedIn
+                  ? 'recoverPasswordErrorModal'
+                  : 'recoverPasswordError',
+                params: {error: msg},
+              },
               true
             )
           }

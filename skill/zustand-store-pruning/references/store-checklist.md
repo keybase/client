@@ -28,7 +28,7 @@ Status:
 - [ ] `pinentry`
 - [ ] `profile`
 - [ ] `provision`
-- [ ] `recover-password`
+- [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
 - [ ] `settings`
 - [ ] `settings-chat`
 - [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
