@@ -124,7 +124,7 @@
     "react-dom": "19.2.0",
     "react-error-boundary": "5.0.0",
     "react-is": "19.2.0",
-    "react-native": "0.83.2",
+    "react-native": "0.83.4",
     "react-native-gesture-handler": "3.0.0-beta.2",
     "react-native-kb": "file:../rnmodules/react-native-kb",
     "react-native-keyboard-controller": "1.21.2",
