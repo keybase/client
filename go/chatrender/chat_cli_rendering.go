@@ -440,6 +440,9 @@ func (v ConversationView) RenderToWriter(g *libkb.GlobalContext, writer io.Write
 		flexibletable.ColumnConstraint(width / 5), // reactionInfo
 		flexibletable.ExpandableWrappable,         // body
 	}); err != nil {
+		if _, ok := err.(flexibletable.NoRowsError); ok {
+			return nil
+		}
 		return fmt.Errorf("rendering conversation view error: %v", err)
 	}
 
