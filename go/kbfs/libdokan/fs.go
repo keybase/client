@@ -424,7 +424,7 @@ func (f *FS) ErrorPrint(err error) {
 }
 
 // Printf prints information from the Dokan library.
-func (f *FS) Printf(fmt string, args ...interface{}) {
+func (f *FS) Printf(fmt string, args ...any) {
 	f.log.Info("Dokan info: "+fmt, args...)
 }
 
@@ -651,7 +651,7 @@ func (f *FS) logEnter(ctx context.Context, s string) {
 	f.vlog.CLogf(ctx, libkb.VLog1, "=> %s", s)
 }
 
-func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
+func (f *FS) logEnterf(ctx context.Context, fmt string, args ...any) {
 	f.vlog.CLogf(ctx, libkb.VLog1, "=> "+fmt, args...)
 }
 

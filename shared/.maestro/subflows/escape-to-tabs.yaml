@@ -1,0 +1,15 @@
+appId: keybase.ios
+
+---
+
+- waitForAnimationToEnd:
+    timeout: 30000
+
+# If starting inside a conversation, the tab bar is hidden — go back first
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"

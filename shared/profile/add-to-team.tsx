@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
@@ -36,19 +36,13 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
-  const loadTeamList = React.useCallback(() => {
-    getTeamProfileAddList(them)
-  }, [getTeamProfileAddList, them])
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => {
-    navigateUp()
-    resetTeamProfileAddList()
-  }, [navigateUp, resetTeamProfileAddList])
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-  const _teamNameToRole = [...teams.values()].reduce<Map<string, T.Teams.MaybeTeamRoleType>>(
+  const _teamNameToRole = [...teams.values()].reduce(
     (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
-    new Map()
+    new Map<string, T.Teams.MaybeTeamRoleType>()
   )
   const onAddToTeams = (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, them)
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
@@ -56,15 +50,17 @@ const Container = (ownProps: OwnProps) => {
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
   const [sendNotification, setSendNotification] = React.useState(true)
 
-  const ownerDisabledReason = React.useMemo(
-    () => getOwnerDisabledReason(selectedTeams, _teamNameToRole),
-    [selectedTeams, _teamNameToRole]
-  )
+  const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, _teamNameToRole)
 
   React.useEffect(() => {
     clearAddUserToTeamsResults()
-    loadTeamList()
-  }, [clearAddUserToTeamsResults, loadTeamList])
+    getTeamProfileAddList(them)
+  }, [clearAddUserToTeamsResults, getTeamProfileAddList, them])
+
+  const onBack = () => {
+    navigateUp()
+    resetTeamProfileAddList()
+  }
 
   const onSave = () => {
     onAddToTeams(selectedRole, [...selectedTeams])
@@ -108,46 +104,17 @@ const Container = (ownProps: OwnProps) => {
 
   React.useEffect(() => {
     if (addUserToTeamsState === 'succeeded') {
-      // If we succeeded, close the modal
-      onBack()
+      clearModals()
+      resetTeamProfileAddList()
     } else if (addUserToTeamsState === 'failed') {
-      // If we failed, reload the team list -- some teams might have succeeded
-      // and should be updated.
-      loadTeamList()
+      getTeamProfileAddList(them)
     }
-  }, [addUserToTeamsState, onBack, loadTeamList])
+  }, [addUserToTeamsState, clearModals, resetTeamProfileAddList, getTeamProfileAddList, them])
 
   const selectedTeamCount = selectedTeams.size
 
   return (
-    <Kb.Modal2
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: (
-                <Kb.Text type="BodyBigLink" onClick={onBack}>
-                  Cancel
-                </Kb.Text>
-              ),
-            }
-          : undefined
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
-            <Kb.WaitingButton
-              disabled={selectedTeamCount === 0}
-              fullWidth={Kb.Styles.isMobile}
-              style={styles.addButton}
-              onClick={onSave}
-              label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-              waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
-            />
-          </Kb.ButtonBar>
-        ),
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xsmall" gapStart={true}>
         {addUserToTeamsState === 'failed' && (
           <Kb.Box2
@@ -217,7 +184,7 @@ const Container = (ownProps: OwnProps) => {
           </Kb.Text>
           <FloatingRolePicker
             presetRole={selectedRole}
-            floatingContainerStyle={styles.floatingRolePicker}
+
             footerComponent={footerComponent}
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
@@ -229,7 +196,20 @@ const Container = (ownProps: OwnProps) => {
           </FloatingRolePicker>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
+          <Kb.WaitingButton
+            disabled={selectedTeamCount === 0}
+            fullWidth={Kb.Styles.isMobile}
+            style={styles.addButton}
+            onClick={onSave}
+            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+            waitingKey={C.waitingKeyTeamsAddUserToTeams(them)}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -266,7 +246,7 @@ const TeamRow = (props: RowProps) => {
     <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-        <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
+        <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
           <Kb.Avatar
             isTeam={true}
             size={Kb.Styles.isMobile ? 48 : 32}
@@ -349,17 +329,25 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {maxHeight: '100%'},
       }),
       divider: {marginLeft: 69},
-      floatingRolePicker: Kb.Styles.platformStyles({
-        isElectron: {
-          bottom: -32,
-          position: 'relative',
-        },
-      }),
       meta: {
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       teamRow: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -376,11 +364,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.xsmall,
           paddingRight: Kb.Styles.globalMargins.tiny,
         },
-      }),
-      wrapper: Kb.Styles.platformStyles({
-        common: {},
-        isElectron: {maxHeight: '80%'},
-        isMobile: {flexGrow: 1},
       }),
     }) as const
 )

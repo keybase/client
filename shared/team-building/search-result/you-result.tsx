@@ -1,10 +1,10 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {useTBContext} from '@/constants/team-building'
+import * as Chat from '@/stores/chat'
+import type * as React from 'react'
+import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
-const YouResult = React.memo(function YouResult(props: ResultProps) {
+const YouResult = function YouResult(props: ResultProps) {
   const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
@@ -26,7 +26,7 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
         </Kb.Text>
       )
       break
-    case 'chat2':
+    case 'chat':
       bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
       onAddOverride.onAdd = onSelfChat
       break
@@ -34,23 +34,9 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
   }
 
   return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  actionButton: Kb.Styles.platformStyles({
-    common: {
-      marginLeft: Kb.Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
-    },
-    isMobile: {
-      height: Kb.Styles.globalMargins.large,
-      marginRight: Kb.Styles.globalMargins.tiny,
-      width: Kb.Styles.globalMargins.large,
-    },
-  }),
   rowContainer: {
     ...Kb.Styles.padding(
       Kb.Styles.globalMargins.tiny,

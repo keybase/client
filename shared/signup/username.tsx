@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useSignupState} from '@/stores/signup'
+import {useProvisionState} from '@/stores/provision'
 
 const ConnectedEnterUsername = () => {
   const error = useSignupState(s => s.usernameError)
@@ -12,9 +12,9 @@ const ConnectedEnterUsername = () => {
   const checkUsername = useSignupState(s => s.dispatch.checkUsername)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const restartSignup = useSignupState(s => s.dispatch.restartSignup)
+  const resetState = useSignupState(s => s.dispatch.resetState)
   const onBack = () => {
-    restartSignup()
+    resetState()
     navigateUp()
   }
   const onContinue = checkUsername
@@ -48,6 +48,7 @@ type Props = {
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
+  const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
   const usernameTrimmed = username.trim()
   const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
   const onContinue = () => {
@@ -62,7 +63,7 @@ const EnterUsername = (props: Props) => {
       I accept the{' '}
       <Kb.Text
         type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
-        onClickURL="https://keybase.io/docs/acceptable-use-policy"
+        {...eulaUrlProps}
       >
         Keybase Acceptable Use Policy
       </Kb.Text>
@@ -111,13 +112,12 @@ const EnterUsername = (props: Props) => {
           alignItems="center"
           gap={Kb.Styles.isMobile ? 'small' : 'medium'}
           direction="vertical"
-          style={styles.body}
+          flex={1}
           fullWidth={true}
         >
           <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
           <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
-            <Kb.LabeledInput
-              placeholderInline={true}
+            <Kb.Input3
               autoFocus={true}
               containerStyle={styles.input}
               placeholder="Pick a username"
@@ -135,9 +135,6 @@ const EnterUsername = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  body: {
-    flex: 1,
-  },
   input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},

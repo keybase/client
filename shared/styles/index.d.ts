@@ -14,11 +14,8 @@ type _fakeFontDefSeeCommentsOnThisStyle = {
 
 export declare const globalStyles: {
   fillAbsolute: {
-    bottom: 0
-    left: 0
+    inset: 0
     position: 'absolute'
-    right: 0
-    top: 0
   }
   flexBoxCenter: {
     alignItems: 'center'
@@ -142,7 +139,6 @@ export type {
   _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
-export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const undynamicColor: (col: string) => string
 // add file:// if its a pure path
 export declare const normalizePath: (p: string) => string

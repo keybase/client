@@ -25,9 +25,9 @@ const (
 // Codec encodes and decodes arbitrary data
 type Codec interface {
 	// Decode unmarshals the given buffer into the given object, if possible.
-	Decode(buf []byte, obj interface{}) error
+	Decode(buf []byte, obj any) error
 	// Encode marshals the given object into a returned buffer.
-	Encode(obj interface{}) ([]byte, error)
+	Encode(obj any) ([]byte, error)
 	// RegisterType should be called for all types that are stored
 	// under ambiguous types (like interface{} or nil interface) in a
 	// struct that will be encoded/decoded by the codec.  Each must
@@ -45,12 +45,12 @@ type Codec interface {
 	// codec cannot decode interface types to their desired pointer
 	// form.
 	RegisterIfaceSliceType(rt reflect.Type, code ExtCode,
-		typer func(interface{}) reflect.Value)
+		typer func(any) reflect.Value)
 }
 
 // Equal returns whether or not the given objects serialize to the
 // same byte string. x or y (or both) can be nil.
-func Equal(c Codec, x, y interface{}) (bool, error) {
+func Equal(c Codec, x, y any) (bool, error) {
 	xBuf, err := c.Encode(x)
 	if err != nil {
 		return false, err
@@ -64,7 +64,7 @@ func Equal(c Codec, x, y interface{}) (bool, error) {
 
 // Update encodes src into a byte string, and then decode it into the
 // object pointed to by dstPtr.
-func Update(c Codec, dstPtr interface{}, src interface{}) error {
+func Update(c Codec, dstPtr any, src any) error {
 	buf, err := c.Encode(src)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func Update(c Codec, dstPtr interface{}, src interface{}) error {
 
 // SerializeToFile serializes the given object and writes it to the
 // given file, making its parent directory first if necessary.
-func SerializeToFile(c Codec, obj interface{}, path string) error {
+func SerializeToFile(c Codec, obj any, path string) error {
 	err := ioutil.MkdirAll(filepath.Dir(path), 0o700)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 
 // SerializeToFileIfNotExist is like SerializeToFile, but does nothing
 // if the file already exists.
-func SerializeToFileIfNotExist(c Codec, obj interface{}, path string) error {
+func SerializeToFileIfNotExist(c Codec, obj any, path string) error {
 	_, err := ioutil.Stat(path)
 	switch {
 	case ioutil.IsExist(err):
@@ -111,7 +111,7 @@ func SerializeToFileIfNotExist(c Codec, obj interface{}, path string) error {
 // DeserializeFromFile deserializes the given file into the object
 // pointed to by objPtr. It may return an error for which
 // ioutil.IsNotExist() returns true.
-func DeserializeFromFile(c Codec, path string, objPtr interface{}) error {
+func DeserializeFromFile(c Codec, path string, objPtr any) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err

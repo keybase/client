@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from './types'
 import type * as T from '@/constants/types'
@@ -18,107 +18,95 @@ export type Props = {
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box style={styles.rowContainer}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
     {children}
     <Kb.Divider key="divider" style={styles.divider} />
-  </Kb.Box>
+  </Kb.Box2>
 )
 
-const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
+const EmptyRow = () => <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer} />
 
-const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
+function Rows(props: Props & {listKey: string}) {
   const {items, emptyMode, destinationPickerIndex, listKey} = props
 
-  const _rowRenderer = React.useCallback(
-    (_: number, item: RowTypes.RowItem) => {
-      switch (item.rowType) {
-        case RowTypes.RowType.Placeholder:
-          return (
-            <WrapRow>
-              <Placeholder type={item.type} />
-            </WrapRow>
-          )
-        case RowTypes.RowType.TlfType:
-          return (
-            <WrapRow>
-              <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
-            </WrapRow>
-          )
-        case RowTypes.RowType.Tlf:
-          return (
-            <WrapRow>
-              <Tlf
-                disabled={item.disabled}
-                name={item.name}
-                tlfType={item.tlfType}
-                destinationPickerIndex={destinationPickerIndex}
-              />
-            </WrapRow>
-          )
-        case RowTypes.RowType.Still:
-          return (
-            <WrapRow>
-              {item.editID ? (
-                <Editing editID={item.editID} />
-              ) : (
-                <Still path={item.path} destinationPickerIndex={destinationPickerIndex} />
-              )}
-            </WrapRow>
-          )
-        case RowTypes.RowType.NewFolder:
-          return (
-            <WrapRow>
+  const _rowRenderer = (_: number, item: RowTypes.RowItem) => {
+    switch (item.rowType) {
+      case RowTypes.RowType.Placeholder:
+        return (
+          <WrapRow>
+            <Placeholder type={item.type} />
+          </WrapRow>
+        )
+      case RowTypes.RowType.TlfType:
+        return (
+          <WrapRow>
+            <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
+          </WrapRow>
+        )
+      case RowTypes.RowType.Tlf:
+        return (
+          <WrapRow>
+            <Tlf
+              disabled={item.disabled}
+              name={item.name}
+              tlfType={item.tlfType}
+              destinationPickerIndex={destinationPickerIndex}
+            />
+          </WrapRow>
+        )
+      case RowTypes.RowType.Still:
+        return (
+          <WrapRow>
+            {item.editID ? (
               <Editing editID={item.editID} />
-            </WrapRow>
-          )
-        case RowTypes.RowType.Empty:
-          return <EmptyRow />
-        case RowTypes.RowType.Header:
-          return item.node
-        default:
-          return (
-            <WrapRow>
-              <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
-            </WrapRow>
-          )
-      }
-    },
-    [destinationPickerIndex]
-  )
+            ) : (
+              <Still path={item.path} destinationPickerIndex={destinationPickerIndex} />
+            )}
+          </WrapRow>
+        )
+      case RowTypes.RowType.NewFolder:
+        return (
+          <WrapRow>
+            <Editing editID={item.editID} />
+          </WrapRow>
+        )
+      case RowTypes.RowType.Empty:
+        return <EmptyRow />
+      case RowTypes.RowType.Header:
+        return item.node
+      default:
+        return (
+          <WrapRow>
+            <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
+          </WrapRow>
+        )
+    }
+  }
 
-  const _getVariableRowLayout = React.useCallback(
-    (items: Array<RowTypes.RowItem>, index: number) => ({
+  const _getVariableRowLayout = (rowItems: Array<RowTypes.RowItem>, index: number) => ({
+    index,
+    length: getRowHeight(rowItems[index] || _unknownEmptyRowItem),
+    offset: rowItems.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
+  })
+
+  const _getTopVariableRowCountAndTotalHeight = (rowItems: Array<RowTypes.RowItem>) => {
+    const index = rowItems.findIndex(row => row.rowType !== RowTypes.RowType.Header)
+    return index === -1
+      ? {count: rowItems.length, totalHeight: -1}
+      : {count: index, totalHeight: _getVariableRowLayout(rowItems, index).offset}
+  }
+
+  const _getItemLayout = (index: number) => {
+    const top = _getTopVariableRowCountAndTotalHeight(items)
+    if (index < top.count) {
+      return _getVariableRowLayout(items, index)
+    }
+    return {
       index,
       length: getRowHeight(items[index] || _unknownEmptyRowItem),
-      offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
-    }),
-    []
-  )
-
-  const _getTopVariableRowCountAndTotalHeight = React.useCallback(
-    (items: Array<RowTypes.RowItem>) => {
-      const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
-      return index === -1
-        ? {count: items.length, totalHeight: -1}
-        : {count: index, totalHeight: _getVariableRowLayout(items, index).offset}
-    },
-    [_getVariableRowLayout]
-  )
-
-  const _getItemLayout = React.useCallback(
-    (index: number) => {
-      const top = _getTopVariableRowCountAndTotalHeight(items)
-      if (index < top.count) {
-        return _getVariableRowLayout(items, index)
-      }
-      return {
-        index,
-        length: getRowHeight(items[index] || _unknownEmptyRowItem),
-        offset: (index - top.count) * normalRowHeight + top.totalHeight,
-      }
-    },
-    [items, _getVariableRowLayout, _getTopVariableRowCountAndTotalHeight]
-  )
+      offset: (index - top.count) * normalRowHeight + top.totalHeight,
+    }
+  }
 
   return emptyMode !== 'not-empty' ? (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -135,8 +123,9 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
     </Kb.Box2>
   ) : (
     <Kb.BoxGrow>
-      <Kb.List2
+      <Kb.List
         key={listKey}
+        keyProperty="key"
         items={items}
         bounces={true}
         itemHeight={{
@@ -147,17 +136,17 @@ const Rows = React.memo(function Rows(props: Props & {listKey: string}) {
       />
     </Kb.BoxGrow>
   )
-})
+}
 
 const RowsWithAutoLoad = (props: Props) => {
   useFsChildren(props.path, /* recursive */ true) // need recursive for the EMPTY tag
 
-  // List2 caches offsets. So have the key derive from layouts so that we
+  // List caches offsets. So have the key derive from layouts so that we
   // trigger a re-render when layout changes. Also encode items length into
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.
   const {items} = props
-  const listKey = React.useMemo(() => {
+  const listKey = (() => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return (
       items
@@ -165,7 +154,7 @@ const RowsWithAutoLoad = (props: Props) => {
         .map(row => getRowHeight(row).toString())
         .join('-') + `:${items.length}`
     )
-  }, [items])
+  })()
   return <Rows {...props} listKey={listKey} />
 }
 
@@ -187,7 +176,6 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.flexGrow,
       },
       rowContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: normalRowHeight,
       },
@@ -197,9 +185,9 @@ const styles = Kb.Styles.styleSheetCreate(
 const getRowHeight = (row: RowTypes.RowItem) =>
   row.rowType === RowTypes.RowType.Header ? row.height : normalRowHeight
 
-const _unknownEmptyRowItem: RowTypes.EmptyRowItem = {
+const _unknownEmptyRowItem = {
   key: 'unknown-empty-row-item',
   rowType: RowTypes.RowType.Empty,
-}
+} satisfies RowTypes.EmptyRowItem
 
 export default RowsWithAutoLoad

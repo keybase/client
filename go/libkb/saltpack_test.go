@@ -43,7 +43,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	var receiverKPs []NaclDHKeyPair
 	var receiverPKs []NaclDHKeyPublic
-	for i := 0; i < 12; i++ {
+	for range 12 {
 		kp, err := GenerateNaclDHKeyPair()
 		if err != nil {
 			t.Fatal(err)

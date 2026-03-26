@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsState} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -74,7 +74,7 @@ const DeleteConfirm = () => {
       header={
         <>
           <Kb.Avatar username={username} size={64} />
-          <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+          <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
         </>
       }
       onCancel={onCancel}

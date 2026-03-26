@@ -209,7 +209,7 @@ func TestTrackingNotifications(t *testing.T) {
 	// any "isOwnNewLinkFromServer" links. If so, one way to fix this test
 	// would be to blow away the local db before calling CheckTracking.
 	tc.G.Log.Debug("Waiting for two tracking notifications.")
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case err := <-nh.errCh:
 			t.Fatalf("Error before notify: %v", err)

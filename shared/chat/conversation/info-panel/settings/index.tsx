@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}
@@ -40,38 +39,38 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onShowClearConversationDialog = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
-  }, [navigateAppend])
+  const onShowClearConversationDialog = () => {
+    navigateAppend(conversationIDKey => ({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}}))
+  }
 
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = React.useCallback(() => hideConversation(true), [hideConversation])
-  const onUnhideConv = React.useCallback(() => hideConversation(false), [hideConversation])
-  const onShowBlockConversationDialog = React.useCallback(() => {
+  const onHideConv = () => hideConversation(true)
+  const onUnhideConv = () => hideConversation(false)
+  const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
       navigateAppend(conversationIDKey => ({
-        props: {
+        name: 'chatBlockingModal',
+        params: {
           blockUserByDefault: true,
           conversationIDKey,
           others: membersForBlock,
           team: teamname,
         },
-        selected: 'chatBlockingModal',
       }))
     } else {
       onHideConv()
     }
-  }, [membersForBlock, onHideConv, teamname, navigateAppend])
+  }
 
   const leaveConversation = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveConversation = React.useCallback(() => {
+  const onLeaveConversation = () => {
     leaveConversation()
-  }, [leaveConversation])
+  }
 
   const onArchive = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, type: 'chatID' as const},
-      selected: 'archiveModal',
+      name: 'archiveModal',
+      params: {conversationIDKey, type: 'chatID' as const},
     }))
   }
 
@@ -102,9 +101,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             onClick={onLeaveConversation}
             style={styles.smallButton}
             waiting={spinnerForLeave}
-            icon="iconfont-leave"
-            iconColor={Kb.Styles.globalColors.blue}
-          />
+          >
+            <Kb.Icon type="iconfont-leave" sizeType="Small" color={Kb.Styles.globalColors.blue} />
+          </Kb.Button>
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -113,9 +112,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             mode="Secondary"
             label="Backup channel"
             onClick={onArchive}
-            icon="iconfont-folder-downloads"
-            iconColor={Kb.Styles.globalColors.black}
-          />
+          >
+            <Kb.Icon type="iconfont-folder-downloads" sizeType="Small" color={Kb.Styles.globalColors.black} />
+          </Kb.Button>
         </Kb.Box2>
         {entityType !== 'channel' &&
           (ignored ? (
@@ -125,9 +124,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Unhide this conversation"
                 onClick={onUnhideConv}
-                icon="iconfont-unhide"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+              </Kb.Button>
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -136,9 +135,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Secondary"
                 label="Hide this conversation"
                 onClick={onHideConv}
-                icon="iconfont-unhide"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon type="iconfont-unhide" sizeType="Small" color={Kb.Styles.globalColors.red} />
+              </Kb.Button>
             </Kb.Box2>
           ))}
         <RetentionPicker
@@ -168,9 +167,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 mode="Primary"
                 label="Block"
                 onClick={onShowBlockConversationDialog}
-                icon="iconfont-remove"
-                iconColor={Kb.Styles.globalColors.red}
-              />
+              >
+                <Kb.Icon type="iconfont-remove" sizeType="Small" color={Kb.Styles.globalColors.whiteOrWhite} />
+              </Kb.Button>
             )}
           </Kb.Box2>
         ) : null}

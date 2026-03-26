@@ -66,10 +66,7 @@ func getContentType(
 		return contentType, nil
 	}
 
-	bufLen := sniffLen
-	if ei.Size < bufLen {
-		bufLen = ei.Size
-	}
+	bufLen := min(ei.Size, sniffLen)
 	buf := make([]byte, bufLen)
 
 	nBytes, err := config.KBFSOps().Read(ctx, n, buf, 0)
@@ -87,10 +84,7 @@ func getTextToIndex(
 	ctx context.Context, config libkbfs.Config, n libkbfs.Node,
 	ei data.EntryInfo,
 ) (data string, err error) {
-	bufLen := ei.Size
-	if bufLen > maxTextToIndex {
-		bufLen = maxTextToIndex
-	}
+	bufLen := min(ei.Size, maxTextToIndex)
 	buf := make([]byte, bufLen)
 	nBytes, err := config.KBFSOps().Read(ctx, n, buf, 0)
 	if err != nil {
@@ -124,7 +118,7 @@ func removePunct(r rune) rune {
 
 func makeNameDocWithBase(
 	n libkbfs.Node, base indexedBase,
-) (nameDoc interface{}) {
+) (nameDoc any) {
 	// Turn all punctuation into spaces to allow for matching
 	// individual words within the filename.
 	fullName := n.GetBasename().Plaintext()
@@ -138,7 +132,7 @@ func makeNameDocWithBase(
 
 func makeNameDoc(
 	n libkbfs.Node, revision kbfsmd.Revision, mtime time.Time) (
-	nameDoc interface{},
+	nameDoc any,
 ) {
 	base := indexedBase{
 		TlfID:    n.GetFolderBranch().Tlf,
@@ -151,7 +145,7 @@ func makeNameDoc(
 func makeDoc(
 	ctx context.Context, config libkbfs.Config, n libkbfs.Node,
 	ei data.EntryInfo, revision kbfsmd.Revision, mtime time.Time) (
-	doc, nameDoc interface{}, err error,
+	doc, nameDoc any, err error,
 ) {
 	base := indexedBase{
 		TlfID:    n.GetFolderBranch().Tlf,

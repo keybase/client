@@ -1,30 +1,41 @@
+/// <reference types="webpack-env" />
 import * as C from '@/constants'
-import * as Constants from '@/constants/router2'
-import {useConfigState} from '@/constants/config'
-import {useDarkModeState} from '@/constants/darkmode'
+import * as Constants from '@/stores/router'
+import {useConfigState} from '@/stores/config'
+import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import * as Common from './common.native'
-import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import {StatusBar, View} from 'react-native'
 import {PlatformPressable} from '@react-navigation/elements'
-import {HeaderLeftCancel2} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator, type BottomTabBarButtonProps} from '@react-navigation/bottom-tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import * as Hooks from './hooks.native'
+
+import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
+import {makeLayout} from './screen-layout.native'
+import {useRootKey} from './hooks.native'
 import * as TabBar from './tab-bar.native'
-import type {RootParamList} from '@/router-v2/route-params'
-import {useColorScheme} from 'react-native'
-import {useDaemonState} from '@/constants/daemon'
+import {createLinkingConfig} from './linking'
+import {handleAppLink} from '@/constants/deeplinks'
+import {useDaemonState} from '@/stores/daemon'
 
 if (module.hot) {
   module.hot.accept('', () => {})
 }
+
+const tabToLabel = new Map<string, string>([
+  [Tabs.chatTab, 'Chat'],
+  [Tabs.fsTab, 'Files'],
+  [Tabs.teamsTab, 'Teams'],
+  [Tabs.peopleTab, 'People'],
+  [Tabs.settingsTab, 'More'],
+])
 
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
@@ -32,27 +43,22 @@ const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
-const TabStackNavigator = createNativeStackNavigator<RootParamList>()
 const tabStackOptions = {
   ...Common.defaultNavigationOptions,
-  animation: 'simple_push',
-  animationDuration: 250,
-  orientation: 'portrait',
 } as const
 
-const tabScreens = makeNavScreens(tabRoutes, TabStackNavigator.Screen, false, false)
-const TabStack = React.memo(function TabStack(p: {route: {name: Tabs.Tab}}) {
-  return (
-    <TabStackNavigator.Navigator
-      initialRouteName={tabRoots[p.route.name] || undefined}
-      screenOptions={tabStackOptions}
-    >
-      {tabScreens}
-    </TabStackNavigator.Navigator>
-  )
-})
+const tabScreensConfig = routeMapToStaticScreens(tabRoutes, makeLayout, false, false)
 
-// so we have a stack per tab
+const tabComponents: Record<string, React.ComponentType> = {}
+for (const tab of tabs) {
+  const nav = createNativeStackNavigator({
+    initialRouteName: tabRoots[tab],
+    screenOptions: tabStackOptions as NativeStackNavigationOptions,
+    screens: tabScreensConfig,
+  })
+  tabComponents[tab] = nav.getComponent()
+}
+
 const tabScreenOptions = ({route}: {route: {name: string}}) => {
   let routeName: string | undefined
   try {
@@ -68,10 +74,10 @@ const tabStacks = tabs.map(tab => (
     name={tab}
     listeners={{
       tabLongPress: () => {
-        C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+        C.useRouterState.getState().dispatch.defer.tabLongPress?.(tab)
       },
     }}
-    component={TabStack}
+    component={tabComponents[tab]!}
     options={tabScreenOptions}
   />
 ))
@@ -81,6 +87,7 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
   return {
     ...Common.defaultNavigationOptions,
     headerShown: false,
+    tabBarAccessibilityLabel: tabToLabel.get(route.name as Tabs.Tab) ?? route.name,
     tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
     tabBarButton: (p: BottomTabBarButtonProps) => (
       <PlatformPressable {...p} android_ripple={android_rippleFix}>
@@ -99,45 +106,69 @@ const appTabsScreenOptions = ({route}: {route: {name: string}}) => {
     tabBarStyle: Common.tabBarStyle,
   }
 }
-const AppTabs = React.memo(
-  function AppTabsImpl() {
-    return (
-      <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
-        {tabStacks}
-      </Tab.Navigator>
-    )
-  },
-  // ignore all props from the nav layer which we don't control or use
-  () => true
-)
+function AppTabs() {
+  return (
+    <Tab.Navigator backBehavior="none" screenOptions={appTabsScreenOptions}>
+      {tabStacks}
+    </Tab.Navigator>
+  )
+}
 
-const LoggedOutStack = createNativeStackNavigator<RootParamList>()
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
 const loggedOutScreenOptions = {
   ...Common.defaultNavigationOptions,
-  headerShown: false,
-}
-const LoggedOut = React.memo(function LoggedOut() {
-  return (
-    // TODO show header and use nav headers
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutScreenOptions}>
-      {LoggedOutScreens}
-    </LoggedOutStack.Navigator>
-  )
+} as const
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
+const loggedOutNav = createNativeStackNavigator({
+  initialRouteName: 'login',
+  screenOptions: loggedOutScreenOptions as NativeStackNavigationOptions,
+  screens: loggedOutScreensConfig,
 })
+const LoggedOut = loggedOutNav.getComponent()
 
-const RootStack = createNativeStackNavigator<
-  RootParamList & {loggedIn: undefined; loggedOut: undefined; loading: undefined}
->()
 const rootStackScreenOptions = {
   headerShown: false, // eventually do this after we pull apart modal2 etc
-}
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
+} satisfies NativeStackNavigationOptions
 const modalScreenOptions = {
-  headerLeft: () => <HeaderLeftCancel2 />,
+  headerLeft: () => <HeaderLeftButton mode="cancel" />,
+  headerShown: true,
   presentation: 'modal',
+  title: '',
 } as const
-const RNApp = React.memo(function RNApp() {
+
+const useIsLoggedIn = () => useConfigState(s => s.loggedIn)
+const useIsLoggedOut = () => !useConfigState(s => s.loggedIn)
+
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
+
+const rootNav = createNativeStackNavigator({
+  groups: {
+    loggedIn: {
+      if: useIsLoggedIn,
+      screens: {
+        loggedIn: {screen: AppTabs},
+      },
+    },
+    loggedOut: {
+      if: useIsLoggedOut,
+      screens: {
+        loggedOut: {screen: LoggedOut},
+      },
+    },
+    modals: {
+      if: useIsLoggedIn,
+      screenOptions: modalScreenOptions as NativeStackNavigationOptions,
+      screens: modalScreensConfig,
+    },
+  },
+  screenOptions: rootStackScreenOptions,
+})
+const RootComponent = rootNav.getComponent()
+
+// Create once, stable across renders. handleAppLink is used as fallback for
+// URL patterns not yet handled by the linking config.
+const linkingConfig = createLinkingConfig(handleAppLink)
+
+function RNApp() {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
@@ -145,46 +176,45 @@ const RNApp = React.memo(function RNApp() {
     return loaded
   })
 
-  const {initialState, initialStateState} = Hooks.useInitialState(loggedInLoaded)
-  const loggedIn = useConfigState(s => s.loggedIn)
+  const {loggedIn, startupLoaded} = useConfigState(
+    C.useShallow(s => ({loggedIn: s.loggedIn, startupLoaded: s.startup.loaded}))
+  )
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = React.useCallback(() => {
+  const onStateChange = () => {
     const ns = C.Router2.getRootState()
     setNavState(ns)
-  }, [setNavState])
+  }
+  // Sync the initial state from the linking config into the router store.
+  // onStateChange doesn't fire for the initial state, so this ensures
+  // onRouteChanged runs and conversation data gets loaded on startup.
+  const onReady = onStateChange
 
-  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+  const onUnhandledAction = (a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }, [])
+  }
 
-  const navRef = React.useCallback((ref: typeof Constants.navigationRef.current) => {
+  const navRef = (ref: typeof Constants.navigationRef.current) => {
     if (ref) {
       Constants.navigationRef.current = ref
     }
-  }, [])
-
-  const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
-  if (DEBUG_RNAPP_RENDER) {
-    console.log('DEBUG RNApp render', {
-      initialState,
-      initialStateState,
-      loggedIn,
-      loggedInLoaded,
-      onStateChange,
-    })
   }
 
-  const isDarkMode = useColorScheme() === 'dark'
-  const barStyle = useDarkModeState(s => {
-    return s.darkModePreference === 'system' ? 'default' : isDarkMode ? 'light-content' : 'dark-content'
-  })
+  const {barStyle, isDarkMode} = useDarkModeState(
+    C.useShallow(s => {
+      const isDarkMode = s.isDarkMode()
+      const barStyle =
+        s.darkModePreference === 'system'
+          ? ('default' as const)
+          : isDarkMode
+            ? ('light-content' as const)
+            : ('dark-content' as const)
+      return {barStyle, isDarkMode}
+    })
+  )
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  const rootKey = Hooks.useRootKey()
+  const rootKey = useRootKey()
 
-  if (initialStateState !== 'loaded' || !loggedInLoaded) {
-    logger.info(
-      `[Router] showing SimpleLoading: initialStateState=${initialStateState} loggedInLoaded=${loggedInLoaded}`
-    )
+  if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
         <Shared.SimpleLoading />
@@ -197,26 +227,17 @@ const RNApp = React.memo(function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        ref={navRef}
-        theme={Shared.theme}
-        // eslint-disable-next-line
-        initialState={initialState as any}
-        onUnhandledAction={onUnhandledAction}
+        linking={loggedIn ? linkingConfig : undefined}
+        onReady={onReady}
         onStateChange={onStateChange}
+        onUnhandledAction={onUnhandledAction}
+        ref={navRef}
+        theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
       >
-        <RootStack.Navigator key="root" screenOptions={rootStackScreenOptions}>
-          {loggedIn ? (
-            <>
-              <RootStack.Screen name="loggedIn" component={AppTabs} />
-              <RootStack.Group screenOptions={modalScreenOptions}>{modalScreens}</RootStack.Group>
-            </>
-          ) : (
-            <RootStack.Screen name="loggedOut" component={LoggedOut} />
-          )}
-        </RootStack.Navigator>
+        <RootComponent />
       </NavigationContainer>
     </Kb.Box2>
   )
-})
+}
 
 export default RNApp

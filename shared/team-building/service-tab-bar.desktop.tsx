@@ -18,14 +18,14 @@ const ServiceIcon = (props: IconProps) => {
       onMouseLeave={() => setHover(false)}
       style={styles.serviceIconFlex}
     >
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={styles.serviceIconContainer}>
         <Kb.Box2
           direction="vertical"
           centerChildren={true}
           fullHeight={true}
-          style={styles.serviceIconContainerInner}
+          justifyContent="flex-start"
         >
-          <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+          <Kb.Box2 direction="vertical" relative={true}>
             {serviceIdToBadge(props.service) && (
               <Kb.Badge
                 border={true}
@@ -35,12 +35,13 @@ const ServiceIcon = (props: IconProps) => {
                 leftRightPadding={0}
               />
             )}
-            <Kb.Icon
-              color={color}
-              fontSize={16}
-              type={serviceIdToIconFont(props.service)}
-              boxStyle={styles.serviceIconBox}
-            />
+            <Kb.Box2 direction="vertical" style={styles.serviceIconBox}>
+              <Kb.Icon
+                color={color}
+                fontSize={16}
+                type={serviceIdToIconFont(props.service)}
+              />
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (
@@ -70,8 +71,7 @@ const MoreNetworksButton = (props: {
   onChangeService: (service: T.TB.ServiceIdWithContact) => void
 }) => {
   const {services, onChangeService} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -86,16 +86,14 @@ const MoreNetworksButton = (props: {
           visible={true}
         />
       )
-    },
-    [services, onChangeService]
-  )
+    }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
-        <Kb.Box2Measure
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} flex={1}>
+        <Kb.Box2
           direction="vertical"
           style={styles.moreNetworks1}
           fullHeight={true}
@@ -109,7 +107,7 @@ const MoreNetworksButton = (props: {
               </Kb.Text>
             </Kb.ClickableBox>
           </Kb.WithTooltip>
-        </Kb.Box2Measure>
+        </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
       {popup}
@@ -136,15 +134,12 @@ export const ServiceTabBar = (props: Props) => {
     T.TB.ServiceIdWithContact | undefined
   >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
-  const onChangeService = React.useCallback(
-    (service: T.TB.ServiceIdWithContact) => {
+  const onChangeService = (service: T.TB.ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
       propsOnChangeService(service)
-    },
-    [services, lastSelectedUnlockedService, nLocked, propsOnChangeService, setLastSelectedUnlockedService]
-  )
+    }
   const lockedServices = services.slice(0, nLocked)
   let frontServices = new Array<T.TB.ServiceIdWithContact>()
   if (services.indexOf(props.selectedService) < nLocked) {
@@ -196,7 +191,6 @@ const styles = Kb.Styles.styleSheetCreate(
         minWidth: 64,
       },
       moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
-      moreNetworks0: {flex: 1},
       moreNetworks1: {
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
@@ -228,17 +222,15 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       moreText: {color: Kb.Styles.globalColors.black_50},
-      pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
-        flex: 1,
         height: 70,
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xtiny,
         maxWidth: 72,
         minWidth: 40,
       },
-      serviceIconContainerInner: {justifyContent: 'flex-start'},
+
       serviceIconFlex: {
         flex: 1,
         maxWidth: 90,

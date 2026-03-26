@@ -61,13 +61,10 @@ export function List<T>(p: ListProps<T>) {
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
-  const renderItem = React.useCallback(
-    (idx: number, item: T) => (
-      <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
-        <ItemRenderer selected={idx === selectedIndex} item={item} />
-      </Kb.ClickableBox>
-    ),
-    [selectedIndex, onSelected, ItemRenderer, keyExtractor]
+  const renderItem = (idx: number, item: T) => (
+    <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
+      <ItemRenderer selected={idx === selectedIndex} item={item} />
+    </Kb.ClickableBox>
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)
@@ -81,27 +78,24 @@ export function List<T>(p: ListProps<T>) {
     }
   }, [onSelected, sel, selectedIndex])
 
-  const onMove = React.useCallback(
-    (up: boolean) => {
+  React.useEffect(() => {
+    const onMove = (up: boolean) => {
       const length = items.length
       const s = (((up ? selectedIndex - 1 : selectedIndex + 1) % length) + length) % length
       if (s !== selectedIndex) {
         setSelectedIndex(s)
       }
-    },
-    [setSelectedIndex, items, selectedIndex]
-  )
+    }
 
-  const onSubmit = React.useCallback(() => {
-    const sel = items[selectedIndex]
-    sel && onSelected(sel, true)
-    return !!sel
-  }, [selectedIndex, onSelected, items])
+    const onSubmit = () => {
+      const sel = items[selectedIndex]
+      sel && onSelected(sel, true)
+      return !!sel
+    }
 
-  React.useEffect(() => {
     setOnMoveRef(onMove)
     setOnSubmitRef(onSubmit)
-  }, [setOnMoveRef, setOnSubmitRef, onMove, onSubmit])
+  }, [setOnMoveRef, setOnSubmitRef, items, selectedIndex, onSelected, setSelectedIndex])
 
   return (
     <>

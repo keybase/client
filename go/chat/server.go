@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -2698,9 +2699,7 @@ func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSetting
 	for w := range settings.Whitelist {
 		res.Whitelist = append(res.Whitelist, w)
 	}
-	sort.Slice(res.Whitelist, func(i, j int) bool {
-		return res.Whitelist[i] < res.Whitelist[j]
-	})
+	slices.Sort(res.Whitelist)
 	return res, nil
 }
 

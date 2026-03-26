@@ -16,7 +16,7 @@ func TestCountMeter(t *testing.T) {
 	var count15 float64
 	var countMean float64
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		count1 = 0
 		if i > 4 {
 			count5 -= float64(((i - 5) * 4) + 10)

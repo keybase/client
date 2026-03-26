@@ -1,26 +1,31 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as C from '@/constants'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 
-const SystemChangeRetentionContainer = React.memo(function SystemChangeRetentionContainer(p: OwnProps) {
+function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
-  const meta = Chat.useChatContext(s => s.meta)
-  const canManage = Teams.useTeamsState(s =>
-    meta.teamType === 'adhoc' ? true : Teams.getCanPerform(s, meta.teamname).setRetentionPolicy
+  const {teamType, teamname, showInfoPanel} = Chat.useChatContext(
+    C.useShallow(s => ({
+      showInfoPanel: s.dispatch.showInfoPanel,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
   )
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onManageRetention = React.useCallback(() => {
+  const canManage = Teams.useTeamsState(s =>
+    teamType === 'adhoc' ? true : Teams.getCanPerform(s, teamname).setRetentionPolicy
+  )
+  const onManageRetention = () => {
     showInfoPanel(true, 'settings')
-  }, [showInfoPanel])
+  }
 
   const changedBy = you === user ? 'You ' : ''
   let convType = 'conversation'
@@ -46,7 +51,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
       ) : null}
     </UserNotice>
   )
-})
+}
 
 const getPolicySummary = (policy: T.RPCChat.RetentionPolicy | undefined) => {
   if (!policy) {

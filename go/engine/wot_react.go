@@ -127,7 +127,7 @@ func (e *WotReact) Run(mctx libkb.MetaContext) error {
 	}
 
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []interface{}{item}
+	payload["sigs"] = []any{item}
 
 	if _, err := e.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",

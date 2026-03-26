@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 
 const placeholder = 'Search people'
@@ -29,25 +29,23 @@ const Recipients = () => {
         {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
-          <>
-            <Kb.PlainInput
-              disabled={inProgress}
-              placeholder={placeholder}
-              allowFontScaling={false}
-              onFocus={onAddRecipients}
-              style={styles.input}
-            />
-          </>
+          <Kb.Input3
+            disabled={inProgress}
+            placeholder={placeholder}
+            onFocus={onAddRecipients}
+            hideBorder={true}
+            containerStyle={styles.input}
+          />
         )}
         {recipients.length ? (
-          <Kb.Icon
-            type="iconfont-remove"
-            boxStyle={styles.removeRecipients}
-            style={Kb.Styles.isMobile && styles.removeRecipients}
-            color={Kb.Styles.globalColors.black_20}
-            hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
-            onClick={onClearRecipients}
-          />
+          <Kb.Box2 direction="horizontal" style={styles.removeRecipients}>
+            <Kb.Icon
+              type="iconfont-remove"
+              color={Kb.Styles.globalColors.black_20}
+              hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
+              onClick={onClearRecipients}
+            />
+          </Kb.Box2>
         ) : null}
       </Kb.Box2>
       <Kb.Divider />
@@ -62,10 +60,9 @@ const styles = Kb.Styles.styleSheetCreate(
       input: {
         ...Kb.Styles.globalStyles.flexGrow,
         alignSelf: 'center',
-        borderBottomWidth: 0,
-        borderWidth: 0,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         marginLeft: Kb.Styles.globalMargins.xtiny,
-        paddingLeft: 0,
+        padding: 0,
       },
       recipientsContainer: {
         minHeight: recipientsRowHeight,

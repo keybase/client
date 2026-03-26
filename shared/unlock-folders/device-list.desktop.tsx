@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {State as ConfigStore} from '@/constants/config'
+import type {State as ConfigStore} from '@/stores/config'
 
 export type Props = {
   devices: ConfigStore['unlockFoldersDevices']
@@ -19,7 +19,7 @@ const DeviceRow = ({device}: {device: Device}) => {
   return (
     <div style={{...Kb.Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
       <div style={styles.iconWrapper}>
-        <Kb.Icon type={icon} style={{height: 22}} />
+        <Kb.ImageIcon type={icon} style={{height: 22}} />
       </div>
       <Kb.Text type="BodySemibold" style={{marginLeft: 16}}>
         {device.name}
@@ -53,7 +53,6 @@ const DeviceList = (props: Props) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      accessFolders: {marginRight: 0},
       buttonsContainer: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         alignSelf: 'center',
@@ -65,9 +64,10 @@ const styles = Kb.Styles.styleSheetCreate(
           alignSelf: 'center',
           backgroundColor: Kb.Styles.globalColors.greyLight,
           height: 162,
-          overflowY: 'scroll',
+          overflowY: 'auto',
           paddingBottom: Kb.Styles.globalMargins.small,
           paddingTop: Kb.Styles.globalMargins.small,
+          scrollbarGutter: 'stable',
           width: 440,
         },
       }),

@@ -90,7 +90,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	fatal := func(msg string, args ...interface{}) error {
+	fatal := func(msg string, args ...any) error {
 		t.Fatalf(msg, args...)
 		return fmt.Errorf(msg, args...)
 	}

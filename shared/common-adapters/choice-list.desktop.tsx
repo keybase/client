@@ -1,53 +1,57 @@
-import {Box} from './box'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
 import Text from './text'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 import './choice-list.css'
 
 const Kb = {
-  Box,
-  Icon,
+  Box2,
+  ClickableBox,
+  IconAuto,
   Text,
 }
 
 const ChoiceList = ({options}: Props) => {
   return (
-    <Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {options.map((op, idx) => {
         const iconType = op.icon
         return (
-          <Kb.Box style={styles.entry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
-            <Kb.Box
-              style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.iconContainer])}
-              className="cl-icon-container"
-            >
-              {typeof op.icon === 'string' ? (
-                <Kb.Icon style={styles.icon} type={iconType} className="cl-icon" />
-              ) : (
-                <Kb.Box style={styles.icon} className="cl-icon">
-                  {op.icon}
-                </Kb.Box>
-              )}
-            </Kb.Box>
-            <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.infoContainer])}>
-              <Text type="BodyBigLink">{op.title}</Text>
-              <Text type="Body">{op.description}</Text>
-            </Kb.Box>
-          </Kb.Box>
+          <Kb.ClickableBox key={idx} onClick={() => op.onClick()}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.entry} className="cl-entry">
+              <Kb.Box2
+                direction="vertical"
+                centerChildren={true}
+                style={styles.iconContainer}
+                className="cl-icon-container"
+              >
+                {typeof op.icon === 'string' ? (
+                  <Kb.IconAuto style={styles.icon} type={iconType} className="cl-icon" />
+                ) : (
+                  <Kb.Box2 direction="vertical" style={styles.icon} className="cl-icon">
+                    {op.icon}
+                  </Kb.Box2>
+                )}
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical" alignItems="flex-start" justifyContent="center" flex={1} style={styles.infoContainer}>
+                <Text type="BodyBigLink">{op.title}</Text>
+                <Text type="Body">{op.description}</Text>
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         )
       })}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   entry: Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.flexBoxRow,
       ...Styles.desktopStyles.clickable,
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-      width: '100%',
     },
   }),
   icon: {
@@ -55,16 +59,11 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 48,
   },
   iconContainer: {
-    alignItems: 'center',
     background: Styles.globalColors.greyLight,
     height: 80,
-    justifyContent: 'center',
     width: 80,
   },
   infoContainer: {
-    alignItems: 'flex-start',
-    flex: 1,
-    justifyContent: 'center',
     marginLeft: Styles.globalMargins.small,
     textAlign: 'left',
   },

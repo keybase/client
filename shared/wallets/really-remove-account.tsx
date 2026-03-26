@@ -3,9 +3,9 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
-import {useConfigState} from '@/constants/config'
+import * as Wallets from '@/stores/wallets'
+import {useState as useWalletsState} from '@/stores/wallets'
+import {useConfigState} from '@/stores/config'
 
 type OwnProps = {accountID: string}
 
@@ -17,15 +17,12 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
   const removeAccount = useWalletsState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
@@ -43,24 +40,21 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
     )
   }, [getSecretKey, accountID])
 
-  const onCopy = React.useCallback(() => {
+  const onCopy = () => {
     setShowToast(true)
     setShowToastFalseLater()
     copyToClipboard(sk)
-  }, [copyToClipboard, setShowToastFalseLater, sk])
+  }
   return (
     <WalletPopup
-      onExit={onCancel}
-      backButtonType="cancel"
       containerStyle={styles.background}
-      headerStyle={Kb.Styles.collapseStyles([styles.background, styles.header])}
       bottomButtons={[
         <Kb.Button
           fullWidth={Kb.Styles.isMobile}
           key={0}
           label="Copy secret key"
           onClick={onCopy}
-          type="Wallet"
+          type="Default"
           ref={attachmentRef}
           waiting={loading}
           disabled={waiting}
@@ -78,8 +72,8 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewBottomStyle={styles.background}
       safeAreaViewTopStyle={styles.background}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
-        <Kb.Icon
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
+        <Kb.ImageIcon
           type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />
@@ -115,8 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   background: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.yellow},
   }),
-  flexOne: {flex: 1},
-  header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},
     isElectron: {marginTop: Kb.Styles.globalMargins.medium},

@@ -26,19 +26,15 @@ public class ShareViewController: UIViewController {
   func openApp() {
     let path = selectedConvID.map { "keybase://incoming-share/\($0)" } ?? "keybase://incoming-share"
     guard let url = URL(string: path) else { return }
+    let sel = #selector(UIApplication.open(_:options:completionHandler:))
     var responder: UIResponder? = self
     while let r = responder {
-      if r.responds(to: #selector(UIApplication.openURL(_:))) {
-        do {
-          let sel = #selector(UIApplication.open(_:options:completionHandler:))
-          if r.responds(to: sel) {
-            let imp = r.method(for: sel)
-            typealias Func = @convention(c) (AnyObject, Selector, URL, [UIApplication.OpenExternalURLOptionsKey: Any], ((Bool) -> Void)?) -> Void
-            let f = unsafeBitCast(imp, to: Func.self)
-            f(r, sel, url, [:], nil)
-            return
-          }
-        }
+      if r.responds(to: sel) {
+        let imp = r.method(for: sel)
+        typealias Func = @convention(c) (AnyObject, Selector, URL, AnyObject?, ((Bool) -> Void)?) -> Void
+        let f = unsafeBitCast(imp, to: Func.self)
+        f(r, sel, url, nil, nil)
+        return
       }
       responder = r.next
     }
@@ -80,9 +76,8 @@ public class ShareViewController: UIViewController {
       ($0 as? NSExtensionItem)?.attachments
     } ?? []
 
-    weak var weakSelf = self
-    iph = ItemProviderHelper(forShare: true, withItems: itemArrs) {
-      guard let self = weakSelf else { return }
+    iph = ItemProviderHelper(forShare: true, withItems: itemArrs) { [weak self] in
+      guard let self else { return }
       self.completeRequestAlreadyInMainThread()
     }
     showProgressView()

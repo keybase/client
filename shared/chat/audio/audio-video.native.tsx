@@ -1,69 +1,31 @@
 import * as React from 'react'
-import {Audio, type AVPlaybackStatus} from 'expo-av'
+import {useAudioPlayer} from 'expo-audio'
+import {useEventListener} from 'expo'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
   const {url, paused, onPositionUpdated, onEnded} = props
-  const [sound, setSound] = React.useState<Audio.Sound | undefined>()
+  const player = useAudioPlayer(url)
 
-  React.useEffect(() => {
-    return () => {
-      sound
-        ?.unloadAsync()
-        .then(() => {})
-        .catch(() => {})
+  useEventListener(player, 'playbackStatusUpdate', status => {
+    if (status.playing && status.duration > 0) {
+      onPositionUpdated(status.currentTime / status.duration)
     }
-  }, [sound])
-
-  const onPlaybackStatusUpdate = React.useCallback(
-    (e: AVPlaybackStatus) => {
-      if (!e.isLoaded) return
-      if (e.isPlaying) {
-        const ct = e.positionMillis
-        const dur = e.durationMillis ?? 0
-        if (dur === 0) {
-          return
-        }
-        onPositionUpdated(ct / dur)
-      } else if (e.didJustFinish) {
-        onEnded()
-        sound
-          ?.setPositionAsync(0)
-          .then(() => {})
-          .catch(() => {})
-      }
-    },
-    [onPositionUpdated, onEnded, sound]
-  )
-
-  React.useEffect(() => {
-    sound?.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate)
-  }, [sound, onPlaybackStatusUpdate])
+    if (status.didJustFinish) {
+      onEnded()
+      void player.seekTo(0)
+    }
+  })
 
   const [lastPaused, setLastPaused] = React.useState(paused)
 
   if (lastPaused !== paused) {
     setLastPaused(paused)
-    const f = async () => {
-      let s = sound
-      if (!sound) {
-        const {sound: newSound} = await Audio.Sound.createAsync({uri: url})
-        s = newSound
-        setSound(newSound)
-        await newSound.setProgressUpdateIntervalAsync(100)
-      }
-
-      if (paused) {
-        await s?.pauseAsync()
-      } else {
-        await s?.playAsync()
-      }
+    if (paused) {
+      player.pause()
+    } else {
+      player.play()
     }
-    f()
-      .then(() => {})
-      .catch((e: unknown) => {
-        console.error('audio play fail', e)
-      })
   }
 
   return null

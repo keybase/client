@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {usePWState} from '@/constants/settings-password'
+import {usePWState} from '@/stores/settings-password'
 
 type Props = {
   error: string
@@ -47,7 +47,6 @@ export const UpdatePassword = (props: Props) => {
 
   const canSubmit = () => !errorSaving && password.length >= 8 && password === passwordConfirm
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
   const notification = props.error
     ? props.error
@@ -72,37 +71,82 @@ export const UpdatePassword = (props: Props) => {
   )
 
   return (
-    <Kb.Modal
-      backgroundStyle={styles.passwordBackground}
-      banners={
-        <>
-          {notification ? (
-            <Kb.Banner color="yellow">
-              <Kb.BannerParagraph bannerColor="yellow" content={notification} />
-            </Kb.Banner>
-          ) : null}
-          {props.newPasswordError ? (
-            <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={props.newPasswordError} />
-            </Kb.Banner>
-          ) : null}
-          {props.hasPGPKeyOnServer === undefined ? (
-            <Kb.Banner color="red">
-              <Kb.BannerParagraph
-                bannerColor="red"
-                content="There was a problem downloading your PGP key status."
-              />
-            </Kb.Banner>
-          ) : null}
-          {props.newPasswordConfirmError ? (
-            <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={props.newPasswordConfirmError} />
-            </Kb.Banner>
-          ) : null}
-        </>
-      }
-      footer={{
-        content: (
+    <>
+      {notification ? (
+        <Kb.Banner color="yellow">
+          <Kb.BannerParagraph bannerColor="yellow" content={notification} />
+        </Kb.Banner>
+      ) : null}
+      {props.newPasswordError ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={props.newPasswordError} />
+        </Kb.Banner>
+      ) : null}
+      {props.hasPGPKeyOnServer === undefined ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph
+            bannerColor="red"
+            content="There was a problem downloading your PGP key status."
+          />
+        </Kb.Banner>
+      ) : null}
+      {props.newPasswordConfirmError ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={props.newPasswordConfirmError} />
+        </Kb.Banner>
+      ) : null}
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2
+          centerChildren={!Kb.Styles.isTablet}
+          direction="vertical"
+          fullHeight={true}
+          flex={1}
+          style={styles.container}
+        >
+          <Kb.Text type="Body" style={styles.bodyText} center={true}>
+            A password is required for you to sign out and sign back in.
+          </Kb.Text>
+          <Kb.RoundedBox side="top">
+            <Kb.Input3
+              placeholder="New password"
+              secureTextEntry={!showTyping}
+              keyboardType={keyboardType}
+              value={password}
+              onChangeText={handlePasswordChange}
+              hideBorder={true}
+            />
+          </Kb.RoundedBox>
+          <Kb.RoundedBox side="bottom">
+            <Kb.Input3
+              placeholder="Confirm password"
+              secureTextEntry={!showTyping}
+              keyboardType={keyboardType}
+              value={passwordConfirm}
+              onChangeText={handlePasswordConfirmChange}
+              onEnterKeyDown={() => {
+                if (canSubmit()) {
+                  props.onSave(password)
+                }
+              }}
+              hideBorder={true}
+            />
+          </Kb.RoundedBox>
+          {typeof hintText === 'string' ? (
+            <Kb.Text style={styles.passwordFormat} type={hintType}>
+              {hintText}
+            </Kb.Text>
+          ) : (
+            hintText
+          )}
+          <Kb.Checkbox
+            label="Show typing"
+            onCheck={() => setShowTyping(s => !s)}
+            checked={showTyping || !!props.showTyping}
+            style={styles.checkbox}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
             <Kb.Button
               fullWidth={true}
@@ -112,66 +156,8 @@ export const UpdatePassword = (props: Props) => {
               waiting={props.waitingForResponse}
             />
           </Kb.ButtonBar>
-        ),
-      }}
-      header={{
-        leftButton:
-          Kb.Styles.isMobile && props.onCancel ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
-              Cancel
-            </Kb.Text>
-          ) : null,
-        title: props.hasRandomPW ? 'Set a password' : 'Change password',
-      }}
-      onClose={props.onCancel}
-    >
-      <Kb.Box2
-        centerChildren={!Kb.Styles.isTablet}
-        direction="vertical"
-        fullHeight={true}
-        style={styles.container}
-      >
-        <Kb.Text type="Body" style={styles.bodyText} center={true}>
-          A password is required for you to sign out and sign back in.
-        </Kb.Text>
-        <Kb.RoundedBox side="top">
-          <Kb.PlainInput
-            placeholder="New password"
-            type={inputType}
-            keyboardType={keyboardType}
-            value={password}
-            onChangeText={handlePasswordChange}
-          />
-        </Kb.RoundedBox>
-        <Kb.RoundedBox side="bottom">
-          <Kb.PlainInput
-            placeholder="Confirm password"
-            type={inputType}
-            keyboardType={keyboardType}
-            value={passwordConfirm}
-            onChangeText={handlePasswordConfirmChange}
-            onEnterKeyDown={() => {
-              if (canSubmit()) {
-                props.onSave(password)
-              }
-            }}
-          />
-        </Kb.RoundedBox>
-        {typeof hintText === 'string' ? (
-          <Kb.Text style={styles.passwordFormat} type={hintType}>
-            {hintText}
-          </Kb.Text>
-        ) : (
-          hintText
-        )}
-        <Kb.Checkbox
-          label="Show typing"
-          onCheck={() => setShowTyping(s => !s)}
-          checked={showTyping || !!props.showTyping}
-          style={styles.checkbox}
-        />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
@@ -192,16 +178,20 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
         padding: Kb.Styles.globalMargins.small,
       },
-      headerText: {
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.small,
-      },
-      passwordBackground: Kb.Styles.platformStyles({
-        isTablet: {
-          backgroundColor: Kb.Styles.globalColors.blueGrey,
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
         },
       }),
       passwordFormat: {

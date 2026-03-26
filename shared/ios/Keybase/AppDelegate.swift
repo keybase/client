@@ -1,12 +1,15 @@
-import Expo
+import BackgroundTasks
+internal import Expo
 import React
 import ReactAppDependencyProvider
 import KBCommon
 import UIKit
 import UserNotifications
 import AVFoundation
-import ExpoModulesCore
 import Keybasego
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "delegate")
 
 class KeyboardWindow: UIWindow {
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -32,8 +35,8 @@ class KeyboardWindow: UIWindow {
   }
 }
 
-@UIApplicationMain
-public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
+@main
+class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
@@ -47,7 +50,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   private var watchdog: MainThreadWatchdog?
 
-  public override func application(
+  override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
@@ -78,7 +81,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
 
     NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
-      NSLog("Memory warning received - deferring GC during React Native initialization")
+      log.info("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
         guard let self = self, self.reactNativeFactory != nil else { return }
@@ -94,10 +97,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
 #if os(iOS) || os(tvOS)
-    window = KeyboardWindow(frame: UIScreen.main.bounds)
+    let screenBounds = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen.bounds ?? UIScreen.main.bounds
+    window = KeyboardWindow(frame: screenBounds)
     factory.startReactNative(
       withModuleName: "Keybase",
       in: window,
@@ -109,6 +112,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
+    // Start FPS monitoring if launched with -PERF_FPS_MONITOR
+    PerfFPSMonitor.startIfEnabled()
+
     if let rootView = self.window?.rootViewController?.view {
       self.addDrop(rootView)
       self.didLaunchSetupAfter(application: application, rootView: rootView)
@@ -118,7 +124,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   // Linking API
-  public override func application(
+  override func application(
     _ app: UIApplication,
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
@@ -127,7 +133,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   // Universal Links
-  public override func application(
+  override func application(
     _ application: UIApplication,
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
@@ -156,12 +162,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       if !FileManager.default.fileExists(atPath: logFilePath) {
         FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
       }
-      if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-        fileHandle.seekToEndOfFile()
+
+      if let fileHandle = try? FileHandle(forWritingTo: URL(fileURLWithPath: logFilePath)) {
+        try? fileHandle.seekToEnd()
         self.startupLogFileHandle = fileHandle
-      } else {
-        NSLog("Error opening startup timing log file: \(logFilePath)")
-        return
       }
     }
 
@@ -176,28 +180,20 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
 
     let fileName = URL(fileURLWithPath: file).lastPathComponent
-    let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
+    let logMessage = String(format: "%@ \u{25B6} [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
 
     guard let logData = logMessage.data(using: .utf8) else {
       return
     }
 
-    do {
-      try fileHandle.write(contentsOf: logData)
-      try fileHandle.synchronize()
-    } catch {
-      NSLog("Error writing startup timing log: \(error)")
-    }
+    try? fileHandle.write(contentsOf: logData)
+    try? fileHandle.synchronize()
   }
 
   private func closeStartupLogFile() {
     if let fileHandle = self.startupLogFileHandle {
-      do {
-        try fileHandle.synchronize()
-        try fileHandle.close()
-      } catch {
-        NSLog("Error closing startup timing log: \(error)")
-      }
+      try? fileHandle.synchronize()
+      try? fileHandle.close()
       self.startupLogFileHandle = nil
     }
   }
@@ -220,18 +216,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.writeStartupTimingLog("Before Go init")
 
     // Initialize Go synchronously - happens during splash screen
-    NSLog("Starting KeybaseInit (synchronous)...")
+    log.info("Starting KeybaseInit (synchronous)...")
     var err: NSError?
     let shareIntentDonator = ShareIntentDonatorImpl()
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
-    if let err { NSLog("KeybaseInit FAILED: \(err)") }
+    if let err { log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)") }
 
     self.writeStartupTimingLog("After Go init")
   }
 
   func notifyAppState(_ application: UIApplication) {
     let state = application.applicationState
-    NSLog("notifyAppState: notifying service with new appState: \(state.rawValue)")
+    log.info("notifyAppState: notifying service with new appState: \(state.rawValue)")
     switch state {
     case .active: Keybasego.KeybaseSetAppStateForeground()
     case .background: Keybasego.KeybaseSetAppStateBackground()
@@ -254,11 +250,12 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     rootView.backgroundColor = .systemBackground
 
     // Snapshot resizing workaround for iPad
-    var dim = UIScreen.main.bounds.width
-    if UIScreen.main.bounds.height > dim {
-      dim = UIScreen.main.bounds.height
+    let screenBounds = self.window?.windowScene?.screen.bounds ?? UIScreen.main.bounds
+    var dim = screenBounds.width
+    if screenBounds.height > dim {
+      dim = screenBounds.height
     }
-    let square = CGRect(origin: UIScreen.main.bounds.origin, size: CGSize(width: dim, height: dim))
+    let square = CGRect(origin: screenBounds.origin, size: CGSize(width: dim, height: dim))
     self.resignImageView = UIImageView(frame: square)
     self.resignImageView?.contentMode = .center
     self.resignImageView?.alpha = 0
@@ -266,7 +263,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.image = UIImage(named: "LaunchImage")
     if let view = self.resignImageView { self.window?.addSubview(view) }
 
-    UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+    BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.keybase.app.refresh", using: nil) { task in
+      self.handleAppRefresh(task: task as! BGAppRefreshTask)
+    }
+    scheduleAppRefresh()
   }
 
   func addDrop(_ rootView: UIView) {
@@ -296,29 +296,38 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.iph?.startProcessing()
   }
 
-  public override func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    let fetchStart = CFAbsoluteTimeGetCurrent()
-    NSLog("Background fetch queued...")
-    DispatchQueue.global(qos: .default).async {
-      NSLog("Background fetch started...")
-      let status = Keybasego.KeybaseBackgroundSync()
-      let elapsed = (CFAbsoluteTimeGetCurrent() - fetchStart) * 1000
-      if status.isEmpty {
-        NSLog("Background fetch completed in %.0fms", elapsed)
-      } else {
-        NSLog("Background fetch completed in %.0fms: %@", elapsed, status)
-      }
-      completionHandler(.newData)
+  func scheduleAppRefresh() {
+    let request = BGAppRefreshTaskRequest(identifier: "com.keybase.app.refresh")
+    request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+    do {
+      try BGTaskScheduler.shared.submit(request)
+    } catch {
+      log.error("Could not schedule app refresh: \(error.localizedDescription, privacy: .public)")
     }
   }
 
-  public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+  func handleAppRefresh(task: BGAppRefreshTask) {
+    scheduleAppRefresh()
+
+    task.expirationHandler = {
+      log.warning("Background refresh task expired")
+    }
+
+    DispatchQueue.global(qos: .default).async {
+      log.info("Background fetch started...")
+      Keybasego.KeybaseBackgroundSync()
+      task.setTaskCompleted(success: true)
+      log.info("Background fetch completed...")
+    }
+  }
+
+  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
     let token = tokenParts.joined()
     KbSetDeviceToken(token)
   }
 
-  public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+  override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
     guard let type = notification["type"] as? String else { return }
     if type == "chat.newmessageSilent_2" {
       DispatchQueue.global(qos: .default).async {
@@ -336,9 +345,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
         var err: NSError?
         Keybasego.KeybaseHandleBackgroundNotification(convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, pusher, false, &err)
-        if let err { NSLog("Failed to handle in engine: \(err)") }
+        if let err { log.error("Failed to handle in engine: \(err.localizedDescription, privacy: .public)") }
         completionHandler(.newData)
-        NSLog("Remote notification handle finished...")
+        log.info("Remote notification handle finished...")
       }
     } else {
       var notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
@@ -352,9 +361,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let userInfo = response.notification.request.content.userInfo
     var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = true
-
-    let type = notificationDict["type"] as? String ?? "unknown"
-    let convID = notificationDict["convID"] as? String ?? notificationDict["c"] as? String ?? "unknown"
 
     // Store the notification so it can be processed when app becomes active
     // This ensures navigation works even if React Native isn't ready yet
@@ -373,47 +379,47 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     completionHandler([])
   }
 
-  public override func applicationWillTerminate(_ application: UIApplication) {
+  override func applicationWillTerminate(_ application: UIApplication) {
     self.window?.rootViewController?.view.isHidden = true
     Keybasego.KeybaseAppWillExit(PushNotifier())
   }
 
   func hideCover() {
-    NSLog("hideCover: cancelling outstanding animations...")
+    log.info("hideCover: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
     self.resignImageView?.alpha = 0
   }
 
-  public override func applicationWillResignActive(_ application: UIApplication) {
-    NSLog("applicationWillResignActive: cancelling outstanding animations...")
+  override func applicationWillResignActive(_ application: UIApplication) {
+    log.info("applicationWillResignActive: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
     if let view = self.resignImageView { view.superview?.bringSubviewToFront(view) }
-    NSLog("applicationWillResignActive: rendering keyz screen...")
+    log.info("applicationWillResignActive: rendering keyz screen...")
     UIView.animate(withDuration: 0.3, delay: 0.1, options: .beginFromCurrentState) {
       self.resignImageView?.alpha = 1
     } completion: { finished in
-      NSLog("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
+      log.info("applicationWillResignActive: rendered keyz screen. Finished: \(finished)")
     }
     Keybasego.KeybaseSetAppStateInactive()
   }
 
-  public override func applicationDidEnterBackground(_ application: UIApplication) {
+  override func applicationDidEnterBackground(_ application: UIApplication) {
     watchdog?.start(context: "background entered")
-    application.ignoreSnapshotOnNextApplicationLaunch()
-    NSLog("applicationDidEnterBackground: cancelling outstanding animations...")
+    PerfFPSMonitor.appDidEnterBackground()
+    log.info("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
-    NSLog("applicationDidEnterBackground: setting keyz screen alpha to 1.")
+    log.info("applicationDidEnterBackground: setting keyz screen alpha to 1.")
     self.resignImageView?.alpha = 1
 
-    NSLog("applicationDidEnterBackground: notifying go.")
+    log.info("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
-    NSLog("applicationDidEnterBackground: after notifying go.")
+    log.info("applicationDidEnterBackground: after notifying go.")
     Keybasego.KeybaseFlushLogs()
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
       self.shutdownTask = app.beginBackgroundTask {
-        NSLog("applicationDidEnterBackground: shutdown task run.")
+        log.info("applicationDidEnterBackground: shutdown task run.")
         Keybasego.KeybaseAppWillExit(PushNotifier())
         let task = self.shutdownTask
         if task != .invalid {
@@ -433,14 +439,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
 
-  public override func applicationDidBecomeActive(_ application: UIApplication) {
+  override func applicationDidBecomeActive(_ application: UIApplication) {
     watchdog?.stop()
     Keybasego.KeybaseFlushLogs()
     let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
     writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
-    NSLog("applicationDidBecomeActive: hiding keyz screen.")
+    log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
-    NSLog("applicationDidBecomeActive: notifying service.")
+    log.info("applicationDidBecomeActive: notifying service.")
     notifyAppState(application)
 
     // Check if there's a stored notification with userInteraction that needs to be processed
@@ -454,22 +460,23 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         if alreadyReEmitted {
           KbSetInitialNotification(storedNotification)
         } else {
-          NSLog("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
+          log.info("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
           KbEmitPushNotification(storedNotification)
-          var copy = Dictionary(uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
+          var copy = storedNotification
           copy["reEmittedInBecomeActive"] = true
           KbSetInitialNotification(copy)
         }
       } else {
-        NSLog("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
+        log.info("applicationDidBecomeActive: stored notification has userInteraction=false, skipping")
       }
     } else {
-      NSLog("applicationDidBecomeActive: no stored notification found")
+      log.info("applicationDidBecomeActive: no stored notification found")
     }
   }
 
-  public override func applicationWillEnterForeground(_ application: UIApplication) {
-    NSLog("applicationWillEnterForeground: start, hiding keyz screen.")
+  override func applicationWillEnterForeground(_ application: UIApplication) {
+    log.info("applicationWillEnterForeground: hiding keyz screen.")
+    PerfFPSMonitor.appWillEnterForeground()
     hideCover()
     NSLog("applicationWillEnterForeground: done")
   }

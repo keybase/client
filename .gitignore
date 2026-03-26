@@ -87,6 +87,5 @@ go/keybase_netbsd
 go/keybase_openbsd
 
 .cursor
-.claude
+.claude/settings.local.json
 .*-mcp
-CLAUDE.md

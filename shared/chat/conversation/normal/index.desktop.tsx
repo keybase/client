@@ -1,7 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -28,19 +29,16 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation() {
+const Conversation = function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const navigateAppend = Chat.useChatNavigateAppend()
-  const onAttach = React.useCallback(
-    (paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({path: p}))
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
-      }))
-    },
-    [navigateAppend]
-  )
+  const onAttach = (paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({path: p}))
+    navigateAppend(conversationIDKey => ({
+      name: 'chatAttachmentGetTitles',
+      params: {conversationIDKey, pathAndOutboxIDs},
+    }))
+  }
   const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
   const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
   const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
@@ -52,22 +50,19 @@ const Conversation = React.memo(function Conversation() {
       : undefined
   })
   const attachmentPasted = Chat.useChatContext(s => s.dispatch.attachmentPasted)
-  const onPaste = React.useCallback(
-    (e: React.SyntheticEvent) => {
-      readImageFromClipboard(e)
-        .then(clipboardData => {
-          if (clipboardData) {
-            attachmentPasted(clipboardData)
-          }
-        })
-        .catch(() => {})
-    },
-    [attachmentPasted]
-  )
+  const onPaste = (e: React.SyntheticEvent) => {
+    readImageFromClipboard(e)
+      .then(clipboardData => {
+        if (clipboardData) {
+          attachmentPasted(clipboardData)
+        }
+      })
+      .catch(() => {})
+  }
   const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     toggleThreadSearch()
-  }, [toggleThreadSearch])
+  }
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 
   return (
@@ -79,7 +74,7 @@ const Conversation = React.memo(function Conversation() {
         rejectReason={dragAndDropRejectReason}
       >
         {threadLoadedOffline && <Offline />}
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
           <ListArea />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
@@ -94,17 +89,13 @@ const Conversation = React.memo(function Conversation() {
       </Kb.DragAndDrop>
     </div>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        flex: 1,
-        position: 'relative',
-      },
-      innerContainer: {
         flex: 1,
         position: 'relative',
       },
@@ -118,4 +109,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Conversation
+const ConversationWithProfiler = () => (
+  <PerfProfiler id="Conversation">
+    <Conversation />
+  </PerfProfiler>
+)
+
+export default ConversationWithProfiler

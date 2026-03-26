@@ -2,8 +2,8 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-import type {Actions} from '../actions/remote-gen'
-import type * as RPCTypes from '@/constants/types/rpc-gen'
+import type {Actions} from '../constants/remote-actions'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean
@@ -73,7 +73,7 @@ export type KB2 = {
     installCachedDokan?: () => Promise<void>
     uninstallDokan?: (execPath: string) => Promise<void>
     dumpNodeLogger?: () => Promise<void>
-    ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => void
+    ipcRendererOn?: (channel: string, cb: (event: unknown, action: unknown) => void) => (() => void) | undefined
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always

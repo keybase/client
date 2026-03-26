@@ -20,7 +20,7 @@ export const StillCommon = (
     uploadErrored?: boolean
   }
 ) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     statusIcon={<PathStatusIcon path={props.path} />}
     icon={
@@ -38,7 +38,9 @@ export const StillCommon = (
     onClick={props.onOpen}
     body={
       props.body || (
-        <Kb.Box
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
           style={Kb.Styles.collapseStyles([
             rowStyles.itemBox,
             props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
@@ -48,7 +50,7 @@ export const StillCommon = (
             {props.content}
           </Kb.Box2>
           {props.status || null}
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
     onlyShowActionOnHover="fade"
@@ -74,7 +76,6 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       itemBox: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         justifyContent: 'center',
         minWidth: 0,
@@ -91,4 +92,4 @@ export const rowStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export const normalRowHeight = Kb.smallListItem2Height
+export const normalRowHeight = Kb.smallListItemHeight

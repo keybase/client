@@ -55,7 +55,7 @@ func TestNamedRegsStore(t *testing.T) {
 		var res string
 		useRes := false
 
-		fail := func(f string, args ...interface{}) {
+		fail := func(f string, args ...any) {
 			prefix := fmt.Sprintf("[%v] ", i)
 			t.Fatalf(prefix+f, args...)
 		}

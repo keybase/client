@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
-import openURL from '@/util/open-url'
+import {useProfileState} from '@/stores/profile'
+import {openURL} from '@/util/misc'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
@@ -36,12 +36,8 @@ const ConnectedEnterUsername = () => {
   }
   const onChangeUsername = updateUsername
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onContinue = React.useCallback(() => {
-    navigateAppend('profileGenericProofResult')
-  }, [navigateAppend])
   const _onSubmit = () => submitUsername?.()
   const onSubmit = _platformURL ? () => _platformURL && openURL(_platformURL) : _onSubmit
-  const onCancel = onBack
 
   const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
   const wasWaiting = React.useRef(false)
@@ -51,15 +47,15 @@ const ConnectedEnterUsername = () => {
       wasWaiting.current = true
     } else if (wasWaiting.current) {
       wasWaiting.current = false
-      onContinue()
+      navigateAppend('profileGenericProofResult')
     }
     if (error) {
       setWaitingButtonKey(s => s + 1)
     }
-  }, [waiting, error, onContinue])
+  }, [waiting, error, navigateAppend])
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!unreachable && !Kb.Styles.isMobile && <Kb.BackButton onClick={onBack} style={styles.backButton} />}
         <Kb.Box2
@@ -68,9 +64,9 @@ const ConnectedEnterUsername = () => {
           gap="xtiny"
           style={styles.serviceIconHeaderContainer}
         >
-          <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+          <Kb.Box2 direction="vertical" relative={true}>
             <SiteIcon set={serviceIconFull} full={true} style={styles.serviceIconFull} />
-            <Kb.Icon
+            <Kb.IconAuto
               type={unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
               style={styles.serviceProofIcon}
             />
@@ -87,6 +83,8 @@ const ConnectedEnterUsername = () => {
           direction="vertical"
           alignItems="flex-start"
           gap="xtiny"
+          justifyContent="center"
+          flex={1}
           style={styles.inputContainer}
         >
           {unreachable ? (
@@ -137,7 +135,7 @@ const ConnectedEnterUsername = () => {
           </Kb.ButtonBar>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -151,72 +149,35 @@ type InputProps = {
 }
 
 const EnterUsernameInput = (props: InputProps) => {
-  const [focus, setFocus] = React.useState(false)
   const [username, setUsername] = React.useState(props.username)
   const {onChangeUsername: _onChangeUsername} = props
 
-  const onChangeUsername = React.useCallback(
-    (username: string) => {
-      _onChangeUsername(username)
-      setUsername(username)
-    },
-    [_onChangeUsername]
-  )
+  const onChangeUsername = (username: string) => {
+    _onChangeUsername(username)
+    setUsername(username)
+  }
 
-  const onFocus = React.useCallback(() => setFocus(true), [])
-  const onBlur = React.useCallback(() => setFocus(false), [])
-
-  // If ever there become more than 2 choices, this can be pushed into a protocol parameter.
   const usernamePlaceholder = props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
   return (
-    <Kb.Box2
-      direction="vertical"
-      style={Kb.Styles.collapseStyles([
-        styles.inputBox,
-        username && styles.inputBoxSmall,
-        focus && styles.borderBlue,
-        props.error && styles.borderRed,
-      ])}
-      fullWidth={true}
-    >
-      {!!username && (
-        <Kb.Text type="BodySmallSemibold" style={styles.colorBlue}>
-          {usernamePlaceholder}
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
-        <SiteIcon
-          set={props.serviceIcon}
-          full={false}
-          style={username ? styles.opacity75 : styles.opacity40}
-        />
-        <Kb.Box2 direction="horizontal" style={styles.positionRelative} fullWidth={true}>
-          <Kb.PlainInput
-            autoFocus={true}
-            flexable={true}
-            textType="BodySemibold"
-            value={username}
-            onChangeText={onChangeUsername}
-            onEnterKeyDown={props.onEnterKeyDown}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            style={styles.input}
-          />
-          <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
-            <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
-              <Kb.Text
-                type="BodySemibold"
-                style={Kb.Styles.collapseStyles([styles.placeholder, !!username && styles.invisible])}
-              >
-                {username || usernamePlaceholder}
-              </Kb.Text>
-              <Kb.Text type="BodySemibold" style={styles.placeholderService}>
-                {props.serviceSuffix}
-              </Kb.Text>
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
+      <SiteIcon
+        set={props.serviceIcon}
+        full={false}
+        style={username ? styles.opacity75 : styles.opacity40}
+      />
+      <Kb.Input3
+        autoFocus={true}
+        value={username}
+        onChangeText={onChangeUsername}
+        onEnterKeyDown={props.onEnterKeyDown}
+        placeholder={usernamePlaceholder}
+        error={props.error}
+        decoration={
+          <Kb.Text type="BodySemibold" style={styles.placeholderService}>
+            {props.serviceSuffix}
+          </Kb.Text>
+        }
+      />
     </Kb.Box2>
   )
 }
@@ -238,7 +199,7 @@ const Unreachable = (props: {
       full={false}
       style={Kb.Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
     />
-    <Kb.Box2 direction="vertical" style={styles.flexOne}>
+    <Kb.Box2 direction="vertical" flex={1}>
       <Kb.Text type="BodySemibold" style={styles.unreachablePlaceholder}>
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
@@ -247,12 +208,13 @@ const Unreachable = (props: {
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
-    <Kb.Icon
-      type="iconfont-proof-broken"
-      color={Kb.Styles.globalColors.red}
-      boxStyle={styles.marginLeftAuto}
-      style={styles.inlineIcon}
-    />
+    <Kb.Box2 direction="vertical" style={styles.marginLeftAuto}>
+      <Kb.Icon
+        type="iconfont-proof-broken"
+        color={Kb.Styles.globalColors.red}
+        style={styles.inlineIcon}
+      />
+    </Kb.Box2>
   </Kb.Box2>
 )
 
@@ -264,8 +226,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         top: Kb.Styles.globalMargins.small,
       },
-      borderBlue: {borderColor: Kb.Styles.globalColors.blue},
-      borderRed: {borderColor: Kb.Styles.globalColors.red},
       buttonBar: {
         ...Kb.Styles.padding(
           Kb.Styles.globalMargins.small,
@@ -276,19 +236,13 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
-      colorBlue: {color: Kb.Styles.globalColors.blueDark},
       colorRed: {color: Kb.Styles.globalColors.redDark},
-      container: Kb.Styles.platformStyles({isElectron: {height: 485, width: 560}}),
-      flexOne: {flex: 1},
+      container: {},
+
       inlineIcon: {
         position: 'relative',
         top: 1,
       },
-      input: Kb.Styles.platformStyles({
-        common: {marginRight: Kb.Styles.globalMargins.medium},
-        isAndroid: {top: 1},
-        isElectron: {marginTop: -1},
-      }),
       inputBox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
         borderColor: Kb.Styles.globalColors.black_10,
@@ -297,33 +251,16 @@ const styles = Kb.Styles.styleSheetCreate(
         borderWidth: 1,
         padding: Kb.Styles.globalMargins.xsmall,
       },
-      inputBoxSmall: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall)},
       inputContainer: {
         ...Kb.Styles.padding(
           0,
           Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.medium
         ),
-        flex: 1,
-        justifyContent: 'center',
-      },
-      inputPlaceholder: {
-        left: 1,
-        position: 'absolute',
-        right: 0,
-        top: 1,
-      },
-      invisible: {
-        // opacity doesn't work in nested Text on android
-        // see here: https://github.com/facebook/react-native/issues/18057
-        color: Kb.Styles.globalColors.transparent,
       },
       marginLeftAuto: {marginLeft: 'auto'},
       opacity40: {opacity: 0.4},
       opacity75: {opacity: 0.75},
-      paddingRightTiny: {paddingRight: Kb.Styles.globalMargins.tiny},
-      placeholder: {color: Kb.Styles.globalColors.black_35},
       placeholderService: {color: Kb.Styles.globalColors.black_20},
-      positionRelative: {position: 'relative'},
       serviceIconFull: {
         height: 64,
         width: 64,

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/common.avdl
 
 package chat1
@@ -1966,7 +1966,8 @@ func (o RetentionPolicy) DeepCopy() RetentionPolicy {
 	}
 }
 
-type RpRetain struct{}
+type RpRetain struct {
+}
 
 func (o RpRetain) DeepCopy() RpRetain {
 	return RpRetain{}
@@ -1982,7 +1983,8 @@ func (o RpExpire) DeepCopy() RpExpire {
 	}
 }
 
-type RpInherit struct{}
+type RpInherit struct {
+}
 
 func (o RpInherit) DeepCopy() RpInherit {
 	return RpInherit{}
@@ -2150,7 +2152,8 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 	}
 }
 
-type EmptyStruct struct{}
+type EmptyStruct struct {
+}
 
 func (o EmptyStruct) DeepCopy() EmptyStruct {
 	return EmptyStruct{}
@@ -2670,7 +2673,8 @@ func (o ChatMembersDetails) DeepCopy() ChatMembersDetails {
 	}
 }
 
-type CommonInterface interface{}
+type CommonInterface interface {
+}
 
 func CommonProtocol(i CommonInterface) rpc.Protocol {
 	return rpc.Protocol{

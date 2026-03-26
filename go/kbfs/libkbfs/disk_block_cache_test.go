@@ -302,7 +302,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	}
 	tlf1NumBlocks := 100
 	t.Log("Put 100 blocks into the cache.")
-	for i := 0; i < tlf1NumBlocks; i++ {
+	for range tlf1NumBlocks {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := standardCache.Put(
@@ -381,7 +381,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 	t.Log("Seed the cache with some other TLFs.")
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		for j := 0; j < numBlocksPerTlf; j++ {
+		for range numBlocksPerTlf {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
@@ -458,7 +458,7 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	t.Log("Seed the cache with some blocks.")
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		for j := 0; j < numBlocksPerTlf; j++ {
+		for range numBlocksPerTlf {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
@@ -502,7 +502,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 	t.Log("Seed the cache with some blocks.")
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		for j := 0; j < numBlocksPerTlf; j++ {
+		for range numBlocksPerTlf {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := standardCache.Put(
@@ -589,7 +589,7 @@ func seedDiskBlockCacheForTest(ctx context.Context, t *testing.T,
 	clock := config.Clock().(*clocktest.TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		for j := 0; j < numBlocksPerTlf; j++ {
+		for range numBlocksPerTlf {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
 			err := cache.Put(
@@ -802,7 +802,7 @@ func seedTlf(ctx context.Context, t *testing.T,
 	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, tlfID tlf.ID,
 	numBlocksPerTlf int,
 ) {
-	for j := 0; j < numBlocksPerTlf; j++ {
+	for range numBlocksPerTlf {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := cache.Put(
@@ -932,7 +932,7 @@ func TestDiskBlockCacheMark(t *testing.T) {
 	t.Log("Generate some blocks we can mark.")
 	tlfID := tlf.FakeID(1, tlf.Private)
 	ids := make([]kbfsblock.ID, numBlocksPerTlf)
-	for i := 0; i < numBlocksPerTlf; i++ {
+	for i := range numBlocksPerTlf {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
 		err := cache.Put(

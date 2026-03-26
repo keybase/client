@@ -1,5 +1,4 @@
 //go:build !darwin && !android
-// +build !darwin,!android
 
 package attachments
 

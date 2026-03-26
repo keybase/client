@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto'
+import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Recipients from '../recipients'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
 const operation = Crypto.Operations.Encrypt
 
-const EncryptOptions = React.memo(function EncryptOptions() {
+const EncryptOptions = () => {
   const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Crypto.useCryptoState(
     C.useShallow(s => {
       const o = s[operation]
@@ -54,7 +54,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
       />
     </Kb.Box2>
   )
-})
+}
 
 const EncryptOutputBanner = () => {
   const {hasRecipients, includeSelf, recipients, outputType} = Crypto.useCryptoState(
@@ -127,9 +127,9 @@ const styles = Kb.Styles.styleSheetCreate(
 
 export const EncryptInput = () => {
   const blurCBRef = React.useRef(() => {})
-  const setBlurCB = React.useCallback((cb: () => void) => {
+  const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
-  }, [])
+  }
 
   const options = C.isMobile ? (
     <InputActionsBar operation={operation} blurCBRef={blurCBRef}>

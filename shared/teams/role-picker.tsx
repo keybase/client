@@ -87,7 +87,8 @@ const RoleRow = (p: RoleRowProps) => {
       direction="vertical"
       fullWidth={true}
       alignItems="flex-start"
-      style={p.selected ? styles.rowSelected : styles.row}
+          relative={true}
+      style={p.selected ? undefined : styles.row}
     >
       {p.disabledReason ? (
         <Kb.WithTooltip tooltip={p.disabledReason} showOnPressMobile={true}>
@@ -161,10 +162,10 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         cants: [`Can't delete the team`],
         icon: (
           <Kb.Icon
-            boxStyle={{paddingBottom: 0}}
             style={styles.roleIcon}
             type="iconfont-crown-admin"
             sizeType="Small"
+            color={Kb.Styles.globalColors.black_35}
           />
         ),
       }
@@ -183,9 +184,9 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         icon: (
           <Kb.Icon
             style={styles.roleIcon}
-            boxStyle={{paddingBottom: 0}}
             type="iconfont-crown-owner"
             sizeType="Small"
+            color={Kb.Styles.globalColors.yellowDark}
           />
         ),
       }
@@ -242,8 +243,7 @@ const roleAbilities = (
       <Kb.Icon
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
-        style={Kb.Styles.isMobile ? styles.abilityCheck : undefined}
-        boxStyle={!Kb.Styles.isMobile ? styles.abilityCheck : undefined}
+        style={styles.abilityCheck}
         color={canDo ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.black_50}
       />
       <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
@@ -262,7 +262,7 @@ const Header = () => (
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const {presetRole} = props
   const filteredRole = filterRole(presetRole)
-  const [selectedRole, setSelectedRole] = React.useState<Role<IncludeSetIndividually>>(
+  const [selectedRole, setSelectedRole] = React.useState(
     filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   )
   React.useEffect(() => {
@@ -299,7 +299,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         })}
       </Kb.ScrollView>
 
-      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer} justifyContent="flex-end">
         {props.footerComponent}
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
           <Kb.Button
@@ -319,18 +319,10 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       abilityCheck: Kb.Styles.platformStyles({
-        isElectron: {
-          paddingRight: Kb.Styles.globalMargins.xtiny,
-          paddingTop: 6,
-        },
+        isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny, paddingTop: 6},
         isMobile: {paddingRight: Kb.Styles.globalMargins.tiny, paddingTop: 4},
       }),
       canText: {color: Kb.Styles.globalColors.black},
-      checkIcon: {
-        left: -24,
-        paddingTop: 2,
-        position: 'absolute',
-      },
       checkbox: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         flexGrow: 0,
@@ -338,11 +330,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
-          borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Kb.Styles.globalColors.black_20OrBlack}`,
           minHeight: 350,
           width: 310,
         },
@@ -353,7 +340,6 @@ const styles = Kb.Styles.styleSheetCreate(
       disabledRow: {opacity: 0.4},
       footer: {
         flexGrow: 0,
-        justifyContent: 'flex-end',
         paddingBottom: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
@@ -373,11 +359,24 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: 10,
         },
       }),
+      popupHeader: Kb.Styles.platformStyles({
+        common: {
+          borderBottomColor: Kb.Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid' as const,
+          justifyContent: 'space-between',
+        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
+      popupHeaderSide: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+        width: 64,
+      },
       radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
       roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
       row: {
         backgroundColor: Kb.Styles.globalColors.blueGreyLight,
-        position: 'relative',
       },
       rowBody: Kb.Styles.platformStyles({
         // To push the body out of the zone visible when deselected
@@ -402,12 +401,6 @@ const styles = Kb.Styles.styleSheetCreate(
       rowPadding: Kb.Styles.platformStyles({
         isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
-      rowSelected: {
-        position: 'relative',
-      },
-      scroll: {
-        backgroundColor: Kb.Styles.globalColors.white,
-      },
       text: {
         textAlign: 'left',
       },
@@ -418,7 +411,6 @@ const styles = Kb.Styles.styleSheetCreate(
 export type FloatingProps<T extends boolean> = {
   position?: Kb.Styles.Position
   children?: React.ReactNode
-  floatingContainerStyle?: Kb.Styles.StylesCrossPlatform
   open: boolean
 } & Props<T>
 
@@ -426,34 +418,40 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   props: FloatingProps<IncludeSetIndividually>
 ) {
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
-  const {position, children, open, floatingContainerStyle, onCancel, ...rest} = props
+  const {position, children, open, onCancel, ...rest} = props
   const picker = (
     <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
   )
   return (
     <>
       {children}
-      <Kb.Box2Measure direction="vertical" ref={popupAnchor} />
+      <Kb.Box2 direction="vertical" ref={popupAnchor} />
       {open && (
-        <Kb.FloatingBox
+        <Kb.Popup
           attachTo={popupAnchor}
           position={position || 'top center'}
-          onHidden={onCancel}
+          onHidden={onCancel ?? (() => {})}
           hideKeyboard={true}
         >
           <Kb.SafeAreaView>
             <Kb.Box2
               direction="vertical"
               fullHeight={Kb.Styles.isMobile}
-              style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+              style={styles.opaqueContainer}
             >
               {Kb.Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
+                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
+                  <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
+                    Cancel
+                  </Kb.Text>
+                  <Kb.Text type="BodyBig">Pick a role</Kb.Text>
+                  <Kb.Box2 direction="horizontal" style={styles.popupHeaderSide} />
+                </Kb.Box2>
               )}
               {picker}
             </Kb.Box2>
           </Kb.SafeAreaView>
-        </Kb.FloatingBox>
+        </Kb.Popup>
       )}
     </>
   )

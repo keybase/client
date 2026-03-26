@@ -4,8 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import {ChannelsWidget} from '@/teams/common'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -17,7 +17,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | undefined>()
 
-  const reloadDefaultChannels = React.useCallback(() => {
+  const reloadDefaultChannels = () => {
     setWaiting(true)
     getDefaultChannelsRPC(
       [{teamID}],
@@ -33,7 +33,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         setWaiting(false)
       }
     )
-  }, [teamID, getDefaultChannelsRPC])
+  }
 
   // Initialize
   React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])

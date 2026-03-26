@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -32,41 +32,38 @@ const Container = (ownProps: OwnProps) => {
     _tlfPathItem.type === T.FS.PathType.Folder &&
     !_tlfPathItem.children.size
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup, showPopup} = p
-      const disableSync = () => {
-        setTlfSyncConfig(tlfPath, false)
-      }
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          position="bottom left"
-          closeOnSelect={false}
-          containerStyle={styles.floating}
-          header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
-          items={
-            Kb.Styles.isMobile
-              ? [
-                  {
-                    danger: true,
-                    disabled: waiting,
-                    icon: 'iconfont-cloud',
-                    inProgress: waiting,
-                    onClick: disableSync,
-                    style: waiting ? {opacity: 0.3} : undefined,
-                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
-                  } as const,
-                ]
-              : []
-          }
-        />
-      )
-    },
-    [waiting, setTlfSyncConfig, tlfPath]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup, showPopup} = p
+    const disableSync = () => {
+      setTlfSyncConfig(tlfPath, false)
+    }
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        position="bottom left"
+        closeOnSelect={false}
+        containerStyle={styles.floating}
+        header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
+        items={
+          Kb.Styles.isMobile
+            ? [
+                {
+                  danger: true,
+                  disabled: waiting,
+                  icon: 'iconfont-cloud',
+                  inProgress: waiting,
+                  onClick: disableSync,
+                  style: waiting ? {opacity: 0.3} : undefined,
+                  title: waiting ? 'Unsyncing' : 'Yes, unsync',
+                } as const,
+              ]
+            : []
+        }
+      />
+    )
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return !hideSyncToggle ? (
     <>

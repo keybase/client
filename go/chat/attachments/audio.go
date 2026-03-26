@@ -35,7 +35,7 @@ func newAudioVisualizer(amps []float64) *audioVisualizer {
 
 func (a *audioVisualizer) stroke(offset, height int, img *image.NRGBA) {
 	for i := offset; i < offset+a.strokeWidth; i++ {
-		for j := 0; j < height; j++ {
+		for j := range height {
 			img.Set(i, a.height-j, a.strokeColor)
 		}
 	}
@@ -51,12 +51,12 @@ func (a *audioVisualizer) visualize() ([]byte, int) {
 	width := numStrokes * (a.strokeWidth + a.strokeGap)
 	img := image.NewNRGBA(image.Rect(0, 0, width, a.height))
 	offset := 0
-	for i := 0; i < width; i++ {
+	for i := range width {
 		for j := 0; j < a.height; j++ {
 			img.Set(i, j, a.bkgColor)
 		}
 	}
-	for i := 0; i < numStrokes; i++ {
+	for i := range numStrokes {
 		height := a.getHeight(a.amps[i])
 		a.stroke(offset, height, img)
 		offset += a.strokeWidth + a.strokeGap

@@ -3,11 +3,12 @@ import type {Props} from '.'
 
 const UserCard = (p: Props) => {
   const {avatarBackgroundStyle, avatarSize = 96, outerStyle, onAvatarClicked} = p
-  const {username, style, children, lighterPlaceholders} = p
+  const {username, style, children} = p
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
-      <Kb.Box style={styles.avatar}>
-        <Kb.Box
+    <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
+      <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch" style={styles.avatar}>
+        <Kb.Box2
+          direction="vertical"
           style={Kb.Styles.collapseStyles([
             styles.avatarBackground,
             {
@@ -21,19 +22,15 @@ const UserCard = (p: Props) => {
           size={avatarSize}
           onClick={onAvatarClicked}
           username={username}
-          lighterPlaceholders={lighterPlaceholders}
         />
-      </Kb.Box>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    alignSelf: 'stretch',
     marginTop: 0,
   },
   avatarBackground: {
@@ -43,20 +40,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-      width: '100%',
     },
     isTablet: {
       maxWidth: 410,
     },
   }),
   inside: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
     justifyContent: 'flex-start',
     padding: 16,
-    width: '100%',
   },
 }))
 

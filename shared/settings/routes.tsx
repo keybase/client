@@ -1,9 +1,77 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
-import * as Settings from '@/constants/settings/util'
+import * as Settings from '@/constants/settings'
+import {usePushState} from '@/stores/push'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsState} from '@/stores/settings'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {e164ToDisplay} from '@/util/phone-numbers'
+
+const PushPromptSkipButton = () => {
+  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  return (
+    <Kb.ClickableBox
+      onClick={() => {
+        rejectPermissions()
+        clearModals()
+      }}
+    >
+      <Kb.Text type="BodyBig" negative={true}>
+        Skip
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
+
+const PasswordHeaderTitle = () => {
+  const hasRandomPW = usePWState(s => !!s.randomPW)
+  return <Kb.Text type="BodyBig">{hasRandomPW ? 'Set a password' : 'Change password'}</Kb.Text>
+}
+
+const CheckPassphraseCancelButton = () => {
+  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        resetCheckPassword()
+        navigateUp()
+      }}
+    >
+      Cancel
+    </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderTitle = () => {
+  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
+  const displayPhone = e164ToDisplay(pendingVerification)
+  return (
+    <Kb.Text type="BodySmall" negative={true} center={true}>
+      {displayPhone || 'Unknown number'}
+    </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderLeft = () => {
+  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  return (
+    <Kb.BackButton
+      onClick={() => {
+        clearPhoneNumberAdd()
+        clearModals()
+      }}
+      iconColor={Kb.Styles.globalColors.white}
+    />
+  )
+}
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 
@@ -48,7 +116,6 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./files')),
   },
   [Settings.settingsGitTab]: gitRoutes.gitRoot,
-  [Settings.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
   [Settings.settingsNotificationsTab]: {
     getOptions: {title: 'Notifications'},
     screen: React.lazy(async () => import('./notifications')),
@@ -58,46 +125,55 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./screenprotector')),
   },
   [Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [Settings.settingsWhatsNewTab]: {
-    getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
-    screen: React.lazy(async () => import('../whats-new/container')),
-  },
   dbNukeConfirm: {
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
-  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
   removeDevice: devicesRoutes.deviceRevoke,
 }
 
 const sharedNewModalRoutes = {
-  [Settings.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
-  [Settings.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
-  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
+  [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
+    getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
+  }),
+  [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
+    getOptions: {headerTitle: () => <PasswordHeaderTitle />},
+  }),
+  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
+    getOptions: {title: 'Backup'},
+  }),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
   disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
-  settingsAddEmail: {
-    screen: React.lazy(async () => {
+  settingsAddEmail: C.makeScreen(
+    React.lazy(async () => {
       const {Email} = await import('./account/add-modals')
       return {default: Email}
     }),
-  },
-  settingsAddPhone: {
-    screen: React.lazy(async () => {
+    {getOptions: C.isMobile ? {title: 'Add email address'} : {title: 'Add an email address'}}
+  ),
+  settingsAddPhone: C.makeScreen(
+    React.lazy(async () => {
       const {Phone} = await import('./account/add-modals')
       return {default: Phone}
     }),
-  },
-
+    {getOptions: C.isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
+  ),
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
-  settingsVerifyPhone: {
-    screen: React.lazy(async () => {
+  settingsVerifyPhone: C.makeScreen(
+    React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')
       return {default: VerifyPhone}
     }),
-  },
+    {
+      getOptions: {
+        headerLeft: Kb.Styles.isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
+        headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+        headerTitle: () => <VerifyPhoneHeaderTitle />,
+      },
+    }
+  ),
 }
 
 const WebLinks = React.lazy(async () => import('./web-links'))
@@ -114,7 +190,7 @@ export const newRoutes = {
     screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
   },
   webLinks: C.makeScreen(WebLinks, {
-    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+    getOptions: ({route}) => ({
       header: undefined,
       title: route.params.title,
     }),
@@ -123,14 +199,24 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...sharedNewModalRoutes,
-  checkPassphraseBeforeDeleteAccount: {
-    screen: React.lazy(async () => import('./delete-confirm/check-passphrase')),
-  },
+  checkPassphraseBeforeDeleteAccount: C.makeScreen(
+    React.lazy(async () => import('./delete-confirm/check-passphrase')),
+    {getOptions: {headerLeft: () => <CheckPassphraseCancelButton />}}
+  ),
   modalFeedback: feedback,
-  settingsContactsJoined: {screen: React.lazy(async () => import('./contacts-joined'))},
-  settingsPushPrompt: {
-    screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
-  },
+  settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
+  settingsPushPrompt: C.isMobile
+    ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
+        getOptions: {
+          headerLeft: () => null,
+          headerRight: () => <PushPromptSkipButton />,
+          headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+          headerTitle: () => (
+            <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+              Allow notifications
+            </Kb.Text>
+          ),
+        },
+      })
+    : {screen: () => <></>},
 }
-
-export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

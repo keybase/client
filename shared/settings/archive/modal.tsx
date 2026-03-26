@@ -2,10 +2,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import {pickSave} from '@/util/pick-files'
+import {pickSave} from '@/util/misc'
 import * as FsCommon from '@/fs/common'
-import {useArchiveState} from '@/constants/archive'
-import {settingsArchiveTab} from '@/constants/settings'
+import {useArchiveState} from '@/stores/archive'
+import {settingsArchiveTab} from '@/stores/settings'
+import {useCurrentUserState} from '@/stores/current-user'
+import {getConvoState} from '@/stores/convostate'
 
 type Props =
   | {type: 'chatID'; conversationIDKey: T.Chat.ConversationIDKey}
@@ -16,12 +18,27 @@ type Props =
   | {type: 'fsPath'; path: string}
   | {type: 'git'; gitURL: string}
 
+const chatIDToDisplayname = (conversationIDKey: string) => {
+  const you = useCurrentUserState.getState().username
+  const cs = getConvoState(conversationIDKey)
+  const m = cs.meta
+  if (m.teamname) {
+    if (m.channelname) {
+      return `${m.teamname}#${m.channelname}`
+    }
+    return m.teamname
+  }
+
+  const participants = cs.participants.name
+  if (participants.length === 1) {
+    return participants[0] ?? ''
+  }
+  return participants.filter(username => username !== you).join(',')
+}
+
 const ArchiveModal = (p: Props) => {
   const {type} = p
-  const chatIDToDisplayname = useArchiveState(s => s.chatIDToDisplayname)
-  const displayname = React.useMemo(() => {
-    return p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
-  }, [p, chatIDToDisplayname])
+  const displayname = p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
 
   let defaultPath = ''
   if (C.isElectron) {
@@ -62,7 +79,7 @@ const ArchiveModal = (p: Props) => {
 
   const canStart = !!((C.isMobile || outpath) && !started)
 
-  const onStart = React.useCallback(() => {
+  const onStart = () => {
     if (!canStart) return
     setStarted(true)
     switch (p.type) {
@@ -88,13 +105,13 @@ const ArchiveModal = (p: Props) => {
         start('git', p.gitURL, C.isMobile ? '' : outpath)
         break
     }
-  }, [outpath, canStart, p, start])
-  const onClose = React.useCallback(() => {
+  }
+  const onClose = () => {
     resetWaiters()
     navigateUp()
-  }, [navigateUp, resetWaiters])
+  }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onProgress = React.useCallback(() => {
+  const onProgress = () => {
     resetWaiters()
     navigateUp()
     setTimeout(() => {
@@ -103,15 +120,15 @@ const ArchiveModal = (p: Props) => {
         navigateAppend(settingsArchiveTab)
       }, 200)
     }, 200)
-  }, [navigateUp, resetWaiters, switchTab, navigateAppend])
+  }
 
-  const selectPath = React.useCallback(() => {
+  const selectPath = () => {
     const f = async () => {
       const path = await pickSave({})
       if (path) setOutpath(path)
     }
     C.ignorePromise(f())
-  }, [])
+  }
 
   let content: React.ReactNode = null
   switch (type) {
@@ -213,35 +230,31 @@ const ArchiveModal = (p: Props) => {
     </Kb.Box2>
   )
 
-  const modalHeader = Kb.useModalHeaderTitleAndCancel('Backup', onClose)
   return (
-    <Kb.Modal
-      mode="Wide"
-      header={modalHeader}
-      footer={{
-        content: (
+    <>
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
+          {Kb.Styles.isMobile ? (
+            <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
+          ) : (
+            <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
+          )}
+          <Kb.BoxGrow />
+          {content}
+          <Kb.BoxGrow />
+          {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
+            ? null
+            : output}
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar small={true}>
             {started && <Kb.Button type="Default" label="See progress" onClick={onProgress} />}
             {started && <Kb.Button type="Default" label="Close" onClick={onClose} />}
             {!started && <Kb.Button type="Default" label="Start" onClick={onStart} disabled={!canStart} />}
           </Kb.ButtonBar>
-        ),
-      }}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
-        {Kb.Styles.isMobile ? (
-          <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
-        ) : (
-          <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
-        )}
-        <Kb.BoxGrow />
-        {content}
-        <Kb.BoxGrow />
-        {archiveAllFilesResponseWaiter.state !== 'idle' || archiveAllGitResponseWaiter.state !== 'idle'
-          ? null
-          : output}
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
@@ -250,6 +263,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contentContainer: {
     maxWidth: 400,
   },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   outPath: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blue_30,

@@ -1,27 +1,29 @@
 import * as Common from './common.desktop'
 import * as C from '@/constants'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
+import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import {makeNavScreens} from './shim'
 import logger from '@/logger'
 import Header from './header/index.desktop'
-import {HeaderLeftCancel} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {createLinkingConfig} from './linking'
+import {handleAppLink} from '@/constants/deeplinks'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {registerDebugClear} from '@/util/debug'
-import type {RootParamList} from '@/router-v2/route-params'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useDaemonState} from '@/constants/daemon'
+import {useDaemonState} from '@/stores/daemon'
+import {useCurrentUserState} from '@/stores/current-user'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
+import {makeLayout} from './screen-layout.desktop'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
-type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
 const appTabsInnerOptions = {
   ...Common.defaultNavigationOptions,
@@ -34,48 +36,43 @@ const appTabsInnerOptions = {
   tabBarStyle: Common.tabBarStyle,
 }
 
-const TabStackNavigator = createNativeStackNavigator<RootParamList>()
-const tabScreens = makeNavScreens(routes, TabStackNavigator.Screen, false, false)
-const TabStack = React.memo(function TabStack(p: {route: {name: string}}) {
-  const tab = p.route.name as DesktopTabs
-  return (
-    <TabStackNavigator.Navigator
-      initialRouteName={tabRoots[tab]}
-      screenOptions={Common.defaultNavigationOptions}
-    >
-      {tabScreens}
-    </TabStackNavigator.Navigator>
-  )
-})
+const tabScreensConfig = routeMapToStaticScreens(routes, makeLayout, false, false)
 
-const AppTabsInner = React.memo(function AppTabsInner() {
+const tabComponents: Record<string, React.ComponentType> = {}
+for (const tab of Tabs.desktopTabs) {
+  const nav = createNativeStackNavigator({
+    initialRouteName: tabRoots[tab],
+    screenOptions: Common.defaultNavigationOptions as NativeStackNavigationOptions,
+    screens: tabScreensConfig,
+  })
+  tabComponents[tab] = nav.getComponent()
+}
+
+function AppTabsInner() {
   return (
     <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
       {Tabs.desktopTabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} component={TabStack} />
+        <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
       ))}
     </Tab.Navigator>
   )
-})
+}
 
 const AppTabs = () => <AppTabsInner />
 
-const LoggedOutStack = createNativeStackNavigator<RootParamList>()
-const LoggedOutScreens = makeNavScreens(loggedOutRoutes, LoggedOutStack.Screen, false, true)
-const loggedOutOptions: NativeStackNavigationOptions = {
+const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
+const loggedOutOptions = {
   header: ({navigation}) => (
     <Header navigation={navigation} options={{headerBottomStyle: {height: 0}, headerShadowVisible: false}} />
   ),
-}
-const LoggedOut = React.memo(function LoggedOut() {
-  return (
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={loggedOutOptions}>
-      {LoggedOutScreens}
-    </LoggedOutStack.Navigator>
-  )
+} satisfies NativeStackNavigationOptions
+const loggedOutNav = createNativeStackNavigator({
+  initialRouteName: 'login',
+  screenOptions: loggedOutOptions,
+  screens: loggedOutScreensConfig,
 })
+const LoggedOut = loggedOutNav.getComponent()
 
-const RootStack = createNativeStackNavigator<RootParamList>()
 const documentTitle = {
   formatter: () => {
     const t = C.Router2.getTab()
@@ -85,12 +82,12 @@ const documentTitle = {
   },
 }
 
-const rootScreenOptions: NativeStackNavigationOptions = {
-  headerLeft: () => <HeaderLeftCancel />,
+const rootScreenOptions = {
+  headerLeft: () => <HeaderLeftButton mode="cancel" />,
   headerShown: false, // eventually do this after we pull apart modal2 etc
-  presentation: 'transparentModal',
+  presentation: 'transparentModal' as const,
   title: '',
-}
+} satisfies NativeStackNavigationOptions
 
 const useConnectNavToState = () => {
   const setNavOnce = React.useRef(false)
@@ -103,10 +100,14 @@ const useConnectNavToState = () => {
           window.DEBUGNavigator = C.Router2.navigationRef.current
           window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('@/constants')
+          window.KBINBOX = require('@/stores/chat')
+          window.KBCONVOSTATE = require('@/stores/convostate')
           registerDebugClear(() => {
             window.DEBUGNavigator = undefined
             window.DEBUGRouter2 = undefined
             window.KBCONSTANTS = undefined
+            window.KBINBOX = undefined
+            window.KBCONVOSTATE = undefined
           })
         }
       }
@@ -114,58 +115,113 @@ const useConnectNavToState = () => {
   }, [setNavOnce])
 }
 
-const modalScreens = makeNavScreens(modalRoutes, RootStack.Screen, true, false)
-const ElectronApp = React.memo(function ElectronApp() {
-  useConnectNavToState()
-  const loggedInUser = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
+// Set up the fallback handler for emitDeepLink on desktop (no linking prop needed on Electron)
+createLinkingConfig(handleAppLink)
+
+const useIsLoading = () => {
+  const everLoadedRef = React.useRef(false)
+  return !useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
+}
+
+const useIsLoggedIn = () => {
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'
     everLoadedRef.current = loaded
     return loaded
   })
+  const loggedIn = useConfigState(s => s.loggedIn)
+  return loggedInLoaded && loggedIn
+}
 
-  const onUnhandledAction = React.useCallback((a: Readonly<{type: string}>) => {
+const useIsLoggedOut = () => {
+  const everLoadedRef = React.useRef(false)
+  const loggedInLoaded = useDaemonState(s => {
+    const loaded = everLoadedRef.current || s.handshakeState === 'done'
+    everLoadedRef.current = loaded
+    return loaded
+  })
+  const loggedIn = useConfigState(s => s.loggedIn)
+  return loggedInLoaded && !loggedIn
+}
+
+const modalScreensConfig = routeMapToStaticScreens(modalRoutes, makeLayout, true, false)
+
+const rootNav = createNativeStackNavigator({
+  groups: {
+    loggedIn: {
+      if: useIsLoggedIn,
+      screens: {
+        loggedIn: {screen: AppTabs},
+        ...modalScreensConfig,
+      },
+    },
+    loggedOut: {
+      if: useIsLoggedOut,
+      screens: {
+        loggedOut: {screen: LoggedOut},
+      },
+    },
+  },
+  screenOptions: rootScreenOptions,
+  screens: {
+    loading: {
+      if: useIsLoading,
+      screen: Shared.SimpleLoading,
+    },
+  },
+})
+const RootComponent = rootNav.getComponent()
+
+function ElectronApp() {
+  useConnectNavToState()
+
+  const onUnhandledAction = (a: Readonly<{type: string}>) => {
     logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
-  }, [])
+  }
 
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
-  const onStateChange = React.useCallback(() => {
+  const onStateChange = () => {
     const ns = C.Router2.getRootState()
     setNavState(ns)
-  }, [setNavState])
+  }
 
-  const navRef = React.useCallback((ref: typeof C.Router2.navigationRef.current) => {
+  const navRef = (ref: typeof C.Router2.navigationRef.current) => {
     if (ref) {
       C.Router2.navigationRef.current = ref
     }
-  }, [])
+  }
+
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
+  const username = useCurrentUserState(s => s.username)
+  // Only remount the navigator when switching between logged-in users.
+  // Ignore '' → username (initial login) so in-flight unbox requests aren't interrupted.
+  const [navKey, setNavKey] = React.useState('')
+  const prevUsernameRef = React.useRef(username)
+  React.useEffect(() => {
+    const prev = prevUsernameRef.current
+    prevUsernameRef.current = username
+    if (prev && username && prev !== username) {
+      setNavKey(username)
+    }
+  }, [username])
 
   return (
     <NavigationContainer
-      ref={navRef}
-      theme={Shared.theme}
+      key={navKey}
+      documentTitle={documentTitle}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
-      documentTitle={documentTitle}
+      ref={navRef}
+      theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
     >
-      <RootStack.Navigator key="root" screenOptions={rootScreenOptions}>
-        {!loggedInLoaded && (
-          <RootStack.Screen key="loading" name="loading" component={Shared.SimpleLoading} />
-        )}
-        {loggedInLoaded && loggedIn && (
-          <React.Fragment key={`${loggedInUser}loggedIn`}>
-            <RootStack.Screen key={`${loggedInUser}loggedIn`} name="loggedIn" component={AppTabs} />
-            {modalScreens}
-          </React.Fragment>
-        )}
-        {loggedInLoaded && !loggedIn && (
-          <RootStack.Screen key="loggedOut" name="loggedOut" component={LoggedOut} />
-        )}
-      </RootStack.Navigator>
+      <RootComponent />
     </NavigationContainer>
   )
-})
+}
 
 export default ElectronApp

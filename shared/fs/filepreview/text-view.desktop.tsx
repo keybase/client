@@ -40,7 +40,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
           padding: Kb.Styles.globalMargins.small,
         },
-        isElectron: {overflow: 'scroll'} as const,
+        isElectron: {overflow: 'auto', scrollbarGutter: 'stable'} as const,
       }),
       innerContainer: {
         ...Kb.Styles.globalStyles.flexGrow,
@@ -56,7 +56,7 @@ const styles = Kb.Styles.styleSheetCreate(
       text: Kb.Styles.platformStyles({
         isElectron: {
           color: Kb.Styles.globalColors.black_on_white,
-          overflow: 'scroll',
+          overflow: 'auto',
           whiteSpace: 'pre',
         },
       }),

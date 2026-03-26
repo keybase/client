@@ -1,17 +1,19 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'
-import {pickImages} from '@/util/pick-files'
+import {pickImages} from '@/util/misc'
 import kebabCase from 'lodash/kebabCase'
 import {useEmojiState} from './use-emoji'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
+import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
 
 const {getPathForFile} = KB2.functions
 
-const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
+const pickEmojisPromise = async () => await pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -41,7 +43,7 @@ const useDoAddEmojis = (
   const addEmojisRpc = C.useRPC(T.RPCChat.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
-  const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
+  const clearBannerError = () => setBannerError('')
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddEmojis =
@@ -85,8 +87,7 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
 
-  const addFiles = React.useCallback(
-    (paths: Array<string>) => {
+  const addFiles = (paths: Array<string>) => {
       const pathsToAdd = paths.reduce(
         ({deduplicated, set}, path) => {
           if (!set.has(path)) {
@@ -108,34 +109,25 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
         )
       )
       setFilePaths([...filePaths, ...pathsToAdd])
-    },
-    [filePaths, aliasMap, setFilePaths]
-  )
-  const clearFiles = React.useCallback(() => setFilePaths([]), [setFilePaths])
+    }
+  const clearFiles = () => setFilePaths([])
 
-  const removeFilePath = React.useCallback(
-    (toRemove: Set<string> | string) =>
+  const removeFilePath = (toRemove: Set<string> | string) =>
       setFilePaths(fps =>
         typeof toRemove === 'string'
           ? fps.filter(filePath => toRemove !== filePath)
           : fps.filter(filePath => !toRemove.has(filePath))
-      ),
-    [setFilePaths]
-  )
+      )
 
   const [errors, setErrors] = React.useState(new Map<string, string>())
 
-  const emojisToAdd = React.useMemo(
-    () =>
-      filePaths.map(path => ({
+  const emojisToAdd = filePaths.map(path => ({
         alias: aliasMap.get(path) || '',
         error: errors.get(path) || '',
         onChangeAlias: (newAlias: string) => setAliasMap(new Map([...aliasMap, [path, newAlias]])),
         onRemove: () => removeFilePath(path),
         path,
-      })),
-    [errors, filePaths, aliasMap, removeFilePath]
-  )
+      }))
 
   const {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis} = useDoAddEmojis(
     conversationIDKey,
@@ -144,10 +136,10 @@ const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => 
     removeFilePath,
     onChange
   )
-  const clearErrors = React.useCallback(() => {
+  const clearErrors = () => {
     clearBannerError()
     setErrors(new Map<string, string>())
-  }, [clearBannerError, setErrors])
+  }
 
   return {
     addFiles,
@@ -172,9 +164,30 @@ export const AddEmojiModal = (props: Props) => {
       .catch(() => {})
   }
 
-  return !emojisToAdd.length ? (
+  const hasEmojis = emojisToAdd.length > 0
+  const navigation = useNavigation()
+  React.useEffect(() => {
+    if (!Kb.Styles.isMobile) return
+    if (hasEmojis) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <HeaderLeftButton
+            onPress={() => {
+              clearErrors()
+              clearFiles()
+            }}
+          />
+        ),
+      })
+    } else {
+      navigation.setOptions({
+        headerLeft: () => <HeaderLeftButton mode="cancel" />,
+      })
+    }
+  }, [hasEmojis, navigation, clearErrors, clearFiles])
+
+  return !hasEmojis ? (
     <Modal
-      title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel={Kb.Styles.isMobile ? 'Choose Images' : undefined}
@@ -184,17 +197,12 @@ export const AddEmojiModal = (props: Props) => {
     </Modal>
   ) : (
     <Modal
-      title="Add emoji"
       bannerError={bannerError}
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel="Add emoji"
       footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
-      backButtonOnClick={() => {
-        clearErrors()
-        clearFiles()
-      }}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>
@@ -324,9 +332,9 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
         item.emojiToAdd.error && styles.emojiToAddRowWithError,
       ])}
     >
-      <Kb.Box style={styles.emojiToAddImageContainer}>
-        <Kb.Image2 src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
-      </Kb.Box>
+      <Kb.Box2 direction="vertical" style={styles.emojiToAddImageContainer}>
+        <Kb.Image src={item.emojiToAdd.path} style={styles.emojiToAddImage} />
+      </Kb.Box2>
       <AliasInput
         error={item.emojiToAdd.error}
         alias={item.emojiToAdd.alias}
@@ -340,7 +348,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
 const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   const {dragOver, onDragLeave, onDragOver, onDrop, pick} = usePickFiles(props.addFiles)
   const {emojisToAdd} = props
-  const items = React.useMemo(() => {
+  const items = (() => {
     const ret = emojisToAdd.reduce<Array<EmojiToAddOrAddRow>>((arr, emojiToAdd, index) => {
       const previous = arr[index - 1]
       arr.push({
@@ -361,7 +369,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       type: 'add',
     })
     return ret
-  }, [emojisToAdd, pick])
+  })()
 
   return (
     <Kb.Box2
@@ -376,7 +384,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
         {items.length > 1 ? 'Choose aliases for these emoji:' : 'Choose an alias for this emoji:'}
       </Kb.Text>
       <Kb.BoxGrow>
-        <Kb.List2
+        <Kb.List
           items={items}
           keyProperty="key"
           renderItem={renderRow}

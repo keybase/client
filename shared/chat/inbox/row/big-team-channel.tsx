@@ -1,48 +1,21 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
-
+import {useInboxRowBig} from '@/stores/inbox-rows'
 type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  layoutChannelname: string
-  navKey: string
+  conversationIDKey: string
   selected: boolean
-  layoutSnippetDecoration?: T.RPCChat.SnippetDecoration
 }
 
-const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
-  return (
-    <Chat.ChatProvider id={props.conversationIDKey}>
-      <BigTeamChannelImpl {...props} />
-    </Chat.ChatProvider>
-  )
-})
-const BigTeamChannelImpl = (props: Props) => {
-  const {selected, layoutChannelname, layoutSnippetDecoration} = props
-  const channelname = Chat.useChatContext(s => s.meta.channelname || layoutChannelname)
-  const isError = Chat.useChatContext(s => s.meta.trustedState === 'error')
-  const snippetDecoration = Chat.useChatContext(s => {
-    const d =
-      s.meta.conversationIDKey === Chat.noConversationIDKey
-        ? (layoutSnippetDecoration ?? T.RPCChat.SnippetDecoration.none)
-        : s.meta.snippetDecoration
+const BigTeamChannel = (props: Props) => {
+  const {selected, conversationIDKey} = props
 
-    switch (d) {
-      case T.RPCChat.SnippetDecoration.pendingMessage:
-      case T.RPCChat.SnippetDecoration.failedPendingMessage:
-        return d
-      default:
-        return 0
-    }
-  })
-  const hasBadge = Chat.useChatContext(s => s.badge > 0)
-  const hasDraft = Chat.useChatContext(s => !!s.meta.draft)
-  const hasUnread = Chat.useChatContext(s => s.unread > 0)
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
-  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
-  const onSelectConversation = () => navigateToThread('inboxBig')
+  const row = useInboxRowBig(conversationIDKey)
+  const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
+
+  const onSelectConversation = () => Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null
@@ -85,22 +58,21 @@ const BigTeamChannelImpl = (props: Props) => {
   ])
 
   const name = (
-    <Kb.Text2
+    <Kb.Text
       lineClamp={1}
       type="Body"
       style={Kb.Styles.collapseStyles([styles.channelHash, selected && styles.channelHashSelected])}
     >
       #{' '}
-      <Kb.Text2 type={selected ? 'BodySemibold' : 'Body'} style={nameStyle}>
+      <Kb.Text type={selected ? 'BodySemibold' : 'Body'} style={nameStyle}>
         {channelname}
-      </Kb.Text2>
-    </Kb.Text2>
+      </Kb.Text>
+    </Kb.Text>
   )
 
   const mutedIcon = isMuted ? (
     <Kb.Box2 direction="vertical" tooltip="Muted conversation">
-      <Kb.Icon
-        fixOverdraw={Kb.Styles.isPhone}
+      <Kb.IconAuto
         color={selected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20}
         style={styles.muted}
         type={Kb.Styles.isPhone ? (selected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
@@ -118,35 +90,34 @@ const BigTeamChannelImpl = (props: Props) => {
   ) : null
 
   return (
-    <Kb.Styles.CanFixOverdrawContext.Provider value={!Kb.Styles.isTablet}>
-      <Kb.ClickableBox onClick={onSelectConversation} style={styles.container}>
-        <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
+    <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
+        <Kb.Box2
+          className="hover_background_color_blueGreyDark"
+          direction="horizontal"
+          fullWidth={!Kb.Styles.isMobile}
+          style={Kb.Styles.collapseStyles([
+            styles.channelBackground,
+            selected && styles.selectedChannelBackground,
+          ])}
+        >
+          {name}
+          {mutedIcon}
           <Kb.Box2
-            className="hover_background_color_blueGreyDark"
             direction="horizontal"
-            fullWidth={!Kb.Styles.isMobile}
-            style={Kb.Styles.collapseStyles([
-              styles.channelBackground,
-              selected && styles.selectedChannelBackground,
-            ])}
+            alignSelf="center"
+            alignItems="center"
+            justifyContent="flex-end"
+            flex={1}
+            tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
           >
-            {name}
-            {mutedIcon}
-            <Kb.Box2
-              direction="horizontal"
-              alignSelf="center"
-              alignItems="center"
-              style={styles.iconContainer}
-              tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
-            >
-              {draftIcon}
-              {outboxIcon}
-              {hasBadge && <Kb.Box style={styles.unread} />}
-            </Kb.Box2>
+            {draftIcon}
+            {outboxIcon}
+            {hasBadge && <Kb.Box2 direction="vertical" style={styles.unread} />}
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox>
-    </Kb.Styles.CanFixOverdrawContext.Provider>
+      </Kb.Box2>
+    </Kb.ClickableBox2>
   )
 }
 
@@ -155,7 +126,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       channelBackground: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           marginLeft: Kb.Styles.globalMargins.large,
           paddingRight: Kb.Styles.globalMargins.xsmall,
@@ -189,10 +159,6 @@ const styles = Kb.Styles.styleSheetCreate(
         display: 'flex',
         margin: 3,
       },
-      iconContainer: {
-        flex: 1,
-        justifyContent: 'flex-end',
-      },
       muted: {marginLeft: Kb.Styles.globalMargins.xtiny},
       rowContainer: Kb.Styles.platformStyles({
         common: {
@@ -205,17 +171,11 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},
       textError: {color: Kb.Styles.globalColors.redDark},
-      textPlain: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_63},
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
-      textPlainBold: Kb.Styles.platformStyles({
-        common: {
-          color: Kb.Styles.globalColors.blackOrWhite,
-          ...Kb.Styles.globalStyles.fontBold,
-        },
-        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
-      }),
+      textPlain: {color: Kb.Styles.globalColors.black_63},
+      textPlainBold: {
+        color: Kb.Styles.globalColors.blackOrWhite,
+        ...Kb.Styles.globalStyles.fontBold,
+      },
       textSelected: {color: Kb.Styles.globalColors.white},
       textSelectedBold: {
         color: Kb.Styles.globalColors.white,

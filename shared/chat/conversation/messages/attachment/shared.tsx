@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useOrdinal} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 import {Keyboard} from 'react-native'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -50,14 +50,12 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
   const [allowToast, setAllowToast] = React.useState(true)
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setAllowToast(true)
-      return () => {
-        setAllowToast(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setAllowToast(true)
+    return () => {
+      setAllowToast(false)
+    }
+  })
 
   return allowToast && showingToast ? (
     <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
@@ -67,46 +65,39 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = useOrdinal()
-  const state = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'attachment') {
-      return 'none'
-    }
-
-    if (m.downloadPath?.length) {
-      return 'doneWithPath'
-    }
-    if (m.transferProgress === 1) {
-      return 'done'
-    }
-    switch (m.transferState) {
-      case 'downloading':
-      case 'mobileSaving':
-        return 'downloading'
-      default:
-        return 'none'
-    }
-  })
-
-  const downloadPath = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      return m.downloadPath
-    }
-    return ''
-  })
-
-  const download = Chat.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  const {state, downloadPath, download} = Chat.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      let state: 'none' | 'doneWithPath' | 'done' | 'downloading' = 'none'
+      let downloadPath = ''
+      if (m?.type === 'attachment') {
+        downloadPath = m.downloadPath ?? ''
+        if (downloadPath.length) {
+          state = 'doneWithPath'
+        } else if (m.transferProgress === 1) {
+          state = 'done'
+        } else {
+          switch (m.transferState) {
+            case 'downloading':
+            case 'mobileSaving':
+              state = 'downloading'
+              break
+            default:
+          }
+        }
+      }
+      const download = C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+      return {download, downloadPath, state}
+    })
   )
-  const onDownload = React.useCallback(() => {
+  const onDownload = () => {
     download(ordinal)
-  }, [ordinal, download])
+  }
 
-  const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
-  const onFinder = React.useCallback(() => {
+  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
+  const onFinder = () => {
     downloadPath && openFinder?.(downloadPath)
-  }, [openFinder, downloadPath])
+  }
 
   switch (state) {
     case 'doneWithPath':
@@ -116,7 +107,6 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
           type="iconfont-finder"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
-          hint="Open folder"
           onClick={onFinder}
           style={style}
         />
@@ -130,7 +120,6 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
           type="iconfont-download"
           color={Kb.Styles.globalColors.green}
           fontSize={20}
-          hint="Downloading"
           style={style}
         />
       )
@@ -159,6 +148,7 @@ export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAtt
   return (
     <Kb.Box2
       direction="horizontal"
+      overflow="hidden"
       style={styles.transferring}
       alignItems="center"
       gap="xtiny"
@@ -186,13 +176,9 @@ export const Title = () => {
     return m?.type === 'attachment' ? (m.decoratedText?.stringValue() ?? m.title) : ''
   })
 
-  const styleOverride = React.useMemo(
-    () =>
-      Kb.Styles.isMobile
-        ? {paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}}
-        : undefined,
-    []
-  )
+  const styleOverride = Kb.Styles.isMobile
+    ? {paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}}
+    : undefined
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleContainer}>
@@ -218,8 +204,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   })
   return (
     <Kb.Icon
-      hint="Collapse"
-      style={isWhite ? (styles.collapseLabelWhite as Kb.IconStyle) : (styles.collapseLabel as Kb.IconStyle)}
+      style={isWhite ? styles.collapseLabelWhite : undefined}
       sizeType="Tiny"
       type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
     />
@@ -227,7 +212,7 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  collapseLabel: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+
   collapseLabelWhite: {color: Kb.Styles.globalColors.white_75},
   titleContainer: {
     alignSelf: 'flex-start',
@@ -237,7 +222,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.black_50,
     borderRadius: 2,
     left: Kb.Styles.globalMargins.tiny,
-    overflow: 'hidden',
     position: 'absolute',
     top: Kb.Styles.globalMargins.tiny,
   },
@@ -246,26 +230,22 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const useCollapseAction = () => {
   const ordinal = useOrdinal()
   const toggleMessageCollapse = Chat.useChatContext(s => s.dispatch.toggleMessageCollapse)
-  const onCollapse = React.useCallback(() => {
+  const onCollapse = () => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
-  }, [toggleMessageCollapse, ordinal])
+  }
   return onCollapse
 }
 
 // not showing this for now
 const useCollapseIconDesktop = (isWhite: boolean) => {
   const onCollapse = useCollapseAction()
-  const collapseIcon = React.useMemo(() => {
-    return (
-      <Kb.ClickableBox2 onClick={onCollapse}>
-        <Kb.Box2 alignSelf="flex-start" direction="horizontal" gap="xtiny">
-          <CollapseIcon isWhite={isWhite} />
-        </Kb.Box2>
-      </Kb.ClickableBox2>
-    )
-  }, [onCollapse, isWhite])
-
-  return collapseIcon
+  return (
+    <Kb.ClickableBox2 onClick={onCollapse}>
+      <Kb.Box2 alignSelf="flex-start" direction="horizontal" gap="xtiny">
+        <CollapseIcon isWhite={isWhite} />
+      </Kb.Box2>
+    </Kb.ClickableBox2>
+  )
 }
 const useCollapseIconMobile = (_isWhite: boolean) => null
 
@@ -273,13 +253,7 @@ export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseI
 
 export const useAttachmentState = () => {
   const ordinal = useOrdinal()
-  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
-  const openFullscreen = React.useCallback(() => {
-    Keyboard.dismiss()
-    attachmentPreviewSelect(ordinal)
-  }, [attachmentPreviewSelect, ordinal])
-
-  const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
+  const {attachmentPreviewSelect, fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
     Chat.useChatContext(
       C.useShallow(s => {
         const m = s.messageMap.get(ordinal)
@@ -291,9 +265,13 @@ export const useAttachmentState = () => {
         const fileName =
           deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
-        return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
+        return {attachmentPreviewSelect: s.dispatch.attachmentPreviewSelect, fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
       })
     )
+  const openFullscreen = () => {
+    Keyboard.dismiss()
+    attachmentPreviewSelect(ordinal)
+  }
 
   return {
     fileName,

@@ -119,7 +119,7 @@ func TestAuditStaleTeam(t *testing.T) {
 	t.Logf("User B rotates the key a bunch of times")
 
 	// B rotates the key by adding and remove C a bunch of times.
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		addC(B)
 		rmC(B)
 	}

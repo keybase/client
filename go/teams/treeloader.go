@@ -239,7 +239,6 @@ func (l *Treeloader) loadRecursive(mctx libkb.MetaContext, teamID keybase1.TeamI
 	// Because we load parents before children, the child's load can use the cached parent's team
 	// so we only make one team/get per team.
 	for _, idAndName := range subteams {
-		idAndName := idAndName
 		// This is unbounded but assuming subteam spread isn't too high, should be ok.
 		eg.Go(func() error {
 			incr := l.loadRecursive(mctx, idAndName.Id, idAndName.Name, nil, ch)

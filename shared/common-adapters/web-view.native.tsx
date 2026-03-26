@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
@@ -30,25 +30,19 @@ const KBWebViewBase = (props: WebViewProps) => {
   const {showLoadingStateUntilLoaded} = props
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
-  const isMounted = C.useIsMounted()
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
   const [opacity, setOpacity] = React.useState(isLoaded ? 1 : 0)
 
-  const setLoading = React.useCallback(
-    (l: boolean) => {
-      _setLoading(l)
-      setOpacity(l ? 0 : 1)
-    },
-    [_setLoading]
-  )
+  const setLoading = (l: boolean) => {
+    _setLoading(l)
+    setOpacity(l ? 0 : 1)
+  }
 
   // on ios when we tab away and back pdfs won't rerender somehow
   const [forceReload, setForceReload] = React.useState(1)
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setForceReload(a => a + 1)
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setForceReload(a => a + 1)
+  })
 
   return (
     <>
@@ -74,9 +68,9 @@ const KBWebViewBase = (props: WebViewProps) => {
               props.showLoadingStateUntilLoaded && loading && styles.absolute,
             ]),
           ]}
-          onLoadStart={() => isMounted() && setLoading(true)}
-          onLoadEnd={() => isMounted() && setLoading(false)}
-          onLoadProgress={({nativeEvent}) => isMounted() && setProgress(nativeEvent.progress)}
+          onLoadStart={() => setLoading(true)}
+          onLoadEnd={() => setLoading(false)}
+          onLoadProgress={({nativeEvent}) => setProgress(nativeEvent.progress)}
           onError={event => {
             onError?.(event.nativeEvent.description)
           }}
@@ -103,7 +97,7 @@ const KBWebViewBase = (props: WebViewProps) => {
   )
 }
 
-const KBWebView = React.memo(KBWebViewBase)
+const KBWebView = KBWebViewBase
 
 const styles = Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},

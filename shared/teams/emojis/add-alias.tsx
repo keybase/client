@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -84,7 +84,6 @@ const AddAliasModal = (props: Props) => {
   return (
     <Modal
       bannerImage="icon-illustration-emoji-alias-460-96"
-      title="Add an alias"
       desktopHeight={395}
       footerButtonLabel="Add an alias"
       footerButtonOnClick={alias.length > 2 ? doAddAlias : undefined}
@@ -147,24 +146,23 @@ const ChooseEmoji = Kb.Styles.isMobile
       const conversationIDKey = Chat.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
-          props: {
+          name: 'chatChooseEmoji',
+          params: {
             conversationIDKey,
             hideFrequentEmoji: true,
             onlyTeamCustomEmoji: true,
             pickKey,
             small: true,
           },
-          selected: 'chatChooseEmoji',
         })
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
       const {onChoose} = props
-      const makePopup = React.useCallback(
-        (p: Kb.Popup2Parms) => {
+      const makePopup = (p: Kb.Popup2Parms) => {
           const {attachTo, hidePopup} = p
           return (
-            <Kb.FloatingBox
+            <Kb.Popup
               attachTo={attachTo}
               containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
               position="bottom left"
@@ -178,11 +176,9 @@ const ChooseEmoji = Kb.Styles.isMobile
                 onDidPick={hidePopup}
                 onlyTeamCustomEmoji={true}
               />
-            </Kb.FloatingBox>
+            </Kb.Popup>
           )
-        },
-        [onChoose]
-      )
+        }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>

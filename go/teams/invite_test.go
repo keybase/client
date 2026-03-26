@@ -852,7 +852,7 @@ func TestTeamPlayerUsedInviteMultipleTimes(t *testing.T) {
 	teamSectionCM.UsedInvites = []SCMapInviteIDUVPair{
 		{InviteID: SCTeamInviteID(inviteID), UV: testUV.PercentForm()},
 	}
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		state, err = appendSigToState(t, team, state, libkb.LinkTypeChangeMembership,
 			teamSectionCM, me, nil /* merkleRoot */)
 		require.NoError(t, err)

@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -23,7 +23,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const {channelname} = channelInfo
 
   const nav = useSafeNavigation()
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onCancel = () => nav.safeNavigateUp()
 
   const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
@@ -49,15 +49,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const prompt = `Remove ${Teams.stringifyPeople(members)} from #${channelname}?`
   const header = (
-    <Kb.Box style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" relative={true}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />
       <Kb.Icon
-        boxStyle={members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer}
         type="iconfont-block"
-        style={styles.headerIcon}
+        style={Kb.Styles.collapseStyles([styles.headerIcon, members.length <= 5 ? styles.iconContainerSingle : styles.iconContainer])}
         sizeType="Small"
       />
-    </Kb.Box>
+    </Kb.Box2>
   )
   return (
     <Kb.ConfirmModal
@@ -102,8 +101,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     bottom: -3,
     position: 'absolute',
     right: 0,
-  },
-  positionRelative: {
-    position: 'relative',
   },
 }))

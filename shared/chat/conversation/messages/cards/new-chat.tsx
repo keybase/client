@@ -1,6 +1,5 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 
 type Props = {
   self: boolean
@@ -16,7 +15,7 @@ type InnerProps = {
   text: string
 }
 
-const NewCard = React.memo(function NewCard(outerProps: Props) {
+function NewCard(outerProps: Props) {
   const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
   const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
   const props: InnerProps = outerProps.self
@@ -69,13 +68,13 @@ const NewCard = React.memo(function NewCard(outerProps: Props) {
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon
+      <Kb.ImageIcon
         type={props.icon}
         style={Kb.Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
       />
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

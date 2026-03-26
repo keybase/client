@@ -11,8 +11,8 @@ const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
 
 const AlphabetIndex = (props: Props) => {
   const topSectionRef = React.useRef<View>(null)
-  const sectionMeasureRef = React.useRef<{height: number; pageY: number}>(initMeasureRef)
-  const currIndex = React.useRef<number>(-1)
+  const sectionMeasureRef = React.useRef(initMeasureRef)
+  const currIndex = React.useRef(-1)
 
   // This timeout is long because our ref is set before the screen transition
   // finishes. Transition must be finished so we get accurate coords.
@@ -27,8 +27,7 @@ const AlphabetIndex = (props: Props) => {
   }, [storeMeasure, props.measureKey])
 
   const {labels, onScroll, showNumSection} = props
-  const handleTouch = React.useCallback(
-    (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
+  const handleTouch = (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
       if (isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
@@ -43,13 +42,11 @@ const AlphabetIndex = (props: Props) => {
           onScroll('numSection')
         }
       }
-    },
-    [labels, onScroll, showNumSection]
-  )
+    }
 
-  const clearTouch = React.useCallback(() => {
+  const clearTouch = () => {
     currIndex.current = -1
-  }, [])
+  }
 
   return (
     <View

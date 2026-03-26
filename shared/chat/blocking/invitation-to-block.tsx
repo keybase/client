@@ -1,8 +1,8 @@
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat'
+import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const BlockButtons = () => {
   const nav = useSafeNavigation()
@@ -27,17 +27,17 @@ const BlockButtons = () => {
   )
 
   const onViewProfile = () => showUserProfile(adder)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
   const onBlock = () =>
     nav.safeNavigateAppend({
-      props: {
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         conversationIDKey,
         others: others,
         team: team,
         username: adder,
       },
-      selected: 'chatBlockingModal',
     })
   const onDismiss = () => dismissBlockButtons(teamID)
 
@@ -86,6 +86,7 @@ const BlockButtons = () => {
       direction="vertical"
       centerChildren={true}
       gap="tiny"
+          relative={true}
       style={styles.dismissContainer}
       fullWidth={true}
     >
@@ -93,7 +94,7 @@ const BlockButtons = () => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={onDismiss} />
+        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -133,7 +134,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         paddingBottom: Kb.Styles.globalMargins.xsmall,
         paddingTop: Kb.Styles.globalMargins.xsmall,
-        position: 'relative',
       },
       dismissIcon: {
         position: 'absolute',

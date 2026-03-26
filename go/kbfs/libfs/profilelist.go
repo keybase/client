@@ -209,11 +209,11 @@ func (pfs ProfileFS) OpenWithContext(
 ) (billy.File, error) {
 	var durationStr string
 	var prof timedProfile
-	if strings.HasPrefix(filename, CPUProfilePrefix) {
-		durationStr = strings.TrimPrefix(filename, CPUProfilePrefix)
+	if after, ok := strings.CutPrefix(filename, CPUProfilePrefix); ok {
+		durationStr = after
 		prof = cpuProfile{}
-	} else if strings.HasPrefix(filename, TraceProfilePrefix) {
-		durationStr = strings.TrimPrefix(filename, TraceProfilePrefix)
+	} else if after, ok := strings.CutPrefix(filename, TraceProfilePrefix); ok {
+		durationStr = after
 		prof = traceProfile{}
 	}
 	if durationStr != "" {

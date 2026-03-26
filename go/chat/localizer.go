@@ -535,7 +535,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		return nil
 	})
 	nthreads := s.G().Env.GetChatInboxSourceLocalizeThreads()
-	for i := 0; i < nthreads; i++ {
+	for i := range nthreads {
 		index := i
 		eg.Go(func() error {
 			for conv := range convCh {

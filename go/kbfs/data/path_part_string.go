@@ -56,8 +56,8 @@ func NewPathPartString(
 	}
 
 	isFileInfo := false
-	if strings.HasPrefix(plaintext, prefixFileInfo) {
-		toObfuscate = strings.TrimPrefix(plaintext, prefixFileInfo)
+	if after, ok := strings.CutPrefix(plaintext, prefixFileInfo); ok {
+		toObfuscate = after
 		isFileInfo = true
 	} else if strings.HasPrefix(plaintext, prefixToSkipObfsucation) {
 		// Nil out the obfuscator since this string doesn't need

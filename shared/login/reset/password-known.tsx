@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
-import * as React from 'react'
+import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -9,16 +8,15 @@ const KnowPassword = () => {
   const error = AutoReset.useAutoResetState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
-  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])
+  const onCancel = () => nav.safeNavigateUp()
+  const onYes = () => nav.safeNavigateAppend('resetEnterPassword')
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onNo = React.useCallback(() => resetAccount(), [resetAccount])
+  const onNo = () => resetAccount()
   return (
     <SignupScreen
       title="Account reset"
       noBackground={true}
       onBack={onCancel}
-      leftActionText="Cancel"
       banners={
         error ? (
           <Kb.Banner color="red">
@@ -54,11 +52,6 @@ const KnowPassword = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  input: Kb.Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-  }),
   topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',

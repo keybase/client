@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
-import * as Settings from '@/constants/settings/util'
-import {usePeopleState} from '@/constants/people'
+import * as Settings from '@/constants/settings'
+import {usePeopleState} from '@/stores/people'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -82,9 +82,9 @@ const Container = (ownProps: OwnProps) => {
       badged={badged}
       icon={
         iconUrl ? (
-          <Kb.Image2 src={iconUrl} style={styles.icon} />
+          <Kb.Image src={iconUrl} style={styles.icon} />
         ) : (
-          <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
+          <Kb.ImageIcon type="icon-keybase-logo-80" style={styles.icon} />
         )
       }
     >

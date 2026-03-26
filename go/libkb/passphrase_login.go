@@ -108,7 +108,7 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 
 func pplPromptLoop(m MetaContext, maxAttempts int, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("pplPromptLoop", &err)()
-	for i := 0; i < maxAttempts; i++ {
+	for range maxAttempts {
 		if err = pplPromptOnce(m, ls, arg); err == nil {
 			return nil
 		}

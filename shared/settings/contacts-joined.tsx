@@ -1,14 +1,15 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {useTrackerState} from '@/constants/tracker2'
-import {useFollowerState} from '@/constants/followers'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {useTrackerState} from '@/stores/tracker'
+import {useFollowerState} from '@/stores/followers'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
+type ItemHeight = React.ComponentProps<typeof Kb.List<T.RPCGen.ProcessedContact>>['itemHeight']
+const itemHeight = {height: 96, type: 'fixed' as const} satisfies ItemHeight
 
 type FollowProps = {
   username: string
@@ -33,10 +34,10 @@ export const FollowButton = (props: FollowProps) => {
     }
   }, [username, guiID, showUser])
 
-  const onFollow = React.useCallback(() => changeFollow(guiID, true), [changeFollow, guiID])
-  const onUnfollow = React.useCallback(() => changeFollow(guiID, false), [changeFollow, guiID])
+  const onFollow = () => changeFollow(guiID, true)
+  const onUnfollow = () => changeFollow(guiID, false)
 
-  const waitingKey = React.useMemo(() => [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad], [username])
+  const waitingKey = [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad]
 
   return (
     <UnconnectedFollowButton
@@ -55,16 +56,12 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component.phoneNumber || item.component.email || ''
 
-  const followThem = useFollowerState(s => s.following.has(username))
-  if (followThem) {
-    return null
-  }
   return (
     <Kb.Box2 direction="horizontal" key={username} fullWidth={true}>
-      <Kb.Box style={styles.avatar}>
+      <Kb.Box2 direction="vertical" style={styles.avatar}>
         <Kb.Avatar username={username} size={48} />
-      </Kb.Box>
-      <Kb.Box2 direction="vertical" style={styles.rightBox}>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" flex={1}>
         <Kb.ConnectedUsernames colorFollowing={true} type="BodyBold" usernames={username} />
         <Kb.Text type="BodySmall">{label}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
@@ -79,24 +76,15 @@ const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
 
 const ContactsJoinedModal = () => {
   const people = useSettingsContactsState(s => s.alreadyOnKeybase)
-  const nav = useSafeNavigation()
-  const onClose = () => nav.safeNavigateUp()
+  const following = useFollowerState(s => s.following)
+  const filteredPeople = people.filter(p => !following.has(p.username))
   return (
-    <Kb.Modal
-      header={{
-        hideBorder: true,
-        leftButton: (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Done
-          </Kb.Text>
-        ),
-      }}
-    >
+    <>
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
-      <Kb.List items={people} renderItem={renderItem} indexAsKey={true} />
-    </Kb.Modal>
+      <Kb.List items={filteredPeople} renderItem={renderItem} indexAsKey={true} itemHeight={itemHeight} />
+    </>
   )
 }
 
@@ -115,7 +103,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      rightBox: {flexGrow: 1},
       woot: {
         marginBottom: Kb.Styles.globalMargins.small,
         marginLeft: Kb.Styles.globalMargins.medium,

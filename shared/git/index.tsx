@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Git from '@/constants/git'
+import * as Git from '@/stores/git'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'
@@ -29,21 +29,16 @@ const Container = (ownProps: OwnProps) => {
     })
   )
   const {badged} = useLocalBadging(isNew, clearBadges)
-  const {personals, teams} = React.useMemo(() => getRepos(idToInfo), [idToInfo])
+  const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onShowDelete = React.useCallback(
-    (id: string) => {
-      setError(undefined)
-      navigateAppend({props: {id}, selected: 'gitDeleteRepo'})
-    },
-    [navigateAppend, setError]
-  )
+  const onShowDelete = (id: string) => {
+    setError(undefined)
+    navigateAppend({name: 'gitDeleteRepo', params: {id}})
+  }
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      load()
-    }, [load])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    load()
+  })
 
   const [expandedSet, setExpandedSet] = React.useState(
     ownProps.expanded ? new Set([ownProps.expanded]) : new Set()
@@ -54,35 +49,32 @@ const Container = (ownProps: OwnProps) => {
     setExpandedSet(new Set(expandedSet))
   }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const onNewPersonalRepo = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
-      }
-      const onNewTeamRepo = () => {
-        setError(undefined)
-        navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
-      }
-      const {attachTo, hidePopup} = p
-      const menuItems = [
-        {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
-        {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
-      ]
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const onNewPersonalRepo = () => {
+      setError(undefined)
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: false}})
+    }
+    const onNewTeamRepo = () => {
+      setError(undefined)
+      navigateAppend({name: 'gitNewRepo', params: {isTeam: true}})
+    }
+    const {attachTo, hidePopup} = p
+    const menuItems = [
+      {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
+      {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
+    ]
 
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom center"
-        />
-      )
-    },
-    [navigateAppend, setError]
-  )
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -92,7 +84,7 @@ const Container = (ownProps: OwnProps) => {
       onReload={load}
       reloadOnMount={true}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>
@@ -105,7 +97,7 @@ const Container = (ownProps: OwnProps) => {
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
         )}
-        <NewContext.Provider value={badged}>
+        <NewContext value={badged}>
           <Kb.SectionList
             keyExtractor={item => item}
             extraData={expandedSet}
@@ -126,7 +118,7 @@ const Container = (ownProps: OwnProps) => {
               {data: teams, loading: loading, title: 'Team'},
             ]}
           />
-        </NewContext.Provider>
+        </NewContext>
         {popup}
       </Kb.Box2>
     </Kb.Reloadable>
@@ -136,7 +128,6 @@ const Container = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {position: 'relative'},
       header: {
         ...Kb.Styles.globalStyles.flexBoxCenter,
         ...Kb.Styles.globalStyles.flexBoxRow,

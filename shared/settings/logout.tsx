@@ -3,9 +3,9 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword} from './password'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
-import {useLogoutState} from '@/constants/logout'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsState} from '@/stores/settings'
+import {useLogoutState} from '@/stores/logout'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(
@@ -32,27 +32,24 @@ const LogoutContainer = () => {
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     resetCheckPassword()
     navigateUp()
-  }, [resetCheckPassword, navigateUp])
+  }
   const onCheckPassword = checkPassword
 
   const requestLogout = useLogoutState(s => s.dispatch.requestLogout)
 
-  const _onLogout = React.useCallback(() => {
+  const _onLogout = () => {
     requestLogout()
     resetCheckPassword()
-  }, [resetCheckPassword, requestLogout])
+  }
 
-  const onSavePassword = React.useCallback(
-    (password: string) => {
-      _setPassword(password)
-      setPasswordConfirm(password)
-      submitNewPassword(true)
-    },
-    [submitNewPassword, _setPassword, setPasswordConfirm]
-  )
+  const onSavePassword = (password: string) => {
+    _setPassword(password)
+    setPasswordConfirm(password)
+    submitNewPassword(true)
+  }
 
   const onLogout = useSafeSubmit(_onLogout, false)
 
@@ -70,13 +67,10 @@ const LogoutContainer = () => {
     setLoggingOut(true)
   }
 
-  const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return hasRandomPW === undefined ? (
-    <Kb.Modal onClose={onCancel}>
-      <Kb.ProgressIndicator style={styles.progress} type="Huge" />
-    </Kb.Modal>
+    <Kb.ProgressIndicator style={styles.progress} type="Huge" />
   ) : hasRandomPW ? (
     <UpdatePassword
       error=""
@@ -89,20 +83,46 @@ const LogoutContainer = () => {
       waitingForResponse={waitingForResponse}
     />
   ) : (
-    <Kb.Modal
-      backgroundStyle={styles.logoutBackground}
-      banners={
-        <>
-          {checkPasswordIsCorrect === false ? (
-            <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
-          ) : null}
-          {checkPasswordIsCorrect === true ? (
-            <Kb.Banner color="green">Your password is correct.</Kb.Banner>
-          ) : null}
-        </>
-      }
-      footer={{
-        content: !checkPasswordIsCorrect ? (
+    <>
+      {checkPasswordIsCorrect === false ? (
+        <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+      ) : null}
+      {checkPasswordIsCorrect === true ? (
+        <Kb.Banner color="green">Your password is correct.</Kb.Banner>
+      ) : null}
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
+          {Kb.Styles.isMobile && (
+            <Kb.Text style={styles.headerText} type="Header">
+              Do you know your password?
+            </Kb.Text>
+          )}
+          <Kb.Text style={styles.bodyText} type="Body">
+            You will need it to sign back in.
+          </Kb.Text>
+          <Kb.RoundedBox>
+            <Kb.Input3
+              keyboardType={keyboardType}
+              onEnterKeyDown={() => {
+                checkPasswordIsCorrect ? logOut() : onCheckPassword(password)
+              }}
+              onChangeText={setPassword}
+              placeholder="Your password"
+              secureTextEntry={!showTyping}
+              value={password}
+              hideBorder={true}
+            />
+          </Kb.RoundedBox>
+          <Kb.Checkbox
+            checked={showTyping}
+            label="Show typing"
+            onCheck={() => setShowTyping(!showTyping)}
+            style={styles.checkbox}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        {!checkPasswordIsCorrect ? (
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
@@ -136,47 +156,9 @@ const LogoutContainer = () => {
               <Kb.Button label="Safely sign out" fullWidth={true} onClick={logOut} type="Success" />
             )}
           </Kb.ButtonBar>
-        ),
-      }}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        ) : null,
-        title: !Kb.Styles.isMobile && 'Do you know your password?',
-      }}
-      onClose={onCancel}
-    >
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        {Kb.Styles.isMobile && (
-          <Kb.Text style={styles.headerText} type="Header">
-            Do you know your password?
-          </Kb.Text>
         )}
-        <Kb.Text style={styles.bodyText} type="Body">
-          You will need it to sign back in.
-        </Kb.Text>
-        <Kb.RoundedBox>
-          <Kb.PlainInput
-            keyboardType={keyboardType}
-            onEnterKeyDown={() => {
-              checkPasswordIsCorrect ? logOut() : onCheckPassword(password)
-            }}
-            onChangeText={setPassword}
-            placeholder="Your password"
-            type={inputType}
-            value={password}
-          />
-        </Kb.RoundedBox>
-        <Kb.Checkbox
-          checked={showTyping}
-          label="Show typing"
-          onCheck={() => setShowTyping(!showTyping)}
-          style={styles.checkbox}
-        />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
@@ -197,16 +179,12 @@ const styles = Kb.Styles.styleSheetCreate(
           Kb.Styles.globalMargins.small
         ),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexGrow: 1,
       },
       headerText: {
         marginBottom: Kb.Styles.globalMargins.small,
         textAlign: 'center',
       },
       logout: {paddingLeft: Kb.Styles.globalMargins.xtiny},
-      logoutBackground: Kb.Styles.platformStyles({
-        isTablet: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-      }),
       logoutContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
@@ -215,6 +193,20 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {
           ...Kb.Styles.desktopStyles.clickable,
+        },
+      }),
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
         },
       }),
       progress: {

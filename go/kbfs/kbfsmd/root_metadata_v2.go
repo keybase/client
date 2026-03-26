@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -325,10 +326,8 @@ func (md *RootMetadataV2) IsWriter(
 	_ keybase1.OfflineAvailability,
 ) (bool, error) {
 	if md.ID.Type() != tlf.Private {
-		for _, w := range md.Writers {
-			if w == user.AsUserOrTeam() {
-				return true, nil
-			}
+		if slices.Contains(md.Writers, user.AsUserOrTeam()) {
+			return true, nil
 		}
 		return false, nil
 	}

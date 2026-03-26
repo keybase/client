@@ -2,30 +2,17 @@
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
-import {debugWarning} from '@/util/debug-warning'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionID, SessionIDKey, MethodKey} from './types'
+import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
-import type * as EngineGen from '../actions/engine-gen-gen'
-import type * as EngineConst from '@/constants/engine'
-
-// delay incoming to stop react from queueing too many setState calls and stopping rendering
-// only while debugging for now
-const DEFER_INCOMING_DURING_DEBUG = __DEV__ && (false as boolean)
-if (DEFER_INCOMING_DURING_DEBUG) {
-  debugWarning('DEFER_INCOMING_DURING_DEBUG is On')
-}
+import type * as EngineGen from '@/constants/rpc'
 
 type WaitingKey = string | ReadonlyArray<string>
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
 
 class Engine {
   _onConnectedCB: (c: boolean) => void
@@ -47,6 +34,7 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _emitWaiting: (changes: BatchParams) => void
+  _onEngineIncoming?: (action: EngineGen.Actions) => void
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
@@ -63,14 +51,10 @@ class Engine {
   constructor(
     emitWaiting: (changes: BatchParams) => void,
     onConnected: (c: boolean) => void,
-    allowIncomingCalls = true
+    onEngineIncoming?: (action: EngineGen.Actions) => void
   ) {
     this._onConnectedCB = onConnected
-    // the node engine doesn't do this and we don't want to pull in any reqs
-    if (allowIncomingCalls) {
-      const {useEngineState} = require('@/constants/engine') as typeof EngineConst
-      this._engineConstantsIncomingCall = useEngineState.getState().dispatch.onEngineIncoming
-    }
+    this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
@@ -169,20 +153,17 @@ class Engine {
           // Not a custom response so we auto handle it
           response?.result?.()
         }
-        const type = method
-          .replace(/'/g, '')
-          .split('.')
-          .map((p, idx) => (idx ? capitalize(p) : p))
-          .join('')
-
-        const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
-        this._engineConstantsIncomingCall(act as EngineGen.Actions)
+        const act = {
+          payload: {params: param, ...extra},
+          type: method as EngineGen.ActionKey,
+        } as EngineGen.EngineActions
+        if (this._onEngineIncoming) {
+          setTimeout(() => {
+            this._onEngineIncoming?.(act)
+          }, 0)
+        }
       }
     }
-  }
-  _engineConstantsIncomingCall = (_a: EngineGen.Actions): void => {
-    logger.error('_engineConstantsIncomingCall not overriden')
-    throw Error('needs override')
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
@@ -243,14 +224,6 @@ class Engine {
     return session
   }
 
-  // Cancel a session maybe deprecate, not used
-  cancelSession(sessionID: SessionID) {
-    const session = this._sessionsMap[String(sessionID)]
-    if (session) {
-      session.cancel()
-    }
-  }
-
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
     rpcLog({
@@ -282,14 +255,14 @@ if (__DEV__) {
 const makeEngine = (
   emitWaiting: (b: BatchParams) => void,
   onConnected: (c: boolean) => void,
-  allowIncomingCalls = true
+  onEngineIncoming?: (action: EngineGen.Actions) => void
 ) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = new Engine(emitWaiting, onConnected, allowIncomingCalls)
+    engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
     initEngine(engine)
     initEngineListener(engineListener)
   }

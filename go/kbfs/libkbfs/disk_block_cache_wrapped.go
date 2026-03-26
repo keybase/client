@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"maps"
 	"path/filepath"
 	"sync"
 
@@ -461,16 +462,12 @@ func (cache *diskBlockCacheWrapped) Status(
 	defer cache.mtx.RUnlock()
 	statuses := make(map[string]DiskBlockCacheStatus, 2)
 	if cache.workingSetCache != nil {
-		for name, status := range cache.workingSetCache.Status(ctx) {
-			statuses[name] = status
-		}
+		maps.Copy(statuses, cache.workingSetCache.Status(ctx))
 	}
 	if cache.syncCache == nil {
 		return statuses
 	}
-	for name, status := range cache.syncCache.Status(ctx) {
-		statuses[name] = status
-	}
+	maps.Copy(statuses, cache.syncCache.Status(ctx))
 	return statuses
 }
 

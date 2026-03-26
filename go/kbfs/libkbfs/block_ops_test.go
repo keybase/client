@@ -297,7 +297,7 @@ type badEncoder struct {
 	kbfscodec.Codec
 }
 
-func (c badEncoder) Encode(o interface{}) ([]byte, error) {
+func (c badEncoder) Encode(o any) ([]byte, error) {
 	return nil, errors.New("could not encode")
 }
 
@@ -323,7 +323,7 @@ type tooSmallEncoder struct {
 	kbfscodec.Codec
 }
 
-func (c tooSmallEncoder) Encode(o interface{}) ([]byte, error) {
+func (c tooSmallEncoder) Encode(o any) ([]byte, error) {
 	return []byte{0x1}, nil
 }
 
@@ -523,7 +523,7 @@ func (c *badDecoder) putError(buf []byte, err error) {
 	c.errors[k] = err
 }
 
-func (c *badDecoder) Decode(buf []byte, o interface{}) error {
+func (c *badDecoder) Decode(buf []byte, o any) error {
 	k := string(buf)
 	err := func() error {
 		c.errorsLock.RLock()

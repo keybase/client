@@ -46,6 +46,6 @@ func (bfi *browserFileInfo) IsDir() bool {
 	return !bfi.entry.Mode.IsFile()
 }
 
-func (bfi *browserFileInfo) Sys() interface{} {
+func (bfi *browserFileInfo) Sys() any {
 	return nil
 }

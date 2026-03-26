@@ -27,7 +27,7 @@ type stats struct {
 	miss      int
 }
 
-func NewLRU(ctx libkb.LRUContext, sz int, version int, exampleObj interface{}) *Cache {
+func NewLRU(ctx libkb.LRUContext, sz int, version int, exampleObj any) *Cache {
 	cache, err := lru.New(sz)
 	if err != nil {
 		ctx.GetLog().Fatalf("Bad LRU constructor: %s", err.Error())
@@ -49,7 +49,7 @@ func (c *Cache) ClearMemory() {
 	c.mem.Purge()
 }
 
-func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer) (interface{}, error) {
+func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer) (any, error) {
 	c.Lock()
 	defer c.Unlock()
 	val, ok := c.mem.Get(k.MemKey())
@@ -73,7 +73,7 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 		lctx.GetVDebugLog().CLogf(ctx, libkb.VLog0, "lru(%v), old version: %d < %d", k.DbKey(), w.Version, c.version)
 		return nil, nil
 	}
-	var ret interface{}
+	var ret any
 	if len(w.Data) > 0 {
 		tmp := reflect.New(c.typ)
 		ret = tmp.Interface()
@@ -92,7 +92,7 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 	return ret, nil
 }
 
-func (c *Cache) Put(_ context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer, v interface{}) error {
+func (c *Cache) Put(_ context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer, v any) error {
 	c.Lock()
 	defer c.Unlock()
 	var data string

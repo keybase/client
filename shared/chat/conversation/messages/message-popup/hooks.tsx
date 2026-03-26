@@ -1,11 +1,10 @@
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
-import {useConfigState} from '@/constants/config'
-import {useProfileState} from '@/constants/profile'
-import {useCurrentUserState} from '@/constants/current-user'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
+import {useConfigState} from '@/stores/config'
+import {useProfileState} from '@/stores/profile'
+import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
@@ -55,31 +54,28 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const {teamID, teamname} = meta
   const participantInfo = Chat.useChatContext(s => s.participants)
   const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const onReact = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
+  const onReact = (emoji: string) => {
+    toggleMessageReaction(ordinal, emoji)
+  }
   const navigateAppend = Chat.useChatNavigateAppend()
-  const _onAddReaction = React.useCallback(() => {
+  const _onAddReaction = () => {
     navigateAppend(conversationIDKey => ({
-      props: {
+      name: 'chatChooseEmoji',
+      params: {
         conversationIDKey,
         onPickAddToMessageOrdinal: ordinal,
         pickKey: 'reaction',
       },
-      selected: 'chatChooseEmoji',
     }))
-  }, [navigateAppend, ordinal])
+  }
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
   const authorIsBot = Teams.useTeamsState(s =>
     messageAuthorIsBot(s, meta.teamID, meta.teamname, meta.teamType, author, participantInfo)
   )
-  const _onInstallBot = React.useCallback(() => {
-    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
-  }, [navigateAppend, author])
+  const _onInstallBot = () => {
+    navigateAppend(() => ({name: 'chatInstallBotPick', params: {botUsername: author}}))
+  }
   const onInstallBot = authorIsBot ? _onInstallBot : undefined
 
   const itemReaction = onAddReaction
@@ -104,10 +100,10 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const convLabel = getConversationLabel(participantInfo, meta, true)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const onCopyLink = React.useCallback(() => {
+  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
+  const onCopyLink = () => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
-  }, [copyToClipboard, id, convLabel])
+  }
   const itemCopyLink = [
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
@@ -119,16 +115,16 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     })
   )
 
-  const onReply = React.useCallback(() => {
+  const onReply = () => {
     setReplyTo(ordinal)
-  }, [setReplyTo, ordinal])
+  }
   const itemReply = message.exploded
     ? []
     : ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
 
-  const _onEdit = React.useCallback(() => {
+  const _onEdit = () => {
     setEditing(ordinal)
-  }, [setEditing, ordinal])
+  }
 
   const you = useCurrentUserState(s => s.username)
   const yourMessage = author === you
@@ -145,12 +141,12 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
         ] as const)
       : []
 
-  const _onForward = React.useCallback(() => {
+  const _onForward = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
+      name: 'chatForwardMsgPick',
+      params: {conversationIDKey, ordinal},
     }))
-  }, [navigateAppend, ordinal])
+  }
   const onForward = isAttach || (message.unfurls?.size ?? 0) > 0 ? _onForward : undefined // only unfurls for text
 
   const itemForward = onForward
@@ -160,35 +156,35 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const isTeam = !!teamname
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
-  const _onPinMessage = React.useCallback(() => {
+  const _onPinMessage = () => {
     pinMessage(id)
-  }, [pinMessage, id])
+  }
   const onPinMessage = canPinMessage ? _onPinMessage : undefined
   const itemPin = onPinMessage
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
 
-  const onMarkAsUnread = React.useCallback(() => {
+  const onMarkAsUnread = () => {
     setMarkAsUnread(id)
-  }, [setMarkAsUnread, id])
+  }
   const itemUnread = [
     {icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'},
   ] as const
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const _onDelete = React.useCallback(() => {
+  const _onDelete = () => {
     messageDelete(ordinal)
     clearModals()
-  }, [messageDelete, clearModals, ordinal])
+  }
 
   const canDeleteHistory = Teams.useTeamsState(
     s => meta.teamType === 'adhoc' || Teams.getCanPerformByID(s, teamID).deleteChatHistory
   )
   const canExplodeNow =
     message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable && !message.exploded
-  const _onExplodeNow = React.useCallback(() => {
+  const _onExplodeNow = () => {
     messageDelete(ordinal)
-  }, [messageDelete, ordinal])
+  }
   const onExplodeNow = canExplodeNow ? _onExplodeNow : undefined
   const canAdminDelete = yourOperations.deleteOtherMessages
   const isDeleteable = yourMessage || canAdminDelete
@@ -217,9 +213,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       ] as const)
     : []
 
-  const _onKick = React.useCallback(() => {
-    navigateAppend(() => ({props: {members: [author], teamID}, selected: 'teamReallyRemoveMember'}))
-  }, [navigateAppend, author, teamID])
+  const _onKick = () => {
+    navigateAppend(() => ({name: 'teamReallyRemoveMember', params: {members: [author], teamID}}))
+  }
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const authorInTeam = teamMembers?.has(author) ?? true
   const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
@@ -237,9 +233,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const _showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUserProfile = React.useCallback(() => {
+  const showUserProfile = () => {
     _showUserProfile(author)
-  }, [_showUserProfile, author])
+  }
   const onViewProfile = author && !yourMessage ? showUserProfile : undefined
   const profileSubtitle = `${deviceName} ${deviceRevokedAt ? 'REVOKED at' : '-'} ${
     deviceRevokedAt ? `${formatTimeForRevoked(deviceRevokedAt)}` : formatTimeForPopup(timestamp)

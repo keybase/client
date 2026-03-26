@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 export const urlEscapeFilePath = (path: string) => {
   if (path.startsWith('file://')) {
     const parts = path.split('/')
@@ -12,6 +10,3 @@ export const urlEscapeFilePath = (path: string) => {
 export const castStyleDesktop = (style: unknown) => style
 export const castStyleNative = (style: unknown) => style
 
-export const CanFixOverdrawContext = React.createContext(false)
-export const dontFixOverdraw = {canFixOverdraw: false}
-export const yesFixOverdraw = {canFixOverdraw: true}

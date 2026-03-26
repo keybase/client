@@ -22,7 +22,7 @@ type MerkleLeaf struct {
 var _ merkle.ValueConstructor = (*MerkleLeaf)(nil)
 
 // Construct implements the go-merkle-tree.ValueConstructor interface.
-func (l MerkleLeaf) Construct() interface{} {
+func (l MerkleLeaf) Construct() any {
 	// In the Merkle tree leaves are simply byte slices.
 	return &[]byte{}
 }
@@ -35,7 +35,7 @@ type EncryptedMerkleLeaf struct {
 }
 
 // Construct implements the go-merkle-tree.ValueConstructor interface.
-func (el EncryptedMerkleLeaf) Construct() interface{} {
+func (el EncryptedMerkleLeaf) Construct() any {
 	// In the Merkle tree leaves are simply byte slices.
 	return &[]byte{}
 }

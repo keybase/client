@@ -15,7 +15,7 @@ func CancelingProtocol(g *libkb.GlobalContext, prot rpc.Protocol, reason libkb.R
 		var newDesc rpc.ServeHandlerDescription
 		desc := ldesc
 		newDesc.MakeArg = desc.MakeArg
-		newDesc.Handler = func(ctx context.Context, arg interface{}) (interface{}, error) {
+		newDesc.Handler = func(ctx context.Context, arg any) (any, error) {
 			var ctxID libkb.RPCCancelerKey
 			ctx, ctxID = g.RPCCanceler.RegisterContext(ctx, reason)
 			defer g.RPCCanceler.UnregisterContext(ctxID)

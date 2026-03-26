@@ -15,42 +15,42 @@ import (
 type logger struct{}
 
 // Debug is log implementation
-func (l logger) Debug(s ...interface{}) {
+func (l logger) Debug(s ...any) {
 	log.Printf("DEBG %s\n", s)
 }
 
 // Info is log implementation
-func (l logger) Info(s ...interface{}) {
+func (l logger) Info(s ...any) {
 	log.Printf("INFO %s\n", s)
 }
 
 // Debugf is log implementation
-func (l logger) Debugf(s string, args ...interface{}) {
+func (l logger) Debugf(s string, args ...any) {
 	log.Printf("DEBG %s\n", fmt.Sprintf(s, args...))
 }
 
 // Infof is log implementation
-func (l logger) Infof(s string, args ...interface{}) {
+func (l logger) Infof(s string, args ...any) {
 	log.Printf("INFO %s\n", fmt.Sprintf(s, args...))
 }
 
 // Warning is log implementation
-func (l logger) Warning(s ...interface{}) {
+func (l logger) Warning(s ...any) {
 	log.Printf("WARN %s\n", s)
 }
 
 // Warningf is log implementation
-func (l logger) Warningf(s string, args ...interface{}) {
+func (l logger) Warningf(s string, args ...any) {
 	log.Printf("WARN %s\n", fmt.Sprintf(s, args...))
 }
 
 // Error is log implementation
-func (l logger) Error(s ...interface{}) {
+func (l logger) Error(s ...any) {
 	log.Printf("ERR  %s\n", s)
 }
 
 // Errorf is log implementation
-func (l logger) Errorf(s string, args ...interface{}) {
+func (l logger) Errorf(s string, args ...any) {
 	log.Printf("ERR  %s\n", fmt.Sprintf(s, args...))
 }
 

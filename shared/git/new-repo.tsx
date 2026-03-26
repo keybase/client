@@ -1,6 +1,6 @@
 import * as C from '@/constants'
-import * as Git from '@/constants/git'
-import * as Teams from '@/constants/teams'
+import * as Git from '@/stores/git'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 
@@ -49,7 +49,7 @@ const Container = (ownProps: OwnProps) => {
   const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem} justifyContent="flex-start">
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
@@ -57,21 +57,21 @@ const Container = (ownProps: OwnProps) => {
 
     if (item === NewTeamSentry) {
       return (
-        <Kb.Box
+        <Kb.Box2
           key={NewTeamSentry}
+          direction="horizontal"
+          alignItems="center"
           style={{
-            ...Kb.Styles.globalStyles.flexBoxRow,
-            alignItems: 'center',
             paddingLeft: Kb.Styles.globalMargins.small,
           }}
         >
           <Kb.Text type="Header">New team...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
 
     return (
-      <Kb.Box2 direction="vertical" key={item} style={styles.avatarBox}>
+      <Kb.Box2 direction="horizontal" key={item} alignItems="center" style={styles.avatarBox}>
         <Kb.Avatar
           isTeam={true}
           teamname={item}
@@ -115,20 +115,20 @@ const Container = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.PopupWrapper onCancel={onClose}>
+    <>
       <Kb.ScrollView>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (
-            <Kb.Box style={styles.error}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
               <Kb.Text type="Body" negative={true}>
                 {error.message}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           <Kb.Text type="Header" style={{marginBottom: 27}}>
             New {isTeam ? 'team' : 'personal'} git repository
           </Kb.Text>
-          <Kb.Icon
+          <Kb.IconAuto
             type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={styles.addIcon}
           />
@@ -145,7 +145,7 @@ const Container = (ownProps: OwnProps) => {
               style={styles.dropdown}
             />
           )}
-          <Kb.LabeledInput
+          <Kb.Input3
             value={name}
             autoFocus={true}
             onChangeText={setName}
@@ -175,9 +175,9 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -186,8 +186,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       addIcon: {marginBottom: 27},
       avatarBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.small,
         width: '100%',
@@ -199,8 +197,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           flex: 1,
           height: '100%',
           padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
@@ -217,7 +213,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       dropdownItem: {
-        justifyContent: 'flex-start',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
       error: {

@@ -265,7 +265,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	i.fs = fs
 	i.once.Do(func() {
 		kvstoreConstructor := func(
-			mo store.MergeOperator, _ map[string]interface{}) (
+			mo store.MergeOperator, _ map[string]any) (
 			s store.KVStore, err error,
 		) {
 			return newBleveLevelDBStore(i.fs, false, mo)

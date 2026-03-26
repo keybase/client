@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Crypto from '@/constants/crypto/util'
-import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
+import * as Crypto from '@/constants/crypto'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import cryptoTeamBuilder from '../team-building/page'
 
 export const newRoutes = {
@@ -42,7 +42,7 @@ export const newRoutes = {
 export const newModalRoutes = {
   [Crypto.decryptOutput]: {
     getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
       headerShown: true,
       title: 'Decrypted',
     },
@@ -60,7 +60,7 @@ export const newModalRoutes = {
   },
   [Crypto.signOutput]: {
     getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
       headerShown: true,
       title: 'Signed',
     },
@@ -71,7 +71,7 @@ export const newModalRoutes = {
   },
   [Crypto.verifyOutput]: {
     getOptions: {
-      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
+      headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
       headerShown: true,
       title: 'Verified',
     },
@@ -82,5 +82,3 @@ export const newModalRoutes = {
   },
   cryptoTeamBuilder,
 }
-
-export type RootParamListCrypto = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

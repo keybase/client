@@ -266,7 +266,7 @@ func (e chatThreadConsistencyErrorImpl) Code() ConsistencyErrorCode {
 	return e.code
 }
 
-func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...interface{}) ChatThreadConsistencyError {
+func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...any) ChatThreadConsistencyError {
 	return &chatThreadConsistencyErrorImpl{
 		code: code,
 		msg:  fmt.Sprintf(msg, formatArgs...),
@@ -437,19 +437,19 @@ func (e OfflineError) Error() string {
 
 type OfflineClient struct{}
 
-func (e OfflineClient) Call(ctx context.Context, method string, arg interface{},
-	res interface{}, timeout time.Duration,
+func (e OfflineClient) Call(ctx context.Context, method string, arg any,
+	res any, timeout time.Duration,
 ) error {
 	return OfflineError{}
 }
 
-func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{},
-	res interface{}, ctype rpc.CompressionType, timeout time.Duration,
+func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg any,
+	res any, ctype rpc.CompressionType, timeout time.Duration,
 ) error {
 	return OfflineError{}
 }
 
-func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
+func (e OfflineClient) Notify(ctx context.Context, method string, arg any, timeout time.Duration) error {
 	return OfflineError{}
 }
 

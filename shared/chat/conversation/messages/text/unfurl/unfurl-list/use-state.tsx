@@ -1,17 +1,16 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
   const unfurlRemove = Chat.useChatContext(s => s.dispatch.unfurlRemove)
-  const onClose = React.useCallback(() => {
+  const onClose = () => {
     unfurlRemove(messageID)
-  }, [unfurlRemove, messageID])
+  }
   const toggleMessageCollapse = Chat.useChatContext(s => s.dispatch.toggleMessageCollapse)
-  const onToggleCollapse = React.useCallback(() => {
+  const onToggleCollapse = () => {
     toggleMessageCollapse(messageID, ordinal)
-  }, [toggleMessageCollapse, messageID, ordinal])
+  }
 
   return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}
 }

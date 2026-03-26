@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 
 const Kb = {
-  Box,
+  Box2,
   Icon,
   ProgressIndicator,
   Text,
@@ -20,10 +20,7 @@ export type Props = {
 }
 
 const defaultStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
   height: Styles.globalMargins.medium,
-  justifyContent: 'center',
 } as const
 
 const SaveIndicator = (props: Props) => {
@@ -32,7 +29,7 @@ const SaveIndicator = (props: Props) => {
   const lastSavingRef = React.useRef(saving)
 
   React.useEffect(() => {
-    let id = 0
+    let id: ReturnType<typeof setTimeout> | undefined
     if (lastSavingRef.current !== saving) {
       if (saving) {
         setState('saving')
@@ -40,14 +37,14 @@ const SaveIndicator = (props: Props) => {
         setState('saved')
         id = setTimeout(() => {
           setState('init')
-        }, 1000) as unknown as number
+        }, 1000)
       }
 
       lastSavingRef.current = saving
     }
 
     return () => {
-      clearTimeout(id)
+      if (id !== undefined) clearTimeout(id)
     }
   }, [saving])
 
@@ -71,7 +68,7 @@ const SaveIndicator = (props: Props) => {
       break
   }
 
-  return <Kb.Box style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box>
+  return <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box2>
 }
 
 export default SaveIndicator

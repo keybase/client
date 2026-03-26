@@ -480,7 +480,7 @@ func (fs *FS) lookupOrCreateEntry(
 	}
 	filename = strings.TrimPrefix(filename, "/")
 
-	for i := 0; i < maxSymlinkLevels; i++ {
+	for range maxSymlinkLevels {
 		var parentDir, fName string
 		n, parentDir, fName, err = fs.lookupParent(filename)
 		if err != nil {
@@ -535,9 +535,9 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 		return err
 	}
 
-	parts := strings.Split(leftover, "/")
+	parts := strings.SplitSeq(leftover, "/")
 	// Make all necessary dirs.
-	for _, p := range parts {
+	for p := range parts {
 		child, _, err := fs.config.KBFSOps().CreateDir(
 			fs.ctx, n, n.ChildName(p))
 		switch errors.Cause(err).(type) {
