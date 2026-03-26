@@ -8,8 +8,8 @@ import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
-  CommonOutputRouteParams,
-  CryptoInputRouteParams,
+  type CommonOutputRouteParams,
+  type CryptoInputRouteParams,
   beginRun,
   clearInputState,
   createCommonState,
@@ -326,7 +326,7 @@ export const useEncryptScreenState = (params?: EncryptRouteParams) => {
   }
 }
 
-const EncryptOptions = ({
+const EncryptOptionsPanel = ({
   hasRecipients,
   hasSBS,
   hideIncludeSelf,
@@ -469,7 +469,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
 
   const options = C.isMobile ? (
     <InputActionsBar runLabel="Encrypt" blurCBRef={blurCBRef} onRun={onRun}>
-      <EncryptOptions
+      <EncryptOptionsPanel
         hasRecipients={controller.state.meta.hasRecipients}
         hasSBS={controller.state.meta.hasSBS}
         hideIncludeSelf={controller.state.meta.hideIncludeSelf}
@@ -480,7 +480,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
       />
     </InputActionsBar>
   ) : (
-    <EncryptOptions
+    <EncryptOptionsPanel
       hasRecipients={controller.state.meta.hasRecipients}
       hasSBS={controller.state.meta.hasSBS}
       hideIncludeSelf={controller.state.meta.hideIncludeSelf}
@@ -589,7 +589,7 @@ export const EncryptIO = () => {
             onSetInput={controller.setInput}
             onClearInput={controller.clearInput}
           />
-          <EncryptOptions
+          <EncryptOptionsPanel
             hasRecipients={controller.state.meta.hasRecipients}
             hasSBS={controller.state.meta.hasSBS}
             hideIncludeSelf={controller.state.meta.hideIncludeSelf}
