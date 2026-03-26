@@ -26,6 +26,8 @@ declare global {
   var DEBUGEngine: unknown
   var DEBUGLoaded: boolean | undefined
   var KBCONSTANTS: unknown
+  var KBINBOX: unknown
+  var KBCONVOSTATE: unknown
   var DEBUGLog: (s: unknown) => void
   var DEBUGWarn: (s: unknown) => void
   var DEBUGInfo: (s: unknown) => void

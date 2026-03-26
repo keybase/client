@@ -214,10 +214,7 @@ function Inbox(props: InboxProps) {
   React.useEffect(() => {
     if (didInitialUnboxRef.current || rows.length === 0) return
     didInitialUnboxRef.current = true
-    const scrollableDiv = scrollDiv.current?.firstElementChild as HTMLDivElement | null
-    const visibleHeight = scrollableDiv?.getBoundingClientRect().height ?? 800
-    const maxVisible = Math.ceil(visibleHeight / smallRowHeight) + 2
-    const toUnbox = rows.slice(0, maxVisible).reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
+    const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
       if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
       }

@@ -16,6 +16,7 @@ import {handleAppLink} from '@/constants/deeplinks'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import {useDaemonState} from '@/stores/daemon'
+import {useCurrentUserState} from '@/stores/current-user'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
@@ -99,10 +100,14 @@ const useConnectNavToState = () => {
           window.DEBUGNavigator = C.Router2.navigationRef.current
           window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('@/constants')
+          window.KBINBOX = require('@/stores/chat')
+          window.KBCONVOSTATE = require('@/stores/convostate')
           registerDebugClear(() => {
             window.DEBUGNavigator = undefined
             window.DEBUGRouter2 = undefined
             window.KBCONSTANTS = undefined
+            window.KBINBOX = undefined
+            window.KBCONVOSTATE = undefined
           })
         }
       }
@@ -192,9 +197,22 @@ function ElectronApp() {
   }
 
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
+  const username = useCurrentUserState(s => s.username)
+  // Only remount the navigator when switching between logged-in users.
+  // Ignore '' → username (initial login) so in-flight unbox requests aren't interrupted.
+  const [navKey, setNavKey] = React.useState('')
+  const prevUsernameRef = React.useRef(username)
+  React.useEffect(() => {
+    const prev = prevUsernameRef.current
+    prevUsernameRef.current = username
+    if (prev && username && prev !== username) {
+      setNavKey(username)
+    }
+  }, [username])
 
   return (
     <NavigationContainer
+      key={navKey}
       documentTitle={documentTitle}
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
