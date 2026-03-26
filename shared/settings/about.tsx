@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 
 const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
 const terms = 'https://keybase.io/_/webview/terms'

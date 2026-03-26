@@ -77,7 +77,7 @@ class MainThreadWatchdog {
     var lastLogTime: CFAbsoluteTime = 0
 
     while true {
-      Thread.sleep(forTimeInterval: 1.0)
+      Thread.sleep(forTimeInterval: 0.5)
 
       lock.lock()
       let isActive = active
@@ -115,12 +115,12 @@ class MainThreadWatchdog {
 
       let totalElapsedMs = (now - appStartTime) * 1000
 
-      if blockDuration >= 3.0 {
-        // Sample every 2s for the duration of the hang so we capture how the main thread
+      if blockDuration >= 1.0 {
+        // Sample every 1s for the duration of the hang so we capture how the main thread
         // evolves (e.g. keychain IPC → rendering → idle) rather than a single snapshot.
-        if lastLogTime == 0 || (now - lastLogTime) >= 2.0 {
+        if lastLogTime == 0 || (now - lastLogTime) >= 1.0 {
           let bgElapsedSec = now - bgEnterTime
-          let msg = String(format: "Watchdog: main thread blocked %.0fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
+          let msg = String(format: "Watchdog: main thread blocked %.1fs after foreground resume (%.0fs since background, %.0fms since launch)", blockDuration, bgElapsedSec, totalElapsedMs)
           NSLog("[Startup] %@", msg)
           // Enqueue a write for when the main thread recovers
           DispatchQueue.main.async { [weak self] in

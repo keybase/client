@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 

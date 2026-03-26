@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')

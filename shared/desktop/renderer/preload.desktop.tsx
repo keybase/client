@@ -102,6 +102,9 @@ if (isRenderer) {
         },
         ipcRendererOn: (channel: string, cb: (event: unknown, action: unknown) => void) => {
           Electron.ipcRenderer.on(channel, cb)
+          return () => {
+            Electron.ipcRenderer.removeListener(channel, cb)
+          }
         },
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})

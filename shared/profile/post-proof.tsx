@@ -3,7 +3,7 @@ import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
-import openUrl from '@/util/open-url'
+import {openURL as openUrl} from '@/util/misc'
 import Modal from './modal'
 import {useConfigState} from '@/stores/config'
 

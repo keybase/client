@@ -179,8 +179,8 @@ const timeoutPromise = async (timeMs: number) =>
 
 export const setupIPCHandlers = (deps: {
   getMainWindow: () => Electron.BrowserWindow | null
+  markAppStartedUp: () => void
   nodeEngine: Engine
-  onAppStartedUp: () => void
 }) => {
   Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
     deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
@@ -507,7 +507,7 @@ export const setupIPCHandlers = (deps: {
         }
         break
       case 'appStartedUp':
-        deps.onAppStartedUp()
+        deps.markAppStartedUp()
         break
       case 'requestWindowsStartService':
         if (isWindows) {

@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
-import {pickFiles} from '@/util/pick-files'
+import {pickFiles} from '@/util/misc'
 
 type CommonProps = {
   operation: T.Crypto.Operations

@@ -3,7 +3,7 @@ import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useProvisionState} from '@/stores/provision'
 

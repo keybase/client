@@ -36,7 +36,7 @@ import {noConversationIDKey} from '@/constants/types/chat/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Platform from '@/constants/platform'
 import KB2 from '@/util/electron'
-import NotifyPopup from '@/util/notify-popup'
+import {NotifyPopup} from '@/util/misc'
 import {hexToUint8Array} from 'uint8array-extras'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerDebugClear} from '@/util/debug'
@@ -515,7 +515,7 @@ const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RP
   []
 )
 
-const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
+const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.ImmerStateCreator<ConvoState> => (set, get) => {
   const defer = convoDeferImpl ?? stubDefer
   const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   const getCurrentUser = () => {
@@ -3505,6 +3505,7 @@ const createSlice = (): Z.ImmerStateCreator<ConvoState> => (set, get) => {
       convIDCache.set(id, cid)
       return cid
     },
+    id,
     isCaughtUp: () => {
       return !get().moreToLoadForward
     },
@@ -3532,16 +3533,13 @@ registerDebugClear(() => {
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)
   if (existing) return existing
-  const next = Z.createZustand<ConvoState>(createSlice())
-  next.setState({id})
+  const next = Z.createZustand<ConvoState>(createSlice(id))
   chatStores.set(id, next)
   return next
 }
 
 export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
-  const next = Z.createZustand<ConvoState>(createSlice())
-  next.setState({id})
-  return next
+  return Z.createZustand<ConvoState>(createSlice(id))
 }
 
 // debug only

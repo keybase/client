@@ -1,10 +1,9 @@
-import * as React from 'react'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import type * as T from '@/constants/types'
 import Pinentry from './index.desktop'
-import load from '../desktop/remote/component-loader.desktop'
-import {useDarkModeState} from '@/stores/darkmode'
+import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
+import {getRemoteComponentParam, RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 
 export type ProxyProps = {
   cancelLabel?: string
@@ -17,30 +16,21 @@ export type ProxyProps = {
   windowTitle: string
 }
 
-const DarkModeSync = ({darkMode, children}: {darkMode: boolean; children: React.ReactNode}) => {
-  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  React.useEffect(() => {
-    const id = setTimeout(() => setSystemDarkMode(darkMode), 1)
-    return () => clearTimeout(id)
-  }, [setSystemDarkMode, darkMode])
-  return <>{children}</>
+const RemotePinentry = (p: ProxyProps) => {
+  const {darkMode, ...rest} = p
+  return (
+    <RemoteDarkModeSync darkMode={darkMode}>
+      <Pinentry
+        {...rest}
+        onCancel={() => R.remoteDispatch(RemoteGen.createPinentryOnCancel())}
+        onSubmit={(password: string) => R.remoteDispatch(RemoteGen.createPinentryOnSubmit({password}))}
+      />
+    </RemoteDarkModeSync>
+  )
 }
 
-const sessionID = /\?param=(\w+)/.exec(window.location.search)
-
-load<ProxyProps>({
-  child: (p: ProxyProps) => {
-    const {darkMode, ...rest} = p
-    return (
-      <DarkModeSync darkMode={darkMode}>
-        <Pinentry
-          {...rest}
-          onCancel={() => R.remoteDispatch(RemoteGen.createPinentryOnCancel())}
-          onSubmit={(password: string) => R.remoteDispatch(RemoteGen.createPinentryOnSubmit({password}))}
-        />
-      </DarkModeSync>
-    )
-  },
-  name: 'pinentry',
-  params: sessionID?.[1] ?? '',
+loadRemoteComponent<ProxyProps>({
+  Component: RemotePinentry,
+  component: 'pinentry',
+  param: getRemoteComponentParam(),
 })

@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {

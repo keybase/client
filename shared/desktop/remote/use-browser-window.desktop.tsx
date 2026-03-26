@@ -1,6 +1,7 @@
 // This hook creates a remote brower window when mounted
 import * as React from 'react'
 import KB2 from '@/util/electron.desktop'
+import type {RemoteComponentName} from './remote-component.desktop'
 
 const {makeRenderer, closeRenderer} = KB2.functions
 
@@ -12,7 +13,7 @@ export type UseBrowserOptions = {
     width: number
   }
   windowPositionBottomRight?: true
-  windowComponent?: string // undefined to kill the browserwindow
+  windowComponent?: RemoteComponentName // undefined to kill the browserwindow
   windowTitle: string
   windowParam?: string
 }

@@ -13,7 +13,7 @@ import {
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
-import openSMS from '@/util/sms'
+import {openSMS} from '@/util/misc'
 import {RPCError, logError} from '@/util/errors'
 import {isMobile, isPhone} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'

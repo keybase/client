@@ -4,7 +4,7 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'
-import {pickImages} from '@/util/pick-files'
+import {pickImages} from '@/util/misc'
 import kebabCase from 'lodash/kebabCase'
 import {useEmojiState} from './use-emoji'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
@@ -13,7 +13,7 @@ import KB2 from '@/util/electron'
 
 const {getPathForFile} = KB2.functions
 
-const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
+const pickEmojisPromise = async () => await pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/stores/profile'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'

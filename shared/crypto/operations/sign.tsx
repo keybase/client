@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import {Input, DragAndDrop, OperationBanner, InputActionsBar} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 
