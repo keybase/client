@@ -360,9 +360,9 @@ const usePeoplePageState = () => {
   const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
   const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
   const mountedRef = React.useRef(true)
-  const debouncedLoadPeopleRef = React.useRef<
-    DebouncedFunc<(markViewed: boolean, numFollowSuggestionsWanted?: number) => void> | null
-  >(null)
+  const debouncedLoadPeopleRef = React.useRef<DebouncedFunc<
+    (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
+  > | null>(null)
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
@@ -377,10 +377,12 @@ const usePeoplePageState = () => {
           }
 
           const nextState = reducePeopleScreenData(data, followers, following)
-          setFollowSuggestions(s => (isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions))
+          setFollowSuggestions(s =>
+            isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions
+          )
           setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
           setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
-        } catch (error) {
+        } catch {
           // Keep People resilient to transient RPC failures.
         }
       }
@@ -398,22 +400,26 @@ const usePeoplePageState = () => {
     )
   }
 
-  React.useEffect(
-    () => {
-      mountedRef.current = true
-      return () => {
-        mountedRef.current = false
-        debouncedLoadPeopleRef.current?.cancel()
-      }
-    },
-    []
-  )
+  React.useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      debouncedLoadPeopleRef.current?.cancel()
+    }
+  }, [])
 
   const dismissAnnouncement = (id: T.RPCGen.HomeScreenAnnouncementID) => {
-    dismissAnnouncementRPC([{i: id}], () => {}, _ => {})
+    dismissAnnouncementRPC(
+      [{i: id}],
+      () => {},
+      _ => {}
+    )
   }
 
-  const queueLoadPeople = (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
+  const queueLoadPeople = (
+    markViewed: boolean,
+    numFollowSuggestionsWanted: number = defaultNumFollowSuggestions
+  ) => {
     debouncedLoadPeopleRef.current?.(markViewed, numFollowSuggestionsWanted)
   }
 
