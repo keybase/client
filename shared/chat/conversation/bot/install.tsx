@@ -440,6 +440,21 @@ const InstallBotPopup = (props: Props) => {
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
 
   const enabled = !!conversationIDKey
+  const bodyContent =
+    enabled && !channelPickerScreen ? (
+      <Kb.ScrollView
+        style={styles.bodyScroll}
+        contentContainerStyle={styles.bodyScrollContent}
+      >
+        {content}
+      </Kb.ScrollView>
+    ) : enabled ? (
+      content
+    ) : (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
   return (
     <>
       <Kb.Box2
@@ -447,13 +462,7 @@ const InstallBotPopup = (props: Props) => {
         style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
         fullWidth={true}
       >
-        {enabled ? (
-          content
-        ) : (
-          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
-            <Kb.ProgressIndicator type="Large" />
-          </Kb.Box2>
-        )}
+        {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
@@ -592,6 +601,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   dropdownButton: {
     padding: Kb.Styles.globalMargins.tiny,
+  },
+  bodyScroll: {
+    flex: 1,
+  },
+  bodyScrollContent: {
+    minHeight: '100%',
   },
   modalFooter: Kb.Styles.platformStyles({
     common: {
