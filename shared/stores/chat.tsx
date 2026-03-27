@@ -9,6 +9,7 @@ import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
+import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/stores/router'
 import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet} from '@/constants/types/router'
@@ -313,7 +314,7 @@ export type State = Store & {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     defer: {
-      onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
+      onGetDaemonState: () => Pick<DaemonState, 'dispatch' | 'handshakeVersion'>
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
       ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
