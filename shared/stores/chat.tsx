@@ -318,7 +318,7 @@ export type State = Store & {
         teamID: T.Teams.TeamID
       ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
       onGetUsersInfoMap: () => ReadonlyMap<string, T.Users.UserInfo>
-      onTeamsGetMembers: (teamID: T.Teams.TeamID) => void
+      onTeamsGetMembers: (teamID: T.Teams.TeamID) => Promise<void>
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
@@ -618,7 +618,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       onGetUsersInfoMap: () => {
         throw new Error('onGetUsersInfoMap not properly initialized')
       },
-      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
+      onTeamsGetMembers: async (_teamID: T.Teams.TeamID) => {
         throw new Error('onTeamsGetMembers not properly initialized')
       },
       onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {

@@ -250,12 +250,7 @@ export interface ConvoState extends ConvoStore {
         show: boolean,
         tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
       ) => void
-      teamsBotMemberUpdated: (
-        teamID: T.RPCGen.TeamID,
-        username: string,
-        role?: 'bot' | 'restrictedbot'
-      ) => void
-      teamsGetMembers: (teamID: T.RPCGen.TeamID) => void
+      teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
     }
     dismissBottomBanner: () => void
@@ -530,9 +525,6 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
 
   const closeBotModal = () => {
     clearModals()
-    if (get().meta.teamname) {
-      get().dispatch.defer.teamsGetMembers(get().meta.teamID)
-    }
   }
 
   const downloadAttachment = async (downloadToCache: boolean, ordinal: T.Chat.Ordinal) => {
@@ -1376,26 +1368,31 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
   ignorePromise(f())
   }
 
-  const updateLocalBotMembershipState = (username: string, role?: 'bot' | 'restrictedbot') => {
-    set(s => {
-      s.participants = {
-        all: role
-          ? (s.participants.all.includes(username) ? s.participants.all : [...s.participants.all, username])
-          : s.participants.all.filter(participant => participant !== username),
-        contactName: s.participants.contactName,
-        name: s.participants.name.filter(participant => participant !== username),
+  const uiParticipantsToParticipantInfo = (
+    uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+  ): T.Chat.ParticipantInfo => {
+    const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
+    uiParticipants.forEach(part => {
+      const {assertion, contactName, inConvName} = part
+      participantInfo.all.push(assertion)
+      if (inConvName) {
+        participantInfo.name.push(assertion)
       }
-      if (role) {
-        s.botTeamRoleMap.set(username, role)
-      } else {
-        s.botTeamRoleMap.delete(username)
-        s.botSettings.delete(username)
+      if (contactName) {
+        participantInfo.contactName.set(assertion, contactName)
       }
     })
+    return participantInfo
+  }
 
+  const reloadBotMembershipState = async () => {
     const {meta} = get()
+    const preview = await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
+      convID: get().getConvID(),
+    })
+    get().dispatch.setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
     if (meta.teamname) {
-      get().dispatch.defer.teamsBotMemberUpdated(meta.teamID, username, role)
+      await get().dispatch.defer.teamsGetMembers(meta.teamID)
     }
   }
 
@@ -1412,14 +1409,14 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
             },
             Strings.waitingKeyChatBotAdd
           )
+          await reloadBotMembershipState()
+          closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {
             logger.info('addBotMember: failed to add bot member: ' + error.message)
           }
           return
         }
-        updateLocalBotMembershipState(username, restricted ? 'restrictedbot' : 'bot')
-        closeBotModal()
       }
       ignorePromise(f())
     },
@@ -2711,7 +2708,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
         const convID = get().getConvID()
         try {
           await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Strings.waitingKeyChatBotRemove)
-          updateLocalBotMembershipState(username)
+          await reloadBotMembershipState()
           closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {
