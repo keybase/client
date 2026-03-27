@@ -130,6 +130,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   }))
 
   const mountedRef = React.useRef(true)
+  const initialProofStartedRef = React.useRef(false)
   const initialRouteRef = React.useRef({platform, reason})
   const currentUsernameRef = React.useRef('')
   const currentGenericParamsRef = React.useRef(makeProveGenericParams())
@@ -160,9 +161,16 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   }
 
   React.useEffect(() => {
+    mountedRef.current = true
     return () => {
       mountedRef.current = false
-      cancelSession()
+      const cancel = cancelCurrentRef.current
+      afterCheckProofRef.current = undefined
+      cancelCurrentRef.current = undefined
+      submitUsernameRef.current = undefined
+      currentGenericParamsRef.current = makeProveGenericParams()
+      currentUsernameRef.current = ''
+      cancel?.()
     }
   }, [])
 
@@ -307,7 +315,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
                     username: currentUsernameRef.current,
                   })
                   openUrl(proof)
-                  afterCheckProofRef.current?.()
+                  afterCheckProofRef.current()
                 }
               },
               'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
@@ -467,7 +475,8 @@ const Container = ({platform, reason = 'profile'}: Props) => {
 
   React.useEffect(() => {
     const {platform: initialPlatform, reason: initialReason} = initialRouteRef.current
-    if (initialPlatform) {
+    if (initialPlatform && !initialProofStartedRef.current) {
+      initialProofStartedRef.current = true
       startProofRef.current(initialPlatform, initialReason)
     }
   }, [])
@@ -900,7 +909,7 @@ const PostProof = ({
   const proofActionText = actionMap.get(step.platform) ?? ''
   const onCompleteText = checkMap.get(step.platform) ?? 'OK posted! Check for it!'
   const noteText = noteMap.get(step.platform) ?? ''
-  const DescriptionView = descriptionMap[step.platform]
+  const DescriptionView = descriptionMap[step.platform] ?? EmptyDescription
 
   return (
     <Modal onCancel={onCancel} skipButton={true}>
@@ -1196,7 +1205,11 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   )
 }
 
-const descriptionMap = {
+const EmptyDescription = () => null
+
+const descriptionMap: Partial<
+  Record<T.More.PlatformsExpandedType, React.ComponentType<{platformUserName: string}>>
+> = {
   dns: () => (
     <Kb.Text center={true} type="BodySemibold">
       Enter the following as a TXT entry in your DNS zone, <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>
@@ -1230,7 +1243,7 @@ const descriptionMap = {
     </Kb.Text>
   ),
   web: WebDescription,
-} satisfies Record<string, React.ComponentType<{platformUserName: string}>>
+}
 
 const messageMap = new Map([
   ['btc', 'Your Bitcoin address has now been signed onto your profile.'],
@@ -1277,8 +1290,8 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBarWarning: {backgroundColor: Kb.Styles.globalColors.yellow},
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
-      centered: {alignSelf: 'center'},
       center: {alignSelf: 'center'},
+      centered: {alignSelf: 'center'},
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({
         common: {flex: 1},

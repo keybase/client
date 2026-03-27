@@ -21,6 +21,7 @@ import {Alert, Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
 import {getTab, getVisiblePath, logState, switchTab} from '@/constants/router'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -525,9 +526,9 @@ export const initPlatformListener = () => {
           try {
             const result = await launchImageLibraryAsync(type, true, true)
             if (result.canceled) return
-            result.assets.map(r =>
-              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
-            )
+            for (const asset of result.assets) {
+              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(asset.uri))
+            }
           } catch (e) {
             errorToActionOrThrow(e)
           }
