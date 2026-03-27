@@ -11,7 +11,10 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const [iconNumbers, setIconNumbers] = React.useState({desktop: 1, mobile: 1} as const)
+  const [iconNumbers, setIconNumbers] = React.useState({
+    desktop: 1 as T.Devices.IconNumber,
+    mobile: 1 as T.Devices.IconNumber,
+  } as const)
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
 

@@ -39,7 +39,7 @@ const useLoadDataForChannelPage = (
       if (meta.conversationIDKey === 'EMPTY') {
         unboxRows([conversationIDKey])
       }
-      getMembers(teamID)
+      C.ignorePromise(getMembers(teamID))
       getBlockState(participants)
     }
   }, [
