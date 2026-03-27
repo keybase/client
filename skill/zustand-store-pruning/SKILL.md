@@ -150,6 +150,7 @@ Keep params limited to explicit entry context. Do not recreate a hidden global s
 After consumers move off the store:
 
 - Delete dead fields, actions, helpers, imports, and tests
+- Delete dead component-level leftovers created during the move, including unused params, temporary aliases, and underscore-prefixed placeholders that no longer serve a purpose
 - Remove unused notification plumbing only if behavior is preserved
 - Keep reset behavior coherent for whatever remains
 - Preserve public store names unless there is a strong reason to rename them

@@ -28,8 +28,7 @@ const useLoadDataForChannelPage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
   meta: T.Chat.ConversationMeta,
-  participants: ReadonlyArray<string>,
-  _bots: ReadonlyArray<string>
+  participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
@@ -129,7 +128,7 @@ const Channel = (props: OwnProps) => {
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants)
   const participants = useChannelParticipants(teamID, conversationIDKey)
 
   // Make the actual sections (consider farming this out into another function or file)
