@@ -9,6 +9,7 @@ import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {pprofDir} from '@/constants/platform'
+import {clearLocalLogs} from '@/util/misc'
 import {useWaitingState} from '@/stores/waiting'
 
 let initialUseNativeFrame: boolean | undefined
@@ -352,7 +353,6 @@ const Developer = () => {
   const onMakeIcons = () => navigateAppend('makeIcons')
   const onClearLogs = () => {
     const f = async () => {
-      const {clearLocalLogs} = await import('@/util/misc')
       await clearLocalLogs()
     }
     ignorePromise(f())
