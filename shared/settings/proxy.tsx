@@ -8,7 +8,7 @@ import type {RPCError} from '@/util/errors'
 const useConnect = () => {
   const [allowTlsMitmToggle, setDidToggleCertificatePinning] = React.useState<boolean | undefined>(undefined)
   const [proxyData, setProxyData] = React.useState<T.RPCGen.ProxyData | undefined>(undefined)
-  const [showDisableCertPinningModal, setShowDisableCertPinningModal] = React.useState(false)
+  const [showDisableCertPinningWarning, setShowDisableCertPinningWarning] = React.useState(false)
   const loadProxyData = C.useRPC(T.RPCGen.configGetProxyDataRpcPromise)
   const saveProxyData = C.useRPC(T.RPCGen.configSetProxyDataRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -16,17 +16,17 @@ const useConnect = () => {
     navigateAppend('login')
   }
   const onDisableCertPinning = () => {
-    setShowDisableCertPinningModal(true)
-  }
-  const onEnableCertPinning = () => {
-    setDidToggleCertificatePinning(false)
+    setShowDisableCertPinningWarning(true)
   }
   const onCancelDisableCertPinning = () => {
-    setShowDisableCertPinningModal(false)
+    setShowDisableCertPinningWarning(false)
   }
   const onConfirmDisableCertPinning = () => {
     setDidToggleCertificatePinning(true)
-    setShowDisableCertPinningModal(false)
+    setShowDisableCertPinningWarning(false)
+  }
+  const onEnableCertPinning = () => {
+    setDidToggleCertificatePinning(false)
   }
   const props = {
     allowTlsMitmToggle,
@@ -39,7 +39,7 @@ const useConnect = () => {
     proxyData,
     setProxyData,
     saveProxyData,
-    showDisableCertPinningModal,
+    showDisableCertPinningWarning,
   }
 
   return props
@@ -84,7 +84,7 @@ type Props = {
     setError: (error: RPCError) => void
   ) => void
   setProxyData: React.Dispatch<React.SetStateAction<T.RPCGen.ProxyData | undefined>>
-  showDisableCertPinningModal: boolean
+  showDisableCertPinningWarning: boolean
 }
 
 const ProxySettingsComponent = (props: Props) => {
@@ -167,19 +167,34 @@ const ProxySettingsComponent = (props: Props) => {
     }
   }
 
+  if (props.showDisableCertPinningWarning) {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        flex={1}
+        gap="small"
+        style={styles.warningContainer}
+      >
+        <Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Kb.Styles.globalColors.red} />
+        <Kb.Text center={true} type="Header" style={styles.warningHeader}>
+          Are you sure you want to allow TLS interception?
+        </Kb.Text>
+        <Kb.Text center={true} type="Body" style={styles.warningBody}>
+          This means your proxy or your ISP will be able to view all traffic between you and Keybase servers.
+          It is not recommended to use this option unless absolutely required.
+        </Kb.Text>
+        <Kb.ButtonBar>
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancelDisableCertPinning} />
+          <Kb.Button type="Danger" label="Yes, I am sure" onClick={props.onConfirmDisableCertPinning} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    )
+  }
+
   return (
     <>
-      {props.showDisableCertPinningModal && (
-        <Kb.ConfirmModal
-          confirmText="Yes, I am sure"
-          description="This means your proxy or your ISP will be able to view all
-        traffic between you and Keybase servers. It is not recommended to use this option unless absolutely required."
-          header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Kb.Styles.globalColors.red} />}
-          onCancel={props.onCancelDisableCertPinning}
-          onConfirm={props.onConfirmDisableCertPinning}
-          prompt="Are you sure you want to allow TLS MITM?"
-        />
-      )}
       <Kb.Text type="Header" style={styles.text}>
         Proxy settings
       </Kb.Text>
@@ -237,6 +252,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       cursor: 'default',
     },
   }),
+  warningBody: {maxWidth: 420},
+  warningContainer: {padding: Kb.Styles.globalMargins.medium},
+  warningHeader: {maxWidth: 420},
 }))
 
 export {ProxySettings}
