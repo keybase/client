@@ -7,25 +7,20 @@ import {SiteIcon} from './shared'
 import type * as T from '@/constants/types'
 
 type Props = {
-  route: {
-    params: {
-      error?: string
-      genericParams: ProveGenericParams
-      proofUrl?: string
-      service: string
-      username?: string
-    }
-  }
+  error?: string
+  genericParams: ProveGenericParams
+  proofUrl?: string
+  service: string
+  username?: string
 }
 
-const ConnectedEnterUsername = ({route}: Props) => {
-  const {error = '', genericParams, proofUrl, username: routeUsername = ''} = route.params
-  const serviceIcon = genericParams.logoBlack ?? []
-  const serviceIconFull = genericParams.logoFull ?? []
-  const serviceName = genericParams.title ?? ''
-  const serviceSub = genericParams.subtext ?? ''
-  const serviceSuffix = genericParams.suffix ?? ''
-  const submitButtonLabel = genericParams.buttonLabel ?? 'Submit'
+const ConnectedEnterUsername = ({error = '', genericParams, proofUrl, username: routeUsername = ''}: Props) => {
+  const serviceIcon = genericParams.logoBlack
+  const serviceIconFull = genericParams.logoFull
+  const serviceName = genericParams.title
+  const serviceSub = genericParams.subtext
+  const serviceSuffix = genericParams.suffix
+  const submitButtonLabel = genericParams.buttonLabel
   const unreachable = !!proofUrl
 
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)

@@ -7,18 +7,13 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as C from '@/constants'
 
 type Props = {
-  route: {
-    params: {
-      platform: T.More.PlatformsExpandedType
-      proofFound: boolean
-      proofStatus?: T.RPCGen.ProofStatus
-      username: string
-    }
-  }
+  platform: T.More.PlatformsExpandedType
+  proofFound: boolean
+  proofStatus?: T.RPCGen.ProofStatus
+  username: string
 }
 
-const ConfirmOrPending = ({route}: Props) => {
-  const {platform, proofFound, proofStatus, username} = route.params
+const ConfirmOrPending = ({platform, proofFound, proofStatus, username}: Props) => {
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const currentUsername = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -26,10 +21,6 @@ const ConfirmOrPending = ({route}: Props) => {
   const isGood = proofFound && proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =
     !isGood && !proofFound && !!proofStatus && proofStatus <= T.RPCGen.ProofStatus.baseHardError
-
-  if (!platform) {
-    throw new Error('No platform passed to confirm or pending container')
-  }
 
   const platformIconOverlayColor = isGood ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.greyDark
   const onCancel = () => {

@@ -7,17 +7,12 @@ import type * as T from '@/constants/types'
 import {normalizeProofUsername} from './proof-utils'
 
 type Props = {
-  route: {
-    params: {
-      error?: string
-      platform: T.More.PlatformsExpandedType
-      username?: string
-    }
-  }
+  error?: string
+  platform: T.More.PlatformsExpandedType
+  username?: string
 }
 
-const Container = ({route}: Props) => {
-  const {error: routeError, platform, username: initialUsername = ''} = route.params
+const Container = ({error: routeError, platform, username: initialUsername = ''}: Props) => {
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
   const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)

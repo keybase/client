@@ -77,16 +77,11 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 type ContainerProps = {
-  route: {
-    params: {
-      pgpKeyString: string
-      promptShouldStoreKeyOnServer: boolean
-    }
-  }
+  pgpKeyString: string
+  promptShouldStoreKeyOnServer: boolean
 }
 
-const Container = ({route}: ContainerProps) => {
-  const {pgpKeyString, promptShouldStoreKeyOnServer} = route.params
+const Container = ({pgpKeyString, promptShouldStoreKeyOnServer}: ContainerProps) => {
   const finishedWithKeyGen = useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

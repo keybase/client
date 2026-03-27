@@ -6,19 +6,14 @@ import {useCurrentUserState} from '@/stores/current-user'
 import type {ProveGenericParams} from '@/stores/profile'
 
 type Props = {
-  route: {
-    params: {
-      error?: string
-      genericParams: ProveGenericParams
-      username: string
-    }
-  }
+  error?: string
+  genericParams: ProveGenericParams
+  username: string
 }
 
-const GenericResult = ({route}: Props) => {
-  const {error = '', genericParams, username} = route.params
-  const proofUsername = username + (genericParams.suffix ?? '@unknown')
-  const serviceIcon = genericParams.logoFull ?? []
+const GenericResult = ({error = '', genericParams, username}: Props) => {
+  const proofUsername = username + genericParams.suffix
+  const serviceIcon = genericParams.logoFull
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const currentUsername = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

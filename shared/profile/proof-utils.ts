@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 
 const isValidBitcoinAddress = (username: string) => {
   const legacyFormat = username.search(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/) !== -1

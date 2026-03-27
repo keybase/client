@@ -9,28 +9,17 @@ import {useConfigState} from '@/stores/config'
 import type * as T from '@/constants/types'
 
 type Props = {
-  route: {
-    params: {
-      error?: string
-      platform: T.More.PlatformsExpandedType
-      proofText: string
-      username: string
-    }
-  }
+  error?: string
+  platform: T.More.PlatformsExpandedType
+  proofText: string
+  username: string
 }
 
-const Container = ({route}: Props) => {
-  const {error, platform, username} = route.params
-  let {proofText} = route.params
+const Container = ({error, platform, username, proofText: initialProofText}: Props) => {
+  let proofText = initialProofText
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
   const afterCheckProof = useProfileState(s => s.dispatch.dynamic.afterCheckProof)
-  if (
-    !platform ||
-    platform === 'zcash' ||
-    platform === 'btc' ||
-    platform === 'dnsOrGenericWebSite' ||
-    platform === 'pgp'
-  ) {
+  if (platform === 'zcash' || platform === 'btc' || platform === 'dnsOrGenericWebSite' || platform === 'pgp') {
     throw new Error(`Invalid profile platform in PostProofContainer: ${platform || ''}`)
   }
 
@@ -39,7 +28,7 @@ const Container = ({route}: Props) => {
   switch (platform) {
     case 'twitter':
       openLinkBeforeSubmit = true
-      url = proofText ? `https://twitter.com/home?status=${proofText || ''}` : ''
+      url = proofText ? `https://twitter.com/home?status=${proofText}` : ''
       break
     case 'github':
       openLinkBeforeSubmit = true
@@ -53,7 +42,7 @@ const Container = ({route}: Props) => {
       break
     case 'hackernews':
       openLinkBeforeSubmit = true
-      url = `https://news.ycombinator.com/user?id=${username || ''}`
+      url = `https://news.ycombinator.com/user?id=${username}`
       break
     default:
       break
