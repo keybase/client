@@ -5,33 +5,39 @@ jest.mock('../../constants/router', () => ({
   switchTab: jest.fn(),
 }))
 
+import * as T from '../../constants/types'
+import {loadSettings} from '../../settings/load-settings'
 import {resetAllStores} from '../../util/zustand'
 import {useConfigState} from '../config'
-import {useSettingsState} from '../settings'
+import {useSettingsEmailState} from '../settings-email'
+import {useSettingsPhoneState} from '../settings-phone'
 
-describe('settings store', () => {
+describe('settings loading', () => {
   afterEach(() => {
     jest.restoreAllMocks()
     resetAllStores()
   })
 
-  test('loadSettings forwards email and phone settings through deferred handlers', async () => {
+  test('loadSettings forwards email and phone settings through email and phone stores', async () => {
     const emails = [{email: 'alice@example.com', isPrimary: true, isVerified: true, visibility: 0}]
     const phoneNumbers = [{phoneNumber: '+15555555555', superseded: false, verified: true, visibility: 0}]
     const emailHandler = jest.fn()
     const phoneHandler = jest.fn()
 
     useConfigState.setState({loggedIn: true})
-    useSettingsState.setState(s => ({
+    useSettingsEmailState.setState(s => ({
       ...s,
       dispatch: {
         ...s.dispatch,
-        defer: {
-          ...s.dispatch.defer,
-          getSettingsPhonePhones: () => new Map([['existing', {} as never]]),
-          onSettingsEmailNotifyEmailsChanged: emailHandler,
-          onSettingsPhoneSetNumbers: phoneHandler,
-        },
+        notifyEmailAddressEmailsChanged: emailHandler,
+      },
+    }))
+    useSettingsPhoneState.setState(s => ({
+      ...s,
+      phones: new Map([['existing', {} as never]]),
+      dispatch: {
+        ...s.dispatch,
+        setNumbers: phoneHandler,
       },
     }))
     jest.spyOn(T.RPCGen, 'userLoadMySettingsRpcPromise').mockResolvedValue({
@@ -39,7 +45,7 @@ describe('settings store', () => {
       phoneNumbers,
     } as never)
 
-    useSettingsState.getState().dispatch.loadSettings()
+    loadSettings()
     await Promise.resolve()
 
     expect(emailHandler).toHaveBeenCalledWith(emails)

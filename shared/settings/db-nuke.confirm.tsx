@@ -1,16 +1,16 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useSettingsState} from '@/stores/settings'
+import * as T from '@/constants/types'
 
 const DbNukeConfirm = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const dbNuke = C.useRPC(T.RPCGen.ctlDbNukeRpcPromise)
   const onCancel = () => {
     navigateUp()
   }
-  const dbNuke = useSettingsState(s => s.dispatch.dbNuke)
   const onDBNuke = () => {
     navigateUp()
-    dbNuke()
+    dbNuke([undefined, C.waitingKeySettingsGeneric], () => {}, () => {})
   }
 
   return (

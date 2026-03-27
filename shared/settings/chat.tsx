@@ -4,9 +4,9 @@ import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
+import {loadSettings} from './load-settings'
 import {useSettingsChatState as useSettingsChatState} from '@/stores/settings-chat'
 import {useSettingsNotifState} from '@/stores/settings-notifications'
-import {useSettingsState} from '@/stores/settings'
 import {useConfigState} from '@/stores/config'
 
 const emptyList = new Array<string>()
@@ -104,8 +104,6 @@ const Security = () => {
       setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
     }
   }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
-
-  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
 
   React.useEffect(() => {
     loadSettings()

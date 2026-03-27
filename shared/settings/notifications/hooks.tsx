@@ -1,7 +1,8 @@
 import * as C from '@/constants'
+import {settingsAccountTab} from '@/constants/settings'
+import {loadSettings} from '../load-settings'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsNotifState} from '@/stores/settings-notifications'
-import {useSettingsState, settingsAccountTab} from '@/stores/settings'
 
 const useNotifications = () => {
   const _groups = useSettingsNotifState(s => s.groups)
@@ -19,7 +20,6 @@ const useNotifications = () => {
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle
-  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
   const refresh = useSettingsNotifState(s => s.dispatch.refresh)
 
   const onRefresh = () => {

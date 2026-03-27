@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import SettingsItem from './settings-item'
-import * as Settings from '@/stores/settings'
+import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
 

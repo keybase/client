@@ -1,11 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
+import {openURL} from '@/util/misc'
+import {loadSettings} from '../load-settings'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {useSettingsState, settingsPasswordTab} from '@/stores/settings'
+import {settingsPasswordTab} from '@/constants/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -112,7 +115,16 @@ const Password = () => {
 }
 
 const WebAuthTokenLogin = () => {
-  const loginBrowserViaWebAuthToken = useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const generateWebAuthToken = C.useRPC(T.RPCGen.configGenerateWebAuthTokenRpcPromise)
+  const loginBrowserViaWebAuthToken = () => {
+    generateWebAuthToken(
+      [undefined],
+      link => {
+        openURL(link)
+      },
+      () => {}
+    )
+  }
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -175,11 +187,6 @@ const AccountSettings = () => {
       addedPhone: s.addedPhone,
       clearAddedPhone: s.dispatch.clearAddedPhone,
       editPhone: s.dispatch.editPhone,
-    }))
-  )
-  const {loadSettings} = useSettingsState(
-    C.useShallow(s => ({
-      loadSettings: s.dispatch.loadSettings,
     }))
   )
   const {loadHasRandomPw} = usePWState(

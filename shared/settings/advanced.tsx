@@ -3,14 +3,73 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/stores/settings'
+import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
 import {usePWState} from '@/stores/settings-password'
 import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
+import {pprofDir} from '@/constants/platform'
+import {useWaitingState} from '@/stores/waiting'
 
 let initialUseNativeFrame: boolean | undefined
 
 const showMakeIcons = __DEV__ && (false as boolean)
+
+const runPprofAction = (
+  rpc: () => Promise<void>,
+  waitingKey: string,
+  durationSeconds: number
+) => {
+  const f = async () => {
+    await rpc()
+    const {decrement, increment} = useWaitingState.getState().dispatch
+    increment(waitingKey)
+    await timeoutPromise(durationSeconds * 1_000)
+    decrement(waitingKey)
+  }
+  ignorePromise(f())
+}
+
+const useLockdownMode = () => {
+  const [lockdownModeEnabled, setLockdownModeEnabled] = React.useState<boolean | undefined>(undefined)
+  const loadLockdownModeRPC = C.useRPC(T.RPCGen.accountGetLockdownModeRpcPromise)
+  const setLockdownModeRPC = C.useRPC(T.RPCGen.accountSetLockdownModeRpcPromise)
+
+  const loadLockdownMode = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadLockdownModeRPC(
+      [undefined],
+      result => {
+        setLockdownModeEnabled(result.status)
+      },
+      () => {
+        setLockdownModeEnabled(undefined)
+      }
+    )
+  }, [loadLockdownModeRPC])
+
+  const setLockdownMode = React.useCallback(
+    (enabled: boolean) => {
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      setLockdownModeRPC(
+        [{enabled}, C.waitingKeySettingsSetLockdownMode],
+        () => {
+          setLockdownModeEnabled(enabled)
+        },
+        () => {
+          setLockdownModeEnabled(undefined)
+        }
+      )
+    },
+    [setLockdownModeRPC]
+  )
+
+  return {loadLockdownMode, lockdownModeEnabled, setLockdownMode}
+}
 
 const UseNativeFrame = () => {
   const {onChangeUseNativeFrame, useNativeFrame} = useConfigState(
@@ -40,14 +99,13 @@ const UseNativeFrame = () => {
   )
 }
 
-const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
-  const {hasRandomPW, settingLockdownMode} = p
-  const {lockdownModeEnabled, setLockdownMode} = useSettingsState(
-    C.useShallow(s => ({
-      lockdownModeEnabled: !!s.lockdownModeEnabled,
-      setLockdownMode: s.dispatch.setLockdownMode,
-    }))
-  )
+const LockdownCheckbox = (p: {
+  hasRandomPW: boolean
+  lockdownModeEnabled?: boolean
+  setLockdownMode: (enabled: boolean) => void
+  settingLockdownMode: boolean
+}) => {
+  const {hasRandomPW, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
   const onChangeLockdownMode = setLockdownMode
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
@@ -96,11 +154,7 @@ const Advanced = () => {
       openAtLogin: s.openAtLogin,
     }))
   )
-  const {loadLockdownMode} = useSettingsState(
-    C.useShallow(s => ({
-      loadLockdownMode: s.dispatch.loadLockdownMode,
-    }))
-  )
+  const {loadLockdownMode, lockdownModeEnabled, setLockdownMode} = useLockdownMode()
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
   const [rememberPassword, setRememberPassword] = React.useState<boolean | undefined>(undefined)
 
@@ -187,7 +241,12 @@ const Advanced = () => {
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
             {settingLockdownMode && <Kb.ProgressIndicator />}
-            <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
+            <LockdownCheckbox
+              hasRandomPW={hasRandomPW}
+              lockdownModeEnabled={lockdownModeEnabled}
+              setLockdownMode={setLockdownMode}
+              settingLockdownMode={settingLockdownMode}
+            />
             {!!setLockdownModeError && (
               <Kb.Text type="BodySmall" style={styles.error}>
                 {setLockdownModeError}
@@ -265,17 +324,39 @@ const Developer = () => {
 
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = C.Waiting.useAnyWaiting(traceInProgressKey)
-  const {onProcessorProfile, onTrace} = useSettingsState(
-    C.useShallow(s => ({
-      onProcessorProfile: s.dispatch.processorProfile,
-      onTrace: s.dispatch.trace,
-    }))
-  )
+  const onProcessorProfile = () => {
+    runPprofAction(
+      async () =>
+        T.RPCGen.pprofLogProcessorProfileRpcPromise({
+          logDirForMobile: pprofDir,
+          profileDurationSeconds: processorProfileDurationSeconds,
+        }),
+      processorProfileInProgressKey,
+      processorProfileDurationSeconds
+    )
+  }
+  const onTrace = () => {
+    runPprofAction(
+      async () =>
+        T.RPCGen.pprofLogTraceRpcPromise({
+          logDirForMobile: pprofDir,
+          traceDurationSeconds,
+        }),
+      traceInProgressKey,
+      traceDurationSeconds
+    )
+  }
   const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
   const onMakeIcons = () => navigateAppend('makeIcons')
-  const onClearLogs = useSettingsState(s => s.dispatch.clearLogs)
+  const onClearLogs = () => {
+    const f = async () => {
+      const {clearLocalLogs} = await import('@/util/misc')
+      await clearLocalLogs()
+    }
+    ignorePromise(f())
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.developerContainer}>

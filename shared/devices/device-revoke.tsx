@@ -3,7 +3,7 @@ import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {settingsDevicesTab} from '@/stores/settings'
+import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
