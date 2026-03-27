@@ -598,10 +598,16 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   bodyScroll: {
     flex: 1,
+    minHeight: 0,
+    position: 'relative',
   },
-  bodyScrollContent: {
-    minHeight: '100%',
-  },
+  bodyScrollContent: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.flexBoxColumn,
+      flexGrow: 1,
+      width: '100%',
+    },
+  }),
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -619,6 +625,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   outerContainer: Kb.Styles.platformStyles({
     common: {
       flex: 1,
+      minHeight: 0,
     },
   }),
   reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},
