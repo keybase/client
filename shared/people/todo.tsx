@@ -11,6 +11,7 @@ import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useProfileState} from '@/stores/profile'
 
 const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
