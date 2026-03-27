@@ -1,9 +1,27 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
+import * as T from '@/constants/types'
+
+jest.mock('@/constants/router', () => {
+  const actual = jest.requireActual('@/constants/router')
+  return {
+    ...actual,
+    navUpToScreen: jest.fn(),
+    navigateAppend: jest.fn(),
+  }
+})
+
 import {useAutoResetState} from '../autoreset'
+
+const {navigateAppend: mockNavigateAppend, navUpToScreen: mockNavUpToScreen} = require('@/constants/router') as {
+  navigateAppend: jest.Mock
+  navUpToScreen: jest.Mock
+}
 
 afterEach(() => {
   jest.restoreAllMocks()
+  mockNavigateAppend.mockReset()
+  mockNavUpToScreen.mockReset()
   resetAllStores()
 })
 
@@ -37,8 +55,55 @@ test('startAccountReset seeds the account reset flow locally', () => {
 
   store.getState().dispatch.startAccountReset(true, 'alice')
 
-  expect(store.getState().skipPassword).toBe(true)
-  expect(store.getState().username).toBe('alice')
   expect(store.getState().error).toBe('')
   expect(store.getState().active).toBe(false)
+  expect(mockNavigateAppend).toHaveBeenCalledWith(
+    {
+      name: 'recoverPasswordPromptResetAccount',
+      params: {skipPassword: true, username: 'alice'},
+    },
+    true
+  )
+})
+
+test('resetAccount exposes a submit handler for the confirm screen and starts provision on confirm', async () => {
+  const store = useAutoResetState
+  const onStartProvision = jest.fn()
+  const result = jest.fn()
+
+  store.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      defer: {
+        onStartProvision,
+      },
+    },
+  }))
+
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
+    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
+      {
+        prompt: {
+          complete: {hasWallet: true},
+          t: T.RPCGen.ResetPromptType.complete,
+        },
+      } as any,
+      {result} as any
+    )
+    return undefined as any
+  })
+
+  store.getState().dispatch.resetAccount('alice')
+  await Promise.resolve()
+
+  expect(mockNavigateAppend).toHaveBeenCalledWith(
+    {name: 'resetConfirm', params: {hasWallet: true}},
+    true
+  )
+
+  store.getState().dispatch.dynamic.submitResetPrompt?.(T.RPCGen.ResetPromptResponse.confirmReset)
+
+  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
+  expect(onStartProvision).toHaveBeenCalledWith('alice', true)
 })

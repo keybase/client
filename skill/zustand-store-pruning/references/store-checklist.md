@@ -12,17 +12,17 @@ Status:
 ## Smaller / Likely Early Passes
 
 - [x] `archive` kept notification-backed chat/KBFS job caches plus engine/load plumbing; moved modal waiters, start RPCs, row action RPCs, and KBFS freshness lookup into settings components
-- [ ] `autoreset`
+- [x] `autoreset` kept badge-driven reset status plus reset pipeline entry/cancel logic; moved username/skip-password/has-wallet flow state into route params and removed dead confirm callback state
 - [ ] `bots`
 - [x] `crypto`
 - [ ] `daemon`
-- [ ] `darkmode`
+- [x] `darkmode`
 - [ ] `devices`
 - [ ] `followers`
 - [ ] `git`
 - [ ] `inbox-rows`
 - [x] `logout` kept handshake `version`/`waiters` in store; moved can-logout RPC and password redirect into settings hook
-- [ ] `modal-header`
+- [~] `modal-header`
 - [ ] `notifications`
 - [ ] `people`
 - [ ] `pinentry`

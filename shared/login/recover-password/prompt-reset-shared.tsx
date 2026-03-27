@@ -8,16 +8,16 @@ import type {ButtonType} from '@/common-adapters/button'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
 export type Props = {
-  recoverUsername?: string
   resetPassword?: boolean
+  skipPassword: boolean
+  username: string
 }
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const skipPassword = AutoReset.useAutoResetState(s => s.skipPassword)
   const error = AutoReset.useAutoResetState(s => s.error)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const {recoverUsername, resetPassword} = props
+  const {resetPassword, skipPassword, username} = props
 
   const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
@@ -32,14 +32,14 @@ const PromptReset = (props: Props) => {
       submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
-      resetAccount()
+      resetAccount(username)
     } else {
-      nav.safeNavigateAppend('resetKnowPassword', true)
+      nav.safeNavigateAppend({name: 'resetKnowPassword', params: {username}}, true)
     }
   }
   const onBack = () => {
-    if (skipPassword && recoverUsername) {
-      startRecoverPassword({replaceRoute: true, username: recoverUsername})
+    if (skipPassword) {
+      startRecoverPassword({replaceRoute: true, username})
     } else {
       nav.safeNavigateUp()
     }

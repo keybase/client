@@ -9,24 +9,14 @@ import {navigateAppend, navUpToScreen} from '@/constants/router'
 
 type Store = T.Immutable<{
   active: boolean
-  afterSubmitResetPrompt: (action: T.RPCGen.ResetPromptResponse) => void
   endTime: number
   error: string
-  hasWallet: boolean
-  skipPassword: boolean
-  username: string
 }>
 
 const initialStore: Store = {
   active: false,
-  afterSubmitResetPrompt: (_action: T.RPCGen.ResetPromptResponse) => {
-    console.log('Unset afterSubmitResetPrompt called')
-  },
   endTime: 0,
   error: '',
-  hasWallet: false,
-  skipPassword: false,
-  username: '',
 }
 
 export type State = Store & {
@@ -35,9 +25,12 @@ export type State = Store & {
     defer: {
       onStartProvision: (username: string, fromReset: boolean) => void
     }
+    dynamic: {
+      submitResetPrompt?: (action: T.RPCGen.ResetPromptResponse) => void
+    }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
-    resetAccount: (password?: string) => void
+    resetAccount: (username: string, password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
   }
@@ -89,6 +82,9 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
         throw new Error('onStartProvision not properly initialized')
       },
     },
+    dynamic: {
+      submitResetPrompt: undefined,
+    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
@@ -100,7 +96,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
         default:
       }
     },
-    resetAccount: (password = '') => {
+    resetAccount: (username, password = '') => {
       set(s => {
         s.error = ''
       })
@@ -115,26 +111,25 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
             const {hasWallet} = params.prompt.complete
             logger.info('Showing final reset screen')
             set(s => {
-              s.hasWallet = hasWallet
-              s.afterSubmitResetPrompt = (action: T.RPCGen.ResetPromptResponse) => {
+              s.dispatch.dynamic.submitResetPrompt = (action: T.RPCGen.ResetPromptResponse) => {
                 set(s => {
-                  s.afterSubmitResetPrompt = initialStore.afterSubmitResetPrompt
+                  s.dispatch.dynamic.submitResetPrompt = undefined
                 })
                 response.result(action)
                 if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
                   set(s => {
                     s.error = ''
                   })
-                  get().dispatch.defer.onStartProvision(get().username, true)
+                  get().dispatch.defer.onStartProvision(username, true)
                 } else {
                   navUpToScreen('login')
                 }
               }
             })
-            navigateAppend('resetConfirm', true)
+            navigateAppend({name: 'resetConfirm', params: {hasWallet}}, true)
           } else {
             logger.info('Starting account reset process')
-            get().dispatch.startAccountReset(true, '')
+            get().dispatch.startAccountReset(true, username)
           }
         }
         try {
@@ -147,13 +142,16 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
                     s.endTime = params.endTime * 1000
                   })
                 }
-                navigateAppend({name: 'resetWaiting', params: {pipelineStarted: !params.needVerify}}, true)
+                navigateAppend(
+                  {name: 'resetWaiting', params: {pipelineStarted: !params.needVerify, username}},
+                  true
+                )
               },
             },
             params: {
               interactive: false,
               passphrase: password,
-              usernameOrEmail: get().username,
+              usernameOrEmail: username,
             },
             waitingKey: S.waitingKeyAutoresetEnterPipeline,
           })
@@ -169,15 +167,17 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       }
       ignorePromise(f())
     },
-    resetState: Z.defaultReset,
-    startAccountReset: (skipPassword, _username) => {
-      const username = _username || get().username
+    resetState: () => {
       set(s => {
-        s.skipPassword = skipPassword
-        s.error = ''
-        s.username = username
+        Object.assign(s, initialStore)
+        s.dispatch.dynamic.submitResetPrompt = undefined
       })
-      navigateAppend('recoverPasswordPromptResetAccount', true)
+    },
+    startAccountReset: (skipPassword, username) => {
+      set(s => {
+        s.error = ''
+      })
+      navigateAppend({name: 'recoverPasswordPromptResetAccount', params: {skipPassword, username}}, true)
     },
     updateARState: (active, endTime) => {
       set(s => {

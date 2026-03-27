@@ -3,20 +3,21 @@ import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useState as useRecoverState} from '@/stores/recover-password'
 
-const ConfirmReset = () => {
-  const hasWallet = AutoReset.useAutoResetState(s => s.hasWallet)
+type Props = {route: {params: {hasWallet: boolean}}}
+
+const ConfirmReset = ({route}: Props) => {
+  const {hasWallet} = route.params
   const error = AutoReset.useAutoResetState(s => s.error)
-  const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const submitResetPrompt = AutoReset.useAutoResetState(s => s.dispatch.dynamic.submitResetPrompt)
   const onContinue = () => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.confirmReset)
   }
   const onCancelReset = () => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.cancelReset)
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.cancelReset)
   }
   const onClose = () => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.nothing)
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.nothing)
   }
 
   const [checks, setChecks] = React.useState({

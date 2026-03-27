@@ -4,14 +4,17 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
-const KnowPassword = () => {
+type Props = {route: {params: {username: string}}}
+
+const KnowPassword = ({route}: Props) => {
+  const {username} = route.params
   const error = AutoReset.useAutoResetState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const onYes = () => nav.safeNavigateAppend('resetEnterPassword')
+  const onYes = () => nav.safeNavigateAppend({name: 'resetEnterPassword', params: {username}})
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onNo = () => resetAccount()
+  const onNo = () => resetAccount(username)
   return (
     <SignupScreen
       title="Account reset"

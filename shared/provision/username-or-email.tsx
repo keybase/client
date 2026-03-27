@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
@@ -34,8 +33,6 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = AutoReset.useAutoResetState(s => s.username)
-  const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = useProvisionState(
     C.useShallow(s => decodeInlineError(s.inlineError))
@@ -43,6 +40,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
   const _username = useProvisionState(s => s.username)
+  const resetBannerUser = op.fromReset ? _username : undefined
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 

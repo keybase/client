@@ -5,7 +5,10 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
-const EnterPassword = () => {
+type Props = {route: {params: {username: string}}}
+
+const EnterPassword = ({route}: Props) => {
+  const {username} = route.params
   const [password, setPassword] = React.useState('')
   const error = AutoReset.useAutoResetState(s => s.error)
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
@@ -15,7 +18,7 @@ const EnterPassword = () => {
 
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onContinue = () => {
-    resetAccount(password)
+    resetAccount(username, password)
   }
 
   const [now] = React.useState(() => Date.now())
