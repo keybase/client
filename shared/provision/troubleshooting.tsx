@@ -1,7 +1,6 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useProvisionState} from '@/stores/provision'
 type Props = {
   mode: 'QR' | 'text'
@@ -56,7 +55,7 @@ const Troubleshooting = (props: Props) => {
   }
 
   const device = useProvisionState(s => s.codePageOtherDevice)
-  const deviceIconNo = (device.deviceNumberOfType % Devices.numBackgrounds) + 1
+  const deviceIconNo = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${

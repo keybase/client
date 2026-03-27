@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 
-type OwnProps = {deviceID: string}
+type OwnProps = {canRevoke: boolean; device: T.Devices.Device}
 
 const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
   const {first, last, closedCircle} = p
@@ -91,22 +90,20 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 }
 
 const DevicePage = (ownProps: OwnProps) => {
-  const id = ownProps.deviceID
-  const iconNumber = Devices.useDeviceIconNumber(id)
-  const device = Devices.useDevicesState(s => s.deviceMap.get(id))
-  const canRevoke = Devices.useActiveDeviceCounts() > 1
+  const {canRevoke, device} = ownProps
+  const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = () => {
-    navigateAppend({name: 'deviceRevoke', params: {deviceID: id}})
+    navigateAppend({name: 'deviceRevoke', params: {device}})
   }
 
-  const metaOne = device?.currentDevice ? (
+  const metaOne = device.currentDevice ? (
     'Current device'
-  ) : device?.revokedAt ? (
+  ) : device.revokedAt ? (
     <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Kb.Styles.globalColors.red} />
   ) : null
 
-  const deviceType = device?.type ?? 'desktop'
+  const deviceType = device.type
 
   const maybeIcon = (
     {
@@ -139,9 +136,9 @@ const DevicePage = (ownProps: OwnProps) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={icon} title={device?.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-      {device ? <Timeline device={device} /> : null}
-      {device?.revokedAt ? null : (
+      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Timeline device={device} />
+      {device.revokedAt ? null : (
         <Kb.Button
           disabled={!canRevoke}
           type="Danger"

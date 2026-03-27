@@ -7,8 +7,6 @@ import * as Tabs from '@/constants/tabs'
 declare global {
   var __hmr_startupOnce: boolean | undefined
 
-  var __hmr_devicesLoaded: boolean | undefined
-
   var __hmr_gitLoaded: boolean | undefined
 
   var __hmr_sharedUnsubs: Array<() => void> | undefined
@@ -26,7 +24,6 @@ declare global {
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseChatStateType from '@/stores/chat'
-import type * as UseDevicesStateType from '@/stores/devices'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
@@ -54,6 +51,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {useNotifState} from '@/stores/notifications'
 import {useProfileState} from '@/stores/profile'
 import {useProvisionState} from '@/stores/provision'
@@ -72,7 +70,6 @@ import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
-let _devicesLoaded: boolean = __DEV__ ? (globalThis.__hmr_devicesLoaded ?? false) : false
 let _gitLoaded: boolean = __DEV__ ? (globalThis.__hmr_gitLoaded ?? false) : false
 
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
@@ -736,14 +733,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
 
         const {badgeState} = action.payload.params
-        const {newDevices, revokedDevices} = badgeState
-        const hasValue = (newDevices?.length ?? 0) + (revokedDevices?.length ?? 0) > 0
-        if (_devicesLoaded || hasValue) {
-          _devicesLoaded = true
-          if (__DEV__) globalThis.__hmr_devicesLoaded = true
-          const {useDevicesState} = require('@/stores/devices') as typeof UseDevicesStateType
-          useDevicesState.getState().dispatch.onEngineIncomingImpl(action)
-        }
+        useModalHeaderState
+          .getState()
+          .dispatch.setDeviceBadges(new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])]))
 
         const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
         if (_gitLoaded || badges.size) {

@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
 import * as Provision from '@/stores/provision'
+import * as T from '@/constants/types'
 
 const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)
@@ -17,11 +17,8 @@ const SetPublicName = () => {
   const ponSubmit = (name: string) => {
     !waiting && psetDeviceName?.(name)
   }
-  const deviceNumbers = devices
-    .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))
-    .map(d => d.deviceNumberOfType)
-  const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
-  const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
+  const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
+  const deviceIconNumber = C.isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
