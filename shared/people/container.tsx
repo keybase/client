@@ -8,7 +8,6 @@ import type {DebouncedFunc} from 'lodash'
 import debounce from 'lodash/debounce'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
-import logger from '@/logger'
 import People from '.'
 import * as T from '@/constants/types'
 import {useFollowerState} from '@/stores/followers'
@@ -21,7 +20,6 @@ import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
 const defaultNumFollowSuggestions = 10
-let nextPeopleInstanceID = 1
 
 const makeAnnouncement = (a?: Partial<T.People.Announcement>): T.People.Announcement => ({
   badged: false,
@@ -349,11 +347,6 @@ const reducePeopleScreenData = (
 }
 
 const usePeoplePageState = () => {
-  const instanceIDRef = React.useRef(0)
-  if (instanceIDRef.current === 0) {
-    instanceIDRef.current = nextPeopleInstanceID++
-  }
-  const instanceID = instanceIDRef.current
   const [followSuggestions, setFollowSuggestions] = React.useState<Array<T.People.FollowSuggestion>>([])
   const [newItems, setNewItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
   const [oldItems, setOldItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
@@ -373,36 +366,22 @@ const usePeoplePageState = () => {
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-      logger.warn('people: load start', {instanceID, markViewed, numFollowSuggestionsWanted})
       const f = async () => {
         try {
           const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
             {markViewed, numFollowSuggestionsWanted},
             getPeopleDataWaitingKey
           )
-          logger.warn('people: load returned', {
-            instanceID,
-            followSuggestions: data.followSuggestions?.length ?? 0,
-            items: data.items?.length ?? 0,
-          })
           if (!mountedRef.current) {
-            logger.warn('people: load ignored after unmount', {instanceID})
             return
           }
 
           const nextState = reducePeopleScreenData(data, followers, following)
-          logger.warn('people: load success', {
-            instanceID,
-            followSuggestions: nextState.followSuggestions.length,
-            items: data.items?.length ?? 0,
-            newItems: nextState.newItems.length,
-            oldItems: nextState.oldItems.length,
-          })
           setFollowSuggestions(s => (isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions))
           setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
           setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
         } catch (error) {
-          logger.warn('people: load failed', {instanceID, error})
+          // Keep People resilient to transient RPC failures.
         }
       }
       ignorePromise(f())
@@ -421,9 +400,8 @@ const usePeoplePageState = () => {
 
   React.useEffect(
     () => {
-      logger.warn('people: mount', {instanceID})
+      mountedRef.current = true
       return () => {
-        logger.warn('people: unmount', {instanceID})
         mountedRef.current = false
         debouncedLoadPeopleRef.current?.cancel()
       }
@@ -436,7 +414,6 @@ const usePeoplePageState = () => {
   }
 
   const queueLoadPeople = (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-    logger.warn('people: queue load', {instanceID, markViewed, numFollowSuggestionsWanted})
     debouncedLoadPeopleRef.current?.(markViewed, numFollowSuggestionsWanted)
   }
 
@@ -492,7 +469,6 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (refreshCount !== lastSeenRefreshRef.current) {
       lastSeenRefreshRef.current = refreshCount
-      logger.warn('people: refresh signal reload')
       getData(false, true)
     }
   }, [refreshCount])
@@ -500,7 +476,6 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (!didInitialLoadRef.current) {
       didInitialLoadRef.current = true
-      logger.warn('people: initial load')
       getData(false, true)
     }
   }, [])
