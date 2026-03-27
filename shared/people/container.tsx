@@ -12,10 +12,10 @@ import People from '.'
 import * as T from '@/constants/types'
 import {useFollowerState} from '@/stores/followers'
 import {useSignupState} from '@/stores/signup'
-import {useProfileState} from '@/stores/profile'
 import {usePeopleState} from '@/stores/people'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
+import {navToProfile} from '@/constants/router'
 
 const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
@@ -426,9 +426,7 @@ const PeopleReloadable = () => {
     }
   }, [])
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-
-  const onClickUser = (username: string) => showUserProfile(username)
+  const onClickUser = (username: string) => navToProfile(username)
 
   const onReload = (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length)
 

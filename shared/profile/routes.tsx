@@ -15,6 +15,8 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
+const profileModalStyle = {width: 560}
+
 const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   if (wizard || showBack) {
@@ -80,7 +82,6 @@ export const newModalRoutes = {
       },
     }
   ),
-  profileConfirmOrPending: C.makeScreen(React.lazy(async () => import('./confirm-or-pending'))),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
     getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
   }),
@@ -91,24 +92,19 @@ export const newModalRoutes = {
       headerTitle: () => <EditAvatarHeaderTitle teamID={route.params.teamID} wizard={route.params.wizard} />,
     }),
   }),
-  profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
-  profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
-  profileGenericEnterUsername: C.makeScreen(React.lazy(async () => import('./generic/enter-username')), {
-    getOptions: {gestureEnabled: false, modalStyle: {height: 485, width: 560}},
-  }),
-  profileGenericProofResult: C.makeScreen(React.lazy(async () => import('./generic/result')), {
+  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
+  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
     getOptions: {modalStyle: {height: 485, width: 560}},
   }),
-  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
-  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
-  profilePostProof: C.makeScreen(React.lazy(async () => import('./post-proof'))),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
   }),
-  profileProveEnterUsername: C.makeScreen(React.lazy(async () => import('./prove-enter-username'))),
-  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice'))),
-  profileProvideInfo: C.makeScreen(React.lazy(async () => import('./pgp/info'))),
-  profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke'))),
+  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
+    getOptions: {modalStyle: profileModalStyle},
+  }),
+  profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
+    getOptions: {modalStyle: profileModalStyle},
+  }),
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
     getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
   }),

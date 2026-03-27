@@ -1,18 +1,17 @@
 import * as C from '@/constants'
 import {Banner, BannerParagraph} from './banner'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
+import {navToProfile} from '@/constants/router'
 
 const Kb = {Banner}
 type Props = {users?: Array<string>}
 type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onClickUsername = (username: string) => {
     if (C.isMobile) {
-      showUserProfile(username)
+      navToProfile(username)
     } else {
       showUser(username, true)
     }

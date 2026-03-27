@@ -25,8 +25,8 @@ Status:
 - [x] `modal-header`
 - [x] `notifications` kept notification-driven badge aggregation, tray/widget badge state, and engine/init badge plumbing in store
 - [x] `people` kept only `homeUIRefresh` / route-leave `markViewed` plumbing in store; moved fetched People rows, follow suggestions, skip/dismiss RPCs, and resend-email banner state into the People feature layer
-- [ ] `pinentry`
-- [ ] `profile`
+- [x] `pinentry` kept daemon passphrase callback coordination, remote-window prompt state, and submit/cancel closures in store
+- [x] `profile` kept proof/PGP listener callbacks plus shared navigation hooks in store; moved visible proof/PGP/revoke state and one-screen RPCs into route params or owning components
 - [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
 - [ ] `settings`
 - [ ] `settings-chat`

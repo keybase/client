@@ -16,10 +16,10 @@ import './tab-bar.css'
 import {settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
-import {useProfileState} from '@/stores/profile'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useProvisionState} from '@/stores/provision'
+import {navToProfile} from '@/constants/router'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -43,7 +43,6 @@ const stop = () => {
 const Header = () => {
   const username = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
 
@@ -92,7 +91,7 @@ const Header = () => {
 
     const onClickWrapper = () => {
       hidePopup()
-      showUserProfile(username)
+      navToProfile(username)
     }
 
     const menuHeader = (

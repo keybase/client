@@ -6,10 +6,10 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useProvisionState} from '@/stores/provision'
+import {navToProfile} from '@/constants/router'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -22,7 +22,6 @@ const Container = () => {
   const you = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)
   const onLoginAsAnotherUser = useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
@@ -50,7 +49,7 @@ const Container = () => {
     fullname,
     onCancel,
     onLoginAsAnotherUser,
-    onProfileClick: () => _onProfileClick(you),
+    onProfileClick: () => navToProfile(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false

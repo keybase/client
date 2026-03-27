@@ -6,7 +6,7 @@ import * as RowTypes from '@/fs/browser/rows/types'
 import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {useProfileState} from '@/stores/profile'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -24,11 +24,10 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const _onReAddToTeam = (id: T.RPCGen.TeamID, username: string) => {
     letResetUserBackIn(id, username)
   }
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = (username: string) => () => {
-    C.isMobile ? showUserProfile(username) : showUser(username, true)
+    C.isMobile ? navToProfile(username) : showUser(username, true)
   }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(

@@ -3,6 +3,7 @@ import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
+import {navToProfile} from '@/constants/router'
 
 declare global {
   var __hmr_startupOnce: boolean | undefined
@@ -50,7 +51,6 @@ import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useNotifState} from '@/stores/notifications'
-import {useProfileState} from '@/stores/profile'
 import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -138,7 +138,7 @@ export const initTeamBuildingCallbacks = () => {
       return useSettingsContactsState.getState().userCountryCode
     },
     onShowUserProfile: (username: string) => {
-      useProfileState.getState().dispatch.showUserProfile(username)
+      navToProfile(username)
     },
     onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
       useUsersState.getState().dispatch.getBlockState(usernames)
@@ -294,32 +294,6 @@ export const initNotificationsCallbacks = () => {
   })
 }
 
-export const initProfileCallbacks = () => {
-  const currentState = useProfileState.getState()
-  useProfileState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onTracker2GetDetails: (username: string) => {
-          return useTrackerState.getState().getDetails(username)
-        },
-        onTracker2Load: (
-          params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
-        ) => {
-          useTrackerState.getState().dispatch.load(params)
-        },
-        onTracker2ShowUser: (username: string, asTracker: boolean, skipNav?: boolean) => {
-          useTrackerState.getState().dispatch.showUser(username, asTracker, skipNav)
-        },
-        onTracker2UpdateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
-          useTrackerState.getState().dispatch.updateResult(guiID, result, reason)
-        },
-      },
-    },
-  })
-}
-
 export const initPushCallbacks = () => {
   const currentState = usePushState.getState()
   usePushState.setState({
@@ -379,7 +353,7 @@ export const initTracker2Callbacks = () => {
       defer: {
         ...currentState.dispatch.defer,
         onShowUserProfile: (username: string) => {
-          useProfileState.getState().dispatch.showUserProfile(username)
+          navToProfile(username)
         },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
           useUsersState.getState().dispatch.updates(updates)
@@ -704,7 +678,6 @@ export const initSharedSubscriptions = () => {
   initTeamsCallbacks()
   initFSCallbacks()
   initNotificationsCallbacks()
-  initProfileCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
   initSettingsCallbacks()

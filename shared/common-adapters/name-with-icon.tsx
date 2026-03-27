@@ -13,8 +13,8 @@ import Text from './text'
 import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
+import {navToProfile} from '@/constants/router'
 
 type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
@@ -430,9 +430,8 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const onOpenTracker = () => {
     username && showUser(username, true)
   }
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = () => {
-    username && showUserProfile(username)
+    username && navToProfile(username)
   }
 
   let functionOnClick: NameWithIconProps['onClick']

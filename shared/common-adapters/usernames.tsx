@@ -6,9 +6,9 @@ import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineC
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
-import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export type User = {
   username: string
@@ -99,7 +99,7 @@ function Username(p: UsernameProps) {
   } else if (onUsernameClicked === 'profile') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
-      useProfileState.getState().dispatch.showUserProfile(username)
+      navToProfile(username)
     }
   } else if (typeof onUsernameClicked === 'function') {
     onClicked = () => onUsernameClicked(username)

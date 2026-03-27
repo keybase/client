@@ -1,7 +1,7 @@
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   username: string
@@ -15,10 +15,8 @@ const followSizeToStyle = {
 const Container = (ownProps: OwnProps) => {
   const {username: _username, width} = ownProps
   const _fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const _onClick = showUserProfile
   const fullname = _fullname || ''
-  const onClick = () => _onClick(username)
+  const onClick = () => navToProfile(username)
   const username = _username
   const following = useFollowerState(s => (username ? s.following.has(username) : false))
   const followsYou = useFollowerState(s => (username ? s.followers.has(username) : false))

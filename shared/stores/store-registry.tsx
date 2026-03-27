@@ -7,7 +7,6 @@ import type {State as ChatState, useChatState} from '@/stores/chat'
 import type {State as DaemonState, useDaemonState} from '@/stores/daemon'
 import type {State as FSState, useFSState} from '@/stores/fs'
 import type {State as PeopleState, usePeopleState} from '@/stores/people'
-import type {State as ProfileState, useProfileState} from '@/stores/profile'
 import type {State as ProvisionState, useProvisionState} from '@/stores/provision'
 import type {State as PushState, usePushState} from '@/stores/push'
 import type {
@@ -27,7 +26,6 @@ type StoreName =
   | 'daemon'
   | 'fs'
   | 'people'
-  | 'profile'
   | 'provision'
   | 'push'
   | 'recover-password'
@@ -44,7 +42,6 @@ type StoreStates = {
   daemon: DaemonState
   fs: FSState
   people: PeopleState
-  profile: ProfileState
   provision: ProvisionState
   push: PushState
   'recover-password': RecoverPasswordState
@@ -62,7 +59,6 @@ type StoreHooks = {
   daemon: typeof useDaemonState
   fs: typeof useFSState
   people: typeof usePeopleState
-  profile: typeof useProfileState
   provision: typeof useProvisionState
   push: typeof usePushState
   'recover-password': typeof useRecoverPasswordState
@@ -94,10 +90,6 @@ class StoreRegistry {
       case 'people': {
         const {usePeopleState} = require('@/stores/people')
         return usePeopleState
-      }
-      case 'profile': {
-        const {useProfileState} = require('@/stores/profile')
-        return useProfileState
       }
       case 'provision': {
         const {useProvisionState} = require('@/stores/provision')

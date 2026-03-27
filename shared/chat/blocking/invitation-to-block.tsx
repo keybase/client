@@ -1,8 +1,8 @@
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const BlockButtons = () => {
   const nav = useSafeNavigation()
@@ -16,7 +16,6 @@ const BlockButtons = () => {
   })
   const participantInfo = Chat.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const dismissBlockButtons = Chat.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
@@ -26,7 +25,7 @@ const BlockButtons = () => {
     person => person !== currentUser && person !== adder && !Chat.isAssertion(person)
   )
 
-  const onViewProfile = () => showUserProfile(adder)
+  const onViewProfile = () => navToProfile(adder)
   const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
   const onBlock = () =>
     nav.safeNavigateAppend({

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import {openURL} from '@/util/misc'
+import {editAvatar, openURL} from '@/util/misc'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
@@ -9,8 +9,8 @@ import * as Kb from '@/common-adapters'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
@@ -114,7 +114,6 @@ const AvatarTeamConnector = (props: TodoOwnProps) => {
 }
 
 const AvatarUserConnector = (props: TodoOwnProps) => {
-  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const onConfirm = editAvatar
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
@@ -133,8 +132,7 @@ const BioConnector = (props: TodoOwnProps) => {
 
 const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = useCurrentUserState(s => s.username)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onConfirm = showUserProfile
+  const onConfirm = navToProfile
   const onDismiss = useOnSkipTodo(props.skipTodo, 'proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />

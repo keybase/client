@@ -5,8 +5,6 @@ import {useConfigState} from '@/stores/config'
 import * as ConfigConstants from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useFSState} from '@/stores/fs'
-import {useProfileState} from '@/stores/profile'
-import {useRouterState} from '@/stores/router'
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import InputMonitor from '@/util/platform-specific/input-monitor.desktop'
@@ -409,14 +407,6 @@ export const initPlatformListener = () => {
       })
     }
   }))
-
-  useProfileState.setState(s => {
-    s.dispatch.editAvatar = () => {
-      useRouterState
-        .getState()
-        .dispatch.navigateAppend({name: 'profileEditAvatar', params: {image: undefined}})
-    }
-  })
 
   useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {

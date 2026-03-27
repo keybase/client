@@ -2,22 +2,29 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
+import {generateGUIID} from '@/constants/utils'
+import * as T from '@/constants/types'
 
 const Container = () => {
   const username = useCurrentUserState(s => s.username)
   const d = useTrackerState(s => s.getDetails(username))
+  const loadProfile = useTrackerState(s => s.dispatch.load)
   const _bio = d.bio || ''
   const _fullname = d.fullname || ''
   const _location = d.location || ''
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-
-  const editProfile = useProfileState(s => s.dispatch.editProfile)
+  const editProfile = C.useRPC(T.RPCGen.userProfileEditRpcPromise)
   const onSubmit = (bio: string, fullname: string, location: string) => {
-    editProfile(bio, fullname, location)
-    navigateUp()
+    editProfile(
+      [{bio, fullName: fullname, location}, C.waitingKeyTracker],
+      () => {
+        loadProfile({assertion: username, guiID: generateGUIID(), inTracker: false, reason: ''})
+        navigateUp()
+      },
+      () => {}
+    )
   }
 
   const [bio, setBio] = React.useState(_bio)

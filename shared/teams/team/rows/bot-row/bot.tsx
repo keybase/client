@@ -5,8 +5,8 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useFeaturedBot} from '@/util/featured-bots'
+import {navToProfile} from '@/constants/router'
 
 export type Props = {
   botAlias: string
@@ -179,11 +179,10 @@ const Container = (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
     if (C.isMobile) {
-      showUserProfile(username)
+      navToProfile(username)
     } else {
       showUser(username, true)
     }

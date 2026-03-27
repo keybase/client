@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
@@ -10,7 +10,8 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
+import {generateGUIID} from '@/constants/utils'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -74,21 +75,28 @@ const Container = (ownProps: OwnProps) => {
   )
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
-  const addProof = useProfileState(s => s.dispatch.addProof)
-  const hideStellar = useProfileState(s => s.dispatch.hideStellar)
-  const recheckProof = useProfileState(s => s.dispatch.recheckProof)
-  const _onCreateProof = () => {
-    addProof(type, 'profile')
-  }
+  const loadProfile = useTrackerState(s => s.dispatch.load)
+  const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
+  const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onCreateProof = () => navigateAppend({name: 'profileProofsList', params: {platform: type}})
   const onHideStellar = (hidden: boolean) => {
-    hideStellar(hidden)
+    hideStellar(
+      [{args: [{key: 'hidden', value: hidden ? '1' : '0'}], endpoint: 'stellar/hidden'}, C.waitingKeyTracker],
+      () => {},
+      () => {}
+    )
   }
   const onRecheck = () => {
-    recheckProof(sigID)
+    recheckProof(
+      [{sigID}, C.waitingKeyProfile],
+      () => {
+        navToProfile(ownProps.username)
+        loadProfile({assertion: ownProps.username, guiID: generateGUIID(), inTracker: false, reason: ''})
+      },
+      () => {}
+    )
   }
-
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-
   const _onRevoke = () => {
     navigateAppend({
       name: 'profileRevoke',
@@ -491,7 +499,9 @@ const Value = (p: {
 }
 
 const HoverOpacity = (p: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" className="hover-opacy inverted">{p.children}</Kb.Box2>
+  <Kb.Box2 direction="vertical" className="hover-opacy inverted">
+    {p.children}
+  </Kb.Box2>
 )
 
 type SIProps = {

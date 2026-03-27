@@ -6,7 +6,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
-import {useProfileState} from '@/stores/profile'
 import {useRouterState} from '@/stores/router'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
@@ -35,7 +34,6 @@ import {
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
-import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
 import {getConvoState} from '@/stores/convostate'
@@ -398,30 +396,6 @@ export const initPlatformListener = () => {
     })
   })
 
-  useProfileState.setState(s => {
-    s.dispatch.editAvatar = () => {
-      const f = async () => {
-        try {
-          const result = await launchImageLibraryAsync('photo')
-          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
-            if (!acc && (a.type === 'image' || a.type === 'video')) {
-              return a as ImageInfo
-            }
-            return acc
-          }, undefined)
-          if (!result.canceled && first) {
-            useRouterState
-              .getState()
-              .dispatch.navigateAppend({name: 'profileEditAvatar', params: {image: first}})
-          }
-        } catch (error) {
-          useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
-        }
-      }
-      ignorePromise(f())
-    }
-  })
-
   useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
@@ -552,9 +526,9 @@ export const initPlatformListener = () => {
           try {
             const result = await launchImageLibraryAsync(type, true, true)
             if (result.canceled) return
-            result.assets.map(r =>
-              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
-            )
+            for (const asset of result.assets) {
+              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(asset.uri))
+            }
           } catch (e) {
             errorToActionOrThrow(e)
           }

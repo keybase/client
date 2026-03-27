@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,6 +8,7 @@ import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {navToProfile} from '@/constants/router'
 
 type Props = {teamname: string}
 
@@ -177,13 +177,12 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
     <Kb.ListItem
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
-      onClick={() => showUserProfile(member.username)}
+      onClick={() => navToProfile(member.username)}
       body={
         <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />

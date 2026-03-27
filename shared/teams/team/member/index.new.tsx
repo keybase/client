@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -14,6 +13,7 @@ import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -618,9 +618,8 @@ export const TeamMemberHeader = (props: Props) => {
   )
   const yourUsername = useCurrentUserState(s => s.username)
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
-  const onViewProfile = () => showUserProfile(username)
+  const onViewProfile = () => navToProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
   const member = teamDetails?.members.get(username)

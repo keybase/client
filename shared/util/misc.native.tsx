@@ -1,6 +1,8 @@
+import {navigateAppend} from '@/constants/router'
+import {useConfigState} from '@/stores/config'
 import {isIOS} from '@/constants/platform.native'
 import {pickDocumentsAsync} from './expo-document-picker.native'
-import {launchImageLibraryAsync} from './expo-image-picker.native'
+import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker.native'
 import type {OpenDialogOptions, SaveDialogOptions} from './electron.desktop'
 import * as SMS from 'expo-sms'
 import {Linking} from 'react-native'
@@ -28,6 +30,26 @@ export const openSMS = async (phonenos: Array<string>, body?: string): Promise<u
 export const clearLocalLogs = async (): Promise<void> => {
   if (!isIOS) return
   return clearLocalLogsNative()
+}
+
+export const editAvatar = () => {
+  const f = async () => {
+    try {
+      const result = await launchImageLibraryAsync('photo')
+      const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
+        if (!acc && (a.type === 'image' || a.type === 'video')) {
+          return a as ImageInfo
+        }
+        return acc
+      }, undefined)
+      if (!result.canceled && first) {
+        navigateAppend({name: 'profileEditAvatar', params: {image: first}})
+      }
+    } catch (error) {
+      useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+    }
+  }
+  void f()
 }
 
 export const pickImages = async (_: string): Promise<Array<string>> => {
