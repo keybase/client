@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 

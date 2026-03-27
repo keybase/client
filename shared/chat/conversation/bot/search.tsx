@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
 import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
@@ -32,8 +32,8 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const [botSearchResults, setBotSearchResults] = React.useState<Map<string, BotSearchResults | undefined>>(
-    new Map()
+  const [botSearchResults, setBotSearchResults] = React.useState(
+    new Map<string, BotSearchResults | undefined>()
   )
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
   const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
