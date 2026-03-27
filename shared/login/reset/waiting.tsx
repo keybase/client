@@ -7,14 +7,13 @@ import * as AutoReset from '@/stores/autoreset'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
-type Props = {route: {params: {pipelineStarted: boolean; username: string}}}
+type Props = {pipelineStarted: boolean; username: string}
 
 const formatTimeLeft = (endTime: number) => {
   return formatDuration(endTime - Date.now())
 }
 
-const Waiting = (props: Props) => {
-  const {pipelineStarted, username} = props.route.params
+const Waiting = ({pipelineStarted, username}: Props) => {
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)

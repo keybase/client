@@ -6,8 +6,8 @@ jest.mock('@/constants/router', () => {
   const actual = jest.requireActual('@/constants/router')
   return {
     ...actual,
-    navigateAppend: jest.fn(),
     navUpToScreen: jest.fn(),
+    navigateAppend: jest.fn(),
   }
 })
 
@@ -81,7 +81,7 @@ test('resetAccount exposes a submit handler for the confirm screen and starts pr
     },
   }))
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
     listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
       {
         prompt: {
