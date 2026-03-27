@@ -37,8 +37,8 @@ const useConnect = () => {
     onDisableCertPinning,
     onEnableCertPinning,
     proxyData,
-    setProxyData,
     saveProxyData,
+    setProxyData,
     showDisableCertPinningWarning,
   }
 
@@ -221,7 +221,7 @@ const ProxySettingsComponent = (props: Props) => {
         label="Allow TLS Interception"
         style={styles.proxySetting}
       />
-      <Kb.Button onClick={saveProxySettings} label="Save Proxy Settings" />
+      <Kb.Button onClick={() => saveProxySettings()} label="Save Proxy Settings" />
     </>
   )
 }

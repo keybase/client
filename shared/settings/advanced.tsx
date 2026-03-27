@@ -401,14 +401,14 @@ const Developer = () => {
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`Trace (${traceDurationSeconds}s)`}
-            onClick={() => onTrace(traceDurationSeconds)}
+            onClick={onTrace}
           />
           <Kb.Button
             waiting={processorProfileInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
-            label={`CPU Profile (${traceDurationSeconds}s)`}
-            onClick={() => onProcessorProfile(processorProfileDurationSeconds)}
+            label={`CPU Profile (${processorProfileDurationSeconds}s)`}
+            onClick={onProcessorProfile}
           />
           <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
             Trace and profile files are included in logs sent with feedback.
