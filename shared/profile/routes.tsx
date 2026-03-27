@@ -92,8 +92,6 @@ export const newModalRoutes = {
       headerTitle: () => <EditAvatarHeaderTitle teamID={route.params.teamID} wizard={route.params.wizard} />,
     }),
   }),
-  profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
-  profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
@@ -102,7 +100,6 @@ export const newModalRoutes = {
   profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
     getOptions: {modalStyle: profileModalStyle},
   }),
-  profileProvideInfo: C.makeScreen(React.lazy(async () => import('./pgp/info'))),
   profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
     getOptions: {modalStyle: profileModalStyle},
   }),

@@ -2,7 +2,6 @@
 import {validatePgpInfo} from '@/profile/pgp/validation'
 import {normalizeProofUsername} from '@/profile/proof-utils'
 import {resetAllStores} from '@/util/zustand'
-import {useProfileState} from '../profile'
 
 beforeEach(() => {
   resetAllStores()
@@ -45,17 +44,4 @@ test('validatePgpInfo derives validation errors from local form state', () => {
 
   expect(result.pgpErrorEmail1).toBe(false)
   expect(result.pgpErrorText).toBe('')
-})
-
-test('resetState clears dynamic pgp callbacks', () => {
-  useProfileState.setState(s => {
-    s.dispatch.dynamic.cancelPgpGen = () => {}
-    s.dispatch.dynamic.finishedWithKeyGen = () => {}
-  })
-
-  useProfileState.getState().dispatch.resetState()
-
-  const state = useProfileState.getState()
-  expect(state.dispatch.dynamic.cancelPgpGen).toBeUndefined()
-  expect(state.dispatch.dynamic.finishedWithKeyGen).toBeUndefined()
 })
