@@ -21,67 +21,6 @@ const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
 const defaultNumFollowSuggestions = 10
 
-const makeAnnouncement = (a?: Partial<T.People.Announcement>): T.People.Announcement => ({
-  badged: false,
-  dismissable: false,
-  iconUrl: '',
-  id: 0,
-  text: '',
-  type: 'announcement',
-  ...a,
-})
-
-const makeTodo = (t?: Partial<T.People.Todo>): T.People.Todo => ({
-  badged: false,
-  confirmLabel: '',
-  dismissable: false,
-  icon: 'iconfont-close',
-  instructions: '',
-  metadata: undefined,
-  todoType: 'none',
-  type: 'todo',
-  ...t,
-})
-
-const makeFollowedNotification = (
-  f?: Partial<T.People.FollowedNotification>
-): T.People.FollowedNotification => ({
-  contactDescription: '',
-  username: '',
-  ...f,
-})
-
-const makeFollowedNotificationItem = (
-  f?: Partial<T.People.FollowedNotificationItem>
-): T.People.FollowedNotificationItem => ({
-  badged: false,
-  newFollows: [],
-  notificationTime: new Date(),
-  numAdditional: 0,
-  type: 'follow',
-  ...f,
-})
-
-const makeFollowSuggestion = (f?: Partial<T.People.FollowSuggestion>): T.People.FollowSuggestion => ({
-  followsMe: false,
-  iFollow: false,
-  username: '',
-  ...f,
-})
-
-const makeTodoMetaEmail = (t?: Partial<T.People.TodoMetaEmail>): T.People.TodoMetaEmail => ({
-  email: '',
-  lastVerifyEmailDate: 0,
-  type: 'email',
-  ...t,
-})
-
-const makeTodoMetaPhone = (t?: Partial<T.People.TodoMetaPhone>): T.People.TodoMetaPhone => ({
-  phone: '',
-  type: 'phone',
-  ...t,
-})
-
 const maxDate = (times: Array<number>) => new Date(Math.max(...times))
 const todoTypeEnumToType = invert(T.RPCGen.HomeScreenTodoType) as {
   [K in T.People.TodoTypeEnum]: T.People.TodoType
@@ -159,7 +98,7 @@ const todoTypeToConfirmLabel: {[K in T.People.TodoType]: string} = {
   verifyAllPhoneNumber: 'Verify',
 }
 
-const makeDescriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
+const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
   const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
     case t.legacyEmailVisibility:
@@ -182,14 +121,15 @@ const extractMetaFromTodoItem = (todo: T.RPCGen.HomeScreenTodo, todoExt?: T.RPCG
   const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
     case t.legacyEmailVisibility:
-      return makeTodoMetaEmail({email: todo.legacyEmailVisibility})
+      return {email: todo.legacyEmailVisibility, lastVerifyEmailDate: 0, type: 'email' as const}
     case t.verifyAllEmail:
-      return makeTodoMetaEmail({
+      return {
         email: todo.verifyAllEmail || '',
         lastVerifyEmailDate: todoExt?.t === t.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
-      })
+        type: 'email' as const,
+      }
     case t.verifyAllPhoneNumber:
-      return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
+      return {phone: todo.verifyAllPhoneNumber, type: 'phone' as const}
     default:
       return
   }
@@ -208,15 +148,16 @@ const reduceRPCItemToPeopleItem = (
       const todoType = todoTypeEnumToType[todo.t || 0]
       const metadata: T.People.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
       list.push(
-        makeTodo({
+        {
           badged,
           confirmLabel: todoTypeToConfirmLabel[todoType],
+          dismissable: false,
           icon: todoTypeToIcon[todoType],
-          instructions: makeDescriptionForTodoItem(todo),
+          instructions: descriptionForTodoItem(todo),
           metadata,
           todoType,
           type: 'todo',
-        })
+        }
       )
       return list
     }
@@ -226,12 +167,12 @@ const reduceRPCItemToPeopleItem = (
         case T.RPCGen.HomeScreenPeopleNotificationType.followed: {
           const follow = notification.followed
           list.push(
-            makeFollowedNotificationItem({
+            {
               badged,
-              newFollows: [makeFollowedNotification({username: follow.user.username})],
+              newFollows: [{contactDescription: '', username: follow.user.username}],
               notificationTime: new Date(follow.followTime),
               type: 'follow',
-            })
+            }
           )
           return list
         }
@@ -242,30 +183,33 @@ const reduceRPCItemToPeopleItem = (
             return list
           }
           list.push(
-            makeFollowedNotificationItem({
+            {
               badged,
-              newFollows: followers.map(follow => makeFollowedNotification({username: follow.user.username})),
+              newFollows: followers.map(follow => ({
+                contactDescription: '',
+                username: follow.user.username,
+              })),
               notificationTime: maxDate(followers.map(f => f.followTime)),
               numAdditional: multiFollow.numOthers,
               type: 'follow',
-            })
+            }
           )
           return list
         }
         case T.RPCGen.HomeScreenPeopleNotificationType.contact: {
           const follow = notification.contact
           list.push(
-            makeFollowedNotificationItem({
+            {
               badged,
               newFollows: [
-                makeFollowedNotification({
+                {
                   contactDescription: follow.description,
                   username: follow.username,
-                }),
+                },
               ],
               notificationTime: new Date(follow.resolveTime),
               type: 'contact',
-            })
+            }
           )
           return list
         }
@@ -276,18 +220,13 @@ const reduceRPCItemToPeopleItem = (
             return list
           }
           list.push(
-            makeFollowedNotificationItem({
+            {
               badged,
-              newFollows: contacts.map(c =>
-                makeFollowedNotification({
-                  contactDescription: c.description,
-                  username: c.username,
-                })
-              ),
+              newFollows: contacts.map(c => ({contactDescription: c.description, username: c.username})),
               notificationTime: maxDate(contacts.map(c => c.resolveTime)),
               numAdditional: multiContact.numOthers,
               type: 'contact',
-            })
+            }
           )
           return list
         }
@@ -298,7 +237,7 @@ const reduceRPCItemToPeopleItem = (
     case T.RPCGen.HomeScreenItemType.announcement: {
       const a = item.data.announcement
       list.push(
-        makeAnnouncement({
+        {
           appLink: a.appLink,
           badged,
           confirmLabel: a.confirmLabel,
@@ -306,8 +245,9 @@ const reduceRPCItemToPeopleItem = (
           iconUrl: a.iconUrl,
           id: a.id,
           text: a.text,
+          type: 'announcement',
           url: a.url,
-        })
+        }
       )
       return list
     }
@@ -331,12 +271,12 @@ const reducePeopleScreenData = (
       const followsMe = followers.has(suggestion.username)
       const iFollow = following.has(suggestion.username)
       list.push(
-        makeFollowSuggestion({
+        {
           followsMe,
           fullName: suggestion.fullName,
           iFollow,
           username: suggestion.username,
-        })
+        }
       )
       return list
     },
