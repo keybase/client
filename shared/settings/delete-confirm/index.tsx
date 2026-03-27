@@ -46,6 +46,9 @@ const DeleteConfirm = () => {
   const onCancel = () => nav.safeNavigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
+    if (C.androidIsTestDevice) {
+      return
+    }
     if (Kb.Styles.isMobile && hasPassword) {
       navigateAppend('checkPassphraseBeforeDeleteAccount')
     } else {
