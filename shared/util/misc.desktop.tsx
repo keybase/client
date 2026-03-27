@@ -1,4 +1,5 @@
 import logger from '@/logger'
+import {navigateAppend} from '@/constants/router'
 import debounce from 'lodash/debounce'
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from './electron.desktop'
 
@@ -32,6 +33,10 @@ export const openSMS = async (): Promise<unknown> => {
 
 export const clearLocalLogs = async (): Promise<void> => {
   // noop on desktop
+}
+
+export const editAvatar = () => {
+  navigateAppend({name: 'profileEditAvatar', params: {image: undefined}})
 }
 
 export const pickImages = async (title: string) => {

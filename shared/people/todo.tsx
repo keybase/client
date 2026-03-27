@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import {openURL} from '@/util/misc'
+import {editAvatar, openURL} from '@/util/misc'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
@@ -11,7 +11,6 @@ import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
-import {useProfileState} from '@/stores/profile'
 
 const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
@@ -115,7 +114,6 @@ const AvatarTeamConnector = (props: TodoOwnProps) => {
 }
 
 const AvatarUserConnector = (props: TodoOwnProps) => {
-  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const onConfirm = editAvatar
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />

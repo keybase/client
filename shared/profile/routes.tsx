@@ -82,9 +82,6 @@ export const newModalRoutes = {
       },
     }
   ),
-  profileConfirmOrPending: C.makeScreen(React.lazy(async () => import('./confirm-or-pending')), {
-    getOptions: {modalStyle: profileModalStyle},
-  }),
   profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
     getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
   }),
@@ -97,22 +94,10 @@ export const newModalRoutes = {
   }),
   profileFinished: C.makeScreen(React.lazy(async () => import('./pgp/finished'))),
   profileGenerate: C.makeScreen(React.lazy(async () => import('./pgp/generate'))),
-  profileGenericEnterUsername: C.makeScreen(React.lazy(async () => import('./generic/enter-username')), {
-    getOptions: {gestureEnabled: false, modalStyle: {height: 485, width: 560}},
-  }),
-  profileGenericProofResult: C.makeScreen(React.lazy(async () => import('./generic/result')), {
-    getOptions: {modalStyle: {height: 485, width: 560}},
-  }),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
   profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
-  profilePostProof: C.makeScreen(React.lazy(async () => import('./post-proof')), {
-    getOptions: {modalStyle: profileModalStyle},
-  }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
-  }),
-  profileProveEnterUsername: C.makeScreen(React.lazy(async () => import('./prove-enter-username')), {
-    getOptions: {modalStyle: profileModalStyle},
   }),
   profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
     getOptions: {modalStyle: profileModalStyle},

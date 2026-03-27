@@ -6,7 +6,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
-import {useProfileState} from '@/stores/profile'
 import {useRouterState} from '@/stores/router'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
@@ -22,7 +21,6 @@ import {Alert, Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
 import {getTab, getVisiblePath, logState, switchTab} from '@/constants/router'
-import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -35,7 +33,6 @@ import {
 } from 'react-native-kb'
 import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
-import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
 import {getConvoState} from '@/stores/convostate'
@@ -396,30 +393,6 @@ export const initPlatformListener = () => {
           : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
       ).catch(() => {})
     })
-  })
-
-  useProfileState.setState(s => {
-    s.dispatch.editAvatar = () => {
-      const f = async () => {
-        try {
-          const result = await launchImageLibraryAsync('photo')
-          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
-            if (!acc && (a.type === 'image' || a.type === 'video')) {
-              return a as ImageInfo
-            }
-            return acc
-          }, undefined)
-          if (!result.canceled && first) {
-            useRouterState
-              .getState()
-              .dispatch.navigateAppend({name: 'profileEditAvatar', params: {image: first}})
-          }
-        } catch (error) {
-          useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
-        }
-      }
-      ignorePromise(f())
-    }
   })
 
   useConfigState.subscribe((s, old) => {

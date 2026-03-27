@@ -47,20 +47,15 @@ test('validatePgpInfo derives validation errors from local form state', () => {
   expect(result.pgpErrorText).toBe('')
 })
 
-test('resetState clears dynamic profile callbacks and preserves the default cancel hook', () => {
+test('resetState clears dynamic pgp callbacks', () => {
   useProfileState.setState(s => {
-    s.dispatch.dynamic.afterCheckProof = () => {}
     s.dispatch.dynamic.cancelPgpGen = () => {}
     s.dispatch.dynamic.finishedWithKeyGen = () => {}
-    s.dispatch.dynamic.submitUsername = () => {}
   })
 
   useProfileState.getState().dispatch.resetState()
 
   const state = useProfileState.getState()
-  expect(state.dispatch.dynamic.afterCheckProof).toBeUndefined()
   expect(state.dispatch.dynamic.cancelPgpGen).toBeUndefined()
   expect(state.dispatch.dynamic.finishedWithKeyGen).toBeUndefined()
-  expect(state.dispatch.dynamic.submitUsername).toBeUndefined()
-  expect(typeof state.dispatch.dynamic.cancelAddProof).toBe('function')
 })

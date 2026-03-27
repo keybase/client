@@ -3,9 +3,9 @@ import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {editAvatar} from '@/util/misc'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -126,7 +126,6 @@ const useUserData = (username: string) => {
     }
   })()
 
-  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
   //   dispatch(

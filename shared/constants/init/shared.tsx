@@ -51,7 +51,6 @@ import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useNotifState} from '@/stores/notifications'
-import {useProfileState} from '@/stores/profile'
 import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -289,32 +288,6 @@ export const initNotificationsCallbacks = () => {
         ...currentState.dispatch.defer,
         onFavoritesLoad: () => {
           useFSState.getState().dispatch.favoritesLoad()
-        },
-      },
-    },
-  })
-}
-
-export const initProfileCallbacks = () => {
-  const currentState = useProfileState.getState()
-  useProfileState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onTracker2GetDetails: (username: string) => {
-          return useTrackerState.getState().getDetails(username)
-        },
-        onTracker2Load: (
-          params: Parameters<ReturnType<typeof useTrackerState.getState>['dispatch']['load']>[0]
-        ) => {
-          useTrackerState.getState().dispatch.load(params)
-        },
-        onTracker2ShowUser: (username: string, asTracker: boolean, skipNav?: boolean) => {
-          useTrackerState.getState().dispatch.showUser(username, asTracker, skipNav)
-        },
-        onTracker2UpdateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
-          useTrackerState.getState().dispatch.updateResult(guiID, result, reason)
         },
       },
     },
@@ -705,7 +678,6 @@ export const initSharedSubscriptions = () => {
   initTeamsCallbacks()
   initFSCallbacks()
   initNotificationsCallbacks()
-  initProfileCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
   initSettingsCallbacks()
