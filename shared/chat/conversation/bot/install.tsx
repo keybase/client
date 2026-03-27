@@ -7,8 +7,8 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import ChannelPicker from './channel-picker'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {useBotsState} from '@/stores/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useFeaturedBot} from '@/util/featured-bots'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -82,7 +82,7 @@ const InstallBotPopup = (props: Props) => {
     return commands.length > 0 ? convCommands : botPublicCommands
   })()
 
-  const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
+  const featured = useFeaturedBot(botUsername)
   const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
@@ -181,12 +181,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const featuredContent = !!featured && (
-    <Kb.Box2
-      direction="vertical"
-      style={Kb.Styles.collapseStyles([styles.container, {flex: 1}])}
-      fullWidth={true}
-      gap="small"
-    >
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="small">
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.NameWithIcon
           botAlias={featured.botAlias}
@@ -296,7 +291,7 @@ const InstallBotPopup = (props: Props) => {
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
             </Kb.Text>
-            {" if you’d like to customize which messages are encrypted for this bot."}
+            {' if you’d like to customize which messages are encrypted for this bot.'}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -324,12 +319,6 @@ const InstallBotPopup = (props: Props) => {
       : featured
         ? featuredContent
         : usernameContent
-  const getHeight = () => {
-    if (channelPickerScreen) {
-      return 440
-    }
-    return 560
-  }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && isBot && !installScreen
@@ -435,51 +424,59 @@ const InstallBotPopup = (props: Props) => {
       title: channelPickerScreen ? 'Channels' : '',
     })
     return () => {
-      useModalHeaderState.setState({botInTeam: false, botReadOnly: false, botSubScreen: '', onAction: undefined, title: ''})
+      useModalHeaderState.setState({
+        botInTeam: false,
+        botReadOnly: false,
+        botSubScreen: '',
+        onAction: undefined,
+        title: '',
+      })
     }
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
 
   const enabled = !!conversationIDKey
+  const bodyContent =
+    enabled && !channelPickerScreen ? (
+      <Kb.ScrollView style={styles.bodyScroll} contentContainerStyle={styles.bodyScrollContent}>
+        {content}
+      </Kb.ScrollView>
+    ) : enabled ? (
+      content
+    ) : (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
   return (
     <>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
-        fullWidth={true}
-      >
-        {enabled ? (
-          content
-        ) : (
-          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
-            <Kb.ProgressIndicator type="Large" />
-          </Kb.Box2>
-        )}
+      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
+        {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-              <Kb.ButtonBar direction="column">
-                {doneButton}
-                {editButton}
-                {saveButton}
-                {reviewButton}
-                {installButton}
-                {removeButton}
-              </Kb.ButtonBar>
-              {!!error && (
-                <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
-                  {'Something went wrong! Please try again, or send '}
-                  <Kb.Text
-                    type="Body"
-                    style={{color: Kb.Styles.globalColors.redDark}}
-                    underline={true}
-                    onClick={onFeedback}
-                  >
-                    {'feedback'}
-                  </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
+            <Kb.ButtonBar direction="column">
+              {doneButton}
+              {editButton}
+              {saveButton}
+              {reviewButton}
+              {installButton}
+              {removeButton}
+            </Kb.ButtonBar>
+            {!!error && (
+              <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+                {'Something went wrong! Please try again, or send '}
+                <Kb.Text
+                  type="Body"
+                  style={{color: Kb.Styles.globalColors.redDark}}
+                  underline={true}
+                  onClick={onFeedback}
+                >
+                  {'feedback'}
                 </Kb.Text>
-              )}
-            </Kb.Box2>
+              </Kb.Text>
+            )}
+          </Kb.Box2>
         </Kb.Box2>
       ) : null}
     </>
@@ -584,6 +581,18 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  bodyScroll: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+  },
+  bodyScrollContent: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.flexBoxColumn,
+      flexGrow: 1,
+      width: '100%',
+    },
+  }),
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
   },
@@ -608,8 +617,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   outerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      height: 560,
+    common: {
+      flex: 1,
+      minHeight: 0,
     },
   }),
   reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},

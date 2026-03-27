@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
-import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useFeaturedBot} from '@/util/featured-bots'
 
 type OwnProps = {username: string}
 
@@ -17,7 +17,7 @@ const Container = (ownProps: OwnProps) => {
   const d = useTrackerState(s => s.getDetails(username))
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
-  const isBot = useBotsState(s => s.featuredBotsMap.has(username))
+  const isBot = !!useFeaturedBot(username)
 
   const _guiID = d.guiID
   const _you = useCurrentUserState(s => s.username)
@@ -55,12 +55,6 @@ const Container = (ownProps: OwnProps) => {
   const onReload = () => _onReload(username)
   const onUnfollow = () => _onFollow(_guiID, false)
 
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  // load featured bots on first render
-  React.useEffect(() => {
-    // TODO likely don't do this all the time, just once
-    getFeaturedBots()
-  }, [getFeaturedBots])
   if (blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>

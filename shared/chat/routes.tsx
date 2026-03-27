@@ -166,6 +166,7 @@ export const newModalRoutes = {
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
         headerTitle: () => <BotInstallHeaderTitle />,
+        ...(C.isMobile ? undefined : {modalStyle: {height: 660, maxHeight: 660}}),
       },
       skipProvider: true,
     }

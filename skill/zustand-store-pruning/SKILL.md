@@ -44,6 +44,8 @@ Keep it in the store if it is:
 - A long-lived cache keyed by usernames, team IDs, conversation IDs, paths, or other global entities
 - Awkward or lossy to pass through navigation because it must survive independent screen entry points
 
+Before keeping a cache just because several screens read it, ask whether reloading is good enough. For Keybase daemon-backed data, many RPCs are local and cheap, so a component-level reload on screen entry is often preferable to preserving store state.
+
 Move it to component state if it is:
 
 - Form input text, local validation errors, banners, or submit progress
@@ -69,6 +71,12 @@ Keep RPC logic in the store if:
 - It services notification handlers or global refresh flows
 - It fans results out to multiple screens
 - It maintains a shared cache that survives navigation
+
+Prefer reloading in components instead of keeping a store cache when:
+
+- The data comes from the local service and reload latency is acceptable
+- The cache only saves a small RPC but forces unrelated screens to coordinate through global state
+- The notification path only exists to keep that convenience cache warm
 
 ## Refactor Workflow
 
@@ -142,9 +150,12 @@ Keep params limited to explicit entry context. Do not recreate a hidden global s
 After consumers move off the store:
 
 - Delete dead fields, actions, helpers, imports, and tests
+- Delete dead component-level leftovers created during the move, including unused params, temporary aliases, and underscore-prefixed placeholders that no longer serve a purpose
 - Remove unused notification plumbing only if behavior is preserved
 - Keep reset behavior coherent for whatever remains
 - Preserve public store names unless there is a strong reason to rename them
+
+If nothing meaningful remains after moving screen-owned data out, delete the store entirely instead of leaving a one-field convenience cache behind.
 
 ## Commit Shape
 

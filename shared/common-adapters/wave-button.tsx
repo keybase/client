@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
-      button: {},
+      button: Styles.platformStyles({isElectron: {width: 'auto'}}),
       hiddenButton: {opacity: 0},
       outer: {flexShrink: 0},
       waved: {

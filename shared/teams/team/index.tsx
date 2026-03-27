@@ -18,7 +18,6 @@ import {
   type Section,
   type Item,
 } from './rows'
-import {useBotsState} from '@/stores/bots'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -38,15 +37,15 @@ const useTabsState = (
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = (t: T.Teams.TabKey) => {
-      lastSelectedTabs.set(teamID, t)
-      if (selectedTab !== 'settings' && t === 'settings') {
-        resetErrorInSettings()
-      }
-      if (selectedTab !== 'channels' && t === 'channels') {
-        loadTeamChannelList(teamID)
-      }
-      _setSelectedTab(t)
+    lastSelectedTabs.set(teamID, t)
+    if (selectedTab !== 'settings' && t === 'settings') {
+      resetErrorInSettings()
     }
+    if (selectedTab !== 'channels' && t === 'channels') {
+      loadTeamChannelList(teamID)
+    }
+    _setSelectedTab(t)
+  }
 
   const prevTeamIDRef = React.useRef(teamID)
 
@@ -66,21 +65,6 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
-  const _bots = [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
-  React.useEffect(() => {
-    if (shouldLoad) {
-      _bots.forEach(bot => {
-        if (!featuredBotsMap.has(bot.username)) {
-          searchFeaturedBots(bot.username)
-        }
-      })
-    }
-  }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots])
-}
-
 const Team = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
@@ -91,15 +75,12 @@ const Team = (props: Props) => {
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
-  C.Router2.useSafeFocusEffect(
-    () => {
-      return () => teamSeen(teamID)
-    }
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => teamSeen(teamID)
+  })
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
-  useLoadFeaturedBots(teamDetails, selectedTab === 'bots' /* shouldLoad */)
   useActivityLevels()
 
   // Sections
@@ -149,34 +130,41 @@ const Team = (props: Props) => {
   }
 
   const renderSectionHeader = ({section}: {section: Section}) =>
-      section.title ? (
-        <Kb.SectionDivider
-          label={section.title}
-          collapsed={section.collapsed}
-          onToggleCollapsed={section.onToggleCollapsed}
-        />
-      ) : null
+    section.title ? (
+      <Kb.SectionDivider
+        label={section.title}
+        collapsed={section.collapsed}
+        onToggleCollapsed={section.onToggleCollapsed}
+      />
+    ) : null
 
   const getItemHeight = () => {
     return 48
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
-        <Kb.SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Kb.Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
-          getItemHeight={getItemHeight}
-        />
-        <SelectionPopup
-          selectedTab={
-            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-          }
-          teamID={teamID}
-        />
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      flex={1}
+      style={styles.container}
+      relative={true}
+    >
+      <Kb.SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Kb.Styles.isMobile}
+        sections={sections}
+        contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
+        getItemHeight={getItemHeight}
+      />
+      <SelectionPopup
+        selectedTab={
+          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+        }
+        teamID={teamID}
+      />
     </Kb.Box2>
   )
 }

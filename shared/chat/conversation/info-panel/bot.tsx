@@ -4,7 +4,7 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {getFeaturedSorted, useBotsState} from '@/stores/bots'
+import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 
 type AddToChannelProps = {
@@ -176,6 +176,7 @@ type Props = {
 const BotTab = (props: Props) => {
   const meta = Chat.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
   if (teamname) {
@@ -202,8 +203,9 @@ const BotTab = (props: Props) => {
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const featuredBots: Array<Item> = getFeaturedSorted(featuredBotsMap)
+  const {featuredBots: loadedFeaturedBots, loadedAllBots, loadNextBotPage, loadingBots} = useFeaturedBotPage()
+  const featuredBotsMap = new Map(loadedFeaturedBots.map(bot => [bot.botUsername, bot] as const))
+  const featuredBots: Array<Item> = getFeaturedSorted(loadedFeaturedBots)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
@@ -211,7 +213,6 @@ const BotTab = (props: Props) => {
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)
-  const loadedAllBots = useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>
     usernames.map(
@@ -238,7 +239,6 @@ const BotTab = (props: Props) => {
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
   const navigateAppend = Chat.useChatNavigateAppend()
-  const conversationIDKey = Chat.useChatContext(s => s.id)
   const onBotAdd = () => {
     navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
   }
@@ -248,20 +248,6 @@ const BotTab = (props: Props) => {
       params: {botUsername: username, conversationIDKey},
     }))
   }
-  const loadNextBotPage = useBotsState(s => s.dispatch.loadNextBotPage)
-  const onLoadMoreBots = () => loadNextBotPage()
-  const loadingBots = !featuredBotsMap.size
-
-  const featuredBotsLength = featuredBots.length
-  const [lastFBL, setLastFBL] = React.useState(-1)
-  React.useEffect(() => {
-    if (lastFBL !== featuredBotsLength) {
-      setLastFBL(featuredBotsLength)
-      if (featuredBotsLength === 0 && !loadedAllBots) {
-        loadNextBotPage()
-      }
-    }
-  }, [featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
 
   const items: Array<Item> = [
     ...(canManageBots ? ([addBotButton] as const) : []),
@@ -329,7 +315,7 @@ const BotTab = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.addBot}
-              onClick={onLoadMoreBots}
+              onClick={loadNextBotPage}
             />
           )
         }

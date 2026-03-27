@@ -15,7 +15,6 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {useBotsState} from '@/stores/bots'
 import {useUsersState} from '@/stores/users'
 
 export type OwnProps = {
@@ -29,11 +28,9 @@ const useLoadDataForChannelPage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
   meta: T.Chat.ConversationMeta,
-  participants: ReadonlyArray<string>,
-  bots: ReadonlyArray<string>
+  participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
@@ -55,15 +52,6 @@ const useLoadDataForChannelPage = (
     participants,
     teamID,
   ])
-  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
-  React.useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'bots') {
-      // Load any bots that aren't in the featured bots map already
-      bots
-        .filter(botUsername => !featuredBotsMap.has(botUsername))
-        .map(botUsername => searchFeaturedBots(botUsername))
-    }
-  }, [selectedTab, searchFeaturedBots, conversationIDKey, bots, featuredBotsMap])
 
   React.useEffect(() => {
     prevSelectedTabRef.current = selectedTab
@@ -86,8 +74,8 @@ const useTabsState = (
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = (t: TabKey) => {
-      _setSelectedTab(t)
-    }
+    _setSelectedTab(t)
+  }
 
   React.useEffect(() => {
     lastSelectedTabs[conversationIDKey] = selectedTab
@@ -140,7 +128,7 @@ const Channel = (props: OwnProps) => {
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants)
   const participants = useChannelParticipants(teamID, conversationIDKey)
 
   // Make the actual sections (consider farming this out into another function or file)
@@ -260,7 +248,6 @@ const Channel = (props: OwnProps) => {
         stickySectionHeadersEnabled={Kb.Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
-
       />
       <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
     </Kb.Box2>

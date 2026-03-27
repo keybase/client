@@ -4,9 +4,9 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
-import {useBotsState} from '@/stores/bots'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
+import {useFeaturedBot} from '@/util/featured-bots'
 
 export type Props = {
   botAlias: string
@@ -161,7 +161,7 @@ const Container = (ownProps: OwnProps) => {
   const canManageBots = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const _bot = useBotsState(s => s.featuredBotsMap.get(ownProps.username))
+  const _bot = useFeaturedBot(ownProps.username)
   const bot = _bot ?? {
     botAlias: info.fullName,
     botUsername: ownProps.username,

@@ -927,7 +927,7 @@ export type State = Store & {
     finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
-    getMembers: (teamID: T.Teams.TeamID) => void
+    getMembers: (teamID: T.Teams.TeamID) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     getTeamProfileAddList: (username: string) => void
@@ -1747,30 +1747,27 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getMembers: (teamID: T.Teams.TeamID) => {
-      const f = async () => {
-        try {
-          const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
-            id: teamID,
-          })
-          const members = rpcDetailsToMemberInfos(res ?? [])
-          set(s => {
-            s.teamIDToMembers.set(teamID, members)
-          })
-          get().dispatch.defer.onUsersUpdates?.(
-            [...members.values()].map(m => ({
-              info: {fullname: m.fullName},
-              name: m.username,
-            }))
-          )
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
-          }
+    getMembers: async (teamID: T.Teams.TeamID) => {
+      try {
+        const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
+          id: teamID,
+        })
+        const members = rpcDetailsToMemberInfos(res ?? [])
+        set(s => {
+          s.teamIDToMembers.set(teamID, members)
+        })
+        get().dispatch.defer.onUsersUpdates?.(
+          [...members.values()].map(m => ({
+            info: {fullname: m.fullName},
+            name: m.username,
+          }))
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.error(`Error updating members for ${teamID}: ${error.desc}`)
         }
-        return
       }
-      ignorePromise(f())
+      return
     },
     getTeamProfileAddList: username => {
       const f = async () => {

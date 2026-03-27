@@ -5,28 +5,26 @@ import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 
 declare global {
-   
   var __hmr_startupOnce: boolean | undefined
-   
+
   var __hmr_devicesLoaded: boolean | undefined
-   
+
   var __hmr_gitLoaded: boolean | undefined
-   
+
   var __hmr_sharedUnsubs: Array<() => void> | undefined
-   
+
   var __hmr_platformUnsubs: Array<() => void> | undefined
-   
+
   var __hmr_oneTimeInitDone: boolean | undefined
-   
+
   var __hmr_convoDeferImpl: unknown
-   
+
   var __hmr_chatStores: Map<unknown, unknown> | undefined
-   
+
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
-import type * as UseBotsStateType from '@/stores/bots'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseDevicesStateType from '@/stores/devices'
 import type * as UseFSStateType from '@/stores/fs'
@@ -73,15 +71,11 @@ import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
 
-let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__
-  ? (globalThis.__hmr_startupOnce ?? false)
-  : false
+let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 let _devicesLoaded: boolean = __DEV__ ? (globalThis.__hmr_devicesLoaded ?? false) : false
 let _gitLoaded: boolean = __DEV__ ? (globalThis.__hmr_gitLoaded ?? false) : false
 
-const _sharedUnsubs: Array<() => void> = __DEV__
-  ? (globalThis.__hmr_sharedUnsubs ??= [])
-  : []
+const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
 
 export const onEngineConnected = () => {
   {
@@ -114,7 +108,7 @@ export const onEngineConnected = () => {
           channels: {
             allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: true, kbfs: true, kbfsdesktop: !isMobile,
+            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
             paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
@@ -183,7 +177,9 @@ export const initTeamBuildingCallbacks = () => {
                 onFinishedTeamBuildingCrypto: users => {
                   const visible = Util.getVisibleScreen()
                   const visibleParams =
-                    visible?.name === 'cryptoTeamBuilder' ? (visible.params as {teamBuilderNonce?: string} | undefined) : undefined
+                    visible?.name === 'cryptoTeamBuilder'
+                      ? (visible.params as {teamBuilderNonce?: string} | undefined)
+                      : undefined
                   const teamBuilderUsers = [...users].map(({serviceId, username}) => ({serviceId, username}))
                   Util.clearModals()
                   Util.navigateAppend(
@@ -235,8 +231,8 @@ export const initChat2Callbacks = () => {
         onGetUsersInfoMap: () => {
           return storeRegistry.getState('users').infoMap
         },
-        onTeamsGetMembers: (teamID: T.Teams.TeamID) => {
-          storeRegistry.getState('teams').dispatch.getMembers(teamID)
+        onTeamsGetMembers: async (teamID: T.Teams.TeamID) => {
+          return storeRegistry.getState('teams').dispatch.getMembers(teamID)
         },
         onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
           storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
@@ -427,289 +423,287 @@ export const initSharedSubscriptions = () => {
   _sharedUnsubs.length = 0
 
   setConvoDefer({
-    chatBlockButtonsMapHas: teamID =>
-      storeRegistry.getState('chat').blockButtonsMap.has(teamID),
+    chatBlockButtonsMapHas: teamID => storeRegistry.getState('chat').blockButtonsMap.has(teamID),
     chatInboxLayoutSmallTeamsFirstConvID: () =>
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
-    chatInboxRefresh: reason =>
-      storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
-    chatMetasReceived: metas =>
-      storeRegistry.getState('chat').dispatch.metasReceived(metas),
-    chatNavigateToInbox: () =>
-      storeRegistry.getState('chat').dispatch.navigateToInbox(),
+    chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
+    chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
+    chatNavigateToInbox: () => storeRegistry.getState('chat').dispatch.navigateToInbox(),
     chatPaymentInfoReceived: (_messageID, paymentInfo) =>
       storeRegistry.getState('chat').dispatch.paymentInfoReceived(paymentInfo),
-    chatPreviewConversation: p =>
-      storeRegistry.getState('chat').dispatch.previewConversation(p),
-    chatResetConversationErrored: () =>
-      storeRegistry.getState('chat').dispatch.resetConversationErrored(),
-    chatUnboxRows: (convIDs, force) =>
-      storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
-    chatUpdateInfoPanel: (show, tab) =>
-      storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab),
-    teamsGetMembers: teamID =>
-      storeRegistry.getState('teams').dispatch.getMembers(teamID),
-    usersGetBio: username =>
-      storeRegistry.getState('users').dispatch.getBio(username),
+    chatPreviewConversation: p => storeRegistry.getState('chat').dispatch.previewConversation(p),
+    chatResetConversationErrored: () => storeRegistry.getState('chat').dispatch.resetConversationErrored(),
+    chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
+    chatUpdateInfoPanel: (show, tab) => storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab),
+    teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
+    usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
   })
-  _sharedUnsubs.push(useConfigState.subscribe((s, old) => {
-    if (s.loadOnStartPhase !== old.loadOnStartPhase) {
-      if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
-        const getFollowerInfo = () => {
-          const {uid} = useCurrentUserState.getState()
-          logger.info(`getFollowerInfo: init; uid=${uid}`)
-          if (uid) {
-            // request follower info in the background
-            T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
-              .then(() => {})
-              .catch(() => {})
+  _sharedUnsubs.push(
+    useConfigState.subscribe((s, old) => {
+      if (s.loadOnStartPhase !== old.loadOnStartPhase) {
+        if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
+          const getFollowerInfo = () => {
+            const {uid} = useCurrentUserState.getState()
+            logger.info(`getFollowerInfo: init; uid=${uid}`)
+            if (uid) {
+              // request follower info in the background
+              T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+                .then(() => {})
+                .catch(() => {})
+            }
           }
-        }
 
-        const updateServerConfig = async () => {
-          if (s.loggedIn) {
+          const updateServerConfig = async () => {
+            if (s.loggedIn) {
+              try {
+                await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+                  serverConfigPath: serverConfigFileName,
+                })
+              } catch {}
+            }
+          }
+
+          const updateTeams = () => {
+            useTeamsState.getState().dispatch.getTeams()
+            useTeamsState.getState().dispatch.refreshTeamRoleMap()
+          }
+
+          const updateSettings = () => {
+            useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
+          }
+
+          const updateChat = async () => {
+            // On login lets load the untrusted inbox. This helps make some flows easier
+            if (useCurrentUserState.getState().username) {
+              const {inboxRefresh} = useChatState.getState().dispatch
+              inboxRefresh('bootstrap')
+            }
             try {
-              await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-                serverConfigPath: serverConfigFileName,
-              })
+              const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+              const ri = rows.i ?? -1
+              if (ri > 0) {
+                useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
+              }
             } catch {}
           }
-        }
 
-        const updateTeams = () => {
-          useTeamsState.getState().dispatch.getTeams()
-          useTeamsState.getState().dispatch.refreshTeamRoleMap()
+          getFollowerInfo()
+          ignorePromise(updateServerConfig())
+          updateTeams()
+          updateSettings()
+          ignorePromise(updateChat())
         }
+      }
 
-        const updateSettings = () => {
-          useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
-        }
-
-        const updateChat = async () => {
-          // On login lets load the untrusted inbox. This helps make some flows easier
-          if (useCurrentUserState.getState().username) {
-            const {inboxRefresh} = useChatState.getState().dispatch
-            inboxRefresh('bootstrap')
+      if (s.gregorReachable !== old.gregorReachable) {
+        // Re-get info about our account if you log in/we're done handshaking/became reachable
+        if (s.gregorReachable === T.RPCGen.Reachable.yes) {
+          // not in waiting state
+          if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
+            ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
           }
-          try {
-            const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-            const ri = rows.i ?? -1
-            if (ri > 0) {
-              useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
-            }
-          } catch {}
+          storeRegistry.getState('teams').dispatch.eagerLoadTeams()
         }
-
-        getFollowerInfo()
-        ignorePromise(updateServerConfig())
-        updateTeams()
-        updateSettings()
-        ignorePromise(updateChat())
       }
-    }
 
-    if (s.gregorReachable !== old.gregorReachable) {
-      // Re-get info about our account if you log in/we're done handshaking/became reachable
-      if (s.gregorReachable === T.RPCGen.Reachable.yes) {
-        // not in waiting state
-        if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
-          ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
-        }
-        storeRegistry.getState('teams').dispatch.eagerLoadTeams()
-      }
-    }
-
-    if (s.installerRanCount !== old.installerRanCount) {
-      storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
-    }
-
-    if (s.loggedIn !== old.loggedIn) {
-      if (s.loggedIn) {
-        ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+      if (s.installerRanCount !== old.installerRanCount) {
         storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
       }
-      storeRegistry
-        .getState('daemon')
-        .dispatch.loadDaemonAccounts(
-          s.configuredAccounts.length,
-          s.loggedIn,
+
+      if (s.loggedIn !== old.loggedIn) {
+        if (s.loggedIn) {
+          ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+          storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+        }
+        storeRegistry
+          .getState('daemon')
+          .dispatch.loadDaemonAccounts(
+            s.configuredAccounts.length,
+            s.loggedIn,
+            useConfigState.getState().dispatch.refreshAccounts
+          )
+        if (!s.loggedInCausedbyStartup) {
+          ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
+        }
+      }
+
+      if (s.mobileAppState !== old.mobileAppState) {
+        if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
+          storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
+        }
+      }
+
+      if (s.revokedTrigger !== old.revokedTrigger) {
+        storeRegistry
+          .getState('daemon')
+          .dispatch.loadDaemonAccounts(
+            s.configuredAccounts.length,
+            s.loggedIn,
+            useConfigState.getState().dispatch.refreshAccounts
+          )
+      }
+
+      if (s.configuredAccounts !== old.configuredAccounts) {
+        const updates = s.configuredAccounts.map(account => ({
+          info: {fullname: account.fullname ?? ''},
+          name: account.username,
+        }))
+        if (updates.length > 0) {
+          storeRegistry.getState('users').dispatch.updates(updates)
+        }
+      }
+
+      if (s.active !== old.active) {
+        const cs = storeRegistry.getConvoState(getSelectedConversation())
+        cs.dispatch.markThreadAsRead()
+      }
+    })
+  )
+
+  _sharedUnsubs.push(
+    useDaemonState.subscribe((s, old) => {
+      if (s.handshakeVersion !== old.handshakeVersion) {
+        useDarkModeState.getState().dispatch.loadDarkPrefs()
+        storeRegistry.getState('chat').dispatch.loadStaticConfig()
+        const configState = useConfigState.getState()
+        s.dispatch.loadDaemonAccounts(
+          configState.configuredAccounts.length,
+          configState.loggedIn,
           useConfigState.getState().dispatch.refreshAccounts
         )
-      if (!s.loggedInCausedbyStartup) {
-        ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
       }
-    }
 
-    if (s.mobileAppState !== old.mobileAppState) {
-      if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
-        storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
-      }
-    }
+      if (s.bootstrapStatus !== old.bootstrapStatus) {
+        const bootstrap = s.bootstrapStatus
+        if (bootstrap) {
+          const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+          useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
-    if (s.revokedTrigger !== old.revokedTrigger) {
-      storeRegistry
-        .getState('daemon')
-        .dispatch.loadDaemonAccounts(
-          s.configuredAccounts.length,
-          s.loggedIn,
-          useConfigState.getState().dispatch.refreshAccounts
-        )
-    }
+          const configDispatch = useConfigState.getState().dispatch
+          if (username) {
+            configDispatch.setDefaultUsername(username)
+          }
+          if (loggedIn) {
+            configDispatch.setUserSwitching(false)
+          }
+          configDispatch.setLoggedIn(loggedIn, false)
 
-    if (s.configuredAccounts !== old.configuredAccounts) {
-      const updates = s.configuredAccounts.map(account => ({
-        info: {fullname: account.fullname ?? ''},
-        name: account.username,
-      }))
-      if (updates.length > 0) {
-        storeRegistry.getState('users').dispatch.updates(updates)
-      }
-    }
+          if (bootstrap.httpSrvInfo) {
+            configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
+          }
 
-    if (s.active !== old.active) {
-      const cs = storeRegistry.getConvoState(getSelectedConversation())
-      cs.dispatch.markThreadAsRead()
-    }
-  }))
-
-  _sharedUnsubs.push(useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion !== old.handshakeVersion) {
-      useDarkModeState.getState().dispatch.loadDarkPrefs()
-      storeRegistry.getState('chat').dispatch.loadStaticConfig()
-      const configState = useConfigState.getState()
-      s.dispatch.loadDaemonAccounts(
-        configState.configuredAccounts.length,
-        configState.loggedIn,
-        useConfigState.getState().dispatch.refreshAccounts
-      )
-    }
-
-    if (s.bootstrapStatus !== old.bootstrapStatus) {
-      const bootstrap = s.bootstrapStatus
-      if (bootstrap) {
-        const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
-        useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-
-        const configDispatch = useConfigState.getState().dispatch
-        if (username) {
-          configDispatch.setDefaultUsername(username)
-        }
-        if (loggedIn) {
-          configDispatch.setUserSwitching(false)
-        }
-        configDispatch.setLoggedIn(loggedIn, false)
-
-        if (bootstrap.httpSrvInfo) {
-          configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
-        }
-
-        storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
-      }
-    }
-
-    if (s.handshakeState !== old.handshakeState) {
-      if (s.handshakeState === 'done') {
-        if (!_emitStartupOnLoadDaemonConnectedOnce) {
-          _emitStartupOnLoadDaemonConnectedOnce = true
-          if (__DEV__) globalThis.__hmr_startupOnce = true
-          useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
+          storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
         }
       }
-    }
-  }))
 
-  _sharedUnsubs.push(useProvisionState.subscribe((s, old) => {
-    if (s.startProvisionTrigger !== old.startProvisionTrigger) {
-      useConfigState.getState().dispatch.setLoginError()
-      useConfigState.getState().dispatch.resetRevokedSelf()
-      const f = async () => {
-        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (useConfigState.getState().loggedIn) {
-          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
+      if (s.handshakeState !== old.handshakeState) {
+        if (s.handshakeState === 'done') {
+          if (!_emitStartupOnLoadDaemonConnectedOnce) {
+            _emitStartupOnLoadDaemonConnectedOnce = true
+            if (__DEV__) globalThis.__hmr_startupOnce = true
+            useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
+          }
         }
       }
-      ignorePromise(f())
-    }
-  }))
+    })
+  )
 
-  _sharedUnsubs.push(useRouterState.subscribe((s, old) => {
-    const next = s.navState as Util.NavState
-    const prev = old.navState as Util.NavState
-    if (prev === next) return
+  _sharedUnsubs.push(
+    useProvisionState.subscribe((s, old) => {
+      if (s.startProvisionTrigger !== old.startProvisionTrigger) {
+        useConfigState.getState().dispatch.setLoginError()
+        useConfigState.getState().dispatch.resetRevokedSelf()
+        const f = async () => {
+          // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+          if (useConfigState.getState().loggedIn) {
+            await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
+          }
+        }
+        ignorePromise(f())
+      }
+    })
+  )
 
-    const namespaces = ['chat', 'crypto', 'teams', 'people'] as const
-    const namespaceToRoute = new Map([
-      ['chat', 'chatNewChat'],
-      ['crypto', 'cryptoTeamBuilder'],
-      ['teams', 'teamsTeamBuilder'],
-      ['people', 'peopleTeamBuilder'],
-    ])
-    for (const namespace of namespaces) {
-      const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
-      if (wasTeamBuilding) {
-        // team building or modal on top of that still
-        const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
-        if (!isTeamBuilding) {
-          getTBStore(namespace).dispatch.cancelTeamBuilding()
+  _sharedUnsubs.push(
+    useRouterState.subscribe((s, old) => {
+      const next = s.navState as Util.NavState
+      const prev = old.navState as Util.NavState
+      if (prev === next) return
+
+      const namespaces = ['chat', 'crypto', 'teams', 'people'] as const
+      const namespaceToRoute = new Map([
+        ['chat', 'chatNewChat'],
+        ['crypto', 'cryptoTeamBuilder'],
+        ['teams', 'teamsTeamBuilder'],
+        ['people', 'peopleTeamBuilder'],
+      ])
+      for (const namespace of namespaces) {
+        const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
+        if (wasTeamBuilding) {
+          // team building or modal on top of that still
+          const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
+          if (!isTeamBuilding) {
+            getTBStore(namespace).dispatch.cancelTeamBuilding()
+          }
         }
       }
-    }
 
-    // Clear critical update when we nav away from tab
-    if (
-      prev &&
-      Util.getTab(prev) === Tabs.fsTab &&
-      next &&
-      Util.getTab(next) !== Tabs.fsTab &&
-      storeRegistry.getState('fs').criticalUpdate
-    ) {
-      const {dispatch} = storeRegistry.getState('fs')
-      dispatch.setCriticalUpdate(false)
-    }
-    const fsRrouteNames = ['fsRoot', 'barePreview']
-    const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
-    const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
-    if (wasScreen !== isScreen) {
-      const {dispatch} = storeRegistry.getState('fs')
-      if (wasScreen) {
-        dispatch.userOut()
-      } else {
-        dispatch.userIn()
+      // Clear critical update when we nav away from tab
+      if (
+        prev &&
+        Util.getTab(prev) === Tabs.fsTab &&
+        next &&
+        Util.getTab(next) !== Tabs.fsTab &&
+        storeRegistry.getState('fs').criticalUpdate
+      ) {
+        const {dispatch} = storeRegistry.getState('fs')
+        dispatch.setCriticalUpdate(false)
       }
-    }
+      const fsRrouteNames = ['fsRoot', 'barePreview']
+      const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+      const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
+      if (wasScreen !== isScreen) {
+        const {dispatch} = storeRegistry.getState('fs')
+        if (wasScreen) {
+          dispatch.userOut()
+        } else {
+          dispatch.userIn()
+        }
+      }
 
-    // Clear "just signed up email" when you leave the people tab after signup
-    if (
-      prev &&
-      Util.getTab(prev) === Tabs.peopleTab &&
-      next &&
-      Util.getTab(next) !== Tabs.peopleTab &&
-      storeRegistry.getState('signup').justSignedUpEmail
-    ) {
-      storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
-    }
+      // Clear "just signed up email" when you leave the people tab after signup
+      if (
+        prev &&
+        Util.getTab(prev) === Tabs.peopleTab &&
+        next &&
+        Util.getTab(next) !== Tabs.peopleTab &&
+        storeRegistry.getState('signup').justSignedUpEmail
+      ) {
+        storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+      }
 
-    if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
-      storeRegistry.getState('people').dispatch.markViewed()
-    }
+      if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
+        storeRegistry.getState('people').dispatch.markViewed()
+      }
 
-    if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-      storeRegistry.getState('teams').dispatch.clearNavBadges()
-    }
+      if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
+        storeRegistry.getState('teams').dispatch.clearNavBadges()
+      }
 
-    // Clear "check your inbox" in settings when you leave the settings tab
-    if (
-      prev &&
-      Util.getTab(prev) === Tabs.settingsTab &&
-      next &&
-      Util.getTab(next) !== Tabs.settingsTab &&
-      storeRegistry.getState('settings-email').addedEmail
-    ) {
-      storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
-    }
+      // Clear "check your inbox" in settings when you leave the settings tab
+      if (
+        prev &&
+        Util.getTab(prev) === Tabs.settingsTab &&
+        next &&
+        Util.getTab(next) !== Tabs.settingsTab &&
+        storeRegistry.getState('settings-email').addedEmail
+      ) {
+        storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+      }
 
-    storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
-  }))
+      storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
+    })
+  )
 
   initAutoResetCallbacks()
   initChat2Callbacks()
@@ -784,12 +778,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate':
-      {
-        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
-        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':

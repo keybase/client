@@ -13,7 +13,7 @@ Status:
 
 - [x] `archive` kept notification-backed chat/KBFS job caches plus engine/load plumbing; moved modal waiters, start RPCs, row action RPCs, and KBFS freshness lookup into settings components
 - [x] `autoreset` kept badge-driven reset status plus reset pipeline entry/cancel logic; moved username/skip-password/has-wallet flow state into route params and removed dead confirm callback state
-- [ ] `bots`
+- [x] `bots` removed the store entirely; components now reload featured bot data directly from the local service as needed
 - [x] `crypto`
 - [ ] `daemon`
 - [x] `darkmode`
@@ -64,4 +64,5 @@ Status:
 
 - Track logical stores here, not `shared/stores/tests/*`.
 - `store-registry.tsx` is infrastructure, not a target store.
+- This cleanup series moves linearly through the checklist by default. Take the first unchecked store unless a later note explicitly says otherwise.
 - When a store is done, optionally append a short note with the commit hash or summary.

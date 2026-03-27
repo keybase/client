@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {useBotsState} from '@/stores/bots'
 
 type Props = {botUsername: string}
 
@@ -43,12 +42,6 @@ const BotTeamPicker = (props: Props) => {
       params: {botUsername, conversationIDKey},
     })
   }
-
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  C.useOnMountOnce(() => {
-    getFeaturedBots()
-  })
-
   const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>

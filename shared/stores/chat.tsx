@@ -9,6 +9,7 @@ import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
+import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/stores/router'
 import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet} from '@/constants/types/router'
@@ -313,12 +314,12 @@ export type State = Store & {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     defer: {
-      onGetDaemonState: () => {handshakeVersion: number; dispatch: any}
+      onGetDaemonState: () => Pick<DaemonState, 'dispatch' | 'handshakeVersion'>
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
       ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
       onGetUsersInfoMap: () => ReadonlyMap<string, T.Users.UserInfo>
-      onTeamsGetMembers: (teamID: T.Teams.TeamID) => void
+      onTeamsGetMembers: (teamID: T.Teams.TeamID) => Promise<void>
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
@@ -349,19 +350,11 @@ export type State = Store & {
       removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
     ) => void
     navigateToInbox: (allowSwitchTab?: boolean) => void
-    onChatThreadStale: (
-      action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>
-    ) => void
+    onChatThreadStale: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    onChatInboxSynced: (
-      action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>
-    ) => void
-    onGetInboxConvsUnboxed: (
-      action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>
-    ) => void
-    onGetInboxUnverifiedConvs: (
-      action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxUnverified'>
-    ) => void
+    onChatInboxSynced: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>) => void
+    onGetInboxConvsUnboxed: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>) => void
+    onGetInboxUnverifiedConvs: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxUnverified'>) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
@@ -497,7 +490,14 @@ function buildInboxRows(
   return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
 }
 
-function applyInboxRowsResult(draft: {inboxRows: Array<ChatInboxRowItem>; inboxAllowShowFloatingButton: boolean; inboxSmallTeamsExpanded: boolean}, result: InboxRowsResult) {
+function applyInboxRowsResult(
+  draft: {
+    inboxRows: Array<ChatInboxRowItem>
+    inboxAllowShowFloatingButton: boolean
+    inboxSmallTeamsExpanded: boolean
+  },
+  result: InboxRowsResult
+) {
   draft.inboxRows = T.castDraft(result.rows)
   draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
   draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
@@ -1101,10 +1101,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (isMetaGood()) {
         const {teamID} = meta
         if (!get().dispatch.defer.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
-          get().dispatch.defer.onTeamsGetMembers(teamID)
+          ignorePromise(get().dispatch.defer.onTeamsGetMembers(teamID))
         }
       }
-
     },
     navigateToInbox: (allowSwitchTab = true) => {
       // components can call us during render sometimes so always defer
@@ -1171,7 +1170,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       const selectedConversation = Common.getSelectedConversation()
-      const shouldLoadMore = (updates || []).some(u => T.Chat.conversationIDToKey(u.convID) === selectedConversation)
+      const shouldLoadMore = (updates || []).some(
+        u => T.Chat.conversationIDToKey(u.convID) === selectedConversation
+      )
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
           const cid = T.Chat.conversationIDToKey(u.convID)
@@ -1854,9 +1855,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         if (rows > 0) {
           s.inboxNumSmallRows = rows
         }
-        applyInboxRowsResult(s, buildInboxRows(
-          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
-        ))
+        applyInboxRowsResult(s, buildInboxRows(s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
       })
       if (ignoreWrite) {
         return
@@ -1915,9 +1914,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
-        applyInboxRowsResult(s, buildInboxRows(
-          s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
-        ))
+        applyInboxRowsResult(s, buildInboxRows(s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
       })
     },
     unboxRows: (ids, force) => {
@@ -2009,9 +2006,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             flushInboxRowUpdates()
           }
           if (layoutChanged) {
-            applyInboxRowsResult(s, buildInboxRows(
-              layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded
-            ))
+            applyInboxRowsResult(s, buildInboxRows(layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
           }
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
@@ -2146,14 +2141,20 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
 })
 
 type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
-  : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined> ? P
-  : undefined
+  T extends React.LazyExoticComponent<
+    React.ComponentType<infer P extends Record<string, unknown> | undefined>
+  >
+    ? P
+    : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined>
+      ? P
+      : undefined
 
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?: GetOptionsRet | ((props: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) => GetOptionsRet)
+    getOptions?:
+      | GetOptionsRet
+      | ((props: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
