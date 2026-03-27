@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import {todoTypes} from './page-state'
 import {openURL} from '@/util/misc'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -12,6 +11,28 @@ import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
+
+const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
+  addEmail: 'addEmail',
+  addPhoneNumber: 'addPhoneNumber',
+  annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol
+  avatarTeam: 'avatarTeam',
+  avatarUser: 'avatarUser',
+  bio: 'bio',
+  chat: 'chat',
+  device: 'device',
+  folder: 'folder',
+  follow: 'follow',
+  gitRepo: 'gitRepo',
+  legacyEmailVisibility: 'legacyEmailVisibility',
+  none: 'none',
+  paperkey: 'paperkey',
+  proof: 'proof',
+  team: 'team',
+  teamShowcase: 'teamShowcase',
+  verifyAllEmail: 'verifyAllEmail',
+  verifyAllPhoneNumber: 'verifyAllPhoneNumber',
+}
 
 type TodoOwnProps = {
   badged: boolean
