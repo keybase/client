@@ -2,10 +2,10 @@ import * as Chat from '@/stores/chat'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useGitState} from '@/stores/git'
 import UserNotice from '../user-notice'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navigateAppend} from '@/constants/router'
 
 type OwnProps = {message: T.Chat.MessageSystemGitPush}
 
@@ -23,9 +23,8 @@ function GitContainer(p: OwnProps) {
     FS.navToPath(path)
   }
   const you = useCurrentUserState(s => s.username)
-  const navigateToTeamRepo = useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = (repoID: string, teamname: string) => {
-    navigateToTeamRepo(teamname, repoID)
+    navigateAppend({name: 'gitRoot', params: {expandedRepoID: repoID, expandedTeamname: teamname}})
   }
 
   const {repo, repoID, refs, pushType, pusher, team} = message

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Git from '@/stores/git'
 import * as Kb from '@/common-adapters'
 
 export const HeaderTitle = () => {
@@ -29,17 +28,14 @@ export const HeaderTitle = () => {
 }
 
 export const HeaderRightActions = () => {
-  const setError = Git.useGitState(s => s.dispatch.setError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const onAddPersonal = () => {
-      setError(undefined)
       navigateAppend({name: 'gitNewRepo', params: {isTeam: false}})
     }
     const onAddTeam = () => {
-      setError(undefined)
       navigateAppend({name: 'gitNewRepo', params: {isTeam: true}})
     }
 

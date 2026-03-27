@@ -1,13 +1,81 @@
 import * as C from '@/constants'
-import * as Git from '@/stores/git'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useLocalBadging} from '@/util/use-local-badging'
+import {useConfigState} from '@/stores/config'
+import * as dateFns from 'date-fns'
 
-type OwnProps = {expanded?: string}
+type OwnProps = {
+  expandedRepoID?: string
+  expandedTeamname?: string
+}
+
+const parseRepoResult = (result: T.RPCGen.GitRepoResult): T.Git.GitInfo | undefined => {
+  if (result.state === T.RPCGen.GitRepoResultState.ok) {
+    const r: T.RPCGen.GitRepoInfo = result.ok
+    if (r.folder.folderType === T.RPCGen.FolderType.public) {
+      return undefined
+    }
+    const teamname = r.folder.folderType === T.RPCGen.FolderType.team ? r.folder.name : undefined
+    return {
+      canDelete: r.canDelete,
+      channelName: r.teamRepoSettings?.channelName || undefined,
+      chatDisabled: !!r.teamRepoSettings?.chatDisabled,
+      devicename: r.serverMetadata.lastModifyingDeviceName,
+      id: r.globalUniqueID,
+      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime), {addSuffix: true}),
+      lastEditUser: r.serverMetadata.lastModifyingUsername,
+      name: r.localMetadata.repoName,
+      repoID: r.repoID,
+      teamname,
+      url: r.repoUrl,
+    }
+  }
+  return undefined
+}
+
+const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
+  let errStr = 'unknown'
+  if (result.state === T.RPCGen.GitRepoResultState.err && result.err) {
+    errStr = result.err
+  }
+  return new Error(`Git repo error: ${errStr}`)
+}
+
+const parseRepos = (results: ReadonlyArray<T.RPCGen.GitRepoResult>) => {
+  const errors: Array<Error> = []
+  const repos = new Map<string, T.Git.GitInfo>()
+  results.forEach(result => {
+    if (result.state === T.RPCGen.GitRepoResultState.ok) {
+      const parsedRepo = parseRepoResult(result)
+      if (parsedRepo) {
+        repos.set(parsedRepo.id, parsedRepo)
+      }
+    } else {
+      errors.push(parseRepoError(result))
+    }
+  })
+  return {errors, repos}
+}
+
+const findExpandedRepoID = (
+  repos: ReadonlyMap<string, T.Git.GitInfo>,
+  repoID?: string,
+  teamname?: string
+) => {
+  if (!repoID || !teamname) {
+    return undefined
+  }
+  for (const [id, info] of repos) {
+    if (info.repoID === repoID && info.teamname === teamname) {
+      return id
+    }
+  }
+  return undefined
+}
 
 const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -21,28 +89,57 @@ const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
 
 const Container = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
-  const {clearBadges, load, setError, error, idToInfo, isNew} = Git.useGitState(
-    C.useShallow(s => {
-      const {dispatch, error, idToInfo, isNew} = s
-      const {clearBadges, load, setError} = dispatch
-      return {clearBadges, error, idToInfo, isNew, load, setError}
-    })
-  )
-  const {badged} = useLocalBadging(isNew, clearBadges)
+  const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
+  const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
+  const [error, setError] = React.useState<Error | undefined>()
+  const [idToInfo, setIDToInfo] = React.useState(new Map<string, T.Git.GitInfo>())
+  const expandedRouteApplied = React.useRef(false)
+  const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
+  const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
+    clearGitBadges(
+      [{category: 'new_git_repo'}],
+      () => {},
+      () => {}
+    )
+  })
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onShowDelete = (id: string) => {
-    setError(undefined)
-    navigateAppend({name: 'gitDeleteRepo', params: {id}})
+  const onShowDelete = (git: T.Git.GitInfo) => {
+    navigateAppend({name: 'gitDeleteRepo', params: {name: git.name, teamname: git.teamname}})
+  }
+  const load = () => {
+    loadGit(
+      [undefined, C.waitingKeyGitLoading],
+      results => {
+        const {errors, repos} = parseRepos(results || [])
+        const {setGlobalError} = useConfigState.getState().dispatch
+        errors.forEach(e => setGlobalError(e))
+        setIDToInfo(repos)
+        setError(undefined)
+      },
+      err => {
+        setError(err)
+      }
+    )
   }
 
   C.Router2.useSafeFocusEffect(() => {
     load()
   })
 
-  const [expandedSet, setExpandedSet] = React.useState(
-    ownProps.expanded ? new Set([ownProps.expanded]) : new Set()
-  )
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
+
+  React.useEffect(() => {
+    if (expandedRouteApplied.current) {
+      return
+    }
+    const expanded = findExpandedRepoID(idToInfo, ownProps.expandedRepoID, ownProps.expandedTeamname)
+    if (!expanded) {
+      return
+    }
+    expandedRouteApplied.current = true
+    setExpandedSet(new Set([expanded]))
+  }, [idToInfo, ownProps.expandedRepoID, ownProps.expandedTeamname])
 
   const toggleExpand = (id: string) => {
     expandedSet.has(id) ? expandedSet.delete(id) : expandedSet.add(id)
@@ -78,12 +175,7 @@ const Container = (ownProps: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable
-      waitingKeys={C.waitingKeyGitLoading}
-      onBack={undefined}
-      onReload={load}
-      reloadOnMount={true}
-    >
+    <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
@@ -105,8 +197,10 @@ const Container = (ownProps: OwnProps) => {
               <Row
                 key={item}
                 expanded={expandedSet.has(item)}
-                id={item}
+                git={idToInfo.get(item)!}
                 onShowDelete={onShowDelete}
+                reload={load}
+                setError={setError}
                 onToggleExpand={toggleExpand}
               />
             )}

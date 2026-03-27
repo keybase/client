@@ -1,31 +1,46 @@
 import * as C from '@/constants'
-import * as Git from '@/stores/git'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as T from '@/constants/types'
 
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
 
 const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Git.useGitState(s => s.error)
+  const [error, setError] = React.useState('')
   const teamnames = Teams.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(Teams.sortTeamnames)
   const waitingKey = C.waitingKeyGitLoading
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const createPersonalRepo = C.useRPC(T.RPCGen.gitCreatePersonalRepoRpcPromise)
+  const createTeamRepo = C.useRPC(T.RPCGen.gitCreateTeamRepoRpcPromise)
   const getTeams = Teams.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = navigateUp
-  const createPersonalRepo = Git.useGitState(s => s.dispatch.createPersonalRepo)
-  const createTeamRepo = Git.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
-      createTeamRepo(name, teamname, notifyTeam)
+      createTeamRepo(
+        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     } else {
-      createPersonalRepo(name)
+      createPersonalRepo(
+        [{repoName: name}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     }
-    navigateUp()
   }
   const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
@@ -108,6 +123,7 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const onSubmit = () => {
+    setError('')
     onCreate(name, selectedTeam, isTeam && notifyTeam)
   }
 
@@ -121,7 +137,7 @@ const Container = (ownProps: OwnProps) => {
           {!!error && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {error.message}
+                {error}
               </Kb.Text>
             </Kb.Box2>
           )}

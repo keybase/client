@@ -18,16 +18,15 @@ Status:
 - [x] `daemon` kept handshake/bootstrap coordination, waiter tracking, bootstrap status, and platform restart hooks in store
 - [x] `darkmode`
 - [x] `devices` removed the store; device history now loads in device screens, route params carry selected device data, and badge IDs moved into `modal-header`
-- [ ] `followers`
-- [ ] `git`
+- [x] `followers` kept current-user follow graph in store; notification-backed `followers`/`following` sets are shared across profile, tracker, chat, mentions, contacts, people suggestions, and desktop remote windows
+- [x] `git` removed the store; git screens now own RPC/error state, config badgeState feeds per-repo badging, and route params carry repo context for chat/deletion flows
 - [ ] `inbox-rows`
 - [x] `logout` kept handshake `version`/`waiters` in store; moved can-logout RPC and password redirect into settings hook
-- [~] `modal-header`
+- [x] `modal-header`
 - [ ] `notifications`
 - [ ] `people`
 - [ ] `pinentry`
 - [ ] `profile`
-- [ ] `provision`
 - [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
 - [ ] `settings`
 - [ ] `settings-chat`
@@ -44,6 +43,7 @@ Status:
 
 ## Larger / More Global Stores
 
+- [ ] `provision`
 - [ ] `chat`
 - [x] `config` kept app/session/bootstrap state, engine plumbing, account/session coordination, startup routing, and window/app settings in store
 - [ ] `convostate`

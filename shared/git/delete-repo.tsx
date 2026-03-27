@@ -1,40 +1,52 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Git from '@/stores/git'
+import * as T from '@/constants/types'
 
-type OwnProps = {id: string}
+type OwnProps = {
+  name: string
+  teamname?: string
+}
 
-const emptyGit = Git.makeGitInfo()
 const Container = (ownProps: OwnProps) => {
-  const {id} = ownProps
-  const git = Git.useGitState(s => s.idToInfo.get(id) || emptyGit)
-  const error = Git.useGitState(s => s.error)
-  const _name = git.name || ''
-  const teamname = git.teamname || ''
+  const {_name, teamname = ''} = {_name: ownProps.name, teamname: ownProps.teamname}
+  const [error, setError] = React.useState('')
   const waitingKey = C.waitingKeyGitLoading
 
-  const deletePersonalRepo = Git.useGitState(s => s.dispatch.deletePersonalRepo)
-  const deleteTeamRepo = Git.useGitState(s => s.dispatch.deleteTeamRepo)
+  const deletePersonalRepo = C.useRPC(T.RPCGen.gitDeletePersonalRepoRpcPromise)
+  const deleteTeamRepo = C.useRPC(T.RPCGen.gitDeleteTeamRepoRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {
-      deleteTeamRepo(name, teamname, notifyTeam)
+      deleteTeamRepo(
+        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     } else {
-      deletePersonalRepo(name)
+      deletePersonalRepo(
+        [{repoName: name}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     }
-    navigateUp()
   }
   const onClose = () => {
     navigateUp()
   }
-  const onDelete = (notifyTeam: boolean) => _onDelete(teamname, name, notifyTeam)
+  const onDelete = (notifyTeam: boolean) => _onDelete(teamname, _name, notifyTeam)
 
   const [name, setName] = React.useState('')
   const [notifyTeam, setNotifyTeam] = React.useState(true)
-
-  if (!_name) return null
 
   const matchesName = () => {
     if (name === _name) {
@@ -50,6 +62,7 @@ const Container = (ownProps: OwnProps) => {
 
   const onSubmit = () => {
     if (matchesName()) {
+      setError('')
       onDelete(notifyTeam)
     }
   }
@@ -60,7 +73,7 @@ const Container = (ownProps: OwnProps) => {
           {!!error && (
             <Kb.Box2 direction="vertical" style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {error.message}
+                {error}
               </Kb.Text>
             </Kb.Box2>
           )}
