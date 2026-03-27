@@ -1,4 +1,4 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -10,24 +10,30 @@ import {showShareActionSheet} from '@/util/platform-specific'
 
 function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const archiveState = useArchiveState(
+  const {job, load} = useArchiveState(
     C.useShallow(s => ({
-      cancel: s.dispatch.cancelChat,
       job: s.chatJobs.get(id),
-      pause: s.dispatch.pauseChat,
-      resume: s.dispatch.resumeChat,
+      load: s.dispatch.load,
     }))
   )
-  const {cancel, job, pause, resume} = archiveState
+  const cancelChat = C.useRPC(T.RPCChat.localArchiveChatDeleteRpcPromise)
+  const pauseChat = C.useRPC(T.RPCChat.localArchiveChatPauseRpcPromise)
+  const resumeChat = C.useRPC(T.RPCChat.localArchiveChatResumeRpcPromise)
 
   const errorStr = job?.error ?? ''
 
   const onPause = () => {
-    pause(id)
+    pauseChat(
+      [{identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}],
+      () => {
+        load()
+      },
+      () => {}
+    )
   }
 
   const onResume = () => {
-    resume(id)
+    resumeChat([{identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}], () => {}, () => {})
   }
 
   const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
@@ -47,7 +53,13 @@ function ChatJob(p: {index: number; id: string}) {
   }
 
   const onCancel = () => {
-    cancel(id)
+    cancelChat(
+      [{deleteOutputPath: true, identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}],
+      () => {
+        load()
+      },
+      () => {}
+    )
   }
 
   if (!job) return null
@@ -139,18 +151,18 @@ function ChatJob(p: {index: number; id: string}) {
 
 function KBFSJob(p: {index: number; id: string}) {
   const {id, index} = p
-  const archiveState = useArchiveState(
-    C.useShallow(s => ({
-      cancelOrDismiss: s.dispatch.cancelOrDismissKBFS,
-      currentTLFRevision: s.kbfsJobsFreshness.get(id) || 0,
-      job: s.kbfsJobs.get(id),
-      loadKBFSJobFreshness: s.dispatch.loadKBFSJobFreshness,
-    }))
-  )
-  const {cancelOrDismiss, currentTLFRevision} = archiveState
-  const {job, loadKBFSJobFreshness} = archiveState
+  const job = useArchiveState(s => s.kbfsJobs.get(id))
+  const [currentTLFRevision, setCurrentTLFRevision] = React.useState(0)
+  const cancelOrDismissKBFS = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise)
+  const loadKBFSJobFreshness = C.useRPC(T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise)
   C.useOnMountOnce(() => {
-    loadKBFSJobFreshness(id)
+    loadKBFSJobFreshness(
+      [{jobID: id}],
+      resp => {
+        setCurrentTLFRevision(resp.currentTLFRevision)
+      },
+      () => {}
+    )
   })
 
   const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
@@ -171,7 +183,7 @@ function KBFSJob(p: {index: number; id: string}) {
   }
 
   const onCancelOrDismiss = () => {
-    C.ignorePromise(cancelOrDismiss(id))
+    cancelOrDismissKBFS([{jobID: id}], () => {}, () => {})
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -326,19 +338,44 @@ const Archive = () => {
       }
       return {
         chatJobMap: s.chatJobs,
-        clearCompleted: s.dispatch.clearCompleted,
         kbfsJobMap: s.kbfsJobs,
         load: s.dispatch.load,
         showClear,
       }
     })
   )
-  const {chatJobMap, clearCompleted, kbfsJobMap, load, showClear} = archiveState
+  const {chatJobMap, kbfsJobMap, load, showClear} = archiveState
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   C.Router2.useSafeFocusEffect(() => {
     load()
   })
+
+  const clearCompleted = () => {
+    C.ignorePromise(
+      (async () => {
+        await Promise.allSettled([
+          ...[...chatJobMap.values()].flatMap(job =>
+            job.status === T.RPCChat.ArchiveChatJobStatus.complete
+              ? [
+                  T.RPCChat.localArchiveChatDeleteRpcPromise({
+                    deleteOutputPath: C.isMobile,
+                    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+                    jobID: job.id,
+                  }),
+                ]
+              : []
+          ),
+          ...[...kbfsJobMap.values()].flatMap(job =>
+            job.phase === 'Done'
+              ? [T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID: job.id})]
+              : []
+          ),
+        ])
+        load()
+      })()
+    )
+  }
 
   const archiveChat = () => {
     navigateAppend({name: 'archiveModal', params: {type: 'chatAll'}})

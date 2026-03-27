@@ -4,7 +4,7 @@ import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {usePhoneNumberList} from '../common'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 const waitingKey = 'phoneLookup'
 
@@ -15,14 +15,7 @@ const AddPhone = () => {
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
-
-  React.useEffect(() => {
-    if (!defaultCountry) {
-      loadDefaultPhoneCountry()
-    }
-  }, [defaultCountry, loadDefaultPhoneCountry])
+  const defaultCountry = useDefaultPhoneCountry()
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)

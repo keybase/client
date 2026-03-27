@@ -8,6 +8,7 @@ import type {ButtonType} from '@/common-adapters/button'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
 export type Props = {
+  recoverUsername?: string
   resetPassword?: boolean
 }
 
@@ -16,11 +17,10 @@ const PromptReset = (props: Props) => {
   const skipPassword = AutoReset.useAutoResetState(s => s.skipPassword)
   const error = AutoReset.useAutoResetState(s => s.error)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const {resetPassword} = props
+  const {recoverUsername, resetPassword} = props
 
   const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
-  const username = useRecoverState(s => s.username)
 
   const onContinue = () => {
     // dont do this in preflight
@@ -38,8 +38,8 @@ const PromptReset = (props: Props) => {
     }
   }
   const onBack = () => {
-    if (skipPassword) {
-      startRecoverPassword({replaceRoute: true, username})
+    if (skipPassword && recoverUsername) {
+      startRecoverPassword({replaceRoute: true, username: recoverUsername})
     } else {
       nav.safeNavigateUp()
     }

@@ -3,7 +3,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
 import {useSignupState} from '@/stores/signup'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {usePushState} from '@/stores/push'
 
 const EmailSkipButton = () => {
@@ -26,12 +25,10 @@ const EmailSkipButton = () => {
 
 const PhoneSkipButton = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   return (
     <Kb.Text
       type="BodyBigLink"
       onClick={() => {
-        clearPhoneNumberAdd()
         navigateAppend('signupEnterEmail', true)
       }}
     >

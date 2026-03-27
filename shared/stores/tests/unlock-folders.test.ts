@@ -1,8 +1,8 @@
 /// <reference types="jest" />
-import {resetAllStores} from '@/util/zustand'
-import {useUnlockFoldersState} from '../unlock-folders'
+import {onUnlockFoldersEngineIncoming} from '../unlock-folders'
 
 const mockOpenUnlockFolders = jest.fn()
+const mockCreateSession = jest.fn()
 
 jest.mock('@/stores/config', () => ({
   useConfigState: {
@@ -14,32 +14,20 @@ jest.mock('@/stores/config', () => ({
   },
 }))
 
+jest.mock('@/engine/require', () => ({
+  getEngine: () => ({
+    createSession: mockCreateSession,
+  }),
+}))
+
 afterEach(() => {
   jest.restoreAllMocks()
+  mockCreateSession.mockReset()
   mockOpenUnlockFolders.mockReset()
-  resetAllStores()
-})
-
-test('local dispatches move between unlock-folder phases', () => {
-  const store = useUnlockFoldersState
-
-  store.getState().dispatch.toPaperKeyInput()
-  expect(store.getState().phase).toBe('paperKeyInput')
-
-  store.getState().dispatch.onBackFromPaperKey()
-  expect(store.getState().phase).toBe('promptOtherDevice')
-})
-
-test('replace stores the provided devices', () => {
-  const devices = [{deviceID: 'device-1', name: 'device-1', type: 'desktop'}] as any
-
-  useUnlockFoldersState.getState().dispatch.replace(devices)
-
-  expect(useUnlockFoldersState.getState().devices).toEqual(devices)
 })
 
 test('rekey refresh actions forward the device list to config', () => {
-  useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl({
+  onUnlockFoldersEngineIncoming({
     payload: {
       params: {
         problemSetDevices: {
@@ -51,4 +39,25 @@ test('rekey refresh actions forward the device list to config', () => {
   } as any)
 
   expect(mockOpenUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
+})
+
+test('delegateRekeyUI creates a dangling session and returns its id', () => {
+  const response = {result: jest.fn()}
+  mockCreateSession.mockReturnValue({id: 42})
+
+  onUnlockFoldersEngineIncoming({
+    payload: {response},
+    type: 'keybase.1.rekeyUI.delegateRekeyUI',
+  } as any)
+
+  expect(mockCreateSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      dangling: true,
+      incomingCallMap: expect.objectContaining({
+        'keybase.1.rekeyUI.refresh': expect.any(Function),
+        'keybase.1.rekeyUI.rekeySendEvent': expect.any(Function),
+      }),
+    })
+  )
+  expect(response.result).toHaveBeenCalledWith(42)
 })

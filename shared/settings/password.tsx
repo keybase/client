@@ -1,32 +1,24 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
+import * as T from '@/constants/types'
+import {useRequestLogout} from './use-request-logout'
 import {usePWState} from '@/stores/settings-password'
 
 type Props = {
   error: string
   hasPGPKeyOnServer?: boolean
-  hasRandomPW: boolean
-  newPasswordError?: string
-  newPasswordConfirmError?: string
-  onCancel?: () => void
   onSave: (password: string) => void // will only be called if password.length > 8 & passwords match
   saveLabel?: string
   showTyping?: boolean
   waitingForResponse?: boolean
-  onUpdatePGPSettings?: () => void
 }
 
 export const UpdatePassword = (props: Props) => {
-  const {onUpdatePGPSettings} = props
   const [password, setPassword] = React.useState('')
   const [passwordConfirm, setPasswordConfirm] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(!!props.showTyping)
   const [errorSaving, setErrorSaving] = React.useState('')
-
-  React.useEffect(() => {
-    onUpdatePGPSettings?.()
-  }, [onUpdatePGPSettings])
 
   const handlePasswordChange = (password: string) => {
     setPassword(password)
@@ -75,24 +67,6 @@ export const UpdatePassword = (props: Props) => {
       {notification ? (
         <Kb.Banner color="yellow">
           <Kb.BannerParagraph bannerColor="yellow" content={notification} />
-        </Kb.Banner>
-      ) : null}
-      {props.newPasswordError ? (
-        <Kb.Banner color="red">
-          <Kb.BannerParagraph bannerColor="red" content={props.newPasswordError} />
-        </Kb.Banner>
-      ) : null}
-      {props.hasPGPKeyOnServer === undefined ? (
-        <Kb.Banner color="red">
-          <Kb.BannerParagraph
-            bannerColor="red"
-            content="There was a problem downloading your PGP key status."
-          />
-        </Kb.Banner>
-      ) : null}
-      {props.newPasswordConfirmError ? (
-        <Kb.Banner color="red">
-          <Kb.BannerParagraph bannerColor="red" content={props.newPasswordConfirmError} />
         </Kb.Banner>
       ) : null}
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
@@ -201,40 +175,60 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const Container = () => {
-  const error = usePWState(s => s.error)
-  const hasPGPKeyOnServer = usePWState(s => !!s.hasPGPKeyOnServer)
-  const hasRandomPW = usePWState(s => !!s.randomPW)
-  const newPasswordConfirmError = usePWState(s => s.newPasswordConfirmError)
-  const newPasswordError = usePWState(s => s.newPasswordError)
-  const saveLabel = usePWState(s => (s.randomPW ? 'Create password' : 'Save'))
+export const useSubmitNewPassword = (thenLogout: boolean) => {
+  const [error, setError] = React.useState('')
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
-
-  const setPassword = usePWState(s => s.dispatch.setPassword)
-  const setPasswordConfirm = usePWState(s => s.dispatch.setPasswordConfirm)
-  const submitNewPassword = usePWState(s => s.dispatch.submitNewPassword)
+  const requestLogout = useRequestLogout()
+  const submitNewPassword = C.useRPC(T.RPCGen.accountPassphraseChangeRpcPromise)
 
   const onSave = (password: string) => {
-    setPassword(password)
-    setPasswordConfirm(password)
-    submitNewPassword(false)
+    setError('')
+    submitNewPassword(
+      [
+        {
+          force: true,
+          oldPassphrase: '',
+          passphrase: password,
+        },
+        C.waitingKeySettingsGeneric,
+      ],
+      () => {
+        if (thenLogout) {
+          requestLogout()
+        }
+        navigateUp()
+      },
+      err => {
+        setError(err.desc)
+      }
+    )
   }
 
-  const onUpdatePGPSettings = usePWState(s => s.dispatch.loadPgpSettings)
+  return {error, onSave, waitingForResponse}
+}
+
+const Container = () => {
+  const randomPW = usePWState(s => s.randomPW)
+  const saveLabel = randomPW ? 'Create password' : 'Save'
+  const {error, onSave, waitingForResponse} = useSubmitNewPassword(false)
+
+  const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
+  const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
+  React.useEffect(() => {
+    loadPgpSettings(
+      [undefined],
+      ({hasServerKeys}) => {
+        setHasPGPKeyOnServer(hasServerKeys)
+      },
+      () => {}
+    )
+  }, [loadPgpSettings])
+
   const props = {
     error,
     hasPGPKeyOnServer,
-    hasRandomPW,
-    newPasswordConfirmError,
-    newPasswordError,
-    onCancel,
     onSave,
-    onUpdatePGPSettings,
     saveLabel,
     waitingForResponse,
   }

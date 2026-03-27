@@ -4,7 +4,7 @@ import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {useState as useRecoverState} from '@/stores/recover-password'
-import {useSignupState} from '@/stores/signup'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useProvisionState} from '@/stores/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
@@ -22,7 +22,7 @@ const ReloginContainer = () => {
     navigateAppend('signupSendFeedbackLoggedOut')
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''

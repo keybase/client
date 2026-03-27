@@ -182,10 +182,9 @@ const AccountSettings = () => {
       loadSettings: s.dispatch.loadSettings,
     }))
   )
-  const {loadHasRandomPw, loadRememberPassword} = usePWState(
+  const {loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      loadRememberPassword: s.dispatch.loadRememberPassword,
     }))
   )
   const {navigateAppend, switchTab} = C.useRouterState(
@@ -201,7 +200,6 @@ const AccountSettings = () => {
   const onClearAddedPhone = clearAddedPhone
   const onReload = () => {
     loadSettings()
-    loadRememberPassword()
     loadHasRandomPw()
   }
   const onStartPhoneConversation = () => {

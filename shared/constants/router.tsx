@@ -16,6 +16,7 @@ import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
 import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
+import {makeUUID} from '@/util/uuid'
 
 type InferComponentProps<T> =
   T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
@@ -191,7 +192,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
   const n = _getNavigator()
   if (!n) return
-  n.dispatch(StackActions.popTo(name))
+  n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
 export const navigateAppend = (path: PathParam, replace?: boolean) => {
@@ -209,8 +210,9 @@ export const navigateAppend = (path: PathParam, replace?: boolean) => {
   if (typeof path === 'string') {
     routeName = path
   } else {
-    routeName = path.name
-    params = path.params as object
+    const nextPath = path as {name: string | number | symbol; params?: object}
+    routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
+    params = nextPath.params
   }
   if (!routeName) {
     DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
@@ -271,9 +273,10 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // A single reset on the tab navigator atomically switches tabs and sets params.
     const tabNavState = rs.routes?.[0]?.state
     if (!tabNavState?.key) return
-    const chatTabIndex = tabNavState.routes.findIndex(r => r.name === Tabs.chatTab)
+    const tabRoutes = tabNavState.routes as Array<Route>
+    const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
     if (chatTabIndex < 0) return
-    const updatedRoutes = tabNavState.routes.map((route, i) => {
+    const updatedRoutes = tabRoutes.map((route, i) => {
       if (i !== chatTabIndex) return route
       return {...route, state: {...(route.state ?? {}), index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]}}
     })
@@ -335,6 +338,7 @@ export const appendEncryptRecipientsBuilder = () => {
       goButtonLabel: 'Add',
       namespace: 'crypto',
       recommendedHideYourself: true,
+      teamBuilderNonce: makeUUID(),
       title: 'Recipients',
     },
   })

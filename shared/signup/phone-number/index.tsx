@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../common'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useAddPhoneNumber} from './use-verification'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 type BodyProps = {
   autoFocus?: boolean
@@ -71,45 +72,28 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedEnterPhoneNumber = () => {
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  const error = useSettingsPhoneState(s => s.error)
-  const pendingVerification = useSettingsPhoneState(s => s.pendingVerification)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
-  const clearPhoneNumberErrors = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
-  const clearPhoneNumberAdd = useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
-  const onClear = clearPhoneNumberErrors
-  const addPhoneNumber = useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
+  const defaultCountry = useDefaultPhoneCountry()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {clearError, error, submitPhoneNumber, waiting} = useAddPhoneNumber()
   const onSkip = () => {
-    clearPhoneNumberAdd()
     navigateAppend('signupEnterEmail', true)
   }
-
-  React.useEffect(() => {
-    return () => {
-      onClear()
-    }
-  }, [onClear])
-
-  const lastPendingVerificationRef = React.useRef(pendingVerification)
-  React.useEffect(() => {
-    if (!error && pendingVerification && lastPendingVerificationRef.current !== pendingVerification) {
-      navigateAppend('signupVerifyPhoneNumber')
-    }
-    lastPendingVerificationRef.current = pendingVerification
-  }, [pendingVerification, error, navigateAppend])
-
-  // trigger a default phone number country rpc if it's not already loaded
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
-  React.useEffect(() => {
-    !defaultCountry && loadDefaultPhoneCountry()
-  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   const disabled = !valid
-  const onContinue = () => (disabled || waiting ? {} : addPhoneNumber(phoneNumber, true /* searchable */))
+  const onContinue = () => {
+    if (disabled || waiting) {
+      return
+    }
+    submitPhoneNumber(phoneNumber, true, submittedPhoneNumber => {
+      navigateAppend({name: 'signupVerifyPhoneNumber', params: {phoneNumber: submittedPhoneNumber}})
+    })
+  }
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    if (error) {
+      clearError()
+    }
     onChangePhoneNumber(phoneNumber)
     onChangeValidity(validity)
   }

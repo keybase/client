@@ -5,59 +5,40 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
+import {useAddPhoneNumber, usePhoneVerification} from '@/signup/phone-number/use-verification'
+import {useAddEmail} from './use-add-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
-import {useSettingsEmailState} from '@/stores/settings-email'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 export const Email = () => {
   const nav = useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
-  const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
+  const [submittedEmail, setSubmittedEmail] = React.useState('')
   const emailTrimmed = email.trim()
   const disabled = !emailTrimmed
 
-  const {addedEmail, addEmail, emailError, resetAddingEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addEmail: s.dispatch.addEmail,
-      addedEmail: s.addedEmail,
-      emailError: s.error,
-      resetAddingEmail: s.dispatch.resetAddingEmail,
-    }))
-  )
-  const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
-
-  // clean on unmount
-  React.useEffect(
-    () => () => {
-      resetAddingEmail()
-    },
-    [resetAddingEmail]
-  )
+  const {clearError, error: emailError, submitEmail, waiting} = useAddEmail()
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
-  // watch for + nav away on success
-  React.useEffect(() => {
-    if (addedEmail && addedEmail === addEmailInProgress) {
-      // success
-      clearModals()
-    }
-  }, [addEmailInProgress, addedEmail, clearModals])
   // clean on edit
   React.useEffect(() => {
-    if (emailTrimmed !== addEmailInProgress && emailError) {
-      resetAddingEmail()
+    if (emailTrimmed !== submittedEmail && emailError) {
+      clearError()
     }
-  }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
+  }, [clearError, emailError, emailTrimmed, submittedEmail])
 
   const onClose = () => nav.safeNavigateUp()
   const onContinue = () => {
     if (disabled || waiting) {
       return
     }
-    onAddEmailInProgress(emailTrimmed)
-    addEmail(emailTrimmed, searchable)
+    setSubmittedEmail(emailTrimmed)
+    submitEmail(emailTrimmed, searchable, () => {
+      clearModals()
+    })
   }
   return (
     <>
@@ -91,19 +72,24 @@ export const Email = () => {
           }
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
-          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Kb.Styles.isMobile && (
-              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
-            )}
-            <Kb.Button
-              label="Continue"
-              fullWidth={true}
-              onClick={onContinue}
-              disabled={disabled}
-              waiting={waiting}
-            />
-          </Kb.ButtonBar>
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}
+      >
+        <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+          {!Kb.Styles.isMobile && (
+            <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+          )}
+          <Kb.Button
+            label="Continue"
+            fullWidth={true}
+            onClick={onContinue}
+            disabled={disabled}
+            waiting={waiting}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )
@@ -116,49 +102,29 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
-  const phoneState = useSettingsPhoneState(
-    C.useShallow(s => ({
-      addPhoneNumber: s.dispatch.addPhoneNumber,
-      clearPhoneNumberAdd: s.dispatch.clearPhoneNumberAdd,
-      clearPhoneNumberErrors: s.dispatch.clearPhoneNumberErrors,
-      defaultCountry: s.defaultCountry,
-      error: s.error,
-      loadDefaultPhoneCountry: s.dispatch.loadDefaultPhoneCountry,
-      pendingVerification: s.pendingVerification,
-    }))
-  )
-  const {addPhoneNumber, clearPhoneNumberAdd, clearPhoneNumberErrors, defaultCountry} = phoneState
-  const {error, loadDefaultPhoneCountry, pendingVerification} = phoneState
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
-
-  // clean only errors on unmount so verify screen still has info
-  React.useEffect(
-    () => () => {
-      clearPhoneNumberErrors()
-    },
-    [clearPhoneNumberErrors]
-  )
-  // watch for go to verify
-  React.useEffect(() => {
-    if (!error && !!pendingVerification) {
-      nav.safeNavigateAppend('settingsVerifyPhone')
-    }
-  }, [error, nav, pendingVerification])
-  // trigger a default phone number country rpc if it's not already loaded
-  React.useEffect(() => {
-    !defaultCountry && loadDefaultPhoneCountry()
-  }, [defaultCountry, loadDefaultPhoneCountry])
+  const defaultCountry = useDefaultPhoneCountry()
+  const {clearError, error, submitPhoneNumber, waiting} = useAddPhoneNumber()
 
   const onClose = () => {
-    clearPhoneNumberAdd()
     nav.safeNavigateUp()
   }
 
   const onContinue = () => {
-    disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
+    if (disabled || waiting) {
+      return
+    }
+    submitPhoneNumber(phoneNumber, searchable, submittedPhoneNumber => {
+      nav.safeNavigateAppend({
+        name: 'settingsVerifyPhone',
+        params: {initialResend: false, phoneNumber: submittedPhoneNumber},
+      })
+    })
   }
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    if (error) {
+      clearError()
+    }
     onChangeNumber(phoneNumber)
     onChangeValidity(validity)
   }
@@ -211,46 +177,31 @@ export const Phone = () => {
     </>
   )
 }
-export const VerifyPhone = () => {
+type VerifyPhoneProps = {
+  initialResend?: boolean
+  phoneNumber: string
+}
+
+export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
   const [code, onChangeCode] = React.useState('')
 
-  const phoneState = useSettingsPhoneState(
-    C.useShallow(s => ({
-      clearPhoneNumberAdd: s.dispatch.clearPhoneNumberAdd,
-      error: s.error,
-      pendingVerification: s.pendingVerification,
-      resendVerificationForPhone: s.dispatch.resendVerificationForPhone,
-      verificationState: s.verificationState,
-      verifyPhoneNumber: s.dispatch.verifyPhoneNumber,
-    }))
-  )
-  const {clearPhoneNumberAdd, error, pendingVerification} = phoneState
-  const {resendVerificationForPhone, verificationState, verifyPhoneNumber} = phoneState
+  const setAddedPhone = useSettingsPhoneState(s => s.dispatch.setAddedPhone)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const resendWaiting = C.Waiting.useAnyWaiting([
-    C.waitingKeySettingsPhoneAddPhoneNumber,
-    C.waitingKeySettingsPhoneResendVerification,
-  ])
+  const {error, resendVerificationForPhone, verifyPhoneNumber} = usePhoneVerification({
+    initialResend,
+    onSuccess: () => {
+      setAddedPhone(true)
+      clearModals()
+    },
+    phoneNumber,
+  })
+  const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
 
-  // clean everything on unmount
-  React.useEffect(
-    () => () => {
-      clearPhoneNumberAdd()
-    },
-    [clearPhoneNumberAdd]
-  )
-  // Clear on success
-  React.useEffect(() => {
-    if (verificationState === 'success' && !error) {
-      clearModals()
-    }
-  }, [verificationState, error, clearModals])
-
   const onResend = () => {
-    resendVerificationForPhone(pendingVerification)
+    resendVerificationForPhone(phoneNumber)
   }
-  const onContinue = () => verifyPhoneNumber(pendingVerification, code)
+  const onContinue = () => verifyPhoneNumber(phoneNumber, code)
   const disabled = !code
 
   return (

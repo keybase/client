@@ -1,54 +1,56 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import * as Crypto from '@/stores/crypto'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
-import capitalize from 'lodash/capitalize'
-import type * as T from '@/constants/types'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+import type {CommonState} from './helpers'
 import {pickFiles} from '@/util/misc'
-import type HiddenString from '@/util/hidden-string'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 
-type OutputProps = {operation: T.Crypto.Operations}
-type OutputActionsBarProps = {operation: T.Crypto.Operations}
-type SignedSenderProps = {operation: T.Crypto.Operations}
-type OutputProgressProps = {operation: T.Crypto.Operations}
+type CryptoOutputProps = {
+  actionLabel: string
+  onChooseOutputFolder: (destinationDir: string) => void
+  outputFileIcon?: IconType
+  outputTextType: 'cipher' | 'plain'
+  state: CommonState
+}
+
+type OutputActionsBarProps = {
+  canReplyInChat: boolean
+  canSaveAsText: boolean
+  onSaveAsText?: () => void
+  state: CommonState
+}
+
+type SignedSenderProps = {
+  isSelfSigned: boolean
+  state: CommonState
+}
+
 type OutputInfoProps = {
-  operation: T.Crypto.Operations
   children:
     | string
     | React.ReactElement<typeof Kb.BannerParagraph>
     | Array<React.ReactElement<typeof Kb.BannerParagraph>>
+  outputStatus?: CommonState['outputStatus']
 }
 
-export const SignedSender = (props: SignedSenderProps) => {
-  const {operation} = props
+export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
+  const signed = state.outputSigned
+  const signedByUsername = state.outputSenderUsername
+  const signedByFullname = state.outputSenderFullname
 
-  const {
-    outputSigned: signed,
-    outputSenderUsername: signedByUsername,
-    outputSenderFullname: signedByFullname,
-    outputStatus,
-  } = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const o = s[operation]
-      const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
-      return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
-    })
-  )
-
-  const isSelfSigned = operation === Crypto.Operations.Encrypt || operation === Crypto.Operations.Sign
   const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
   const space = Kb.Styles.isMobile ? '' : ' '
   const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
 
-  if (!outputStatus || outputStatus === 'error') {
+  if (!state.outputStatus) {
     return null
   }
 
@@ -71,8 +73,7 @@ export const SignedSender = (props: SignedSenderProps) => {
             alignItems="center"
             style={styles.signedSender}
           >
-            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
-
+            <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername} />
             {isSelfSigned ? (
               <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>
                 <Kb.Text key="signedByUsername" type="BodySmall">
@@ -81,7 +82,7 @@ export const SignedSender = (props: SignedSenderProps) => {
                 <Kb.ConnectedUsernames
                   key="username"
                   type={usernameType}
-                  usernames={[signedByUsername.stringValue()]}
+                  usernames={[signedByUsername]}
                   colorFollowing={true}
                   colorYou={true}
                 />
@@ -90,13 +91,11 @@ export const SignedSender = (props: SignedSenderProps) => {
               <Kb.Box2 key="signedByUsername" direction="vertical">
                 <Kb.ConnectedUsernames
                   type={usernameType}
-                  usernames={[signedByUsername.stringValue()]}
+                  usernames={[signedByUsername]}
                   colorFollowing={true}
                   colorYou={true}
                 />
-                {signedByFullname?.stringValue() ? (
-                  <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>
-                ) : null}
+                {signedByFullname ? <Kb.Text type="BodySmall">{signedByFullname}</Kb.Text> : null}
               </Kb.Box2>
             )}
           </Kb.Box2>
@@ -109,7 +108,7 @@ export const SignedSender = (props: SignedSenderProps) => {
               </Kb.Text>
             )}
             <Kb.Text key="signedByUsername" type="BodySmall">
-              {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
+              {isSelfSigned ? 'Not signed (Sending anonymously)' : '(Not signed)'}
             </Kb.Text>
           </Kb.Box2>
         )}
@@ -119,115 +118,66 @@ export const SignedSender = (props: SignedSenderProps) => {
   )
 }
 
-const OutputProgress = (props: OutputProgressProps) => {
-  const {operation} = props
+const OutputProgress = ({state}: {state: CommonState}) => {
+  if (!state.inProgress) {
+    return null
+  }
+  if (!state.bytesTotal) {
+    return <Kb.ProgressIndicator type="Large" white={false} />
+  }
 
-  const {bytesComplete, bytesTotal, inProgress} = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const o = s[operation]
-      const {bytesComplete, bytesTotal, inProgress} = o
-      return {bytesComplete, bytesTotal, inProgress}
-    })
-  )
-
-  const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
-
-  return inProgress ? (
+  const ratio = state.bytesComplete === 0 ? 0 : state.bytesComplete / state.bytesTotal
+  return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.ProgressBar ratio={ratio} style={styles.progressBar} />
-      <Kb.Text type="Body">{`${FS.humanizeBytes(bytesComplete, 1)} / ${FS.humanizeBytes(bytesTotal, 1)}`}</Kb.Text>
+      <Kb.Text type="Body">{`${FS.humanizeBytes(state.bytesComplete, 1)} / ${FS.humanizeBytes(
+        state.bytesTotal,
+        1
+      )}`}</Kb.Text>
     </Kb.Box2>
-  ) : null
+  )
 }
 
-export const OutputInfoBanner = (props: OutputInfoProps) => {
-  const {operation} = props
-
-  const outputStatus = Crypto.useCryptoState(s => s[operation].outputStatus)
-  return outputStatus === 'success' ? (
+export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
+  outputStatus === 'success' ? (
     <Kb.Banner
       color="grey"
       style={styles.banner}
       textContainerStyle={styles.bannerContainer}
       narrow={Kb.Styles.isMobile}
     >
-      {props.children}
+      {children}
     </Kb.Banner>
   ) : null
-}
 
-export const OutputActionsBar = (props: OutputActionsBarProps) => {
-  const {operation} = props
-  const canSaveAsText = operation === Crypto.Operations.Encrypt || operation === Crypto.Operations.Sign
-  const canReplyInChat = operation === Crypto.Operations.Decrypt || operation === Crypto.Operations.Verify
-
+export const CryptoOutputActionsBar = ({
+  canReplyInChat,
+  canSaveAsText,
+  onSaveAsText,
+  state,
+}: OutputActionsBarProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
-
-  const {
-    output,
-    outputValid,
-    outputStatus,
-    outputType,
-    outputSigned: signed,
-    outputSenderUsername: signedByUsername,
-  } = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const o = s[operation]
-      const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
-      return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
-    })
-  )
-
-  const actionsDisabled = waiting || !outputValid
+  const actionsDisabled = waiting || !state.outputValid
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
-    openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
+    openLocalPathInSystemFileManagerDesktop?.(state.output)
   }
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const onReplyInChat = (username: HiddenString) => {
+  const onReplyInChat = (username: string) => {
     navigateUp()
-    previewConversation({participants: [username.stringValue()], reason: 'search'})
+    previewConversation({participants: [username], reason: 'search'})
   }
 
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
-  const onCopyOutput = () => {
-    copyToClipboard(output.stringValue())
-  }
-
-  const downloadSignedText = Crypto.useCryptoState(s => s.dispatch.downloadSignedText)
-  const downloadEncryptedText = Crypto.useCryptoState(s => s.dispatch.downloadEncryptedText)
-
-  const onSaveAsText = () => {
-    if (operation === Crypto.Operations.Sign) {
-      downloadSignedText()
-      return
-    }
-
-    if (operation === Crypto.Operations.Encrypt) {
-      downloadEncryptedText()
-      return
-    }
-  }
-
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingToast, setShowingToast] = React.useState(false)
-
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
-
-  const copy = () => {
-    if (!output.stringValue()) return
-    setShowingToast(true)
-    onCopyOutput()
-  }
-
   const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
-
-  // Start timeout to clear toast if currently displayed
   if (lastShowingToast !== showingToast) {
     setLastShowingToast(showingToast)
     if (showingToast) {
@@ -235,14 +185,20 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     }
   }
 
-  return outputStatus && outputStatus === 'success' ? (
+  const copy = () => {
+    if (!state.output) return
+    setShowingToast(true)
+    copyToClipboard(state.output)
+  }
+
+  return state.outputStatus === 'success' ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
-      {outputType === 'file' && !Kb.Styles.isMobile ? (
+      {state.outputType === 'file' && !Kb.Styles.isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
           <Kb.Button
             mode="Secondary"
             label={`Open in ${Kb.Styles.fileUIName}`}
-            onClick={() => onShowInFinder()}
+            onClick={onShowInFinder}
           />
         </Kb.ButtonBar>
       ) : (
@@ -251,15 +207,15 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
           align={Kb.Styles.isTablet ? 'center' : 'flex-start'}
           style={styles.buttonBar}
         >
-          {canReplyInChat && signed && signedByUsername && (
+          {canReplyInChat && state.outputSigned && state.outputSenderUsername ? (
             <Kb.Button
               mode="Primary"
               label="Reply in chat"
               disabled={actionsDisabled}
               fullWidth={Kb.Styles.isMobile}
-              onClick={() => onReplyInChat(signedByUsername)}
+              onClick={() => onReplyInChat(state.outputSenderUsername ?? '')}
             />
-          )}
+          ) : null}
           <Kb.Box2 direction="horizontal" ref={popupAnchor}>
             <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
@@ -272,18 +228,18 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
                 label="Copy to clipboard"
                 disabled={actionsDisabled}
                 fullWidth={Kb.Styles.isMobile}
-                onClick={() => copy()}
+                onClick={copy}
               />
             )}
           </Kb.Box2>
-          {canSaveAsText && !Kb.Styles.isMobile && (
+          {canSaveAsText && !Kb.Styles.isMobile && onSaveAsText ? (
             <Kb.Button
               mode="Secondary"
               label="Save as TXT"
               onClick={onSaveAsText}
               disabled={actionsDisabled}
             />
-          )}
+          ) : null}
         </Kb.ButtonBar>
       )}
     </Kb.Box2>
@@ -300,13 +256,15 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   )
 }
 
-const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
-  const {operation} = props
-  const operationTitle = capitalize(operation)
-
-  const input = Crypto.useCryptoState(s => s[operation].input.stringValue())
-  const runFileOperation = Crypto.useCryptoState(s => s.dispatch.runFileOperation)
-
+const OutputFileDestination = ({
+  actionLabel,
+  input,
+  onChooseOutputFolder,
+}: {
+  actionLabel: string
+  input: string
+  onChooseOutputFolder: (destinationDir: string) => void
+}) => {
   const onOpenFile = () => {
     const f = async () => {
       const defaultPath = Path.dirname(input)
@@ -317,8 +275,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
         ...(C.isDarwin ? {defaultPath} : {}),
       })
       if (!filePaths.length) return
-      const path = filePaths[0]!
-      runFileOperation(operation, path)
+      onChooseOutputFolder(filePaths[0] ?? '')
     }
     C.ignorePromise(f())
   }
@@ -326,7 +283,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle} to ...`} onClick={onOpenFile} />
+        <Kb.Button mode="Primary" label={`${actionLabel} to ...`} onClick={onOpenFile} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
@@ -334,57 +291,23 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
 
 const MobileScroll = Kb.Styles.isMobile ? Kb.ScrollView : React.Fragment
 
-const outputTextType = new Map([
-  ['decrypt', 'plain'],
-  ['encrypt', 'cipher'],
-  ['sign', 'cipher'],
-  ['verify', 'plain'],
-] as const)
-
-const outputFileIcon = new Map([
-  ['decrypt', 'icon-file-64'],
-  ['encrypt', 'icon-file-saltpack-64'],
-  ['sign', 'icon-file-saltpack-64'],
-  ['verify', 'icon-file-64'],
-] as const)
-
-export const OperationOutput = (props: OutputProps) => {
-  const {operation} = props
-  const textType = outputTextType.get(operation)
-
-  const {
-    inputType,
-    inProgress,
-    output: _output,
-    outputValid,
-    outputStatus,
-    outputType,
-  } = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const o = s[operation]
-      const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
-      return {inProgress, inputType, output, outputStatus, outputType, outputValid}
-    })
-  )
-  const output = _output.stringValue()
-
+export const CryptoOutput = ({
+  actionLabel,
+  onChooseOutputFolder,
+  outputFileIcon,
+  outputTextType,
+  state,
+}: CryptoOutputProps) => {
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const onShowInFinder = () => {
-    if (!output) return
-    openLocalPathInSystemFileManagerDesktop?.(output)
-  }
-
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
+  const actionsDisabled = waiting || !state.outputValid
 
   const fileOutputTextColor =
-    textType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
-  const fileIcon = outputFileIcon.get(operation)
-  const actionsDisabled = waiting || !outputValid
+    outputTextType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
 
-  // Placeholder, progress, or encrypt file button
-  if (!outputStatus || outputStatus !== 'success') {
+  if (state.outputStatus !== 'success') {
     return (
       <Kb.Box2
         direction="vertical"
@@ -392,18 +315,23 @@ export const OperationOutput = (props: OutputProps) => {
         fullWidth={true}
         style={Kb.Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
       >
-        {inProgress ? (
-          <OutputProgress operation={operation} />
+        {state.inProgress ? (
+          <OutputProgress state={state} />
         ) : (
-          inputType === 'file' &&
-          outputStatus !== 'pending' && <OutputFileDestination operation={operation} />
+          state.inputType === 'file' &&
+          state.outputStatus !== 'pending' && (
+            <OutputFileDestination
+              actionLabel={actionLabel}
+              input={state.input}
+              onChooseOutputFolder={onChooseOutputFolder}
+            />
+          )
         )}
       </Kb.Box2>
     )
   }
 
-  // File output
-  if (outputType === 'file') {
+  if (state.outputType === 'file') {
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kb.Box2
@@ -412,30 +340,28 @@ export const OperationOutput = (props: OutputProps) => {
           alignItems="center"
           style={styles.fileOutputContainer}
         >
-          {fileIcon ? <Kb.ImageIcon type={fileIcon} /> : null}
+          {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
           <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => onShowInFinder()}
+            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop?.(state.output)}
           >
-            {output}
+            {state.output}
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     )
   }
 
-  // Text output
-
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <MobileScroll>
         <Kb.Text
-          type={textType === 'cipher' ? 'Terminal' : 'Body'}
+          type={outputTextType === 'cipher' ? 'Terminal' : 'Body'}
           selectable={!actionsDisabled}
           style={styles.output}
         >
-          {output}
+          {state.output}
         </Kb.Text>
       </MobileScroll>
     </Kb.Box2>
@@ -518,25 +444,19 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       signedContainerSelf: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
         },
         isMobile: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      signedSender: {
-        ...Kb.Styles.globalStyles.flexGrow,
-      },
-      toastText: {
-        color: Kb.Styles.globalColors.white,
-        textAlign: 'center',
-      },
+      signedSender: {alignItems: 'center'},
+      toastText: {color: Kb.Styles.globalColors.white},
     }) as const
 )

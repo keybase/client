@@ -4,19 +4,99 @@ import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 import * as Provision from '@/stores/provision'
 import {useSignupState} from '@/stores/signup'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {ignorePromise} from '@/constants/utils'
+import * as Platforms from '@/constants/platform'
+import logger from '@/logger'
+import type {StaticScreenProps} from '@react-navigation/core'
 
-const ConnectedEnterDevicename = () => {
-  const error = useSignupState(s => s.devicenameError)
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterDevicename = (p: Props) => {
   const initialDevicename = useSignupState(s => s.devicename)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const goBackAndClearErrors = useSignupState(s => s.dispatch.goBackAndClearErrors)
-  const checkDeviceName = useSignupState(s => s.dispatch.checkDeviceName)
-  const onBack = goBackAndClearErrors
-  const onContinue = checkDeviceName
+  const inviteCode = p.route.params.inviteCode ?? ''
+  const username = p.route.params.username ?? ''
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
+  const {resetState, setDevicename, showPermissionsPrompt} = useSignupState(
+    C.useShallow(s => ({
+      resetState: s.dispatch.resetState,
+      setDevicename: s.dispatch.setDevicename,
+      showPermissionsPrompt: s.dispatch.defer.onShowPermissionsPrompt,
+    }))
+  )
+  const {navigateAppend, navigateUp} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      navigateUp: s.dispatch.navigateUp,
+    }))
+  )
+  const [error, setError] = React.useState('')
+  const onContinue = (devicename: string) => {
+    setError('')
+    setDevicename(devicename)
+    const f = async () => {
+      try {
+        await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          setError(error_.desc)
+        }
+        return
+      }
+
+      if (!username || !devicename) {
+        logger.warn('Missing data during signup phase', username, devicename)
+        return
+      }
+
+      try {
+        showPermissionsPrompt?.({justSignedUp: true})
+        await T.RPCGen.signupSignupRpcListener({
+          customResponseIncomingCallMap: {
+            'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+              response.result(false)
+            },
+          },
+          incomingCallMap: {
+            'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+          },
+          params: {
+            botToken: '',
+            deviceName: devicename,
+            deviceType: Platforms.isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+            email: '',
+            genPGPBatch: false,
+            genPaper: false,
+            inviteCode,
+            passphrase: '',
+            randomPw: true,
+            skipGPG: true,
+            skipMail: true,
+            storeSecret: true,
+            username,
+            verifyEmail: true,
+          },
+          waitingKey: C.waitingKeySignup,
+        })
+        resetState()
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          showPermissionsPrompt?.({justSignedUp: false})
+          navigateAppend({
+            name: 'signupError',
+            params: {errorCode: error_.code, errorMessage: error_.desc},
+          })
+        }
+      }
+    }
+    ignorePromise(f())
+  }
+
   const props = {
     error,
     initialDevicename,
-    onBack,
+    onBack: navigateUp,
     onContinue,
     waiting,
   }
@@ -25,7 +105,7 @@ const ConnectedEnterDevicename = () => {
 
 export default ConnectedEnterDevicename
 
-type Props = {
+type EnterDevicenameProps = {
   error: string
   initialDevicename?: string
   onBack: () => void
@@ -39,7 +119,7 @@ const makeCleanDeviceName = (d: string) => {
   return good
 }
 
-const EnterDevicename = (props: Props) => {
+const EnterDevicename = (props: EnterDevicenameProps) => {
   const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
@@ -58,7 +138,7 @@ const EnterDevicename = (props: Props) => {
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
-  const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(cleanDeviceName))
 
   React.useEffect(() => {
     if (cleanDeviceName !== deviceName) {

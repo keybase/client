@@ -3,7 +3,7 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useSignupState} from '@/stores/signup'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useProvisionState} from '@/stores/provision'
 
 const Intro = () => {
@@ -24,7 +24,7 @@ const Intro = () => {
   const onLogin = () => {
     startProvision()
   }
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => {
     requestAutoInvite()
   }

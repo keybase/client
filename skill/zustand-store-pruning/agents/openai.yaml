@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zustand Store Pruning"
+  short_description: "Prune Keybase Zustand stores safely"
+  default_prompt: "Use $zustand-store-pruning to refactor one `shared/stores` store by moving local state and screen-owned RPCs out of it."

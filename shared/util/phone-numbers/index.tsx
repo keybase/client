@@ -1,4 +1,6 @@
 import * as C from '@/constants'
+import * as React from 'react'
+import * as T from '@/constants/types'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat
@@ -7,6 +9,8 @@ const PhoneNumberFormat = PNF
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
 const supported = phoneUtil.getSupportedRegions()
+let _defaultPhoneCountry: string | undefined
+let _defaultPhoneCountryPromise: Promise<string | undefined> | undefined
 
 export type CountryData = {
   alpha2: string
@@ -201,4 +205,46 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
   } catch {
     return null
   }
+}
+
+const loadDefaultPhoneCountry = async () => {
+  if (_defaultPhoneCountry) {
+    return _defaultPhoneCountry
+  }
+  if (!_defaultPhoneCountryPromise) {
+    _defaultPhoneCountryPromise = T.RPCGen.accountGuessCurrentLocationRpcPromise({
+      defaultCountry: 'US',
+    })
+      .then(country => {
+        _defaultPhoneCountry = country
+        return country
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        _defaultPhoneCountryPromise = undefined
+      })
+  }
+  return _defaultPhoneCountryPromise
+}
+
+export const useDefaultPhoneCountry = () => {
+  const [defaultCountry, setDefaultCountry] = React.useState(_defaultPhoneCountry)
+
+  React.useEffect(() => {
+    let canceled = false
+    if (_defaultPhoneCountry) {
+      setDefaultCountry(_defaultPhoneCountry)
+      return
+    }
+    void loadDefaultPhoneCountry().then(country => {
+      if (!canceled) {
+        setDefaultCountry(country)
+      }
+    })
+    return () => {
+      canceled = true
+    }
+  }, [])
+
+  return defaultCountry
 }

@@ -1,86 +1,69 @@
 import * as C from '@/constants'
-import * as Crypto from '@/stores/crypto'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import type {CommonState} from './helpers'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import capitalize from 'lodash/capitalize'
 import {pickFiles} from '@/util/misc'
 
 type CommonProps = {
-  operation: T.Crypto.Operations
+  state: CommonState
 }
 
 type TextProps = CommonProps & {
+  allowDirectories: boolean
+  emptyInputWidth: number
+  inputPlaceholder: string
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
-  value: string
   setBlurCB?: (cb: () => void) => void
+  textInputType: 'cipher' | 'plain'
 }
 
 type FileProps = CommonProps & {
-  path: string
-  size?: number
+  fileIcon: IconType
   onClearFiles: () => void
 }
 
-type DragAndDropProps = CommonProps & {
-  prompt: string
+type DragAndDropProps = {
+  allowFolders: boolean
   children: React.ReactNode
+  inProgress: boolean
+  onAttach: (path: string) => void
+  prompt: string
 }
 
-type RunOperationProps = CommonProps & {
-  children?: React.ReactNode
+type RunActionBarProps = {
   blurCBRef?: React.RefObject<() => void>
+  children?: React.ReactNode
+  onRun: () => void
+  runLabel: string
 }
 
-// Tese magic numbers set the width of the single line `textarea` such that the
-// placeholder text is visible and pushes the "browse" button far enough to the
-// right to be exactly one empty character with from the end of the placeholder text
-const operationToEmptyInputWidth = {
-  [Crypto.Operations.Encrypt]: 207,
-  [Crypto.Operations.Decrypt]: 320,
-  [Crypto.Operations.Sign]: 207,
-  [Crypto.Operations.Verify]: 342,
+type InputProps = CommonProps & {
+  allowDirectories: boolean
+  emptyInputWidth: number
+  fileIcon: IconType
+  inputPlaceholder: string
+  onClearInput: () => void
+  onSetInput: (type: T.Crypto.InputTypes, value: string) => void
+  setBlurCB?: (cb: () => void) => void
+  textInputType: 'cipher' | 'plain'
 }
 
-const inputTextType = new Map([
-  ['decrypt', 'cipher'],
-  ['encrypt', 'plain'],
-  ['sign', 'plain'],
-  ['verify', 'cipher'],
-] as const)
-const inputPlaceholder = new Map([
-  [
-    'decrypt',
-    C.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
-  ],
-  ['encrypt', C.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
-  ['sign', C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
-  [
-    'verify',
-    C.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
-  ],
-] as const)
+type BannerContent = React.ComponentProps<typeof Kb.BannerParagraph>['content']
 
-/*
- * Before user enters text:
- *  - Single line input
- *  - Browse file button
- *
- * Afte user enters text:
- *  - Multiline input
- *  - Clear button
- */
+export type CryptoBannerProps = {
+  infoMessage: BannerContent
+  state: CommonState
+}
+
 const TextInput = (props: TextProps) => {
-  const {value, operation, onChangeText, onSetFile, setBlurCB} = props
-  const textType = inputTextType.get(operation)
-  const placeholder = inputPlaceholder.get(operation)
-  const emptyWidth = operationToEmptyInputWidth[operation]
+  const {allowDirectories, emptyInputWidth, inputPlaceholder, state, onChangeText, onSetFile, setBlurCB, textInputType} =
+    props
+  const value = state.inputType === 'text' ? state.input : ''
 
-  // When 'browse file' is show, focus input by clicking anywhere in the input box
-  // (despite the input being one line tall)
   const inputRef = React.useRef<Kb.Input3Ref>(null)
   const onFocusInput = () => {
     inputRef.current?.focus()
@@ -97,26 +80,22 @@ const TextInput = (props: TextProps) => {
 
   const onOpenFile = () => {
     const f = async () => {
-      // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
-      // To set a directory as input, a user will need to drag the directory into Keybase.
       const filePaths = await pickFiles({
-        allowDirectories: C.isDarwin,
+        allowDirectories: allowDirectories && C.isDarwin,
         buttonLabel: 'Select',
       })
       if (!filePaths.length) return
-      const path = filePaths[0]!
-      onSetFile(path)
+      onSetFile(filePaths[0] ?? '')
     }
     C.ignorePromise(f())
   }
 
-  // Styling
   const rowsMax = Kb.Styles.isMobile ? undefined : value ? undefined : 1
   const growAndScroll = !Kb.Styles.isMobile && !!value
   const inputStyle = Kb.Styles.collapseStyles([
     styles.input,
     value ? styles.inputFull : styles.inputEmpty,
-    !value && !Kb.Styles.isMobile && {width: emptyWidth},
+    !value && !Kb.Styles.isMobile && {width: emptyInputWidth},
   ])
   const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
 
@@ -146,7 +125,7 @@ const TextInput = (props: TextProps) => {
         >
           <Kb.Input3
             value={value}
-            placeholder={placeholder}
+            placeholder={inputPlaceholder}
             multiline={true}
             autoFocus={true}
             hideBorder={true}
@@ -154,10 +133,10 @@ const TextInput = (props: TextProps) => {
             growAndScroll={growAndScroll}
             containerStyle={inputContainerStyle}
             inputStyle={inputStyle}
-            textType={textType === 'cipher' ? 'Terminal' : 'Body'}
-            autoCorrect={textType !== 'cipher'}
-            spellCheck={textType !== 'cipher'}
-            onChangeText={(text: string) => onChangeText(text)}
+            textType={textInputType === 'cipher' ? 'Terminal' : 'Body'}
+            autoCorrect={textInputType !== 'cipher'}
+            spellCheck={textInputType !== 'cipher'}
+            onChangeText={onChangeText}
             ref={inputRef}
           />
           {!Kb.Styles.isMobile && browseButton}
@@ -168,16 +147,7 @@ const TextInput = (props: TextProps) => {
   )
 }
 
-const inputFileIcon = new Map([
-  ['decrypt', 'icon-file-saltpack-64'],
-  ['encrypt', 'icon-file-64'],
-  ['sign', 'icon-file-64'],
-  ['verify', 'icon-file-saltpack-64'],
-] as const)
-
-const FileInput = (props: FileProps) => {
-  const {path, size, operation} = props
-  const fileIcon = inputFileIcon.get(operation) as IconType
+const FileInput = ({fileIcon, onClearFiles, state}: FileProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
 
   return (
@@ -192,17 +162,15 @@ const FileInput = (props: FileProps) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
           <Kb.ImageIcon type={fileIcon} />
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySemibold">{path}</Kb.Text>
-            {size ? <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(size)}</Kb.Text> : null}
+            <Kb.Text type="BodySemibold">{state.input}</Kb.Text>
+            {state.bytesTotal ? (
+              <Kb.Text type="BodySmallSemibold">{FS.humanReadableFileSize(state.bytesTotal)}</Kb.Text>
+            ) : null}
           </Kb.Box2>
         </Kb.Box2>
-        {path && !waiting && (
+        {state.input && !waiting && (
           <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-            <Kb.Text
-              type="BodySmallPrimaryLink"
-              onClick={() => props.onClearFiles()}
-              style={styles.clearButtonInput}
-            >
+            <Kb.Text type="BodySmallPrimaryLink" onClick={onClearFiles} style={styles.clearButtonInput}>
               Clear
             </Kb.Text>
           </Kb.Box2>
@@ -212,104 +180,49 @@ const FileInput = (props: FileProps) => {
   )
 }
 
-export const Input = (props: CommonProps & {setBlurCB?: (cb: () => void) => void}) => {
-  const {operation, setBlurCB} = props
-
-  const {input: _input, inputType} = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const o = s[operation]
-      const {input, inputType} = o
-      return {input, inputType}
-    })
-  )
-  const input = _input.stringValue()
-
-  const [inputValue, setInputValue] = React.useState(input)
-
-  const setInput = Crypto.useCryptoState(s => s.dispatch.setInput)
-  const clearInput = Crypto.useCryptoState(s => s.dispatch.clearInput)
-
-  const onSetInput = (type: T.Crypto.InputTypes, newValue: string) => {
-    setInput(operation, type, newValue)
-  }
-  const onClearInput = () => {
-    clearInput(operation)
-  }
-
-  return inputType === 'file' ? (
-    <FileInput
-      operation={operation}
-      path={input}
-      onClearFiles={() => {
-        setInputValue('')
-        onClearInput()
-      }}
-    />
+export const Input = ({
+  allowDirectories,
+  emptyInputWidth,
+  fileIcon,
+  inputPlaceholder,
+  onClearInput,
+  onSetInput,
+  setBlurCB,
+  state,
+  textInputType,
+}: InputProps) =>
+  state.inputType === 'file' ? (
+    <FileInput fileIcon={fileIcon} state={state} onClearFiles={onClearInput} />
   ) : (
     <TextInput
+      allowDirectories={allowDirectories}
+      emptyInputWidth={emptyInputWidth}
+      inputPlaceholder={inputPlaceholder}
       setBlurCB={setBlurCB}
-      operation={operation}
-      value={inputValue}
-      onSetFile={path => {
-        onSetInput('file', path)
-      }}
-      onChangeText={text => {
-        setInputValue(text)
-        onSetInput('text', text)
-      }}
+      state={state}
+      textInputType={textInputType}
+      onSetFile={path => onSetInput('file', path)}
+      onChangeText={text => onSetInput('text', text)}
     />
   )
-}
 
-const allowInputFolders = new Map([
-  ['decrypt', false],
-  ['encrypt', true],
-  ['sign', true],
-  ['verify', false],
-] as const)
+export const DragAndDrop = ({allowFolders, children, inProgress, onAttach, prompt}: DragAndDropProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.DragAndDrop
+      disabled={inProgress}
+      allowFolders={allowFolders}
+      fullHeight={true}
+      fullWidth={true}
+      onAttach={localPaths => onAttach(localPaths[0] ?? '')}
+      prompt={prompt}
+    >
+      {children}
+    </Kb.DragAndDrop>
+  </Kb.Box2>
+)
 
-export const DragAndDrop = (props: DragAndDropProps) => {
-  const {prompt, children, operation} = props
-  const inProgress = Crypto.useCryptoState(s => s[operation].inProgress)
-  const setInput = Crypto.useCryptoState(s => s.dispatch.setInput)
-
-  const onAttach = (localPaths: Array<string>) => {
-    const path = localPaths[0]
-    setInput(operation, 'file', path ?? '')
-  }
-
-  const allowFolders = allowInputFolders.get(operation) as boolean
-
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop
-        disabled={inProgress}
-        allowFolders={allowFolders}
-        fullHeight={true}
-        fullWidth={true}
-        onAttach={onAttach}
-        prompt={prompt}
-      >
-        {children}
-      </Kb.DragAndDrop>
-    </Kb.Box2>
-  )
-}
-
-export const OperationBanner = (props: CommonProps) => {
-  const {operation} = props
-  const infoMessage = Crypto.infoMessage[operation]
-
-  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Crypto.useCryptoState(
-    C.useShallow(s => {
-      const {errorMessage, warningMessage} = s[operation]
-      return {errorMessage, warningMessage}
-    })
-  )
-  const errorMessage = _errorMessage.stringValue()
-  const warningMessage = _warningMessage.stringValue()
-
-  if (!errorMessage && !warningMessage) {
+export const CryptoBanner = ({infoMessage, state}: CryptoBannerProps) => {
+  if (!state.errorMessage && !state.warningMessage) {
     return (
       <Kb.Banner color="grey">
         <Kb.BannerParagraph bannerColor="grey" content={infoMessage} />
@@ -319,29 +232,25 @@ export const OperationBanner = (props: CommonProps) => {
 
   return (
     <>
-      {errorMessage ? (
+      {state.errorMessage ? (
         <Kb.Banner color="red">
-          <Kb.BannerParagraph bannerColor="red" content={errorMessage} />
+          <Kb.BannerParagraph bannerColor="red" content={state.errorMessage} />
         </Kb.Banner>
       ) : null}
-      {warningMessage ? (
+      {state.warningMessage ? (
         <Kb.Banner color="yellow">
-          <Kb.BannerParagraph bannerColor="yellow" content={warningMessage} />
+          <Kb.BannerParagraph bannerColor="yellow" content={state.warningMessage} />
         </Kb.Banner>
       ) : null}
     </>
   )
 }
 
-// Mobile only
-export const InputActionsBar = (props: RunOperationProps) => {
-  const {operation, children, blurCBRef} = props
-  const operationTitle = capitalize(operation)
-  const runTextOperation = Crypto.useCryptoState(s => s.dispatch.runTextOperation)
-  const onRunOperation = () => {
+export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActionBarProps) => {
+  const onClick = () => {
     blurCBRef?.current()
     setTimeout(() => {
-      runTextOperation(operation)
+      onRun()
     }, 100)
   }
 
@@ -356,9 +265,9 @@ export const InputActionsBar = (props: RunOperationProps) => {
       <Kb.WaitingButton
         mode="Primary"
         waitingKey={C.waitingKeyCrypto}
-        label={operationTitle}
+        label={runLabel}
         fullWidth={true}
-        onClick={onRunOperation}
+        onClick={onClick}
       />
     </Kb.Box2>
   ) : null
@@ -387,7 +296,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           flexShrink: 1,
-          // Give space on mobile for Recipients divider
           marginTop: 1,
         },
       }),
@@ -420,7 +328,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputContainer: Kb.Styles.platformStyles({
         isElectron: {
-          // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
           ...Kb.Styles.globalStyles.fullHeight,
           alignItems: 'stretch',
           padding: 0,

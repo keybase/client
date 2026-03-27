@@ -38,10 +38,11 @@ import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
-import type * as UseUnlockFoldersStateType from '@/stores/unlock-folders'
+import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {createTBStore, getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
+import * as CryptoRoutes from '@/constants/crypto'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, serverConfigFileName} from '../platform'
@@ -50,7 +51,6 @@ import {useAutoResetState} from '@/stores/autoreset'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
-import {useCryptoState} from '@/stores/crypto'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -181,7 +181,21 @@ export const initTeamBuildingCallbacks = () => {
           ...(namespace === 'crypto'
             ? {
                 onFinishedTeamBuildingCrypto: users => {
-                  useCryptoState.getState().dispatch.onTeamBuildingFinished(users)
+                  const visible = Util.getVisibleScreen()
+                  const visibleParams =
+                    visible?.name === 'cryptoTeamBuilder' ? (visible.params as {teamBuilderNonce?: string} | undefined) : undefined
+                  const teamBuilderUsers = [...users].map(({serviceId, username}) => ({serviceId, username}))
+                  Util.clearModals()
+                  Util.navigateAppend(
+                    {
+                      name: CryptoRoutes.encryptTab,
+                      params: {
+                        teamBuilderNonce: visibleParams?.teamBuilderNonce,
+                        teamBuilderUsers,
+                      },
+                    },
+                    true
+                  )
                 },
               }
             : {}),
@@ -197,9 +211,6 @@ export const initAutoResetCallbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       defer: {
-        onGetRecoverPasswordUsername: () => {
-          return storeRegistry.getState('recover-password').username
-        },
         onStartProvision: (username: string, fromReset: boolean) => {
           storeRegistry.getState('provision').dispatch.startProvision(username, fromReset)
         },
@@ -934,8 +945,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.rekeyUI.refresh':
     case 'keybase.1.rekeyUI.delegateRekeyUI':
       {
-        const {useUnlockFoldersState} = require('@/stores/unlock-folders') as typeof UseUnlockFoldersStateType
-        useUnlockFoldersState.getState().dispatch.onEngineIncomingImpl(action)
+        const {onUnlockFoldersEngineIncoming} = require('@/stores/unlock-folders') as typeof UnlockFoldersType
+        onUnlockFoldersEngineIncoming(action)
       }
       break
     default:

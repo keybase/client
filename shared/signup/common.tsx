@@ -291,9 +291,10 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
       }),
-      headerContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-      },
+      headerContainer: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.white},
+        isElectron: Kb.Styles.desktopStyles.windowDragging,
+      }),
       infoIconContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
       },

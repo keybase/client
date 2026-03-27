@@ -6,7 +6,6 @@ import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import PeopleItem, {type TaskButton} from './item'
 import * as Kb from '@/common-adapters'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
@@ -216,12 +215,7 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const {addingEmail, editEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addingEmail: s.addingEmail,
-      editEmail: s.dispatch.editEmail,
-    }))
-  )
+  const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
@@ -251,7 +245,6 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
             label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
             onClick: () => onConfirm(meta.email),
             type: 'Success' as const,
-            waiting: addingEmail ? addingEmail === meta.email : false,
           },
         ]
       : []),
@@ -265,7 +258,6 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const resendVerificationForPhone = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const {navigateAppend, switchTab} = C.useRouterState(
     C.useShallow(s => ({
       navigateAppend: s.dispatch.navigateAppend,
@@ -273,8 +265,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
     }))
   )
   const onConfirm = (phoneNumber: string) => {
-    resendVerificationForPhone(phoneNumber)
-    navigateAppend('settingsVerifyPhone')
+    navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
   }
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)

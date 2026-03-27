@@ -2,46 +2,41 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from './common'
-import {useSettingsEmailState} from '@/stores/settings-email'
+import {useAddEmail} from '@/settings/account/use-add-email'
 import {useSignupState} from '@/stores/signup'
 import {usePushState} from '@/stores/push'
 
 const ConnectedEnterEmail = () => {
   const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
-  const addedEmail = useSettingsEmailState(s => s.addedEmail)
-  const error = useSettingsEmailState(s => s.error)
-  const initialEmail = useSignupState(s => s.email)
-  const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
+  const {error, submitEmail, waiting} = useAddEmail()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
     setJustSignedUpEmail(C.noEmail)
   }
-  const _onSuccess = setJustSignedUpEmail
 
-  const addEmail = useSettingsEmailState(s => s.dispatch.addEmail)
   const onSkip = () => {
     _onSkip()
     _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
   }
-  const [addEmailInProgress, setAddEmailInProgress] = React.useState('')
-  React.useEffect(() => {
-    if (addedEmail === addEmailInProgress) {
-      _onSuccess(addEmailInProgress)
-      _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
-    }
-  }, [addedEmail, addEmailInProgress, _onSuccess, _showPushPrompt, navigateAppend, clearModals])
 
   const onCreate = (email: string, searchable: boolean) => {
-    addEmail(email, searchable)
-    setAddEmailInProgress(email)
+    submitEmail(email, searchable, addedEmail => {
+      setJustSignedUpEmail(addedEmail)
+      _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+    })
   }
 
-  const [email, onChangeEmail] = React.useState(initialEmail || '')
+  const [email, onChangeEmail] = React.useState('')
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !email.trim()
-  const onContinue = () => (disabled ? {} : onCreate(email.trim(), searchable))
+  const onContinue = () => {
+    if (disabled || waiting) {
+      return
+    }
+    onCreate(email.trim(), searchable)
+  }
 
   return (
     <SignupScreen
@@ -71,14 +66,6 @@ const ConnectedEnterEmail = () => {
       />
     </SignupScreen>
   )
-}
-
-export type Props = {
-  error: string
-  initialEmail: string
-  onCreate: (email: string, searchable: boolean) => void
-  onSkip?: () => void
-  waiting: boolean
 }
 
 type BodyProps = {

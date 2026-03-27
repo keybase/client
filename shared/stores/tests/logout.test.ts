@@ -1,10 +1,5 @@
 /// <reference types="jest" />
-jest.mock('../../constants/router', () => ({
-  navigateAppend: jest.fn(),
-}))
-
 import * as T from '../../constants/types'
-import {navigateAppend} from '../../constants/router'
 import {resetAllStores} from '../../util/zustand'
 import {useLogoutState} from '../logout'
 
@@ -41,17 +36,12 @@ describe('logout store', () => {
     expect(logoutSpy).toHaveBeenCalledWith({force: false, keepSecrets: false})
   })
 
-  test('requestLogout routes to password settings when logout is blocked', async () => {
-    jest.spyOn(T.RPCGen, 'userCanLogoutRpcPromise').mockResolvedValue({
-      canLogout: false,
-      passphraseState: T.RPCGen.PassphraseState.known,
-      reason: 'password required',
-    })
+  test('start increments the handshake version', () => {
+    const store = useLogoutState
+    const version = store.getState().version
 
-    useLogoutState.getState().dispatch.requestLogout()
-    await Promise.resolve()
+    store.getState().dispatch.start()
 
-    expect(navigateAppend).toHaveBeenNthCalledWith(1, 'tabs.settingsTab')
-    expect(navigateAppend).toHaveBeenNthCalledWith(2, 'settingsTabs.password')
+    expect(store.getState().version).toBe(version + 1)
   })
 })

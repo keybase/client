@@ -4,20 +4,62 @@ import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/stores/provision'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {ignorePromise} from '@/constants/utils'
+import logger from '@/logger'
+import {isValidUsername} from '@/util/simple-validators'
+import type {StaticScreenProps} from '@react-navigation/core'
 
-const ConnectedEnterUsername = () => {
-  const error = useSignupState(s => s.usernameError)
-  const initialUsername = useSignupState(s => s.username)
-  const usernameTaken = useSignupState(s => s.usernameTaken)
-  const checkUsername = useSignupState(s => s.dispatch.checkUsername)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterUsername = (p: Props) => {
+  const initialUsername = p.route.params.username ?? ''
+  const inviteCode = p.route.params.inviteCode ?? ''
   const resetState = useSignupState(s => s.dispatch.resetState)
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
+  const {navigateAppend, navigateUp} = C.useRouterState(
+    C.useShallow(s => ({
+      navigateAppend: s.dispatch.navigateAppend,
+      navigateUp: s.dispatch.navigateUp,
+    }))
+  )
   const onBack = () => {
     resetState()
     navigateUp()
   }
-  const onContinue = checkUsername
+  const [error, setError] = React.useState('')
+  const [usernameTaken, setUsernameTaken] = React.useState('')
+  const onUsernameChange = () => {
+    setError('')
+    setUsernameTaken('')
+  }
+  const onContinue = (username: string) => {
+    onUsernameChange()
+    const localError = isValidUsername(username)
+    if (localError) {
+      setError(localError)
+      return
+    }
+    const f = async () => {
+      logger.info(`checking ${username}`)
+      try {
+        await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, C.waitingKeySignup)
+        logger.info(`${username} success`)
+        navigateAppend({name: 'signupEnterDevicename', params: {inviteCode, username}})
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          logger.warn(`${username} error: ${error_.message}`)
+          if (error_.code === T.RPCGen.StatusCode.scbadsignupusernametaken) {
+            setUsernameTaken(username)
+            return
+          }
+          setError(error_.code === T.RPCGen.StatusCode.scinputerror ? C.usernameHint : error_.desc)
+        }
+      }
+    }
+    ignorePromise(f())
+  }
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = (initUsername: string) => {
@@ -29,30 +71,36 @@ const ConnectedEnterUsername = () => {
     onBack,
     onContinue,
     onLogin,
+    onUsernameChange,
     usernameTaken,
     waiting,
   }
   return <EnterUsername {...props} />
 }
 
-type Props = {
+type EnterUsernameProps = {
   error: string
   initialUsername?: string
   onBack: () => void
   onContinue: (username: string) => void
   onLogin: (username: string) => void
+  onUsernameChange: () => void
   usernameTaken?: string
   waiting: boolean
 }
 
-const EnterUsername = (props: Props) => {
+const EnterUsername = (props: EnterUsernameProps) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
   const usernameTrimmed = username.trim()
   const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
+  const _onChangeUsername = (username: string) => {
+    onChangeUsername(username)
+    props.onUsernameChange()
+  }
   const onContinue = () => {
-    if (disabled) {
+    if (disabled || props.waiting) {
       return
     }
     onChangeUsername(usernameTrimmed) // maybe trim the input
@@ -122,8 +170,9 @@ const EnterUsername = (props: Props) => {
               containerStyle={styles.input}
               placeholder="Pick a username"
               maxLength={C.maxUsernameLength}
-              onChangeText={onChangeUsername}
+              onChangeText={_onChangeUsername}
               onEnterKeyDown={onContinue}
+              value={username}
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
