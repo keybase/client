@@ -75,6 +75,16 @@ export type State = Store & {
 }
 
 export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
+  const addProofRouteNames = new Set([
+    'profileConfirmOrPending',
+    'profileGenericEnterUsername',
+    'profileGenericProofResult',
+    'profilePostProof',
+    'profileProofsList',
+    'profileProveEnterUsername',
+    'profileProveWebsiteChoice',
+  ])
+
   const resetProofCallbacks = () => {
     set(s => {
       s.dispatch.dynamic.afterCheckProof = undefined
@@ -83,6 +93,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
     })
   }
   const defaultCancelAddProof = () => {
+    addProofInProgress = false
     resetProofCallbacks()
   }
 
@@ -95,6 +106,18 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
 
   const shouldReplacePrompt = (name: 'profileGenericEnterUsername' | 'profileProveEnterUsername') =>
     getVisibleScreen()?.name === name
+
+  const clearStaleAddProofGuard = () => {
+    if (!addProofInProgress) {
+      return
+    }
+    const visibleScreen = getVisibleScreen()?.name
+    if (visibleScreen && addProofRouteNames.has(visibleScreen)) {
+      return
+    }
+    logger.info('clearing stale addProof guard', {visibleScreen})
+    defaultCancelAddProof()
+  }
 
   const checkProofAndNavigate = async (
     platform: T.More.PlatformsExpandedType,
@@ -149,6 +172,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
 
   const dispatch: State['dispatch'] = {
     addProof: (platform, reason) => {
+      clearStaleAddProofGuard()
       if (addProofInProgress) {
         logger.warn('addProof while one in progress')
         return
@@ -323,7 +347,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
           loadAfter()
 
           if (service) {
-            await checkProofAndNavigate(service, sigID, currentUsername, currentProofText)
+            ignorePromise(checkProofAndNavigate(service, sigID, currentUsername, currentProofText))
           } else {
             navigateAppend(
               {
