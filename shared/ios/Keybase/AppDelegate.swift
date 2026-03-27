@@ -47,6 +47,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
 
   private var watchdog: MainThreadWatchdog?
   private var bgEnterWallTime: CFAbsoluteTime = 0
+  private var fgEnterTime: CFAbsoluteTime = 0
 
   public override func application(
     _ application: UIApplication,
@@ -153,9 +154,20 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       return
     }
 
+    // Skip writes when protected data is unavailable (device locked before first unlock).
+    // NSConcreteFileHandle.writeData: throws NSException on protected-file access failures,
+    // which Swift do-catch cannot intercept, causing a crash (see: _NSFileHandleRaiseOperationExceptionWhileReading).
+    guard UIApplication.shared.isProtectedDataAvailable else {
+      return
+    }
+
     if self.startupLogFileHandle == nil {
       if !FileManager.default.fileExists(atPath: logFilePath) {
-        FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
+        // Match the parent directory's protection class so the file remains accessible
+        // in the background after the device has been unlocked once.
+        FileManager.default.createFile(
+          atPath: logFilePath, contents: nil,
+          attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
       }
       if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
         fileHandle.seekToEndOfFile()
@@ -439,7 +451,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     watchdog?.stop()
     Keybasego.KeybaseFlushLogs()
     let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
-    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
+    let fgGap = fgEnterTime > 0 ? CFAbsoluteTimeGetCurrent() - fgEnterTime : 0
+    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch, %.0fms after willEnterForeground", elapsed * 1000, fgGap * 1000))
+    NSLog("[Startup] applicationDidBecomeActive: %.0fms after willEnterForeground", fgGap * 1000)
     NSLog("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     NSLog("applicationDidBecomeActive: notifying service.")
@@ -471,10 +485,15 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   }
 
   public override func applicationWillEnterForeground(_ application: UIApplication) {
-    let bgDuration = CFAbsoluteTimeGetCurrent() - bgEnterWallTime
+    fgEnterTime = CFAbsoluteTimeGetCurrent()
+    let bgDuration = fgEnterTime - bgEnterWallTime
     NSLog("applicationWillEnterForeground: start, hiding keyz screen (%.1fs since background)", bgDuration)
     hideCover()
     NSLog("applicationWillEnterForeground: done")
+  }
+
+  public func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
+    NSLog("[Startup] applicationProtectedDataDidBecomeAvailable")
   }
 
 }
