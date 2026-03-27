@@ -4,6 +4,7 @@ import {isMobile} from '@/constants/platform'
 import * as T from '@/constants/types'
 import {useFollowerState} from '@/stores/followers'
 import debounce from 'lodash/debounce'
+import type {DebouncedFunc} from 'lodash'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
 import * as React from 'react'
@@ -343,10 +344,9 @@ export const usePeoplePageState = () => {
   const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
   const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
   const mountedRef = React.useRef(true)
-  const debouncedLoadPeopleRef = React.useRef<({
-    (markViewed: boolean, numFollowSuggestionsWanted?: number): void
-    cancel: () => void
-  }) | null>(null)
+  const debouncedLoadPeopleRef = React.useRef<
+    DebouncedFunc<(markViewed: boolean, numFollowSuggestionsWanted?: number) => void> | null
+  >(null)
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
@@ -390,14 +390,14 @@ export const usePeoplePageState = () => {
     }
   )
 
-  if (!debouncedLoadPeopleRef.current) {
+  if (debouncedLoadPeopleRef.current == null) {
     debouncedLoadPeopleRef.current = debounce(
       (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
         loadPeople(markViewed, numFollowSuggestionsWanted)
       },
       1000,
       {leading: true, trailing: false}
-    ) as typeof debouncedLoadPeopleRef.current
+    )
   }
 
   React.useEffect(

@@ -783,7 +783,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
       {
-        const emailAddress = action.payload.params?.emailAddress
+        const emailAddress = action.payload.params.emailAddress
         if (emailAddress) {
           storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
         }
