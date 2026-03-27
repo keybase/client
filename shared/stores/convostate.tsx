@@ -1367,8 +1367,20 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
       // messages to not send. Do this after creating the objects above to
       // narrow down the places where the action can possibly stop.
       logger.info('non-empty text?', text.length > 0)
+  }
+  ignorePromise(f())
+  }
+
+  const refreshBotMembershipState = async () => {
+    const {meta} = get()
+    const convID = get().getConvID()
+    try {
+      await T.RPCChat.localRefreshParticipantsRpcPromise({convID})
+    } catch {}
+    if (meta.teamname) {
+      const {useTeamsState} = require('@/stores/teams') as typeof import('@/stores/teams')
+      useTeamsState.getState().dispatch.getMembers(meta.teamID)
     }
-    ignorePromise(f())
   }
 
   const dispatch: ConvoState['dispatch'] = {
@@ -1390,6 +1402,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
           }
           return
         }
+        await refreshBotMembershipState()
         closeBotModal()
       }
       ignorePromise(f())
@@ -2682,6 +2695,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
         const convID = get().getConvID()
         try {
           await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Strings.waitingKeyChatBotRemove)
+          await refreshBotMembershipState()
           closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {
