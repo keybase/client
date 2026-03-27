@@ -454,6 +454,7 @@ const PeopleReloadable = () => {
   const waiting = C.Waiting.useAnyWaiting(getPeopleDataWaitingKey)
   const lastRefreshRef = React.useRef(0)
   const lastSeenRefreshRef = React.useRef(refreshCount)
+  const didInitialLoadRef = React.useRef(false)
 
   const getData = React.useEffectEvent((markViewed = true, force = false) => {
     const now = Date.now()
@@ -469,6 +470,13 @@ const PeopleReloadable = () => {
       getData(false, true)
     }
   }, [refreshCount])
+
+  React.useEffect(() => {
+    if (!didInitialLoadRef.current) {
+      didInitialLoadRef.current = true
+      getData(false, true)
+    }
+  }, [])
 
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
 
