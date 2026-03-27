@@ -122,9 +122,7 @@ const useRevoke = (device: T.Devices.Device) => {
             C.waitingKeyDevices
           )
           useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
-          navUpToScreen(
-            C.isMobile ? (C.isTablet ? C.Tabs.settingsTab : settingsDevicesTab) : C.Tabs.devicesTab
-          )
+          navUpToScreen(C.isMobile ? settingsDevicesTab : 'devicesRoot')
         } catch {}
       }
     }
