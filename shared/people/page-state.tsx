@@ -1,13 +1,7 @@
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
-import * as C from '@/constants'
 import {isMobile} from '@/constants/platform'
 import * as T from '@/constants/types'
-import {useFollowerState} from '@/stores/followers'
-import debounce from 'lodash/debounce'
-import type {DebouncedFunc} from 'lodash'
 import invert from 'lodash/invert'
-import isEqual from 'lodash/isEqual'
-import * as React from 'react'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -97,7 +91,6 @@ const makeTodoMetaPhone = (t?: Partial<T.People.TodoMetaPhone>): T.People.TodoMe
 
 const maxDate = (times: Array<number>) => new Date(Math.max(...times))
 
-const defaultNumFollowSuggestions = 10
 const todoTypeEnumToType = invert(T.RPCGen.HomeScreenTodoType) as {
   [K in T.People.TodoTypeEnum]: T.People.TodoType
 }
@@ -329,111 +322,34 @@ const reduceRPCItemToPeopleItem = (
   }
 }
 
-export const usePeoplePageState = () => {
-  const [followSuggestions, setFollowSuggestions] = React.useState<Array<T.People.FollowSuggestion>>([])
-  const [newItems, setNewItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
-  const [oldItems, setOldItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
-  const [resentEmail, setResentEmail] = React.useState('')
-  const {followers, following} = useFollowerState(
-    C.useShallow(s => ({
-      followers: s.followers,
-      following: s.following,
-    }))
-  )
-  const loadPeopleRPC = C.useRPC(T.RPCGen.homeHomeGetScreenRpcPromise)
-  const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
-  const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
-  const mountedRef = React.useRef(true)
-  const debouncedLoadPeopleRef = React.useRef<
-    DebouncedFunc<(markViewed: boolean, numFollowSuggestionsWanted?: number) => void> | null
-  >(null)
-
-  const loadPeople = React.useEffectEvent(
-    (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-      loadPeopleRPC(
-        [{markViewed, numFollowSuggestionsWanted}, getPeopleDataWaitingKey],
-        data => {
-          if (!mountedRef.current) {
-            return
-          }
-
-          const nextOldItems: Array<T.People.PeopleScreenItem> = []
-          const nextNewItems: Array<T.People.PeopleScreenItem> = []
-          for (const item of data.items ?? []) {
-            const isNew = item.badged || item.data.t === T.RPCGen.HomeScreenItemType.todo
-            reduceRPCItemToPeopleItem(isNew ? nextNewItems : nextOldItems, item)
-          }
-
-          const nextFollowSuggestions = (data.followSuggestions ?? []).reduce<Array<T.People.FollowSuggestion>>(
-            (list, suggestion) => {
-              const followsMe = followers.has(suggestion.username)
-              const iFollow = following.has(suggestion.username)
-              list.push(
-                makeFollowSuggestion({
-                  followsMe,
-                  fullName: suggestion.fullName,
-                  iFollow,
-                  username: suggestion.username,
-                })
-              )
-              return list
-            },
-            []
-          )
-
-          setFollowSuggestions(s => (isEqual(s, nextFollowSuggestions) ? s : nextFollowSuggestions))
-          setNewItems(s => (isEqual(s, nextNewItems) ? s : nextNewItems))
-          setOldItems(s => (isEqual(s, nextOldItems) ? s : nextOldItems))
-        },
-        _ => {}
-      )
-    }
-  )
-
-  if (debouncedLoadPeopleRef.current == null) {
-    debouncedLoadPeopleRef.current = debounce(
-      (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-        loadPeople(markViewed, numFollowSuggestionsWanted)
-      },
-      1000,
-      {leading: true, trailing: false}
-    )
+export const reducePeopleScreenData = (
+  data: Pick<T.RPCGen.HomeScreen, 'followSuggestions' | 'items'>,
+  followers: ReadonlySet<string>,
+  following: ReadonlySet<string>
+) => {
+  const oldItems: Array<T.People.PeopleScreenItem> = []
+  const newItems: Array<T.People.PeopleScreenItem> = []
+  for (const item of data.items ?? []) {
+    const isNew = item.badged || item.data.t === T.RPCGen.HomeScreenItemType.todo
+    reduceRPCItemToPeopleItem(isNew ? newItems : oldItems, item)
   }
 
-  React.useEffect(
-    () => () => {
-      mountedRef.current = false
-      debouncedLoadPeopleRef.current?.cancel()
+  const followSuggestions = (data.followSuggestions ?? []).reduce<Array<T.People.FollowSuggestion>>(
+    (list, suggestion) => {
+      const followsMe = followers.has(suggestion.username)
+      const iFollow = following.has(suggestion.username)
+      list.push(
+        makeFollowSuggestion({
+          followsMe,
+          fullName: suggestion.fullName,
+          iFollow,
+          username: suggestion.username,
+        })
+      )
+      return list
     },
     []
   )
 
-  const dismissAnnouncement = (id: T.RPCGen.HomeScreenAnnouncementID) => {
-    dismissAnnouncementRPC([{i: id}], () => {}, _ => {})
-  }
-
-  const queueLoadPeople = (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-    debouncedLoadPeopleRef.current?.(markViewed, numFollowSuggestionsWanted)
-  }
-
-  const skipTodo = (type: T.People.TodoType) => {
-    skipTodoRPC(
-      [{t: T.RPCGen.HomeScreenTodoType[type]}],
-      () => {
-        mountedRef.current && queueLoadPeople(false)
-      },
-      _ => {}
-    )
-  }
-
-  return {
-    dismissAnnouncement,
-    followSuggestions,
-    loadPeople: queueLoadPeople,
-    newItems,
-    oldItems,
-    resentEmail,
-    setResentEmail,
-    skipTodo,
-  }
+  return {followSuggestions, newItems, oldItems}
 }

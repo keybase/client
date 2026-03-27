@@ -129,6 +129,8 @@ Keep waiting keys when they drive UI. If the store only existed to wrap that RPC
 
 Use `React.useState`, `React.useEffect`, and existing screen hooks. In plain `.tsx` files, use `Kb.*` components rather than raw DOM elements.
 
+If a helper hook is only used by one component, define it in that component file instead of creating a sibling hook module. Split out only pure non-hook helpers or constants when they are shared.
+
 If a component reads multiple adjacent values from the same remaining store, prefer one selector with `C.useShallow(...)` over several subscriptions.
 
 ### 5. Move navigation-owned data into params
