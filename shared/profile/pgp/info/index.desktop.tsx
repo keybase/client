@@ -1,35 +1,33 @@
 import * as C from '@/constants'
 import {useProfileState} from '@/stores/profile'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from '@/profile/modal'
+import {validatePgpInfo} from '../validation'
 
 const Info = () => {
-  const updatePgpInfo = useProfileState(s => s.dispatch.updatePgpInfo)
   const generatePgp = useProfileState(s => s.dispatch.generatePgp)
-  const data = useProfileState(
-    C.useShallow(s => {
-      const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorText, pgpFullName} = s
-      const {pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = s
-      return {
-        pgpEmail1,
-        pgpEmail2,
-        pgpEmail3,
-        pgpErrorEmail1,
-        pgpErrorEmail2,
-        pgpErrorEmail3,
-        pgpErrorText,
-        pgpFullName,
-      }
-    })
-  )
+  const [pgpFullName, setPgpFullName] = React.useState('')
+  const [pgpEmail1, setPgpEmail1] = React.useState('')
+  const [pgpEmail2, setPgpEmail2] = React.useState('')
+  const [pgpEmail3, setPgpEmail3] = React.useState('')
+  const data = {
+    pgpEmail1,
+    pgpEmail2,
+    pgpEmail3,
+    pgpFullName,
+    ...validatePgpInfo({pgpEmail1, pgpEmail2, pgpEmail3, pgpFullName}),
+  }
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => navigateUp()
-  const onChangeEmail1 = (pgpEmail1: string) => updatePgpInfo({pgpEmail1})
-  const onChangeEmail2 = (pgpEmail2: string) => updatePgpInfo({pgpEmail2})
-  const onChangeEmail3 = (pgpEmail3: string) => updatePgpInfo({pgpEmail3})
-  const onChangeFullName = (pgpFullName: string) => updatePgpInfo({pgpFullName})
-  const onNext = () => generatePgp()
+  const onNext = () =>
+    generatePgp({
+      pgpEmail1: data.pgpEmail1,
+      pgpEmail2: data.pgpEmail2,
+      pgpEmail3: data.pgpEmail3,
+      pgpFullName: data.pgpFullName,
+    })
   const nextDisabled = !data.pgpEmail1 || !data.pgpFullName || !!data.pgpErrorText
   return (
     <Modal onCancel={onCancel} skipButton={true}>
@@ -42,25 +40,25 @@ const Info = () => {
           autoFocus={true}
           placeholder="Your full name"
           value={data.pgpFullName}
-          onChangeText={onChangeFullName}
+          onChangeText={setPgpFullName}
         />
         <Kb.Input3
           placeholder="Email 1"
-          onChangeText={onChangeEmail1}
+          onChangeText={setPgpEmail1}
           onEnterKeyDown={onNext}
           value={data.pgpEmail1}
           error={data.pgpErrorEmail1}
         />
         <Kb.Input3
           placeholder="Email 2 (optional)"
-          onChangeText={onChangeEmail2}
+          onChangeText={setPgpEmail2}
           onEnterKeyDown={onNext}
           value={data.pgpEmail2}
           error={data.pgpErrorEmail2}
         />
         <Kb.Input3
           placeholder="Email 3 (optional)"
-          onChangeText={onChangeEmail3}
+          onChangeText={setPgpEmail3}
           onEnterKeyDown={onNext}
           value={data.pgpEmail3}
           error={data.pgpErrorEmail3}

@@ -11,6 +11,7 @@ import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
+import {generateGUIID} from '@/constants/utils'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -75,16 +76,29 @@ const Container = (ownProps: OwnProps) => {
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
   const addProof = useProfileState(s => s.dispatch.addProof)
-  const hideStellar = useProfileState(s => s.dispatch.hideStellar)
-  const recheckProof = useProfileState(s => s.dispatch.recheckProof)
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const loadProfile = useTrackerState(s => s.dispatch.load)
+  const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
+  const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
   const _onCreateProof = () => {
     addProof(type, 'profile')
   }
   const onHideStellar = (hidden: boolean) => {
-    hideStellar(hidden)
+    hideStellar(
+      [{args: [{key: 'hidden', value: hidden ? '1' : '0'}], endpoint: 'stellar/hidden'}, C.waitingKeyTracker],
+      () => {},
+      () => {}
+    )
   }
   const onRecheck = () => {
-    recheckProof(sigID)
+    recheckProof(
+      [{sigID}, C.waitingKeyProfile],
+      () => {
+        showUserProfile(ownProps.username)
+        loadProfile({assertion: ownProps.username, guiID: generateGUIID(), inTracker: false, reason: ''})
+      },
+      () => {}
+    )
   }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

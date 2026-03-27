@@ -4,31 +4,85 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from './modal'
 import type * as T from '@/constants/types'
+import {normalizeProofUsername} from './proof-utils'
 
-const Container = () => {
-  const platform = useProfileState(s => s.platform)
-  const _errorText = useProfileState(s => s.errorText)
-  const updateUsername = useProfileState(s => s.dispatch.updateUsername)
-  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const submitBTCAddress = useProfileState(s => s.dispatch.submitBTCAddress)
-  const submitZcashAddress = useProfileState(s => s.dispatch.submitZcashAddress)
-  const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
-
-  if (!platform) {
-    throw new Error('No platform passed to prove enter username')
+type Props = {
+  route: {
+    params: {
+      error?: string
+      platform: T.More.PlatformsExpandedType
+      username?: string
+    }
   }
+}
 
-  const errorText = _errorText === 'Input canceled' ? '' : _errorText
+const Container = ({route}: Props) => {
+  const {error: routeError, platform, username: initialUsername = ''} = route.params
+  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
+  const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
+  const [username, setUsername] = React.useState(initialUsername)
+  const [errorText, setErrorText] = React.useState(routeError === 'Input canceled' ? '' : (routeError ?? ''))
+  const [canSubmit, setCanSubmit] = React.useState(!!initialUsername.length)
 
-  const _onSubmit = (username: string, platform?: string) => {
-    updateUsername(username)
+  React.useEffect(() => {
+    setErrorText(routeError === 'Input canceled' ? '' : (routeError ?? ''))
+  }, [routeError])
+
+  React.useEffect(() => {
+    setUsername(initialUsername)
+    setCanSubmit(!!initialUsername.length)
+  }, [initialUsername])
+
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onSubmit = (input: string, platform?: string) => {
+    const {normalized, valid} = normalizeProofUsername(platform as T.More.PlatformsExpandedType | undefined, input)
 
     if (platform === 'btc') {
-      submitBTCAddress()
+      if (!valid) {
+        setErrorText('Invalid address format')
+        return
+      }
+      setErrorText('')
+      registerCryptoAddress(
+        [{address: normalized, force: true, wantedFamily: 'bitcoin'}, C.waitingKeyProfile],
+        () => {
+          navigateAppend({
+            name: 'profileConfirmOrPending',
+            params: {
+              platform,
+              proofFound: true,
+              proofStatus: T.RPCGen.ProofStatus.ok,
+              username: normalized,
+            },
+          })
+        },
+        error => {
+          setErrorText(error.desc)
+        }
+      )
     } else if (platform === 'zcash') {
-      submitZcashAddress()
+      setErrorText('')
+      registerCryptoAddress(
+        [{address: normalized, force: true, wantedFamily: 'zcash'}, C.waitingKeyProfile],
+        () => {
+          navigateAppend({
+            name: 'profileConfirmOrPending',
+            params: {
+              platform,
+              proofFound: true,
+              proofStatus: T.RPCGen.ProofStatus.ok,
+              username: normalized,
+            },
+          })
+        },
+        error => {
+          setErrorText(error.desc)
+        }
+      )
     } else {
-      submitUsername?.()
+      setErrorText('')
+      submitUsername?.(normalized)
     }
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -37,9 +91,6 @@ const Container = () => {
     clearModals()
   }
   const onSubmit = (username: string) => _onSubmit(username, platform)
-
-  const [username, setUsername] = React.useState('')
-  const [canSubmit, setCanSubmit] = React.useState(false)
 
   const submit = () => {
     if (canSubmit) {

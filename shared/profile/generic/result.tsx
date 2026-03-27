@@ -2,23 +2,32 @@ import * as C from '@/constants'
 import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
+import {useCurrentUserState} from '@/stores/current-user'
+import type {ProveGenericParams} from '@/stores/profile'
 
-const GenericResult = () => {
-  const errorText = useProfileState(s =>
-    s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
-  )
-  const proofUsername = useProfileState(s => s.username + (s.platformGenericParams?.suffix ?? '@unknown'))
-  const serviceIcon = useProfileState(s => s.platformGenericParams?.logoFull ?? [])
-  const backToProfile = useProfileState(s => s.dispatch.backToProfile)
-  const clearPlatformGeneric = useProfileState(s => s.dispatch.clearPlatformGeneric)
+type Props = {
+  route: {
+    params: {
+      error?: string
+      genericParams: ProveGenericParams
+      username: string
+    }
+  }
+}
+
+const GenericResult = ({route}: Props) => {
+  const {error = '', genericParams, username} = route.params
+  const proofUsername = username + (genericParams.suffix ?? '@unknown')
+  const serviceIcon = genericParams.logoFull ?? []
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const currentUsername = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
-    backToProfile()
-    clearPlatformGeneric()
+    showUserProfile(currentUsername)
   }
 
-  const success = !errorText
+  const success = !error
   const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
   let frag = (
     <>
@@ -29,7 +38,7 @@ const GenericResult = () => {
   if (!success) {
     frag = (
       <>
-        <Kb.Text type="Body">{errorText}</Kb.Text>
+        <Kb.Text type="Body">{error}</Kb.Text>
       </>
     )
   }

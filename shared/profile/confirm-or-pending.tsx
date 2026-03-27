@@ -3,13 +3,25 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import Modal from './modal'
+import {useCurrentUserState} from '@/stores/current-user'
+import * as C from '@/constants'
 
-const ConfirmOrPending = () => {
-  const proofFound = useProfileState(s => s.proofFound)
-  const proofStatus = useProfileState(s => s.proofStatus)
-  const platform = useProfileState(s => s.platform)
-  const username = useProfileState(s => s.username)
-  const backToProfile = useProfileState(s => s.dispatch.backToProfile)
+type Props = {
+  route: {
+    params: {
+      platform: T.More.PlatformsExpandedType
+      proofFound: boolean
+      proofStatus?: T.RPCGen.ProofStatus
+      username: string
+    }
+  }
+}
+
+const ConfirmOrPending = ({route}: Props) => {
+  const {platform, proofFound, proofStatus, username} = route.params
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const currentUsername = useCurrentUserState(s => s.username)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   const isGood = proofFound && proofStatus === T.RPCGen.ProofStatus.ok
   const isPending =
@@ -20,7 +32,10 @@ const ConfirmOrPending = () => {
   }
 
   const platformIconOverlayColor = isGood ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.greyDark
-  const onCancel = backToProfile
+  const onCancel = () => {
+    clearModals()
+    showUserProfile(currentUsername)
+  }
 
   const message =
     messageMap.get(platform) ||

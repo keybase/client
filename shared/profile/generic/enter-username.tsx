@@ -1,32 +1,34 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/stores/profile'
+import {type ProveGenericParams, useProfileState} from '@/stores/profile'
 import {openURL} from '@/util/misc'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
 import type * as T from '@/constants/types'
 
-const ConnectedEnterUsername = () => {
-  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = useProfileState(
-    C.useShallow(s => {
-      const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
-      return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
-    })
-  )
-  const errorText = useProfileState(s => s.errorText)
-  const _platformURL = platformGenericURL
-  const error = errorText
-  const serviceIcon = platformGenericParams?.logoBlack ?? []
-  const serviceIconFull = platformGenericParams?.logoFull ?? []
-  const serviceName = platformGenericParams?.title ?? ''
-  const serviceSub = platformGenericParams?.subtext ?? ''
-  const serviceSuffix = platformGenericParams?.suffix ?? ''
-  const submitButtonLabel = platformGenericParams?.buttonLabel ?? 'Submit'
-  const unreachable = !!platformGenericURL
-  const waiting = platformGenericChecking
+type Props = {
+  route: {
+    params: {
+      error?: string
+      genericParams: ProveGenericParams
+      proofUrl?: string
+      service: string
+      username?: string
+    }
+  }
+}
+
+const ConnectedEnterUsername = ({route}: Props) => {
+  const {error = '', genericParams, proofUrl, username: routeUsername = ''} = route.params
+  const serviceIcon = genericParams.logoBlack ?? []
+  const serviceIconFull = genericParams.logoFull ?? []
+  const serviceName = genericParams.title ?? ''
+  const serviceSub = genericParams.subtext ?? ''
+  const serviceSuffix = genericParams.suffix ?? ''
+  const submitButtonLabel = genericParams.buttonLabel ?? 'Submit'
+  const unreachable = !!proofUrl
 
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const updateUsername = useProfileState(s => s.dispatch.updateUsername)
   const submitUsername = useProfileState(s => s.dispatch.dynamic.submitUsername)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -34,25 +36,12 @@ const ConnectedEnterUsername = () => {
     cancelAddProof?.()
     clearModals()
   }
-  const onChangeUsername = updateUsername
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onSubmit = () => submitUsername?.()
-  const onSubmit = _platformURL ? () => _platformURL && openURL(_platformURL) : _onSubmit
-
-  const [waitingButtonKey, setWaitingButtonKey] = React.useState(0)
-  const wasWaiting = React.useRef(false)
+  const [username, setUsername] = React.useState(routeUsername)
+  const onSubmit = proofUrl ? () => openURL(proofUrl) : () => submitUsername?.(username)
 
   React.useEffect(() => {
-    if (waiting) {
-      wasWaiting.current = true
-    } else if (wasWaiting.current) {
-      wasWaiting.current = false
-      navigateAppend('profileGenericProofResult')
-    }
-    if (error) {
-      setWaitingButtonKey(s => s + 1)
-    }
-  }, [waiting, error, navigateAppend])
+    setUsername(routeUsername)
+  }, [routeUsername])
 
   return (
     <>
@@ -95,7 +84,7 @@ const ConnectedEnterUsername = () => {
               serviceIcon={serviceIcon}
               serviceSuffix={serviceSuffix}
               username={username}
-              onChangeUsername={onChangeUsername}
+              onChangeUsername={setUsername}
               onEnterKeyDown={onSubmit}
             />
           )}
@@ -129,7 +118,7 @@ const ConnectedEnterUsername = () => {
                 onClick={onSubmit}
                 label={submitButtonLabel}
                 style={styles.buttonBig}
-                key={waitingButtonKey}
+                waitingKey={C.waitingKeyProfile}
               />
             )}
           </Kb.ButtonBar>
@@ -149,26 +138,18 @@ type InputProps = {
 }
 
 const EnterUsernameInput = (props: InputProps) => {
-  const [username, setUsername] = React.useState(props.username)
-  const {onChangeUsername: _onChangeUsername} = props
-
-  const onChangeUsername = (username: string) => {
-    _onChangeUsername(username)
-    setUsername(username)
-  }
-
   const usernamePlaceholder = props.serviceSuffix === '@theqrl.org' ? 'Your QRL address' : 'Your username'
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true}>
       <SiteIcon
         set={props.serviceIcon}
         full={false}
-        style={username ? styles.opacity75 : styles.opacity40}
+        style={props.username ? styles.opacity75 : styles.opacity40}
       />
       <Kb.Input3
         autoFocus={true}
-        value={username}
-        onChangeText={onChangeUsername}
+        value={props.username}
+        onChangeText={props.onChangeUsername}
         onEnterKeyDown={props.onEnterKeyDown}
         placeholder={usernamePlaceholder}
         error={props.error}

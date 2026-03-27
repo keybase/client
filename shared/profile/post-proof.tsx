@@ -6,14 +6,24 @@ import {subtitle} from '@/util/platforms'
 import {openURL as openUrl} from '@/util/misc'
 import Modal from './modal'
 import {useConfigState} from '@/stores/config'
+import type * as T from '@/constants/types'
 
-const Container = () => {
-  const platform = useProfileState(s => s.platform)
-  const errorText = useProfileState(s => s.errorText)
-  const username = useProfileState(s => s.username)
-  let proofText = useProfileState(s => s.proofText)
+type Props = {
+  route: {
+    params: {
+      error?: string
+      platform: T.More.PlatformsExpandedType
+      proofText: string
+      username: string
+    }
+  }
+}
+
+const Container = ({route}: Props) => {
+  const {error, platform, username} = route.params
+  let {proofText} = route.params
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const checkProof = useProfileState(s => s.dispatch.checkProof)
+  const afterCheckProof = useProfileState(s => s.dispatch.dynamic.afterCheckProof)
   if (
     !platform ||
     platform === 'zcash' ||
@@ -55,8 +65,8 @@ const Container = () => {
     clearModals()
     cancelAddProof?.()
   }
-  const onSubmit = checkProof
-  const errorMessage = errorText
+  const onSubmit = () => afterCheckProof?.()
+  const errorMessage = error ?? ''
   const [showSubmit, setShowSubmit] = React.useState(!openLinkBeforeSubmit)
   const platformSubtitle = subtitle(platform)
   const proofActionText = actionMap.get(platform) ?? ''

@@ -76,9 +76,17 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const Container = () => {
-  const pgpKeyString = useProfileState(s => s.pgpPublicKey || 'Error getting public key...')
-  const promptShouldStoreKeyOnServer = useProfileState(s => s.promptShouldStoreKeyOnServer)
+type ContainerProps = {
+  route: {
+    params: {
+      pgpKeyString: string
+      promptShouldStoreKeyOnServer: boolean
+    }
+  }
+}
+
+const Container = ({route}: ContainerProps) => {
+  const {pgpKeyString, promptShouldStoreKeyOnServer} = route.params
   const finishedWithKeyGen = useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
