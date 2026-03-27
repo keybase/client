@@ -56,6 +56,7 @@ function WithTooltip(p: Props) {
         direction="vertical"
         alignSelf="stretch"
         alignItems="center"
+        justifyContent="center"
         style={containerStyle}
         ref={popupAnchor}
         onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
