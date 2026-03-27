@@ -7,8 +7,6 @@ import * as Tabs from '@/constants/tabs'
 declare global {
   var __hmr_startupOnce: boolean | undefined
 
-  var __hmr_gitLoaded: boolean | undefined
-
   var __hmr_sharedUnsubs: Array<() => void> | undefined
 
   var __hmr_platformUnsubs: Array<() => void> | undefined
@@ -25,7 +23,6 @@ import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
-import type * as UseGitStateType from '@/stores/git'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
@@ -70,7 +67,6 @@ import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
-let _gitLoaded: boolean = __DEV__ ? (globalThis.__hmr_gitLoaded ?? false) : false
 
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
 
@@ -736,14 +732,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useModalHeaderState
           .getState()
           .dispatch.setDeviceBadges(new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])]))
-
-        const badges = new Set(badgeState.newGitRepoGlobalUniqueIDs)
-        if (_gitLoaded || badges.size) {
-          _gitLoaded = true
-          if (__DEV__) globalThis.__hmr_gitLoaded = true
-          const {useGitState} = require('@/stores/git') as typeof UseGitStateType
-          useGitState.getState().dispatch.onEngineIncomingImpl(action)
-        }
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)

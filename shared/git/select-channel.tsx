@@ -1,8 +1,7 @@
-import * as Git from '@/stores/git'
-import * as Teams from '@/stores/teams'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
@@ -10,24 +9,47 @@ type OwnProps = {
   teamID: T.Teams.TeamID
   repoID: string
   selected: string
+  teamname: string
 }
 
 const SelectChannel = (ownProps: OwnProps) => {
-  const {teamID, repoID} = ownProps
+  const {teamID, repoID, teamname} = ownProps
   const _selected = ownProps.selected
-  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
-  const waiting = channelMetas.size === 0 // TODO fix this?
+  const submitting = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
+  const waiting = channelMetas.size === 0 || submitting
   const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
+  const [error, setError] = React.useState('')
   const nav = useSafeNavigation()
-  const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
-  const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
+  const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
+  const onSubmit = (channelName: string) =>
+    setTeamRepoSettings(
+      [
+        {
+          channelName,
+          chatDisabled: false,
+          folder: {
+            created: false,
+            folderType: T.RPCGen.FolderType.team,
+            name: teamname,
+          },
+          repoID,
+        },
+        C.waitingKeyGitLoading,
+      ],
+      () => {
+        nav.safeNavigateUp()
+      },
+      err => {
+        setError(err.message)
+      }
+    )
   const onCancel = () => nav.safeNavigateUp()
 
   const submit = () => {
+    setError('')
     onSubmit(selected)
-    onCancel()
   }
 
   // TODO: this modal could use a little bit of love
@@ -36,6 +58,7 @@ const SelectChannel = (ownProps: OwnProps) => {
       <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
           <Kb.Text type="Header">Select a channel</Kb.Text>
+          {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
           {channelNames.map(name => (
             <Kb.Box2 key={name} direction="horizontal" fullWidth={true} style={styles.row}>
               <Kb.RadioButton

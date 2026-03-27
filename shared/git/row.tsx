@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Git from '@/stores/git'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -12,22 +11,23 @@ import {useCurrentUserState} from '@/stores/current-user'
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 type OwnProps = {
-  id: string
   expanded: boolean
-  onShowDelete: (id: string) => void
+  git: T.Git.GitInfo
+  onShowDelete: (git: T.Git.GitInfo) => void
   onToggleExpand: (id: string) => void
+  reload: () => void
+  setError: (error?: Error) => void
 }
 
 const channelNameToString = (channelName?: string) => (channelName ? `#${channelName}` : '#general')
 
-const noGit = Git.makeGitInfo()
 function ConnectedRow(ownProps: OwnProps) {
-  const {id, expanded, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_} = ownProps
-  const git = Git.useGitState(s => s.idToInfo.get(id) || noGit)
+  const {expanded, git, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_, reload, setError} = ownProps
+  const {id} = git
   const teamID = Teams.useTeamsState(s => (git.teamname ? Teams.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
   const you = useCurrentUserState(s => s.username)
-  const setTeamRepoSettings = Git.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
   const _onBrowseGitRepo = FS.navToPath
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
@@ -46,12 +46,35 @@ function ConnectedRow(ownProps: OwnProps) {
     teamID &&
       navigateAppend({
         name: 'gitSelectChannel',
-        params: {repoID, selected: channelName || 'general', teamID},
+        params: {repoID, selected: channelName || 'general', teamID, teamname: teamname ?? ''},
       })
   }
 
   const onToggleChatEnabled = () => {
-    teamname && setTeamRepoSettings('', teamname, repoID, !chatDisabled)
+    if (!teamname) {
+      return
+    }
+    setTeamRepoSettings(
+      [
+        {
+          channelName: '',
+          chatDisabled: !chatDisabled,
+          folder: {
+            created: false,
+            folderType: T.RPCGen.FolderType.team,
+            name: teamname,
+          },
+          repoID,
+        },
+      ],
+      () => {
+        setError(undefined)
+        reload()
+      },
+      err => {
+        setError(err)
+      }
+    )
   }
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
@@ -66,7 +89,7 @@ function ConnectedRow(ownProps: OwnProps) {
       )
     )
 
-  const onShowDelete = () => onShowDelete_(id)
+  const onShowDelete = () => onShowDelete_(git)
   const onToggleExpand = () => onToggleExpand_(id)
 
   const onClickDevice = () => {
@@ -128,7 +151,7 @@ function ConnectedRow(ownProps: OwnProps) {
                 direction="horizontal"
                 fullWidth={true}
                 alignItems="center"
-          relative={true}
+                relative={true}
                 style={{
                   maxWidth: '100%',
                 }}
