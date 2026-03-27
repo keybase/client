@@ -250,6 +250,11 @@ export interface ConvoState extends ConvoStore {
         show: boolean,
         tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
       ) => void
+      teamsBotMemberUpdated: (
+        teamID: T.RPCGen.TeamID,
+        username: string,
+        role?: 'bot' | 'restrictedbot'
+      ) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => void
       usersGetBio: (username: string) => void
     }
@@ -1371,14 +1376,26 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
   ignorePromise(f())
   }
 
-  const refreshBotMembershipState = async () => {
+  const updateLocalBotMembershipState = (username: string, role?: 'bot' | 'restrictedbot') => {
+    set(s => {
+      s.participants = {
+        all: role
+          ? (s.participants.all.includes(username) ? s.participants.all : [...s.participants.all, username])
+          : s.participants.all.filter(participant => participant !== username),
+        contactName: s.participants.contactName,
+        name: s.participants.name.filter(participant => participant !== username),
+      }
+      if (role) {
+        s.botTeamRoleMap.set(username, role)
+      } else {
+        s.botTeamRoleMap.delete(username)
+        s.botSettings.delete(username)
+      }
+    })
+
     const {meta} = get()
-    const convID = get().getConvID()
-    try {
-      await T.RPCChat.localRefreshParticipantsRpcPromise({convID})
-    } catch {}
     if (meta.teamname) {
-      get().dispatch.defer.teamsGetMembers(meta.teamID)
+      get().dispatch.defer.teamsBotMemberUpdated(meta.teamID, username, role)
     }
   }
 
@@ -1401,7 +1418,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
           }
           return
         }
-        await refreshBotMembershipState()
+        updateLocalBotMembershipState(username, restricted ? 'restrictedbot' : 'bot')
         closeBotModal()
       }
       ignorePromise(f())
@@ -2694,7 +2711,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
         const convID = get().getConvID()
         try {
           await T.RPCChat.localRemoveBotMemberRpcPromise({convID, username}, Strings.waitingKeyChatBotRemove)
-          await refreshBotMembershipState()
+          updateLocalBotMembershipState(username)
           closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {

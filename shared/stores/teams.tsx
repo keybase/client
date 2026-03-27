@@ -883,6 +883,7 @@ export type State = Store & {
       toRemove?: T.Teams.ChannelNameID
     ) => void
     addTeamWithChosenChannels: (teamID: T.Teams.TeamID) => void
+    botMemberUpdated: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
     addToTeam: (
       teamID: T.Teams.TeamID,
       users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
@@ -1558,6 +1559,36 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
         throw new Error('onUsersUpdates not implemented')
       },
+    },
+    botMemberUpdated: (teamID, username, role) => {
+      const updateMembers = (members: Map<string, T.Teams.MemberInfo>) => {
+        const nextMembers = new Map(members)
+        if (role) {
+          const existing = nextMembers.get(username)
+          nextMembers.set(username, {
+            fullName: existing?.fullName ?? '',
+            joinTime: existing?.joinTime,
+            needsPUK: existing?.needsPUK ?? false,
+            status: existing?.status ?? 'active',
+            type: role,
+            username,
+          })
+        } else {
+          nextMembers.delete(username)
+        }
+        return nextMembers
+      }
+
+      set(s => {
+        const existingMembers = s.teamIDToMembers.get(teamID)
+        if (existingMembers) {
+          s.teamIDToMembers.set(teamID, updateMembers(existingMembers))
+        }
+        const details = s.teamDetails.get(teamID)
+        if (details) {
+          details.members = updateMembers(details.members)
+        }
+      })
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {

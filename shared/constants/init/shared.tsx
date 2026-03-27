@@ -237,6 +237,9 @@ export const initChat2Callbacks = () => {
         onTeamsGetMembers: (teamID: T.Teams.TeamID) => {
           storeRegistry.getState('teams').dispatch.getMembers(teamID)
         },
+        teamsBotMemberUpdated: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => {
+          storeRegistry.getState('teams').dispatch.botMemberUpdated(teamID, username, role)
+        },
         onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
           storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
         },

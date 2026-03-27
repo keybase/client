@@ -178,9 +178,6 @@ const BotTab = (props: Props) => {
   const {teamID, teamname, teamType, botAliases} = meta
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
-  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const waitingOnBotMutation = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
@@ -216,30 +213,6 @@ const BotTab = (props: Props) => {
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)
-
-  const refreshBotTabData = React.useCallback(() => {
-    if (!teamname) {
-      return
-    }
-    refreshParticipants(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-      () => {},
-      () => {}
-    )
-    getMembers(teamID)
-  }, [conversationIDKey, getMembers, refreshParticipants, teamID, teamname])
-  React.useEffect(() => {
-    refreshBotTabData()
-  }, [refreshBotTabData])
-  const [lastWaitingOnBotMutation, setLastWaitingOnBotMutation] = React.useState(waitingOnBotMutation)
-  React.useEffect(() => {
-    if (lastWaitingOnBotMutation && !waitingOnBotMutation) {
-      refreshBotTabData()
-    }
-    if (lastWaitingOnBotMutation !== waitingOnBotMutation) {
-      setLastWaitingOnBotMutation(waitingOnBotMutation)
-    }
-  }, [lastWaitingOnBotMutation, refreshBotTabData, waitingOnBotMutation])
 
   const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>
     usernames.map(
