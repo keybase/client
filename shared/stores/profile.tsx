@@ -5,7 +5,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {openURL} from '@/util/misc'
 import {RPCError} from '@/util/errors'
-import {navigateAppend} from '@/constants/router'
+import {getVisibleScreen, navigateAppend} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {useTrackerState} from '@/stores/tracker'
 import {normalizeProofUsername} from '@/profile/proof-utils'
@@ -92,6 +92,9 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
       s.dispatch.dynamic.finishedWithKeyGen = undefined
     })
   }
+
+  const shouldReplacePrompt = (name: 'profileGenericEnterUsername' | 'profileProveEnterUsername') =>
+    getVisibleScreen()?.name === name
 
   const checkProofAndNavigate = async (
     platform: T.More.PlatformsExpandedType,
@@ -283,7 +286,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
                         username: currentUsername || undefined,
                       },
                     },
-                    true
+                    shouldReplacePrompt('profileProveEnterUsername')
                   )
                 } else if (genericService && parameters) {
                   currentGenericParams = toProveGenericParams(parameters)
@@ -297,7 +300,7 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
                         username: currentUsername || undefined,
                       },
                     },
-                    true
+                    shouldReplacePrompt('profileGenericEnterUsername')
                   )
                 }
               },
