@@ -526,16 +526,33 @@ func ReadArr() (data []byte, err error) {
 func ensureConnection() error {
 	start := time.Now()
 	if !isInited() {
+		log("ensureConnection: keybase not initialized")
 		return errors.New("keybase not initialized")
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		log("ensureConnection: loopback listener not initialized (kbCtx nil: %v)", kbCtx == nil)
 		return errors.New("loopback listener not initialized")
 	}
 
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
-		return fmt.Errorf("Failed to dial loopback listener: %s", err)
+		// The listener was closed (isClosed=true, returns syscall.EINVAL). Recreate it and
+		// start a new ListenLoop goroutine, then retry the dial once.
+		log("ensureConnection: Dial failed (%v), restarting loopback server", err)
+		l, rerr := kbCtx.MakeLoopbackServer()
+		if rerr != nil {
+			log("ensureConnection: MakeLoopbackServer failed: %v", rerr)
+			return fmt.Errorf("failed to restart loopback server: %s", rerr)
+		}
+		go func() { _ = kbSvc.ListenLoop(l) }()
+		conn, err = kbCtx.LoopbackListener.Dial()
+		if err != nil {
+			log("ensureConnection: Dial failed after restart: %v", err)
+			return fmt.Errorf("failed to dial after loopback restart: %s", err)
+		}
+		log("ensureConnection: loopback server restarted successfully in %v", time.Since(start))
+		return nil
 	}
 	log("Go: Established loopback connection in %v", time.Since(start))
 	return nil
@@ -561,11 +578,17 @@ func Reset() error {
 
 // NotifyJSReady signals that the JavaScript side is ready to send/receive RPCs.
 // This unblocks the ReadArr loop and allows bidirectional communication.
+// jsReadyCh is closed once and stays closed — repeated calls from engine resets are no-ops.
 func NotifyJSReady() {
+	notified := false
 	jsReadyOnce.Do(func() {
+		notified = true
 		log("Go: JS signaled ready, unblocking RPC communication")
 		close(jsReadyCh)
 	})
+	if !notified {
+		log("Go: NotifyJSReady called again (no-op, channel already closed — engine reset?)")
+	}
 }
 
 // ForceGC Forces a gc

@@ -102,8 +102,10 @@ func (ll *LoopbackListener) Close() (err error) {
 	ll.mutex.Lock()
 	defer ll.mutex.Unlock()
 	if ll.isClosed {
+		ll.logCtx.GetLog().Debug("LoopbackListener.Close: already closed")
 		return syscall.EINVAL
 	}
+	ll.logCtx.GetLog().Debug("LoopbackListener.Close: closing")
 	ll.isClosed = true
 	close(ll.ch)
 	return

@@ -311,6 +311,7 @@ RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
 RCT_EXPORT_METHOD(engineReset) {
+  NSLog(@"engineReset: called (JS hot reload), resetting Go engine");
   NSError *error = nil;
   KeybaseReset(&error);
   [self sendEventWithName:metaEventName body:metaEventEngineReset];
@@ -352,6 +353,9 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         NSData *data = KeybaseReadArr(&error);
         if (error) {
           NSLog(@"Error reading data: %@", error);
+          // Back off on error to avoid spinning at ~35K/sec and starving the main thread CPU
+          // during foreground re-entry (seen during hang investigation: 419K errors in 12s).
+          [NSThread sleepForTimeInterval:0.1];
         } else if (data) {
           __typeof__(self) strongSelf = weakSelf;
           if (strongSelf) {
