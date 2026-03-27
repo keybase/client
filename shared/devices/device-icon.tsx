@@ -1,7 +1,6 @@
 import type * as Provision from '@/stores/provision'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 export type Props = {
   current?: boolean
   device: T.Devices.Device | Provision.Device
@@ -16,7 +15,7 @@ const DeviceIcon = (props: Props) => {
   } as const
 
   const {type, deviceNumberOfType} = props.device
-  const iconNumber = ((deviceNumberOfType % Devices.numBackgrounds) + 1) as T.Devices.IconNumber
+  const iconNumber = T.Devices.deviceNumberToIconNumber(deviceNumberOfType)
   const badge = props.current ? 'success-' : ''
 
   const maybeIcon = (

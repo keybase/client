@@ -1,7 +1,6 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useProvisionState} from '@/stores/provision'
 type Props = {
   mode: 'QR' | 'text'
@@ -56,17 +55,22 @@ const Troubleshooting = (props: Props) => {
   }
 
   const device = useProvisionState(s => s.codePageOtherDevice)
-  const deviceIconNo = (device.deviceNumberOfType % Devices.numBackgrounds) + 1
+  const deviceIconNo = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
-    deviceIconNo === -1 ? 1 : deviceIconNo
+    deviceIconNo
   }-64` as Kb.IconType
 
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-        <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          fullHeight={true}
+          style={Kb.Styles.globalStyles.flexOne}
+        >
           <Kb.Box2 direction="horizontal" style={styles.headerSide}>
             {Kb.Styles.isMobile ? (
               <Kb.Text type="BodySemiboldLink" onClick={onBack}>
@@ -74,7 +78,9 @@ const Troubleshooting = (props: Props) => {
               </Kb.Text>
             ) : null}
           </Kb.Box2>
-          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>Troubleshooting</Kb.Text>
+          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+            Troubleshooting
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" style={styles.headerSide} />
         </Kb.Box2>
       </Kb.Box2>
@@ -82,7 +88,9 @@ const Troubleshooting = (props: Props) => {
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
             This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
-            {"backup or uninstalled Keybase. Either way, Keybase keys aren't backed up, so this is now a totally"}
+            {
+              "backup or uninstalled Keybase. Either way, Keybase keys aren't backed up, so this is now a totally"
+            }
             new device.
           </Kb.Text>
           <Kb.Text type="Body" center={true}>
@@ -111,7 +119,12 @@ const Troubleshooting = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {!Kb.Styles.isMobile && (
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooterNoBorder}>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={styles.modalFooterNoBorder}
+        >
           <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />
         </Kb.Box2>
       )}

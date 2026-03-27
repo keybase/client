@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useProvisionState} from '@/stores/provision'
+import * as T from '@/constants/types'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -11,8 +11,27 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Devices.useNextDeviceIconNumber()
+  const [iconNumbers, setIconNumbers] = React.useState({
+    desktop: 1 as T.Devices.IconNumber,
+    mobile: 1 as T.Devices.IconNumber,
+  } as const)
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
+  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
+
+  C.useOnMountOnce(() => {
+    loadDeviceHistory(
+      [undefined, C.waitingKeyDevices],
+      results => {
+        const devices =
+          results?.map(result => ({
+            deviceNumberOfType: result.device.deviceNumberOfType,
+            type: T.Devices.stringToDeviceType(result.device.type),
+          })) ?? []
+        setIconNumbers(T.Devices.nextDeviceIconNumbers(devices))
+      },
+      _ => {}
+    )
+  })
 
   const onAddComputer = () => {
     addNewDevice('desktop')

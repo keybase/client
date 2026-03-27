@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from './device-icon'
@@ -7,22 +6,22 @@ import type * as T from '@/constants/types'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 
 type OwnProps = {
-  deviceID: T.Devices.DeviceID
+  canRevoke: boolean
+  device: T.Devices.Device
   firstItem: boolean
 }
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
 function Container(ownProps: OwnProps) {
-  const {deviceID, firstItem} = ownProps
-  const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
+  const {canRevoke, device, firstItem} = ownProps
+  const {deviceID} = device
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = () => {
-    navigateAppend({name: 'devicePage', params: {deviceID}})
+    navigateAppend({name: 'devicePage', params: {canRevoke, device}})
   }
 
   const isNew = React.useContext(NewContext).has(deviceID)
-  if (!device) return null
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
 

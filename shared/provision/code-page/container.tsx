@@ -1,21 +1,15 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {type Device, useProvisionState} from '@/stores/provision'
 
 const CodePageContainer = () => {
-  const {deviceID, storeDeviceName} = useCurrentUserState(
-    C.useShallow(s => ({
-      deviceID: s.deviceID,
-      storeDeviceName: s.deviceName,
-    }))
-  )
+  const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   const provisionState = useProvisionState(
     C.useShallow(s => ({
@@ -28,8 +22,16 @@ const CodePageContainer = () => {
   )
   const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
-  const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
+  const currentDevice = {
+    created: 0,
+    currentDevice: false,
+    deviceID: T.Devices.stringToDeviceID(''),
+    deviceNumberOfType: 0,
+    lastUsed: 0,
+    name: currentDeviceName,
+    type: currentDeviceType,
+  } satisfies T.Devices.Device
+  const iconNumber = T.Devices.deviceNumberToIconNumber(otherDevice.deviceNumberOfType)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

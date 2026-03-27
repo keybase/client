@@ -7,12 +7,9 @@ import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
-import {sharedNewRoutes} from './routes'
+import type {RootParamList} from '@/router-v2/route-params'
+import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/stores/settings'
-
-const settingsSubRoutes = {
-  ...sharedNewRoutes,
-}
 
 function LeftTabNavigator({
   initialRouteName,
@@ -76,9 +73,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 type NavType = NavigatorTypeBagBase & {
-  ParamList: {
-    [key in keyof typeof settingsSubRoutes]: undefined
-  }
+  ParamList: Pick<RootParamList, keyof typeof settingsDesktopTabRoutes>
 }
 
 export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
@@ -93,7 +88,14 @@ const makeOptions = (rd: RouteDef) => {
     return {...opt}
   }
 }
-const settingsScreens = routeMapToScreenElements(settingsSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false)
+const settingsScreens = routeMapToScreenElements(
+  settingsDesktopTabRoutes,
+  TabNavigator.Screen,
+  makeLayout,
+  makeOptions,
+  false,
+  false
+)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack

@@ -15,9 +15,9 @@ Status:
 - [x] `autoreset` kept badge-driven reset status plus reset pipeline entry/cancel logic; moved username/skip-password/has-wallet flow state into route params and removed dead confirm callback state
 - [x] `bots` removed the store entirely; components now reload featured bot data directly from the local service as needed
 - [x] `crypto`
-- [ ] `daemon`
+- [x] `daemon` kept handshake/bootstrap coordination, waiter tracking, bootstrap status, and platform restart hooks in store
 - [x] `darkmode`
-- [ ] `devices`
+- [x] `devices` removed the store; device history now loads in device screens, route params carry selected device data, and badge IDs moved into `modal-header`
 - [ ] `followers`
 - [ ] `git`
 - [ ] `inbox-rows`
@@ -45,13 +45,13 @@ Status:
 ## Larger / More Global Stores
 
 - [ ] `chat`
-- [ ] `config`
+- [x] `config` kept app/session/bootstrap state, engine plumbing, account/session coordination, startup routing, and window/app settings in store
 - [ ] `convostate`
 - [ ] `current-user`
 - [ ] `fs`
 - [ ] `router`
 - [ ] `teams`
-- [ ] `waiting`
+- [x] `waiting` kept shared waiting/error counters in store as cross-app infrastructure used by unrelated screens and stores
 
 ## Platform-Specific Logical Stores
 

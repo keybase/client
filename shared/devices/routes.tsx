@@ -41,7 +41,7 @@ export const newRoutes = {
       ? {title: 'Devices'}
       : {
           headerRightActions: HeaderRightActions,
-          headerTitle: HeaderTitle,
+          headerTitle: () => <HeaderTitle activeCount={0} revokedCount={0} />,
           title: 'Devices',
         },
     screen: React.lazy(async () => import('.')),

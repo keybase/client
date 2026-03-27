@@ -1,12 +1,16 @@
 import * as C from '@/constants'
-import * as Devices from '@/stores/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
+import {useModalHeaderState} from '@/stores/modal-header'
+import {HeaderTitle} from './nav-header'
+import {useNavigation} from '@react-navigation/native'
+import type {RootParamList} from '@/router-v2/route-params'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -14,26 +18,55 @@ const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   return a.name.localeCompare(b.name)
 }
 
-const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
-const splitAndSortDevices = (deviceMap: T.Immutable<Map<string, T.Devices.Device>>) =>
-  partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
+const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
+  created: d.device.cTime,
+  currentDevice: d.currentDevice,
+  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
+  deviceNumberOfType: d.device.deviceNumberOfType,
+  lastUsed: d.device.lastUsedTime,
+  name: d.device.name,
+  provisionedAt: d.provisionedAt || undefined,
+  provisionerName: d.provisioner ? d.provisioner.name : undefined,
+  revokedAt: d.revokedAt || undefined,
+  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
+  type: T.Devices.stringToDeviceType(d.device.type),
+})
+
+const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
+  canRevoke,
+  device,
+  key: device.deviceID,
+  type: 'device',
+}) as const
+const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
+  partition([...devices].sort(sortDevices), d => d.revokedAt)
 
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-  const deviceMap = Devices.useDevicesState(s => s.deviceMap)
+  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'devicesRoot'>>()
+  const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
-  const {load: loadDevices, clearBadges} = Devices.useDevicesState(s => s.dispatch)
-  const storeSet = Devices.useDevicesState(s => s.isNew)
+  const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
+  const clearBadges = useModalHeaderState(s => s.dispatch.clearDeviceBadges)
+  const storeSet = useModalHeaderState(s => s.deviceBadges)
   const {badged} = useLocalBadging(storeSet, clearBadges)
+
+  const loadDevices = React.useEffectEvent(() => {
+    loadDevicesRPC(
+      [undefined, C.waitingKeyDevices],
+      results => {
+        setDevices(results?.map(rpcDeviceToDevice) ?? [])
+      },
+      _ => {}
+    )
+  })
 
   const newlyChangedItemIds = badged
 
-  C.Router2.useSafeFocusEffect(
-    () => {
-      loadDevices()
-    }
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    loadDevices()
+  })
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
@@ -45,13 +78,26 @@ function ReloadableDevices() {
     navigateUp()
   }
 
+  const activeCount = devices.reduce((count, device) => (!device.revokedAt ? count + 1 : count), 0)
+  const revokedCount = devices.reduce((count, device) => (device.revokedAt ? count + 1 : count), 0)
+
+  React.useEffect(() => {
+    if (Kb.Styles.isMobile) {
+      return
+    }
+    navigation.setOptions({
+      headerTitle: () => <HeaderTitle activeCount={activeCount} revokedCount={revokedCount} />,
+    })
+  }, [activeCount, navigation, revokedCount])
+
   const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, _items} = (() => {
-    const [revoked, normal] = splitAndSortDevices(deviceMap)
-    const revokedItems = revoked.map(deviceToItem)
+    const [revoked, normal] = splitAndSortDevices(devices)
+    const canRevoke = activeCount > 1
+    const revokedItems = revoked.map(device => deviceToItem(device, canRevoke))
     const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), newlyChangedItemIds)
     const hasNewlyRevoked = newlyRevokedIds.size > 0
-    const showPaperKeyNudge = !!deviceMap.size && ![...deviceMap.values()].some(v => v.type === 'backup')
-    const _items = normal.map(deviceToItem) as Array<Item>
+    const showPaperKeyNudge = !!devices.length && !devices.some(device => device.type === 'backup')
+    const _items = normal.map(device => deviceToItem(device, canRevoke)) as Array<Item>
     return {
       _items,
       hasNewlyRevoked,
@@ -62,10 +108,6 @@ function ReloadableDevices() {
 
   const [revokedExpanded, setRevokeExpanded] = React.useState(false)
   const toggleExpanded = () => setRevokeExpanded(p => !p)
-
-  React.useEffect(() => {
-    loadDevices()
-  }, [loadDevices])
 
   const lastHasNewlyRevoked = React.useRef(hasNewlyRevoked)
   React.useEffect(() => {
@@ -91,7 +133,7 @@ function ReloadableDevices() {
         </Kb.Text>
       )
     } else {
-      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+      return <DeviceRow key={item.key} canRevoke={item.canRevoke} device={item.device} firstItem={index === 0} />
     }
   }
 
@@ -128,19 +170,9 @@ function ReloadableDevices() {
 }
 
 type Item =
-  | {key: string; id: T.Devices.DeviceID; type: 'device'}
+  | {canRevoke: boolean; device: T.Devices.Device; key: string; type: 'device'}
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
-
-export type Props = {
-  items: Array<Item>
-  loadDevices: () => void
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
-  revokedItems: Array<Item>
-  showPaperKeyNudge: boolean
-  hasNewlyRevoked: boolean
-  waiting: boolean
-}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -166,10 +198,6 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
     paddingLeft: Kb.Styles.globalMargins.small,
     paddingRight: Kb.Styles.globalMargins.small,
-  },
-  icon: {
-    alignSelf: 'center',
-    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

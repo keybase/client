@@ -1,4 +1,6 @@
 import * as Z from '@/util/zustand'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
 
 type Store = {
   actionEnabled: boolean
@@ -7,6 +9,7 @@ type Store = {
   botReadOnly: boolean
   botSubScreen: '' | 'install' | 'channels'
   data: unknown
+  deviceBadges: Set<T.Devices.DeviceID>
   editAvatarHasImage: boolean
   onAction: (() => void) | undefined
   title: string
@@ -19,6 +22,7 @@ const initialStore: Store = {
   botReadOnly: false,
   botSubScreen: '',
   data: undefined,
+  deviceBadges: new Set(),
   editAvatarHasImage: false,
   onAction: undefined,
   title: '',
@@ -26,13 +30,26 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    clearDeviceBadges: () => void
     resetState: () => void
+    setDeviceBadges: (deviceBadges: Set<T.Devices.DeviceID>) => void
   }
 }
 
-export const useModalHeaderState = Z.createZustand<State>('modal-header', () => {
+export const useModalHeaderState = Z.createZustand<State>('modal-header', set => {
   const dispatch: State['dispatch'] = {
+    clearDeviceBadges: () => {
+      ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
+      set(s => {
+        s.deviceBadges = new Set()
+      })
+    },
     resetState: Z.defaultReset,
+    setDeviceBadges: deviceBadges => {
+      set(s => {
+        s.deviceBadges = new Set(deviceBadges)
+      })
+    },
   }
   return {
     ...initialStore,

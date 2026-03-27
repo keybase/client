@@ -130,7 +130,23 @@ export const sharedNewRoutes = {
   },
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
-  removeDevice: devicesRoutes.deviceRevoke,
+}
+
+export const settingsDesktopTabRoutes = {
+  [Settings.settingsAboutTab]: sharedNewRoutes[Settings.settingsAboutTab],
+  [Settings.settingsAccountTab]: sharedNewRoutes[Settings.settingsAccountTab],
+  [Settings.settingsAdvancedTab]: sharedNewRoutes[Settings.settingsAdvancedTab],
+  [Settings.settingsArchiveTab]: sharedNewRoutes[Settings.settingsArchiveTab],
+  [Settings.settingsChatTab]: sharedNewRoutes[Settings.settingsChatTab],
+  [Settings.settingsCryptoTab]: sharedNewRoutes[Settings.settingsCryptoTab],
+  [Settings.settingsDevicesTab]: sharedNewRoutes[Settings.settingsDevicesTab],
+  [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
+  [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
+  [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
+  [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
+  [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
+  [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
+  [Settings.settingsWalletsTab]: sharedNewRoutes[Settings.settingsWalletsTab],
 }
 
 const sharedNewModalRoutes = {
