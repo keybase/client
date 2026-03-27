@@ -21,6 +21,7 @@ import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
 const defaultNumFollowSuggestions = 10
+let nextPeopleInstanceID = 1
 
 const makeAnnouncement = (a?: Partial<T.People.Announcement>): T.People.Announcement => ({
   badged: false,
@@ -348,6 +349,11 @@ const reducePeopleScreenData = (
 }
 
 const usePeoplePageState = () => {
+  const instanceIDRef = React.useRef(0)
+  if (instanceIDRef.current === 0) {
+    instanceIDRef.current = nextPeopleInstanceID++
+  }
+  const instanceID = instanceIDRef.current
   const [followSuggestions, setFollowSuggestions] = React.useState<Array<T.People.FollowSuggestion>>([])
   const [newItems, setNewItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
   const [oldItems, setOldItems] = React.useState<Array<T.People.PeopleScreenItem>>([])
@@ -367,20 +373,26 @@ const usePeoplePageState = () => {
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-      logger.info('people: load start', {markViewed, numFollowSuggestionsWanted})
+      logger.warn('people: load start', {instanceID, markViewed, numFollowSuggestionsWanted})
       const f = async () => {
         try {
           const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
             {markViewed, numFollowSuggestionsWanted},
             getPeopleDataWaitingKey
           )
+          logger.warn('people: load returned', {
+            instanceID,
+            followSuggestions: data.followSuggestions?.length ?? 0,
+            items: data.items?.length ?? 0,
+          })
           if (!mountedRef.current) {
-            logger.info('people: load ignored after unmount')
+            logger.warn('people: load ignored after unmount', {instanceID})
             return
           }
 
           const nextState = reducePeopleScreenData(data, followers, following)
-          logger.info('people: load success', {
+          logger.warn('people: load success', {
+            instanceID,
             followSuggestions: nextState.followSuggestions.length,
             items: data.items?.length ?? 0,
             newItems: nextState.newItems.length,
@@ -390,7 +402,7 @@ const usePeoplePageState = () => {
           setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
           setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
         } catch (error) {
-          logger.info('people: load failed', error)
+          logger.warn('people: load failed', {instanceID, error})
         }
       }
       ignorePromise(f())
@@ -408,9 +420,13 @@ const usePeoplePageState = () => {
   }
 
   React.useEffect(
-    () => () => {
-      mountedRef.current = false
-      debouncedLoadPeopleRef.current?.cancel()
+    () => {
+      logger.warn('people: mount', {instanceID})
+      return () => {
+        logger.warn('people: unmount', {instanceID})
+        mountedRef.current = false
+        debouncedLoadPeopleRef.current?.cancel()
+      }
     },
     []
   )
@@ -420,7 +436,7 @@ const usePeoplePageState = () => {
   }
 
   const queueLoadPeople = (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-    logger.info('people: queue load', {markViewed, numFollowSuggestionsWanted})
+    logger.warn('people: queue load', {instanceID, markViewed, numFollowSuggestionsWanted})
     debouncedLoadPeopleRef.current?.(markViewed, numFollowSuggestionsWanted)
   }
 
@@ -476,7 +492,7 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (refreshCount !== lastSeenRefreshRef.current) {
       lastSeenRefreshRef.current = refreshCount
-      logger.info('people: refresh signal reload')
+      logger.warn('people: refresh signal reload')
       getData(false, true)
     }
   }, [refreshCount])
@@ -484,7 +500,7 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (!didInitialLoadRef.current) {
       didInitialLoadRef.current = true
-      logger.info('people: initial load')
+      logger.warn('people: initial load')
       getData(false, true)
     }
   }, [])
