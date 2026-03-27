@@ -492,9 +492,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("applicationWillEnterForeground: done")
   }
 
-  public override func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
+  public func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
     NSLog("[Startup] applicationProtectedDataDidBecomeAvailable")
-    super.applicationProtectedDataDidBecomeAvailable(application)
   }
 
 }
