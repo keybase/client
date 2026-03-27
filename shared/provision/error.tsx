@@ -31,8 +31,8 @@ const rewriteErrorDesc = (s: string) => {
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const RenderError = () => {
-  const _username = AutoReset.useAutoResetState(s => s.username)
   const error = useProvisionState(s => s.finalError)
+  const username = useProvisionState(s => s.username)
   const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
@@ -47,7 +47,7 @@ const RenderError = () => {
   const onPasswordReset = () => {
     openURL('https://keybase.io/#password-reset')
   }
-  const onAccountReset = () => _onAccountReset(_username)
+  const onAccountReset = () => _onAccountReset(username)
 
   if (!error) {
     return (

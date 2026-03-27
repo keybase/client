@@ -7,14 +7,14 @@ import * as AutoReset from '@/stores/autoreset'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
-type Props = {pipelineStarted: boolean}
+type Props = {route: {params: {pipelineStarted: boolean; username: string}}}
 
 const formatTimeLeft = (endTime: number) => {
   return formatDuration(endTime - Date.now())
 }
 
 const Waiting = (props: Props) => {
-  const {pipelineStarted} = props
+  const {pipelineStarted, username} = props.route.params
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
@@ -25,7 +25,7 @@ const Waiting = (props: Props) => {
   const onSendAgain = () => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
-    resetAccount()
+    resetAccount(username)
   }
   const _sendAgainWaiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
@@ -47,7 +47,7 @@ const Waiting = (props: Props) => {
         setFormattedTime(newFormattedTime)
       }
       if (endTime < Date.now()) {
-        nav.safeNavigateAppend('resetEnterPassword', true)
+        nav.safeNavigateAppend({name: 'resetEnterPassword', params: {username}}, true)
       }
     }
 
@@ -55,7 +55,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav, username])
 
   return (
     <SignupScreen
