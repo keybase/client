@@ -181,12 +181,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const featuredContent = !!featured && (
-    <Kb.Box2
-      direction="vertical"
-      style={styles.container}
-      fullWidth={true}
-      gap="small"
-    >
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="small">
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.NameWithIcon
           botAlias={featured.botAlias}
@@ -296,7 +291,7 @@ const InstallBotPopup = (props: Props) => {
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
               Install as a restricted bot
             </Kb.Text>
-            {" if you’d like to customize which messages are encrypted for this bot."}
+            {' if you’d like to customize which messages are encrypted for this bot.'}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -429,17 +424,20 @@ const InstallBotPopup = (props: Props) => {
       title: channelPickerScreen ? 'Channels' : '',
     })
     return () => {
-      useModalHeaderState.setState({botInTeam: false, botReadOnly: false, botSubScreen: '', onAction: undefined, title: ''})
+      useModalHeaderState.setState({
+        botInTeam: false,
+        botReadOnly: false,
+        botSubScreen: '',
+        onAction: undefined,
+        title: '',
+      })
     }
   }, [channelPickerScreen, installScreen, inTeam, readOnly, navigateUp, clearModals])
 
   const enabled = !!conversationIDKey
   const bodyContent =
     enabled && !channelPickerScreen ? (
-      <Kb.ScrollView
-        style={styles.bodyScroll}
-        contentContainerStyle={styles.bodyScrollContent}
-      >
+      <Kb.ScrollView style={styles.bodyScroll} contentContainerStyle={styles.bodyScrollContent}>
         {content}
       </Kb.ScrollView>
     ) : enabled ? (
@@ -451,38 +449,34 @@ const InstallBotPopup = (props: Props) => {
     )
   return (
     <>
-      <Kb.Box2
-        direction="vertical"
-        style={styles.outerContainer}
-        fullWidth={true}
-      >
+      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
         {bodyContent}
       </Kb.Box2>
       {enabled && (!readOnly || showReviewButton) ? (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-              <Kb.ButtonBar direction="column">
-                {doneButton}
-                {editButton}
-                {saveButton}
-                {reviewButton}
-                {installButton}
-                {removeButton}
-              </Kb.ButtonBar>
-              {!!error && (
-                <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
-                  {'Something went wrong! Please try again, or send '}
-                  <Kb.Text
-                    type="Body"
-                    style={{color: Kb.Styles.globalColors.redDark}}
-                    underline={true}
-                    onClick={onFeedback}
-                  >
-                    {'feedback'}
-                  </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
+            <Kb.ButtonBar direction="column">
+              {doneButton}
+              {editButton}
+              {saveButton}
+              {reviewButton}
+              {installButton}
+              {removeButton}
+            </Kb.ButtonBar>
+            {!!error && (
+              <Kb.Text type="Body" style={{color: Kb.Styles.globalColors.redDark}}>
+                {'Something went wrong! Please try again, or send '}
+                <Kb.Text
+                  type="Body"
+                  style={{color: Kb.Styles.globalColors.redDark}}
+                  underline={true}
+                  onClick={onFeedback}
+                >
+                  {'feedback'}
                 </Kb.Text>
-              )}
-            </Kb.Box2>
+              </Kb.Text>
+            )}
+          </Kb.Box2>
         </Kb.Box2>
       ) : null}
     </>
@@ -587,15 +581,6 @@ const PermsList = (props: PermsListProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
-  },
-  dropdown: {
-    width: '100%',
-  },
-  dropdownButton: {
-    padding: Kb.Styles.globalMargins.tiny,
-  },
   bodyScroll: {
     flex: 1,
     minHeight: 0,
@@ -608,6 +593,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
+  container: {
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
+  },
+  dropdown: {
+    width: '100%',
+  },
+  dropdownButton: {
+    padding: Kb.Styles.globalMargins.tiny,
+  },
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),

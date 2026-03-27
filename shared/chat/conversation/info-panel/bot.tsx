@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 
@@ -221,7 +221,11 @@ const BotTab = (props: Props) => {
     if (!teamname) {
       return
     }
-    refreshParticipants([{convID: T.Chat.keyToConversationID(conversationIDKey)}], () => {}, () => {})
+    refreshParticipants(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      () => {},
+      () => {}
+    )
     getMembers(teamID)
   }, [conversationIDKey, getMembers, refreshParticipants, teamID, teamname])
   React.useEffect(() => {
