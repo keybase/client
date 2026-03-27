@@ -76,8 +76,7 @@ export const buildNotificationGroups = (
         description: "Show others when you're typing",
         description_h: "Show others when you're typing",
         name: 'disabletyping',
-        subscribed:
-          !chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
+        subscribed: !chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
       },
     ],
     unsub: false,
@@ -91,9 +90,7 @@ export const buildNotificationGroups = (
             description_h: 'Phone: use default sound for new messages',
             name: 'defaultsoundmobile',
             subscribed:
-              !!chatGlobalSettings.settings?.[
-                `${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`
-              ],
+              !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`],
           } as const,
         ],
     unsub: false,
@@ -172,7 +169,7 @@ const useNotificationSettings = () => {
   const saveSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverPostJSONRpcPromise)
   const saveGlobalSettingsRPC = C.useRPC(T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise)
   const [allowEdit, setAllowEdit] = React.useState(false)
-  const [groups, setGroups] = React.useState<Map<string, NotificationsGroupState>>(emptyGroups)
+  const [groups, setGroups] = React.useState(emptyGroups)
 
   const refresh = React.useCallback(() => {
     let handled = false
