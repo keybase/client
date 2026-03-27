@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {
   useAttachmentSections,
   type Item as AttachmentItem,
@@ -75,8 +75,8 @@ const useTabsState = (
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = (t: TabKey) => {
-      _setSelectedTab(t)
-    }
+    _setSelectedTab(t)
+  }
 
   React.useEffect(() => {
     lastSelectedTabs[conversationIDKey] = selectedTab
@@ -249,7 +249,6 @@ const Channel = (props: OwnProps) => {
         stickySectionHeadersEnabled={Kb.Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
-
       />
       <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
     </Kb.Box2>

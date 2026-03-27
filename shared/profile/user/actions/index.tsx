@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
 import {useTrackerState} from '@/stores/tracker'

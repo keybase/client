@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
 import TeamTabs from './tabs'
@@ -37,15 +37,15 @@ const useTabsState = (
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = (t: T.Teams.TabKey) => {
-      lastSelectedTabs.set(teamID, t)
-      if (selectedTab !== 'settings' && t === 'settings') {
-        resetErrorInSettings()
-      }
-      if (selectedTab !== 'channels' && t === 'channels') {
-        loadTeamChannelList(teamID)
-      }
-      _setSelectedTab(t)
+    lastSelectedTabs.set(teamID, t)
+    if (selectedTab !== 'settings' && t === 'settings') {
+      resetErrorInSettings()
     }
+    if (selectedTab !== 'channels' && t === 'channels') {
+      loadTeamChannelList(teamID)
+    }
+    _setSelectedTab(t)
+  }
 
   const prevTeamIDRef = React.useRef(teamID)
 
@@ -75,11 +75,9 @@ const Team = (props: Props) => {
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
-  C.Router2.useSafeFocusEffect(
-    () => {
-      return () => teamSeen(teamID)
-    }
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => teamSeen(teamID)
+  })
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
@@ -132,34 +130,41 @@ const Team = (props: Props) => {
   }
 
   const renderSectionHeader = ({section}: {section: Section}) =>
-      section.title ? (
-        <Kb.SectionDivider
-          label={section.title}
-          collapsed={section.collapsed}
-          onToggleCollapsed={section.onToggleCollapsed}
-        />
-      ) : null
+    section.title ? (
+      <Kb.SectionDivider
+        label={section.title}
+        collapsed={section.collapsed}
+        onToggleCollapsed={section.onToggleCollapsed}
+      />
+    ) : null
 
   const getItemHeight = () => {
     return 48
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} style={styles.container} relative={true}>
-        <Kb.SectionList
-          renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Kb.Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
-          getItemHeight={getItemHeight}
-        />
-        <SelectionPopup
-          selectedTab={
-            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-          }
-          teamID={teamID}
-        />
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      flex={1}
+      style={styles.container}
+      relative={true}
+    >
+      <Kb.SectionList
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Kb.Styles.isMobile}
+        sections={sections}
+        contentContainerStyle={styles.listContentContainer}
+        style={styles.list}
+        getItemHeight={getItemHeight}
+      />
+      <SelectionPopup
+        selectedTab={
+          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+        }
+        teamID={teamID}
+      />
     </Kb.Box2>
   )
 }
