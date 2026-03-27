@@ -34,11 +34,11 @@ describe('settings loading', () => {
     }))
     useSettingsPhoneState.setState(s => ({
       ...s,
-      phones: new Map([['existing', {} as never]]),
       dispatch: {
         ...s.dispatch,
         setNumbers: phoneHandler,
       },
+      phones: new Map([['existing', {} as never]]),
     }))
     jest.spyOn(T.RPCGen, 'userLoadMySettingsRpcPromise').mockResolvedValue({
       emails,

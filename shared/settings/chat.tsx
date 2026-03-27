@@ -109,7 +109,7 @@ const Security = () => {
     loadSettings()
     notifRefresh()
     contactSettingsRefresh()
-  }, [contactSettingsRefresh, loadSettings, notifRefresh])
+  }, [contactSettingsRefresh, notifRefresh])
 
   return (
     <>
