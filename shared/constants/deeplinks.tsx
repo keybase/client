@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import {navigateAppend, navToProfile, navToThread, switchTab} from './router'
 import * as Tabs from './tabs'
 import {useChatState} from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import {useTeamsState} from '@/stores/teams'
 
 const prefix = 'keybase://'
@@ -74,7 +73,7 @@ const handleKeybaseLink = (link: string) => {
       }
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
         parts.length === 4 && parts[3] && navToProfile(parts[3])
-        useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
+        navigateAppend({name: 'profileProofsList', params: {platform: parts[2]!, reason: 'appLink'}})
         return
       }
       break

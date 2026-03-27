@@ -10,7 +10,6 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {generateGUIID} from '@/constants/utils'
 import {navToProfile} from '@/constants/router'
 
@@ -76,13 +75,11 @@ const Container = (ownProps: OwnProps) => {
   )
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
-  const addProof = useProfileState(s => s.dispatch.addProof)
   const loadProfile = useTrackerState(s => s.dispatch.load)
   const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
-  const _onCreateProof = () => {
-    addProof(type, 'profile')
-  }
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onCreateProof = () => navigateAppend({name: 'profileProofsList', params: {platform: type}})
   const onHideStellar = (hidden: boolean) => {
     hideStellar(
       [{args: [{key: 'hidden', value: hidden ? '1' : '0'}], endpoint: 'stellar/hidden'}, C.waitingKeyTracker],
@@ -100,9 +97,6 @@ const Container = (ownProps: OwnProps) => {
       () => {}
     )
   }
-
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-
   const _onRevoke = () => {
     navigateAppend({
       name: 'profileRevoke',
