@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 
-type OwnProps = {device: T.Devices.Device}
+type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
 const _renderTLFEntry = (index: number, tlf: string) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
@@ -72,6 +72,20 @@ const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNum
   return Kb.Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 
+const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
+  created: d.device.cTime,
+  currentDevice: d.currentDevice,
+  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
+  deviceNumberOfType: d.device.deviceNumberOfType,
+  lastUsed: d.device.lastUsedTime,
+  name: d.device.name,
+  provisionedAt: d.provisionedAt || undefined,
+  provisionerName: d.provisioner ? d.provisioner.name : undefined,
+  revokedAt: d.revokedAt || undefined,
+  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
+  type: T.Devices.stringToDeviceType(d.device.type),
+})
+
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
   if (!actingDevice || !targetDevice) {
     return []
@@ -119,24 +133,85 @@ const useRevoke = (device: T.Devices.Device) => {
 }
 
 const DeviceRevoke = (ownProps: OwnProps) => {
-  const {device} = ownProps
-  const selectedDeviceID = device.deviceID
-  const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
-  const type = device.type
-  const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
-  const onSubmit = useRevoke(device)
+  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
+  const [loadedDevice, setLoadedDevice] = React.useState<T.Devices.Device | undefined>(ownProps.device)
+  const device = ownProps.device ?? loadedDevice
+  const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
+  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const onCancel = navigateUp
+
+  React.useEffect(() => {
+    setLoadedDevice(ownProps.device)
+  }, [ownProps.device])
+
+  C.useOnMountOnce(() => {
+    if (device) {
+      return
+    }
+    if (!selectedDeviceID) {
+      navigateUp()
+      return
+    }
+    loadDeviceHistory(
+      [undefined, C.waitingKeyDevices],
+      results => {
+        const hydratedDevice = results
+          ?.map(rpcDeviceToDevice)
+          .find(candidate => candidate.deviceID === selectedDeviceID)
+        if (hydratedDevice) {
+          setLoadedDevice(hydratedDevice)
+        } else {
+          navigateUp()
+        }
+      },
+      _ => {
+        navigateUp()
+      }
+    )
+  })
+
+  const onSubmit = useRevoke(
+    device ?? {
+      created: 0,
+      currentDevice: false,
+      deviceID: selectedDeviceID,
+      deviceNumberOfType: 0,
+      lastUsed: 0,
+      name: '',
+      type: 'desktop',
+    }
+  )
 
   const actingDevice = useCurrentUserState(s => s.deviceID)
   C.useOnMountOnce(() => {
+    if (!selectedDeviceID) {
+      return
+    }
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
       setEndangeredTLFs(tlfs)
     }
     C.ignorePromise(f())
   })
+
+  if (!device) {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        centerChildren={true}
+        style={styles.container}
+      >
+        <Kb.ProgressIndicator />
+      </Kb.Box2>
+    )
+  }
+
+  const type = device.type
+  const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
   const props = {
     endangeredTLFs,
