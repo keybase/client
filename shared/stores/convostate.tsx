@@ -1378,8 +1378,7 @@ const createSlice = (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.Imme
       await T.RPCChat.localRefreshParticipantsRpcPromise({convID})
     } catch {}
     if (meta.teamname) {
-      const {useTeamsState} = require('@/stores/teams') as typeof import('@/stores/teams')
-      useTeamsState.getState().dispatch.getMembers(meta.teamID)
+      get().dispatch.defer.teamsGetMembers(meta.teamID)
     }
   }
 
