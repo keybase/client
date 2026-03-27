@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {ignorePromise} from '@/constants/utils'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
@@ -7,6 +8,7 @@ import type {DebouncedFunc} from 'lodash'
 import debounce from 'lodash/debounce'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
 import People from '.'
 import * as T from '@/constants/types'
 import {useFollowerState} from '@/stores/followers'
@@ -356,7 +358,6 @@ const usePeoplePageState = () => {
       following: s.following,
     }))
   )
-  const loadPeopleRPC = C.useRPC(T.RPCGen.homeHomeGetScreenRpcPromise)
   const dismissAnnouncementRPC = C.useRPC(T.RPCGen.homeHomeDismissAnnouncementRpcPromise)
   const skipTodoRPC = C.useRPC(T.RPCGen.homeHomeSkipTodoTypeRpcPromise)
   const mountedRef = React.useRef(true)
@@ -366,9 +367,12 @@ const usePeoplePageState = () => {
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
-      loadPeopleRPC(
-        [{markViewed, numFollowSuggestionsWanted}, getPeopleDataWaitingKey],
-        data => {
+      const f = async () => {
+        try {
+          const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
+            {markViewed, numFollowSuggestionsWanted},
+            getPeopleDataWaitingKey
+          )
           if (!mountedRef.current) {
             return
           }
@@ -377,9 +381,11 @@ const usePeoplePageState = () => {
           setFollowSuggestions(s => (isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions))
           setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
           setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
-        },
-        _ => {}
-      )
+        } catch (error) {
+          logger.info('getPeopleData failed', error)
+        }
+      }
+      ignorePromise(f())
     }
   )
 
@@ -470,8 +476,10 @@ const PeopleReloadable = () => {
 
   const onReload = (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length)
 
+  C.Router2.useSafeFocusEffect(onReload)
+
   return (
-    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={getPeopleDataWaitingKey}>
+    <Kb.Reloadable onReload={onReload} reloadOnMount={false} waitingKeys={getPeopleDataWaitingKey}>
       <People
         followSuggestions={followSuggestions}
         getData={getData}
