@@ -7,9 +7,8 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import ChannelPicker from './channel-picker'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import logger from '@/logger'
-import {useBotsState} from '@/stores/bots'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useFeaturedBot} from '@/util/featured-bots'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -83,9 +82,7 @@ const InstallBotPopup = (props: Props) => {
     return commands.length > 0 ? convCommands : botPublicCommands
   })()
 
-  const featured = useBotsState(s => s.featuredBotsMap.get(botUsername))
-  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
-  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
+  const featured = useFeaturedBot(botUsername)
   const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
@@ -150,22 +147,6 @@ const InstallBotPopup = (props: Props) => {
       }
     }
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
-  React.useEffect(() => {
-    if (featured) {
-      return
-    }
-    searchFeaturedBots(
-      [{limit: 10, offset: 0, query: botUsername}],
-      result => {
-        if (result.bots?.length) {
-          updateFeaturedBots(result.bots)
-        }
-      },
-      error => {
-        logger.info(`InstallBotPopup: failed to load featured bot details: ${error.message}`)
-      }
-    )
-  }, [botUsername, featured, searchFeaturedBots, updateFeaturedBots])
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()

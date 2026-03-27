@@ -26,7 +26,6 @@ declare global {
 }
 import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseAutoResetStateType from '@/stores/autoreset'
-import type * as UseBotsStateType from '@/stores/bots'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseDevicesStateType from '@/stores/devices'
 import type * as UseFSStateType from '@/stores/fs'
@@ -114,7 +113,7 @@ export const onEngineConnected = () => {
           channels: {
             allowChatNotifySkips: true, app: true, audit: true, badges: true, chat: true, chatarchive: true,
             chatattachments: true, chatdev: false, chatemoji: false, chatemojicross: false, chatkbfsedits: false,
-            deviceclone: false, ephemeral: false, favorites: false, featuredBots: true, kbfs: true, kbfsdesktop: !isMobile,
+            deviceclone: false, ephemeral: false, favorites: false, featuredBots: false, kbfs: true, kbfsdesktop: !isMobile,
             kbfslegacy: false, kbfsrequest: false, kbfssubscription: true, keyfamily: false, notifysimplefs: true,
             paperkeys: false, pgp: true, reachability: true, runtimestats: true, saltpack: true, service: true, session: true,
             team: true, teambot: false, tracking: true, users: true, wallet: false,
@@ -784,12 +783,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyFeaturedBots.featuredBotsUpdate':
-      {
-        const {useBotsState} = require('@/stores/bots') as typeof UseBotsStateType
-        useBotsState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':

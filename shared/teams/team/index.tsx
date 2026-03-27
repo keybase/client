@@ -18,8 +18,6 @@ import {
   type Section,
   type Item,
 } from './rows'
-import {useBotsState} from '@/stores/bots'
-import logger from '@/logger'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -67,32 +65,6 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
-  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
-  const _bots = [...teamDetails.members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
-  React.useEffect(() => {
-    if (shouldLoad) {
-      _bots.forEach(bot => {
-        if (!featuredBotsMap.has(bot.username)) {
-          searchFeaturedBots(
-            [{limit: 10, offset: 0, query: bot.username}],
-            result => {
-              if (result.bots?.length) {
-                updateFeaturedBots(result.bots)
-              }
-            },
-            error => {
-              logger.info(`Team bot load failed for ${bot.username}: ${error.message}`)
-            }
-          )
-        }
-      })
-    }
-  }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots, updateFeaturedBots])
-}
-
 const Team = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
@@ -111,7 +83,6 @@ const Team = (props: Props) => {
 
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
-  useLoadFeaturedBots(teamDetails, selectedTab === 'bots' /* shouldLoad */)
   useActivityLevels()
 
   // Sections

@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
 import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
-import {getFeaturedSorted, useBotsState} from '@/stores/bots'
+import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 
 type Props = {teamID?: T.Teams.TeamID}
 type BotSearchResults = {
@@ -35,9 +35,8 @@ const SearchBotPopup = (props: Props) => {
   const [botSearchResults, setBotSearchResults] = React.useState(
     new Map<string, BotSearchResults | undefined>()
   )
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
-  const getFeaturedBots = C.useRPC(T.RPCGen.featuredBotFeaturedBotsRpcPromise)
+  const {featuredBots} = useFeaturedBotPage()
+  const featuredBotsMap = new Map(featuredBots.map(bot => [bot.botUsername, bot] as const))
   const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
   const searchUsers = C.useRPC(T.RPCGen.userSearchUserSearchRpcPromise)
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
@@ -120,13 +119,6 @@ const SearchBotPopup = (props: Props) => {
 
   C.useOnMountOnce(() => {
     setResultsForQuery('', undefined)
-    getFeaturedBots(
-      [{limit: 100, offset: 0, skipCache: false}],
-      result => {
-        updateFeaturedBots(result.bots ?? [])
-      },
-      () => {}
-    )
   })
   React.useEffect(() => () => onSearch.cancel(), [onSearch])
 
@@ -136,7 +128,7 @@ const SearchBotPopup = (props: Props) => {
           .get(lastQuery)
           ?.bots.slice()
           .map(bot => ({bot, type: 'bot'}) as const) ?? [])
-      : getFeaturedSorted(featuredBotsMap).map(bot => ({bot, type: 'bot'}))
+      : getFeaturedSorted(featuredBots).map(bot => ({bot, type: 'bot'}))
   if (!botData.length && !waiting) {
     botData.push({type: 'dummy', value: resultEmptyPlaceholder})
   }

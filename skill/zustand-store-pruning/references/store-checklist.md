@@ -13,7 +13,7 @@ Status:
 
 - [x] `archive` kept notification-backed chat/KBFS job caches plus engine/load plumbing; moved modal waiters, start RPCs, row action RPCs, and KBFS freshness lookup into settings components
 - [x] `autoreset` kept badge-driven reset status plus reset pipeline entry/cancel logic; moved username/skip-password/has-wallet flow state into route params and removed dead confirm callback state
-- [x] `bots` kept only the shared featured bot cache plus engine merge path; moved featured/search RPCs and pagination into the owning components
+- [x] `bots` removed the store entirely; components now reload featured bot data directly from the local service as needed
 - [x] `crypto`
 - [ ] `daemon`
 - [x] `darkmode`
