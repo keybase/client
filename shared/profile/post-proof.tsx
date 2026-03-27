@@ -19,8 +19,13 @@ const Container = ({error, platform, username, proofText: initialProofText}: Pro
   let proofText = initialProofText
   const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
   const afterCheckProof = useProfileState(s => s.dispatch.dynamic.afterCheckProof)
-  if (platform === 'zcash' || platform === 'btc' || platform === 'dnsOrGenericWebSite' || platform === 'pgp') {
-    throw new Error(`Invalid profile platform in PostProofContainer: ${platform || ''}`)
+  if (
+    platform === 'zcash' ||
+    platform === 'btc' ||
+    platform === 'dnsOrGenericWebSite' ||
+    platform === 'pgp'
+  ) {
+    throw new Error(`Invalid profile platform in PostProofContainer: ${platform}`)
   }
 
   let url = ''
