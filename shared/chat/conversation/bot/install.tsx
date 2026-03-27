@@ -183,7 +183,7 @@ const InstallBotPopup = (props: Props) => {
   const featuredContent = !!featured && (
     <Kb.Box2
       direction="vertical"
-      style={Kb.Styles.collapseStyles([styles.container, {flex: 1}])}
+      style={styles.container}
       fullWidth={true}
       gap="small"
     >
@@ -324,12 +324,6 @@ const InstallBotPopup = (props: Props) => {
       : featured
         ? featuredContent
         : usernameContent
-  const getHeight = () => {
-    if (channelPickerScreen) {
-      return 440
-    }
-    return 560
-  }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && isBot && !installScreen
@@ -459,7 +453,7 @@ const InstallBotPopup = (props: Props) => {
     <>
       <Kb.Box2
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
+        style={styles.outerContainer}
         fullWidth={true}
       >
         {bodyContent}
@@ -623,8 +617,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   outerContainer: Kb.Styles.platformStyles({
-    isElectron: {
-      height: 560,
+    common: {
+      flex: 1,
     },
   }),
   reviewButton: {marginTop: -Kb.Styles.globalMargins.tiny},
