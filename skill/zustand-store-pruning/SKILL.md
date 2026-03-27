@@ -54,6 +54,8 @@ Move it to component state if it is:
 - A one-shot RPC result only used by the current screen
 - Reset on every screen entry and not meaningful elsewhere
 
+Notification-fed UI does not automatically make state global. If a notification only updates a transient banner or screen-local status, keep the trigger where it already lands but move the rendered UI state into the owning screen unless multiple unrelated entry points truly need to read it.
+
 Move it to route params if it is:
 
 - Data screen A already knows and screen B only needs for that navigation

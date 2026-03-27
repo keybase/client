@@ -20,11 +20,11 @@ Status:
 - [x] `devices` removed the store; device history now loads in device screens, route params carry selected device data, and badge IDs moved into `modal-header`
 - [x] `followers` kept current-user follow graph in store; notification-backed `followers`/`following` sets are shared across profile, tracker, chat, mentions, contacts, people suggestions, and desktop remote windows
 - [x] `git` removed the store; git screens now own RPC/error state, config badgeState feeds per-repo badging, and route params carry repo context for chat/deletion flows
-- [ ] `inbox-rows`
+- [x] `inbox-rows` kept as a notification-driven derived cache for chat inbox row rendering; no screen-local state or RPC orchestration left to prune
 - [x] `logout` kept handshake `version`/`waiters` in store; moved can-logout RPC and password redirect into settings hook
 - [x] `modal-header`
-- [ ] `notifications`
-- [ ] `people`
+- [x] `notifications` kept notification-driven badge aggregation, tray/widget badge state, and engine/init badge plumbing in store
+- [x] `people` kept only `homeUIRefresh` / route-leave `markViewed` plumbing in store; moved fetched People rows, follow suggestions, skip/dismiss RPCs, and resend-email banner state into the People feature layer
 - [ ] `pinentry`
 - [ ] `profile`
 - [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params

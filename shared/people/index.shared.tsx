@@ -8,7 +8,6 @@ import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
 import {useSignupState} from '@/stores/signup'
-import {usePeopleState} from '@/stores/people'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -25,6 +24,8 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
           instructions={item.instructions}
           key={item.todoType}
           metadata={item.metadata}
+          setResentEmail={props.setResentEmail}
+          skipTodo={props.skipTodo}
           todoType={item.todoType}
         />
       )
@@ -48,6 +49,8 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
           badged={item.badged}
           confirmLabel={item.confirmLabel}
           dismissable={item.dismissable}
+          dismissAnnouncement={props.dismissAnnouncement}
+          getData={props.getData}
           iconUrl={item.iconUrl}
           id={item.id}
           key={item.text}
@@ -84,9 +87,8 @@ function EmailVerificationBanner() {
   )
 }
 
-function ResentEmailVerificationBanner() {
-  const resentEmail = usePeopleState(s => s.resentEmail)
-  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
+function ResentEmailVerificationBanner(props: {resentEmail: string; setResentEmail: (email: string) => void}) {
+  const {resentEmail, setResentEmail} = props
   React.useEffect(
     () =>
       // Only have a cleanup function
@@ -116,7 +118,7 @@ export function PeoplePageList(props: Props) {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
       <EmailVerificationBanner />
-      <ResentEmailVerificationBanner />
+      <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
       {props.newItems
         .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
         .map((item): React.ReactNode => itemToComponent(item, props))}
