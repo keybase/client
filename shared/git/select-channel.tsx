@@ -2,7 +2,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
 type OwnProps = {

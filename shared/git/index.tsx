@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useConfigState} from '@/stores/config'
 import {findExpandedRepoID, parseRepos} from './parse'
@@ -28,11 +28,15 @@ const Container = (ownProps: OwnProps) => {
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
-  const [idToInfo, setIDToInfo] = React.useState<Map<string, T.Git.GitInfo>>(new Map())
+  const [idToInfo, setIDToInfo] = React.useState(new Map<string, T.Git.GitInfo>())
   const expandedRouteApplied = React.useRef(false)
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
-    clearGitBadges([{category: 'new_git_repo'}], () => {}, () => {})
+    clearGitBadges(
+      [{category: 'new_git_repo'}],
+      () => {},
+      () => {}
+    )
   })
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -107,11 +111,7 @@ const Container = (ownProps: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable
-      waitingKeys={C.waitingKeyGitLoading}
-      onBack={undefined}
-      onReload={load}
-    >
+    <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (

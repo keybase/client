@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {_name, teamname = ''} = {teamname: ownProps.teamname, _name: ownProps.name}
+  const {_name, teamname = ''} = {_name: ownProps.name, teamname: ownProps.teamname}
   const [error, setError] = React.useState('')
   const waitingKey = C.waitingKeyGitLoading
 
