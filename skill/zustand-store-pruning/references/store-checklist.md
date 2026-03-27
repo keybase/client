@@ -28,7 +28,7 @@ Status:
 - [x] `pinentry` kept daemon passphrase callback coordination, remote-window prompt state, and submit/cancel closures in store
 - [x] `profile` kept proof/PGP listener callbacks plus shared navigation hooks in store; moved visible proof/PGP/revoke state and one-screen RPCs into route params or owning components
 - [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
-- [x] `settings` kept shared settings reload fanout, lockdown mode, and advanced utility actions in store; moved password-check, delete-account, and proxy editor state/RPCs into the settings feature layer
+- [x] `settings` removed the store entirely; shared settings reload is now a feature helper and lockdown/developer/account actions live in their owning settings screens
 - [ ] `settings-chat`
 - [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
 - [ ] `settings-notifications`
