@@ -367,6 +367,7 @@ const usePeoplePageState = () => {
 
   const loadPeople = React.useEffectEvent(
     (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
+      logger.info('people: load start', {markViewed, numFollowSuggestionsWanted})
       const f = async () => {
         try {
           const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
@@ -374,15 +375,22 @@ const usePeoplePageState = () => {
             getPeopleDataWaitingKey
           )
           if (!mountedRef.current) {
+            logger.info('people: load ignored after unmount')
             return
           }
 
           const nextState = reducePeopleScreenData(data, followers, following)
+          logger.info('people: load success', {
+            followSuggestions: nextState.followSuggestions.length,
+            items: data.items?.length ?? 0,
+            newItems: nextState.newItems.length,
+            oldItems: nextState.oldItems.length,
+          })
           setFollowSuggestions(s => (isEqual(s, nextState.followSuggestions) ? s : nextState.followSuggestions))
           setNewItems(s => (isEqual(s, nextState.newItems) ? s : nextState.newItems))
           setOldItems(s => (isEqual(s, nextState.oldItems) ? s : nextState.oldItems))
         } catch (error) {
-          logger.info('getPeopleData failed', error)
+          logger.info('people: load failed', error)
         }
       }
       ignorePromise(f())
@@ -412,6 +420,7 @@ const usePeoplePageState = () => {
   }
 
   const queueLoadPeople = (markViewed: boolean, numFollowSuggestionsWanted: number = defaultNumFollowSuggestions) => {
+    logger.info('people: queue load', {markViewed, numFollowSuggestionsWanted})
     debouncedLoadPeopleRef.current?.(markViewed, numFollowSuggestionsWanted)
   }
 
@@ -467,6 +476,7 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (refreshCount !== lastSeenRefreshRef.current) {
       lastSeenRefreshRef.current = refreshCount
+      logger.info('people: refresh signal reload')
       getData(false, true)
     }
   }, [refreshCount])
@@ -474,6 +484,7 @@ const PeopleReloadable = () => {
   React.useEffect(() => {
     if (!didInitialLoadRef.current) {
       didInitialLoadRef.current = true
+      logger.info('people: initial load')
       getData(false, true)
     }
   }, [])
