@@ -93,7 +93,9 @@ export const newModalRoutes = {
     }),
   }),
   profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
-  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice'))),
+  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
+    getOptions: {modalStyle: {height: 485, width: 560}},
+  }),
   profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
   }),
