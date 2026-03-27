@@ -4,6 +4,7 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import logger from '@/logger'
 import {getFeaturedSorted, useBotsState} from '@/stores/bots'
 import {useUsersState} from '@/stores/users'
 
@@ -32,6 +33,7 @@ type Item =
   | typeof featuredBotSpinner
 
 type Section = Kb.SectionType<Item>
+const featuredBotPageSize = 100
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
@@ -203,6 +205,7 @@ const BotTab = (props: Props) => {
   }
 
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
+  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
   const featuredBots: Array<Item> = getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
@@ -211,7 +214,9 @@ const BotTab = (props: Props) => {
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)
-  const loadedAllBots = useBotsState(s => s.featuredBotsLoaded)
+  const [featuredBotsPage, setFeaturedBotsPage] = React.useState(-1)
+  const [loadedAllBots, setLoadedAllBots] = React.useState(false)
+  const loadFeaturedBots = C.useRPC(T.RPCGen.featuredBotFeaturedBotsRpcPromise)
 
   const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>
     usernames.map(
@@ -248,20 +253,28 @@ const BotTab = (props: Props) => {
       params: {botUsername: username, conversationIDKey},
     }))
   }
-  const loadNextBotPage = useBotsState(s => s.dispatch.loadNextBotPage)
-  const onLoadMoreBots = () => loadNextBotPage()
+  const onLoadMoreBots = React.useCallback(() => {
+    const nextPage = featuredBotsPage + 1
+    loadFeaturedBots(
+      [{limit: featuredBotPageSize, offset: nextPage * featuredBotPageSize, skipCache: false}],
+      result => {
+        const bots = result.bots ?? []
+        updateFeaturedBots(bots)
+        setFeaturedBotsPage(nextPage)
+        setLoadedAllBots(bots.length < featuredBotPageSize)
+      },
+      error => {
+        logger.info(`BotTab: failed to load featured bots: ${error.message}`)
+      }
+    )
+  }, [featuredBotsPage, loadFeaturedBots, updateFeaturedBots])
   const loadingBots = !featuredBotsMap.size
 
-  const featuredBotsLength = featuredBots.length
-  const [lastFBL, setLastFBL] = React.useState(-1)
   React.useEffect(() => {
-    if (lastFBL !== featuredBotsLength) {
-      setLastFBL(featuredBotsLength)
-      if (featuredBotsLength === 0 && !loadedAllBots) {
-        loadNextBotPage()
-      }
+    if (featuredBotsPage === -1 && !loadedAllBots) {
+      onLoadMoreBots()
     }
-  }, [featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
+  }, [featuredBotsPage, loadedAllBots, onLoadMoreBots])
 
   const items: Array<Item> = [
     ...(canManageBots ? ([addBotButton] as const) : []),

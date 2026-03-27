@@ -55,12 +55,19 @@ const Container = (ownProps: OwnProps) => {
   const onReload = () => _onReload(username)
   const onUnfollow = () => _onFollow(_guiID, false)
 
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
+  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
+  const getFeaturedBots = C.useRPC(T.RPCGen.featuredBotFeaturedBotsRpcPromise)
   // load featured bots on first render
   React.useEffect(() => {
     // TODO likely don't do this all the time, just once
-    getFeaturedBots()
-  }, [getFeaturedBots])
+    getFeaturedBots(
+      [{limit: 100, offset: 0, skipCache: false}],
+      result => {
+        updateFeaturedBots(result.bots ?? [])
+      },
+      () => {}
+    )
+  }, [getFeaturedBots, updateFeaturedBots])
   if (blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>

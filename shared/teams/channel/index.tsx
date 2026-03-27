@@ -17,6 +17,7 @@ import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import {useBotsState} from '@/stores/bots'
 import {useUsersState} from '@/stores/users'
+import logger from '@/logger'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -34,9 +35,11 @@ const useLoadDataForChannelPage = (
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
   const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
+  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
+  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
@@ -55,15 +58,26 @@ const useLoadDataForChannelPage = (
     participants,
     teamID,
   ])
-  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already
       bots
         .filter(botUsername => !featuredBotsMap.has(botUsername))
-        .map(botUsername => searchFeaturedBots(botUsername))
+        .map(botUsername =>
+          searchFeaturedBots(
+            [{limit: 10, offset: 0, query: botUsername}],
+            result => {
+              if (result.bots?.length) {
+                updateFeaturedBots(result.bots)
+              }
+            },
+            error => {
+              logger.info(`Channel bot load failed for ${botUsername}: ${error.message}`)
+            }
+          )
+        )
     }
-  }, [selectedTab, searchFeaturedBots, conversationIDKey, bots, featuredBotsMap])
+  }, [selectedTab, searchFeaturedBots, conversationIDKey, bots, featuredBotsMap, updateFeaturedBots])
 
   React.useEffect(() => {
     prevSelectedTabRef.current = selectedTab

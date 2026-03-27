@@ -4,10 +4,16 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import type * as T from '@/constants/types'
+import * as S from '@/constants/strings'
+import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useBotsState} from '@/stores/bots'
 
 type Props = {teamID?: T.Teams.TeamID}
+type BotSearchResults = {
+  bots: ReadonlyArray<T.RPCGen.FeaturedBot>
+  users: ReadonlyArray<string>
+}
 
 const renderSectionHeader = ({section}: {section: {title?: string}}) => {
   return <Kb.SectionDivider label={section.title} />
@@ -26,28 +32,85 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const botsState = useBotsState(
-    C.useShallow(s => ({
-      botSearchResults: s.botSearchResults,
-      featuredBotsMap: s.featuredBotsMap,
-      getFeaturedBots: s.dispatch.getFeaturedBots,
-      searchFeaturedAndUsers: s.dispatch.searchFeaturedAndUsers,
-      setSearchFeaturedAndUsersResults: s.dispatch.setSearchFeaturedAndUsersResults,
-    }))
+  const [botSearchResults, setBotSearchResults] = React.useState<Map<string, BotSearchResults | undefined>>(
+    new Map()
   )
-  const {botSearchResults, featuredBotsMap, getFeaturedBots} = botsState
-  const {searchFeaturedAndUsers, setSearchFeaturedAndUsersResults} = botsState
+  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
+  const updateFeaturedBots = useBotsState(s => s.dispatch.updateFeaturedBots)
+  const getFeaturedBots = C.useRPC(T.RPCGen.featuredBotFeaturedBotsRpcPromise)
+  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
+  const searchUsers = C.useRPC(T.RPCGen.userSearchUserSearchRpcPromise)
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const onSearch = debounce((query: string) => {
-    setLastQuery(query)
-    if (query.length > 0) {
-      searchFeaturedAndUsers(query)
-    } else {
-      setSearchFeaturedAndUsersResults(query, undefined)
-    }
-  }, 200)
+  const setResultsForQuery = React.useCallback((query: string, results?: BotSearchResults) => {
+    setBotSearchResults(prev => {
+      const next = new Map(prev)
+      next.set(query, results)
+      return next
+    })
+  }, [])
+  const onSearch = React.useMemo(
+    () =>
+      debounce((query: string) => {
+        setLastQuery(query)
+        if (query.length === 0) {
+          setResultsForQuery(query, undefined)
+          return
+        }
+
+        let nextBots: ReadonlyArray<T.RPCGen.FeaturedBot> = []
+        let nextUsers: ReadonlyArray<string> = []
+        let pending = 2
+        let failed = false
+        const finish = () => {
+          pending -= 1
+          if (pending === 0 && !failed) {
+            setResultsForQuery(query, {bots: nextBots, users: nextUsers})
+          }
+        }
+
+        searchFeaturedBots(
+          [{limit: 10, offset: 0, query}, S.waitingKeyBotsSearchFeatured],
+          result => {
+            nextBots = result.bots ?? []
+            finish()
+          },
+          error => {
+            failed = true
+            logger.info(`searchFeaturedAndUsers: failed to run bot search: ${error.message}`)
+          }
+        )
+        searchUsers(
+          [
+            {
+              includeContacts: false,
+              includeServicesSummary: false,
+              maxResults: 10,
+              query,
+              service: 'keybase',
+            },
+            S.waitingKeyBotsSearchUsers,
+          ],
+          result => {
+            nextUsers =
+              result?.reduce<Array<string>>((usernames, user) => {
+                const username = user.keybase?.username
+                if (username) {
+                  usernames.push(username)
+                }
+                return usernames
+              }, []) ?? []
+            finish()
+          },
+          error => {
+            failed = true
+            logger.info(`searchFeaturedAndUsers: failed to run user search: ${error.message}`)
+          }
+        )
+      }, 200),
+    [searchFeaturedBots, searchUsers, setResultsForQuery]
+  )
   const onSelect = (username: string) => {
     navigateAppend({
       name: 'chatInstallBot',
@@ -56,9 +119,16 @@ const SearchBotPopup = (props: Props) => {
   }
 
   C.useOnMountOnce(() => {
-    setSearchFeaturedAndUsersResults('', undefined)
-    getFeaturedBots()
+    setResultsForQuery('', undefined)
+    getFeaturedBots(
+      [{limit: 100, offset: 0, skipCache: false}],
+      result => {
+        updateFeaturedBots(result.bots ?? [])
+      },
+      () => {}
+    )
   })
+  React.useEffect(() => () => onSearch.cancel(), [onSearch])
 
   const botData: Array<Item> =
     lastQuery.length > 0
@@ -132,7 +202,7 @@ const SearchBotPopup = (props: Props) => {
           <Kb.SearchFilter
             size="full-width"
             focusOnMount={true}
-            onChange={onSearch}
+            onChange={query => onSearch(query)}
             placeholderText="Search featured bots or users..."
             waiting={waiting}
           />
