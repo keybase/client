@@ -5,17 +5,11 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {UpdatePassword, useSubmitNewPassword} from './password'
 import {useRequestLogout} from './use-request-logout'
+import {usePasswordCheck} from './use-password-check'
 import {usePWState} from '@/stores/settings-password'
-import {useSettingsState} from '@/stores/settings'
 
 const LogoutContainer = () => {
-  const {checkPassword, checkPasswordIsCorrect, resetCheckPassword} = useSettingsState(
-    C.useShallow(s => ({
-      checkPassword: s.dispatch.checkPassword,
-      checkPasswordIsCorrect: s.checkPasswordIsCorrect,
-      resetCheckPassword: s.dispatch.resetCheckPassword,
-    }))
-  )
+  const {checkPassword, checkPasswordIsCorrect, reset} = usePasswordCheck()
   const {hasRandomPW, loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       hasRandomPW: s.randomPW,
@@ -32,7 +26,7 @@ const LogoutContainer = () => {
 
   const _onLogout = () => {
     requestLogout()
-    resetCheckPassword()
+    reset()
   }
 
   const onLogout = useSafeSubmit(_onLogout, false)
@@ -47,9 +41,9 @@ const LogoutContainer = () => {
 
   React.useEffect(
     () => () => {
-      resetCheckPassword()
+      reset()
     },
-    [resetCheckPassword]
+    [reset]
   )
 
   React.useEffect(() => {

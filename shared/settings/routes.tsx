@@ -7,7 +7,6 @@ import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
-import {useSettingsState} from '@/stores/settings'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import {useRoute} from '@react-navigation/native'
 import type {RootRouteProps} from '@/router-v2/route-params'
@@ -35,13 +34,11 @@ const PasswordHeaderTitle = () => {
 }
 
 const CheckPassphraseCancelButton = () => {
-  const resetCheckPassword = useSettingsState(s => s.dispatch.resetCheckPassword)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   return (
     <Kb.Text
       type="BodyBigLink"
       onClick={() => {
-        resetCheckPassword()
         navigateUp()
       }}
     >
@@ -160,7 +157,6 @@ const sharedNewModalRoutes = {
     getOptions: {title: 'Backup'},
   }),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
-  disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
   settingsAddEmail: C.makeScreen(
     React.lazy(async () => {
       const {Email} = await import('./account/add-modals')

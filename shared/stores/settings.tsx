@@ -1,15 +1,14 @@
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as S from '@/constants/strings'
-import {androidIsTestDevice, pprofDir} from '@/constants/platform'
+import {pprofDir} from '@/constants/platform'
 import {openURL} from '@/util/misc'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
-import {clearModals, navigateAppend, switchTab} from '@/constants/router'
+import {switchTab, navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
 import type {PhoneRow} from '@/stores/settings-phone'
@@ -17,22 +16,15 @@ import type {PhoneRow} from '@/stores/settings-phone'
 export * from '@/constants/settings'
 
 type Store = T.Immutable<{
-  checkPasswordIsCorrect?: boolean
-  didToggleCertificatePinning?: boolean
   lockdownModeEnabled?: boolean
-  proxyData?: T.RPCGen.ProxyData
 }>
 
 const initialStore: Store = {
-  checkPasswordIsCorrect: undefined,
-  didToggleCertificatePinning: undefined,
   lockdownModeEnabled: undefined,
-  proxyData: undefined,
 }
 
 export type State = Store & {
   dispatch: {
-    checkPassword: (password: string) => void
     clearLogs: () => void
     dbNuke: () => void
     defer: {
@@ -40,17 +32,12 @@ export type State = Store & {
       onSettingsEmailNotifyEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
       onSettingsPhoneSetNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     }
-    deleteAccountForever: (passphrase?: string) => void
     loadLockdownMode: () => void
-    loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
     processorProfile: (durationSeconds: number) => void
-    resetCheckPassword: () => void
     resetState: () => void
-    setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
-    setProxyData: (proxyData: T.RPCGen.ProxyData) => void
     stop: (exitCode: T.RPCGen.ExitCode) => void
     trace: (durationSeconds: number) => void
   }
@@ -88,21 +75,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
   }
 
   const dispatch: State['dispatch'] = {
-    checkPassword: passphrase => {
-      set(s => {
-        s.checkPasswordIsCorrect = undefined
-      })
-      const f = async () => {
-        const res = await T.RPCGen.accountPassphraseCheckRpcPromise(
-          {passphrase},
-          S.waitingKeySettingsCheckPassword
-        )
-        set(s => {
-          s.checkPasswordIsCorrect = res
-        })
-      }
-      ignorePromise(f())
-    },
     clearLogs: () => {
       const f = async () => {
         const {clearLocalLogs} = await import('@/util/misc')
@@ -127,25 +99,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
         throw new Error('onSettingsPhoneSetNumbers not implemented')
       },
     },
-    deleteAccountForever: passphrase => {
-      const f = async () => {
-        const username = useCurrentUserState.getState().username
-
-        if (!username) {
-          throw new Error('Unable to delete account: no username set')
-        }
-
-        if (androidIsTestDevice) {
-          return
-        }
-
-        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, S.waitingKeySettingsGeneric)
-        useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        clearModals()
-        navigateAppend(Tabs.loginTab)
-      }
-      ignorePromise(f())
-    },
     loadLockdownMode: () => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {
@@ -160,20 +113,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
           set(s => {
             s.lockdownModeEnabled = undefined
           })
-        }
-      }
-      ignorePromise(f())
-    },
-    loadProxyData: () => {
-      const f = async () => {
-        try {
-          const result = await T.RPCGen.configGetProxyDataRpcPromise()
-          set(s => {
-            s.proxyData = result
-          })
-        } catch (err) {
-          logger.warn('Error in loading proxy data', err)
-          return
         }
       }
       ignorePromise(f())
@@ -219,17 +158,7 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
         durationSeconds
       )
     },
-    resetCheckPassword: () => {
-      set(s => {
-        s.checkPasswordIsCorrect = undefined
-      })
-    },
     resetState: Z.defaultReset,
-    setDidToggleCertificatePinning: t => {
-      set(s => {
-        s.didToggleCertificatePinning = t
-      })
-    },
     setLockdownMode: enabled => {
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {
@@ -244,19 +173,6 @@ export const useSettingsState = Z.createZustand<State>('settings', (set, get) =>
           set(s => {
             s.lockdownModeEnabled = undefined
           })
-        }
-      }
-      ignorePromise(f())
-    },
-    setProxyData: proxyData => {
-      const f = async () => {
-        try {
-          await T.RPCGen.configSetProxyDataRpcPromise({proxyData})
-          set(s => {
-            s.proxyData = proxyData
-          })
-        } catch (err) {
-          logger.warn('Error in saving proxy data', err)
         }
       }
       ignorePromise(f())

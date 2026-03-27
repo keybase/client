@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useDeleteAccount} from '../use-delete-account'
 import {usePWState} from '@/stores/settings-password'
-import {useSettingsState} from '@/stores/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type CheckboxesProps = {
@@ -37,7 +37,7 @@ const Checkboxes = (props: CheckboxesProps) => (
 
 const DeleteConfirm = () => {
   const hasPassword = usePWState(s => !s.randomPW)
-  const deleteAccountForever = useSettingsState(s => s.dispatch.deleteAccountForever)
+  const deleteAccountForever = useDeleteAccount()
   const username = useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
@@ -46,10 +46,6 @@ const DeleteConfirm = () => {
   const onCancel = () => nav.safeNavigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
-    if (C.androidIsTestDevice) {
-      // dont do this in a preflight test
-      return
-    }
     if (Kb.Styles.isMobile && hasPassword) {
       navigateAppend('checkPassphraseBeforeDeleteAccount')
     } else {
