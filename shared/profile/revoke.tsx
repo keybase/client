@@ -5,7 +5,7 @@ import * as React from 'react'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '@/util/platforms'
 import {SiteIcon} from './generic/shared'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTrackerState} from '@/stores/tracker'
@@ -42,29 +42,27 @@ const RevokeProof = (ownProps: OwnProps) => {
       return
     }
     if (proof.type === 'pgp') {
-      revokeKey(
-        [{keyID: proof.kid}, C.waitingKeyProfile],
-        onSuccess,
-        error => {
-          setErrorMessage(`Error in dropping Pgp Key: ${error.message}`)
-        }
-      )
+      revokeKey([{keyID: proof.kid}, C.waitingKeyProfile], onSuccess, error => {
+        setErrorMessage(`Error in dropping Pgp Key: ${error.message}`)
+      })
       return
     }
-    revokeSigs(
-      [{sigIDQueries: [proofId]}, C.waitingKeyProfile],
-      onSuccess,
-      () => {
-        setErrorMessage('There was an error revoking your proof. You can click the button to try again.')
-      }
-    )
+    revokeSigs([{sigIDQueries: [proofId]}, C.waitingKeyProfile], onSuccess, () => {
+      setErrorMessage('There was an error revoking your proof. You can click the button to try again.')
+    })
   }
 
   const platformHandleSubtitle = platformSubtitle(platform)
   return (
     <Modal onCancel={onCancel} skipButton={true}>
       {!!errorMessage && (
-        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} justifyContent="center" style={styles.errorBanner}>
+        <Kb.Box2
+          direction="vertical"
+          alignItems="center"
+          fullWidth={true}
+          justifyContent="center"
+          style={styles.errorBanner}
+        >
           <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
             {errorMessage}
           </Kb.Text>

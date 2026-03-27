@@ -3,7 +3,7 @@ import {useProfileState} from '@/stores/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Modal from './modal'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {normalizeProofUsername} from './proof-utils'
 
 type Props = {
@@ -31,7 +31,10 @@ const Container = ({error: routeError, platform, username: initialUsername = ''}
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onSubmit = (input: string, platform?: string) => {
-    const {normalized, valid} = normalizeProofUsername(platform as T.More.PlatformsExpandedType | undefined, input)
+    const {normalized, valid} = normalizeProofUsername(
+      platform as T.More.PlatformsExpandedType | undefined,
+      input
+    )
 
     if (platform === 'btc') {
       if (!valid) {

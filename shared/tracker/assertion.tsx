@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
@@ -505,7 +505,9 @@ const Value = (p: {
 }
 
 const HoverOpacity = (p: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" className="hover-opacy inverted">{p.children}</Kb.Box2>
+  <Kb.Box2 direction="vertical" className="hover-opacy inverted">
+    {p.children}
+  </Kb.Box2>
 )
 
 type SIProps = {
