@@ -12,6 +12,7 @@ import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
 import {generateGUIID} from '@/constants/utils'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -76,7 +77,6 @@ const Container = (ownProps: OwnProps) => {
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
   const addProof = useProfileState(s => s.dispatch.addProof)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const loadProfile = useTrackerState(s => s.dispatch.load)
   const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
@@ -94,7 +94,7 @@ const Container = (ownProps: OwnProps) => {
     recheckProof(
       [{sigID}, C.waitingKeyProfile],
       () => {
-        showUserProfile(ownProps.username)
+        navToProfile(ownProps.username)
         loadProfile({assertion: ownProps.username, guiID: generateGUIID(), inTracker: false, reason: ''})
       },
       () => {}

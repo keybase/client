@@ -6,9 +6,9 @@ import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export type Props = {
   firstItem: boolean
@@ -316,9 +316,8 @@ const Container = (ownProps: OwnProps) => {
   const onClick = () => {
     navigateAppend({name: 'teamMember', params: {teamID, username}})
   }
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
-    username && showUserProfile(username)
+    username && navToProfile(username)
   }
   const onReAddToTeam = () => {
     reAddToTeam(teamID, username)
@@ -329,7 +328,7 @@ const Container = (ownProps: OwnProps) => {
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
     if (C.isMobile) {
-      showUserProfile(username)
+      navToProfile(username)
     } else {
       showUser(username, true)
     }

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   explodesAt: number
@@ -36,9 +36,8 @@ const ExplodingPopupHeader = (props: Props) => {
     }
   }, [explodesAt])
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onUsernameClicked = (user: string) => {
-    showUserProfile(user)
+    navToProfile(user)
     onHidden()
   }
 

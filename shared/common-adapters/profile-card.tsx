@@ -12,7 +12,6 @@ import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import Meta from './meta'
-import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import ProgressIndicator from './progress-indicator'
@@ -23,6 +22,7 @@ import {type default as FollowButtonType} from '../profile/user/actions/follow-b
 import type ChatButtonType from '../chat/chat-button'
 import {useTrackerState} from '@/stores/tracker'
 import type {MeasureRef} from './measure-ref'
+import {navToProfile} from '@/constants/router'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
@@ -178,9 +178,8 @@ const ProfileCard = ({
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
   const _changeFollow = (follow: boolean) => changeFollow(userDetails.guiID, follow)
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const openProfile = () => {
-    showUserProfile(username)
+    navToProfile(username)
     onHide?.()
   }
 

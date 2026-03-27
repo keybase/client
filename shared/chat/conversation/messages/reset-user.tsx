@@ -1,6 +1,6 @@
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
+import {navToProfile} from '@/constants/router'
 
 const ResetUser = () => {
   const meta = Chat.useChatContext(s => s.meta)
@@ -9,8 +9,7 @@ const ResetUser = () => {
   const resetLetThemIn = Chat.useChatContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const _viewProfile = showUserProfile
+  const _viewProfile = navToProfile
   const username = [..._resetParticipants][0] || ''
   const nonResetUsers = new Set(_participants)
   _resetParticipants.forEach(r => nonResetUsers.delete(r))

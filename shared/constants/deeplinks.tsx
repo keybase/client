@@ -1,6 +1,6 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navToThread, switchTab} from './router'
+import {navigateAppend, navToProfile, navToThread, switchTab} from './router'
 import * as Tabs from './tabs'
 import {useChatState} from '@/stores/chat'
 import {useProfileState} from '@/stores/profile'
@@ -69,11 +69,11 @@ const handleKeybaseLink = (link: string) => {
     case 'profile':
       if (parts[1] === 'show' && parts[2]) {
         switchTab(Tabs.peopleTab)
-        useProfileState.getState().dispatch.showUserProfile(parts[2])
+        navToProfile(parts[2])
         return
       }
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-        parts.length === 4 && parts[3] && useProfileState.getState().dispatch.showUserProfile(parts[3])
+        parts.length === 4 && parts[3] && navToProfile(parts[3])
         useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
         return
       }

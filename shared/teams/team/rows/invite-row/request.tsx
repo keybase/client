@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
-import {useProfileState} from '@/stores/profile'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../menu-header.new'
+import {navToProfile} from '@/constants/router'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -238,9 +238,8 @@ const Container = (ownProps: OwnProps) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
-    showUserProfile(username)
+    navToProfile(username)
   }
   const props = {
     _notifLabel: _notifLabel,

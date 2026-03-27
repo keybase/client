@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
+import {navToProfile} from '@/constants/router'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
@@ -23,7 +23,7 @@ const Container = () => {
     )
   }
 
-  const onShowProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const onShowProfile = navToProfile
 
   return rekeyers.has(_you) ? (
     <YouRekey onEnterPaperkey={onEnterPaperkey} onBack={onBack} onRekey={onRekey} />

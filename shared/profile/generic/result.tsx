@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from './shared'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {ProveGenericParams} from '@/stores/profile'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   error?: string
@@ -14,12 +14,11 @@ type Props = {
 const GenericResult = ({error = '', genericParams, username}: Props) => {
   const proofUsername = username + genericParams.suffix
   const serviceIcon = genericParams.logoFull
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const currentUsername = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
-    showUserProfile(currentUsername)
+    navToProfile(currentUsername)
   }
 
   const success = !error

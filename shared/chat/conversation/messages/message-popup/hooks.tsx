@@ -3,13 +3,13 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import {useConfigState} from '@/stores/config'
-import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
+import {navToProfile} from '@/constants/router'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -232,11 +232,10 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       ] as const)
     : []
 
-  const _showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUserProfile = () => {
-    _showUserProfile(author)
+  const onShowProfile = () => {
+    navToProfile(author)
   }
-  const onViewProfile = author && !yourMessage ? showUserProfile : undefined
+  const onViewProfile = author && !yourMessage ? onShowProfile : undefined
   const profileSubtitle = `${deviceName} ${deviceRevokedAt ? 'REVOKED at' : '-'} ${
     deviceRevokedAt ? `${formatTimeForRevoked(deviceRevokedAt)}` : formatTimeForPopup(timestamp)
   }`

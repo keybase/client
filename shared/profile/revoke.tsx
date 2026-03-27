@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
@@ -10,6 +9,7 @@ import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTrackerState} from '@/stores/tracker'
 import {generateGUIID} from '@/constants/utils'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   icon: T.Tracker.SiteIconSet
@@ -23,13 +23,12 @@ const RevokeProof = (ownProps: OwnProps) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const assertions = useTrackerState(s => s.getDetails(currentUsername).assertions)
   const loadProfile = useTrackerState(s => s.dispatch.load)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const revokeKey = C.useRPC(T.RPCGen.revokeRevokeKeyRpcPromise)
   const revokeSigs = C.useRPC(T.RPCGen.revokeRevokeSigsRpcPromise)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const proof = assertions ? [...assertions.values()].find(a => a.sigID === proofId) : undefined
   const onSuccess = () => {
-    showUserProfile(currentUsername)
+    navToProfile(currentUsername)
     loadProfile({assertion: currentUsername, guiID: generateGUIID(), inTracker: false, reason: ''})
     clearModals()
   }

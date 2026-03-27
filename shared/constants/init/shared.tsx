@@ -3,6 +3,7 @@ import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
+import {navToProfile} from '@/constants/router'
 
 declare global {
   var __hmr_startupOnce: boolean | undefined
@@ -138,7 +139,7 @@ export const initTeamBuildingCallbacks = () => {
       return useSettingsContactsState.getState().userCountryCode
     },
     onShowUserProfile: (username: string) => {
-      useProfileState.getState().dispatch.showUserProfile(username)
+      navToProfile(username)
     },
     onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
       useUsersState.getState().dispatch.getBlockState(usernames)
@@ -379,7 +380,7 @@ export const initTracker2Callbacks = () => {
       defer: {
         ...currentState.dispatch.defer,
         onShowUserProfile: (username: string) => {
-          useProfileState.getState().dispatch.showUserProfile(username)
+          navToProfile(username)
         },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
           useUsersState.getState().dispatch.updates(updates)

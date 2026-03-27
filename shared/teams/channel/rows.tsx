@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -127,10 +127,9 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onOpenProfile = () => username && showUserProfile(username)
+      const onOpenProfile = () => username && navToProfile(username)
       const onRemoveFromChannel = () =>
         navigateAppend({
           name: 'teamReallyRemoveChannelMember',

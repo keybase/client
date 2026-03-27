@@ -5,7 +5,7 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import {openURL} from '@/util/misc'
 import {RPCError} from '@/util/errors'
-import {navToProfile, navigateAppend} from '@/constants/router'
+import {navigateAppend} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {useTrackerState} from '@/stores/tracker'
 import {normalizeProofUsername} from '@/profile/proof-utils'
@@ -71,7 +71,6 @@ export type State = Store & {
     editAvatar: () => void
     generatePgp: (args: GeneratePgpArgs) => void
     resetState: () => void
-    showUserProfile: (username: string) => void
   }
 }
 
@@ -469,9 +468,6 @@ export const useProfileState = Z.createZustand<State>('profile', (set, get) => {
           },
         },
       }))
-    },
-    showUserProfile: username => {
-      navToProfile(username)
     },
   }
 

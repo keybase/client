@@ -9,8 +9,8 @@ import * as Kb from '@/common-adapters'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
@@ -133,8 +133,7 @@ const BioConnector = (props: TodoOwnProps) => {
 
 const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = useCurrentUserState(s => s.username)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onConfirm = showUserProfile
+  const onConfirm = navToProfile
   const onDismiss = useOnSkipTodo(props.skipTodo, 'proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />

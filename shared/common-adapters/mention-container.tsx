@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import Mention, {type OwnProps} from './mention'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
@@ -24,11 +24,10 @@ const Container = (ownProps: OwnProps) => {
     }
   })()
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
   const _onClick = () => {
     if (C.isMobile) {
-      showUserProfile(username)
+      navToProfile(username)
     } else {
       showUser(username, true)
     }

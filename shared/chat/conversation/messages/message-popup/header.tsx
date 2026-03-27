@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
-import {useProfileState} from '@/stores/profile'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
+import {navToProfile} from '@/constants/router'
 
 const iconNameForDeviceType = Kb.Styles.isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
@@ -53,9 +53,8 @@ const MessagePopupHeader = (props: Props) => {
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onUsernameClicked = (user: string) => {
-    showUserProfile(user)
+    navToProfile(user)
     onHidden()
   }
 

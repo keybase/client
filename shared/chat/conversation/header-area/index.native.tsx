@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useProfileState} from '@/stores/profile'
 import * as Kb from '@/common-adapters'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
@@ -10,6 +9,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
@@ -221,9 +221,8 @@ const UsernameHeader = () => {
       return {participants, theirFullname}
     })
   )
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = (username: string) => {
-    showUserProfile(username)
+    navToProfile(username)
   }
 
   const maxWidthStyle = useMaxWidthStyle()

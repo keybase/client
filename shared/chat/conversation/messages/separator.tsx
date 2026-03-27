@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import {useTrackerState} from '@/stores/tracker'
-import {useProfileState} from '@/stores/profile'
+import {navToProfile} from '@/constants/router'
 
 const missingMessage = Chat.makeMessageDeleted({})
 
@@ -86,18 +86,17 @@ type AuthorProps = {
   showUsername: string
 }
 
-// Separate component so useTeamsState/useProfileState/useTrackerState only
+// Separate component so useTeamsState/useTrackerState only
 // subscribe when there's actually an author to show.
 function AuthorSection(p: AuthorProps) {
   const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
 
   const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
 
   const onAuthorClick = () => {
     if (C.isMobile) {
-      showUserProfile(showUsername)
+      navToProfile(showUsername)
     } else {
       showUser(showUsername, true)
     }

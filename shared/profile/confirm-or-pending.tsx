@@ -1,10 +1,10 @@
-import {useProfileState} from '@/stores/profile'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '@/util/platforms'
 import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as C from '@/constants'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   platform: T.More.PlatformsExpandedType
@@ -14,7 +14,6 @@ type Props = {
 }
 
 const ConfirmOrPending = ({platform, proofFound, proofStatus, username}: Props) => {
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const currentUsername = useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
@@ -25,7 +24,7 @@ const ConfirmOrPending = ({platform, proofFound, proofStatus, username}: Props) 
   const platformIconOverlayColor = isGood ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.greyDark
   const onCancel = () => {
     clearModals()
-    showUserProfile(currentUsername)
+    navToProfile(currentUsername)
   }
 
   const message =
