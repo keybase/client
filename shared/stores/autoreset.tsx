@@ -33,7 +33,6 @@ export type State = Store & {
   dispatch: {
     cancelReset: () => void
     defer: {
-      onGetRecoverPasswordUsername: () => string
       onStartProvision: (username: string, fromReset: boolean) => void
     }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -86,9 +85,6 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
       ignorePromise(f())
     },
     defer: {
-      onGetRecoverPasswordUsername: () => {
-        throw new Error('onGetRecoverPasswordUsername not properly initialized')
-      },
       onStartProvision: (_username: string, _fromReset: boolean) => {
         throw new Error('onStartProvision not properly initialized')
       },
@@ -175,7 +171,7 @@ export const useAutoResetState = Z.createZustand<State>('autoreset', (set, get) 
     },
     resetState: Z.defaultReset,
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || get().dispatch.defer.onGetRecoverPasswordUsername() || ''
+      const username = _username || get().username
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''

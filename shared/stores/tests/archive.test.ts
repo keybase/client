@@ -3,53 +3,17 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useArchiveState} from '../archive'
 
-const flush = async () => {
-  await Promise.resolve()
-  await Promise.resolve()
-}
-
 afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('start enters archive-all waiting state and records the finished response', async () => {
-  jest.spyOn(T.RPCGen as any, 'SimpleFSSimpleFSArchiveAllFilesRpcPromise').mockResolvedValue({
-    skippedTLFPaths: ['/private/skipped'],
-    tlfPathToError: {'/private/error': 'boom'},
-    tlfPathToJobDesc: {'/private/job': {}},
-  })
-
-  const store = useArchiveState
-  store.getState().dispatch.start('kbfs', '/keybase', '')
-
-  expect(store.getState().archiveAllFilesResponseWaiter.state).toBe('waiting')
-
-  await flush()
-
-  expect(T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise).toHaveBeenCalledWith({
-    includePublicReadonly: false,
-    outputDir: '',
-    overwriteZip: false,
-  })
-  expect(store.getState().archiveAllFilesResponseWaiter).toEqual({
-    errors: new Map([['/private/error', 'boom']]),
-    skipped: 1,
-    started: 1,
-    state: 'finished',
-  })
-})
-
-test('engine archive status updates KBFS jobs and freshness entries', () => {
+test('engine archive status updates KBFS jobs', () => {
   const store = useArchiveState
   store.setState(
     {
       ...store.getState(),
       kbfsJobs: new Map(),
-      kbfsJobsFreshness: new Map([
-        ['job-1', 11],
-        ['job-old', 4],
-      ]),
     },
     true
   )
@@ -84,6 +48,4 @@ test('engine archive status updates KBFS jobs and freshness entries', () => {
   } as any)
 
   expect(store.getState().kbfsJobs.get('job-1')?.phase).toBe('Done')
-  expect(store.getState().kbfsJobsFreshness.get('job-1')).toBe(11)
-  expect(store.getState().kbfsJobsFreshness.has('job-old')).toBe(false)
 })

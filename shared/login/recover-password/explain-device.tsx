@@ -5,11 +5,10 @@ import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {useState as useRecoverState} from '@/stores/recover-password'
 
-const ConnectedExplainDevice = () => {
-  const ed = useRecoverState(s => s.explainedDevice)
-  const deviceName = ed ? ed.name : ''
-  const deviceType = ed ? ed.type : undefined
-  const username = useRecoverState(s => s.username)
+type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
+
+const ConnectedExplainDevice = ({route}: Props) => {
+  const {deviceName, deviceType, username} = route.params
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onBack = () => {
     startRecoverPassword({

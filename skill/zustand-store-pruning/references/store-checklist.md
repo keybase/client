@@ -11,7 +11,7 @@ Status:
 
 ## Smaller / Likely Early Passes
 
-- [ ] `archive`
+- [x] `archive` kept notification-backed chat/KBFS job caches plus engine/load plumbing; moved modal waiters, start RPCs, row action RPCs, and KBFS freshness lookup into settings components
 - [ ] `autoreset`
 - [ ] `bots`
 - [x] `crypto`
@@ -28,7 +28,7 @@ Status:
 - [ ] `pinentry`
 - [ ] `profile`
 - [ ] `provision`
-- [ ] `recover-password`
+- [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
 - [ ] `settings`
 - [ ] `settings-chat`
 - [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
