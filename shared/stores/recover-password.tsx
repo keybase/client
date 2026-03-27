@@ -25,6 +25,7 @@ export type State = Store & {
     dynamic: {
       cancel?: () => void
       submitDeviceSelect?: (deviceID?: T.Devices.DeviceID) => void
+      submitNoDevice?: () => void
       submitPaperKey?: (key: string) => void
       submitPassword?: (pw: string) => void
       submitResetPassword?: (action: T.RPCGen.ResetPromptResponse) => void
@@ -79,6 +80,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     set(s => {
                       s.dispatch.dynamic.cancel = undefined
                       s.dispatch.dynamic.submitDeviceSelect = undefined
+                      s.dispatch.dynamic.submitNoDevice = undefined
                     })
                   }
                   const cancel = wrapErrors(() => {
@@ -94,6 +96,11 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     } else {
                       cancel()
                     }
+                  })
+                  // Empty string tells the service "no device chosen, proceed to account reset"
+                  s.dispatch.dynamic.submitNoDevice = wrapErrors(() => {
+                    clear()
+                    response.result('' as T.Devices.DeviceID)
                   })
                 })
                 navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, replaceRoute)
@@ -238,6 +245,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
             s.dispatch.dynamic.submitPaperKey = undefined
             s.dispatch.dynamic.submitResetPassword = undefined
             s.dispatch.dynamic.submitDeviceSelect = undefined
+            s.dispatch.dynamic.submitNoDevice = undefined
           })
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)

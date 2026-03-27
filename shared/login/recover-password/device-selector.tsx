@@ -7,12 +7,13 @@ type Props = {route: {params: {devices: ReadonlyArray<Device>}}}
 const RecoverPasswordDeviceSelector = ({route}: Props) => {
   const {devices} = route.params
   const submitDeviceSelect = useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
+  const submitNoDevice = useRecoverState(s => s.dispatch.dynamic.submitNoDevice)
   const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
   const onBack = () => {
     cancel?.()
   }
   const onResetAccount = () => {
-    submitDeviceSelect?.()
+    submitNoDevice?.()
   }
   const onSelect = (name: string) => {
     if (submitDeviceSelect) {
