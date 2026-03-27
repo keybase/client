@@ -5,12 +5,13 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
 import {loadSettings} from './load-settings'
-import {useSettingsNotifState} from '@/stores/settings-notifications'
+import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
 
 const emptyList = new Array<string>()
 
 type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
+type NotificationSettingsState = ReturnType<typeof useNotificationSettings>
 
 const useContactSettings = () => {
   const loadContactSettingsRPC = C.useRPC(T.RPCGen.accountUserGetContactSettingsRpcPromise)
@@ -122,16 +123,8 @@ const useUnfurlSettings = () => {
   return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
 }
 
-const Security = () => {
-  const {allowEdit, groups, notifRefresh} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      notifRefresh: s.dispatch.refresh,
-    }))
-  )
+const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
   const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
-  const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
   const teamMeta = Teams.sortTeamsByName(_teamMeta)
   const _contactSettingsEnabled = settings?.enabled
@@ -208,9 +201,9 @@ const Security = () => {
 
   React.useEffect(() => {
     loadSettings()
-    notifRefresh()
+    refresh()
     contactSettingsRefresh()
-  }, [contactSettingsRefresh, loadSettings, notifRefresh])
+  }, [contactSettingsRefresh, refresh])
 
   return (
     <>
@@ -220,13 +213,13 @@ const Security = () => {
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {!!groups.get('security')?.settings && (
-          <Group
-            allowEdit={allowEdit}
-            groupName="security"
-            onToggle={onToggle}
-            settings={groups.get('security')!.settings}
-            unsubscribedFromAll={false}
-          />
+            <Group
+              allowEdit={allowEdit}
+              groupName="security"
+              onToggle={toggle}
+              settings={groups.get('security')!.settings}
+              unsubscribedFromAll={false}
+            />
         )}
 
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -443,18 +436,11 @@ const Links = () => {
   )
 }
 
-const Sound = () => {
+const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
   const {onToggleSound, sound} = useConfigState(
     C.useShallow(s => ({
       onToggleSound: s.dispatch.setNotifySound,
       sound: s.notifySound,
-    }))
-  )
-  const {allowEdit, groups, onToggle} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      onToggle: s.dispatch.toggle,
     }))
   )
   const showDesktopSound = !C.isMobile && !C.isLinux
@@ -473,7 +459,7 @@ const Sound = () => {
             <Group
               allowEdit={allowEdit}
               groupName="sound"
-              onToggle={onToggle}
+              onToggle={toggle}
               settings={groups.get('sound')!.settings}
               unsubscribedFromAll={false}
             />
@@ -484,14 +470,7 @@ const Sound = () => {
   )
 }
 
-const Misc = () => {
-  const {allowEdit, groups, onToggle} = useSettingsNotifState(
-    C.useShallow(s => ({
-      allowEdit: s.allowEdit,
-      groups: s.groups,
-      onToggle: s.dispatch.toggle,
-    }))
-  )
+const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
   const showMisc = C.isMac || C.isIOS
   if (!showMisc) return null
   return (
@@ -504,7 +483,7 @@ const Misc = () => {
             <Group
               allowEdit={allowEdit}
               groupName="misc"
-              onToggle={onToggle}
+              onToggle={toggle}
               settings={groups.get('misc')!.settings}
               unsubscribedFromAll={false}
             />
@@ -516,15 +495,16 @@ const Misc = () => {
 }
 
 const Chat = () => {
+  const notificationSettings = useNotificationSettings()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ScrollView>
         <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
-          <Security />
+          <Security {...notificationSettings} />
           <Kb.Divider style={styles.divider} />
           <Links />
-          <Sound />
-          <Misc />
+          <Sound {...notificationSettings} />
+          <Misc {...notificationSettings} />
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.Box2>

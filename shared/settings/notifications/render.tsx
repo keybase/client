@@ -1,9 +1,25 @@
 import * as Kb from '@/common-adapters'
-import useNotifications from './hooks'
 import Group from '../group'
 import {usePushState} from '@/stores/push'
 
-type Props = ReturnType<typeof useNotifications>
+type Props = {
+  allowEdit: boolean
+  groups: ReadonlyMap<
+    string,
+    {
+      settings: ReadonlyArray<{
+        description: string
+        name: string
+        subscribed: boolean
+      }>
+      unsub: boolean
+    }
+  >
+  onClickYourAccount: () => void
+  onToggle: (groupName: string, name: string) => void
+  onToggleUnsubscribeAll: (groupName: string) => void
+  showEmailSection: boolean
+}
 
 const EmailSection = (props: Pick<Props, 'allowEdit' | 'onToggle' | 'onToggleUnsubscribeAll' | 'groups'>) => (
   <Group
@@ -31,8 +47,7 @@ const PhoneSection = (props: Props) => (
     unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
-const Notifications = () => {
-  const props = useNotifications()
+const Notifications = (props: Props) => {
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
   return !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.loading}>
