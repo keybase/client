@@ -5,11 +5,122 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
 import {loadSettings} from './load-settings'
-import {useSettingsChatState as useSettingsChatState} from '@/stores/settings-chat'
 import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {useConfigState} from '@/stores/config'
 
 const emptyList = new Array<string>()
+
+type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
+
+const useContactSettings = () => {
+  const loadContactSettingsRPC = C.useRPC(T.RPCGen.accountUserGetContactSettingsRpcPromise)
+  const saveContactSettingsRPC = C.useRPC(T.RPCGen.accountUserSetContactSettingsRpcPromise)
+  const [error, setError] = React.useState('')
+  const [settings, setSettings] = React.useState<T.RPCGen.ContactSettings>()
+
+  const contactSettingsRefresh = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadContactSettingsRPC(
+      [undefined],
+      nextSettings => {
+        setError('')
+        setSettings(nextSettings)
+      },
+      () => {
+        setError('Unable to load contact settings, please try again.')
+      }
+    )
+  }, [loadContactSettingsRPC])
+
+  const contactSettingsSaved = React.useCallback(
+    (
+      enabled: boolean,
+      indirectFollowees: boolean,
+      teamsEnabled: boolean,
+      teamsList: ContactSettingsTeamsList
+    ) => {
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      const teams = Object.entries(teamsList).map(([teamID, teamEnabled]) => ({
+        enabled: teamEnabled,
+        teamID,
+      }))
+      saveContactSettingsRPC(
+        [
+          {
+            settings: {
+              allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+              allowGoodTeams: teamsEnabled,
+              enabled,
+              teams,
+            },
+          },
+          C.waitingKeySettingsChatContactSettingsSave,
+        ],
+        () => {
+          contactSettingsRefresh()
+        },
+        () => {
+          setError('Unable to save contact settings, please try again.')
+        }
+      )
+    },
+    [contactSettingsRefresh, saveContactSettingsRPC]
+  )
+
+  return {contactSettingsRefresh, contactSettingsSaved, error, settings}
+}
+
+const useUnfurlSettings = () => {
+  const loadUnfurlSettingsRPC = C.useRPC(T.RPCChat.localGetUnfurlSettingsRpcPromise)
+  const saveUnfurlSettingsRPC = C.useRPC(T.RPCChat.localSaveUnfurlSettingsRpcPromise)
+  const [error, setError] = React.useState('')
+  const [mode, setMode] = React.useState<T.RPCChat.UnfurlMode>()
+  const [whitelist, setWhitelist] = React.useState<ReadonlyArray<string>>(emptyList)
+
+  const unfurlSettingsRefresh = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadUnfurlSettingsRPC(
+      [undefined, C.waitingKeySettingsChatUnfurl],
+      result => {
+        setError('')
+        setMode(result.mode)
+        setWhitelist(result.whitelist ?? emptyList)
+      },
+      () => {
+        setError('Unable to load link preview settings, please try again.')
+      }
+    )
+  }, [loadUnfurlSettingsRPC])
+
+  const unfurlSettingsSaved = React.useCallback(
+    (unfurlMode: T.RPCChat.UnfurlMode, unfurlWhitelist: ReadonlyArray<string>) => {
+      setError('')
+      setMode(unfurlMode)
+      setWhitelist(unfurlWhitelist)
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      saveUnfurlSettingsRPC(
+        [{mode: unfurlMode, whitelist: unfurlWhitelist}, C.waitingKeySettingsChatUnfurl],
+        () => {
+          unfurlSettingsRefresh()
+        },
+        () => {
+          setError('Unable to save link preview settings, please try again.')
+        }
+      )
+    },
+    [saveUnfurlSettingsRPC, unfurlSettingsRefresh]
+  )
+
+  return {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist}
+}
 
 const Security = () => {
   const {allowEdit, groups, notifRefresh} = useSettingsNotifState(
@@ -19,24 +130,14 @@ const Security = () => {
       notifRefresh: s.dispatch.refresh,
     }))
   )
-  const chatState = useSettingsChatState(
-    C.useShallow(s => ({
-      _contactSettingsEnabled: s.contactSettings.settings?.enabled,
-      _contactSettingsIndirectFollowees: s.contactSettings.settings?.allowFolloweeDegrees === 2,
-      _contactSettingsTeams: s.contactSettings.settings?.teams,
-      _contactSettingsTeamsEnabled: s.contactSettings.settings?.allowGoodTeams,
-      contactSettingsError: s.contactSettings.error,
-      contactSettingsRefresh: s.dispatch.contactSettingsRefresh,
-      contactSettingsSaved: s.dispatch.contactSettingsSaved,
-    }))
-  )
-  const {_contactSettingsEnabled, _contactSettingsIndirectFollowees, _contactSettingsTeams} = chatState
-  const {_contactSettingsTeamsEnabled, contactSettingsError, contactSettingsRefresh, contactSettingsSaved} =
-    chatState
-  const onContactSettingsSave = contactSettingsSaved
+  const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
   const onToggle = useSettingsNotifState(s => s.dispatch.toggle)
   const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
   const teamMeta = Teams.sortTeamsByName(_teamMeta)
+  const _contactSettingsEnabled = settings?.enabled
+  const _contactSettingsIndirectFollowees = settings?.allowFolloweeDegrees === 2
+  const _contactSettingsTeams = settings?.teams
+  const _contactSettingsTeamsEnabled = settings?.allowGoodTeams
 
   const [contactSettingsEnabled, setContactSettingsEnabled] = React.useState(_contactSettingsEnabled)
   const [contactSettingsIndirectFollowees, setContactSettingsIndirectFollowees] = React.useState(
@@ -187,7 +288,7 @@ const Security = () => {
           <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} style={styles.btnContainer}>
             <Kb.WaitingButton
               onClick={() =>
-                onContactSettingsSave(
+                contactSettingsSaved(
                   !!contactSettingsEnabled,
                   !!contactSettingsIndirectFollowees,
                   !!contactSettingsTeamsEnabled,
@@ -199,9 +300,9 @@ const Security = () => {
               style={styles.save}
               waitingKey={C.waitingKeySettingsChatContactSettingsSave}
             />
-            {!!contactSettingsError && (
+            {!!error && (
               <Kb.Text type="BodySmall" style={styles.error}>
-                {contactSettingsError}
+                {error}
               </Kb.Text>
             )}
           </Kb.Box2>
@@ -212,15 +313,7 @@ const Security = () => {
 }
 
 const Links = () => {
-  const {error, mode, onUnfurlSave, unfurlSettingsRefresh, whitelist} = useSettingsChatState(
-    C.useShallow(s => ({
-      error: s.unfurl.unfurlError,
-      mode: s.unfurl.unfurlMode,
-      onUnfurlSave: s.dispatch.unfurlSettingsSaved,
-      unfurlSettingsRefresh: s.dispatch.unfurlSettingsRefresh,
-      whitelist: s.unfurl.unfurlWhitelist ?? emptyList,
-    }))
-  )
+  const {error, mode, unfurlSettingsRefresh, unfurlSettingsSaved, whitelist} = useUnfurlSettings()
   const [selected, setSelected] = React.useState(mode)
   const [unfurlWhitelistRemoved, setUnfurlWhitelistRemoved] = React.useState<{[K in string]: boolean}>({})
   const getUnfurlWhitelist = (filtered: boolean) =>
@@ -230,7 +323,7 @@ const Links = () => {
     const next = whitelist.filter(w => {
       return !unfurlWhitelistRemoved[w]
     })
-    onUnfurlSave(selected || T.RPCChat.UnfurlMode.always, next)
+    unfurlSettingsSaved(selected || T.RPCChat.UnfurlMode.always, next)
   }
 
   const toggleUnfurlWhitelist = (domain: string) => {
