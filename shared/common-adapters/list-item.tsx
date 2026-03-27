@@ -95,7 +95,7 @@ const ListItem = (props: Props) => (
             grow: props.onlyShowActionOnHover === 'grow',
           })}
           style={getActionStyle(props)}
-          alignSelf="flex-start"
+          alignSelf="center"
         >
           {props.action}
         </Kb.Box2>
