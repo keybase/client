@@ -10,8 +10,29 @@ import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useProfileState} from '@/stores/profile'
-import {usePeopleState, todoTypes} from '@/stores/people'
 import {useCurrentUserState} from '@/stores/current-user'
+
+const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
+  addEmail: 'addEmail',
+  addPhoneNumber: 'addPhoneNumber',
+  annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol
+  avatarTeam: 'avatarTeam',
+  avatarUser: 'avatarUser',
+  bio: 'bio',
+  chat: 'chat',
+  device: 'device',
+  folder: 'folder',
+  follow: 'follow',
+  gitRepo: 'gitRepo',
+  legacyEmailVisibility: 'legacyEmailVisibility',
+  none: 'none',
+  paperkey: 'paperkey',
+  proof: 'proof',
+  team: 'team',
+  teamShowcase: 'teamShowcase',
+  verifyAllEmail: 'verifyAllEmail',
+  verifyAllPhoneNumber: 'verifyAllPhoneNumber',
+}
 
 type TodoOwnProps = {
   badged: boolean
@@ -19,15 +40,14 @@ type TodoOwnProps = {
   icon: IconType
   instructions: string
   metadata: T.People.TodoMeta
+  setResentEmail: (email: string) => void
+  skipTodo: (type: T.People.TodoType) => void
   todoType: T.People.TodoType
 }
 
 const installLinkURL = 'https://keybase.io/download'
-const useOnSkipTodo = (type: T.People.TodoType) => {
-  const skipTodo = usePeopleState(s => s.dispatch.skipTodo)
-  return () => {
-    skipTodo(type)
-  }
+const useOnSkipTodo = (skipTodo: (type: T.People.TodoType) => void, type: T.People.TodoType) => () => {
+  skipTodo(type)
 }
 
 function makeDefaultButtons(
@@ -64,7 +84,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
     navigateAppend(settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
-  const onDismiss = useOnSkipTodo('addEmail')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'addEmail')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -81,7 +101,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
     navigateAppend(settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
-  const onDismiss = useOnSkipTodo('addPhoneNumber')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'addPhoneNumber')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -115,14 +135,14 @@ const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = useCurrentUserState(s => s.username)
   const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onConfirm = showUserProfile
-  const onDismiss = useOnSkipTodo('proof')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const DeviceConnector = (props: TodoOwnProps) => {
   const onConfirm = () => openURL(installLinkURL)
-  const onDismiss = useOnSkipTodo('device')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'device')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -132,7 +152,7 @@ const FollowConnector = (props: TodoOwnProps) => {
   const onConfirm = () => {
     appendPeopleBuilder()
   }
-  const onDismiss = useOnSkipTodo('follow')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'follow')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -140,7 +160,7 @@ const FollowConnector = (props: TodoOwnProps) => {
 const ChatConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onConfirm = () => switchTab(C.Tabs.chatTab)
-  const onDismiss = useOnSkipTodo('chat')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -159,7 +179,7 @@ const TeamConnector = (props: TodoOwnProps) => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
-  const onDismiss = useOnSkipTodo('team')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'team')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -167,7 +187,7 @@ const TeamConnector = (props: TodoOwnProps) => {
 const FolderConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onConfirm = () => switchTab(C.Tabs.fsTab)
-  const onDismiss = useOnSkipTodo('folder')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -187,7 +207,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
     }
     navigateAppend({name: 'gitNewRepo', params: {isTeam}})
   }
-  const onDismiss = useOnSkipTodo('gitRepo')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'gitRepo')
   const buttons: Array<TaskButton> = [
     {
       label: 'Create a personal repo',
@@ -209,17 +229,16 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onConfirm = () => switchTab(C.Tabs.teamsTab)
-  const onDismiss = useOnSkipTodo('teamShowcase')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
-  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
-    setResentEmail(email)
+    props.setResentEmail(email)
   }
   const {navigateAppend, switchTab} = C.useRouterState(
     C.useShallow(s => ({
@@ -306,7 +325,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
     navigateAppend(settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
-  const onDismiss = useOnSkipTodo('legacyEmailVisibility')
+  const onDismiss = useOnSkipTodo(props.skipTodo, 'legacyEmailVisibility')
   const buttons: Array<TaskButton> = [
     ...(props.metadata
       ? [

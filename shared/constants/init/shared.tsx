@@ -776,11 +776,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     case 'keybase.1.homeUI.homeUIRefresh':
-    case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
       {
         const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
         usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
-        const emailAddress = action.payload.params?.emailAddress
+      }
+      break
+    case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
+      {
+        const emailAddress = action.payload.params.emailAddress
         if (emailAddress) {
           storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
         }

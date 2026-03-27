@@ -65,6 +65,25 @@ Good target shape:
 - Run load and submit RPCs from the screen with `C.useRPC`
 - Keep only truly shared password metadata if another part of the app consumes it
 
+### `shared/stores/people.tsx`
+
+Likely local:
+
+- fetched People screen rows and follow suggestions
+- transient resend / verification banners such as `resentEmail`
+- screen-owned RPC orchestration for skip and dismiss actions
+
+Maybe keep if another layer truly needs it:
+
+- an engine-driven refresh trigger if the mounted People tab must react immediately to `homeUIRefresh`
+- route-leave `markViewed` plumbing if it still needs a non-component home
+
+Good target shape:
+
+- Move rendered People data and action RPCs into the People feature layer
+- Keep only the narrowest cross-cutting trigger in store, if any
+- Do not keep notification-fed banner text in store just because a notification can set it
+
 ## Usually Keep Global
 
 These stores are not automatic no-touch zones, but they need a stronger reason before pruning:

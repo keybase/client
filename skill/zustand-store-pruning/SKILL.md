@@ -54,6 +54,8 @@ Move it to component state if it is:
 - A one-shot RPC result only used by the current screen
 - Reset on every screen entry and not meaningful elsewhere
 
+Notification-fed UI does not automatically make state global. If a notification only updates a transient banner or screen-local status, keep the trigger where it already lands but move the rendered UI state into the owning screen unless multiple unrelated entry points truly need to read it.
+
 Move it to route params if it is:
 
 - Data screen A already knows and screen B only needs for that navigation
@@ -126,6 +128,8 @@ Keep waiting keys when they drive UI. If the store only existed to wrap that RPC
 ### 4. Move per-screen flow state into components
 
 Use `React.useState`, `React.useEffect`, and existing screen hooks. In plain `.tsx` files, use `Kb.*` components rather than raw DOM elements.
+
+If a helper hook, pure helper, or constant is only used by one component or one file, define it in that file instead of creating a sibling module. Split code out only when it is shared across files or the extracted boundary is meaningfully clearer than simple colocation.
 
 If a component reads multiple adjacent values from the same remaining store, prefer one selector with `C.useShallow(...)` over several subscriptions.
 

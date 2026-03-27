@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {usePeopleState} from '../people'
 
@@ -7,51 +8,32 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  jest.restoreAllMocks()
   resetAllStores()
 })
 
-test('setResentEmail stores the latest resent address', () => {
-  usePeopleState.getState().dispatch.setResentEmail('alice@keybase.io')
+test('markViewed forwards to the home mark-viewed RPC', async () => {
+  const markViewedSpy = jest.spyOn(T.RPCGen, 'homeHomeMarkViewedRpcPromise').mockResolvedValue(undefined)
 
-  expect(usePeopleState.getState().resentEmail).toBe('alice@keybase.io')
+  usePeopleState.getState().dispatch.markViewed()
+  await Promise.resolve()
+
+  expect(markViewedSpy).toHaveBeenCalledTimes(1)
 })
 
-test('resetState clears people screen data and resent email', () => {
-  usePeopleState.setState({
-    followSuggestions: [{username: 'alice'}],
-    newItems: [{badged: true}],
-    oldItems: [{badged: false}],
-    resentEmail: 'alice@keybase.io',
-  } as never)
+test('resetState clears the refresh counter', () => {
+  usePeopleState.setState({refreshCount: 2} as never)
 
   usePeopleState.getState().dispatch.resetState()
 
-  const state = usePeopleState.getState()
-  expect(state.followSuggestions).toEqual([])
-  expect(state.newItems).toEqual([])
-  expect(state.oldItems).toEqual([])
-  expect(state.resentEmail).toBe('')
+  expect(usePeopleState.getState().refreshCount).toBe(0)
 })
 
-test('engine actions refresh people data and update verified email', () => {
-  const loadPeople = jest.fn()
-  usePeopleState.setState(s => ({
-    ...s,
-    dispatch: {
-      ...s.dispatch,
-      loadPeople: loadPeople as never,
-    },
-  }))
-
+test('homeUIRefresh increments the refresh counter', () => {
   usePeopleState.getState().dispatch.onEngineIncomingImpl({
     payload: {params: {}},
     type: 'keybase.1.homeUI.homeUIRefresh',
   } as never)
-  expect(loadPeople).toHaveBeenCalledWith(false)
 
-  usePeopleState.getState().dispatch.onEngineIncomingImpl({
-    payload: {params: {emailAddress: 'verified@keybase.io'}},
-    type: 'keybase.1.NotifyEmailAddress.emailAddressVerified',
-  } as never)
-  expect(usePeopleState.getState().resentEmail).toBe('verified@keybase.io')
+  expect(usePeopleState.getState().refreshCount).toBe(1)
 })
