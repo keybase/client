@@ -136,7 +136,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
-  const [loadedDevice, setLoadedDevice] = React.useState<T.Devices.Device | undefined>(ownProps.device)
+  const [loadedDevice, setLoadedDevice] = React.useState(ownProps.device)
   const device = ownProps.device ?? loadedDevice
   const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
