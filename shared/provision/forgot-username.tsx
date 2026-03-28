@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import * as T from '@/constants/types'
-import {RPCError} from '@/util/errors'
+import type {RPCError} from '@/util/errors'
 
 const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {

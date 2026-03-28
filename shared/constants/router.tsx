@@ -270,7 +270,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   if (chatTabIndex < 0) return
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
-    const currentChatRoot = route.state?.routes?.[0]
+    const currentChatRoot = route.state ? route.state.routes[0] : undefined
     const currentParams =
       currentChatRoot?.name === 'chatRoot' && currentChatRoot.params && typeof currentChatRoot.params === 'object'
         ? currentChatRoot.params

@@ -69,8 +69,8 @@ const RenderError = ({route}: Props) => {
   const f = error.fields
   const fields =
     f?.reduce<{[key: string]: string}>((acc, f) => {
-      const k = f && typeof f.key === 'string' ? f.key : ''
-      acc[k] = f?.value || ''
+      const k = typeof f.key === 'string' ? f.key : ''
+      acc[k] = f.value || ''
       return acc
     }, {}) ?? {}
   switch (error.code) {
