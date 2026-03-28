@@ -36,6 +36,11 @@ class MainThreadWatchdog {
   // the SIGUSR1 handler that records the main thread stack on demand.
   func install() {
     mainThreadPthread = pthread_self()
+    // Force lazy initialization of gMainStackFrames before registering the signal handler.
+    // Swift file-scope globals initialize via dispatch_once on first access; triggering that
+    // inside a signal handler while the ObjC runtime lock is held causes
+    // _os_unfair_lock_recursive_abort (crash seen in PID 31439, 2026-03-28).
+    _ = gMainStackFrames.count
     signal(SIGUSR1) { _ in
       gMainStackFrameCount = backtrace(&gMainStackFrames, kMaxStackFrames)
       gMainStackReady = true
