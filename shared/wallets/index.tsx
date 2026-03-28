@@ -2,10 +2,17 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Wallets from '@/stores/wallets'
-import {useState as useWalletsState} from '@/stores/wallets'
+import {loadAccountsWaitingKey} from '@/constants/strings'
 
-const Row = (p: {account: Wallets.Account}) => {
+type Account = {
+  accountID: string
+  balanceDescription: string
+  deviceReadOnly: boolean
+  isDefault: boolean
+  name: string
+}
+
+const Row = (p: {account: Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
@@ -13,7 +20,7 @@ const Row = (p: {account: Wallets.Account}) => {
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
-    navigateAppend({name: 'removeAccount', params: {accountID}})
+    navigateAppend({name: 'removeAccount', params: {accountID, balanceDescription, name}})
   }
   const onCopied = () => {
     setSK('')
@@ -111,16 +118,32 @@ const Row = (p: {account: Wallets.Account}) => {
 }
 
 const Container = () => {
+  const [accounts, setAccounts] = React.useState<Array<Account>>([])
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
-
-  const load = useWalletsState(s => s.dispatch.load)
+  const loadAccounts = C.useRPC(T.RPCStellar.localGetWalletAccountsLocalRpcPromise)
 
   C.Router2.useSafeFocusEffect(
     () => {
-      load()
+      loadAccounts(
+        [undefined, loadAccountsWaitingKey],
+        res => {
+          setAccounts(
+            (res ?? []).map(a => ({
+              accountID: a.accountID,
+              balanceDescription: a.balanceDescription,
+              deviceReadOnly: a.deviceReadOnly,
+              isDefault: a.isDefault,
+              name: a.name,
+            }))
+          )
+        },
+        () => {
+          setAccounts([])
+        }
+      )
       checkDisclaimer(
-        [undefined, Wallets.loadAccountsWaitingKey],
+        [undefined, loadAccountsWaitingKey],
         r => {
           setAcceptedDisclaimer(r)
         },
@@ -132,16 +155,15 @@ const Container = () => {
     }
   )
 
-  const accountMap = useWalletsState(s => s.accountMap)
-  const accounts = [...accountMap.values()].sort((a, b) => {
+  const sortedAccounts = [...accounts].sort((a, b) => {
     if (a.isDefault) return -1
     if (b.isDefault) return 1
     return a.name < b.name ? -1 : 1
   })
 
-  const loading = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
 
-  const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
+  const rows = sortedAccounts.map(a => <Row account={a} key={a.accountID} />)
 
   return (
     <Kb.ScrollView style={styles.scroll}>

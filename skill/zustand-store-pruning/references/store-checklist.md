@@ -39,7 +39,7 @@ Status:
 - [x] `tracker` kept identify notification plumbing, shared profile and non-user caches, proof suggestions, and desktop remote tracker window state in store
 - [x] `unlock-folders` removed dead phase/device state; kept only engine callback forwarding into `config`
 - [x] `users` kept shared fullname/bio/broken/block caches plus identify and block notifications in store; moved block/report RPC wrappers into chat and teams components
-- [ ] `wallets`
+- [x] `wallets` removed the store; wallet account loading and removal now live in wallet screens, and removal modals use explicit route params instead of hidden store reads
 
 ## Larger / More Global Stores
 
