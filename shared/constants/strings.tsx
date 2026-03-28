@@ -18,7 +18,6 @@ export const waitingKeyChatCreating = 'chat:creatingConvo'
 export const waitingKeyChatInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyChatBotAdd = 'chat:botAdd'
 export const waitingKeyChatBotRemove = 'chat:botRemove'
-export const waitingKeyChatLoadingEmoji = 'chat:loadingEmoji'
 export const waitingKeyChatThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>

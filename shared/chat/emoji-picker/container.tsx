@@ -11,6 +11,7 @@ import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
 import {type RenderableEmoji, emojiData} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
+import {useUserEmoji} from '@/chat/user-emoji'
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -68,23 +69,12 @@ const useSkinTone = () => {
 
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const customEmojiGroups = Chat.useChatState(s => s.userEmojis)
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyChatLoadingEmoji)
-  const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
-  const [lastDisabled, setLastDisabled] = React.useState(disabled)
-  const fetchUserEmoji = Chat.useChatState(s => s.dispatch.fetchUserEmoji)
-
-  React.useEffect(() => {
-    if (lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-      setLastOnlyInTeam(onlyInTeam)
-      setLastDisabled(disabled)
-    }
-    if (!disabled) {
-      fetchUserEmoji(conversationIDKey, onlyInTeam)
-    }
-  }, [conversationIDKey, fetchUserEmoji, lastDisabled, lastOnlyInTeam, onlyInTeam, disabled])
-
-  return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
+  const {emojiGroups: customEmojiGroups, loading: waiting} = useUserEmoji({
+    conversationIDKey,
+    disabled,
+    onlyInTeam,
+  })
+  return {customEmojiGroups, waiting}
 }
 
 const useCanManageEmoji = () => {

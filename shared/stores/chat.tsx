@@ -250,8 +250,6 @@ type Store = T.Immutable<{
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   userReacjis: T.Chat.UserReacjis
-  userEmojis?: Array<T.RPCChat.EmojiGroup>
-  userEmojisForAutocomplete?: Array<T.RPCChat.Emoji>
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxRetriedOnCurrentEmpty: boolean
@@ -285,8 +283,6 @@ const initialStore: Store = {
   smallTeamsExpanded: false,
   staticConfig: undefined,
   trustedInboxHasLoaded: false,
-  userEmojis: undefined,
-  userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
 }
 
@@ -326,7 +322,6 @@ export type State = Store & {
     ) => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
-    fetchUserEmoji: (conversationIDKey?: T.Chat.ConversationIDKey, onlyInTeam?: boolean) => void
     inboxRefresh: (reason: RefreshReason) => void
     inboxSearch: (query: string) => void
     inboxSearchMoveSelectedIndex: (increment: boolean) => void
@@ -336,7 +331,6 @@ export type State = Store & {
       selectedIndex?: number
     ) => void
     loadStaticConfig: () => void
-    loadedUserEmoji: (results: T.RPCChat.UserEmojiRes) => void
     maybeChangeSelectedConv: () => void
     metasReceived: (
       metas: ReadonlyArray<T.Chat.ConversationMeta>,
@@ -633,26 +627,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         return
       }
       get().dispatch.unboxRows(missing, true)
-    },
-    fetchUserEmoji: (conversationIDKey, onlyInTeam) => {
-      const f = async () => {
-        const results = await T.RPCChat.localUserEmojisRpcPromise(
-          {
-            convID:
-              conversationIDKey && conversationIDKey !== T.Chat.noConversationIDKey
-                ? T.Chat.keyToConversationID(conversationIDKey)
-                : null,
-            opts: {
-              getAliases: true,
-              getCreationInfo: false,
-              onlyInTeam: onlyInTeam ?? false,
-            },
-          },
-          S.waitingKeyChatLoadingEmoji
-        )
-        get().dispatch.loadedUserEmoji(results)
-      }
-      ignorePromise(f())
     },
     inboxRefresh: reason => {
       const f = async () => {
@@ -971,16 +945,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    loadedUserEmoji: results => {
-      set(s => {
-        const newEmojis: Array<T.RPCChat.Emoji> = []
-        results.emojis.emojis?.forEach(group => {
-          group.emojis?.forEach(e => newEmojis.push(e))
-        })
-        s.userEmojisForAutocomplete = newEmojis
-        s.userEmojis = T.castDraft(results.emojis.emojis) ?? []
-      })
     },
     maybeChangeSelectedConv: () => {
       const {inboxLayout} = get()
