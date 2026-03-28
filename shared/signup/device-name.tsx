@@ -50,7 +50,7 @@ const ConnectedEnterDevicename = (p: Props) => {
       }
 
       try {
-        showPermissionsPrompt?.({justSignedUp: true})
+        showPermissionsPrompt({justSignedUp: true})
         await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
             'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
@@ -81,7 +81,7 @@ const ConnectedEnterDevicename = (p: Props) => {
         clearSignupDeviceNameDraft()
       } catch (error_) {
         if (error_ instanceof RPCError) {
-          showPermissionsPrompt?.({justSignedUp: false})
+          showPermissionsPrompt({justSignedUp: false})
           navigateAppend({
             name: 'signupError',
             params: {errorCode: error_.code, errorMessage: error_.desc},
