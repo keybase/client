@@ -28,7 +28,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const onFinish = () => {
     deleteAccount([{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey], () => {
       navigateUp()
-    })
+    }, () => {})
   }
 
   React.useEffect(() => {
