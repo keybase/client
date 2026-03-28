@@ -14,6 +14,8 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useRoute} from '@react-navigation/native'
+import type {RootRouteProps} from '@/router-v2/route-params'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -107,7 +109,8 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 }
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
-  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
+  const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
+  const infoPanelShowing = route.name === 'chatRoot' ? !!route.params?.infoPanel : false
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id: conversationIDKey, editing: editOrdinal, messageMap, unsentText} = s
@@ -128,9 +131,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
           : explodingMode
       // prettier-ignore
       return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        infoPanelShowing, isEditing, jumpToRecent, minWriterRole, sendMessage, setEditing,
-        setExplodingMode, showReplyPreview, storeDraft, suggestBotCommandsUpdateStatus,
-        tlfname, unsentText, updateUnsentText}
+        isEditing, jumpToRecent, minWriterRole, sendMessage, setEditing, setExplodingMode,
+        showReplyPreview, storeDraft, suggestBotCommandsUpdateStatus, tlfname, unsentText,
+        updateUnsentText}
     })
   )
 

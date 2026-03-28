@@ -359,7 +359,6 @@ export const initSharedSubscriptions = () => {
     chatPreviewConversation: p => storeRegistry.getState('chat').dispatch.previewConversation(p),
     chatResetConversationErrored: () => storeRegistry.getState('chat').dispatch.resetConversationErrored(),
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
-    chatUpdateInfoPanel: (show, tab) => storeRegistry.getState('chat').dispatch.updateInfoPanel(show, tab),
     teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
     usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
   })

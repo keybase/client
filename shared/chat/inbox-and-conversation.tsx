@@ -7,14 +7,17 @@ import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox'
 import InboxSearch from './inbox-search'
-import InfoPanel from './conversation/info-panel'
+import InfoPanel, {type Panel} from './conversation/info-panel'
 
-type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
+type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  infoPanel?: {tab?: Panel}
+}
 
 function InboxAndConversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const inboxSearch = Chat.useChatState(s => s.inboxSearch)
-  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
+  const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
   const selectNextConvo = Chat.useChatState(s => {
@@ -47,9 +50,9 @@ function InboxAndConversation(props: Props) {
           <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
             <Conversation />
           </Kb.Box2>
-          {infoPanelShowing ? (
+          {infoPanel ? (
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-              <InfoPanel key={conversationIDKey} />
+              <InfoPanel key={conversationIDKey} tab={infoPanel.tab} />
             </Kb.Box2>
           ) : null}
         </Kb.Box2>

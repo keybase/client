@@ -253,8 +253,6 @@ type Store = T.Immutable<{
   userReacjis: T.Chat.UserReacjis
   userEmojis?: Array<T.RPCChat.EmojiGroup>
   userEmojisForAutocomplete?: Array<T.RPCChat.Emoji>
-  infoPanelShowing: boolean
-  infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxRetriedOnCurrentEmpty: boolean
@@ -283,8 +281,6 @@ const initialStore: Store = {
   inboxRows: [],
   inboxSearch: undefined,
   inboxSmallTeamsExpanded: false,
-  infoPanelSelectedTab: undefined,
-  infoPanelShowing: false,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   paymentStatusMap: new Map(),
@@ -377,7 +373,6 @@ export type State = Store & {
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
-    setInfoPanelTab: (tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
@@ -389,7 +384,6 @@ export type State = Store & {
     updatedGregor: (
       items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
     ) => void
-    updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
   getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {
@@ -1883,11 +1877,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    setInfoPanelTab: tab => {
-      set(s => {
-        s.infoPanelSelectedTab = tab
-      })
-    },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
@@ -2020,12 +2009,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
-      })
-    },
-    updateInfoPanel: (show, tab) => {
-      set(s => {
-        s.infoPanelShowing = show
-        s.infoPanelSelectedTab = tab
       })
     },
     updateLastCoord: coord => {

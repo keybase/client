@@ -43,8 +43,8 @@ Status:
 
 ## Larger / More Global Stores
 
-- [ ] `provision`
-- [ ] `chat`
+- [x] `provision` kept provisioning RPC/callback coordination, autosubmit restart state, and route-driven screen flow in store
+- [-] `chat` first slice in progress: moved info-panel open/tab UI state out of the global chat store into explicit `chatRoot` / `chatInfoPanel` route params
 - [x] `config` kept app/session/bootstrap state, engine plumbing, account/session coordination, startup routing, and window/app settings in store
 - [ ] `convostate`
 - [ ] `current-user`
