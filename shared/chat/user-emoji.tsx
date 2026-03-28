@@ -23,8 +23,8 @@ export const useUserEmoji = ({
   onlyInTeam?: boolean
 }) => {
   const loadUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
-  const [emojiGroups, setEmojiGroups] = React.useState<ReadonlyArray<T.RPCChat.EmojiGroup>>(emptyEmojiGroups)
-  const [emojis, setEmojis] = React.useState<ReadonlyArray<T.RPCChat.Emoji>>(emptyEmojis)
+  const [emojiGroups, setEmojiGroups] = React.useState(emptyEmojiGroups)
+  const [emojis, setEmojis] = React.useState(emptyEmojis)
   const [loading, setLoading] = React.useState(false)
   const requestIDRef = React.useRef(0)
 

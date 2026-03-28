@@ -1,7 +1,6 @@
 import * as Chat from '@/stores/chat'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
 import {useUserEmoji} from '@/chat/user-emoji'
 
@@ -52,12 +51,10 @@ const useDataSource = (filter: string) => {
   // prefill data with stock emoji
   let results: Array<EmojiData> = emojiData.emojiSearch(filter, 50)
 
-  if (userEmojis) {
-    const userEmoji = userEmojis
-      .filter(emoji => emoji.alias.toLowerCase().includes(filter))
-      .map(emoji => RPCToEmojiData(emoji, false))
-    results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
-  }
+  const userEmoji = userEmojis
+    .filter(emoji => emoji.alias.toLowerCase().includes(filter))
+    .map(emoji => RPCToEmojiData(emoji, false))
+  results = userEmoji.sort((a, b) => a.short_name.localeCompare(b.short_name)).concat(results)
 
   return {
     items: results,
