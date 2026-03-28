@@ -28,7 +28,6 @@ import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
-import type * as UseSignupStateType from '@/stores/signup'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
@@ -54,8 +53,6 @@ import {useNotifState} from '@/stores/notifications'
 import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useSettingsEmailState} from '@/stores/settings-email'
-import {useSignupState} from '@/stores/signup'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker'
@@ -63,6 +60,8 @@ import {useUsersState} from '@/stores/users'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
+import {clearSignupEmail} from '@/people/signup-email'
+import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 
@@ -325,24 +324,6 @@ export const initRecoverPasswordCallbacks = () => {
   })
 }
 
-export const initSignupCallbacks = () => {
-  const currentState = useSignupState.getState()
-  useSignupState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onEditEmail: (p: {email: string; makeSearchable: boolean}) => {
-          useSettingsEmailState.getState().dispatch.editEmail(p)
-        },
-        onShowPermissionsPrompt: (p: {justSignedUp?: boolean}) => {
-          usePushState.getState().dispatch.showPermissionsPrompt(p)
-        },
-      },
-    },
-  })
-}
-
 export const initTracker2Callbacks = () => {
   const currentState = useTrackerState.getState()
   useTrackerState.setState({
@@ -458,6 +439,9 @@ export const initSharedSubscriptions = () => {
         if (s.loggedIn) {
           ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
           storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+        } else {
+          clearSignupEmail()
+          clearSignupDeviceNameDraft()
         }
         storeRegistry
           .getState('daemon')
@@ -620,10 +604,9 @@ export const initSharedSubscriptions = () => {
         prev &&
         Util.getTab(prev) === Tabs.peopleTab &&
         next &&
-        Util.getTab(next) !== Tabs.peopleTab &&
-        storeRegistry.getState('signup').justSignedUpEmail
+        Util.getTab(next) !== Tabs.peopleTab
       ) {
-        storeRegistry.getState('signup').dispatch.clearJustSignedUpEmail()
+        clearSignupEmail()
       }
 
       if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
@@ -657,7 +640,6 @@ export const initSharedSubscriptions = () => {
   initNotificationsCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
-  initSignupCallbacks()
   initTracker2Callbacks()
 }
 
@@ -736,8 +718,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         if (emailAddress) {
           storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
         }
-        const {useSignupState} = require('@/stores/signup') as typeof UseSignupStateType
-        useSignupState.getState().dispatch.onEngineIncomingImpl(action)
+        clearSignupEmail()
       }
       break
     case 'keybase.1.secretUi.getPassphrase':

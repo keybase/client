@@ -7,7 +7,7 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {useSignupState} from '@/stores/signup'
+import {clearSignupEmail} from './signup-email'
 // import WotTask from './wot-task'
 
 const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
@@ -63,16 +63,15 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
   }
 }
 
-function EmailVerificationBanner() {
-  const clearJustSignedUpEmail = useSignupState(s => s.dispatch.clearJustSignedUpEmail)
-  const signupEmail = useSignupState(s => s.justSignedUpEmail)
+function EmailVerificationBanner(props: {signupEmail: string}) {
+  const {signupEmail} = props
   React.useEffect(
     () =>
       // Only have a cleanup function
       () => {
-        signupEmail && clearJustSignedUpEmail()
+        signupEmail && clearSignupEmail()
       },
-    [clearJustSignedUpEmail, signupEmail]
+    [signupEmail]
   )
 
   if (!signupEmail) {
@@ -117,7 +116,7 @@ function ResentEmailVerificationBanner(props: {resentEmail: string; setResentEma
 export function PeoplePageList(props: Props) {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
-      <EmailVerificationBanner />
+      <EmailVerificationBanner signupEmail={props.signupEmail} />
       <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
       {props.newItems
         .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)

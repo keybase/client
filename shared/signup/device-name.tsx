@@ -3,28 +3,27 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 import * as Provision from '@/stores/provision'
-import {useSignupState} from '@/stores/signup'
+import {usePushState} from '@/stores/push'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import * as Platforms from '@/constants/platform'
 import logger from '@/logger'
 import type {StaticScreenProps} from '@react-navigation/core'
+import {
+  clearSignupDeviceNameDraft,
+  getSignupDeviceNameDraft,
+  setSignupDeviceNameDraft,
+} from './device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
 const ConnectedEnterDevicename = (p: Props) => {
-  const initialDevicename = useSignupState(s => s.devicename)
+  const showPermissionsPrompt = usePushState(s => s.dispatch.showPermissionsPrompt)
+  const initialDevicename = getSignupDeviceNameDraft()
   const inviteCode = p.route.params.inviteCode ?? ''
   const username = p.route.params.username ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {resetState, setDevicename, showPermissionsPrompt} = useSignupState(
-    C.useShallow(s => ({
-      resetState: s.dispatch.resetState,
-      setDevicename: s.dispatch.setDevicename,
-      showPermissionsPrompt: s.dispatch.defer.onShowPermissionsPrompt,
-    }))
-  )
   const {navigateAppend, navigateUp} = C.useRouterState(
     C.useShallow(s => ({
       navigateAppend: s.dispatch.navigateAppend,
@@ -34,7 +33,7 @@ const ConnectedEnterDevicename = (p: Props) => {
   const [error, setError] = React.useState('')
   const onContinue = (devicename: string) => {
     setError('')
-    setDevicename(devicename)
+    setSignupDeviceNameDraft(devicename)
     const f = async () => {
       try {
         await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, C.waitingKeySignup)
@@ -79,7 +78,7 @@ const ConnectedEnterDevicename = (p: Props) => {
           },
           waitingKey: C.waitingKeySignup,
         })
-        resetState()
+        clearSignupDeviceNameDraft()
       } catch (error_) {
         if (error_ instanceof RPCError) {
           showPermissionsPrompt?.({justSignedUp: false})
