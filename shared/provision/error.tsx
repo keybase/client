@@ -5,7 +5,7 @@ import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/stores/provision'
+import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
@@ -29,9 +29,17 @@ const rewriteErrorDesc = (s: string) => {
   }
 }
 
+type Props = {
+  route: {
+    params: {
+      error?: ProvisionRouteError
+    }
+  }
+}
+
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const RenderError = () => {
-  const error = useProvisionState(s => s.finalError)
+const RenderError = ({route}: Props) => {
+  const error = route.params.error
   const username = useProvisionState(s => s.username)
   const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
@@ -58,7 +66,7 @@ const RenderError = () => {
       </Wrapper>
     )
   }
-  const f = error.fields as Array<undefined | {key?: string; value?: string}> | undefined
+  const f = error.fields
   const fields =
     f?.reduce<{[key: string]: string}>((acc, f) => {
       const k = f && typeof f.key === 'string' ? f.key : ''

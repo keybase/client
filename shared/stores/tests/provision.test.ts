@@ -55,9 +55,8 @@ test('restartProvisioning bails early when there is no username after canceling 
   expect(useProvisionState.getState().startProvisionTrigger).toBe(0)
 })
 
-test('resetState preserves inline and final errors while clearing form state', () => {
+test('resetState preserves inline errors while clearing form state', () => {
   const cancel = jest.fn()
-  const finalError = new RPCError('final error', 1)
   const inlineError = new RPCError('inline error', 2)
 
   useProvisionState.setState(s => ({
@@ -71,8 +70,6 @@ test('resetState preserves inline and final errors while clearing form state', (
         cancel,
       },
     },
-    finalError,
-    forgotUsernameResult: 'success',
     inlineError,
     passphrase: 'hunter2',
     username: 'alice',
@@ -84,9 +81,7 @@ test('resetState preserves inline and final errors while clearing form state', (
   expect(cancel).toHaveBeenCalledWith(true)
   expect(state.autoSubmit).toEqual([])
   expect(state.deviceName).toBe('')
-  expect(state.forgotUsernameResult).toBe('')
   expect(state.passphrase).toBe('')
   expect(state.username).toBe('')
-  expect(state.finalError).toBe(finalError)
   expect(state.inlineError).toBe(inlineError)
 })

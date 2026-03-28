@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {ignorePromise, wrapErrors} from '@/constants/utils'
-import {waitingKeyProvision, waitingKeyProvisionForgotUsername} from '@/constants/strings'
+import {waitingKeyProvision} from '@/constants/strings'
 import * as Z from '@/util/zustand'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
@@ -17,16 +17,12 @@ export type Device = {
   name: string
   type: T.Devices.DeviceType
 }
-
-const decodeForgotUsernameError = (error: RPCError) => {
-  switch (error.code) {
-    case T.RPCGen.StatusCode.scnotfound:
-      return "We couldn't find an account with that email address. Try again?"
-    case T.RPCGen.StatusCode.scinputerror:
-      return "That doesn't look like a valid email address. Try again?"
-    default:
-      return error.desc
-  }
+export type ProvisionRouteError = {
+  code: number
+  desc: string
+  details: string
+  fields?: ReadonlyArray<{key?: string; value?: string}>
+  message: string
 }
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
@@ -73,9 +69,6 @@ type Store = T.Immutable<{
   deviceName: string
   devices: Array<Device>
   error: string
-  existingDevices: Array<string>
-  finalError?: RPCError
-  forgotUsernameResult: string
   inlineError?: RPCError
   passphrase: string
   startProvisionTrigger: number
@@ -88,9 +81,6 @@ const initialStore: Store = {
   deviceName: '',
   devices: [],
   error: '',
-  existingDevices: [],
-  finalError: undefined,
-  forgotUsernameResult: '',
   inlineError: undefined,
   passphrase: '',
   startProvisionTrigger: 0,
@@ -108,7 +98,6 @@ export type State = Store & {
       submitTextCode?: (code: string) => void
     }
     addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
-    forgotUsername: (phone?: string, email?: string) => void
     resetState: () => void
     restartProvisioning: () => void
     startProvision: (name?: string, fromReset?: boolean) => void
@@ -285,55 +274,12 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
       submitDeviceSelect: _submitDeviceSelect,
       submitTextCode: _submitTextCode,
     },
-    forgotUsername: (phone, email) => {
-      const f = async () => {
-        if (email) {
-          try {
-            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise(
-              {email},
-              waitingKeyProvisionForgotUsername
-            )
-            set(s => {
-              s.forgotUsernameResult = 'success'
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              const err = decodeForgotUsernameError(error)
-              set(s => {
-                s.forgotUsernameResult = err
-              })
-            }
-          }
-        }
-        if (phone) {
-          try {
-            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise(
-              {phone},
-              waitingKeyProvisionForgotUsername
-            )
-            set(s => {
-              s.forgotUsernameResult = 'success'
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              const err = decodeForgotUsernameError(error)
-              set(s => {
-                s.forgotUsernameResult = err
-              })
-              return
-            }
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     resetState: () => {
       get().dispatch.dynamic.cancel?.(true)
       set(s => ({
         ...s,
         ...initialStore,
         dispatch: s.dispatch,
-        finalError: s.finalError,
         inlineError: s.inlineError,
       }))
     },
@@ -388,11 +334,10 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
               },
               'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                 if (isCanceled(response)) return
-                const {errorMessage, existingDevices} = params
+                const {errorMessage} = params
                 setupCancel(response)
                 set(s => {
                   s.error = errorMessage
-                  s.existingDevices = T.castDraft(existingDevices ?? [])
                   s.dispatch.dynamic.setDeviceName = wrapErrors((name: string) => {
                     set(s => {
                       s.dispatch.dynamic.setDeviceName = _setDeviceName
@@ -509,11 +454,22 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
               break
             default:
               if (!errorCausedByUsCanceling(finalError)) {
-                set(s => {
-                  s.finalError = finalError
-                })
                 clearModals()
-                navigateAppend('error', true)
+                navigateAppend(
+                  {
+                    name: 'error',
+                    params: {
+                      error: {
+                        code: finalError.code,
+                        desc: finalError.desc,
+                        details: finalError.details,
+                        fields: finalError.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
+                        message: finalError.message,
+                      } satisfies ProvisionRouteError,
+                    },
+                  },
+                  true
+                )
               }
               break
           }
