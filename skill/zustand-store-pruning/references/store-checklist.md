@@ -35,10 +35,10 @@ Status:
 - [x] `settings-password` kept only `randomPW` in store; moved submit/load flows into settings screens
 - [x] `settings-phone` kept notification-backed `phones` and `addedPhone`; moved add/verify/default-country flow into local hooks and route params
 - [x] `signup` removed the store; People now owns the one-shot welcome banner helper and signup keeps device-name draft state in feature-local helpers
-- [ ] `team-building`
-- [ ] `tracker`
+- [~] `team-building` already runs as a per-namespace provider-scoped flow store; defer unless we want a narrow cleanup of the currently unused `selectedRole` / `sendNotification` state
+- [x] `tracker` kept identify notification plumbing, shared profile and non-user caches, proof suggestions, and desktop remote tracker window state in store
 - [x] `unlock-folders` removed dead phase/device state; kept only engine callback forwarding into `config`
-- [ ] `users`
+- [x] `users` kept shared fullname/bio/broken/block caches plus identify and block notifications in store; moved block/report RPC wrappers into chat and teams components
 - [ ] `wallets`
 
 ## Larger / More Global Stores

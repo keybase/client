@@ -33,12 +33,8 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const {infoMap, setUserBlocks} = useUsersState(
-    C.useShallow(s => ({
-      infoMap: s.infoMap,
-      setUserBlocks: s.dispatch.setUserBlocks,
-    }))
-  )
+  const infoMap = useUsersState(s => s.infoMap)
+  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
   const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
@@ -137,13 +133,22 @@ const ChannelMemberRow = (props: Props) => {
         })
       const onBlock = () => {
         username &&
-          setUserBlocks([
-            {
-              setChatBlock: true,
-              setFollowBlock: true,
-              username,
-            },
-          ])
+          setUserBlocks(
+            [
+              {
+                blocks: [
+                  {
+                    setChatBlock: true,
+                    setFollowBlock: true,
+                    username,
+                  },
+                ],
+              },
+              C.waitingKeyUsersSetUserBlocks,
+            ],
+            () => {},
+            () => {}
+          )
       }
 
       const menuItems: Kb.MenuItems = [

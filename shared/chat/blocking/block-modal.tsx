@@ -1,6 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import * as S from '@/constants/strings'
 import * as Chat from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
@@ -140,23 +142,30 @@ const Container = function BlockModal(ownProps: OwnProps) {
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
+  const reportUserRPC = C.useRPC(T.RPCGen.userReportUserRpcPromise)
+  const setUserBlocksRPC = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const leaveTeamAndBlock = (teamname: string) => {
     leaveTeam(teamname, true, 'chat')
   }
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const _reportUser = useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
-    _reportUser({
-      comment: report.extraNotes,
-      conversationIDKey,
-      includeTranscript: report.includeTranscript && !!conversationIDKey,
-      reason: report.reason,
-      username,
-    })
+    reportUserRPC(
+      [
+        {
+          comment: report.extraNotes,
+          convID: conversationIDKey,
+          includeTranscript: report.includeTranscript && !!conversationIDKey,
+          reason: report.reason,
+          username,
+        },
+        S.waitingKeyUsersReportUser,
+      ],
+      () => {},
+      () => {}
+    )
   }
   const setConversationStatus = Chat.useChatContext(s => s.dispatch.blockConversation)
-  const _setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = (newBlocks: NewBlocksMap) => {
     // Convert our state block array to action payload.
     const blocks = [...newBlocks.entries()]
@@ -169,7 +178,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
         username,
       }))
     if (blocks.length) {
-      _setUserBlocks(blocks)
+      setUserBlocksRPC([{blocks}, S.waitingKeyUsersSetUserBlocks], () => {}, () => {})
     }
   }
 

@@ -6,7 +6,6 @@ import type * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/stores/tracker'
-import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -304,9 +303,14 @@ const Container = (ownProps: OwnProps) => {
   const status = info.status
   const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
-  const setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const onBlock = () => {
-    username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
+    username &&
+      setUserBlocks(
+        [{blocks: [{setChatBlock: true, setFollowBlock: true, username}]}, C.waitingKeyUsersSetUserBlocks],
+        () => {},
+        () => {}
+      )
   }
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
