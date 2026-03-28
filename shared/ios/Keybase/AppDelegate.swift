@@ -154,13 +154,6 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
       return
     }
 
-    // Skip writes when protected data is unavailable (device locked before first unlock).
-    // NSConcreteFileHandle.writeData: throws NSException on protected-file access failures,
-    // which Swift do-catch cannot intercept, causing a crash (see: _NSFileHandleRaiseOperationExceptionWhileReading).
-    guard UIApplication.shared.isProtectedDataAvailable else {
-      return
-    }
-
     if self.startupLogFileHandle == nil {
       if !FileManager.default.fileExists(atPath: logFilePath) {
         // Match the parent directory's protection class so the file remains accessible
