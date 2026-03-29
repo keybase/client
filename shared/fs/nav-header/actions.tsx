@@ -3,20 +3,29 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
+import {navigateAppend} from '@/constants/router'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {useRoute} from '@react-navigation/native'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 
 type Props = {
+  folderViewFilter?: string
   onTriggerFilterMobile: () => void
   path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const {softErrors, setFolderViewFilter} = useFSState(
-    C.useShallow(s => ({
-      setFolderViewFilter: s.dispatch.setFolderViewFilter,
-      softErrors: s.softErrors,
-    }))
+  const route = useRoute<RootRouteProps<'fsRoot'>>()
+  const softErrors = useFSState(s => s.softErrors)
+  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
+  const setFolderViewFilter = React.useCallback(
+    (folderViewFilter?: string) =>
+      navigateAppend(
+        {name: 'fsRoot', params: {folderViewFilter, lastClosedPublicBannerTlf, path: props.path}},
+        true
+      ),
+    [lastClosedPublicBannerTlf, props.path]
   )
   const hasSoftError = !!FS.getSoftError(softErrors, props.path)
   React.useEffect(() => {
@@ -29,7 +38,12 @@ const FsNavHeaderRightActions = (props: Props) => {
       {Kb.Styles.isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
-        <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+        <Kbfs.FolderViewFilter
+          filter={props.folderViewFilter}
+          onChangeFilter={setFolderViewFilter}
+          path={props.path}
+          style={styles.folderViewFilter}
+        />
       )}
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.PathItemAction

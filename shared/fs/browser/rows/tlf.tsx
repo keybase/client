@@ -8,7 +8,7 @@ import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   disabled: boolean
   mixedMode?: boolean
   name: string
@@ -22,12 +22,12 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 }
 
 const TLFContainer = (p: OwnProps) => {
-  const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
+  const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
   const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
   const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
   // Only include the user if they're the only one
   const usernames = !_usernames.length ? [username] : _usernames
@@ -67,6 +67,7 @@ const TLFContainer = (p: OwnProps) => {
       {!!loadPathMetadata && <FsPathMetadataLoader path={path} />}
       <StillCommon
         path={path}
+        inDestinationPicker={!!destinationPickerSource}
         onOpen={disabled ? undefined : onOpen}
         mixedMode={mixedMode}
         writingToJournal={false}

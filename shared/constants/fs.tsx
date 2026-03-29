@@ -153,8 +153,6 @@ export const emptyDownloadInfo = {
 export const emptyPathItemActionMenu = {
   downloadID: undefined,
   downloadIntent: undefined,
-  previousView: T.FS.PathItemActionMenuView.Root,
-  view: T.FS.PathItemActionMenuView.Root,
 } satisfies T.FS.PathItemActionMenu
 
 export const emptySettings = {
@@ -513,16 +511,16 @@ export const getSharePathArrayDescription = (paths: ReadonlyArray<T.FS.LocalPath
   return !paths.length ? '' : paths.length === 1 ? T.FS.getPathName(paths[0]) : `${paths.length} items`
 }
 
-export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): string =>
-  picker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
-    ? T.FS.getPathName(picker.source.path)
-    : picker.source.type === T.FS.DestinationPickerSource.IncomingShare
-      ? getSharePathArrayDescription(
-          picker.source.source
-            .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
-            .filter(Boolean)
-        )
-      : ''
+export const getDestinationPickerPathName = (
+  source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+): string =>
+  source.type === T.FS.DestinationPickerSource.MoveOrCopy
+    ? T.FS.getPathName(source.path)
+    : getSharePathArrayDescription(
+        source.source
+          .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
+          .filter(Boolean)
+      )
 
 // File/Download Utilities
 export const humanReadableFileSize = (size: number) => {
@@ -574,22 +572,18 @@ export const downloadIsOngoing = (dlState: T.FS.DownloadState) =>
 
 export const getDownloadIntent = (
   path: T.FS.Path,
-  downloads: T.FS.Downloads,
-  pathItemActionMenu: T.FS.PathItemActionMenu
+  downloads: T.FS.Downloads
 ): T.FS.DownloadIntent | undefined => {
   const found = [...downloads.info].find(([_, info]) => info.path === path)
   if (!found) {
     return undefined
   }
-  const [downloadID] = found
+  const [downloadID, info] = found
   const dlState = downloads.state.get(downloadID) || emptyDownloadState
   if (!downloadIsOngoing(dlState)) {
     return undefined
   }
-  if (pathItemActionMenu.downloadID === downloadID) {
-    return pathItemActionMenu.downloadIntent
-  }
-  return T.FS.DownloadIntent.None
+  return info.intent ?? T.FS.DownloadIntent.None
 }
 
 export const canSaveMedia = (pathItem: T.FS.PathItem, fileContext: T.FS.FileContext): boolean => {
@@ -758,8 +752,8 @@ export const hideOrDisableInDestinationPicker = (
   tlfType: T.FS.TlfType,
   name: string,
   username: string,
-  destinationPickerIndex?: number
-) => typeof destinationPickerIndex === 'number' && tlfType === T.FS.TlfType.Public && name !== username
+  inDestinationPicker?: boolean
+) => !!inDestinationPicker && tlfType === T.FS.TlfType.Public && name !== username
 
 // Other Utilities
 

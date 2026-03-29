@@ -329,6 +329,7 @@ export type DownloadState = Readonly<{
 
 export type DownloadInfo = Readonly<{
   filename: string
+  intent?: DownloadIntent
   isRegularDownload: boolean
   path: Path
   startTime: number
@@ -426,8 +427,6 @@ export enum PathItemActionMenuView {
 export type PathItemActionMenu = Readonly<{
   downloadID: string | undefined
   downloadIntent: DownloadIntent | undefined
-  previousView: PathItemActionMenuView
-  view: PathItemActionMenuView
 }>
 
 export enum DriverStatusType {

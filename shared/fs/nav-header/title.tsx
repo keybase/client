@@ -6,6 +6,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FS from '@/stores/fs'
 
 type Props = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
   inDestinationPicker?: boolean
 }
@@ -23,7 +24,11 @@ const Breadcrumb = (props: Props) => {
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {
     inDestinationPicker
-      ? FS.makeActionsForDestinationPickerOpen(0, path)
+      ? props.destinationPickerSource &&
+        nav.safeNavigateAppend({
+          name: 'destinationPicker',
+          params: {parentPath: path, source: props.destinationPickerSource},
+        })
       : nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
   }
 

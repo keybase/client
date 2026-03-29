@@ -5,20 +5,15 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type Props = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
-  destinationPickerIndex?: number
 }
 
 export const useOpen = (props: Props) => {
-  const {destPicker, pathItems} = useFSState(
-    C.useShallow(s => {
-      const {destinationPicker, pathItems} = s
-      return {destPicker: destinationPicker, pathItems}
-    })
-  )
+  const pathItems = useFSState(s => s.pathItems)
   const nav = useSafeNavigation()
 
-  if (typeof props.destinationPickerIndex !== 'number') {
+  if (!props.destinationPickerSource) {
     return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
   }
 
@@ -28,16 +23,19 @@ export const useOpen = (props: Props) => {
 
   const canOpenInDestinationPicker =
     isFolder &&
-    (destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ||
-      (destPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-        destPicker.source.path !== props.path))
+    (props.destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare ||
+      (props.destinationPickerSource.type === T.FS.DestinationPickerSource.MoveOrCopy &&
+        props.destinationPickerSource.path !== props.path))
 
   if (!canOpenInDestinationPicker) {
     return
   }
 
   const destinationPickerGoTo = () =>
-    FS.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
+    nav.safeNavigateAppend({
+      name: 'destinationPicker',
+      params: {parentPath: props.path, source: props.destinationPickerSource},
+    })
 
   return destinationPickerGoTo
 }

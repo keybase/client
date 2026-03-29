@@ -3,10 +3,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
+import {navigateAppend} from '@/constants/router'
+import type {RootRouteProps} from '@/router-v2/route-params'
+import {useRoute} from '@react-navigation/native'
 import Actions from './actions'
 import MainBanner from './main-banner'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 
 /*
  *
@@ -17,6 +19,7 @@ import {useFSState} from '@/stores/fs'
  */
 
 type Props = {
+  folderViewFilter?: string
   path: T.FS.Path
 }
 
@@ -26,13 +29,18 @@ const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   ) : null
 
 const NavMobileHeader = (props: Props) => {
-  const {expanded, setFolderViewFilter} = useFSState(
-    C.useShallow(s => ({
-      expanded: s.folderViewFilter !== undefined,
-      setFolderViewFilter: s.dispatch.setFolderViewFilter,
-    }))
-  )
+  const route = useRoute<RootRouteProps<'fsRoot'>>()
   const {pop} = C.useNav()
+  const expanded = props.folderViewFilter !== undefined
+  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
+  const setFolderViewFilter = React.useCallback(
+    (folderViewFilter?: string) =>
+      navigateAppend(
+        {name: 'fsRoot', params: {folderViewFilter, lastClosedPublicBannerTlf, path: props.path}},
+        true
+      ),
+    [lastClosedPublicBannerTlf, props.path]
+  )
 
   const filterDone = setFolderViewFilter
   const triggerFilterMobile = () => setFolderViewFilter('')
@@ -59,14 +67,19 @@ const NavMobileHeader = (props: Props) => {
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
         {expanded ? (
-          <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
+          <Kbfs.FolderViewFilter
+            filter={props.folderViewFilter}
+            onCancel={filterDone}
+            onChangeFilter={setFolderViewFilter}
+            path={props.path}
+          />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
             {pop ? (
               <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
             ) : null}
             <Kb.Box2 direction="horizontal" flex={1} />
-            <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
+            <Actions path={props.path} folderViewFilter={props.folderViewFilter} onTriggerFilterMobile={triggerFilterMobile} />
           </Kb.Box2>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>

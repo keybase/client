@@ -5,18 +5,19 @@ import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 
 type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   name: T.FS.TlfType
 }
 
 const TLFTypeContainer = (p: OwnProps) => {
-  const {destinationPickerIndex, name} = p
+  const {destinationPickerSource, name} = p
   const path = T.FS.stringToPath(`/keybase/${name}`)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
 
   return (
     <StillCommon
       path={path}
+      inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}
       writingToJournal={false}
       content={

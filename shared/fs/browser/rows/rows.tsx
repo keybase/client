@@ -11,8 +11,8 @@ import {normalRowHeight} from './common'
 import {useFsChildren, UploadButton} from '@/fs/common'
 
 export type Props = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
-  destinationPickerIndex?: number
   items: Array<RowTypes.RowItem>
   path: T.FS.Path
 }
@@ -27,7 +27,7 @@ export const WrapRow = ({children}: {children: React.ReactNode}) => (
 const EmptyRow = () => <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer} />
 
 function Rows(props: Props & {listKey: string}) {
-  const {items, emptyMode, destinationPickerIndex, listKey} = props
+  const {destinationPickerSource, items, emptyMode, listKey} = props
 
   const _rowRenderer = (_: number, item: RowTypes.RowItem) => {
     switch (item.rowType) {
@@ -40,7 +40,7 @@ function Rows(props: Props & {listKey: string}) {
       case RowTypes.RowType.TlfType:
         return (
           <WrapRow>
-            <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
+            <TlfType name={item.name} destinationPickerSource={destinationPickerSource} />
           </WrapRow>
         )
       case RowTypes.RowType.Tlf:
@@ -50,7 +50,7 @@ function Rows(props: Props & {listKey: string}) {
               disabled={item.disabled}
               name={item.name}
               tlfType={item.tlfType}
-              destinationPickerIndex={destinationPickerIndex}
+              destinationPickerSource={destinationPickerSource}
             />
           </WrapRow>
         )
@@ -60,7 +60,7 @@ function Rows(props: Props & {listKey: string}) {
             {item.editID ? (
               <Editing editID={item.editID} />
             ) : (
-              <Still path={item.path} destinationPickerIndex={destinationPickerIndex} />
+              <Still path={item.path} destinationPickerSource={destinationPickerSource} />
             )}
           </WrapRow>
         )

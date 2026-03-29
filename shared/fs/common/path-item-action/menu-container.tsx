@@ -11,18 +11,23 @@ import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useEditContext} from '@/fs/browser/ui-context'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
+  previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
   mode: 'row' | 'screen'
+  setView: (view: T.FS.PathItemActionMenuView) => void
+  view: T.FS.PathItemActionMenuView
 }
 
 const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
 const Container = (op: OwnProps) => {
-  const {path, mode, floatingMenuProps} = op
+  const {path, mode, floatingMenuProps, setView, view} = op
+  const {newFolderRow, startRename} = useEditContext()
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
   const data = useFSState(
@@ -30,8 +35,8 @@ const Container = (op: OwnProps) => {
       const pathItem = FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
-      const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
-      const {favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = s.dispatch
+      const {cancelDownload, download} = s.dispatch
+      const {favoriteIgnore, dismissDownload} = s.dispatch
       const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
@@ -40,24 +45,19 @@ const Container = (op: OwnProps) => {
         download,
         favoriteIgnore,
         fileContext,
-        newFolderRow,
         openPathInSystemFileManagerDesktop,
         pathItem,
         pathItemActionMenu,
-        setMoveOrCopySource,
-        setPathItemActionMenuView,
         sfmiEnabled,
-        showMoveOrCopy,
-        startRename,
       }
     })
   )
 
   const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {setPathItemActionMenuView, download, newFolderRow, openPathInSystemFileManagerDesktop} = data
-  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = data
+  const {download, openPathInSystemFileManagerDesktop} = data
+  const {sfmiEnabled, favoriteIgnore, dismissDownload} = data
 
-  const {downloadID, downloadIntent, view} = pathItemActionMenu
+  const {downloadID, downloadIntent} = pathItemActionMenu
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
@@ -135,7 +135,7 @@ const Container = (op: OwnProps) => {
     } else {
       const onClick = needConfirm(pathItem)
         ? () => {
-            setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
+            setView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
             cancel()
           }
         : () => {
@@ -151,7 +151,7 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-share',
           onClick: () => {
-            setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
+            setView(T.FS.PathItemActionMenuView.Share)
           },
           title: 'Share...',
         },
@@ -189,7 +189,7 @@ const Container = (op: OwnProps) => {
       const conf = needConfirm(pathItem)
       const onClick = cancelAfter(() => {
         if (conf) {
-          setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
+          setView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
         } else {
           download(path, 'share')
         }
@@ -215,8 +215,13 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-copy',
           onClick: hideAndCancelAfter(() => {
-            setMoveOrCopySource(path)
-            showMoveOrCopy(T.FS.getPathParent(path))
+            navigateAppend({
+              name: 'destinationPicker',
+              params: {
+                parentPath: T.FS.getPathParent(path),
+                source: {path, type: T.FS.DestinationPickerSource.MoveOrCopy},
+              },
+            })
           }),
           title: 'Move or Copy',
         },
