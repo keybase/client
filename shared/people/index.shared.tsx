@@ -71,7 +71,7 @@ function EmailVerificationBanner(props: {signupEmail: string}) {
       () => {
         signupEmail && clearSignupEmail()
       },
-    [signupEmail]
+    [clearSignupEmail, signupEmail]
   )
 
   if (!signupEmail) {
