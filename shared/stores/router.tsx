@@ -1,10 +1,8 @@
 import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import * as Util from '@/constants/router'
+import type * as Util from '@/constants/router'
 
-export {
-  type NavState,
-} from '@/constants/router'
+export {type NavState} from '@/constants/router'
 
 type Store = T.Immutable<{
   navState?: unknown
