@@ -39,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
   const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
   const attachmentUploadCanceled = Chat.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
@@ -53,7 +53,7 @@ const Container = (ownProps: OwnProps) => {
     )
     navigateUp()
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 

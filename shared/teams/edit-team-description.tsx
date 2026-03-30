@@ -24,7 +24,7 @@ const EditTeamDescription = (props: Props) => {
   const [description, setDescription] = React.useState(origDescription)
   const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onSave = () => editTeamDescription(teamID, description)
   const onClose = () => navigateUp()
 

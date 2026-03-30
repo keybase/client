@@ -28,7 +28,7 @@ const PopAttach = (ownProps: OwnProps) => {
   })
   const {downloadPath, attachmentType, id} = message
   const pending = !!message.transferState
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   const {
     attachmentDownload,

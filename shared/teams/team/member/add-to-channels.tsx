@@ -333,8 +333,8 @@ const SelfChannelActions = function SelfChannelActions(p: {
       },
     })
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const onChannelSettings = () => {
     clearModals()
     navigateAppend({

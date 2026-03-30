@@ -6,7 +6,7 @@ type Props = {
 }
 const AddBotRow = (props: Props) => {
   const {teamID} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onBotAdd = () => navigateAppend({name: 'chatSearchBots', params: {teamID}})
 
   return (

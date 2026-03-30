@@ -140,7 +140,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const _allKnownBlocks = useUsersState(s => s.blockMap)
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const reportUserRPC = C.useRPC(T.RPCGen.userReportUserRpcPromise)
   const setUserBlocksRPC = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)

@@ -92,7 +92,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 const DevicePage = (ownProps: OwnProps) => {
   const {canRevoke, device} = ownProps
   const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const showRevokeDevicePage = () => {
     navigateAppend({name: 'deviceRevoke', params: {device}})
   }

@@ -16,7 +16,7 @@ type Props = {
 
 const TeamRow = function TeamRow(props: Props) {
   const {showChat = true, teamID} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const data = useTeamsState(
     C.useShallow(s => {
       const teamMeta = Teams.getTeamMeta(s, teamID)

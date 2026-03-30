@@ -62,7 +62,7 @@ const FinderIntegration = () => {
         preferredMountDirs: s.sfmi.preferredMountDirs,
       }))
     )
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')
   }

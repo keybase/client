@@ -9,8 +9,8 @@ import {navToProfile} from '@/constants/router'
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
   const rekeyers = Chat.useChatContext(s => s.meta.rekeyers)
-  const onBack = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onBack = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const onEnterPaperkey = () => {
     navigateAppend('chatEnterPaperkey')
   }

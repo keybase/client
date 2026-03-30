@@ -13,7 +13,7 @@ function SystemInviteAcceptedContainer(p: OwnProps) {
   const {role} = message
   const teamID = Chat.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onViewTeam = () => {
     navigateAppend({name: 'team', params: {teamID}})
   }

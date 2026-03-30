@@ -12,7 +12,7 @@ import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 function UnfurlMap(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const data = Chat.useChatContext(
     C.useShallow(s => {

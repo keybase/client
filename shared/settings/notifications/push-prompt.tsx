@@ -4,7 +4,7 @@ import {usePushState} from '@/stores/push'
 
 const PushPrompt = () => {
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onRequestPermissions = () => {
     requestPermissions()
     clearModals()

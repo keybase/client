@@ -10,8 +10,8 @@ import {OriginalOrCompressedButton} from '@/incoming-share'
 const FsRoot = React.lazy(async () => import('.'))
 
 const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource}) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
   if (!Kb.Styles.isMobile) return null
   if (source.type === T.FS.DestinationPickerSource.IncomingShare) {
     return (

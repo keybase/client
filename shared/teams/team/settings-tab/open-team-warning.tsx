@@ -14,7 +14,7 @@ const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
   const onConfirmCallback = useSettingsTabState(s => s.dispatch.triggerAllowOpen)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onConfirm = () => {
     clearModals()
     onConfirmCallback()

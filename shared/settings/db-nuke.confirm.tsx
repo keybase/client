@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
 const DbNukeConfirm = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const dbNuke = C.useRPC(T.RPCGen.ctlDbNukeRpcPromise)
   const onCancel = () => {
     navigateUp()

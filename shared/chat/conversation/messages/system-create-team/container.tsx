@@ -21,7 +21,7 @@ function SystemCreateTeamContainer(p: OwnProps) {
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onViewTeam = () => {
     if (teamID) {
       navigateAppend({name: 'team', params: {teamID}})

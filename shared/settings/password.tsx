@@ -178,7 +178,7 @@ const styles = Kb.Styles.styleSheetCreate(
 export const useSubmitNewPassword = (thenLogout: boolean) => {
   const [error, setError] = React.useState('')
   const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const requestLogout = useRequestLogout()
   const submitNewPassword = C.useRPC(T.RPCGen.accountPassphraseChangeRpcPromise)
 

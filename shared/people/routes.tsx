@@ -8,7 +8,7 @@ import {settingsLogOutTab} from '@/constants/settings'
 
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend('accountSwitcher')
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
@@ -17,7 +17,7 @@ export const newRoutes = {
   peopleRoot: {
     getOptions: {
       headerLeft: () => null,
-      headerRight: () => <HeaderAvatar />,
+      headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
       headerTitle: () => <ProfileSearch />,
     },
     screen: React.lazy(async () => import('./container')),
@@ -25,7 +25,7 @@ export const newRoutes = {
 }
 
 const AccountSignOutButton = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   return (
     <Kb.Text type="BodyBigLink" onClick={() => navigateAppend(settingsLogOutTab)} style={{color: Kb.Styles.globalColors.red}}>
       Sign out

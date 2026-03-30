@@ -73,7 +73,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = useDefaultPhoneCountry()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const {clearError, error, submitPhoneNumber, waiting} = useAddPhoneNumber()
   const onSkip = () => {
     navigateAppend('signupEnterEmail', true)

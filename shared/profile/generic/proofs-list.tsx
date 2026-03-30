@@ -113,13 +113,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
-  const {clearModals, navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {clearModals, navigateAppend, navigateUp} = C.Router2
 
   const providers = proofSuggestions.map(s => ({
     desc: s.pickerSubtext,

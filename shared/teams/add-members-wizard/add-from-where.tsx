@@ -10,7 +10,7 @@ const AddFromWhere = () => {
   const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
+  const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
   const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')

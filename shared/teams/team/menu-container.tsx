@@ -90,7 +90,7 @@ const Container = (ownProps: OwnProps) => {
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteTeam = () => {
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }

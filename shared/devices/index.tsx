@@ -68,12 +68,12 @@ function ReloadableDevices() {
     loadDevices()
   })
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
     navigateAppend({name: 'deviceAdd', params: {highlight}})
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

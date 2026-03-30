@@ -20,7 +20,7 @@ const Container = (ownProps: OwnProps) => {
   const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const _onInvite = (invitees: string, role: T.Teams.TeamRoleType) => {
     inviteToTeamByEmail(invitees, role, teamID, teamname)
   }

@@ -28,12 +28,8 @@ export default function InboxSearchRow(ownProps: OwnProps) {
   const showStartNewChat = !C.isMobile && showEmptyInbox
   const showFilter = !showEmptyInbox
 
-  const routerState = C.useRouterState(
-    C.useShallow(s => ({
-      appendNewChatBuilder: s.appendNewChatBuilder,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const appendNewChatBuilder = C.Router2.appendNewChatBuilder
+  const navigateUp = C.Router2.navigateUp
 
   const [query, setQuery] = React.useState('')
   const onQueryChanged = (q: string) => {
@@ -55,7 +51,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
   return (
     <>
       {!!showStartNewChat && (
-        <StartNewChat onBack={routerState.navigateUp} onNewChat={routerState.appendNewChatBuilder} />
+        <StartNewChat onBack={navigateUp} onNewChat={appendNewChatBuilder} />
       )}
       {!!showFilter && (
         <ChatFilterRow

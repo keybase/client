@@ -17,12 +17,7 @@ const ConnectedEnterUsername = (p: Props) => {
   const initialUsername = p.route.params.username ?? ''
   const inviteCode = p.route.params.inviteCode ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {navigateAppend, navigateUp} = C.Router2
   const onBack = () => {
     clearSignupDeviceNameDraft()
     navigateUp()

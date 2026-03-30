@@ -16,7 +16,7 @@ export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 function Container(ownProps: OwnProps) {
   const {canRevoke, device, firstItem} = ownProps
   const {deviceID} = device
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const showExistingDevicePage = () => {
     navigateAppend({name: 'devicePage', params: {canRevoke, device}})
   }

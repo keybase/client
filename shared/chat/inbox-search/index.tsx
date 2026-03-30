@@ -55,7 +55,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const onCancel = () => {
     toggleInboxSearch(false)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onInstallBot = (username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
   }
@@ -388,7 +388,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
     }))
   )
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (

@@ -128,7 +128,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const openModal = useConfirm(s => s.dispatch.openModal)
   const closeModal = useConfirm(s => s.dispatch.closeModal)
 

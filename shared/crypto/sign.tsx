@@ -147,7 +147,7 @@ export const SignInput = (_props: unknown) => {
   const {params} = useRoute<RootRouteProps<'signTab'>>()
   const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
   }

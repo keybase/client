@@ -14,7 +14,7 @@ const Container = () => {
   const _fullname = d.fullname || ''
   const _location = d.location || ''
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const editProfile = C.useRPC(T.RPCGen.userProfileEditRpcPromise)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(

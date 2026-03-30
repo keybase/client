@@ -348,7 +348,7 @@ const Developer = () => {
     )
   }
   const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
   const onMakeIcons = () => navigateAppend('makeIcons')
   const onClearLogs = () => {

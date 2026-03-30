@@ -27,7 +27,7 @@ export function useInboxState(conversationIDKey?: string) {
   const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
   const {isSearching, queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
 
-  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
+  const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
 
   // Handle focus changes on mobile

@@ -75,7 +75,7 @@ const PopText = (ownProps: OwnProps) => {
   )
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const onCopy = () => {
     text && copyToClipboard(text)

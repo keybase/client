@@ -179,7 +179,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
     reason: error?.message || '',
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
       navigateAppend(C.Tabs.settingsTab)

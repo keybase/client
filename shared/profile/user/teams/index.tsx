@@ -26,12 +26,7 @@ const Container = (ownProps: OwnProps) => {
   const {joinTeam, showTeamByName, _roles} = teamsState
   const {_teamNameToID, _youAreInTeams} = teamsState
   const teamShowcase = d.teamShowcase || noTeams
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
+  const {clearModals, navigateAppend} = C.Router2
   const _onEdit = () => {
     navigateAppend('profileShowcaseTeamOffer')
   }

@@ -102,9 +102,10 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onAddPeople = () => {
     teamID && startAddMembersWizard(teamID)
   }
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const chatNavigateAppend = Chat.useChatNavigateAppend()
+  const routerNavigateAppend = C.Router2.navigateAppend
   const onBlockConv = () => {
-    navigateAppend(conversationIDKey => ({
+    chatNavigateAppend(conversationIDKey => ({
       name: 'chatBlockingModal',
       params: {
         blockUserByDefault: participants.length === 1,
@@ -117,17 +118,12 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
 
   const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveTeam = () => teamID && navigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
+  const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }
-  const {clearModals, _navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      _navigateAppend: s.dispatch.navigateAppend,
-      clearModals: s.dispatch.clearModals,
-    }))
-  )
+  const clearModals = C.Router2.clearModals
   const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = () => {
     clearModals()
@@ -140,7 +136,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
   const onViewTeam = () => {
     clearModals()
-    navigateAppend(() => ({name: 'team', params: {teamID}}))
+    chatNavigateAppend(() => ({name: 'team', params: {teamID}}))
   }
   const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => {
@@ -268,12 +264,12 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
-      _navigateAppend({
+      routerNavigateAppend({
         name: 'archiveModal',
         params: {conversationIDKey, type: 'chatID' as const},
       })
     } else if (teamname) {
-      _navigateAppend({
+      routerNavigateAppend({
         name: 'archiveModal',
         params: {teamname, type: 'chatTeam' as const},
       })

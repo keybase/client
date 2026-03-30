@@ -7,7 +7,6 @@ import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
-import {useRouterState} from '@/stores/router'
 import {useModalHeaderState} from '@/stores/modal-header'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
@@ -128,7 +127,7 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const saveInFiles = () => {
     navigateAppend({
       name: 'destinationPicker',
@@ -159,7 +158,7 @@ type IncomingShareWithSelectionProps = IncomingShareProps & {
 }
 
 const IncomingShare = (props: IncomingShareWithSelectionProps) => {
-  const navigateAppend = useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
@@ -204,7 +203,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const footer = useFooter(props.incomingShareItems)
 
   React.useEffect(() => {
@@ -239,8 +238,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
 }
 
 const IncomingShareError = () => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const erroredSendFeedback = () => {
     clearModals()
     navigateAppend({

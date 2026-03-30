@@ -45,7 +45,7 @@ const useDoAddEmojis = (
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = () => setBannerError('')
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const doAddEmojis =
     conversationIDKey !== Chat.noConversationIDKey
       ? () => {

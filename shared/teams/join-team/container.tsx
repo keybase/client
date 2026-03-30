@@ -12,7 +12,7 @@ const Container = (ownProps: OwnProps) => {
   const open = useTeamsState(s => s.teamJoinSuccessOpen)
   const success = useTeamsState(s => s.teamJoinSuccess)
   const successTeamName = useTeamsState(s => s.teamJoinSuccessTeamName)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

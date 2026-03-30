@@ -25,7 +25,7 @@ const Container = (ownProps: OwnProps) => {
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
   const _onBrowsePublicFolder = (username: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))

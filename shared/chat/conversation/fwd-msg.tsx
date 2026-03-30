@@ -42,7 +42,7 @@ const TeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     clearModals()
   }

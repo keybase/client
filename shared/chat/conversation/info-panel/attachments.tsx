@@ -437,7 +437,7 @@ export const useAttachmentSections = (
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = Chat.useChatContext(s => s.dispatch.loadAttachmentView)
   const loadMessagesCentered = Chat.useChatContext(s => s.dispatch.loadMessagesCentered)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   const jumpToAttachment = (messageID: T.Chat.MessageID) => {
     if (C.isMobile) {

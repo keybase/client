@@ -14,7 +14,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onFinishResolving = () => {
     finishManualConflictResolution(path)
   }

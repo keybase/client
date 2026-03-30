@@ -28,7 +28,7 @@ export const HeaderTitle = () => {
 }
 
 export const HeaderRightActions = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p

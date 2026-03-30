@@ -209,7 +209,7 @@ const useData = (contactKey: string) => {
   }
 
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const dispatchProps = {
     email: {

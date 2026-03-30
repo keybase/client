@@ -9,7 +9,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import type {Contact} from '../common/contacts-list.native'
 
 const AddContacts = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => navigateUp()
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())

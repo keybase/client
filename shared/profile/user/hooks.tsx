@@ -145,12 +145,7 @@ const useUserData = (username: string) => {
       }
     }
   }
-  const {navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {navigateAppend, navigateUp} = C.Router2
   const onAddIdentity = () => {
     navigateAppend('profileProofsList')
   }

@@ -7,12 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 export const useDeleteAccount = () => {
   const username = useCurrentUserState(s => s.username)
   const setJustDeletedSelf = useConfigState(s => s.dispatch.setJustDeletedSelf)
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
+  const {clearModals, navigateAppend} = C.Router2
   const deleteAccountRPC = C.useRPC(T.RPCGen.loginAccountDeleteRpcPromise)
 
   const deleteAccountForever = (passphrase?: string) => {

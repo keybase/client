@@ -78,8 +78,8 @@ const AddToChannelHeaderRight = () => {
 }
 
 const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
   if (canBack) {
     return <Kb.Text type="BodyBigLink" onClick={navigateUp}>Back</Kb.Text>
   }

@@ -18,7 +18,7 @@ const ResetModalImpl = () => {
       onCancelReset: s.dispatch.cancelReset,
     }))
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   React.useEffect(() => {
     if (!active) {
       navigateUp()

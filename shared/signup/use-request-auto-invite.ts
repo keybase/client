@@ -5,12 +5,7 @@ import * as T from '@/constants/types'
 
 const useRequestAutoInvite = () => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {navigateAppend, navigateUp} = C.Router2
 
   return (username?: string) => {
     if (waiting) {

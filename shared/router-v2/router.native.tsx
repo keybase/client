@@ -1,6 +1,6 @@
 /// <reference types="webpack-env" />
 import * as C from '@/constants'
-import * as Constants from '@/stores/router'
+import * as Constants from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'

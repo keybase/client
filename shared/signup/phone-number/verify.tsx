@@ -12,7 +12,7 @@ const Container = ({route}: Props) => {
   const {phoneNumber} = route.params
   const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
-  const onSuccess = C.useRouterState(s => s.dispatch.clearModals)
+  const onSuccess = C.Router2.clearModals
   const {error, resendVerificationForPhone, verifyPhoneNumber} = usePhoneVerification({
     onSuccess,
     phoneNumber,
@@ -24,7 +24,7 @@ const Container = ({route}: Props) => {
   const _onResend = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

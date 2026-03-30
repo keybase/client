@@ -11,7 +11,7 @@ const Kb = {
 }
 
 function BackButton(props: Props) {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => navigateUp())
   const _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()

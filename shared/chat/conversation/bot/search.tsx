@@ -40,7 +40,7 @@ const SearchBotPopup = (props: Props) => {
   const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
   const searchUsers = C.useRPC(T.RPCGen.userSearchUserSearchRpcPromise)
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const setResultsForQuery = React.useCallback((query: string, results?: BotSearchResults) => {
     setBotSearchResults(prev => {

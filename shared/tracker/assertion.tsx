@@ -78,7 +78,7 @@ const Container = (ownProps: OwnProps) => {
   const loadProfile = useTrackerState(s => s.dispatch.load)
   const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _onCreateProof = () => navigateAppend({name: 'profileProofsList', params: {platform: type}})
   const onHideStellar = (hidden: boolean) => {
     hideStellar(

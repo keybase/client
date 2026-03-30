@@ -76,7 +76,7 @@ const RetentionPicker = (p: Props) => {
     }, 1)
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false

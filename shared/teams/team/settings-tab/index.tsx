@@ -365,7 +365,7 @@ const Container = (ownProps: OwnProps) => {
   const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _savePublicity = (settings: T.Teams.PublicitySettings) => {
       setPublicity(teamID, settings)
     }

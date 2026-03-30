@@ -46,8 +46,8 @@ function FileContainer(p: OwnProps) {
   const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
   const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
 
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const switchTab = C.Router2.switchTab
+  const navigateAppend = C.Router2.navigateAppend
   const onSaltpackFileOpen = (path: string, name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab) => {
     switchTab(C.Tabs.cryptoTab)
     navigateAppend({

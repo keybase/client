@@ -23,7 +23,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
         .filter(name => !!name)
     : undefined
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
   const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)

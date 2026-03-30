@@ -48,7 +48,7 @@ Status:
 - [x] `config` kept app/session/bootstrap state, engine plumbing, account/session coordination, startup routing, and window/app settings in store
 - [~] `convostate`
 - [x] `current-user`
-- [ ] `fs`
+- [x] `fs`
 - [ ] `router`
 - [ ] `teams`
 - [x] `waiting` kept shared waiting/error counters in store as cross-app infrastructure used by unrelated screens and stores

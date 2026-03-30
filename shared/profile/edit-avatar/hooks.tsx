@@ -56,12 +56,12 @@ export default (ownProps: Props): Ret => {
   React.useEffect(() => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
   }, [dispatchClearWaiting])
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     navigateUp()
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()

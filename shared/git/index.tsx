@@ -103,7 +103,7 @@ const Container = (ownProps: OwnProps) => {
     )
   })
   const {personals, teams} = getRepos(idToInfo)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onShowDelete = (git: T.Git.GitInfo) => {
     navigateAppend({name: 'gitDeleteRepo', params: {name: git.name, teamname: git.teamname}})
   }

@@ -9,8 +9,8 @@ import {setSignupEmail} from '@/people/signup-email'
 const ConnectedEnterEmail = () => {
   const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const {error, submitEmail, waiting} = useAddEmail()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const _onSkip = () => {
     setSignupEmail(C.noEmail)
   }

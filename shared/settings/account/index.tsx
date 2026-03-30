@@ -33,7 +33,7 @@ const AddButton = (props: AddButtonProps) => (
 )
 
 const EmailPhone = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
@@ -83,7 +83,7 @@ const EmailPhone = () => {
 }
 
 const Password = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
     navigateAppend(settingsPasswordTab)
   }
@@ -144,7 +144,7 @@ const WebAuthTokenLogin = () => {
 }
 
 const DeleteAccount = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
     navigateAppend('deleteConfirm')
   }
@@ -194,12 +194,7 @@ const AccountSettings = () => {
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
     }))
   )
-  const {navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
+  const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }

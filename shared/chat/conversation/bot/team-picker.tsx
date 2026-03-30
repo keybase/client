@@ -34,7 +34,7 @@ const BotTeamPicker = (props: Props) => {
     )
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onSelect = (convID: T.RPCChat.ConversationID) => {
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     navigateAppend({

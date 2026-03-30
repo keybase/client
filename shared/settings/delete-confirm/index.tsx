@@ -44,7 +44,7 @@ const DeleteConfirm = () => {
   const [checkUsername, setCheckUsername] = React.useState(false)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteForever = () => {
     if (C.androidIsTestDevice) {
       // dont do this in a preflight test

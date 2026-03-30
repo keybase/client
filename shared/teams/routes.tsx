@@ -109,7 +109,7 @@ const ConfirmHeaderLeft = () => {
   const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.Router2.navUpToScreen
   if (newTeam) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={() => navUpToScreen('teamAddToTeamFromWhere')} />
   }
@@ -124,7 +124,7 @@ const AddFromWhereHeaderLeft = () => {
   const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   if (newTeam) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
   }
@@ -180,8 +180,8 @@ const NewTeamInfoHeaderTitle = () => {
 
 const NewTeamInfoHeaderLeft = () => {
   const isSubteam = Teams.useTeamsState(s => s.newTeamWizard.teamType === 'subteam')
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
   if (isSubteam) {
     return (
       <Kb.Text type="BodyBigLink" onClick={clearModals}>
