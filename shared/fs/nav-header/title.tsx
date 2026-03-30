@@ -29,7 +29,7 @@ const Breadcrumb = (props: Props) => {
           name: 'destinationPicker',
           params: {parentPath: path, source: props.destinationPickerSource},
         })
-      : nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+      : nav.safeNavigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path}})
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {

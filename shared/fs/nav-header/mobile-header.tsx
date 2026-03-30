@@ -43,19 +43,6 @@ const NavMobileHeader = (props: Props) => {
   const filterDone = setFolderViewFilter
   const triggerFilterMobile = () => setFolderViewFilter('')
 
-  // Clear if path changes; or it's a new layer of mount (important on Android
-  // since it keeps old mount around after navigateAppend).
-  //
-  // Ideally we'd get navigation event here and trigger it when user navigates
-  // away from this screen, but Kb.NavigationEvents doesn't seem to trigger
-  // anything for me at this point. So just use the fact that a new such thing
-  // has been mounted as a proxy.
-  React.useEffect(() => {
-    if (props.folderViewFilter !== undefined) {
-      filterDone()
-    }
-  }, [filterDone, props.path])
-
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} centerChildren={true}>

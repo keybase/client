@@ -13,7 +13,7 @@ export const useOpen = (props: Props) => {
   const nav = useSafeNavigation()
 
   if (!props.destinationPickerSource) {
-    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
+    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path: props.path}})
   }
 
   const destinationPickerSource = props.destinationPickerSource

@@ -56,14 +56,14 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     ? () => {
         moveOrCopy(parentPath, source, 'copy')
         clearModals()
-        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+        nav.safeNavigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path: parentPath}})
       }
     : undefined
   const onMoveHere = isMovable
     ? () => {
         moveOrCopy(parentPath, source, 'move')
         clearModals()
-        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+        nav.safeNavigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path: parentPath}})
       }
     : undefined
   const onNewFolder =

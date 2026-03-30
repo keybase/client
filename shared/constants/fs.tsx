@@ -17,7 +17,7 @@ export const navToPath = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: T.FS.Path
 ) => {
-  navigateAppend({name: 'fsRoot', params: {path}})
+  navigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path}})
 }
 
 // Path Constants

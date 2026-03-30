@@ -27,11 +27,6 @@ const FsNavHeaderRightActions = (props: Props) => {
     [props.lastClosedPublicBannerTlf, props.path]
   )
   const hasSoftError = !!FS.getSoftError(softErrors, props.path)
-  React.useEffect(() => {
-    if (!Kb.Styles.isMobile && props.folderViewFilter !== undefined) {
-      setFolderViewFilter()
-    }
-  }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
