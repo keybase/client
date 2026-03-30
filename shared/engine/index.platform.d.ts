@@ -29,7 +29,12 @@ declare function createClient(
   disconnectCallback: ConnectDisconnectCB
 ): CreateClientType
 
-declare function resetClient(client: CreateClientType): void
+declare function resetClient(
+  client: CreateClientType,
+  incomingRPCCallback: IncomingRPCCallbackType,
+  connectCallback: ConnectDisconnectCB,
+  disconnectCallback: ConnectDisconnectCB
+): CreateClientType
 
 declare function rpcLog(arg0: {method: string; reason?: string; extra?: object; type: string}): void
 

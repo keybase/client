@@ -101,6 +101,7 @@ const startApp = () => {
         // from the old renderer session can't leak into the new one, then
         // re-notify the renderer so it can complete its handshake and
         // re-register UIs.
+        console.log('Renderer reload detected; resetting node engine transport')
         nodeEngine.reset()
         nodeEngine.listenersAreReady()
         R.remoteDispatch(RemoteGen.createInstallerRan())

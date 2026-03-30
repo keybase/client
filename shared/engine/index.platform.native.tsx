@@ -1,5 +1,5 @@
 import {LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
-import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
+import type {IncomingRPCCallbackType, ConnectDisconnectCB, CreateClientType} from './index.platform'
 import logger from '@/logger'
 import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
 
@@ -61,9 +61,10 @@ function createClient(
   return client
 }
 
-function resetClient() {
+function resetClient(client: CreateClientType) {
   // Tell the RN bridge to reset itself
   engineReset()
+  return client
 }
 
 export {resetClient, createClient, rpcLog}
