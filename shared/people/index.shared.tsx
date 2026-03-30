@@ -71,7 +71,7 @@ function EmailVerificationBanner(props: {signupEmail: string}) {
       () => {
         signupEmail && clearSignupEmail()
       },
-    [clearSignupEmail, signupEmail]
+    [signupEmail]
   )
 
   if (!signupEmail) {
@@ -86,7 +86,10 @@ function EmailVerificationBanner(props: {signupEmail: string}) {
   )
 }
 
-function ResentEmailVerificationBanner(props: {resentEmail: string; setResentEmail: (email: string) => void}) {
+function ResentEmailVerificationBanner(props: {
+  resentEmail: string
+  setResentEmail: (email: string) => void
+}) {
   const {resentEmail, setResentEmail} = props
   React.useEffect(
     () =>
