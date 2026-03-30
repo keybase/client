@@ -22,9 +22,9 @@ export const useOpen = (props: Props) => {
 
   const canOpenInDestinationPicker =
     isFolder &&
-    (destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare ||
-      (destinationPickerSource.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-        destinationPickerSource.path !== props.path))
+    (destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare
+      ? true
+      : destinationPickerSource.path !== props.path)
 
   if (!canOpenInDestinationPicker) {
     return
