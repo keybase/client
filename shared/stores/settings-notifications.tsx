@@ -171,7 +171,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
     resetState: Z.defaultReset,
     toggle: (group, name) => {
       const {groups} = get()
-      if (!groups.get('email')) {
+      if (groups.size === 0) {
         logger.warn('Trying to toggle while not loaded')
         return
       }
@@ -211,7 +211,7 @@ export const useSettingsNotifState = Z.createZustand<State>('settings-notificati
 
       const f = async () => {
         const {groups} = get()
-        if (!groups.get('email')) {
+        if (groups.size === 0) {
           throw new Error('No notifications loaded yet')
         }
 

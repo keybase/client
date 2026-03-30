@@ -8,12 +8,12 @@ export const usePasswordCheck = () => {
   const [checkPasswordIsCorrect, setCheckPasswordIsCorrect] = React.useState<boolean | undefined>(undefined)
   const mountedRef = React.useRef(true)
 
-  React.useEffect(
-    () => () => {
+  React.useEffect(() => {
+    mountedRef.current = true
+    return () => {
       mountedRef.current = false
-    },
-    []
-  )
+    }
+  }, [])
 
   const checkPassword = React.useCallback(
     (passphrase: string) => {
