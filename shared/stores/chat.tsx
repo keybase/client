@@ -299,6 +299,7 @@ const initialStore: Store = {
 export type RefreshReason =
   | 'bootstrap'
   | 'componentNeverLoaded'
+  | 'inboxSyncedCurrentButEmpty'
   | 'inboxStale'
   | 'inboxSyncedClear'
   | 'inboxSyncedUnknown'
@@ -1132,6 +1133,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
+          if (get().inboxRows.length === 0) {
+            inboxRefresh('inboxSyncedCurrentButEmpty')
+          }
           break
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
