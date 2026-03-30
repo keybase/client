@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import debounce from 'lodash/debounce'
@@ -14,9 +15,12 @@ type Props = {
 
 const FolderViewFilter = (props: Props) => {
   const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
-  const onUpdate = debounce((newFilter: string) => {
+  const onChangeFilter = React.useEffectEvent((newFilter: string) => {
     props.onChangeFilter(newFilter)
   })
+  const onUpdate = React.useMemo(() => debounce((newFilter: string) => onChangeFilter(newFilter), 0), [onChangeFilter])
+
+  React.useEffect(() => () => onUpdate.cancel(), [onUpdate])
 
   return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter

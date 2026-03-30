@@ -70,14 +70,28 @@ export const newRoutes = {
   fsRoot: C.makeScreen(FsRoot, {
     getOptions: (ownProps?) => {
       // strange edge case where the root can actually have no params
-      // eslint-disable-next-line
-      const path = ownProps?.route.params?.path ?? FS.defaultPath
-      const folderViewFilter = ownProps?.route.params.folderViewFilter
+      const params = ownProps?.route.params
+      const path = params?.path ?? FS.defaultPath
+      const folderViewFilter = params?.folderViewFilter
+      const lastClosedPublicBannerTlf = params?.lastClosedPublicBannerTlf
       return C.isMobile
-        ? {header: () => <MobileHeader path={path} folderViewFilter={folderViewFilter} />}
+        ? {
+            header: () => (
+              <MobileHeader
+                path={path}
+                folderViewFilter={folderViewFilter}
+                lastClosedPublicBannerTlf={lastClosedPublicBannerTlf}
+              />
+            ),
+          }
         : {
             headerRightActions: () => (
-              <Actions path={path} folderViewFilter={folderViewFilter} onTriggerFilterMobile={() => {}} />
+              <Actions
+                path={path}
+                folderViewFilter={folderViewFilter}
+                lastClosedPublicBannerTlf={lastClosedPublicBannerTlf}
+                onTriggerFilterMobile={() => {}}
+              />
             ),
             headerTitle: () => <Title path={path} />,
             subHeader: MainBanner,

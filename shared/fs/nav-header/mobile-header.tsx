@@ -4,8 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
 import {navigateAppend} from '@/constants/router'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useRoute} from '@react-navigation/native'
 import Actions from './actions'
 import MainBanner from './main-banner'
 import * as FS from '@/stores/fs'
@@ -20,6 +18,7 @@ import * as FS from '@/stores/fs'
 
 type Props = {
   folderViewFilter?: string
+  lastClosedPublicBannerTlf?: string
   path: T.FS.Path
 }
 
@@ -27,17 +26,18 @@ const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
-  const route = useRoute<RootRouteProps<'fsRoot'>>()
   const {pop} = C.useNav()
   const expanded = props.folderViewFilter !== undefined
-  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(
-        {name: 'fsRoot', params: {folderViewFilter, lastClosedPublicBannerTlf, path: props.path}},
+        {
+          name: 'fsRoot',
+          params: {folderViewFilter, lastClosedPublicBannerTlf: props.lastClosedPublicBannerTlf, path: props.path},
+        },
         true
       ),
-    [lastClosedPublicBannerTlf, props.path]
+    [props.lastClosedPublicBannerTlf, props.path]
   )
 
   const filterDone = setFolderViewFilter
@@ -80,6 +80,7 @@ const NavMobileHeader = (props: Props) => {
             <Actions
               path={props.path}
               folderViewFilter={props.folderViewFilter}
+              lastClosedPublicBannerTlf={props.lastClosedPublicBannerTlf}
               onTriggerFilterMobile={triggerFilterMobile}
             />
           </Kb.Box2>

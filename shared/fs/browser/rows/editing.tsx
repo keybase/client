@@ -3,16 +3,22 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
+import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {useEditContext} from '../ui-context'
 
 type Props = {
   editID: T.FS.EditID
 }
 
 function Editing({editID}: Props) {
-  const {commitEdit, discardEdit, edits, setEditName} = useEditContext()
-  const edit = edits.get(editID) || FS.emptyNewFolder
+  const {commitEdit, discardEdit, edit, setEditName} = useFSState(
+    C.useShallow(s => ({
+      commitEdit: s.dispatch.commitEdit,
+      discardEdit: s.dispatch.discardEdit,
+      edit: s.edits.get(editID) || FS.emptyNewFolder,
+      setEditName: s.dispatch.setEditName,
+    }))
+  )
   const [filename, setFilename] = React.useState(edit.name)
   const onCancel = () => {
     discardEdit(editID)

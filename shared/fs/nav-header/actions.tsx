@@ -3,28 +3,28 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {navigateAppend} from '@/constants/router'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useRoute} from '@react-navigation/native'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 
 type Props = {
   folderViewFilter?: string
+  lastClosedPublicBannerTlf?: string
   onTriggerFilterMobile: () => void
   path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const route = useRoute<RootRouteProps<'fsRoot'>>()
   const softErrors = useFSState(s => s.softErrors)
-  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(
-        {name: 'fsRoot', params: {folderViewFilter, lastClosedPublicBannerTlf, path: props.path}},
+        {
+          name: 'fsRoot',
+          params: {folderViewFilter, lastClosedPublicBannerTlf: props.lastClosedPublicBannerTlf, path: props.path},
+        },
         true
       ),
-    [lastClosedPublicBannerTlf, props.path]
+    [props.lastClosedPublicBannerTlf, props.path]
   )
   const hasSoftError = !!FS.getSoftError(softErrors, props.path)
   React.useEffect(() => {

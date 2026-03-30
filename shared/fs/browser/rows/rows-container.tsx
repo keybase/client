@@ -7,7 +7,6 @@ import {asRows as topBarAsRow} from '../../top-bar'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useEditContext} from '../ui-context'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -172,13 +171,13 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {edits: _edits} = useEditContext()
-  const {_pathItems, _sortSetting, _tlfs} = useFSState(
+  const {_edits, _pathItems, _sortSetting, _tlfs} = useFSState(
     C.useShallow(s => {
+      const _edits = s.edits
       const _pathItems = s.pathItems
       const _sortSetting = FS.getPathUserSetting(s.pathUserSettings, o.path).sort
       const _tlfs = s.tlfs
-      return {_pathItems, _sortSetting, _tlfs}
+      return {_edits, _pathItems, _sortSetting, _tlfs}
     })
   )
   const _username = useCurrentUserState(s => s.username)

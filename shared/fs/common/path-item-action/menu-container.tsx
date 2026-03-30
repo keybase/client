@@ -11,7 +11,6 @@ import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useEditContext} from '@/fs/browser/ui-context'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -27,7 +26,6 @@ const needConfirm = (pathItem: T.FS.PathItem) =>
 
 const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps, setView, view} = op
-  const {newFolderRow, startRename} = useEditContext()
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   Kbfs.useFsFileContext(path)
   const data = useFSState(
@@ -35,7 +33,7 @@ const Container = (op: OwnProps) => {
       const pathItem = FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
-      const {cancelDownload, download} = s.dispatch
+      const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
       const {favoriteIgnore, dismissDownload} = s.dispatch
       const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
@@ -45,17 +43,19 @@ const Container = (op: OwnProps) => {
         download,
         favoriteIgnore,
         fileContext,
+        newFolderRow,
         openPathInSystemFileManagerDesktop,
         pathItem,
         pathItemActionMenu,
         sfmiEnabled,
+        startRename,
       }
     })
   )
 
   const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {download, openPathInSystemFileManagerDesktop} = data
-  const {sfmiEnabled, favoriteIgnore, dismissDownload} = data
+  const {download, newFolderRow, openPathInSystemFileManagerDesktop} = data
+  const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
 
   const {downloadID, downloadIntent} = pathItemActionMenu
   const username = useCurrentUserState(s => s.username)

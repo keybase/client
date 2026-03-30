@@ -9,7 +9,6 @@ import Root from './root'
 import Rows from './rows/rows-container'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {EditProvider, useEditContext} from './ui-context'
 
 type OwnProps = {
   parentPath: T.FS.Path
@@ -21,9 +20,8 @@ const canBackUp = C.isMobile
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const {newFolderRow} = useEditContext()
   const {parentPath, source} = ownProps
-  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy} = useFSState(
+  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
     C.useShallow(s => {
       const pathItem = FS.getPathItem(s.pathItems, parentPath)
       const writable = T.FS.getPathLevel(parentPath) > 2 && pathItem.writable
@@ -38,6 +36,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         isShare: isShareSource,
         isWritable: writable,
         moveOrCopy: s.dispatch.moveOrCopy,
+        newFolderRow: s.dispatch.newFolderRow,
       }
     })
   )
@@ -145,11 +144,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   )
 }
 
-const Screen = (props: OwnProps) => (
-  <EditProvider key={T.FS.pathToString(props.parentPath)}>
-    <ConnectedDestinationPicker {...props} />
-  </EditProvider>
-)
+const Screen = (props: OwnProps) => <ConnectedDestinationPicker {...props} />
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p

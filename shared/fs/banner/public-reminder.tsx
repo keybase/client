@@ -2,12 +2,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {navigateAppend} from '@/constants/router'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useRoute} from '@react-navigation/native'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type Props = {
+  folderViewFilter?: string
   lastClosedTlf?: string
   path: T.FS.Path
 }
@@ -21,17 +20,15 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
 
 const PublicBanner = (props: Props) => {
   const {path} = props
-  const route = useRoute<RootRouteProps<'fsRoot'>>()
   const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
-  const folderViewFilter = route.params?.folderViewFilter
   const setLastPublicBannerClosedTlf = React.useCallback(
     (tlf: string) =>
       navigateAppend(
-        {name: 'fsRoot', params: {folderViewFilter, lastClosedPublicBannerTlf: tlf, path}},
+        {name: 'fsRoot', params: {folderViewFilter: props.folderViewFilter, lastClosedPublicBannerTlf: tlf, path}},
         true
       ),
-    [folderViewFilter, path]
+    [props.folderViewFilter, path]
   )
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)

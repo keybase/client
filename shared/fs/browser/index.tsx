@@ -12,7 +12,6 @@ import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {EditProvider} from './ui-context'
 
 type OwnProps = {
   filter?: string
@@ -41,9 +40,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
-        <EditProvider key={T.FS.pathToString(path)}>
-          <BrowserContent {...props} />
-        </EditProvider>
+        <BrowserContent {...props} />
         <Footer path={props.path} />
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
@@ -119,7 +116,11 @@ function BrowserContent(props: Props) {
   }
   const addCommonStuff = (children: React.ReactNode) => (
     <>
-      <PublicReminder path={props.path} lastClosedTlf={props.lastClosedPublicBannerTlf} />
+      <PublicReminder
+        path={props.path}
+        lastClosedTlf={props.lastClosedPublicBannerTlf}
+        folderViewFilter={props.filter}
+      />
       <ConflictBanner path={props.path} />
       {children}
     </>
