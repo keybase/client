@@ -1,22 +1,26 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import WalletPopup from './wallet-popup'
-import {useState as useWalletsState} from '@/stores/wallets'
+import {makeReallyRemoveAccountRouteParams} from './account-utils'
 
-type OwnProps = {accountID: string}
+type OwnProps = {
+  accountID: string
+  balanceDescription: string
+  name: string
+}
 
 const Container = (ownProps: OwnProps) => {
-  const {accountID} = ownProps
-  const account = useWalletsState(s => s.accountMap.get(accountID))
-  const balance = account?.balanceDescription ?? 'Error loading account'
-  const name = account?.name ?? ''
+  const {accountID, balanceDescription, name} = ownProps
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
     navigateUp()
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
-    navigateAppend({name: 'reallyRemoveAccount', params: {accountID}}, true)
+    navigateAppend(
+      {name: 'reallyRemoveAccount', params: makeReallyRemoveAccountRouteParams({accountID, name})},
+      true
+    )
   }
 
   const buttons = [
@@ -27,7 +31,6 @@ const Container = (ownProps: OwnProps) => {
       label="Yes, remove"
       onClick={onDelete}
       type="Danger"
-      disabled={!account}
     />,
   ]
 
@@ -55,7 +58,7 @@ const Container = (ownProps: OwnProps) => {
           from Keybase, but you can still use it elsewhere if you save the private key.
         </Kb.Text>
         <Kb.Text type="BodySmall">Balance:</Kb.Text>
-        <Kb.Text type="BodySmallExtrabold">{balance}</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{balanceDescription}</Kb.Text>
       </Kb.Box2>
     </WalletPopup>
   )
@@ -78,5 +81,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Container
-
-

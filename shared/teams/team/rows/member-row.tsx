@@ -2,11 +2,10 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTrackerState} from '@/stores/tracker'
-import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -48,14 +47,15 @@ export const TeamMemberRow = (props: Props) => {
   const {roleType, fullName, username, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
-  const crown = active && showCrown[roleType] ? (
-        <Kb.Icon
-          type={('iconfont-crown-' + roleType) as Kb.IconType}
-          color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
-          style={styles.crownIcon}
-          fontSize={10}
-        />
-      ) : null
+  const crown =
+    active && showCrown[roleType] ? (
+      <Kb.Icon
+        type={('iconfont-crown-' + roleType) as Kb.IconType}
+        color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        style={styles.crownIcon}
+        fontSize={10}
+      />
+    ) : null
 
   const fullNameLabel =
     fullName && active ? (
@@ -88,8 +88,8 @@ export const TeamMemberRow = (props: Props) => {
   const setMemberSelected = Teams.useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onSelect = (selected: boolean) => {
-      setMemberSelected(teamID, props.username, selected)
-    }
+    setMemberSelected(teamID, props.username, selected)
+  }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
   const pOnClick = props.onClick
@@ -137,71 +137,71 @@ export const TeamMemberRow = (props: Props) => {
   )
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuHeader = (
-        <MenuHeader
-          username={username}
-          fullName={fullName}
-          label={
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodySmall">{crown}</Kb.Text>
-              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-            </Kb.Box2>
-          }
-        />
-      )
+    const {attachTo, hidePopup} = p
+    const menuHeader = (
+      <MenuHeader
+        username={username}
+        fullName={fullName}
+        label={
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text type="BodySmall">{crown}</Kb.Text>
+            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+          </Kb.Box2>
+        }
+      />
+    )
 
-      const menuItems: Kb.MenuItems = [
-        'Divider',
-        ...(youCanManageMembers
-          ? ([
-              {
-                icon: 'iconfont-chat',
-                onClick: () =>
-                  nav.safeNavigateAppend({
-                    name: 'teamAddToChannels',
-                    params: {teamID, usernames: [username]},
-                  }),
-                title: 'Add to channels...',
-              },
-              {icon: 'iconfont-crown-admin', onClick: onClick, title: 'Edit role...'},
-            ] as Kb.MenuItems)
-          : []),
-        {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
-        {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
-        ...(youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-        ...(youCanManageMembers
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-remove',
-                onClick: onRemoveFromTeam,
-                title: 'Remove from team',
-              },
-            ] as Kb.MenuItems)
-          : []),
-        ...(!isYou
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-block',
-                onClick: onBlock,
-                title: 'Block',
-              },
-            ] as Kb.MenuItems)
-          : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          header={menuHeader}
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    }
+    const menuItems: Kb.MenuItems = [
+      'Divider',
+      ...(youCanManageMembers
+        ? ([
+            {
+              icon: 'iconfont-chat',
+              onClick: () =>
+                nav.safeNavigateAppend({
+                  name: 'teamAddToChannels',
+                  params: {teamID, usernames: [username]},
+                }),
+              title: 'Add to channels...',
+            },
+            {icon: 'iconfont-crown-admin', onClick: onClick, title: 'Edit role...'},
+          ] as Kb.MenuItems)
+        : []),
+      {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
+      {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
+      ...(youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+      ...(youCanManageMembers
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-remove',
+              onClick: onRemoveFromTeam,
+              title: 'Remove from team',
+            },
+          ] as Kb.MenuItems)
+        : []),
+      ...(!isYou
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-block',
+              onClick: onBlock,
+              title: 'Block',
+            },
+          ] as Kb.MenuItems)
+        : []),
+    ]
+    return (
+      <Kb.FloatingMenu
+        header={menuHeader}
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (
@@ -304,9 +304,14 @@ const Container = (ownProps: OwnProps) => {
   const status = info.status
   const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
-  const setUserBlocks = useUsersState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const onBlock = () => {
-    username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
+    username &&
+      setUserBlocks(
+        [{blocks: [{setChatBlock: true, setFollowBlock: true, username}]}, C.waitingKeyUsersSetUserBlocks],
+        () => {},
+        () => {}
+      )
   }
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {

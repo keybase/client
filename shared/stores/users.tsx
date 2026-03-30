@@ -21,16 +21,8 @@ export type State = Store & {
     getBio: (username: string) => void
     getBlockState: (usernames: ReadonlyArray<string>) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    reportUser: (p: {
-      username: string
-      reason: string
-      comment: string
-      includeTranscript: boolean
-      conversationIDKey?: string
-    }) => void
     resetState: () => void
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
-    setUserBlocks: (blocks: ReadonlyArray<T.RPCGen.UserBlockArg>) => void
     updates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
   }
 }
@@ -107,31 +99,7 @@ export const useUsersState = Z.createZustand<State>('users', (set, get) => {
         }
       })
     },
-    reportUser: p => {
-      const {conversationIDKey, username, reason, comment, includeTranscript} = p
-      const f = async () => {
-        await T.RPCGen.userReportUserRpcPromise(
-          {
-            comment,
-            convID: conversationIDKey,
-            includeTranscript,
-            reason,
-            username,
-          },
-          S.waitingKeyUsersReportUser
-        )
-      }
-      ignorePromise(f())
-    },
     resetState: Z.defaultReset,
-    setUserBlocks: blocks => {
-      const f = async () => {
-        if (blocks.length) {
-          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, S.waitingKeyUsersSetUserBlocks)
-        }
-      }
-      ignorePromise(f())
-    },
     updates: infos => {
       set(s => {
         for (const {name, info: i} of infos) {

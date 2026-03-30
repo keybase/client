@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
@@ -33,12 +33,8 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const {infoMap, setUserBlocks} = useUsersState(
-    C.useShallow(s => ({
-      infoMap: s.infoMap,
-      setUserBlocks: s.dispatch.setUserBlocks,
-    }))
-  )
+  const infoMap = useUsersState(s => s.infoMap)
+  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
   const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
@@ -56,7 +52,14 @@ const ChannelMemberRow = (props: Props) => {
   const roleType = teamMemberInfo.type
   const crown = (() => {
     const type = crownIcon(roleType)
-    return active && type ? <Kb.Icon type={type} color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35} style={styles.crownIcon} fontSize={10} /> : null
+    return active && type ? (
+      <Kb.Icon
+        type={type}
+        color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        style={styles.crownIcon}
+        fontSize={10}
+      />
+    ) : null
   })()
   const fullNameLabel =
     fullname && active ? (
@@ -128,85 +131,94 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onOpenProfile = () => username && navToProfile(username)
-      const onRemoveFromChannel = () =>
-        navigateAppend({
-          name: 'teamReallyRemoveChannelMember',
-          params: {conversationIDKey, members: [username], teamID},
-        })
-      const onBlock = () => {
-        username &&
-          setUserBlocks([
+    const {attachTo, hidePopup} = p
+    const onOpenProfile = () => username && navToProfile(username)
+    const onRemoveFromChannel = () =>
+      navigateAppend({
+        name: 'teamReallyRemoveChannelMember',
+        params: {conversationIDKey, members: [username], teamID},
+      })
+    const onBlock = () => {
+      username &&
+        setUserBlocks(
+          [
             {
-              setChatBlock: true,
-              setFollowBlock: true,
-              username,
+              blocks: [
+                {
+                  setChatBlock: true,
+                  setFollowBlock: true,
+                  username,
+                },
+              ],
             },
-          ])
-      }
-
-      const menuItems: Kb.MenuItems = [
-        'Divider',
-        ...(yourOperations.manageMembers
-          ? ([
-              {
-                icon: 'iconfont-chat',
-                onClick: () =>
-                  navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: [username]}}),
-                title: 'Add to channels...',
-              },
-              {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
-            ] as Kb.MenuItems)
-          : []),
-        {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
-        {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
-        ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-        ...((yourOperations.manageMembers || isYou) && !props.isGeneral
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-remove',
-                onClick: onRemoveFromChannel,
-                title: 'Remove from channel',
-              },
-            ] as Kb.MenuItems)
-          : []),
-        ...(!isYou
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-user-block',
-                onClick: onBlock,
-                title: 'Block',
-              },
-            ] as Kb.MenuItems)
-          : []),
-      ]
-      const menuHeader = (
-        <MenuHeader
-          username={username}
-          fullName={fullname}
-          label={
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodySmall">{crown}</Kb.Text>
-              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-            </Kb.Box2>
-          }
-        />
-      )
-
-      return (
-        <Kb.FloatingMenu
-          header={menuHeader}
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
+            C.waitingKeyUsersSetUserBlocks,
+          ],
+          () => {},
+          () => {}
+        )
     }
+
+    const menuItems: Kb.MenuItems = [
+      'Divider',
+      ...(yourOperations.manageMembers
+        ? ([
+            {
+              icon: 'iconfont-chat',
+              onClick: () =>
+                navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: [username]}}),
+              title: 'Add to channels...',
+            },
+            {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
+          ] as Kb.MenuItems)
+        : []),
+      {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
+      {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
+      ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+      ...((yourOperations.manageMembers || isYou) && !props.isGeneral
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-remove',
+              onClick: onRemoveFromChannel,
+              title: 'Remove from channel',
+            },
+          ] as Kb.MenuItems)
+        : []),
+      ...(!isYou
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-user-block',
+              onClick: onBlock,
+              title: 'Block',
+            },
+          ] as Kb.MenuItems)
+        : []),
+    ]
+    const menuHeader = (
+      <MenuHeader
+        username={username}
+        fullName={fullname}
+        label={
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text type="BodySmall">{crown}</Kb.Text>
+            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+          </Kb.Box2>
+        }
+      />
+    )
+
+    return (
+      <Kb.FloatingMenu
+        header={menuHeader}
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 

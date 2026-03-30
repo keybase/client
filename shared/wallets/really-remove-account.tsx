@@ -3,16 +3,17 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
-import * as Wallets from '@/stores/wallets'
-import {useState as useWalletsState} from '@/stores/wallets'
+import {loadAccountsWaitingKey} from '@/constants/strings'
 import {useConfigState} from '@/stores/config'
 
-type OwnProps = {accountID: string}
+type OwnProps = {
+  accountID: string
+  name: string
+}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
-  const {accountID} = props
-  const waiting = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
-  const name = useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
+  const {accountID, name} = props
+  const waiting = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
@@ -22,11 +23,12 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const [sk, setSK] = React.useState('')
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const deleteAccount = C.useRPC(T.RPCStellar.localDeleteWalletAccountLocalRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const removeAccount = useWalletsState(s => s.dispatch.removeAccount)
   const onFinish = () => {
-    removeAccount(accountID)
-    navigateUp()
+    deleteAccount([{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey], () => {
+      navigateUp()
+    }, () => {})
   }
 
   React.useEffect(() => {
