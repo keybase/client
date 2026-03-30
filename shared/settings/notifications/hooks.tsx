@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import {settingsAccountTab} from '@/constants/settings'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import useNotificationSettings from './use-notification-settings'
+import type {UseNotificationSettingsResult} from './use-notification-settings'
 
-const useNotifications = (notificationSettings: ReturnType<typeof useNotificationSettings>) => {
+const useNotifications = (notificationSettings: UseNotificationSettingsResult) => {
   const {allowEdit, groups, toggle} = notificationSettings
   const showEmailSection = useSettingsEmailState(s => s.emails.size > 0)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

@@ -49,6 +49,13 @@ type NotificationSavePayload = {
 
 const emptyGroups = new Map<string, NotificationsGroupState>()
 
+export type UseNotificationSettingsResult = {
+  allowEdit: boolean
+  groups: Map<string, NotificationsGroupState>
+  refresh: () => void
+  toggle: (group: string, name?: string) => void
+}
+
 export const buildNotificationGroups = (
   body: string,
   chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
@@ -163,7 +170,7 @@ export const buildNotificationSavePayload = (
   return {JSONPayload, chatGlobalArg}
 }
 
-const useNotificationSettings = () => {
+const useNotificationSettings = (): UseNotificationSettingsResult => {
   const loadSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverGetWithSessionRpcPromise)
   const loadGlobalSettingsRPC = C.useRPC(T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise)
   const saveSubscriptionsRPC = C.useRPC(T.RPCGen.apiserverPostJSONRpcPromise)

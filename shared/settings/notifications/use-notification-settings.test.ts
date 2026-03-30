@@ -7,6 +7,7 @@ import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {
+  type UseNotificationSettingsResult,
   buildNotificationGroups,
   buildNotificationSavePayload,
   toggleNotificationGroup,
@@ -46,7 +47,7 @@ const makeSubscriptionsResponse = () =>
     }),
   }) as T.RPCGen.APIRes
 
-const snapshotGroups = (groups: ReturnType<typeof useNotificationSettings>['groups']) =>
+const snapshotGroups = (groups: UseNotificationSettingsResult['groups']) =>
   [...groups.entries()].reduce(
     (acc, [group, value]) => ({
       ...acc,
@@ -153,7 +154,7 @@ test('useNotificationSettings refreshes and saves notification settings through 
   >()
   const saveGlobalSettingsRPC = createRPCMock<
     [{settings: {[key: string]: boolean}}, string],
-    void
+    undefined
   >()
   const rpcSubmitters = new Map<unknown, unknown>([
     [T.RPCGen.apiserverGetWithSessionRpcPromise, loadSubscriptionsRPC.submit],
@@ -229,7 +230,7 @@ test('useNotificationSettings refreshes and saves notification settings through 
   })
 
   expect(result.current.allowEdit).toBe(false)
-  expect(snapshotGroups(result.current.groups).security?.settings[0]?.subscribed).toBe(false)
+  expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
   expect(saveSubscriptionsRPC.submit).toHaveBeenCalledWith(
     [
       {
@@ -274,7 +275,7 @@ test('useNotificationSettings refreshes and saves notification settings through 
   })
 
   await waitFor(() => expect(result.current.allowEdit).toBe(true))
-  expect(snapshotGroups(result.current.groups).security?.settings[0]?.subscribed).toBe(false)
+  expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
 })
 
 test('useNotificationSettings restores optimistic state when save fails', async () => {
@@ -292,7 +293,7 @@ test('useNotificationSettings restores optimistic state when save fails', async 
   >()
   const saveGlobalSettingsRPC = createRPCMock<
     [{settings: {[key: string]: boolean}}, string],
-    void
+    undefined
   >()
   const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {})
   const rpcSubmitters = new Map<unknown, unknown>([
@@ -335,7 +336,7 @@ test('useNotificationSettings restores optimistic state when save fails', async 
   })
 
   expect(result.current.allowEdit).toBe(false)
-  expect(snapshotGroups(result.current.groups).security?.settings[0]?.subscribed).toBe(false)
+  expect(snapshotGroups(result.current.groups)['security']?.settings[0]?.subscribed).toBe(false)
 
   act(() => {
     saveSubscriptionsRPC.resolveNext({body: JSON.stringify({status: {code: 1}})} as T.RPCGen.APIRes)
