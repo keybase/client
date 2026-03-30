@@ -54,7 +54,7 @@ const NavMobileHeader = (props: Props) => {
     if (props.folderViewFilter !== undefined) {
       filterDone()
     }
-  }, [filterDone, props.folderViewFilter])
+  }, [filterDone, props.path])
 
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>

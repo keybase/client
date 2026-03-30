@@ -31,7 +31,7 @@ const FsNavHeaderRightActions = (props: Props) => {
     if (!Kb.Styles.isMobile && props.folderViewFilter !== undefined) {
       setFolderViewFilter()
     }
-  }, [setFolderViewFilter, props.folderViewFilter]) // clear if path changes or it's a new layer of mount
+  }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
