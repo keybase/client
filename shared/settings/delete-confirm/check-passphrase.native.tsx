@@ -1,15 +1,15 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useSettingsState} from '@/stores/settings'
+import {useDeleteAccount} from '../use-delete-account'
+import {usePasswordCheck} from '../use-password-check'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const checkPasswordIsCorrect = useSettingsState(s => s.checkPasswordIsCorrect)
-  const checkPassword = useSettingsState(s => s.dispatch.checkPassword)
-  const deleteAccountForever = useSettingsState(s => s.dispatch.deleteAccountForever)
+  const {checkPassword, checkPasswordIsCorrect} = usePasswordCheck()
+  const deleteAccountForever = useDeleteAccount()
 
   const onCheckPassword = checkPassword
   const deleteForever = () => {

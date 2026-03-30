@@ -61,3 +61,45 @@ test('toggle updates the in-memory group state and persists the change', async (
   expect(mockLocalSetGlobalAppNotificationSettingsLocalRpcPromise).toHaveBeenCalled()
   expect(useSettingsNotifState.getState().allowEdit).toBe(true)
 })
+
+test('toggle works when notification groups are loaded without an email group', async () => {
+  mockApiserverPostJSONRpcPromise.mockResolvedValue({body: JSON.stringify({status: {code: 0}})})
+  mockLocalSetGlobalAppNotificationSettingsLocalRpcPromise.mockResolvedValue({})
+  jest.spyOn(T.RPCGen, 'apiserverPostJSONRpcPromise').mockImplementation(mockApiserverPostJSONRpcPromise)
+  jest.spyOn(T.RPCChat, 'localSetGlobalAppNotificationSettingsLocalRpcPromise').mockImplementation(
+    mockLocalSetGlobalAppNotificationSettingsLocalRpcPromise
+  )
+
+  useSettingsNotifState.setState(state => ({
+    ...state,
+    allowEdit: true,
+    groups: new Map([
+      [
+        'app_push',
+        {
+          settings: [{description: 'push', name: 'newmessages', subscribed: true}],
+          unsub: false,
+        },
+      ],
+      [
+        'security',
+        {
+          settings: [{description: 'phone', name: 'plaintextmobile', subscribed: true}],
+          unsub: false,
+        },
+      ],
+    ]),
+  }))
+
+  useSettingsNotifState.getState().dispatch.toggle('security', 'plaintextmobile')
+  expect(useSettingsNotifState.getState().allowEdit).toBe(false)
+  expect(useSettingsNotifState.getState().groups.get('security')?.settings[0]?.subscribed).toBe(false)
+
+  await flush()
+  await flush()
+  await flush()
+
+  expect(mockApiserverPostJSONRpcPromise).toHaveBeenCalled()
+  expect(mockLocalSetGlobalAppNotificationSettingsLocalRpcPromise).toHaveBeenCalled()
+  expect(useSettingsNotifState.getState().allowEdit).toBe(true)
+})

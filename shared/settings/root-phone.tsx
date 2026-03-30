@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import SettingsItem from './sub-nav/settings-item'
 import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import * as Settings from '@/stores/settings'
+import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
 

@@ -34,15 +34,17 @@ const PhoneSection = (props: Props) => (
 const Notifications = () => {
   const props = useNotifications()
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
-  return !props.groups.get('email')?.settings ? (
+  const hasLoadedGroups = props.groups.size > 0
+  const emailGroup = props.groups.get('email')
+  return !hasLoadedGroups ? (
     <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main}>
-      {props.showEmailSection ? (
+      {emailGroup ? (
         <EmailSection {...props} />
-      ) : (
+      ) : !props.showEmailSection ? (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header">Email notifications</Kb.Text>
           <Kb.Text type="BodySmall">
@@ -53,7 +55,7 @@ const Notifications = () => {
             and add an email address.
           </Kb.Text>
         </Kb.Box2>
-      )}
+      ) : null}
       {(!Kb.Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <Kb.Divider style={styles.divider} />

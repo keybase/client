@@ -137,7 +137,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.stop: {
-      storeRegistry.getState('settings').dispatch.stop(action.payload.exitCode)
+      ignorePromise(T.RPCGen.ctlStopRpcPromise({exitCode: action.payload.exitCode}))
       break
     }
     case RemoteGen.trackerChangeFollow: {

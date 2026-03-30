@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {settingsFeedbackTab} from '@/stores/settings'
+import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'

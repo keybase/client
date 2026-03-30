@@ -9,7 +9,7 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
 import type {RootParamList} from '@/router-v2/route-params'
 import {settingsDesktopTabRoutes} from './routes'
-import {settingsAccountTab} from '@/stores/settings'
+import {settingsAccountTab} from '@/constants/settings'
 
 function LeftTabNavigator({
   initialRouteName,
