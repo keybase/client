@@ -18,18 +18,24 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
   const [conversationIDKey, setConversationIDKey] = React.useState(cleanInConvIDKey)
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
   const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
+  const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
     setConversationIDKey(cleanInConvIDKey)
   }, [cleanInConvIDKey])
 
   React.useEffect(() => {
+    requestIDRef.current += 1
     if (cleanInConvIDKey || !teamID) {
       return
     }
+    const requestID = requestIDRef.current
     findGeneralConvIDFromTeamID(
       [{teamID}],
       conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
         const meta = Meta.inboxUIItemToConversationMeta(conv)
         if (!meta) {
           return
@@ -39,6 +45,11 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
       },
       () => {}
     )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
   }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
   return conversationIDKey
 }
@@ -165,23 +176,37 @@ const InstallBotPopup = (props: Props) => {
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
+  const botPublicCommandsRequestIDRef = React.useRef(0)
   React.useEffect(() => {
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    botPublicCommandsRequestIDRef.current += 1
     if (!noCommands) {
       setBotPublicCommands(undefined)
       return
     }
     setBotPublicCommands(undefined)
+    const requestID = botPublicCommandsRequestIDRef.current
     loadBotPublicCommands(
       [{username: botUsername}],
       res => {
+        if (botPublicCommandsRequestIDRef.current !== requestID) {
+          return
+        }
         const commands = (res.commands ?? []).map(command => command.name)
         setBotPublicCommands({commands, loadError: false})
       },
       () => {
+        if (botPublicCommandsRequestIDRef.current !== requestID) {
+          return
+        }
         setBotPublicCommands({commands: [], loadError: true})
       }
     )
+    return () => {
+      if (botPublicCommandsRequestIDRef.current === requestID) {
+        botPublicCommandsRequestIDRef.current += 1
+      }
+    }
   }, [botUsername, dispatchClearWaiting, loadBotPublicCommands, noCommands])
 
   const restrictedButton = (

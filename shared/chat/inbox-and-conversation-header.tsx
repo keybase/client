@@ -28,7 +28,7 @@ const Header = () => {
 const Header2 = () => {
   const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = !!params.infoPanel
+  const infoPanelShowing = !!params?.infoPanel
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s

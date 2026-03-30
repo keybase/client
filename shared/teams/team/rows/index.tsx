@@ -277,18 +277,24 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
   const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
+  const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
     setConversationIDKey(undefined)
   }, [teamID])
 
   React.useEffect(() => {
+    requestIDRef.current += 1
     if (conversationIDKey || !teamID) {
       return
     }
+    const requestID = requestIDRef.current
     findGeneralConvIDFromTeamID(
       [{teamID}],
       conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
         const meta = Meta.inboxUIItemToConversationMeta(conv)
         if (!meta) {
           return
@@ -298,6 +304,11 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
       },
       () => {}
     )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
   }, [conversationIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
   return conversationIDKey
 }
