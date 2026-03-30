@@ -16,13 +16,15 @@ export const useOpen = (props: Props) => {
     return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
   }
 
+  const destinationPickerSource = props.destinationPickerSource
   const isFolder =
     T.FS.getPathLevel(props.path) <= 3 || FS.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&
-    (props.destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare ||
-      props.destinationPickerSource.path !== props.path)
+    (destinationPickerSource.type === T.FS.DestinationPickerSource.IncomingShare ||
+      (destinationPickerSource.type === T.FS.DestinationPickerSource.MoveOrCopy &&
+        destinationPickerSource.path !== props.path))
 
   if (!canOpenInDestinationPicker) {
     return
@@ -31,7 +33,7 @@ export const useOpen = (props: Props) => {
   const destinationPickerGoTo = () =>
     nav.safeNavigateAppend({
       name: 'destinationPicker',
-      params: {parentPath: props.path, source: props.destinationPickerSource},
+      params: {parentPath: props.path, source: destinationPickerSource},
     })
 
   return destinationPickerGoTo
