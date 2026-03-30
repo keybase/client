@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Meta from '@/constants/chat/meta'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
@@ -274,17 +275,41 @@ export const useSubteamsSections = (
 
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
-  const generalConvID = Chat.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
-  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
+  const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
+  const requestIDRef = React.useRef(0)
+
   React.useEffect(() => {
-    if (!conversationIDKey && teamID) {
-      if (!generalConvID) {
-        findGeneralConvIDFromTeamID(teamID)
-      } else {
-        setConversationIDKey(generalConvID)
+    setConversationIDKey(undefined)
+  }, [teamID])
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    if (conversationIDKey || !teamID) {
+      return
+    }
+    const requestID = requestIDRef.current
+    findGeneralConvIDFromTeamID(
+      [{teamID}],
+      conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(conv)
+        if (!meta) {
+          return
+        }
+        metasReceived([meta])
+        setConversationIDKey(meta.conversationIDKey)
+      },
+      () => {}
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
   return conversationIDKey
 }
 

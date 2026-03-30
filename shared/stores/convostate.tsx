@@ -11,6 +11,7 @@ import {
   getVisibleScreen,
   getModalStack,
   navToThread,
+  setChatRootParams,
 } from '@/constants/router'
 import {isIOS} from '@/constants/platform'
 import {updateImmer} from '@/constants/utils'
@@ -246,10 +247,6 @@ export interface ConvoState extends ConvoStore {
       ) => void
       chatResetConversationErrored: () => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
-      chatUpdateInfoPanel: (
-        show: boolean,
-        tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
-      ) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
     }
@@ -439,9 +436,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatUnboxRows: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatUpdateInfoPanel: () => {
     throw new Error('convostate defer not initialized')
   },
   teamsGetMembers: () => {
@@ -3145,22 +3139,24 @@ const createSlice =
         queueInboxRowUpdate(get().id)
       }, 1000),
       showInfoPanel: (show, tab) => {
-        get().dispatch.defer.chatUpdateInfoPanel(show, tab)
         const conversationIDKey = get().id
         if (Platform.isPhone) {
           const visibleScreen = getVisibleScreen()
-          if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
-            if (show) {
-              navigateAppend({
+          if (show) {
+            navigateAppend(
+              {
                 name: 'chatInfoPanel',
                 params: {conversationIDKey, tab},
-              })
-            } else {
-              navigateUp()
-              get().dispatch.clearAttachmentView()
-            }
+              },
+              visibleScreen?.name === 'chatInfoPanel'
+            )
+          } else if (visibleScreen?.name === 'chatInfoPanel') {
+            navigateUp()
+            get().dispatch.clearAttachmentView()
           }
+          return
         }
+        setChatRootParams({conversationIDKey, infoPanel: show ? {tab} : undefined})
       },
       tabSelected: () => {
         get().dispatch.loadMoreMessages({reason: 'tab selected'})

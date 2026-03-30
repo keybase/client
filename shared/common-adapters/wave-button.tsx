@@ -7,8 +7,10 @@ import Text from './text'
 import Button from './button'
 import NativeEmoji from './emoji/native-emoji'
 import * as Styles from '@/styles'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import logger from '@/logger'
+import {storeRegistry} from '@/stores/store-registry'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const Kb = {
   Box2,
@@ -58,11 +60,38 @@ const WaveButtonImpl = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
+  const username = useCurrentUserState(s => s.username)
   const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
-  const messageSendByUsername = Chat.useChatState(s => s.dispatch.messageSendByUsername)
+  const createConversation = C.useRPC(T.RPCChat.localNewConversationLocalRpcPromise)
   const onWave = () => {
     if (props.username) {
-      messageSendByUsername(props.username, ':wave:', waitingKey)
+      if (!username) {
+        logger.warn('WaveButton: missing username for direct wave')
+        return
+      }
+      createConversation(
+        [
+          {
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            membersType: T.RPCChat.ConversationMembersType.impteamnative,
+            tlfName: `${username},${props.username}`,
+            tlfVisibility: T.RPCGen.TLFVisibility.private,
+            topicType: T.RPCChat.TopicType.chat,
+          },
+          waitingKey,
+        ],
+        result => {
+          const conversationIDKey = T.Chat.conversationIDToKey(result.conv.info.id)
+          if (!conversationIDKey) {
+            logger.warn("WaveButton: couldn't resolve wave conversation")
+            return
+          }
+          storeRegistry.getConvoState(conversationIDKey).dispatch.sendMessage(':wave:')
+        },
+        error => {
+          logger.warn('Could not send in WaveButton', error.message)
+        }
+      )
     } else if (props.conversationIDKey) {
       sendMessage(':wave:')
     } else {

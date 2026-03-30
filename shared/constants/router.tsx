@@ -259,6 +259,37 @@ export const navToProfile = (username: string) => {
   navigateAppend({name: 'profile', params: {username}})
 }
 
+export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>) => {
+  const n = _getNavigator()
+  if (!n || !isSplit) return
+  const rs = getRootState()
+  const tabNavState = rs?.routes?.[0]?.state
+  if (!tabNavState?.key) return
+  const tabRoutes = tabNavState.routes as Array<Route>
+  const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
+  if (chatTabIndex < 0) return
+  const updatedRoutes = tabRoutes.map((route, i) => {
+    if (i !== chatTabIndex) return route
+    const currentChatRoot = route.state ? route.state.routes[0] : undefined
+    const currentParams =
+      currentChatRoot?.name === 'chatRoot' && currentChatRoot.params && typeof currentChatRoot.params === 'object'
+        ? currentChatRoot.params
+        : undefined
+    return {
+      ...route,
+      state: {
+        ...(route.state ?? {}),
+        index: 0,
+        routes: [{name: 'chatRoot', params: {...currentParams, ...params}}],
+      },
+    }
+  })
+  n.dispatch({
+    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
+    target: tabNavState.key,
+  })
+}
+
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
@@ -271,19 +302,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    const tabNavState = rs.routes?.[0]?.state
-    if (!tabNavState?.key) return
-    const tabRoutes = tabNavState.routes as Array<Route>
-    const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
-    if (chatTabIndex < 0) return
-    const updatedRoutes = tabRoutes.map((route, i) => {
-      if (i !== chatTabIndex) return route
-      return {...route, state: {...(route.state ?? {}), index: 0, routes: [{name: 'chatRoot', params: {conversationIDKey}}]}}
-    })
-    n.dispatch({
-      ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
-      target: tabNavState.key,
-    })
+    setChatRootParams({conversationIDKey})
   } else {
     // Phone: full reset to build the chat → conversation stack
     const nextState = {

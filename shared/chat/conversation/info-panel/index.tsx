@@ -15,9 +15,7 @@ type Props = {
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const storeSelectedTab = Chat.useChatState(s => s.infoPanelSelectedTab)
-  const setInfoPanelTab = Chat.useChatState(s => s.dispatch.setInfoPanelTab)
-  const initialTab = ownProps.tab ?? storeSelectedTab
+  const initialTab = ownProps.tab
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -52,9 +50,9 @@ const InfoPanelConnector = (ownProps: Props) => {
   }
 
   React.useEffect(() => {
-    if (selectedTab === storeSelectedTab) return
-    setInfoPanelTab(selectedTab)
-  }, [selectedTab, storeSelectedTab, setInfoPanelTab])
+    if (ownProps.tab === undefined || ownProps.tab === selectedTab) return
+    onSelectTab(ownProps.tab)
+  }, [ownProps.tab, selectedTab])
 
   const getTabs = (): Array<TabType<Panel>> => {
     const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)

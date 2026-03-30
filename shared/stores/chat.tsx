@@ -241,7 +241,6 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
-  botPublicCommands: Map<string, T.Chat.BotPublicCommands>
   createConversationError?: T.Chat.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
@@ -251,10 +250,6 @@ type Store = T.Immutable<{
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   userReacjis: T.Chat.UserReacjis
-  userEmojis?: Array<T.RPCChat.EmojiGroup>
-  userEmojisForAutocomplete?: Array<T.RPCChat.Emoji>
-  infoPanelShowing: boolean
-  infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxRetriedOnCurrentEmpty: boolean
@@ -263,7 +258,6 @@ type Store = T.Immutable<{
   inboxRows: Array<ChatInboxRowItem>
   inboxSearch?: T.Chat.InboxSearchInfo
   inboxSmallTeamsExpanded: boolean
-  teamIDToGeneralConvID: Map<T.Teams.TeamID, T.Chat.ConversationIDKey>
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
@@ -272,7 +266,6 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  botPublicCommands: new Map(),
   createConversationError: undefined,
   flipStatusMap: new Map(),
   inboxAllowShowFloatingButton: false,
@@ -283,18 +276,13 @@ const initialStore: Store = {
   inboxRows: [],
   inboxSearch: undefined,
   inboxSmallTeamsExpanded: false,
-  infoPanelSelectedTab: undefined,
-  infoPanelShowing: false,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
-  teamIDToGeneralConvID: new Map(),
   trustedInboxHasLoaded: false,
-  userEmojis: undefined,
-  userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
 }
 
@@ -334,8 +322,6 @@ export type State = Store & {
     ) => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
-    findGeneralConvIDFromTeamID: (teamID: T.Teams.TeamID) => void
-    fetchUserEmoji: (conversationIDKey?: T.Chat.ConversationIDKey, onlyInTeam?: boolean) => void
     inboxRefresh: (reason: RefreshReason) => void
     inboxSearch: (query: string) => void
     inboxSearchMoveSelectedIndex: (increment: boolean) => void
@@ -345,9 +331,7 @@ export type State = Store & {
       selectedIndex?: number
     ) => void
     loadStaticConfig: () => void
-    loadedUserEmoji: (results: T.RPCChat.UserEmojiRes) => void
     maybeChangeSelectedConv: () => void
-    messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
       metas: ReadonlyArray<T.Chat.ConversationMeta>,
       removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
@@ -372,12 +356,10 @@ export type State = Store & {
     }) => void
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
-    refreshBotPublicCommands: (username: string) => void
     resetConversationErrored: () => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
-    setInfoPanelTab: (tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
@@ -389,7 +371,6 @@ export type State = Store & {
     updatedGregor: (
       items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
     ) => void
-    updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
   getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {
@@ -646,47 +627,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         return
       }
       get().dispatch.unboxRows(missing, true)
-    },
-    fetchUserEmoji: (conversationIDKey, onlyInTeam) => {
-      const f = async () => {
-        const results = await T.RPCChat.localUserEmojisRpcPromise(
-          {
-            convID:
-              conversationIDKey && conversationIDKey !== T.Chat.noConversationIDKey
-                ? T.Chat.keyToConversationID(conversationIDKey)
-                : null,
-            opts: {
-              getAliases: true,
-              getCreationInfo: false,
-              onlyInTeam: onlyInTeam ?? false,
-            },
-          },
-          S.waitingKeyChatLoadingEmoji
-        )
-        get().dispatch.loadedUserEmoji(results)
-      }
-      ignorePromise(f())
-    },
-    findGeneralConvIDFromTeamID: teamID => {
-      const f = async () => {
-        try {
-          const conv = await T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise({teamID})
-          const meta = Meta.inboxUIItemToConversationMeta(conv)
-          if (!meta) {
-            logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
-            return
-          }
-          get().dispatch.metasReceived([meta])
-          set(s => {
-            s.teamIDToGeneralConvID.set(teamID, T.Chat.stringToConversationIDKey(conv.convID))
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${error.message}`)
-          }
-        }
-      }
-      ignorePromise(f())
     },
     inboxRefresh: reason => {
       const f = async () => {
@@ -1006,16 +946,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadedUserEmoji: results => {
-      set(s => {
-        const newEmojis: Array<T.RPCChat.Emoji> = []
-        results.emojis.emojis?.forEach(group => {
-          group.emojis?.forEach(e => newEmojis.push(e))
-        })
-        s.userEmojisForAutocomplete = newEmojis
-        s.userEmojis = T.castDraft(results.emojis.emojis) ?? []
-      })
-    },
     maybeChangeSelectedConv: () => {
       const {inboxLayout} = get()
       const newConvID = inboxLayout?.reselectInfo?.newConvID
@@ -1060,31 +990,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         )
         storeRegistry.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
       }
-    },
-    messageSendByUsername: (username, text, waitingKey) => {
-      const f = async () => {
-        const tlfName = `${useCurrentUserState.getState().username},${username}`
-        try {
-          const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-            {
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              membersType: T.RPCChat.ConversationMembersType.impteamnative,
-              tlfName,
-              tlfVisibility: T.RPCGen.TLFVisibility.private,
-              topicType: T.RPCChat.TopicType.chat,
-            },
-            waitingKey
-          )
-          storeRegistry
-            .getConvoState(T.Chat.conversationIDToKey(result.conv.info.id))
-            .dispatch.sendMessage(text)
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.warn('Could not send in messageSendByUsernames', error.message)
-          }
-        }
-      }
-      ignorePromise(f())
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
@@ -1815,35 +1720,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         logger.info('skipping meta queue run, queue unchanged')
       }
     },
-    refreshBotPublicCommands: username => {
-      set(s => {
-        s.botPublicCommands.delete(username)
-      })
-      const f = async () => {
-        let res: T.RPCChat.ListBotCommandsLocalRes | undefined
-        try {
-          res = await T.RPCChat.localListPublicBotCommandsLocalRpcPromise({
-            username,
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info('refreshBotPublicCommands: failed to get public commands: ' + error.message)
-            set(s => {
-              s.botPublicCommands.set(username, {commands: [], loadError: true})
-            })
-          }
-        }
-        const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
-          l.push(c.name)
-          return l
-        }, [])
-
-        set(s => {
-          s.botPublicCommands.set(username, {commands, loadError: false})
-        })
-      }
-      ignorePromise(f())
-    },
     resetConversationErrored: () => {
       set(s => {
         s.createConversationError = undefined
@@ -1882,11 +1758,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         } catch {}
       }
       ignorePromise(f())
-    },
-    setInfoPanelTab: tab => {
-      set(s => {
-        s.infoPanelSelectedTab = tab
-      })
     },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
@@ -2020,12 +1891,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
-      })
-    },
-    updateInfoPanel: (show, tab) => {
-      set(s => {
-        s.infoPanelShowing = show
-        s.infoPanelSelectedTab = tab
       })
     },
     updateLastCoord: coord => {

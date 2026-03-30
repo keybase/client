@@ -43,8 +43,8 @@ Status:
 
 ## Larger / More Global Stores
 
-- [ ] `provision`
-- [ ] `chat`
+- [x] `provision` kept provisioning RPC/callback coordination, autosubmit restart state, and route-driven screen flow in store
+- [-] `chat` in progress: moved info-panel open/tab UI into explicit `chatRoot` / `chatInfoPanel` route params, moved general-conversation lookup and bot public command loading into the owning chat/team components, pulled the wave-button direct-message RPC wrapper out of the store, and moved custom-emoji loading/cache into chat-local hooks used by the picker and suggestor
 - [x] `config` kept app/session/bootstrap state, engine plumbing, account/session coordination, startup routing, and window/app settings in store
 - [ ] `convostate`
 - [ ] `current-user`

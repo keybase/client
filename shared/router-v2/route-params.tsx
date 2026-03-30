@@ -64,13 +64,20 @@ type Distribute<U> = U extends RouteKeys
   : never
 export type NavigateAppendType = Distribute<RouteKeys>
 
-export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
+type MaybeMissingParamsRouteProp<RouteName extends keyof RootParamList> = Omit<
+  RouteProp<RootParamList, RouteName>,
+  'params'
+> & {
+  params?: RootParamList[RouteName]
+}
 
-// most roots have no params but chat can get it set after the fact in some flows
+export type RootRouteProps<RouteName extends keyof RootParamList> = RouteName extends TabRoots
+  ? MaybeMissingParamsRouteProp<RouteName>
+  : RouteProp<RootParamList, RouteName>
+
+// Tab roots can mount before any params object exists, even when the screen prop type is an object.
 export type RouteProps2<RouteName extends keyof RootParamList> = {
-  route: RouteName extends TabRoots
-    ? Partial<RouteProp<RootParamList, RouteName>>
-    : RouteProp<RootParamList, RouteName>
+  route: RootRouteProps<RouteName>
   navigation: NativeStackNavigationProp<RootParamList, RouteName>
 }
 
