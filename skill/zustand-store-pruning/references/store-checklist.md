@@ -34,7 +34,7 @@ Status:
 - [x] `settings-notifications` removed the store; notifications screens and chat settings now own refresh/toggle RPC state in a feature-local hook while preserving the existing settings load path
 - [x] `settings-password` kept only `randomPW` in store; moved submit/load flows into settings screens
 - [x] `settings-phone` kept notification-backed `phones` and `addedPhone`; moved add/verify/default-country flow into local hooks and route params
-- [ ] `signup`
+- [x] `signup` removed the store; People now owns the one-shot welcome banner helper and signup keeps device-name draft state in feature-local helpers
 - [ ] `team-building`
 - [ ] `tracker`
 - [x] `unlock-folders` removed dead phase/device state; kept only engine callback forwarding into `config`

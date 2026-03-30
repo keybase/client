@@ -54,6 +54,7 @@ const SetPublicName = () => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={!Kb.Styles.isMobile}
       banners={errorBanner(error)}
       buttons={[
         {

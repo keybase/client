@@ -1,41 +1,38 @@
 /// <reference types="jest" />
 import * as S from '@/constants/strings'
-import {resetAllStores} from '@/util/zustand'
-
-import {useSignupState} from '../signup'
+import {clearSignupEmail, getSignupEmail, setSignupEmail} from '@/people/signup-email'
+import {clearSignupDeviceNameDraft, getSignupDeviceNameDraft, setSignupDeviceNameDraft} from '@/signup/device-name-draft'
 
 afterEach(() => {
   jest.restoreAllMocks()
-  resetAllStores()
+  clearSignupEmail()
+  clearSignupDeviceNameDraft()
 })
 
-test('setDevicename stages the selected signup device name', () => {
-  useSignupState.getState().dispatch.setDevicename('Phone 2')
+test('device name draft stages the selected signup device name', () => {
+  setSignupDeviceNameDraft('Phone 2')
 
-  expect(useSignupState.getState().devicename).toBe('Phone 2')
+  expect(getSignupDeviceNameDraft()).toBe('Phone 2')
 })
 
-test('email verification notifications clear the staged signup email', () => {
-  useSignupState.getState().dispatch.setJustSignedUpEmail('alice@example.com')
-  expect(useSignupState.getState().justSignedUpEmail).toBe('alice@example.com')
+test('device name draft clears back to the default', () => {
+  setSignupDeviceNameDraft('Phone 2')
+  clearSignupDeviceNameDraft()
 
-  useSignupState
-    .getState()
-    .dispatch.onEngineIncomingImpl({type: 'keybase.1.NotifyEmailAddress.emailAddressVerified'} as any)
-
-  expect(useSignupState.getState().justSignedUpEmail).toBe('')
+  expect(getSignupDeviceNameDraft()).toBe(S.defaultDevicename)
 })
 
-test('resetState clears staged signup values back to defaults', () => {
-  useSignupState.setState(s => ({
-    ...s,
-    devicename: 'Phone 2',
-    justSignedUpEmail: 'alice@example.com',
-  }))
+test('signup email helper stores and clears the pending welcome email', () => {
+  setSignupEmail('alice@example.com')
+  expect(getSignupEmail()).toBe('alice@example.com')
 
-  useSignupState.getState().dispatch.resetState()
+  clearSignupEmail()
 
-  const state = useSignupState.getState()
-  expect(state.devicename).toBe(S.defaultDevicename)
-  expect(state.justSignedUpEmail).toBe('')
+  expect(getSignupEmail()).toBe('')
+})
+
+test('signup email helper can stage the no-email sentinel', () => {
+  setSignupEmail(S.noEmail)
+
+  expect(getSignupEmail()).toBe(S.noEmail)
 })

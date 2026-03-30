@@ -11,11 +11,11 @@ import isEqual from 'lodash/isEqual'
 import People from '.'
 import * as T from '@/constants/types'
 import {useFollowerState} from '@/stores/followers'
-import {useSignupState} from '@/stores/signup'
 import {usePeopleState} from '@/stores/people'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {navToProfile} from '@/constants/router'
+import {useSignupEmail} from './signup-email'
 
 const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
@@ -398,7 +398,7 @@ const PeopleReloadable = () => {
   } = usePeoplePageState()
   const refreshCount = usePeopleState(s => s.refreshCount)
   const username = useCurrentUserState(s => s.username)
-  const signupEmail = useSignupState(s => s.justSignedUpEmail)
+  const signupEmail = useSignupEmail()
   const waiting = C.Waiting.useAnyWaiting(getPeopleDataWaitingKey)
   const lastRefreshRef = React.useRef(0)
   const lastSeenRefreshRef = React.useRef(refreshCount)

@@ -2,6 +2,8 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
+import {useProvisionState} from '@/stores/provision'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const CodePageHeaderLeft = () => {
@@ -12,6 +14,18 @@ const CodePageHeaderLeft = () => {
     <Kb.Text type="BodyBig" onClick={navigateUp}>
       {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
     </Kb.Text>
+  )
+}
+
+const UsernameHeaderRight = () => {
+  const username = useProvisionState(s => s.username)
+  const requestAutoInvite = useRequestAutoInvite()
+  return (
+    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.headerRight}>
+      <Kb.Text type="BodyBigLink" onClick={() => requestAutoInvite(username)}>
+        Create account
+      </Kb.Text>
+    </Kb.Box2>
   )
 }
 
@@ -45,9 +59,18 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./set-public-name')),
   },
   username: C.makeScreen(React.lazy(async () => import('./username-or-email')), {
-    getOptions: {title: 'Log in'},
+    getOptions: {
+      ...(!Kb.Styles.isMobile ? {headerRight: () => <UsernameHeaderRight />} : {}),
+      title: 'Log in',
+    },
   }),
 }
 
 // No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
 // an empty newModalRoutes here.
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerRight: Kb.Styles.platformStyles({
+    isElectron: {paddingRight: Kb.Styles.globalMargins.small},
+  }),
+}))

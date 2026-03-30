@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
-import {useSignupState} from '@/stores/signup'
 import {useProvisionState} from '@/stores/provision'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
@@ -10,13 +9,13 @@ import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {isValidUsername} from '@/util/simple-validators'
 import type {StaticScreenProps} from '@react-navigation/core'
+import {clearSignupDeviceNameDraft} from './device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 
 const ConnectedEnterUsername = (p: Props) => {
   const initialUsername = p.route.params.username ?? ''
   const inviteCode = p.route.params.inviteCode ?? ''
-  const resetState = useSignupState(s => s.dispatch.resetState)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
   const {navigateAppend, navigateUp} = C.useRouterState(
     C.useShallow(s => ({
@@ -25,7 +24,7 @@ const ConnectedEnterUsername = (p: Props) => {
     }))
   )
   const onBack = () => {
-    resetState()
+    clearSignupDeviceNameDraft()
     navigateUp()
   }
   const [error, setError] = React.useState('')

@@ -176,15 +176,16 @@ const useWidgetConversationList = (
 
 function useEnsureWidgetData(
   loggedIn: boolean,
+  inboxHasLoaded: boolean,
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
   inboxRefresh: (reason: Chat.RefreshReason) => void,
   ensureWidgetMetas: () => void
 ) {
   React.useEffect(() => {
-    if (loggedIn && !widgetList) {
+    if (loggedIn && inboxHasLoaded && !widgetList) {
       inboxRefresh('widgetRefresh')
     }
-  }, [loggedIn, widgetList, inboxRefresh])
+  }, [loggedIn, inboxHasLoaded, widgetList, inboxRefresh])
 
   React.useEffect(() => {
     if (widgetList) {
@@ -208,14 +209,15 @@ function useMenubarRemoteProps(): Props {
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
-  const {widgetList, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
+  const {widgetList, inboxHasLoaded, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
     C.useShallow(s => ({
       ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
+      inboxHasLoaded: s.inboxHasLoaded,
       inboxRefresh: s.dispatch.inboxRefresh,
       widgetList: s.inboxLayout?.widgetList ?? undefined,
     }))
   )
-  useEnsureWidgetData(loggedIn, widgetList, inboxRefresh, ensureWidgetMetas)
+  useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh, ensureWidgetMetas)
   const conversationsToSend = useWidgetConversationList(widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

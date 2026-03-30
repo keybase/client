@@ -20,51 +20,52 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-type Status = 'critical' | 'suggested' | 'ok' | 'checking'
 const OutOfDate = () => {
-  const [message, setMessage] = React.useState('')
-  const [status, setStatus] = React.useState<Status>('ok')
+  const outOfDate = useConfigState(s => s.outOfDate)
+  const [mobileMessage, setMobileMessage] = React.useState('')
+  const [mobileCritical, setMobileCritical] = React.useState(false)
+  const isMountedRef = React.useRef(false)
 
-  C.useOnMountOnce(() => {
-    const f = async () => {
-      await C.timeoutPromise(60_000) // don't bother checking during startup
-      // check every hour
-      while (true) {
-        try {
-          const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})
-          let s: typeof status = 'ok'
-          let m = ''
-          switch (update.status) {
-            case T.RPCGen.UpdateInfoStatus2.ok:
-              break
-            case T.RPCGen.UpdateInfoStatus2.suggested:
-              s = 'suggested'
-              m = update.suggested.message
-              break
-            case T.RPCGen.UpdateInfoStatus2.critical:
-              s = 'critical'
-              m = update.critical.message
-              break
-            default:
-          }
-          setStatus(s)
-          setMessage(m)
-        } catch (e) {
-          logger.warn("Can't call critical check", e)
-        }
-        // We just need this once on mobile. Long timers don't work there.
-        if (C.isMobile) {
-          break
-        }
-        await C.timeoutPromise(3_600_000) // 1 hr
-      }
+  React.useEffect(() => {
+    if (!C.isMobile) {
+      return
     }
-    C.ignorePromise(f())
-  })
+
+    isMountedRef.current = true
+    const timeoutID = setTimeout(() => {
+      C.ignorePromise(
+        T.RPCGen.configGetUpdateInfo2RpcPromise({})
+          .then(update => {
+            if (!isMountedRef.current) {
+              return
+            }
+            switch (update.status) {
+              case T.RPCGen.UpdateInfoStatus2.critical:
+                setMobileCritical(true)
+                setMobileMessage(update.critical.message)
+                break
+              default:
+                setMobileCritical(false)
+                setMobileMessage('')
+            }
+          })
+          .catch(e => {
+            logger.warn("Can't call critical check", e)
+          })
+      )
+    }, 60_000) // don't bother checking during startup
+
+    return () => {
+      isMountedRef.current = false
+      clearTimeout(timeoutID)
+    }
+  }, [])
 
   const onOpenAppStore = useConfigState(s => s.dispatch.defer.openAppStore)
+  const critical = C.isMobile ? mobileCritical : outOfDate.critical
+  const message = C.isMobile ? mobileMessage : outOfDate.message
 
-  return status !== 'critical' ? null : (
+  return !critical ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
       <Kb.Text center={true} type="Header" negative={true}>
         Your version of Keybase is critically out of date!

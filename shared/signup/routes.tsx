@@ -2,19 +2,18 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
-import {useSignupState} from '@/stores/signup'
 import {usePushState} from '@/stores/push'
+import {setSignupEmail} from '@/people/signup-email'
 
 const EmailSkipButton = () => {
   const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const setJustSignedUpEmail = useSignupState(s => s.dispatch.setJustSignedUpEmail)
   return (
     <Kb.Text
       type="BodyBigLink"
       onClick={() => {
-        setJustSignedUpEmail(C.noEmail)
+        setSignupEmail(C.noEmail)
         showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
       }}
     >

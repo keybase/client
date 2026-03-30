@@ -74,14 +74,28 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k]?.getDangling()).length) {
+        if (Object.values(this._sessionsMap).some(session => !session.getDangling())) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
     }
   }
 
+  _sessionSummary() {
+    return Object.entries(this._sessionsMap)
+      .filter(([, session]) => !session.getDangling())
+      .map(([id, session]) => ({
+        id,
+        method: session._startMethod || 'unknown',
+      }))
+  }
+
   _onDisconnect() {
+    logger.warn('Engine disconnected', {
+      hasConnected: this._hasConnected,
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
     // tell renderer we're disconnected
     this._onConnectedCB(false)
   }
@@ -89,6 +103,10 @@ class Engine {
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
     this._listenersAreReady = true
+    logger.info('Engine listenersAreReady', {
+      hasConnected: this._hasConnected,
+      sessions: this._sessionSummary(),
+    })
     if (this._hasConnected) {
       this._onConnectedCB(true)
     }
@@ -98,6 +116,10 @@ class Engine {
   // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
     this._hasConnected = true
+    logger.info('Engine connected', {
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
     this._onConnectedCB(true)
   }
 
@@ -242,7 +264,21 @@ class Engine {
     if (isMobile) {
       return
     }
-    resetClient(this._rpcClient)
+    logger.warn('Engine reset requested', {
+      hasConnected: this._hasConnected,
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
+    this._sessionsMap = {}
+    this._queuedChanges = []
+    this._hasConnected = false
+    this._listenersAreReady = false
+    this._rpcClient = resetClient(
+      this._rpcClient,
+      payload => this._rpcIncoming(payload),
+      () => this._onConnected(),
+      () => this._onDisconnect()
+    )
   }
 }
 

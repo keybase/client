@@ -97,8 +97,12 @@ const startApp = () => {
     getMainWindow,
     markAppStartedUp: () => {
       if (runtime.appStartedUp) {
-        // Renderer reloaded (e.g. Command+R): re-notify it that the engine is
-        // connected so it can complete its handshake and register UIs.
+        // Renderer reloaded (e.g. Command+R). Reset the transport so replies
+        // from the old renderer session can't leak into the new one, then
+        // re-notify the renderer so it can complete its handshake and
+        // re-register UIs.
+        console.log('Renderer reload detected; resetting node engine transport')
+        nodeEngine.reset()
         nodeEngine.listenersAreReady()
         R.remoteDispatch(RemoteGen.createInstallerRan())
         return

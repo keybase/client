@@ -68,8 +68,20 @@ function createClient(
   }
 }
 
-function resetClient(client: CreateClientType) {
-  client.transport.reset()
+function resetClient(
+  client: CreateClientType,
+  incomingRPCCallback: IncomingRPCCallbackType,
+  connectCallback: ConnectDisconnectCB,
+  disconnectCallback: ConnectDisconnectCB
+) {
+  if (isRenderer) {
+    client.transport.reset()
+    return client
+  }
+
+  const transport = client.transport as typeof client.transport & {close?: () => void}
+  transport.close?.()
+  return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 }
 
 export {resetClient, createClient, rpcLog}

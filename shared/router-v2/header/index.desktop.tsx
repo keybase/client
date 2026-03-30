@@ -5,26 +5,36 @@ import SyncingFolders from './syncing-folders'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
+
+type HeaderTitleProps = {
+  children: string
+  tintColor?: string
+}
+
+type Options = {
+  headerMode?: string
+  title?: React.ReactNode
+  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps>
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
+  headerRightActions?: React.JSXElementConstructor<object>
+  subHeader?: React.JSXElementConstructor<object>
+  headerTransparent?: boolean
+  headerShadowVisible?: boolean
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.CollapsibleStyle
+}
 
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
 type Props = {
   loggedIn: boolean
-  options: {
-    headerMode?: string
-    title?: React.ReactNode
-    headerTitle?: React.ReactNode
-    headerLeft?: React.ReactNode
-    headerRightActions?: React.JSXElementConstructor<object>
-    subHeader?: React.JSXElementConstructor<object>
-    headerTransparent?: boolean
-    headerShadowVisible?: boolean
-    headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-    headerStyle?: Kb.Styles.StylesCrossPlatform
-  }
+  options: Options
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
   useNativeFrame: boolean
@@ -97,7 +107,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
 
 function DesktopHeader(p: Props) {
   const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
-  const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
+  const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
   const pop = () => {
@@ -127,6 +137,10 @@ function DesktopHeader(p: Props) {
   if (ReactIs.isValidElementType(headerRightActions)) {
     const CustomActions = headerRightActions
     rightActions = <CustomActions />
+  } else if (typeof headerRight === 'function') {
+    rightActions = headerRight({tintColor: ''})
+  } else if (headerRight) {
+    rightActions = headerRight
   }
 
   let subHeaderNode: React.ReactNode = null
@@ -311,7 +325,9 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
+type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
+  back?: NativeStackHeaderProps['back']
+}
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
@@ -319,11 +335,12 @@ function DesktopHeaderWrapper(p: HeaderProps) {
   const loggedIn = useConfigState(s => s.loggedIn)
   const isMaximized = useConfigState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
   const options = {
     headerBottomStyle,
     headerLeft,
     headerMode,
+    headerRight,
     headerRightActions,
     headerShadowVisible,
     headerStyle,

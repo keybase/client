@@ -77,6 +77,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.engineConnection: {
+      logger.info('remote engineConnection', {connected: action.payload.connected})
       if (action.payload.connected) {
         onEngineConnected()
       } else {
