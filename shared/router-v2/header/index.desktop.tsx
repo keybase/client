@@ -6,6 +6,7 @@ import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
+import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -324,7 +325,9 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
+type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
+  back?: NativeStackHeaderProps['back']
+}
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
