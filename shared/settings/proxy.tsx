@@ -11,9 +11,9 @@ const useConnect = () => {
   const [showDisableCertPinningWarning, setShowDisableCertPinningWarning] = React.useState(false)
   const loadProxyData = C.useRPC(T.RPCGen.configGetProxyDataRpcPromise)
   const saveProxyData = C.useRPC(T.RPCGen.configSetProxyDataRpcPromise)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    navigateAppend('login')
+    navigateUp()
   }
   const onDisableCertPinning = () => {
     setShowDisableCertPinningWarning(true)
