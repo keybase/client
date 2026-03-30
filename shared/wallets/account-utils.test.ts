@@ -8,26 +8,28 @@ import {
   type Account,
 } from './account-utils'
 
-const makeRPCAccount = (overrides?: Partial<T.RPCStellar.WalletAccountLocal>): T.RPCStellar.WalletAccountLocal =>
-  ({
-    accountID: 'acct-1' as T.RPCStellar.AccountID,
-    accountMode: T.RPCStellar.AccountMode.user,
-    accountModeEditable: true,
-    balanceDescription: '1.00 XLM',
-    canAddTrustline: false,
-    canSubmitTx: true,
-    currencyLocal: {
-      code: 'USD',
-      description: 'United States Dollar',
-      symbol: '$',
-    },
-    deviceReadOnly: false,
-    isDefault: true,
-    isFunded: true,
-    name: 'Primary',
-    seqno: '1',
-    ...overrides,
-  })
+const makeRPCAccount = (
+  overrides?: Partial<T.RPCStellar.WalletAccountLocal>
+): T.RPCStellar.WalletAccountLocal => ({
+  accountID: 'acct-1' as T.RPCStellar.AccountID,
+  accountMode: T.RPCStellar.AccountMode.user,
+  accountModeEditable: true,
+  balanceDescription: '1.00 XLM',
+  canAddTrustline: false,
+  canSubmitTx: true,
+  currencyLocal: {
+    code: 'USD',
+    description: 'United States Dollar',
+    name: 'USD',
+    symbol: '$',
+  },
+  deviceReadOnly: false,
+  isDefault: true,
+  isFunded: true,
+  name: 'Primary',
+  seqno: '1',
+  ...overrides,
+})
 
 const makeAccount = (overrides?: Partial<Account>): Account => ({
   accountID: 'acct-1' as T.RPCStellar.AccountID,

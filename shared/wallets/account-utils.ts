@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 
 export type Account = Pick<
   T.RPCStellar.WalletAccountLocal,
