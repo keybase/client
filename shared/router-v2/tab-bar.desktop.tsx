@@ -45,10 +45,6 @@ const Header = () => {
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
-
-  const onAddAccount = () => {
-    startProvision()
-  }
   const onHelp = () => openURL('https://book.keybase.io')
   const {dumpLogs} = useConfigState(
     C.useShallow(s => ({
@@ -132,6 +128,9 @@ const Header = () => {
     )
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const onAddAccount = () => {
+    setTimeout(() => startProvision(), 0)
+  }
 
   return (
     <>
