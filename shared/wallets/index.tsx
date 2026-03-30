@@ -3,14 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {loadAccountsWaitingKey} from '@/constants/strings'
-
-type Account = {
-  accountID: string
-  balanceDescription: string
-  deviceReadOnly: boolean
-  isDefault: boolean
-  name: string
-}
+import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
 
 const Row = (p: {account: Account}) => {
   const {account} = p
@@ -20,7 +13,7 @@ const Row = (p: {account: Account}) => {
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
-    navigateAppend({name: 'removeAccount', params: {accountID, balanceDescription, name}})
+    navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
   }
   const onCopied = () => {
     setSK('')
@@ -128,15 +121,7 @@ const Container = () => {
       loadAccounts(
         [undefined, loadAccountsWaitingKey],
         res => {
-          setAccounts(
-            (res ?? []).map(a => ({
-              accountID: a.accountID,
-              balanceDescription: a.balanceDescription,
-              deviceReadOnly: a.deviceReadOnly,
-              isDefault: a.isDefault,
-              name: a.name,
-            }))
-          )
+          setAccounts((res ?? []).map(toAccount))
         },
         () => {
           setAccounts([])
@@ -155,11 +140,7 @@ const Container = () => {
     }
   )
 
-  const sortedAccounts = [...accounts].sort((a, b) => {
-    if (a.isDefault) return -1
-    if (b.isDefault) return 1
-    return a.name < b.name ? -1 : 1
-  })
+  const sortedAccounts = sortAccounts(accounts)
 
   const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
 

@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import WalletPopup from './wallet-popup'
+import {makeReallyRemoveAccountRouteParams} from './account-utils'
 
 type OwnProps = {
   accountID: string
@@ -16,7 +17,10 @@ const Container = (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
-    navigateAppend({name: 'reallyRemoveAccount', params: {accountID, name}}, true)
+    navigateAppend(
+      {name: 'reallyRemoveAccount', params: makeReallyRemoveAccountRouteParams({accountID, name})},
+      true
+    )
   }
 
   const buttons = [
@@ -77,4 +81,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default Container
-
