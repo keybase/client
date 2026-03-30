@@ -686,7 +686,8 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 	}()
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
-		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
+		h.Debug(ctx, "flushLayout: no chat UI available, skipping send: reselectMode: %v err: %v",
+			reselectMode, err)
 		return nil
 	}
 	inbox, err := h.getInboxFromQuery(ctx)
@@ -694,13 +695,17 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 		return err
 	}
 	layout := h.buildLayout(ctx, inbox, reselectMode)
+	h.Debug(ctx, "flushLayout: sending layout: reselectMode: %v small: %d big: %d totalSmall: %d",
+		reselectMode, len(layout.SmallTeams), len(layout.BigTeams), layout.TotalSmallTeams)
 	dat, err := json.Marshal(layout)
 	if err != nil {
 		return err
 	}
 	if err := ui.ChatInboxLayout(ctx, string(dat)); err != nil {
+		h.Debug(ctx, "flushLayout: ChatInboxLayout send error: %v", err)
 		return err
 	}
+	h.Debug(ctx, "flushLayout: sent layout successfully")
 	h.setLastLayout(&layout)
 	return nil
 }

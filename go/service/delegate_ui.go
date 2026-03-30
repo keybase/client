@@ -52,6 +52,7 @@ func (d *DelegateUICtlHandler) pushGregorIdentifyUIHandler(_ context.Context) {
 }
 
 func (d *DelegateUICtlHandler) RegisterChatUI(_ context.Context) error {
+	d.G().Log.Info("RegisterChatUI: connection %d", d.id)
 	d.G().UIRouter.SetUI(d.id, libkb.ChatUIKind)
 	return nil
 }
