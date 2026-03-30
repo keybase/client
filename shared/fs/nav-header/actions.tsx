@@ -1,32 +1,29 @@
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import {navigateAppend} from '@/constants/router'
+import {useModalHeaderState} from '@/stores/modal-header'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 
 type Props = {
-  folderViewFilter?: string
-  lastClosedPublicBannerTlf?: string
   onTriggerFilterMobile: () => void
   path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = useFSState(s => s.softErrors)
-  const setFolderViewFilter = React.useCallback(
-    (folderViewFilter?: string) =>
-      navigateAppend(
-        {
-          name: 'fsRoot',
-          params: {folderViewFilter, lastClosedPublicBannerTlf: props.lastClosedPublicBannerTlf, path: props.path},
-        },
-        true
-      ),
-    [props.lastClosedPublicBannerTlf, props.path]
+  const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
+    C.useShallow(s => ({
+      folderViewFilter: s.folderViewFilter,
+      setFolderViewFilter: s.dispatch.setFolderViewFilter,
+    }))
   )
+  const softErrors = useFSState(s => s.softErrors)
   const hasSoftError = !!FS.getSoftError(softErrors, props.path)
+  React.useEffect(() => {
+    !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+  }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
@@ -35,7 +32,7 @@ const FsNavHeaderRightActions = (props: Props) => {
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter
-          filter={props.folderViewFilter}
+          filter={folderViewFilter}
           onChangeFilter={setFolderViewFilter}
           path={props.path}
           style={styles.folderViewFilter}

@@ -6,7 +6,6 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type Props = {
-  folderViewFilter?: string
   lastClosedTlf?: string
   path: T.FS.Path
 }
@@ -24,11 +23,8 @@ const PublicBanner = (props: Props) => {
   const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
   const setLastPublicBannerClosedTlf = React.useCallback(
     (tlf: string) =>
-      navigateAppend(
-        {name: 'fsRoot', params: {folderViewFilter: props.folderViewFilter, lastClosedPublicBannerTlf: tlf, path}},
-        true
-      ),
-    [props.folderViewFilter, path]
+      navigateAppend({name: 'fsRoot', params: {lastClosedPublicBannerTlf: tlf, path}}, true),
+    [path]
   )
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)

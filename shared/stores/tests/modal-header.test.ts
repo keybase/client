@@ -22,6 +22,7 @@ test('resetState restores the modal header defaults', () => {
       data: {id: 1},
       deviceBadges: new Set(['device-1']),
       editAvatarHasImage: true,
+      folderViewFilter: 'abc',
       onAction: () => undefined,
       title: 'custom title',
     }
@@ -34,6 +35,7 @@ test('resetState restores the modal header defaults', () => {
   expect(store.getState().botSubScreen).toBe('')
   expect(store.getState().data).toBeUndefined()
   expect(store.getState().deviceBadges).toEqual(new Set())
+  expect(store.getState().folderViewFilter).toBeUndefined()
   expect(store.getState().title).toBe('')
 })
 

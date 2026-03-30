@@ -82,7 +82,7 @@ const handleKeybaseLink = (link: string) => {
       try {
         const decoded = decodeURIComponent(link)
         switchTab(Tabs.fsTab)
-        navigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path: `/keybase/${decoded}`}})
+        navigateAppend({name: 'fsRoot', params: {path: `/keybase/${decoded}`}})
         return
       } catch {
         logger.warn("Couldn't decode KBFS URI")
@@ -91,7 +91,7 @@ const handleKeybaseLink = (link: string) => {
     case 'team':
       try {
         const decoded = decodeURIComponent(link)
-        navigateAppend({name: 'fsRoot', params: {folderViewFilter: undefined, path: `/keybase/${decoded}`}})
+        navigateAppend({name: 'fsRoot', params: {path: `/keybase/${decoded}`}})
         return
       } catch {
         logger.warn("Couldn't decode KBFS URI")

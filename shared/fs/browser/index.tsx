@@ -10,17 +10,18 @@ import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type OwnProps = {
-  filter?: string
   lastClosedPublicBannerTlf?: string
   path: T.FS.Path
 }
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
+  const filter = useModalHeaderState(s => s.folderViewFilter)
   const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
@@ -29,7 +30,7 @@ const Container = (ownProps: OwnProps) => {
     }))
   )
   const props = {
-    filter: ownProps.filter,
+    filter,
     lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
     offlineUnsynced: FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
@@ -116,11 +117,7 @@ function BrowserContent(props: Props) {
   }
   const addCommonStuff = (children: React.ReactNode) => (
     <>
-      <PublicReminder
-        path={props.path}
-        lastClosedTlf={props.lastClosedPublicBannerTlf}
-        folderViewFilter={props.filter}
-      />
+      <PublicReminder path={props.path} lastClosedTlf={props.lastClosedPublicBannerTlf} />
       <ConflictBanner path={props.path} />
       {children}
     </>

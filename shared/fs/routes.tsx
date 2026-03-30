@@ -72,27 +72,12 @@ export const newRoutes = {
       // strange edge case where the root can actually have no params
       const params = ownProps?.route.params
       const path = params?.path ?? FS.defaultPath
-      const folderViewFilter = params?.folderViewFilter
-      const lastClosedPublicBannerTlf = params?.lastClosedPublicBannerTlf
       return C.isMobile
         ? {
-            header: () => (
-              <MobileHeader
-                path={path}
-                folderViewFilter={folderViewFilter}
-                lastClosedPublicBannerTlf={lastClosedPublicBannerTlf}
-              />
-            ),
+            header: () => <MobileHeader path={path} />,
           }
         : {
-            headerRightActions: () => (
-              <Actions
-                path={path}
-                folderViewFilter={folderViewFilter}
-                lastClosedPublicBannerTlf={lastClosedPublicBannerTlf}
-                onTriggerFilterMobile={() => {}}
-              />
-            ),
+            headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
             headerTitle: () => <Title path={path} />,
             subHeader: MainBanner,
             title: path === FS.defaultPath ? 'Files' : T.FS.getPathName(path),

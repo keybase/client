@@ -10,7 +10,6 @@ import * as FS from '@/stores/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
-  folderViewFilter?: string
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   lastClosedPublicBannerTlf?: string
   path: T.FS.Path
@@ -42,13 +41,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
   switch (props.pathType) {
     case T.FS.PathType.Folder:
-      return (
-        <Browser
-          filter={props.folderViewFilter}
-          lastClosedPublicBannerTlf={props.lastClosedPublicBannerTlf}
-          path={props.path}
-        />
-      )
+      return <Browser lastClosedPublicBannerTlf={props.lastClosedPublicBannerTlf} path={props.path} />
     case T.FS.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
@@ -66,7 +59,6 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 }
 
 type OwnProps = {
-  folderViewFilter?: string
   lastClosedPublicBannerTlf?: string
   path?: T.FS.Path
 }
@@ -89,7 +81,6 @@ const Connected = (ownProps: OwnProps) => {
   const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
-    folderViewFilter: ownProps.folderViewFilter,
     kbfsDaemonStatus: kbfsDaemonStatus,
     lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
     path,

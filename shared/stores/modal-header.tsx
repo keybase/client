@@ -11,6 +11,7 @@ type Store = {
   data: unknown
   deviceBadges: Set<T.Devices.DeviceID>
   editAvatarHasImage: boolean
+  folderViewFilter: string | undefined
   onAction: (() => void) | undefined
   title: string
 }
@@ -24,6 +25,7 @@ const initialStore: Store = {
   data: undefined,
   deviceBadges: new Set(),
   editAvatarHasImage: false,
+  folderViewFilter: undefined,
   onAction: undefined,
   title: '',
 }
@@ -33,6 +35,7 @@ export type State = Store & {
     clearDeviceBadges: () => void
     resetState: () => void
     setDeviceBadges: (deviceBadges: Set<T.Devices.DeviceID>) => void
+    setFolderViewFilter: (folderViewFilter?: string) => void
   }
 }
 
@@ -48,6 +51,11 @@ export const useModalHeaderState = Z.createZustand<State>('modal-header', set =>
     setDeviceBadges: deviceBadges => {
       set(s => {
         s.deviceBadges = new Set(deviceBadges)
+      })
+    },
+    setFolderViewFilter: folderViewFilter => {
+      set(s => {
+        s.folderViewFilter = folderViewFilter
       })
     },
   }

@@ -1,5 +1,3 @@
-import * as React from 'react'
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useFSState} from '@/stores/fs'
@@ -15,11 +13,6 @@ type Props = {
 
 const FolderViewFilter = (props: Props) => {
   const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
-  const onUpdate = C.useDebouncedCallback((newFilter: string) => {
-    props.onChangeFilter(newFilter)
-  }, 0)
-
-  React.useEffect(() => () => onUpdate.cancel(), [onUpdate])
 
   return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
@@ -29,7 +22,7 @@ const FolderViewFilter = (props: Props) => {
       focusOnMount={Kb.Styles.isMobile}
       hotkey="f"
       onCancel={props.onCancel}
-      onChange={onUpdate}
+      onChange={props.onChangeFilter}
       placeholderText="Filter"
       style={props.style}
       value={props.filter ?? ''}

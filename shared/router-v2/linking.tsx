@@ -152,9 +152,7 @@ const customGetStateFromPath = (
     case 'public': {
       try {
         const decoded = decodeURIComponent(cleanPath)
-        return makeTabState(Tabs.fsTab, [
-          {name: 'fsRoot', params: {folderViewFilter: undefined, path: `/keybase/${decoded}`}},
-        ])
+        return makeTabState(Tabs.fsTab, [{name: 'fsRoot', params: {path: `/keybase/${decoded}`}}])
       } catch {}
       break
     }
