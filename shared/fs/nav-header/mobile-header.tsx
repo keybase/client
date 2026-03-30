@@ -24,15 +24,13 @@ type Props = {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? (
-    <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
-  ) : null
+  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
   const route = useRoute<RootRouteProps<'fsRoot'>>()
   const {pop} = C.useNav()
   const expanded = props.folderViewFilter !== undefined
-  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
+  const lastClosedPublicBannerTlf = route.params.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(
@@ -79,7 +77,11 @@ const NavMobileHeader = (props: Props) => {
               <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
             ) : null}
             <Kb.Box2 direction="horizontal" flex={1} />
-            <Actions path={props.path} folderViewFilter={props.folderViewFilter} onTriggerFilterMobile={triggerFilterMobile} />
+            <Actions
+              path={props.path}
+              folderViewFilter={props.folderViewFilter}
+              onTriggerFilterMobile={triggerFilterMobile}
+            />
           </Kb.Box2>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>

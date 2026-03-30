@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -18,7 +17,7 @@ type Props = {
 const FsNavHeaderRightActions = (props: Props) => {
   const route = useRoute<RootRouteProps<'fsRoot'>>()
   const softErrors = useFSState(s => s.softErrors)
-  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
+  const lastClosedPublicBannerTlf = route.params.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(

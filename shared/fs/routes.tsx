@@ -14,9 +14,17 @@ const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.In
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   if (!Kb.Styles.isMobile) return null
   if (source.type === T.FS.DestinationPickerSource.IncomingShare) {
-    return <Kb.Text type="BodyBigLink" onClick={navigateUp}>Back</Kb.Text>
+    return (
+      <Kb.Text type="BodyBigLink" onClick={navigateUp}>
+        Back
+      </Kb.Text>
+    )
   }
-  return <Kb.Text type="BodyBigLink" onClick={clearModals}>Cancel</Kb.Text>
+  return (
+    <Kb.Text type="BodyBigLink" onClick={clearModals}>
+      Cancel
+    </Kb.Text>
+  )
 }
 
 const DestPickerHeaderRight = ({source}: {source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource}) => {
@@ -40,14 +48,22 @@ const DestPickerHeaderTitle = (props: {
   }
   return (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={destPickerDesktopHeaderStyle} gap="xtiny">
-      <Kb.Text type="Header" style={noShrinkStyle}>{'Move or Copy "'}</Kb.Text>
+      <Kb.Text type="Header" style={noShrinkStyle}>
+        {'Move or Copy "'}
+      </Kb.Text>
       <ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
       <Filename type="Header" filename={targetName} />
-      <Kb.Text type="Header" style={noShrinkStyle}>{'"'}</Kb.Text>
+      <Kb.Text type="Header" style={noShrinkStyle}>
+        {'"'}
+      </Kb.Text>
     </Kb.Box2>
   )
 }
-const destPickerDesktopHeaderStyle = Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10)
+const destPickerDesktopHeaderStyle = Kb.Styles.padding(
+  Kb.Styles.globalMargins.medium,
+  Kb.Styles.globalMargins.medium,
+  10
+)
 const noShrinkStyle = {flexShrink: 0} as const
 
 export const newRoutes = {
@@ -56,7 +72,7 @@ export const newRoutes = {
       // strange edge case where the root can actually have no params
       // eslint-disable-next-line
       const path = ownProps?.route.params?.path ?? FS.defaultPath
-      const folderViewFilter = ownProps?.route.params?.folderViewFilter
+      const folderViewFilter = ownProps?.route.params.folderViewFilter
       return C.isMobile
         ? {header: () => <MobileHeader path={path} folderViewFilter={folderViewFilter} />}
         : {
@@ -80,14 +96,19 @@ export const newModalRoutes = {
     {getOptions: {headerShown: false}}
   ),
   confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
-  destinationPicker: C.makeScreen(React.lazy(async () => import('./browser/destination-picker')), {
-    getOptions: ({route}) => ({
-      headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />,
-      headerRight: () => <DestPickerHeaderRight source={route.params.source} />,
-      headerTitle: () => <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />,
-      modalStyle: {height: 560, width: 560},
-    }),
-  }),
+  destinationPicker: C.makeScreen(
+    React.lazy(async () => import('./browser/destination-picker')),
+    {
+      getOptions: ({route}) => ({
+        headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />,
+        headerRight: () => <DestPickerHeaderRight source={route.params.source} />,
+        headerTitle: () => (
+          <DestPickerHeaderTitle parentPath={route.params.parentPath} source={route.params.source} />
+        ),
+        modalStyle: {height: 560, width: 560},
+      }),
+    }
+  ),
   kextPermission: {
     getOptions: {modalStyle: {width: 700}},
     screen: React.lazy(

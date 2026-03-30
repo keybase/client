@@ -24,7 +24,7 @@ const PublicBanner = (props: Props) => {
   const route = useRoute<RootRouteProps<'fsRoot'>>()
   const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
-  const folderViewFilter = route.params?.folderViewFilter
+  const folderViewFilter = route.params.folderViewFilter
   const setLastPublicBannerClosedTlf = React.useCallback(
     (tlf: string) =>
       navigateAppend(
