@@ -1,7 +1,7 @@
 import type * as NetInfo from '@react-native-community/netinfo'
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import {waitingKeyConfigLogin} from '@/constants/strings'
+import {waitingKeyConfigLogin, waitingKeyConfigLoginAsOther} from '@/constants/strings'
 import type * as EngineGen from '@/constants/rpc'
 import * as Z from '@/util/zustand'
 import {noConversationIDKey} from '@/constants/types/chat/common'
@@ -174,6 +174,7 @@ export type State = Store & {
     loadOnStart: (phase: State['loadOnStartPhase']) => void
     login: (username: string, password: string) => void
     setLoginError: (error?: RPCError) => void
+    logoutToLoggedOutFlow: () => void
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
@@ -474,6 +475,17 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, waitingKeyConfigLogin)
         }
         get().dispatch.setDefaultUsername(username)
+      }
+      ignorePromise(f())
+    },
+    logoutToLoggedOutFlow: () => {
+      const f = async () => {
+        if (get().loggedIn) {
+          await T.RPCGen.loginLogoutRpcPromise(
+            {force: false, keepSecrets: true},
+            waitingKeyConfigLoginAsOther
+          )
+        }
       }
       ignorePromise(f())
     },

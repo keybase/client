@@ -8,7 +8,6 @@ import {settingsLogOutTab} from '@/constants/settings'
 import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useProvisionState} from '@/stores/provision'
 import {navToProfile} from '@/constants/router'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
@@ -22,7 +21,7 @@ const Container = () => {
   const you = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const onLoginAsAnotherUser = useProvisionState(s => s.dispatch.startProvision)
+  const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

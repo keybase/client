@@ -18,7 +18,6 @@ import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useProvisionState} from '@/stores/provision'
 import {navToProfile} from '@/constants/router'
 
 const {hideWindow, ctlQuit} = KB2.functions
@@ -44,7 +43,7 @@ const Header = () => {
   const username = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
 
-  const startProvision = useProvisionState(s => s.dispatch.startProvision)
+  const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
   const onHelp = () => openURL('https://book.keybase.io')
   const {dumpLogs} = useConfigState(
     C.useShallow(s => ({
@@ -129,7 +128,7 @@ const Header = () => {
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const onAddAccount = () => {
-    setTimeout(() => startProvision(), 0)
+    logoutToLoggedOutFlow()
   }
 
   return (
