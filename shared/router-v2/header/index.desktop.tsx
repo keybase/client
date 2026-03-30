@@ -18,6 +18,7 @@ type Props = {
     title?: React.ReactNode
     headerTitle?: React.ReactNode
     headerLeft?: React.ReactNode
+    headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
     headerRightActions?: React.JSXElementConstructor<object>
     subHeader?: React.JSXElementConstructor<object>
     headerTransparent?: boolean
@@ -97,7 +98,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
 
 function DesktopHeader(p: Props) {
   const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
-  const {headerMode, title, headerTitle, headerRightActions, subHeader} = options
+  const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
   const pop = () => {
@@ -127,6 +128,10 @@ function DesktopHeader(p: Props) {
   if (ReactIs.isValidElementType(headerRightActions)) {
     const CustomActions = headerRightActions
     rightActions = <CustomActions />
+  } else if (typeof headerRight === 'function') {
+    rightActions = headerRight({tintColor: ''})
+  } else if (headerRight) {
+    rightActions = headerRight
   }
 
   let subHeaderNode: React.ReactNode = null
@@ -319,10 +324,11 @@ function DesktopHeaderWrapper(p: HeaderProps) {
   const loggedIn = useConfigState(s => s.loggedIn)
   const isMaximized = useConfigState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
   const options = {
     headerBottomStyle,
     headerLeft,
+    headerRight,
     headerMode,
     headerRightActions,
     headerShadowVisible,

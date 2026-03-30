@@ -68,6 +68,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={Kb.Styles.isElectron}
       onRightAction={onGoToSignup}
       rightActionLabel="Create account"
       banners={

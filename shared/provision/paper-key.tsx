@@ -40,6 +40,7 @@ export const PaperKey = (props: Props) => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={Kb.Styles.isElectron}
       banners={errorBanner(props.error)}
       buttons={[
         {

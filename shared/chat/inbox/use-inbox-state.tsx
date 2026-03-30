@@ -1,10 +1,14 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
+import {useConfigState} from '@/stores/config'
+import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
 
 export function useInboxState(conversationIDKey?: string) {
   const isFocused = useIsFocused()
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const username = useCurrentUserState(s => s.username)
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
@@ -50,6 +54,14 @@ export function useInboxState(conversationIDKey?: string) {
       inboxRefresh('componentNeverLoaded')
     }
   })
+
+  React.useEffect(() => {
+    const ready = loggedIn && !!username
+    const shouldRetry = !inboxHasLoaded && ready && (!C.isMobile || isFocused)
+    if (shouldRetry) {
+      inboxRefresh('componentNeverLoaded')
+    }
+  }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
 
   // Compute unread big indices at render time from per-convo stores
   const bigConvIds = React.useMemo(() => {

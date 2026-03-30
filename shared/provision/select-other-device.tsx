@@ -115,6 +115,7 @@ const SelectOtherDevice = (props: Props) => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={Kb.Styles.isElectron}
       noBackground={true}
       onBack={onBack}
       title={
