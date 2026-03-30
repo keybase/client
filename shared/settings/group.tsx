@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import type {NotificationsSettingsState} from '@/stores/settings-notifications'
 
 type GroupProps = {
   allowEdit: boolean
@@ -7,7 +6,11 @@ type GroupProps = {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings?: ReadonlyArray<NotificationsSettingsState>
+  settings?: ReadonlyArray<{
+    description: string
+    name: string
+    subscribed: boolean
+  }>
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean

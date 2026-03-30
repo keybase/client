@@ -29,9 +29,9 @@ Status:
 - [x] `profile` kept proof/PGP listener callbacks plus shared navigation hooks in store; moved visible proof/PGP/revoke state and one-screen RPCs into route params or owning components
 - [x] `recover-password` kept only session callbacks plus `resetEmailSent`; moved recover-flow display state and navigation context into route params
 - [x] `settings` removed the store entirely; shared settings reload is now a feature helper and lockdown/developer/account actions live in their owning settings screens
-- [ ] `settings-chat`
+- [x] `settings-chat` removed the store; chat settings screen now owns contact-settings and unfurl RPC/state locally with the same waiting keys and error strings
 - [x] `settings-email` moved add-email submit/error state into components; kept notification-backed `emails`, `addedEmail`, and row actions in store
-- [ ] `settings-notifications`
+- [x] `settings-notifications` removed the store; notifications screens and chat settings now own refresh/toggle RPC state in a feature-local hook while preserving the existing settings load path
 - [x] `settings-password` kept only `randomPW` in store; moved submit/load flows into settings screens
 - [x] `settings-phone` kept notification-backed `phones` and `addedPhone`; moved add/verify/default-country flow into local hooks and route params
 - [ ] `signup`

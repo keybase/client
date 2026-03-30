@@ -74,6 +74,7 @@ export const getStatusCodeMessage = (
       RPCGen.StatusCode.scgeneric,
       error.message.includes('API network error') ? offlineMessage : genericMessage,
     ],
+    [RPCGen.StatusCode.scwrongcryptomsgtype, causeStatusCodeToMessage.get(error.code) || genericMessage],
     [
       RPCGen.StatusCode.scstreamunknown,
       `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,

@@ -267,6 +267,61 @@ playwright-cli tracing-stop
 playwright-cli close
 ```
 
+## Connecting to the Electron App (Keybase)
+
+The Electron app must be running with remote debugging enabled:
+```bash
+cd shared && KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot
+```
+
+### Connecting
+
+```bash
+# The --persistent flag is required — it disables isolated mode, which Electron doesn't support
+PLAYWRIGHT_MCP_CDP_ENDPOINT=http://localhost:9222 playwright-cli open --persistent
+```
+
+### Tab layout
+
+After connecting, you'll see tabs like:
+- Tab 0: Menubar (`menubar.dev.html`)
+- Tab 1: Main app (`main.dev.html`) — this is the one you want
+- Tab 2+: Other windows
+
+### Quirk: snapshot vs eval
+
+`snapshot` always captures the first CDP page (usually the menubar), regardless of which tab is "current". Use `eval` instead — it correctly targets the selected tab.
+
+```bash
+playwright-cli tab-select 1          # select main app tab
+playwright-cli eval "document.title"  # works correctly ✅
+playwright-cli snapshot               # captures menubar instead ❌
+```
+
+### DOM inspection with eval
+
+Use `eval` with simple JS expressions (not multi-line functions — they fail serialization):
+
+```bash
+# find element and get surrounding HTML
+playwright-cli eval "document.body.innerHTML.indexOf('some text')"
+playwright-cli eval "document.body.innerHTML.substring(111424, 112200)"
+
+# check if element exists
+playwright-cli eval "document.body.innerHTML.includes('cnn.com')"
+
+# get computed styles
+playwright-cli eval "getComputedStyle(document.querySelector('.my-class')).position"
+```
+
+### Why --persistent is required
+
+Electron's CDP endpoint doesn't support `Target.createBrowserContext`. By default playwright-cli runs in `isolated` mode which calls `browser.newContext()` — this fails with:
+```
+Protocol error (Target.createBrowserContext): Failed to create browser context.
+```
+`--persistent` sets `isolated: false`, so playwright-cli uses the existing `browser.contexts()[0]` instead.
+
 ## Specific tasks
 
 * **Request mocking** [references/request-mocking.md](references/request-mocking.md)

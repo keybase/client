@@ -1,14 +1,16 @@
 import {Reloadable} from '@/common-adapters'
 import * as C from '@/constants'
 import Render from './render'
+import useNotifications from './hooks'
+import useNotificationSettings from './use-notification-settings'
 import {loadSettings} from '../load-settings'
-import {useSettingsNotifState} from '@/stores/settings-notifications'
 
 const Notifications = () => {
-  const refresh = useSettingsNotifState(s => s.dispatch.refresh)
+  const notificationSettings = useNotificationSettings()
+  const props = useNotifications(notificationSettings)
   const onReload = () => {
     loadSettings()
-    refresh()
+    notificationSettings.refresh()
   }
   return (
     <Reloadable
@@ -17,7 +19,7 @@ const Notifications = () => {
       onReload={onReload}
       reloadOnMount={true}
     >
-      <Render />
+      <Render {...props} />
     </Reloadable>
   )
 }

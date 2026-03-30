@@ -1,17 +1,19 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import Notifications from './render'
+import useNotifications from './hooks'
+import useNotificationSettings from './use-notification-settings'
 import {Reloadable} from '@/common-adapters'
 import {loadSettings} from '../load-settings'
-import {useSettingsNotifState} from '@/stores/settings-notifications'
 import {usePushState} from '@/stores/push'
 
 const MobileNotifications = () => {
-  const refresh = useSettingsNotifState(s => s.dispatch.refresh)
+  const notificationSettings = useNotificationSettings()
+  const props = useNotifications(notificationSettings)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onReload = () => {
     loadSettings()
-    refresh()
+    notificationSettings.refresh()
   }
   return (
     <Reloadable
@@ -22,7 +24,7 @@ const MobileNotifications = () => {
     >
       <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
         <TurnOnNotifications />
-        <Notifications />
+        <Notifications {...props} />
       </Kb.ScrollView>
     </Reloadable>
   )
