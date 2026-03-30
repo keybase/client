@@ -73,6 +73,9 @@ const Header = () => {
   )
   const onSettings = () => switchTab(Tabs.settingsTab)
   const onSignOut = () => navigateAppend(settingsLogOutTab)
+  const onAddAccount = () => {
+    logoutToLoggedOutFlow()
+  }
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
@@ -127,9 +130,6 @@ const Header = () => {
     )
   }
   const {togglePopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  const onAddAccount = () => {
-    logoutToLoggedOutFlow()
-  }
 
   return (
     <>

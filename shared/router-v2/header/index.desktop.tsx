@@ -5,27 +5,35 @@ import SyncingFolders from './syncing-folders'
 import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
+
+type HeaderTitleProps = {
+  children: string
+  tintColor?: string
+}
+
+type Options = {
+  headerMode?: string
+  title?: React.ReactNode
+  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps>
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
+  headerRightActions?: React.JSXElementConstructor<object>
+  subHeader?: React.JSXElementConstructor<object>
+  headerTransparent?: boolean
+  headerShadowVisible?: boolean
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.StylesCrossPlatform
+}
 
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
 type Props = {
   loggedIn: boolean
-  options: {
-    headerMode?: string
-    title?: React.ReactNode
-    headerTitle?: React.ReactNode
-    headerLeft?: React.ReactNode
-    headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
-    headerRightActions?: React.JSXElementConstructor<object>
-    subHeader?: React.JSXElementConstructor<object>
-    headerTransparent?: boolean
-    headerShadowVisible?: boolean
-    headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-    headerStyle?: Kb.Styles.StylesCrossPlatform
-  }
+  options: Options
   back?: boolean
   style?: Kb.Styles._StylesCrossPlatform
   useNativeFrame: boolean
@@ -328,8 +336,8 @@ function DesktopHeaderWrapper(p: HeaderProps) {
   const options = {
     headerBottomStyle,
     headerLeft,
-    headerRight,
     headerMode,
+    headerRight,
     headerRightActions,
     headerShadowVisible,
     headerStyle,

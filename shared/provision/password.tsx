@@ -33,7 +33,7 @@ const Password = () => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={Kb.Styles.isElectron}
+      hideDesktopHeader={!Kb.Styles.isMobile}
       banners={
         <>
           {resetEmailSent ? (

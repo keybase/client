@@ -60,7 +60,7 @@ export const newRoutes = {
   },
   username: C.makeScreen(React.lazy(async () => import('./username-or-email')), {
     getOptions: {
-      ...(Kb.Styles.isElectron ? {headerRight: () => <UsernameHeaderRight />} : {}),
+      ...(!Kb.Styles.isMobile ? {headerRight: () => <UsernameHeaderRight />} : {}),
       title: 'Log in',
     },
   }),

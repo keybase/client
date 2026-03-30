@@ -24,21 +24,22 @@ const OutOfDate = () => {
   const outOfDate = useConfigState(s => s.outOfDate)
   const [mobileMessage, setMobileMessage] = React.useState('')
   const [mobileCritical, setMobileCritical] = React.useState(false)
+  const isMountedRef = React.useRef(false)
 
   React.useEffect(() => {
     if (!C.isMobile) {
       return
     }
 
-    let canceled = false
+    isMountedRef.current = true
     const f = async () => {
       await C.timeoutPromise(60_000) // don't bother checking during startup
-      if (canceled) {
+      if (!isMountedRef.current) {
         return
       }
       try {
         const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})
-        if (canceled) {
+        if (!isMountedRef.current) {
           return
         }
         switch (update.status) {
@@ -57,7 +58,7 @@ const OutOfDate = () => {
     C.ignorePromise(f())
 
     return () => {
-      canceled = true
+      isMountedRef.current = false
     }
   }, [])
 

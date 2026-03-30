@@ -74,7 +74,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k]?.getDangling()).length) {
+        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].getDangling()).length) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -83,10 +83,10 @@ class Engine {
 
   _sessionSummary() {
     return Object.entries(this._sessionsMap)
-      .filter(([, session]) => !session?.getDangling())
+      .filter(([, session]) => !session.getDangling())
       .map(([id, session]) => ({
         id,
-        method: session?._startMethod || 'unknown',
+        method: session._startMethod || 'unknown',
       }))
   }
 
