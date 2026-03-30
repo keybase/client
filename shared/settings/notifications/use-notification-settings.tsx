@@ -226,43 +226,50 @@ const useNotificationSettings = () => {
         return
       }
 
+      const prevGroups = groups
       const nextGroups = toggleNotificationGroup(groups, group, name)
       setAllowEdit(false)
       setGroups(nextGroups)
 
       const f = async () => {
-        if (!nextGroups.get('email')) {
-          throw new Error('No notifications loaded yet')
+        try {
+          if (!nextGroups.get('email')) {
+            throw new Error('No notifications loaded yet')
+          }
+          const {JSONPayload, chatGlobalArg} = buildNotificationSavePayload(nextGroups)
+          const result = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
+            saveSubscriptionsRPC(
+              [
+                {
+                  JSONPayload,
+                  args: [],
+                  endpoint: 'account/subscribe',
+                },
+                S.waitingKeySettingsGeneric,
+              ],
+              resolve,
+              reject
+            )
+          })
+          await new Promise<void>((resolve, reject) => {
+            saveGlobalSettingsRPC(
+              [{settings: {...chatGlobalArg}}, S.waitingKeySettingsGeneric],
+              () => resolve(),
+              reject
+            )
+          })
+          if (
+            !result.body ||
+            (JSON.parse(result.body) as {status?: {code?: number}} | undefined)?.status?.code !== 0
+          ) {
+            throw new Error(`Invalid response ${result.body || '(no result)'}`)
+          }
+        } catch (error) {
+          logger.warn('Failed to save notification settings', error)
+          setGroups(prevGroups)
+        } finally {
+          setAllowEdit(true)
         }
-        const {JSONPayload, chatGlobalArg} = buildNotificationSavePayload(nextGroups)
-        const result = await new Promise<T.RPCGen.APIRes>((resolve, reject) => {
-          saveSubscriptionsRPC(
-            [
-              {
-                JSONPayload,
-                args: [],
-                endpoint: 'account/subscribe',
-              },
-              S.waitingKeySettingsGeneric,
-            ],
-            resolve,
-            reject
-          )
-        })
-        await new Promise<void>((resolve, reject) => {
-          saveGlobalSettingsRPC(
-            [{settings: {...chatGlobalArg}}, S.waitingKeySettingsGeneric],
-            () => resolve(),
-            reject
-          )
-        })
-        if (
-          !result.body ||
-          (JSON.parse(result.body) as {status?: {code?: number}} | undefined)?.status?.code !== 0
-        ) {
-          throw new Error(`Invalid response ${result.body || '(no result)'}`)
-        }
-        setAllowEdit(true)
       }
       ignorePromise(f())
     },
