@@ -51,8 +51,10 @@ const NavMobileHeader = (props: Props) => {
   // anything for me at this point. So just use the fact that a new such thing
   // has been mounted as a proxy.
   React.useEffect(() => {
-    filterDone()
-  }, [filterDone, props.path])
+    if (props.folderViewFilter !== undefined) {
+      filterDone()
+    }
+  }, [filterDone, props.folderViewFilter])
 
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
