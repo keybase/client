@@ -32,33 +32,32 @@ const OutOfDate = () => {
     }
 
     isMountedRef.current = true
-    const f = async () => {
-      await C.timeoutPromise(60_000) // don't bother checking during startup
-      if (!isMountedRef.current) {
-        return
-      }
-      try {
-        const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})
-        if (!isMountedRef.current) {
-          return
-        }
-        switch (update.status) {
-          case T.RPCGen.UpdateInfoStatus2.critical:
-            setMobileCritical(true)
-            setMobileMessage(update.critical.message)
-            break
-          default:
-            setMobileCritical(false)
-            setMobileMessage('')
-        }
-      } catch (e) {
-        logger.warn("Can't call critical check", e)
-      }
-    }
-    C.ignorePromise(f())
+    const timeoutID = setTimeout(() => {
+      C.ignorePromise(
+        T.RPCGen.configGetUpdateInfo2RpcPromise({})
+          .then(update => {
+            if (!isMountedRef.current) {
+              return
+            }
+            switch (update.status) {
+              case T.RPCGen.UpdateInfoStatus2.critical:
+                setMobileCritical(true)
+                setMobileMessage(update.critical.message)
+                break
+              default:
+                setMobileCritical(false)
+                setMobileMessage('')
+            }
+          })
+          .catch(e => {
+            logger.warn("Can't call critical check", e)
+          })
+      )
+    }, 60_000) // don't bother checking during startup
 
     return () => {
       isMountedRef.current = false
+      clearTimeout(timeoutID)
     }
   }, [])
 

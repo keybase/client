@@ -62,16 +62,14 @@ const AppTabs = () => <AppTabsInner />
 
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true)
 const loggedOutOptions = {
-  header: p => (
-    <Header
-      {...p}
-      options={{
-        ...p.options,
-        headerBottomStyle: {height: 0},
-        headerShadowVisible: false,
-      }}
-    />
-  ),
+  header: p => {
+    const options: React.ComponentProps<typeof Header>['options'] = {
+      ...(p.options as React.ComponentProps<typeof Header>['options']),
+      headerBottomStyle: {height: 0},
+      headerShadowVisible: false,
+    }
+    return <Header {...p} options={options} />
+  },
 } satisfies NativeStackNavigationOptions
 const loggedOutNav = createNativeStackNavigator({
   initialRouteName: 'login',

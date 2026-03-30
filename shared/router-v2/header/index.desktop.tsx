@@ -25,7 +25,7 @@ type Options = {
   headerTransparent?: boolean
   headerShadowVisible?: boolean
   headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-  headerStyle?: Kb.Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.CollapsibleStyle
 }
 
 // A mobile-like header for desktop
