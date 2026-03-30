@@ -257,6 +257,7 @@ type Store = T.Immutable<{
   infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
+  inboxRetriedOnCurrentEmpty: boolean
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
   inboxAllowShowFloatingButton: boolean
   inboxRows: Array<ChatInboxRowItem>
@@ -276,6 +277,7 @@ const initialStore: Store = {
   flipStatusMap: new Map(),
   inboxAllowShowFloatingButton: false,
   inboxHasLoaded: false,
+  inboxRetriedOnCurrentEmpty: false,
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
   inboxRows: [],
@@ -1133,7 +1135,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
-          if (get().inboxRows.length === 0) {
+          if (get().inboxRows.length === 0 && !get().inboxRetriedOnCurrentEmpty) {
+            set(s => {
+              s.inboxRetriedOnCurrentEmpty = true
+            })
             inboxRefresh('inboxSyncedCurrentButEmpty')
           }
           break
