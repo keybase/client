@@ -72,11 +72,6 @@ export const onEngineConnected = () => {
     const registerUIs = async () => {
       try {
         await T.RPCGen.delegateUiCtlRegisterChatUIRpcPromise()
-        const {loggedIn} = useConfigState.getState()
-        const {username} = useCurrentUserState.getState()
-        if (loggedIn && username) {
-          storeRegistry.getState('chat').dispatch.inboxRefresh('engineConnected')
-        }
         await T.RPCGen.delegateUiCtlRegisterLogUIRpcPromise()
         logger.info('Registered Chat UI')
         await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()

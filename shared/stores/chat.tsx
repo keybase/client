@@ -299,7 +299,6 @@ const initialStore: Store = {
 export type RefreshReason =
   | 'bootstrap'
   | 'componentNeverLoaded'
-  | 'engineConnected'
   | 'inboxSyncedCurrentButEmpty'
   | 'inboxStale'
   | 'inboxSyncedClear'
