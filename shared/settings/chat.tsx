@@ -213,13 +213,13 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
 
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         {!!groups.get('security')?.settings && (
-            <Group
-              allowEdit={allowEdit}
-              groupName="security"
-              onToggle={toggle}
-              settings={groups.get('security')!.settings}
-              unsubscribedFromAll={false}
-            />
+          <Group
+            allowEdit={allowEdit}
+            groupName="security"
+            onToggle={toggle}
+            settings={groups.get('security')!.settings}
+            unsubscribedFromAll={false}
+          />
         )}
 
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -390,15 +390,12 @@ const Links = () => {
                         Restore
                       </Kb.Text>
                     ) : (
-                      <Kb.Box2 direction="vertical" relative={true}>
-                        <Kb.WithTooltip tooltip="Remove">
-                          <Kb.Icon
-                            onClick={() => toggleUnfurlWhitelist(w)}
-                            style={styles.removeIcon}
-                            type="iconfont-trash"
-                          />
-                        </Kb.WithTooltip>
-                      </Kb.Box2>
+                      <Kb.WithTooltip tooltip="Remove">
+                        <Kb.Icon
+                          onClick={() => toggleUnfurlWhitelist(w)}
+                          type="iconfont-trash"
+                        />
+                      </Kb.WithTooltip>
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
@@ -555,13 +552,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       maxWidth: 600,
-    },
-  }),
-  removeIcon: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-      right: 0,
-      top: 4,
     },
   }),
   removeText: {color: Kb.Styles.globalColors.black},
