@@ -1,27 +1,18 @@
 import * as T from '@/constants/types'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import debounce from 'lodash/debounce'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type Props = {
+  filter?: string
+  onChangeFilter: (filter: string) => void
   onCancel?: () => void
   path: T.FS.Path
   style?: Kb.Styles.StylesCrossPlatform
 }
 
 const FolderViewFilter = (props: Props) => {
-  const {pathItem, setFolderViewFilter} = useFSState(
-    C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, props.path)
-      const setFolderViewFilter = s.dispatch.setFolderViewFilter
-      return {pathItem, setFolderViewFilter}
-    })
-  )
-  const onUpdate = debounce((newFilter: string) => {
-    setFolderViewFilter(newFilter)
-  })
+  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
 
   return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
@@ -31,9 +22,11 @@ const FolderViewFilter = (props: Props) => {
       focusOnMount={Kb.Styles.isMobile}
       hotkey="f"
       onCancel={props.onCancel}
-      onChange={onUpdate}
+      onChange={props.onChangeFilter}
       placeholderText="Filter"
       style={props.style}
+      value={props.filter ?? ''}
+      valueControlled={true}
     />
   ) : null
 }

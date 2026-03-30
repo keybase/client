@@ -10,30 +10,26 @@ import Rows from './rows/rows-container'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
-type OwnProps = {index: number}
-
-const getParentPath = (dp: T.FS.DestinationPicker, index: number): T.FS.Path =>
-  dp.destinationParentPath[index] ||
-  (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
-    ? T.FS.getPathParent(dp.source.path)
-    : T.FS.stringToPath('/keybase'))
+type OwnProps = {
+  parentPath: T.FS.Path
+  source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+}
 
 const canBackUp = C.isMobile
   ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const index = ownProps.index
-  const {parentPath, isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
+  const {parentPath, source} = ownProps
+  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
     C.useShallow(s => {
-      const dp = s.destinationPicker
-      const pp = getParentPath(dp, index)
-      const pathItem = FS.getPathItem(s.pathItems, pp)
-      const writable = T.FS.getPathLevel(pp) > 2 && pathItem.writable
-      const isShareSource = dp.source.type === T.FS.DestinationPickerSource.IncomingShare
-      const isMoveOrCopy = dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
-      const copyable = writable && (isShareSource || (isMoveOrCopy && pp !== T.FS.getPathParent(dp.source.path)))
-      const movable = copyable && isMoveOrCopy && FS.pathsInSameTlf(dp.source.path, pp)
+      const pathItem = FS.getPathItem(s.pathItems, parentPath)
+      const writable = T.FS.getPathLevel(parentPath) > 2 && pathItem.writable
+      const isShareSource = source.type === T.FS.DestinationPickerSource.IncomingShare
+      const isMoveOrCopy = source.type === T.FS.DestinationPickerSource.MoveOrCopy
+      const copyable =
+        writable && (isShareSource || (isMoveOrCopy && parentPath !== T.FS.getPathParent(source.path)))
+      const movable = copyable && isMoveOrCopy && FS.pathsInSameTlf(source.path, parentPath)
       return {
         isCopyable: copyable,
         isMovable: movable,
@@ -41,7 +37,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         isWritable: writable,
         moveOrCopy: s.dispatch.moveOrCopy,
         newFolderRow: s.dispatch.newFolderRow,
-        parentPath: pp,
       }
     })
   )
@@ -51,18 +46,22 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const onBackUp =
     isShare || !canBackUp(parentPath)
       ? undefined
-      : () => FS.makeActionsForDestinationPickerOpen(index + 1, T.FS.getPathParent(parentPath))
+      : () =>
+          nav.safeNavigateAppend({
+            name: 'destinationPicker',
+            params: {parentPath: T.FS.getPathParent(parentPath), source},
+          })
   const onCancel = isShare ? undefined : () => clearModals()
   const onCopyHere = isCopyable
     ? () => {
-        moveOrCopy(parentPath, 'copy')
+        moveOrCopy(parentPath, source, 'copy')
         clearModals()
         nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
     : undefined
   const onMoveHere = isMovable
     ? () => {
-        moveOrCopy(parentPath, 'move')
+        moveOrCopy(parentPath, source, 'move')
         clearModals()
         nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
@@ -81,7 +80,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
-            <NavHeaderTitle inDestinationPicker={true} path={parentPath} />
+            <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
             {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
           </Kb.Box2>
         )}
@@ -120,9 +119,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.ClickableBox>
         )}
         {parentPath === FS.defaultPath ? (
-          <Root destinationPickerIndex={index} />
+          <Root destinationPickerSource={source} />
         ) : (
-          <Rows path={parentPath} destinationPickerIndex={index} />
+          <Rows path={parentPath} destinationPickerSource={source} />
         )}
         {Kb.Styles.isMobile && <Kb.Divider key="dfooter" />}
         {(!Kb.Styles.isMobile || onNewFolder) && (
@@ -144,6 +143,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     </>
   )
 }
+
+const Screen = (props: OwnProps) => <ConnectedDestinationPicker {...props} />
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p
@@ -198,4 +199,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ConnectedDestinationPicker
+export default Screen

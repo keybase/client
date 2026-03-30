@@ -7,7 +7,6 @@ import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
-import {useFSState} from '@/stores/fs'
 import {useRouterState} from '@/stores/router'
 import {useModalHeaderState} from '@/stores/modal-header'
 
@@ -129,15 +128,13 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
 }
 
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
-  const setIncomingShareSource = useFSState(s => s.dispatch.setIncomingShareSource)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
-    setIncomingShareSource(incomingShareItems)
     navigateAppend({
       name: 'destinationPicker',
       params: {
-        // headerRightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
-        index: 0,
+        parentPath: T.FS.stringToPath('/keybase'),
+        source: {source: incomingShareItems, type: T.FS.DestinationPickerSource.IncomingShare},
       },
     })
   }

@@ -9,7 +9,7 @@ import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
 }
 
 type SectionListItem = {
@@ -32,11 +32,11 @@ const rootRows: Array<SectionListItem> = [
   },
 ]
 
-const getRenderItem = (destinationPickerIndex?: number) =>
+const getRenderItem = (destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource) =>
   function WrapTLF({item, section}: {item: SectionListItem; section: {key: string}}) {
     return section.key === 'section-top' ? (
       <WrapRow>
-        <TlfType name={item.name as T.FS.TlfType} destinationPickerIndex={destinationPickerIndex} />
+        <TlfType name={item.name as T.FS.TlfType} destinationPickerSource={destinationPickerSource} />
       </WrapRow>
     ) : (
       <WrapRow>
@@ -45,7 +45,7 @@ const getRenderItem = (destinationPickerIndex?: number) =>
           name={item.name}
           tlfType={item.tlfType}
           mixedMode={true}
-          destinationPickerIndex={destinationPickerIndex}
+          destinationPickerSource={destinationPickerSource}
         />
       </WrapRow>
     )
@@ -74,7 +74,10 @@ const useTopNTlfs = (
       tlfType,
     }))
 
-const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
+const useRecentTlfs = (
+  n: number,
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+): Array<SectionListItem> => {
   const tlfs = useFSState(s => s.tlfs)
   const username = useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
@@ -87,19 +90,19 @@ const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<Sectio
     // This isn't perfect since it doesn't cover the case where a team TLF
     // could be readonly. But to do that we'd need some new caching in KBFS
     // to plumb it into the Tlfs structure without awful overhead.
-    typeof destinationPickerIndex === 'number'
+    destinationPickerSource
       ? recent.filter(
           ({name, tlfType}) =>
-            !FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
+            !FS.hideOrDisableInDestinationPicker(tlfType, name, username, true)
         )
       : recent
   return afterFilter.slice(0, n)
 }
 
-function Root({destinationPickerIndex}: Props) {
-  const top10 = useRecentTlfs(10, destinationPickerIndex)
+function Root({destinationPickerSource}: Props) {
+  const top10 = useRecentTlfs(10, destinationPickerSource)
   const sections = [
-    ...(destinationPickerIndex
+    ...(destinationPickerSource
       ? [] // don't show sfmi banner in destination picker
       : [
           {
@@ -122,7 +125,7 @@ function Root({destinationPickerIndex}: Props) {
       title: 'Recent folders',
     },
   ]
-  const renderItem = getRenderItem(destinationPickerIndex)
+  const renderItem = getRenderItem(destinationPickerSource)
 
   return (
     <Kb.BoxGrow>

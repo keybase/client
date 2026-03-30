@@ -220,11 +220,6 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
   return resetParticipants.length
 }
 
-export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
-  useFSState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  navigateAppend({name: 'destinationPicker', params: {index}})
-}
-
 const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scsimplefsnoaccess,
   T.RPCGen.StatusCode.scteamnotfound,
@@ -273,14 +268,11 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
 type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
-  destinationPicker: T.FS.DestinationPicker
   downloads: T.FS.Downloads
   edits: T.FS.Edits
   errors: ReadonlyArray<string>
   fileContext: ReadonlyMap<T.FS.Path, T.FS.FileContext>
-  folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
-  lastPublicBannerClosedTlf: string
   overallSyncStatus: T.FS.OverallSyncStatus
   pathItemActionMenu: T.FS.PathItemActionMenu
   pathItems: T.FS.PathItems
@@ -296,12 +288,6 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   badge: T.RPCGen.FilesTabBadge.none,
   criticalUpdate: false,
-  destinationPicker: {
-    destinationParentPath: [],
-    source: {
-      type: T.FS.DestinationPickerSource.None,
-    },
-  },
   downloads: {
     info: new Map(),
     regularDownloads: [],
@@ -310,9 +296,7 @@ const initialStore: Store = {
   edits: new Map(),
   errors: [],
   fileContext: new Map(),
-  folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
-  lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: new Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
@@ -407,7 +391,11 @@ export type State = Store & {
     loadDownloadStatus: () => void
     loadedPathInfo: (path: T.FS.Path, info: T.FS.PathInfo) => void
     newFolderRow: (parentPath: T.FS.Path) => void
-    moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => void
+    moveOrCopy: (
+      destinationParentPath: T.FS.Path,
+      source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
+      type: 'move' | 'copy'
+    ) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onPathChange: (
@@ -421,16 +409,10 @@ export type State = Store & {
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
-    setDestinationPickerParentPath: (index: number, path: T.FS.Path) => void
     setDirectMountDir: (directMountDir: string) => void
     setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
     setEditName: (editID: T.FS.EditID, name: string) => void
-    setFolderViewFilter: (filter?: string) => void
-    setIncomingShareSource: (source: ReadonlyArray<T.RPCGen.IncomingShareItem>) => void
-    setLastPublicBannerClosedTlf: (tlf: string) => void
-    setMoveOrCopySource: (path: T.FS.Path) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
-    setPathItemActionMenuView: (view: T.FS.PathItemActionMenuView) => void
     setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
@@ -438,8 +420,6 @@ export type State = Store & {
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
-    showIncomingShare: (initialDestinationParentPath: T.FS.Path) => void
-    showMoveOrCopy: (initialDestinationParentPath: T.FS.Path) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
     startRename: (path: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
@@ -646,8 +626,8 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               )
               get().dispatch.editSuccess(editID)
               return
-            } catch (e) {
-              errorToActionOrThrow(e, edit.parentPath)
+            } catch (error) {
+              errorToActionOrThrow(error, edit.parentPath)
               return
             }
           case T.FS.EditType.Rename:
@@ -663,19 +643,17 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               get().dispatch.editSuccess(editID)
               return
             } catch (error) {
-              if (!(error instanceof RPCError)) {
-                return
-              }
               if (
-                [
-                  T.RPCGen.StatusCode.scsimplefsnameexists,
-                  T.RPCGen.StatusCode.scsimplefsdirnotempty,
-                ].includes(error.code)
+                error instanceof RPCError &&
+                [T.RPCGen.StatusCode.scsimplefsnameexists, T.RPCGen.StatusCode.scsimplefsdirnotempty].includes(
+                  error.code
+                )
               ) {
                 get().dispatch.editError(editID, error.desc || 'name exists')
                 return
               }
-              throw error
+              errorToActionOrThrow(error, edit.parentPath)
+              return
             }
         }
       }
@@ -753,6 +731,21 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           isRegularDownload: type === 'download',
           path: Constants.pathToRPCPath(path).kbfs,
         })
+        set(s => {
+          const info = s.downloads.info.get(downloadID)
+          s.downloads.info.set(downloadID, {
+            filename: info?.filename ?? T.FS.getPathName(path),
+            intent:
+              type === 'share'
+                ? T.FS.DownloadIntent.Share
+                : type === 'saveMedia'
+                  ? T.FS.DownloadIntent.CameraRoll
+                  : info?.intent,
+            isRegularDownload: type === 'download',
+            path,
+            startTime: info?.startTime ?? 0,
+          })
+        })
         if (type !== 'download') {
           get().dispatch.setPathItemActionMenuDownload(
             downloadID,
@@ -791,8 +784,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     editError: (editID, error) => {
       set(s => {
-        const e = s.edits.get(editID)
-        if (e) e.error = error
+        const edit = s.edits.get(editID)
+        if (edit) {
+          edit.error = error
+        }
       })
     },
     editSuccess: editID => {
@@ -993,12 +988,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               s.pathItems.set(path, T.castDraft(newPathItem))
             })
 
-            // Remove Rename edits that are for path items that don't exist anymore in
-            // case when/if a new item is added later the edit causes confusion.
+            // Remove rename edits once the original item disappears from the folder.
             s.edits.forEach((edit, editID) => {
               if (edit.type === T.FS.EditType.Rename) {
                 const parent = Constants.getPathItem(s.pathItems, edit.parentPath)
-                if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.name))) {
+                if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.originalName))) {
                   s.edits.delete(editID)
                 }
               }
@@ -1145,8 +1139,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             downloadID,
           })
           set(s => {
+            const old = s.downloads.info.get(downloadID)
             s.downloads.info.set(downloadID, {
               filename: res.filename,
+              intent: old?.intent,
               isRegularDownload: res.isRegularDownload,
               path: T.FS.stringToPath('/keybase' + res.path.path),
               startTime: res.startTime,
@@ -1361,29 +1357,24 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.pathInfos.set(path, info)
       })
     },
-    moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => {
+    moveOrCopy: (destinationParentPath, source, type) => {
       const f = async () => {
-        const zState = get()
-        if (zState.destinationPicker.source.type === T.FS.DestinationPickerSource.None) {
-          return
-        }
-
         const params =
-          zState.destinationPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
+          source.type === T.FS.DestinationPickerSource.MoveOrCopy
             ? [
                 {
                   dest: Constants.pathToRPCPath(
                     T.FS.pathConcat(
                       destinationParentPath,
-                      T.FS.getPathName(zState.destinationPicker.source.path)
+                      T.FS.getPathName(source.path)
                     )
                   ),
                   opID: makeUUID(),
                   overwriteExistingFiles: false,
-                  src: Constants.pathToRPCPath(zState.destinationPicker.source.path),
+                  src: Constants.pathToRPCPath(source.path),
                 },
               ]
-            : zState.destinationPicker.source.source
+            : source.source
                 .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
                 .filter(({originalPath}) => !!originalPath)
                 .map(({originalPath, scaledPath}) => ({
@@ -1592,11 +1583,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    setDestinationPickerParentPath: (index, path) => {
-      set(s => {
-        s.destinationPicker.destinationParentPath[index] = path
-      })
-    },
     setDirectMountDir: directMountDir => {
       set(s => {
         s.sfmi.directMountDir = directMountDir
@@ -1610,45 +1596,18 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     setEditName: (editID, name) => {
       set(s => {
-        const e = s.edits.get(editID)
-        if (e) {
-          e.name = name
+        const edit = s.edits.get(editID)
+        if (!edit || edit.name === name) {
+          return
         }
-      })
-    },
-    setFolderViewFilter: filter => {
-      set(s => {
-        s.folderViewFilter = filter
-      })
-    },
-    setIncomingShareSource: source => {
-      set(s => {
-        s.destinationPicker.source = {
-          source: T.castDraft(source),
-          type: T.FS.DestinationPickerSource.IncomingShare,
-        }
-      })
-    },
-    setLastPublicBannerClosedTlf: tlf => {
-      set(s => {
-        s.lastPublicBannerClosedTlf = tlf
-      })
-    },
-    setMoveOrCopySource: path => {
-      set(s => {
-        s.destinationPicker.source = {path, type: T.FS.DestinationPickerSource.MoveOrCopy}
+        edit.error = undefined
+        edit.name = name
       })
     },
     setPathItemActionMenuDownload: (downloadID, intent) => {
       set(s => {
         s.pathItemActionMenu.downloadID = downloadID
         s.pathItemActionMenu.downloadIntent = intent
-      })
-    },
-    setPathItemActionMenuView: view => {
-      set(s => {
-        s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
-        s.pathItemActionMenu.view = view
       })
     },
     setPathSoftError: (path, softError) => {
@@ -1710,30 +1669,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       set(s => {
         s.tlfs.loaded = false
       })
-    },
-    showIncomingShare: initialDestinationParentPath => {
-      set(s => {
-        if (s.destinationPicker.source.type !== T.FS.DestinationPickerSource.IncomingShare) {
-          s.destinationPicker.source = {source: [], type: T.FS.DestinationPickerSource.IncomingShare}
-        }
-        s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
-      })
-      navigateAppend({name: 'destinationPicker', params: {index: 0}})
-    },
-    showMoveOrCopy: initialDestinationParentPath => {
-      set(s => {
-        s.destinationPicker.source =
-          s.destinationPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
-            ? s.destinationPicker.source
-            : {
-                path: Constants.defaultPath,
-                type: T.FS.DestinationPickerSource.MoveOrCopy,
-              }
-
-        s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
-      })
-
-      navigateAppend({name: 'destinationPicker', params: {index: 0}})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

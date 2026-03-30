@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {navigateAppend} from '@/constants/router'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type Props = {
+  lastClosedTlf?: string
   path: T.FS.Path
 }
 
@@ -15,10 +17,15 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
   return parsedPath.tlfName
 }
 
-const PublicBanner = ({path}: Props) => {
+const PublicBanner = (props: Props) => {
+  const {path} = props
   const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = useFSState(s => s.lastPublicBannerClosedTlf)
-  const setLastPublicBannerClosedTlf = useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
+  const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
+  const setLastPublicBannerClosedTlf = React.useCallback(
+    (tlf: string) =>
+      navigateAppend({name: 'fsRoot', params: {lastClosedPublicBannerTlf: tlf, path}}, true),
+    [path]
+  )
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 

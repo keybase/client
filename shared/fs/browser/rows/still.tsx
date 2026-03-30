@@ -8,7 +8,7 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
 }
 
@@ -26,23 +26,22 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 }
 
 const StillContainer = (p: OwnProps) => {
-  const {destinationPickerIndex, path} = p
-  const {_downloads, _pathItem, _pathItemActionMenu, _uploads, dismissUpload} = useFSState(
+  const {destinationPickerSource, path} = p
+  const {_downloads, _pathItem, _uploads, dismissUpload} = useFSState(
     C.useShallow(s => ({
       _downloads: s.downloads,
       _pathItem: FS.getPathItem(s.pathItems, path),
-      _pathItemActionMenu: s.pathItemActionMenu,
       _uploads: s.uploads,
       dismissUpload: s.dispatch.dismissUpload,
     }))
   )
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
 
   const dismissUploadError = writingToJournalUploadState?.error
     ? () => dismissUpload(writingToJournalUploadState.uploadID)
     : undefined
-  const intentIfDownloading = FS.getDownloadIntent(path, _downloads, _pathItemActionMenu)
+  const intentIfDownloading = FS.getDownloadIntent(path, _downloads)
   const isEmpty =
     _pathItem.type === T.FS.PathType.Folder &&
     _pathItem.progress === T.FS.ProgressType.Loaded &&
@@ -54,6 +53,7 @@ const StillContainer = (p: OwnProps) => {
   return (
     <StillCommon
       path={path}
+      inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}
       writingToJournal={writingToJournal}
       uploadErrored={!!dismissUploadError}

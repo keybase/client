@@ -1,6 +1,5 @@
-import type * as React from 'react'
+import * as React from 'react'
 import type * as T from '@/constants/types'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
@@ -58,19 +57,22 @@ function IconClickable(props: ICProps) {
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
-  const {setPathItemActionMenuDownload, setPathItemActionMenuView} = useFSState(
-    C.useShallow(s => {
-      const setPathItemActionMenuDownload = s.dispatch.setPathItemActionMenuDownload
-      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
-      return {setPathItemActionMenuDownload, setPathItemActionMenuView}
-    })
-  )
+  const setPathItemActionMenuDownload = useFSState(s => s.dispatch.setPathItemActionMenuDownload)
+  const [previousView, setPreviousView] = React.useState(initView)
+  const [view, setViewState] = React.useState(initView)
+
+  const setView = (nextView: T.FS.PathItemActionMenuView) => {
+    setPreviousView(view)
+    setViewState(nextView)
+  }
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
 
     const hide = () => {
       hidePopup()
+      setPreviousView(initView)
+      setViewState(initView)
       setPathItemActionMenuDownload()
     }
 
@@ -78,6 +80,9 @@ const PathItemAction = (props: Props) => {
       <ChooseView
         path={path}
         mode={mode}
+        previousView={previousView}
+        setView={setView}
+        view={view}
         floatingMenuProps={{
           attachTo,
           containerStyle: styles.floatingContainer,
@@ -90,7 +95,8 @@ const PathItemAction = (props: Props) => {
   const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const onClick = () => {
-    setPathItemActionMenuView(initView)
+    setPreviousView(initView)
+    setViewState(initView)
     showPopup()
   }
 

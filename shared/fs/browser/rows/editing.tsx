@@ -11,7 +11,7 @@ type Props = {
 }
 
 function Editing({editID}: Props) {
-  const {discardEdit, commitEdit, edit, setEditName} = useFSState(
+  const {commitEdit, discardEdit, edit, setEditName} = useFSState(
     C.useShallow(s => ({
       commitEdit: s.dispatch.commitEdit,
       discardEdit: s.dispatch.discardEdit,

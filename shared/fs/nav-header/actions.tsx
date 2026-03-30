@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
+import {useModalHeaderState} from '@/stores/modal-header'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 
@@ -12,12 +13,13 @@ type Props = {
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const {softErrors, setFolderViewFilter} = useFSState(
+  const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
+      folderViewFilter: s.folderViewFilter,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
-      softErrors: s.softErrors,
     }))
   )
+  const softErrors = useFSState(s => s.softErrors)
   const hasSoftError = !!FS.getSoftError(softErrors, props.path)
   React.useEffect(() => {
     !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
@@ -29,7 +31,12 @@ const FsNavHeaderRightActions = (props: Props) => {
       {Kb.Styles.isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
-        <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+        <Kbfs.FolderViewFilter
+          filter={folderViewFilter}
+          onChangeFilter={setFolderViewFilter}
+          path={props.path}
+          style={styles.folderViewFilter}
+        />
       )}
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.PathItemAction

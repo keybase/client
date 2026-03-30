@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import type * as T from '@/constants/types'
+import {useModalHeaderState} from '@/stores/modal-header'
 import Actions from './actions'
 import MainBanner from './main-banner'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 
 /*
  *
@@ -21,14 +21,13 @@ type Props = {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? (
-    <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
-  ) : null
+  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
-  const {expanded, setFolderViewFilter} = useFSState(
+  const {expanded, folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
       expanded: s.folderViewFilter !== undefined,
+      folderViewFilter: s.folderViewFilter,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
     }))
   )
@@ -59,7 +58,7 @@ const NavMobileHeader = (props: Props) => {
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
         {expanded ? (
-          <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
+          <Kbfs.FolderViewFilter filter={folderViewFilter} onCancel={filterDone} onChangeFilter={setFolderViewFilter} path={props.path} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
             {pop ? (

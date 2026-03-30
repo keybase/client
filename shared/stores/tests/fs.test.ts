@@ -1,15 +1,8 @@
 /// <reference types="jest" />
-const mockNavigateAppend = jest.fn()
-
-jest.mock('@/constants/router', () => ({
-  navigateAppend: (...args: Array<unknown>) => mockNavigateAppend(...args),
-  navigateUp: jest.fn(),
-}))
-
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import {useCurrentUserState} from '../current-user'
-import {makeActionsForDestinationPickerOpen, makeEditID, resetBannerType, useFSState} from '../fs'
+import {makeEditID, resetBannerType, useFSState} from '../fs'
 
 const bootstrapCurrentUser = () => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -22,7 +15,6 @@ const bootstrapCurrentUser = () => {
 
 beforeEach(() => {
   bootstrapCurrentUser()
-  mockNavigateAppend.mockClear()
   useFSState.getState().dispatch.resetState()
 })
 
@@ -37,15 +29,6 @@ test('makeEditID returns distinct non-empty edit identifiers', () => {
   expect(first).toBeTruthy()
   expect(second).toBeTruthy()
   expect(first).not.toBe(second)
-})
-
-test('makeActionsForDestinationPickerOpen stores the parent path and navigates', () => {
-  const path = T.FS.stringToPath('/keybase/private/alice')
-
-  makeActionsForDestinationPickerOpen(1, path)
-
-  expect(useFSState.getState().destinationPicker.destinationParentPath[1]).toBe(path)
-  expect(mockNavigateAppend).toHaveBeenCalledWith({name: 'destinationPicker', params: {index: 1}})
 })
 
 test('soft error setters add and remove path and tlf errors', () => {

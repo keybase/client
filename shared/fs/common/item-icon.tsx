@@ -130,8 +130,7 @@ type InTlfItemIconProps = {
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloads = useFSState(s => s.downloads)
-  const pathItemActionMenu = useFSState(s => s.pathItemActionMenu)
-  const downloadIntent = FS.getDownloadIntent(props.path, downloads, pathItemActionMenu)
+  const downloadIntent = FS.getDownloadIntent(props.path, downloads)
   const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')

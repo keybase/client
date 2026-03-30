@@ -10,13 +10,18 @@ import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
-type OwnProps = {path: T.FS.Path}
+type OwnProps = {
+  lastClosedPublicBannerTlf?: string
+  path: T.FS.Path
+}
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
+  const filter = useModalHeaderState(s => s.folderViewFilter)
   const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
@@ -25,6 +30,8 @@ const Container = (ownProps: OwnProps) => {
     }))
   )
   const props = {
+    filter,
+    lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
     offlineUnsynced: FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
     resetBannerType,
@@ -42,6 +49,8 @@ const Container = (ownProps: OwnProps) => {
 }
 
 type Props = {
+  filter?: string
+  lastClosedPublicBannerTlf?: string
   offlineUnsynced: boolean
   path: T.FS.Path
   resetBannerType: T.FS.ResetBannerType
@@ -95,7 +104,7 @@ function BrowserContent(props: Props) {
   if (parsedPath.kind === T.FS.PathKind.TlfList) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">
-        <Rows path={props.path} />
+        <Rows filter={props.filter} path={props.path} />
       </DragAndDrop>
     )
   }
@@ -108,7 +117,7 @@ function BrowserContent(props: Props) {
   }
   const addCommonStuff = (children: React.ReactNode) => (
     <>
-      <PublicReminder path={props.path} />
+      <PublicReminder path={props.path} lastClosedTlf={props.lastClosedPublicBannerTlf} />
       <ConflictBanner path={props.path} />
       {children}
     </>
@@ -128,7 +137,7 @@ function BrowserContent(props: Props) {
       path={props.path}
       rejectReason={props.writable ? undefined : "You don't have write permission in this folder."}
     >
-      <Rows path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
+      <Rows filter={props.filter} path={props.path} headerRows={resetBannerAsRows(props.path, props.resetBannerType)} />
     </DragAndDrop>
   )
 }
