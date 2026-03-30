@@ -30,7 +30,7 @@ const NavMobileHeader = (props: Props) => {
   const route = useRoute<RootRouteProps<'fsRoot'>>()
   const {pop} = C.useNav()
   const expanded = props.folderViewFilter !== undefined
-  const lastClosedPublicBannerTlf = route.params.lastClosedPublicBannerTlf
+  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(

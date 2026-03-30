@@ -17,7 +17,7 @@ type Props = {
 const FsNavHeaderRightActions = (props: Props) => {
   const route = useRoute<RootRouteProps<'fsRoot'>>()
   const softErrors = useFSState(s => s.softErrors)
-  const lastClosedPublicBannerTlf = route.params.lastClosedPublicBannerTlf
+  const lastClosedPublicBannerTlf = route.params?.lastClosedPublicBannerTlf
   const setFolderViewFilter = React.useCallback(
     (folderViewFilter?: string) =>
       navigateAppend(
