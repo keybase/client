@@ -15,7 +15,7 @@ const Container = (ownProps: OwnProps) => {
 
   const deletePersonalRepo = C.useRPC(T.RPCGen.gitDeletePersonalRepoRpcPromise)
   const deleteTeamRepo = C.useRPC(T.RPCGen.gitDeleteTeamRepoRpcPromise)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {

@@ -24,12 +24,7 @@ const ConnectedEnterDevicename = (p: Props) => {
   const inviteCode = p.route.params.inviteCode ?? ''
   const username = p.route.params.username ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const {navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {navigateAppend, navigateUp} = C.Router2
   const [error, setError] = React.useState('')
   const onContinue = (devicename: string) => {
     setError('')

@@ -59,7 +59,7 @@ function SettingsNav() {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => !s.hasPermissions)
   const statsShown = useConfigState(s => !!s.runtimeStats)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const contactsLabel = useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )

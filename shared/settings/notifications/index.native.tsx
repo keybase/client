@@ -10,7 +10,7 @@ import {usePushState} from '@/stores/push'
 const MobileNotifications = () => {
   const notificationSettings = useNotificationSettings()
   const props = useNotifications(notificationSettings)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onReload = () => {
     loadSettings()
     notificationSettings.refresh()

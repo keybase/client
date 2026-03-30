@@ -25,7 +25,7 @@ const RevokeProof = (ownProps: OwnProps) => {
   const loadProfile = useTrackerState(s => s.dispatch.load)
   const revokeKey = C.useRPC(T.RPCGen.revokeRevokeKeyRpcPromise)
   const revokeSigs = C.useRPC(T.RPCGen.revokeRevokeSigsRpcPromise)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const proof = assertions ? [...assertions.values()].find(a => a.sigID === proofId) : undefined
   const onSuccess = () => {
     navToProfile(currentUsername)

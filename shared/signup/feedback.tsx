@@ -10,7 +10,7 @@ const SignupFeedback = () => {
   const {error: sendError, sendFeedback: onSendFeedback} = useSendFeedback()
   const loggedOut = useConfigState(s => !s.loggedIn)
   const sending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

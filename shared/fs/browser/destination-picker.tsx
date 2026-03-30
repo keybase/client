@@ -42,7 +42,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   )
 
   const nav = useSafeNavigation()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onBackUp =
     isShare || !canBackUp(parentPath)
       ? undefined

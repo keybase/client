@@ -6,7 +6,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 function BuildTeam() {
   const nav = useSafeNavigation()
   const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const switchTab = C.Router2.switchTab
   const onCreateTeam = () => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()

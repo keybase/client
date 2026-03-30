@@ -3,11 +3,11 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 
 const DeleteHistoryWarning = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const messageDeleteHistory = Chat.useChatContext(s => s.dispatch.messageDeleteHistory)
   const onDeleteHistory = () => {
     clearModals()

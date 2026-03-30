@@ -49,7 +49,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
 
 const Troubleshooting = (props: Props) => {
   const onBack = props.onCancel
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.Router2.navUpToScreen
   const onWayBack = () => {
     navUpToScreen('login')
   }

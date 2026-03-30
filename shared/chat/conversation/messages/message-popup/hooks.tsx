@@ -171,7 +171,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'},
   ] as const
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const _onDelete = () => {
     messageDelete(ordinal)
     clearModals()

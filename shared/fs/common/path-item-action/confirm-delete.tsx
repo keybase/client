@@ -31,7 +31,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const deleteFile = useFSState(s => s.dispatch.deleteFile)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
   const onDelete = () => {
     if (path !== FS.defaultPath) {

@@ -53,7 +53,7 @@ const AddAliasModal = (props: Props) => {
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
@@ -142,7 +142,7 @@ const ChooseEmoji = Kb.Styles.isMobile
         }, 1)
       }
 
-      const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+      const navigateAppend = C.Router2.navigateAppend
       const conversationIDKey = Chat.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({

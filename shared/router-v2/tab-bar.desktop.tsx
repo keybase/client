@@ -65,12 +65,7 @@ const Header = () => {
     }, 2000)
   }
 
-  const {navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
+  const {navigateAppend, switchTab} = C.Router2
   const onSettings = () => switchTab(Tabs.settingsTab)
   const onSignOut = () => navigateAppend(settingsLogOutTab)
   const onAddAccount = () => {

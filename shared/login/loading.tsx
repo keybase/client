@@ -7,7 +7,7 @@ const SplashContainer = () => {
   const failedReason = useDaemonState(s => s.handshakeFailedReason)
   const retriesLeft = useDaemonState(s => s.handshakeRetriesLeft)
   const startHandshake = useDaemonState(s => s.dispatch.startHandshake)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   let status = ''
   let failed = ''

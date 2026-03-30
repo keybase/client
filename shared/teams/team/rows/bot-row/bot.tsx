@@ -187,7 +187,7 @@ const Container = (ownProps: OwnProps) => {
       showUser(username, true)
     }
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'teamMember', params: ownProps})
   }

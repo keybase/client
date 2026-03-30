@@ -72,8 +72,8 @@ const Connected = (ownProps: OwnProps) => {
       return {_pathItem, kbfsDaemonStatus}
     })
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const emitBarePreview = () => {
     navigateUp()
     navigateAppend({name: 'barePreview', params: {path}})

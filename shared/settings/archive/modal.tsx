@@ -101,8 +101,8 @@ const ArchiveModal = (p: Props) => {
   const startArchiveAllFiles = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise)
   const startArchiveAllGitRepos = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise)
   const startArchiveSingle = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveStartRpcPromise)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateUp = C.Router2.navigateUp
+  const switchTab = C.Router2.switchTab
 
   const canStart = !!((C.isMobile || outpath) && !started)
 
@@ -225,7 +225,7 @@ const ArchiveModal = (p: Props) => {
   const onClose = () => {
     navigateUp()
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onProgress = () => {
     navigateUp()
     setTimeout(() => {

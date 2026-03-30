@@ -120,8 +120,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const stillLoadingTeam = !members
   const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
   const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteTeam = () => {
     navigateUp()
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})

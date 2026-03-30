@@ -88,7 +88,7 @@ const ChannelMemberRow = (props: Props) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onEditMember = () => {
     yourOperations.manageMembers &&
       username &&

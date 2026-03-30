@@ -194,11 +194,7 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
 
 const AddMoreMembers = () => {
   const nav = useSafeNavigation()
-  const {appendNewTeamBuilder} = C.useRouterState(
-    C.useShallow(s => ({
-      appendNewTeamBuilder: s.appendNewTeamBuilder,
-    }))
-  )
+  const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
   const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -343,7 +339,7 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
         }
       })
     )
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.Router2.navUpToScreen
   const onRemove = () => {
     addMembersWizardRemoveMember(props.assertion)
     if (props.lastMember) {

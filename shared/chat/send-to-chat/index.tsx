@@ -31,8 +31,8 @@ const MobileSendToChatRoutable = (props: Props) => {
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.Router2.navigateAppend
+  const clearModals = C.Router2.clearModals
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = Chat.getConvoState(conversationIDKey)
@@ -65,7 +65,7 @@ const DesktopSendToChat = (props: Props) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(Chat.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = useCurrentUserState(s => s.username)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onCancel = () => {
     clearModals()
   }

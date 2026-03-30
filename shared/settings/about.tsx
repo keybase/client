@@ -6,7 +6,7 @@ const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
 const terms = 'https://keybase.io/_/webview/terms'
 
 const About = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onShowPrivacyPolicy = () => {
     if (C.isMobile) {
       navigateAppend({

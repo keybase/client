@@ -12,7 +12,7 @@ type Props = {
 
 const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
   const {botUsername} = props
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const removeBotMember = Chat.useChatContext(s => s.dispatch.removeBotMember)
   const onClose = () => {
     clearModals()

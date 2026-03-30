@@ -28,12 +28,7 @@ const makeInitialForm = (): GeneratePgpArgs => ({
 })
 
 export default function Choice() {
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
+  const {clearModals, navigateAppend} = C.Router2
   const mountedRef = React.useRef(true)
   const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
   const finishCurrentRef = React.useRef<undefined | ((shouldStoreKeyOnServer: boolean) => void)>(undefined)

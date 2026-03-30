@@ -18,7 +18,7 @@ const styles = Kb.Styles.styleSheetCreate(
 const profileModalStyle = {width: 560}
 
 const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   if (wizard || showBack) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
   }

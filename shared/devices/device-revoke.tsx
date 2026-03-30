@@ -105,7 +105,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 const useRevoke = (device: T.Devices.Device) => {
   const username = useCurrentUserState(s => s.username)
   const wasCurrentDevice = device.currentDevice
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.Router2.navUpToScreen
   const deviceID = device.deviceID
   const deviceName = device.name
   return () => {
@@ -132,7 +132,7 @@ const useRevoke = (device: T.Devices.Device) => {
 
 const DeviceRevoke = (ownProps: OwnProps) => {
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
   const [loadedDevice, setLoadedDevice] = React.useState(ownProps.device)
   const device = ownProps.device ?? loadedDevice

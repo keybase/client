@@ -21,7 +21,7 @@ export const Email = () => {
 
   const {clearError, error: emailError, submitEmail, waiting} = useAddEmail()
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   // clean on edit
   React.useEffect(() => {
@@ -186,7 +186,7 @@ export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
   const [code, onChangeCode] = React.useState('')
 
   const setAddedPhone = useSettingsPhoneState(s => s.dispatch.setAddedPhone)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const {error, resendVerificationForPhone, verifyPhoneNumber} = usePhoneVerification({
     initialResend,
     onSuccess: () => {

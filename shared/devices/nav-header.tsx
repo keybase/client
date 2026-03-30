@@ -13,7 +13,7 @@ export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; r
 }
 
 export const HeaderRightActions = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onAdd = () => navigateAppend('deviceAdd')
   return (
     <Kb.Button

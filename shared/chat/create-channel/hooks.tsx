@@ -9,7 +9,7 @@ export default (p: Props) => {
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = Teams.useTeamsState(s => upperFirst(s.errorInChannelCreation))
   const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState('')
   const [description, onDescriptionChange] = React.useState('')

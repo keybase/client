@@ -28,7 +28,7 @@ const CoinFlipError = (props: Props) => {
 }
 
 const CoinFlipGenericError = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const sendFeedback = () => {
     navigateAppend('modalFeedback')
   }

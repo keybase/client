@@ -22,7 +22,7 @@ const Container = () => {
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
@@ -34,7 +34,7 @@ const Container = () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onSignOut = () => {
     navigateAppend(settingsLogOutTab)
   }

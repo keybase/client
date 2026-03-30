@@ -14,7 +14,7 @@ const Kb = {
 }
 
 function BackButton(props: Props) {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onNavUp = () => {
     // this helps with some timing issues w/ dismissing keyboard avoiding views
     Keyboard.dismiss()

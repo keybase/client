@@ -36,8 +36,8 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const _teamNameToRole = [...teams.values()].reduce(

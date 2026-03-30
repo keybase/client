@@ -138,7 +138,7 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
 export const VerifyInput = (_props: unknown) => {
   const {params} = useRoute<RootRouteProps<'verifyTab'>>()
   const controller = useVerifyState(params)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const onRun = () => {
     const f = async () => {

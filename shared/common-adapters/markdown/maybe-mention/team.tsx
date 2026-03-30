@@ -38,7 +38,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)

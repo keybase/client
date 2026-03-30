@@ -62,7 +62,7 @@ type WarningLinkProps = {
 
 const WarningLink = (props: WarningLinkProps) => {
   const {display, punycode, url} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const urlProps = useClickURL(url)
   if (Styles.isMobile) {
     return (

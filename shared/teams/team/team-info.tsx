@@ -39,8 +39,8 @@ const TeamInfo = (props: Props) => {
       editTeamDescription(teamID, description)
     }
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.Router2.navigateAppend
+  const navigateUp = C.Router2.navigateUp
   const onEditAvatar = () =>
     navigateAppend({
       name: 'profileEditAvatar',

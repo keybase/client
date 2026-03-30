@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
-  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
+  const appendPeopleBuilder = C.Router2.appendPeopleBuilder
   const onSearch = appendPeopleBuilder
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>

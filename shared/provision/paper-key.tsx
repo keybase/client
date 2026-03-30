@@ -8,7 +8,7 @@ const Container = () => {
   const error = useProvisionState(s => s.error)
   const hint = useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }

@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import Modal from '@/profile/modal'
 
 export default function Import() {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }

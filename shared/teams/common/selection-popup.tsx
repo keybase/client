@@ -209,7 +209,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   if (!membersSet) {
     // we shouldn't be rendered
     return null
@@ -304,7 +304,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   // Channels tab functions
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDelete = () => navigateAppend({name: 'teamDeleteChannel', params: {teamID}})
 
   return (
@@ -321,7 +321,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
     }))
   )
   const {channelname} = channelInfo
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   if (!membersSet.size) {
     // we shouldn't be rendered

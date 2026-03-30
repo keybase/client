@@ -12,7 +12,7 @@ type InfoIconProps = {
 
 export const InfoIcon = (props: InfoIconProps) => {
   const loggedIn = useConfigState(s => s.loggedIn)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const onDocumentation = () => openURL('https://book.keybase.io/docs')

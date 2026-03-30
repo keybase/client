@@ -95,7 +95,7 @@ const WrapperMobile = (props: Props) => {
   const onLayout = (evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = navigateUp
   const navigateAppend = Chat.useChatNavigateAppend()
   const addEmoji = () =>
@@ -320,7 +320,7 @@ const Routable = (props: RoutableProps) => {
   const onPickAction = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
     updatePickerMap(pickKey, {emojiStr, renderableEmoji})
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onDidPick = navigateUp
 
   C.useOnMountOnce(() => {

@@ -122,12 +122,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }
-  const {clearModals, _navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      _navigateAppend: s.dispatch.navigateAppend,
-      clearModals: s.dispatch.clearModals,
-    }))
-  )
+  const clearModals = C.Router2.clearModals
   const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = () => {
     clearModals()
@@ -268,12 +263,12 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
-      _navigateAppend({
+      navigateAppend({
         name: 'archiveModal',
         params: {conversationIDKey, type: 'chatID' as const},
       })
     } else if (teamname) {
-      _navigateAppend({
+      navigateAppend({
         name: 'archiveModal',
         params: {teamname, type: 'chatTeam' as const},
       })

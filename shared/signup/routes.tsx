@@ -7,8 +7,8 @@ import {setSignupEmail} from '@/people/signup-email'
 
 const EmailSkipButton = () => {
   const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   return (
     <Kb.Text
       type="BodyBigLink"
@@ -23,7 +23,7 @@ const EmailSkipButton = () => {
 }
 
 const PhoneSkipButton = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   return (
     <Kb.Text
       type="BodyBigLink"

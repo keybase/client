@@ -29,7 +29,7 @@ function ConnectedRow(ownProps: OwnProps) {
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
   const _onBrowseGitRepo = FS.navToPath
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const {url: gitURL, repoID, channelName, teamname, chatDisabled} = git
   const {canDelete, devicename, lastEditTime, lastEditUser, name} = git

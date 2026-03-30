@@ -8,7 +8,7 @@ import {useProvisionState} from '@/stores/provision'
 
 const AddDeviceCancelButton = () => {
   const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   return (
     <Kb.Text
       type="BodyBigLink"

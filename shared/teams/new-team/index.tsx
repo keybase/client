@@ -120,7 +120,7 @@ const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const baseTeam = Teams.useTeamsState(s => Teams.getTeamMeta(s, subteamOf).teamname)
   const errorText = Teams.useTeamsState(s => upperFirst(s.errorInTeamCreation))
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }

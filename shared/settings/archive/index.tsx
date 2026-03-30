@@ -345,7 +345,7 @@ const Archive = () => {
     })
   )
   const {chatJobMap, kbfsJobMap, load, showClear} = archiveState
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   C.Router2.useSafeFocusEffect(() => {
     load()

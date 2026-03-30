@@ -36,7 +36,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message

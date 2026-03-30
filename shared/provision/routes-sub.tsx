@@ -8,7 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 const CodePageHeaderLeft = () => {
   const currentDeviceAlreadyProvisioned = useCurrentUserState(s => !!s.deviceName)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   if (!Kb.Styles.isMobile) return null
   return (
     <Kb.Text type="BodyBig" onClick={navigateUp}>

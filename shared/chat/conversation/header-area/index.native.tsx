@@ -166,7 +166,7 @@ const ChannelHeader = () => {
     })
   )
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'team', params: {teamID}})
   }

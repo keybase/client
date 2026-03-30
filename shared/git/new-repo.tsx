@@ -13,7 +13,7 @@ const Container = (ownProps: OwnProps) => {
   const teamnames = Teams.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(Teams.sortTeamnames)
   const waitingKey = C.waitingKeyGitLoading
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const createPersonalRepo = C.useRPC(T.RPCGen.gitCreatePersonalRepoRpcPromise)
   const createTeamRepo = C.useRPC(T.RPCGen.gitCreateTeamRepoRpcPromise)
   const getTeams = Teams.useTeamsState(s => s.dispatch.getTeams)
@@ -43,7 +43,7 @@ const Container = (ownProps: OwnProps) => {
     }
   }
   const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const switchTab = C.Router2.switchTab
   const onNewTeam = () => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()

@@ -37,7 +37,7 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('desktop')
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   // don't allow mutliple clicks to add paper key
   const canAddPaperKeyRef = React.useRef(true)

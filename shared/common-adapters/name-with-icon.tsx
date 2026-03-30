@@ -418,8 +418,8 @@ type OwnProps = ConnectedNameWithIconProps
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
   const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const onOpenTeamProfile = () => {
     if (teamID) {
       clearModals()

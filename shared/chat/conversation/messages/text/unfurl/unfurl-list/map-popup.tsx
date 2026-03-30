@@ -19,7 +19,7 @@ const UnfurlMapPopup = (props: Props) => {
   const author = props.author ?? ''
   const httpSrv = useConfigState(s => s.httpSrv)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     clearModals()
   }

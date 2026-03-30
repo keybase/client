@@ -451,8 +451,8 @@ const styles = Kb.Styles.styleSheetCreate(
 const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const controller = useEncryptScreenState(params)
   const blurCBRef = React.useRef(() => {})
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const appendEncryptRecipientsBuilder = C.useRouterState(s => s.appendEncryptRecipientsBuilder)
+  const navigateAppend = C.Router2.navigateAppend
+  const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
   const setBlurCB = (cb: () => void) => {
     blurCBRef.current = cb
   }
@@ -566,7 +566,7 @@ export const EncryptOutput = ({route}: {route: {params: EncryptOutputRouteParams
 export const EncryptIO = () => {
   const {params} = useRoute<RootRouteProps<'encryptTab'>>()
   const controller = useEncryptScreenState(params)
-  const appendEncryptRecipientsBuilder = C.useRouterState(s => s.appendEncryptRecipientsBuilder)
+  const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
 
   return (
     <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile}>

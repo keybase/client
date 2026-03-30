@@ -20,7 +20,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
 
   const isSearching = Chat.useChatState(s => !!s.inboxSearch)
 
-  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
+  const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
   const onStartSearch = () => {
     toggleInboxSearch(true)

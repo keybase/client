@@ -11,7 +11,7 @@ const HeaderNewChatButton = () => {
       (s.inboxLayout.bigTeams || []).length === 0
   )
 
-  const onNewChat = C.useRouterState(s => s.appendNewChatBuilder)
+  const onNewChat = C.Router2.appendNewChatBuilder
 
   if (hide) return null
 

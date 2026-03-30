@@ -11,7 +11,7 @@ const Row = (p: {account: Account}) => {
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {
     navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
   }

@@ -13,7 +13,7 @@ import type {RootRouteProps} from '@/router-v2/route-params'
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   return (
     <Kb.ClickableBox
       onClick={() => {
@@ -34,7 +34,7 @@ const PasswordHeaderTitle = () => {
 }
 
 const CheckPassphraseCancelButton = () => {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   return (
     <Kb.Text
       type="BodyBigLink"
@@ -58,7 +58,7 @@ const VerifyPhoneHeaderTitle = () => {
 }
 
 const VerifyPhoneHeaderLeft = () => {
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   return (
     <Kb.BackButton
       onClick={() => {

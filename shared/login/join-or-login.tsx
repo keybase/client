@@ -18,7 +18,7 @@ const Intro = () => {
   const isOnline = useConfigState(s => s.isOnline)
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const checkIsOnline = loadIsOnline
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = () => {

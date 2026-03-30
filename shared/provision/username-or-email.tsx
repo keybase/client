@@ -44,9 +44,9 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = useSafeSubmit(navigateUp, hasError)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onForgotUsername = () => navigateAppend('forgotUsername')
   const requestAutoInvite = useRequestAutoInvite()
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)

@@ -34,7 +34,7 @@ const CodePageContainer = () => {
   const iconNumber = T.Devices.deviceNumberToIconNumber(otherDevice.deviceNumberOfType)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
 
   const _onSubmitTextCode = (code: string) => {

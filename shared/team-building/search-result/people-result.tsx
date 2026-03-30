@@ -23,12 +23,12 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
   const blocked = useUsersState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onMenuAddToTeam = () => {
     keybaseUsername && navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
   }
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onOpenPrivateFolder = () => {
     navigateUp()
     FS.navToPath(

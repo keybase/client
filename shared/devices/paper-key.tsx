@@ -27,7 +27,7 @@ const PaperKey = () => {
       .catch(() => {})
   }, 500)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>

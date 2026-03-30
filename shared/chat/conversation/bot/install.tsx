@@ -127,8 +127,8 @@ const InstallBotPopup = (props: Props) => {
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   // dispatch
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const clearModals = C.Router2.clearModals
+  const navigateUp = C.Router2.navigateUp
   const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
@@ -146,7 +146,7 @@ const InstallBotPopup = (props: Props) => {
     }
     editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {
     if (!conversationIDKey) {
       return

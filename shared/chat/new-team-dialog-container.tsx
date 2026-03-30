@@ -8,7 +8,7 @@ const NewTeamDialog = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = useTeamsState(s => upperFirst(s.errorInTeamCreation))
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }

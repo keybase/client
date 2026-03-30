@@ -22,12 +22,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
     ownProps
-  const {navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
+  const {navigateAppend, switchTab} = C.Router2
   const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {

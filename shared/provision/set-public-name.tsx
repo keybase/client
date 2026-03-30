@@ -11,7 +11,7 @@ const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)
   const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const ponBack = useSafeSubmit(navigateUp, !!error)
   const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = (name: string) => {

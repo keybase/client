@@ -116,8 +116,8 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   }
   const joinTeam = Teams.useTeamsState(s => s.dispatch.joinTeam)
   const _onJoinTeam = joinTeam
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const _onViewTeam = (teamID: T.Teams.TeamID) => {
     clearModals()
     navigateAppend({name: 'team', params: {teamID}})

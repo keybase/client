@@ -11,7 +11,7 @@ const Password = () => {
   const resetEmailSent = useRecoverState(s => s.resetEmailSent)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, username})

@@ -64,7 +64,7 @@ const Container = (op: OwnProps) => {
   const cancel = () => {
     C.isMobile && downloadID && cancelDownload(downloadID)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
   const sharing = downloadID && downloadIntent === T.FS.DownloadIntent.Share
 

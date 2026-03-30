@@ -17,7 +17,7 @@ const ReloginContainer = () => {
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
     navigateAppend('signupSendFeedbackLoggedOut')
   }

@@ -26,8 +26,8 @@ const useData = () => {
   const daemonError = useDaemonState(s => s.error)
   const error = useConfigState(s => s.globalError)
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
     setGlobalError()
     if (loggedIn) {

@@ -11,11 +11,11 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {accountID, balanceDescription, name} = ownProps
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onClose = () => {
     navigateUp()
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDelete = () => {
     navigateAppend(
       {name: 'reallyRemoveAccount', params: makeReallyRemoveAccountRouteParams({accountID, name})},
