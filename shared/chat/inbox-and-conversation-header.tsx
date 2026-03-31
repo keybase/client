@@ -5,32 +5,22 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute} from '@react-navigation/native'
-import type {RouteProp} from '@react-navigation/native'
-import {getRouteParamsFromRoute} from '@/router-v2/route-params'
-import type {RootParamList} from '@/router-v2/route-params'
+import type {RootRouteProps} from '@/router-v2/route-params'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
 
 const Header = () => {
-  const route = useRoute<RouteProp<RootParamList, 'chatRoot'>>()
-  const params = getRouteParamsFromRoute<'chatRoot'>(route)
+  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   return (
-    <Chat.ChatProvider
-      canBeNull={true}
-      id={
-        // eslint-disable-next-line
-        (params as {conversationIDKey?: string} | undefined)?.conversationIDKey ?? Chat.noConversationIDKey
-      }
-    >
+    <Chat.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? Chat.noConversationIDKey}>
       <Header2 />
     </Chat.ChatProvider>
   )
 }
 
 const Header2 = () => {
-  const route = useRoute<RouteProp<RootParamList, 'chatRoot'>>()
-  const params = getRouteParamsFromRoute<'chatRoot'>(route)
+  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params?.infoPanel
   const data = Chat.useChatContext(

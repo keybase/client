@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import type {RouteProp} from '@react-navigation/native'
 // import type {StaticParamList} from '@react-navigation/core'
 import type {routes, modalRoutes, loggedOutRoutes} from './routes'
@@ -7,14 +8,20 @@ import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 // Once tsgo fixes re-exported generic type aliases, replace _ExtractParams:
 //   type _SyntheticConfig = {readonly config: {readonly screens: _AllScreens}}
 //   export type RootParamList = StaticParamList<_SyntheticConfig> & Tabs & {...}
-type _ExtractParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : undefined
+type IsUnknown<T> = unknown extends T ? ([keyof T] extends [never] ? true : false) : false
+type NormalizeParams<T> = IsUnknown<T> extends true ? undefined : T extends object | undefined ? T : undefined
+type ExtractScreenParams<Screen> =
+  Screen extends React.LazyExoticComponent<infer Inner>
+    ? ExtractScreenParams<Inner>
+    : Screen extends React.ComponentType<infer Props>
+      ? Props extends {route: {params: infer Params}}
+        ? NormalizeParams<Params>
+        : Props extends {route: {params?: infer Params}}
+          ? NormalizeParams<Params>
+          : undefined
       : undefined
-    : undefined
+type _ExtractParams<T> = {
+  [K in keyof T]: T[K] extends {screen: infer Screen} ? ExtractScreenParams<Screen> : undefined
 }
 
 type Tabs = {
