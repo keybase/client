@@ -18,15 +18,10 @@ export const tabBarStyle = {
   get backgroundColor() {
     return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
-  position: 'absolute' as const,
-}
-
-export const tabBarStyleHidden = {
-  height: 0,
-  opacity: 0,
-  overflow: 'hidden',
-  position: 'absolute',
 } as const
+
+export const tabBarBlurEffect = 'systemDefault' as const
+export const tabBarMinimizeBehavior = 'onScrollDown' as const
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
@@ -35,6 +30,7 @@ type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 
 // Options used by default on all navigators
 export const defaultNavigationOptions = {
+  headerBackButtonDisplayMode: 'minimal',
   headerBackTitle: '',
   headerBackVisible: false,
   headerBackgroundContainerStyle: {

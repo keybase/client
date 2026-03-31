@@ -168,6 +168,7 @@ function Inbox(p: InboxProps) {
             ref={listRef}
             renderItem={renderItem}
             drawDistance={250}
+            extraData={C.isTablet ? selectedConversationIDKey : undefined}
           />
         )}
         {noChats}

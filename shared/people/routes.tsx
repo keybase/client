@@ -16,8 +16,7 @@ const HeaderAvatar = () => {
 export const newRoutes = {
   peopleRoot: {
     getOptions: {
-      headerLeft: () => null,
-      headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
+      headerRight: () => <HeaderAvatar />,
       headerTitle: () => <ProfileSearch />,
     },
     screen: React.lazy(async () => import('./container')),
@@ -27,7 +26,11 @@ export const newRoutes = {
 const AccountSignOutButton = () => {
   const navigateAppend = C.Router2.navigateAppend
   return (
-    <Kb.Text type="BodyBigLink" onClick={() => navigateAppend(settingsLogOutTab)} style={{color: Kb.Styles.globalColors.red}}>
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => navigateAppend(settingsLogOutTab)}
+      style={{color: Kb.Styles.globalColors.red, padding: 8}}
+    >
       Sign out
     </Kb.Text>
   )

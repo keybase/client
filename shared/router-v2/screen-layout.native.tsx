@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {isTablet, isIOS} from '@/constants/platform'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
@@ -14,19 +13,27 @@ type LayoutProps = {
 }
 
 const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
-  const paddingBottom = useBottomTabBarHeight()
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Kb.Styles.collapseStyles([styles.tabScreen, {paddingBottom}])}
-    >
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
       {children}
     </Kb.Box2>
   )
 }
 
-export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: GetOptions) => {
+const StackScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
+      {children}
+    </Kb.Box2>
+  )
+}
+
+export const makeLayout = (
+  isModal: boolean,
+  isLoggedOut: boolean,
+  isTabScreen: boolean,
+  getOptions?: GetOptions
+) => {
   return function Layout({children, route, navigation}: LayoutProps) {
     const navigationOptions = typeof getOptions === 'function' ? getOptions({navigation, route}) : getOptions
     const {modalFooter} = navigationOptions ?? {}
@@ -52,8 +59,11 @@ export const makeLayout = (isModal: boolean, isLoggedOut: boolean, getOptions?: 
       suspenseContent
     )
 
-    if (!isModal && !isLoggedOut) {
+    if (!isModal && !isLoggedOut && isTabScreen) {
       return <TabScreenWrapper>{wrappedContent}</TabScreenWrapper>
+    }
+    if (!isModal && !isLoggedOut) {
+      return <StackScreenWrapper>{wrappedContent}</StackScreenWrapper>
     }
 
     return (

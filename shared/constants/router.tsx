@@ -3,6 +3,7 @@ import type * as T from './types'
 import * as Tabs from './tabs'
 import {
   StackActions,
+  TabActions,
   CommonActions,
   type NavigationContainerRef,
   useFocusEffect,
@@ -19,9 +20,13 @@ import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
 type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
-  : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined> ? P
-  : undefined
+  T extends React.LazyExoticComponent<
+    React.ComponentType<infer P extends Record<string, unknown> | undefined>
+  >
+    ? P
+    : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined>
+      ? P
+      : undefined
 
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
@@ -36,6 +41,7 @@ export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
+const rootNonModalRouteNames = new Set<string>(['chatConversation'])
 
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef.isReady()) return
@@ -118,7 +124,7 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   if (!_isLoggedIn(rs)) {
     return []
   }
-  return rs.routes?.slice(1) ?? []
+  return (rs.routes?.slice(1) ?? []).filter(r => !rootNonModalRouteNames.has(r.name))
 }
 
 export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -155,7 +161,9 @@ export const useSafeFocusEffect = (fn: () => void) => {
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
-  options?: {getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)}
+  options?: {
+    getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)
+  }
 ) {
   return {
     ...options,
@@ -171,8 +179,22 @@ export const clearModals = () => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
-    n.dispatch({...StackActions.popToTop(), target: ns?.key})
+  if (!_isLoggedIn(ns)) {
+    return
+  }
+  const rootRoutes = ns?.routes ?? []
+  const keepRoutes = rootRoutes.filter(
+    (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
+  )
+  if (keepRoutes.length !== rootRoutes.length) {
+    n.dispatch({
+      ...CommonActions.reset({
+        ...ns,
+        index: keepRoutes.length - 1,
+        routes: keepRoutes,
+      } as Parameters<typeof CommonActions.reset>[0]),
+      target: ns?.key,
+    })
   }
 }
 
@@ -245,10 +267,11 @@ export const switchTab = (name: Tabs.AppTab) => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (!ns) return
+  const tabNavState = ns?.routes?.[0]?.state
+  if (!tabNavState?.key) return
   n.dispatch({
-    ...CommonActions.navigate({name}),
-    target: ns.routes?.[0]?.state?.key,
+    ...TabActions.jumpTo(name),
+    target: tabNavState.key,
   })
 }
 
@@ -268,11 +291,18 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const tabRoutes = tabNavState.routes as Array<Route>
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
   if (chatTabIndex < 0) return
+  const chatTabRoute = tabRoutes[chatTabIndex]
+  const chatStackState = chatTabRoute?.state
+  const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
+  const chatStackIndex = chatStackState?.index ?? 0
+  const currentChatRoute = chatStackRoutes?.[chatStackIndex]
+  const currentChatRoot = chatStackRoutes?.[0]
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
-    const currentChatRoot = route.state ? route.state.routes[0] : undefined
     const currentParams =
-      currentChatRoot?.name === 'chatRoot' && currentChatRoot.params && typeof currentChatRoot.params === 'object'
+      currentChatRoot?.name === 'chatRoot' &&
+      currentChatRoot.params &&
+      typeof currentChatRoot.params === 'object'
         ? currentChatRoot.params
         : undefined
     return {
@@ -284,8 +314,28 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
       },
     }
   })
+  const nextChatRoot = updatedRoutes[chatTabIndex]?.state?.routes[0]
+  if (
+    tabNavState.index === chatTabIndex &&
+    currentChatRoute?.name === 'chatRoot' &&
+    chatStackState?.key &&
+    nextChatRoot?.params
+  ) {
+    // When split chat is already showing chatRoot, update that route in place instead of
+    // resetting the whole tab navigator. This avoids an extra same-screen navigation when
+    // the tab becomes visible and chat selects a thread immediately afterward.
+    if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
+      n.dispatch({
+        ...CommonActions.navigate({merge: true, name: 'chatRoot', params: nextChatRoot.params}),
+        target: chatStackState.key,
+      })
+    }
+    return
+  }
   n.dispatch({
-    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
+    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
+      typeof CommonActions.reset
+    >[0]),
     target: tabNavState.key,
   })
 }
@@ -304,14 +354,18 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // A single reset on the tab navigator atomically switches tabs and sets params.
     setChatRootParams({conversationIDKey})
   } else {
-    // Phone: full reset to build the chat → conversation stack
+    // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = {
-      routes: [{name: 'loggedIn', state: {
-        routes: [{name: Tabs.chatTab, state: {
-          index: 1,
-          routes: [{name: 'chatRoot'}, {name: 'chatConversation', params: {conversationIDKey}}],
-        }}],
-      }}],
+      index: 1,
+      routes: [
+        {
+          name: 'loggedIn',
+          state: {
+            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+          },
+        },
+        {name: 'chatConversation', params: {conversationIDKey}},
+      ],
     }
     n.dispatch({
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),

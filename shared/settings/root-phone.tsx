@@ -53,7 +53,7 @@ type Item = {
   subText?: string
   textColor?: string
 }
-type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
+type Section = {title: string; data: ReadonlyArray<Item>}
 
 function SettingsNav() {
   const badgeNumbers = useNotifState(s => s.navBadges)
@@ -193,28 +193,30 @@ function SettingsNav() {
   ]
 
   return (
-    <Kb.SectionList
-      keyboardShouldPersistTaps="handled"
-      keyExtractor={(item, index) => item.text + index}
-      initialNumToRender={20}
-      renderItem={({item}) => {
-        if (item.text === 'perf') {
-          return <PerfRow />
-        }
-        return item.text ? (
-          <SettingsItem {...item} type={item.text} onClick={() => item.onClick()} selected={false} />
-        ) : null
-      }}
-      renderSectionHeader={({section: {title}}) =>
-        title ? (
-          <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
-            {title}
-          </Kb.Text>
-        ) : null
-      }
-      style={Kb.Styles.globalStyles.fullHeight}
-      sections={sections}
-    />
+    <Kb.ScrollView contentInsetAdjustmentBehavior="automatic" style={Kb.Styles.globalStyles.fullHeight}>
+      {sections.map(section => (
+        <React.Fragment key={section.title || '_top'}>
+          {section.title ? (
+            <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
+              {section.title}
+            </Kb.Text>
+          ) : null}
+          {section.data.map((item, index) =>
+            item.text === 'perf' ? (
+              <PerfRow key="perf" />
+            ) : item.text ? (
+              <SettingsItem
+                {...item}
+                key={item.text + index}
+                type={item.text}
+                onClick={() => item.onClick()}
+                selected={false}
+              />
+            ) : null
+          )}
+        </React.Fragment>
+      ))}
+    </Kb.ScrollView>
   )
 }
 

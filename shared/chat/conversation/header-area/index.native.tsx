@@ -1,9 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import {getConvoState} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
+import type {SFSymbol} from 'sf-symbols-typescript'
 // import {DebugChatDumpContext} from '@/constants/chat/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
@@ -96,22 +98,54 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
   return <HeaderLeftButton badgeNumber={badgeNumber} {...p} />
 }
 
+const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
+
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
-    headerLeft: (props: HeaderBackButtonProps) => {
-      const {onLabelLayout, labelStyle, ...rest} = props
-      return (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <BadgeHeaderLeftArray {...rest} />
-        </Chat.ChatProvider>
-      )
-    },
-    headerRight: () => (
-      <Chat.ChatProvider id={conversationIDKey}>
-        <HeaderAreaRight />
-      </Chat.ChatProvider>
-    ),
+    // iOS 26: headerLeft omitted — native back button comes from tabStackOptions (headerBackVisible: true).
+    // BadgeHeaderUpdater in container.tsx drives unstable_headerLeftItems for the badge count.
+    ...(!Kb.Styles.isIOS
+      ? {
+          headerLeft: (props: HeaderBackButtonProps) => {
+            const {labelStyle, ...rest} = props
+            return (
+              <Chat.ChatProvider id={conversationIDKey}>
+                <BadgeHeaderLeftArray {...rest} />
+              </Chat.ChatProvider>
+            )
+          },
+        }
+      : {}),
+    // iOS 26: two separate native buttons (each gets its own glass pill).
+    // getConvoState lets us access dispatch without hooks since this runs outside React.
+    ...(Kb.Styles.isIOS
+      ? {
+          unstable_headerRightItems: () => [
+            {
+              icon: sfIcon('magnifyingglass'),
+              label: 'Search',
+              onPress: () => {
+                Keyboard.dismiss()
+                setTimeout(() => getConvoState(conversationIDKey).dispatch.toggleThreadSearch(), 100)
+              },
+              type: 'button' as const,
+            },
+            {
+              icon: sfIcon('info.circle'),
+              label: 'Info',
+              onPress: () => getConvoState(conversationIDKey).dispatch.showInfoPanel(true, undefined),
+              type: 'button' as const,
+            },
+          ],
+        }
+      : {
+          headerRight: () => (
+            <Chat.ChatProvider id={conversationIDKey}>
+              <HeaderAreaRight />
+            </Chat.ChatProvider>
+          ),
+        }),
     headerTitle: () => (
       <Chat.ChatProvider id={conversationIDKey}>
         <HeaderBranchContainer />

@@ -2,7 +2,6 @@
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
@@ -20,7 +19,7 @@ import logger from '@/logger'
 import {Alert, Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
 import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState, switchTab} from '@/constants/router'
+import {getTab, getVisiblePath, logState} from '@/constants/router'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {setupAudioMode} from '@/util/audio.native'
@@ -503,21 +502,6 @@ export const initPlatformListener = () => {
     })
   })
 
-  let _pendingFastSwitchTab: string | undefined
-  useRouterState.setState(s => {
-    s.dispatch.defer.tabLongPress = wrapErrors((tab: string) => {
-      if (tab !== Tabs.peopleTab) return
-      const accountRows = useConfigState.getState().configuredAccounts
-      const current = useCurrentUserState.getState().username
-      const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
-      if (row) {
-        _pendingFastSwitchTab = getTab() ?? undefined
-        useConfigState.getState().dispatch.setUserSwitching(true)
-        useConfigState.getState().dispatch.login(row.username, '')
-      }
-    })
-  })
-
   useFSState.setState(s => {
     s.dispatch.defer.pickAndUploadMobile = wrapErrors(
       (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
@@ -648,24 +632,6 @@ export const initPlatformListener = () => {
       )
     })
   }
-
-  useConfigState.subscribe((state, prevState) => {
-    const tab = _pendingFastSwitchTab
-    if (!tab) return
-    if (state.loggedIn && !prevState.loggedIn) {
-      _pendingFastSwitchTab = undefined
-      let attempts = 0
-      const trySwitch = () => {
-        if (attempts++ > 20) return
-        if (getTab()) {
-          switchTab(tab as Tabs.AppTab)
-        } else {
-          setTimeout(trySwitch, 100)
-        }
-      }
-      setTimeout(trySwitch, 100)
-    }
-  })
 
   initSharedSubscriptions()
 }

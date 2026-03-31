@@ -222,9 +222,7 @@ const useIconAndOverlay = (p: {
       const maxCancelDrift = -120
       const maxLockDrift = -100
       dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
-      dragXSV.set(
-        interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP)
-      )
+      dragXSV.set(interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP))
       if (e.translationX < maxCancelDrift) {
         canceledSV.set(1)
       } else if (e.translationY < maxLockDrift) {
@@ -476,7 +474,8 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onResetRef.current()
+      onResetRef
+        .current()
         .then(() => {})
         .catch(() => {})
     }

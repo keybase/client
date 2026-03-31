@@ -17,7 +17,7 @@ const Header = () => {
       canBeNull={true}
       id={
         // eslint-disable-next-line
-        params?.conversationIDKey ?? Chat.noConversationIDKey
+        (params as {conversationIDKey?: string} | undefined)?.conversationIDKey ?? Chat.noConversationIDKey
       }
     >
       <Header2 />
