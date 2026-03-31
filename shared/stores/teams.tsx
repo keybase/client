@@ -760,7 +760,6 @@ type Store = T.Immutable<{
   errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
   errorInEditWelcomeMessage: string
   errorInEmailInvite: T.Teams.EmailInviteError
-  errorInSettings: string
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   newTeams: Set<T.Teams.TeamID>
   teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
@@ -805,7 +804,6 @@ const initialStore: Store = {
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
-  errorInSettings: '',
   errorInTeamJoin: '',
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
@@ -933,7 +931,6 @@ export type State = Store & {
     renameTeam: (oldName: string, newName: string) => void
     requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
-    resetErrorInSettings: () => void
     resetState: () => void
     resetTeamJoin: () => void
     resetTeamMetaStale: () => void
@@ -1918,12 +1915,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             s.teamIDToWelcomeMessage.set(teamID, message)
           })
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              logger.error(error)
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.error(error)
+          }
         }
       }
       ignorePromise(f())
@@ -2259,11 +2253,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.errorInEmailInvite.malformed = new Set()
       })
     },
-    resetErrorInSettings: () => {
-      set(s => {
-        s.errorInSettings = ''
-      })
-    },
     resetState: Z.defaultReset,
     resetTeamJoin: () => {
       set(s => {
@@ -2352,11 +2341,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           ])
           get().dispatch.getTeams(false)
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.info(error.message)
+          }
         }
       }
       ignorePromise(f())
@@ -2450,15 +2437,12 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         try {
           const servicePolicy = Util.retentionPolicyToServiceRetentionPolicy(policy)
           await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-            S.waitingKeyTeamsTeam(teamID),
+            S.waitingKeyTeamsSetRetentionPolicy(teamID),
           ])
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              logger.error(error.message)
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
         }
       }
       ignorePromise(f())

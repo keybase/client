@@ -28,6 +28,13 @@ type Props = {
 const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
 const defaultTab: T.Teams.TabKey = 'members'
 
+const getSettingsErrorWaitingKeys = (teamID: T.Teams.TeamID) =>
+  [
+    C.waitingKeyTeamsLoadWelcomeMessage(teamID),
+    C.waitingKeyTeamsSetMemberPublicity(teamID),
+    C.waitingKeyTeamsSetRetentionPolicy(teamID),
+  ] as const
+
 const useTabsState = (
   teamID: T.Teams.TeamID,
   providedTab?: T.Teams.TabKey
@@ -35,11 +42,11 @@ const useTabsState = (
   const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
-  const resetErrorInSettings = Teams.useTeamsState(s => s.dispatch.resetErrorInSettings)
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const setSelectedTab = (t: T.Teams.TabKey) => {
     lastSelectedTabs.set(teamID, t)
     if (selectedTab !== 'settings' && t === 'settings') {
-      resetErrorInSettings()
+      dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
     }
     if (selectedTab !== 'channels' && t === 'channels') {
       loadTeamChannelList(teamID)
@@ -54,14 +61,14 @@ const useTabsState = (
       prevTeamIDRef.current = teamID
       lastSelectedTabs.set(teamID, defaultSelectedTab)
       if (defaultSelectedTab === 'settings') {
-        resetErrorInSettings()
+        dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
       }
       if (defaultSelectedTab === 'channels') {
         loadTeamChannelList(teamID)
       }
       _setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, defaultSelectedTab, resetErrorInSettings, loadTeamChannelList])
+  }, [teamID, defaultSelectedTab, dispatchClearWaiting, loadTeamChannelList])
   return [selectedTab, setSelectedTab]
 }
 

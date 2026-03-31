@@ -13,7 +13,6 @@ import isEqual from 'lodash/isEqual'
 type Props = {
   allowOpenTrigger: number
   canShowcase: boolean
-  error?: string
   isBigTeam: boolean
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
@@ -187,7 +186,7 @@ const IgnoreAccessRequests = (props: {
 
 export const Settings = (p: Props) => {
   const {savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
-  const {canShowcase, error, allowOpenTrigger} = p
+  const {canShowcase, allowOpenTrigger} = p
 
   const [newPublicityAnyMember, setNewPublicityAnyMember] = React.useState(p.publicityAnyMember)
   const [newPublicityTeam, setNewPublicityTeam] = React.useState(p.publicityTeam)
@@ -338,8 +337,6 @@ const Container = (ownProps: OwnProps) => {
       const teamDetails = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
       return {
         _loadWelcomeMessage: s.dispatch.loadWelcomeMessage,
-        error: s.errorInSettings,
-        resetErrorInSettings: s.dispatch.resetErrorInSettings,
         setPublicity: s.dispatch.setPublicity,
         teamDetails,
         teamMeta,
@@ -348,7 +345,7 @@ const Container = (ownProps: OwnProps) => {
       }
     })
   )
-  const {error, _loadWelcomeMessage, resetErrorInSettings, setPublicity, teamDetails} = teamsState
+  const {_loadWelcomeMessage, setPublicity, teamDetails} = teamsState
   const {teamMeta, welcomeMessage, yourOperations} = teamsState
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
@@ -361,23 +358,26 @@ const Container = (ownProps: OwnProps) => {
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
-  const clearError = resetErrorInSettings
+  const error = C.Waiting.useAnyErrors([
+    C.waitingKeyTeamsLoadWelcomeMessage(teamID),
+    C.waitingKeyTeamsSetMemberPublicity(teamID),
+    C.waitingKeyTeamsSetRetentionPolicy(teamID),
+  ])?.message
   const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
   }
   const navigateAppend = C.Router2.navigateAppend
   const _savePublicity = (settings: T.Teams.PublicitySettings) => {
-      setPublicity(teamID, settings)
-    }
+    setPublicity(teamID, settings)
+  }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
-      navigateAppend({name: 'openTeamWarning', params: {isOpenTeam, teamname}})
-    }
+    navigateAppend({name: 'openTeamWarning', params: {isOpenTeam, teamname}})
+  }
   const allowOpenTrigger = useSettingsTabState(s => s.allowOpenTrigger)
 
   const savePublicity = (settings: T.Teams.PublicitySettings) => {
-      _savePublicity(settings)
-      clearError()
-    }
+    _savePublicity(settings)
+  }
 
   // reset if incoming props change on us
   const [key, setKey] = React.useState(0)
