@@ -896,7 +896,6 @@ export type State = Store & {
       fullName: string,
       loadingKey?: string
     ) => void
-    joinTeam: (teamname: string) => void
     launchNewTeamWizardOrModal: (subteamOf?: T.Teams.TeamID) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID, _subscribe?: boolean) => void
@@ -1687,42 +1686,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
               oldLoadingInvites.set(loadingKey, false)
             })
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    joinTeam: teamname => {
-      const f = async () => {
-        let handedOffToInvite = false
-        try {
-          await T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener({
-            customResponseIncomingCallMap: {
-              'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-                handedOffToInvite = true
-                navigateAppend(
-                  {
-                    name: 'teamInviteLinkJoin',
-                    params: {
-                      inviteDetails: params.details,
-                      inviteKey: teamname,
-                    },
-                  },
-                  true
-                )
-                response.result(false)
-              },
-            },
-            incomingCallMap: {},
-            params: {tokenOrName: teamname},
-            waitingKey: S.waitingKeyTeamsJoinTeam,
-          })
-        } catch (error) {
-          if (handedOffToInvite) {
-            return
-          }
-          if (error instanceof RPCError) {
-            logger.info(error.message)
           }
         }
       }

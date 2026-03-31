@@ -39,12 +39,13 @@ const TeamMention = (ownProps: OwnProps) => {
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)
   }
-  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
-  const onJoinTeam = joinTeam
+  const onJoinTeam = (teamname: string) =>
+    navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
 
   const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
   const onChat = convID
