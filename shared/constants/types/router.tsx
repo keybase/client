@@ -84,23 +84,14 @@ export type RouteDef<Screen extends AnyScreen = AnyScreen> = {
 }
 export type RouteMap = {[K in string]?: RouteDef}
 
-type RouteDefMatchesScreen<R> = R extends {screen: infer Screen; getOptions: infer Options}
+type RouteDefMatchesScreen<R> = R extends {screen: infer Screen}
   ? Screen extends AnyScreen
-    ? Options extends GetOptionsRet
-      ? R
-      : Options extends (p: infer Props) => GetOptionsRet
-        ? [Props] extends [React.ComponentProps<Screen>]
-          ? [React.ComponentProps<Screen>] extends [Props]
-            ? R
-            : never
-          : never
-        : never
+    ? Omit<R, 'getOptions' | 'screen'> & {
+        getOptions?: GetOptions<Screen>
+        screen: Screen
+      }
     : never
-  : R extends {screen: infer Screen}
-    ? Screen extends AnyScreen
-      ? R
-      : never
-    : never
+  : never
 
 export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(routes: {
   [K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>
