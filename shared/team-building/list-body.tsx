@@ -216,7 +216,7 @@ const sortAndSplitRecommendations = (
 }
 
 const getSearchResults = (
-  searchResults: T.TB.SearchResults,
+  searchResults: TB.State['searchResults'],
   searchString: string,
   selectedService: T.TB.ServiceIdWithContact
 ) => searchResults.get(searchString.trim())?.get(selectedService)
