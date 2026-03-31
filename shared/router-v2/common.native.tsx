@@ -87,7 +87,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) => {
   const onSelectTab = (tab: string) => {
-    const route = state?.routes?.find((r: NonNullable<NavState['routes']>[number]) => r.name === tab)
+    const routes = state && 'routes' in state ? state.routes : undefined
+    const route = routes?.find(r => r.name === tab)
     const event = route
       ? navigation.emit({
           canPreventDefault: true,
