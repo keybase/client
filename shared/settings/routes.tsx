@@ -67,6 +67,9 @@ const VerifyPhoneHeaderLeft = () => {
 }
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
+const EmptySettingsScreen = () => <></>
+const ManageContactsScreen: React.ComponentType =
+  C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
 
 const feedback = C.makeScreen(
   React.lazy(async () => import('./feedback/container')),
@@ -195,7 +198,7 @@ export const newRoutes = {
   ...sharedNewRoutes,
   [Settings.settingsContactsTab]: {
     getOptions: {header: undefined, title: 'Contacts'},
-    screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
+    screen: ManageContactsScreen,
   },
   webLinks: C.makeScreen(WebLinks, {
     getOptions: ({route}) => ({
