@@ -30,7 +30,7 @@ export const routes = defineRouteMap({
   ...settingsNewRoutes,
   ...teamsNewRoutes,
   ...gitNewRoutes,
-} satisfies RouteMap)
+})
 
 if (__DEV__) {
   const allRouteKeys = [
@@ -79,7 +79,7 @@ export const modalRoutes = defineRouteMap({
   ...teamsNewModalRoutes,
   ...walletsNewModalRoutes,
   ...incomingShareNewModalRoutes,
-} satisfies RouteMap)
+})
 
 if (__DEV__) {
   const allModalKeys = [
@@ -104,7 +104,7 @@ if (__DEV__) {
   }
 }
 
-export const loggedOutRoutes = defineRouteMap({..._loggedOutRoutes, ...signupNewRoutes} satisfies RouteMap)
+export const loggedOutRoutes = defineRouteMap({..._loggedOutRoutes, ...signupNewRoutes})
 
 type LayoutFn = (props: {
   children: React.ReactNode
