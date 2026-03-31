@@ -52,19 +52,13 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
   }
 
   const resultIsMe = keybaseUsername === myUsername
-  const dropdown = keybaseUsername ? (
+  const dropdown = (
     <DropdownButton
       key="dropdown"
-      onAddToTeam={onMenuAddToTeam}
-      onBrowsePublicFolder={onBrowsePublicFolder}
-      onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
-      onOpenPrivateFolder={onOpenPrivateFolder}
       blocked={blocked}
-    />
-  ) : (
-    <DropdownButton
-      // if a result doesn't include a keybase account, the only action we can show is opening private folder
-      key="dropdown"
+      onAddToTeam={keybaseUsername ? onMenuAddToTeam : undefined}
+      onBrowsePublicFolder={keybaseUsername ? onBrowsePublicFolder : undefined}
+      onManageBlocking={keybaseUsername && !resultIsMe ? onManageBlocking : undefined}
       onOpenPrivateFolder={onOpenPrivateFolder}
     />
   )
@@ -97,44 +91,49 @@ type DropdownProps = {
   onUnfollow?: () => void
 }
 
+const buildMenuItems = ({
+  blocked,
+  onAddToTeam,
+  onBrowsePublicFolder,
+  onManageBlocking,
+  onOpenPrivateFolder,
+}: DropdownProps): Kb.MenuItems =>
+  [
+    onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
+    onOpenPrivateFolder && {
+      icon: 'iconfont-folder-open',
+      onClick: onOpenPrivateFolder,
+      title: 'Open private folder',
+    },
+    onBrowsePublicFolder && {
+      icon: 'iconfont-folder-public',
+      onClick: onBrowsePublicFolder,
+      title: 'Browse public folder',
+    },
+    onManageBlocking && {
+      danger: true,
+      icon: 'iconfont-add',
+      onClick: onManageBlocking,
+      title: blocked ? 'Manage blocking' : 'Block',
+    },
+  ].filter(Boolean) as Kb.MenuItems
+
 const DropdownButton = (p: DropdownProps) => {
-  const {onAddToTeam, onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
-  const items: Kb.MenuItems = [
-        onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
-        onOpenPrivateFolder && {
-          icon: 'iconfont-folder-open',
-          onClick: onOpenPrivateFolder,
-          title: 'Open private folder',
-        },
-        onBrowsePublicFolder && {
-          icon: 'iconfont-folder-public',
-          onClick: onBrowsePublicFolder,
-          title: 'Browse public folder',
-        },
-        onManageBlocking && {
-          danger: true,
-          icon: 'iconfont-add',
-          onClick: onManageBlocking,
-          title: blocked ? 'Manage blocking' : 'Block',
-        },
-      ].reduce<Kb.MenuItems>((arr, i) => {
-        i && arr.push(i as Kb.MenuItem)
-        return arr
-      }, [])
+  const items = buildMenuItems(p)
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          attachTo={attachTo}
-          items={items}
-          onHidden={hidePopup}
-          position="bottom right"
-          visible={true}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        attachTo={attachTo}
+        items={items}
+        onHidden={hidePopup}
+        position="bottom right"
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

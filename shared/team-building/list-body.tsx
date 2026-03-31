@@ -16,11 +16,30 @@ import {useRoute} from '@react-navigation/native'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
-// import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 import {useColorScheme} from 'react-native'
 
-const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
-  const {namespace, selectedService} = props
+type SuggestionsProps = {
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
+}
+
+type ListBodyProps = {
+  namespace: T.TB.AllowedNamespace
+  searchString: string
+  selectedService: T.TB.ServiceIdWithContact
+  highlightedIndex: number
+  onAdd: (userId: string) => void
+  onRemove: (userId: string) => void
+  teamSoFar: ReadonlyArray<T.TB.SelectedUser>
+  onSearchForMore: (len: number) => void
+  onChangeText: (newText: string) => void
+  onFinishTeamBuilding: () => void
+  enterInputCounter: number
+}
+
+type DerivedResults = ReturnType<typeof deriveSearchResults>
+
+const Suggestions = ({namespace, selectedService}: SuggestionsProps) => {
   const isDarkMode = useColorScheme() === 'dark'
   return (
     <Kb.Box2
@@ -61,40 +80,40 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
   )
 }
 
-function isKeybaseUserId(userId: string) {
-  // Only keybase user id's do not have
-  return !userId.includes('@')
-}
+const isKeybaseUserId = (userId: string) => !userId.includes('@')
 
-function followStateHelperWithId(
-  me: string,
-  followingState: ReadonlySet<string>,
-  userId: string = ''
-): T.TB.FollowingState {
-  if (isKeybaseUserId(userId)) {
-    if (userId === me) {
-      return 'You'
-    } else {
-      return followingState.has(userId) ? 'Following' : 'NotFollowing'
-    }
+const getFollowingState = (
+  myUsername: string,
+  following: ReadonlySet<string>,
+  userId = ''
+): T.TB.FollowingState => {
+  if (!isKeybaseUserId(userId)) {
+    return 'NoState'
   }
-  return 'NoState'
+
+  if (userId === myUsername) {
+    return 'You'
+  }
+
+  return following.has(userId) ? 'Following' : 'NotFollowing'
 }
 
 const deriveSearchResults = (
-  searchResults: ReadonlyArray<T.TB.User> | undefined,
+  users: ReadonlyArray<T.TB.User> | undefined,
   teamSoFar: ReadonlySet<T.TB.User>,
   myUsername: string,
-  followingState: ReadonlySet<string>,
+  following: ReadonlySet<string>,
   preExistingTeamMembers: ReadonlyMap<string, T.Teams.MemberInfo>
-) =>
-  searchResults?.map(info => {
+) => {
+  const teamMemberIds = new Set([...teamSoFar].map(user => user.id))
+
+  return users?.map(info => {
     const label = info.label || ''
     return {
       contact: !!info.contact,
       displayLabel: formatAnyPhoneNumbers(label),
-      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
-      inTeam: [...teamSoFar].some(u => u.id === info.id),
+      followingState: getFollowingState(myUsername, following, info.serviceMap.keybase),
+      inTeam: teamMemberIds.has(info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       isYou: info.username === myUsername,
       key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
@@ -105,22 +124,16 @@ const deriveSearchResults = (
       username: info.username,
     }
   })
-
-// Flatten list of recommendation sections. After recommendations are organized
-// in sections, we also need a flat list of all recommendations to be able to
-// know how many we have in total (including "fake" "import contacts" row), and
-// which one is currently highlighted, to support keyboard events.
-//
-// Resulting list may have nulls in place of fake rows.
-const flattenRecommendations = (recommendations: Array<Types.SearchRecSection>) => {
-  const result: Array<Types.SearchResult | undefined> = []
-  for (const section of recommendations) {
-    result.push(
-      ...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? undefined : rec))
-    )
-  }
-  return result
 }
+
+const toSelectableRecommendation = (rec: Types.ResultData) =>
+  'isImportButton' in rec || 'isSearchHint' in rec ? undefined : rec
+
+const flattenRecommendations = (recommendations: ReadonlyArray<Types.SearchRecSection>) =>
+  recommendations.reduce<Array<Types.SearchResult | undefined>>((results, section) => {
+    results.push(...section.data.map(toSelectableRecommendation))
+    return results
+  }, [])
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 const aCharCode = alphabet.charCodeAt(0)
@@ -128,191 +141,296 @@ const alphaSet = new Set(alphabet)
 const isAlpha = (letter: string) => alphaSet.has(letter)
 const letterToAlphaIndex = (letter: string) => letter.charCodeAt(0) - aCharCode
 
+const createSection = (
+  label: string,
+  shortcut: boolean,
+  data: Array<Types.ResultData> = []
+): Types.SearchRecSection => ({
+  data,
+  label,
+  shortcut,
+})
+
+const getRecommendationsSectionIndex = (
+  rec: Types.SearchResult,
+  recommendationIndex: number,
+  numericSectionIndex: number
+) => {
+  if (!rec.contact) {
+    return recommendationIndex
+  }
+
+  const displayName = rec.prettyName || rec.displayLabel
+  const firstLetter = displayName[0]?.toLowerCase()
+  if (!firstLetter) {
+    return undefined
+  }
+
+  return isAlpha(firstLetter)
+    ? letterToAlphaIndex(firstLetter) + recommendationIndex + 1
+    : numericSectionIndex
+}
+
 // Returns array with 28 entries
 // 0 - "Recommendations" section
 // 1-26 - a-z sections
 // 27 - 0-9 section
 const sortAndSplitRecommendations = (
-  results: T.Unpacked<typeof deriveSearchResults>,
+  results: DerivedResults,
   showingContactsButton: boolean
 ): Array<Types.SearchRecSection> | undefined => {
-  if (!results) return undefined
+  if (!results) {
+    return undefined
+  }
 
-  const sections: Array<Types.SearchRecSection> = [
-    ...(showingContactsButton
-      ? [
-          {
-            data: [{isImportButton: true as const}],
-            label: '',
-            shortcut: false,
-          },
-        ]
-      : []),
+  const sections: Array<Types.SearchRecSection> = []
+  if (showingContactsButton) {
+    sections.push(createSection('', false, [{isImportButton: true}]))
+  }
+  sections.push(createSection('Recommendations', false))
 
-    {
-      data: [],
-      label: 'Recommendations',
-      shortcut: false,
-    },
-  ]
-  const recSectionIdx = sections.length - 1
-  const numSectionIdx = recSectionIdx + 27
+  const recommendationIndex = sections.length - 1
+  const numericSectionIndex = recommendationIndex + 27
+
   results.forEach(rec => {
-    if (!rec.contact) {
-      sections[recSectionIdx]?.data.push(rec)
+    const sectionIndex = getRecommendationsSectionIndex(rec, recommendationIndex, numericSectionIndex)
+    if (sectionIndex === undefined) {
       return
     }
-    if (rec.prettyName || rec.displayLabel) {
-      // Use the first letter of the name we will display, but first normalize out
-      // any diacritics.
-      const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-      if (decodedLetter[0]) {
-        const letter = decodedLetter[0].toLowerCase()
-        if (isAlpha(letter)) {
-          // offset 1 to skip recommendations
-          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
-          if (!sections[sectionIdx]) {
-            sections[sectionIdx] = {
-              data: [],
-              label: letter.toUpperCase(),
-              shortcut: true,
-            }
-          }
-          sections[sectionIdx].data.push(rec)
-        } else {
-          if (!sections[numSectionIdx]) {
-            sections[numSectionIdx] = {
-              data: [],
-              label: numSectionLabel,
-              shortcut: true,
-            }
-          }
-          sections[numSectionIdx].data.push(rec)
-        }
-      }
+
+    if (!sections[sectionIndex]) {
+      const isNumericSection = sectionIndex === numericSectionIndex
+      const label = isNumericSection
+        ? numSectionLabel
+        : String.fromCharCode(aCharCode + sectionIndex - recommendationIndex - 1).toUpperCase()
+      sections[sectionIndex] = createSection(label, true)
     }
+    sections[sectionIndex].data.push(rec)
   })
+
   if (results.length < 5) {
-    sections.push({
-      data: [{isSearchHint: true as const}],
-      label: '',
-      shortcut: false,
-    })
+    sections.push(createSection('', false, [{isSearchHint: true}]))
   }
-  return sections.filter(s => s.data.length > 0)
+
+  return sections.filter(section => section.data.length > 0)
 }
 
-const emptyMap = new Map()
+const getSearchResults = (
+  searchResults: TB.State['searchResults'],
+  searchString: string,
+  selectedService: T.TB.ServiceIdWithContact
+) => searchResults.get(searchString.trim())?.get(selectedService)
 
-export const ListBody = (
-  props: Pick<
-    Types.Props,
-    | 'namespace'
-    | 'searchString'
-    | 'selectedService'
-    | 'highlightedIndex'
-    | 'onAdd'
-    | 'onRemove'
-    | 'teamSoFar'
-    | 'onSearchForMore'
-    | 'onChangeText'
-    | 'onFinishTeamBuilding'
-  > & {
-    offset: unknown
-    enterInputCounter: number
-  }
+const getSelectableResults = (
+  showRecs: boolean,
+  recommendations: ReadonlyArray<Types.SearchRecSection> | undefined,
+  searchResults: DerivedResults
+) => (showRecs ? flattenRecommendations(recommendations ?? []) : searchResults)
+
+const getHighlightedResult = (
+  highlightedIndex: number,
+  userResults: ReturnType<typeof getSelectableResults>
 ) => {
-  const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
-  const recommendedHideYourself = params.recommendedHideYourself ?? false
-  const teamID = params.teamID
-  const {searchString, selectedService} = props
-  const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
-  const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
+  if (!userResults?.length) {
+    return undefined
+  }
 
-  const contactsImported = useSettingsContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
+  return userResults[highlightedIndex % userResults.length]
+}
 
+const emptyMap = new Map<string, T.Teams.MemberInfo>()
+
+const useListBodyData = ({
+  searchString,
+  selectedService,
+  teamID,
+}: {
+  searchString: string
+  selectedService: T.TB.ServiceIdWithContact
+  teamID?: T.Teams.TeamID
+}) => {
+  const {contactsImported, contactsPermissionStatus} = useSettingsContactsState(
+    C.useShallow(s => ({
+      contactsImported: s.importEnabled,
+      contactsPermissionStatus: s.permissionStatus,
+    }))
+  )
   const username = useCurrentUserState(s => s.username)
   const following = useFollowerState(s => s.following)
-
   const maybeTeamDetails = useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const userRecs = TB.useTBContext(s => s.userRecs)
-  const _teamSoFar = TB.useTBContext(s => s.teamSoFar)
-  const _searchResults = TB.useTBContext(s => s.searchResults)
-  const _recommendations = deriveSearchResults(userRecs, _teamSoFar, username, following, preExistingTeamMembers)
+  const {allSearchResults, teamSoFar, userRecs} = TB.useTBContext(
+    C.useShallow(s => ({
+      allSearchResults: s.searchResults,
+      teamSoFar: s.teamSoFar,
+      userRecs: s.userRecs,
+    }))
+  )
 
-  const userResults: ReadonlyArray<T.TB.User> | undefined = _searchResults
-    .get(searchString.trim())
-    ?.get(selectedService)
-
-  const searchResults = deriveSearchResults(userResults, _teamSoFar, username, following, preExistingTeamMembers)
+  const recommendationResults = deriveSearchResults(
+    userRecs,
+    teamSoFar,
+    username,
+    following,
+    preExistingTeamMembers
+  )
+  const userResults = getSearchResults(allSearchResults, searchString, selectedService)
+  const searchResults = deriveSearchResults(
+    userResults,
+    teamSoFar,
+    username,
+    following,
+    preExistingTeamMembers
+  )
 
   const showResults = !!searchString
-  const showRecs = !searchString && !!_recommendations && selectedService === 'keybase'
-
-  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
-  const showLoading = !!searchString && !searchResults
-
+  const showRecs = !searchString && !!recommendationResults && selectedService === 'keybase'
   const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
-  const recommendations = showRecs ? sortAndSplitRecommendations(_recommendations, showingContactsButton) : undefined
+  const recommendations = showRecs
+    ? sortAndSplitRecommendations(recommendationResults, showingContactsButton)
+    : undefined
 
-  const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
+  return {
+    recommendations,
+    searchResults,
+    showLoading: !!searchString && !searchResults,
+    showRecPending: !searchString && !recommendations && selectedService === 'keybase',
+    showRecs,
+    showResults,
+  }
+}
 
+const useEnterKeyHandler = ({
+  enterInputCounter,
+  highlightedIndex,
+  onAdd,
+  onChangeText,
+  onFinishTeamBuilding,
+  onRemove,
+  recommendations,
+  searchResults,
+  searchString,
+  showRecs,
+  teamSoFar,
+}: {
+  enterInputCounter: number
+  highlightedIndex: number
+  onAdd: (userId: string) => void
+  onChangeText: (newText: string) => void
+  onFinishTeamBuilding: () => void
+  onRemove: (userId: string) => void
+  recommendations: ReadonlyArray<Types.SearchRecSection> | undefined
+  searchResults: DerivedResults
+  searchString: string
+  showRecs: boolean
+  teamSoFar: ReadonlyArray<T.TB.SelectedUser>
+}) => {
   const lastEnterInputCounterRef = React.useRef(enterInputCounter)
+
   React.useEffect(() => {
-    if (lastEnterInputCounterRef.current !== enterInputCounter) {
-      lastEnterInputCounterRef.current = enterInputCounter
-      const userResultsToShow = showRecs ? flattenRecommendations(recommendations ?? []) : searchResults
-      const selectedResult =
-        !!userResultsToShow && userResultsToShow[highlightedIndex % userResultsToShow.length]
-      if (selectedResult) {
-        // We don't handle cases where they hit enter on someone that is already a
-        // team member
-        if (selectedResult.isPreExistingTeamMember) {
-          return
-        }
-        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-          onRemove(selectedResult.userId)
-          onChangeText('')
-        } else {
-          onAdd(selectedResult.userId)
-        }
-      } else if (!searchString && !!teamSoFar.length) {
-        // They hit enter with an empty search string and a teamSoFar
-        // We'll Finish the team building
-        onFinishTeamBuilding()
+    if (lastEnterInputCounterRef.current === enterInputCounter) {
+      return
+    }
+
+    lastEnterInputCounterRef.current = enterInputCounter
+    const selectableResults = getSelectableResults(showRecs, recommendations, searchResults)
+    const selectedResult = getHighlightedResult(highlightedIndex, selectableResults)
+
+    if (selectedResult) {
+      if (selectedResult.isPreExistingTeamMember) {
+        return
       }
+
+      if (teamSoFar.some(user => user.userId === selectedResult.userId)) {
+        onRemove(selectedResult.userId)
+        onChangeText('')
+      } else {
+        onAdd(selectedResult.userId)
+      }
+      return
+    }
+
+    if (!searchString && teamSoFar.length) {
+      onFinishTeamBuilding()
     }
   }, [
     enterInputCounter,
-    showRecs,
+    highlightedIndex,
+    onAdd,
+    onChangeText,
+    onFinishTeamBuilding,
+    onRemove,
     recommendations,
     searchResults,
-    highlightedIndex,
-    teamSoFar,
-    onRemove,
-    onChangeText,
-    onAdd,
     searchString,
-    onFinishTeamBuilding,
+    showRecs,
+    teamSoFar,
   ])
+}
+
+const LoadingState = ({showLoading}: {showLoading: boolean}) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    fullHeight={true}
+    gap="xtiny"
+    centerChildren={true}
+    flex={1}
+    justifyContent="flex-start"
+  >
+    {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
+  </Kb.Box2>
+)
+
+const NoResults = () => (
+  <Kb.Text type="BodySmall" style={styles.noResults}>
+    Sorry, no results were found.
+  </Kb.Text>
+)
+
+export const ListBody = ({
+  namespace,
+  searchString,
+  selectedService,
+  highlightedIndex,
+  onAdd,
+  onRemove,
+  teamSoFar,
+  onSearchForMore,
+  onChangeText,
+  onFinishTeamBuilding,
+  enterInputCounter,
+}: ListBodyProps) => {
+  const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+  const recommendedHideYourself = params.recommendedHideYourself ?? false
+  const teamID = params.teamID
+  const ResultRow = namespace === 'people' ? PeopleResult : UserResult
+
+  const {recommendations, searchResults, showLoading, showRecPending, showRecs, showResults} =
+    useListBodyData({
+      searchString,
+      selectedService,
+      teamID,
+    })
+
+  useEnterKeyHandler({
+    enterInputCounter,
+    highlightedIndex,
+    onAdd,
+    onChangeText,
+    onFinishTeamBuilding,
+    onRemove,
+    recommendations,
+    searchResults,
+    searchString,
+    showRecs,
+    teamSoFar,
+  })
 
   if (showRecPending || showLoading) {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        gap="xtiny"
-        centerChildren={true}
-        flex={1}
-        justifyContent="flex-start"
-      >
-        {showLoading && <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />}
-      </Kb.Box2>
-    )
+    return <LoadingState showLoading={showLoading} />
   }
+
   if (!showRecs && !showResults) {
     return <Suggestions namespace={namespace} selectedService={selectedService} />
   }
@@ -332,53 +450,45 @@ export const ListBody = (
     )
   }
 
-  const _onSearchForMore = () => {
+  const onEndReached = throttle(() => {
     onSearchForMore(searchResults?.length ?? 0)
-  }
+  }, 500)
 
-  const _onEndReached = throttle(_onSearchForMore, 500)
-
-  return (
-    <>
-      {searchResults?.length ? (
-        <Kb.BoxGrow>
-          <Kb.List
-            reAnimated={true}
-            items={searchResults}
-            selectedIndex={highlightedIndex || 0}
-            style={styles.list}
-            keyboardShouldPersistTaps="handled"
-            keyProperty="key"
-            onEndReached={_onEndReached}
-            itemHeight={{height: Kb.Styles.isMobile ? 64 : 48, type: 'fixed'}}
-            renderItem={(index: number, result: (typeof searchResults)[number]) => (
-              <ResultRow
-                key={result.username}
-                resultForService={selectedService}
-                username={result.username}
-                prettyName={result.prettyName}
-                pictureUrl={result.pictureUrl}
-                displayLabel={result.displayLabel}
-                services={result.services}
-                namespace={namespace}
-                inTeam={result.inTeam}
-                isPreExistingTeamMember={result.isPreExistingTeamMember}
-                isYou={result.isYou}
-                followingState={result.followingState}
-                highlight={!Kb.Styles.isMobile && index === highlightedIndex}
-                userId={result.userId}
-                onAdd={onAdd}
-                onRemove={onRemove}
-              />
-            )}
+  return searchResults?.length ? (
+    <Kb.BoxGrow>
+      <Kb.List
+        reAnimated={true}
+        items={searchResults}
+        selectedIndex={highlightedIndex || 0}
+        style={styles.list}
+        keyboardShouldPersistTaps="handled"
+        keyProperty="key"
+        onEndReached={onEndReached}
+        itemHeight={{height: Kb.Styles.isMobile ? 64 : 48, type: 'fixed'}}
+        renderItem={(index: number, result: (typeof searchResults)[number]) => (
+          <ResultRow
+            key={result.username}
+            resultForService={selectedService}
+            username={result.username}
+            prettyName={result.prettyName}
+            pictureUrl={result.pictureUrl}
+            displayLabel={result.displayLabel}
+            services={result.services}
+            namespace={namespace}
+            inTeam={result.inTeam}
+            isPreExistingTeamMember={result.isPreExistingTeamMember}
+            isYou={result.isYou}
+            followingState={result.followingState}
+            highlight={!Kb.Styles.isMobile && index === highlightedIndex}
+            userId={result.userId}
+            onAdd={onAdd}
+            onRemove={onRemove}
           />
-        </Kb.BoxGrow>
-      ) : (
-        <Kb.Text type="BodySmall" style={styles.noResults}>
-          Sorry, no results were found.
-        </Kb.Text>
-      )}
-    </>
+        )}
+      />
+    </Kb.BoxGrow>
+  ) : (
+    <NoResults />
   )
 }
 

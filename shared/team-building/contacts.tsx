@@ -1,19 +1,32 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTBContext} from '@/stores/team-building'
 
 const useContactsProps = () => {
-  const contactsImported = useSettingsContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = useSettingsContactsState(s => s.permissionStatus)
-  const isImportPromptDismissed = useSettingsContactsState(s => s.importPromptDismissed)
-  const numContactsImported = useSettingsContactsState(s => s.importedCount || 0)
-
-  const importContactsLater = useSettingsContactsState(s => s.dispatch.importContactsLater)
-  const loadContactImportEnabled = useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
-  const editContactImportEnabled = useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
-  const requestPermissions = useSettingsContactsState(s => s.dispatch.requestPermissions)
+  const {
+    contactsImported,
+    contactsPermissionStatus,
+    editContactImportEnabled,
+    importContactsLater,
+    isImportPromptDismissed,
+    loadContactImportEnabled,
+    numContactsImported,
+    requestPermissions,
+  } = useSettingsContactsState(
+    C.useShallow(s => ({
+      contactsImported: s.importEnabled,
+      contactsPermissionStatus: s.permissionStatus,
+      editContactImportEnabled: s.dispatch.editContactImportEnabled,
+      importContactsLater: s.dispatch.importContactsLater,
+      isImportPromptDismissed: s.importPromptDismissed,
+      loadContactImportEnabled: s.dispatch.loadContactImportEnabled,
+      numContactsImported: s.importedCount || 0,
+      requestPermissions: s.dispatch.requestPermissions,
+    }))
+  )
 
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled
