@@ -11,13 +11,12 @@ import * as Common from './common.native'
 import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import {NavigationContainer} from '@react-navigation/native'
-import type {NavigationProp} from '@react-navigation/native'
+import {NavigationContainer, type NavigationProp} from '@react-navigation/native'
 // NAV8: import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable' // NAV7
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-
+import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import type {SFSymbol} from 'sf-symbols-typescript'
 import {makeLayout} from './screen-layout.native'
@@ -27,6 +26,9 @@ import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
+import {colors, darkColors} from '@/styles/colors'
+
+const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
 
 if (module.hot) {
   module.hot.accept('', () => {})
@@ -151,27 +153,36 @@ const getBadgeNumber = (
 const appTabsScreenOptions = (
   routeName: Tabs.Tab,
   navBadges: ReadonlyMap<Tabs.Tab, number>,
-  hasPermissions: boolean
+  hasPermissions: boolean,
+  isDarkMode: boolean
 ) => {
-  const isIOS = Platform.OS === 'ios'
   return {
     headerShown: false,
     tabBarActiveIndicatorEnabled: false,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
-    tabBarBadgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-    ...(isIOS
-      ? {
-          tabBarBlurEffect: Common.tabBarBlurEffect,
-          tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
-        }
-      : {tabBarActiveTintColor: Kb.Styles.globalColors.white}),
-    tabBarControllerMode: (isIOS && C.isTablet ? 'auto' : undefined) as 'auto' | undefined,
+    tabBarBadgeStyle: {
+      backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
+    },
+    ...(C.isIOS
+      ? isLiquidGlassSupported
+        ? {
+            tabBarBlurEffect: Common.tabBarBlurEffect,
+          }
+        : {
+            tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
+            tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
+            tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
+          }
+      : {
+          tabBarActiveTintColor: Kb.Styles.globalColors.white,
+          tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
+        }),
+    tabBarControllerMode: C.isIOS && C.isTablet ? ('tabBar' as const) : undefined,
     tabBarIcon: getNativeTabIcon(routeName),
-    ...(isIOS ? {} : {tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter}),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
-    tabBarLabelVisibilityMode: (C.isTablet ? 'labeled' : 'selected') as 'labeled' | 'selected',
-    ...(isIOS ? {} : {tabBarStyle: Common.tabBarStyle}),
+    tabBarLabelVisibilityMode: C.isTablet ? ('labeled' as const) : ('unlabeled' as const),
     tabBarMinimizeBehavior: 'never' as const, // until this actually works on all screens, not sure why it only
+    tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
     // works on chat inbox now
     title: tabToLabel.get(routeName) ?? routeName,
   }
@@ -179,6 +190,8 @@ const appTabsScreenOptions = (
 function AppTabs() {
   const navBadges = useNotifState(s => s.navBadges)
   const hasPermissions = usePushState(s => s.hasPermissions)
+  const isDarkMode = useDarkModeState(s => s.isDarkMode())
+
   return (
     <Tab.Navigator backBehavior="none">
       {tabs.map(tab => (
@@ -186,7 +199,7 @@ function AppTabs() {
           key={tab}
           name={tab}
           component={tabComponents[tab]!}
-          options={appTabsScreenOptions(tab, navBadges, hasPermissions)}
+          options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
         />
       ))}
     </Tab.Navigator>
