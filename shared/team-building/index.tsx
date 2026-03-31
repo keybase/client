@@ -50,14 +50,10 @@ const getUserResults = (
 const findUserById = (users: ReadonlyArray<T.TB.User> | undefined, userId: string) =>
   users?.find(user => user.id === userId)
 
-const shouldShowContactsBanner = (
-  filterServices: ReadonlyArray<T.TB.ServiceIdWithContact> | undefined
-) => Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
+const shouldShowContactsBanner = (filterServices: ReadonlyArray<T.TB.ServiceIdWithContact> | undefined) =>
+  Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
-const useTeamBuildingData = (
-  searchString: string,
-  selectedService: T.TB.ServiceIdWithContact
-) => {
+const useTeamBuildingData = (searchString: string, selectedService: T.TB.ServiceIdWithContact) => {
   const {searchResults, error, rawTeamSoFar, userRecs} = TB.useTBContext(
     C.useShallow(s => ({
       error: s.error,
@@ -217,12 +213,12 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
     namespace,
     searchString,
     selectedService,
-    userResults,
-    userRecs,
     setFocusInputCounter,
     setHighlightedIndex,
     setSearchString,
     setSelectedService,
+    userRecs,
+    userResults,
   })
 
   const onClose = cancelTeamBuilding
@@ -347,22 +343,19 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      container: Kb.Styles.platformStyles({
-        common: {...Kb.Styles.globalStyles.flexOne},
-        isElectron: {minHeight: 500},
-      }),
-      waiting: {
-        ...Kb.Styles.globalStyles.fillAbsolute,
-        backgroundColor: Kb.Styles.globalColors.black_20,
-      },
-      waitingProgress: {
-        height: 48,
-        width: 48,
-      },
-    })
-)
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
+    common: {...Kb.Styles.globalStyles.flexOne},
+    isElectron: {minHeight: 500},
+  }),
+  waiting: {
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.black_20,
+  },
+  waitingProgress: {
+    height: 48,
+    width: 48,
+  },
+}))
 
 export default TeamBuilding

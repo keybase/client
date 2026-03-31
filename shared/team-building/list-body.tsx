@@ -206,7 +206,7 @@ const sortAndSplitRecommendations = (
         : String.fromCharCode(aCharCode + sectionIndex - recommendationIndex - 1).toUpperCase()
       sections[sectionIndex] = createSection(label, true)
     }
-    sections[sectionIndex]?.data.push(rec)
+    sections[sectionIndex].data.push(rec)
   })
 
   if (results.length < 5) {
@@ -407,13 +407,12 @@ export const ListBody = ({
   const teamID = params.teamID
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
 
-  const {recommendations, searchResults, showLoading, showRecPending, showRecs, showResults} = useListBodyData(
-    {
+  const {recommendations, searchResults, showLoading, showRecPending, showRecs, showResults} =
+    useListBodyData({
       searchString,
       selectedService,
       teamID,
-    }
-  )
+    })
 
   useEnterKeyHandler({
     enterInputCounter,
