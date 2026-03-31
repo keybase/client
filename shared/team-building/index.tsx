@@ -287,7 +287,6 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
             teamSoFar={teamSoFar}
             onChangeText={onChangeText}
             onSearchForMore={onSearchForMore}
-            offset={offset}
             onFinishTeamBuilding={onFinishTeamBuilding}
           />
           {waitingForCreate && (

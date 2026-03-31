@@ -34,7 +34,6 @@ type ListBodyProps = {
   onSearchForMore: (len: number) => void
   onChangeText: (newText: string) => void
   onFinishTeamBuilding: () => void
-  offset: unknown
   enterInputCounter: number
 }
 

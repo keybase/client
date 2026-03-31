@@ -36,7 +36,7 @@ export type SearchKey = Array<SearchString /*| ServiceIdWithContact*/>
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 export type Query = string
 
-export type SearchResults = ReadonlyMap<Query, ReadonlyMap<ServiceIdWithContact, ReadonlyArray<User>>>
+export type SearchResults = Map<Query, Map<ServiceIdWithContact, ReadonlyArray<User>>>
 export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
 export type SelectedUser = {
