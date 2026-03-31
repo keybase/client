@@ -1,9 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {wrapErrors} from '@/constants/utils'
 import * as Kb from '@/common-adapters'
 import type {RootParamList} from '@/router-v2/route-params'
-import {useTeamsState} from '@/stores/teams'
 import {RPCError} from '@/util/errors'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import upperFirst from 'lodash/upperFirst'
@@ -30,11 +28,11 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
   const [open, setOpen] = React.useState(false)
   const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
-  const setRespondToInviteLink = useTeamsState(s => s.dispatch.setRespondToInviteLink)
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
   const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamJoinTeamDialog'>>()
   const navigateUp = C.Router2.navigateUp
   const success = !!successParam
+  const handoffToInviteRef = React.useRef(false)
 
   const setName = (n: string) => _setName(n.toLowerCase())
   const onBack = () => navigateUp()
@@ -58,12 +56,7 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
         {
           customResponseIncomingCallMap: {
             'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-              setRespondToInviteLink(
-                wrapErrors((accept: boolean) => {
-                  setRespondToInviteLink(undefined)
-                  response.result(accept)
-                })
-              )
+              handoffToInviteRef.current = true
               C.Router2.navigateAppend(
                 {
                   name: 'teamInviteLinkJoin',
@@ -74,6 +67,7 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
                 },
                 true
               )
+              response.result(false)
             },
           },
           incomingCallMap: {},
@@ -87,6 +81,10 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
         navigation.setParams({initialTeamname, success: true})
       },
       error => {
+        if (handoffToInviteRef.current) {
+          handoffToInviteRef.current = false
+          return
+        }
         setErrorText(upperFirst(getJoinTeamError(error)))
       }
     )

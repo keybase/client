@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/stores/teams'
 import {RPCError} from '@/util/errors'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -31,11 +30,6 @@ const getInviteError = (error: unknown, missingKey: boolean) => {
 const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
   const [details, setDetails] = React.useState(initialInviteDetails)
   const [error, setError] = React.useState('')
-  const [localRespondToInviteLink, setLocalRespondToInviteLink] = React.useState<
-    ((accept: boolean) => void) | undefined
-  >()
-  const storedRespondToInviteLink = useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)
-  const respondToInviteLink = localRespondToInviteLink ?? storedRespondToInviteLink
   const loaded = details !== undefined || !!error
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
   const requestInviteLinkDetails = C.useRPC(T.RPCGen.teamsGetInviteLinkDetailsRpcPromise)
@@ -43,15 +37,12 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
   const [showSuccess, setShowSuccess] = React.useState(false)
   const rpcWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsJoinTeam)
   const waiting = rpcWaiting && clickedJoin
-  const wasWaitingRef = React.useRef(waiting)
 
   React.useEffect(() => {
     setDetails(initialInviteDetails)
     setError('')
-    setLocalRespondToInviteLink(undefined)
     setClickedJoin(false)
     setShowSuccess(false)
-    wasWaitingRef.current = false
   }, [initialInviteDetails, inviteID, inviteKey])
 
   React.useEffect(() => {
@@ -69,19 +60,25 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
           setError(getInviteError(rpcError, true))
         }
       )
+    }
+  }, [inviteID, inviteKey, loaded, requestInviteLinkDetails])
+
+  const nav = useSafeNavigation()
+
+  const onNavUp = () => nav.safeNavigateUp()
+  const onJoinTeam = () => {
+    if (!inviteKey) {
       return
     }
-
+    setClickedJoin(true)
+    setError('')
     joinTeam(
       [
         {
           customResponseIncomingCallMap: {
             'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
               setDetails(params.details)
-              setLocalRespondToInviteLink(() => accept => {
-                setLocalRespondToInviteLink(undefined)
-                response.result(accept)
-              })
+              response.result(true)
             },
           },
           incomingCallMap: {},
@@ -89,32 +86,17 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
           waitingKey: C.waitingKeyTeamsJoinTeam,
         },
       ],
-      () => {},
+      () => {
+        setClickedJoin(false)
+        setShowSuccess(true)
+      },
       rpcError => {
-        setLocalRespondToInviteLink(undefined)
+        setClickedJoin(false)
         setError(getInviteError(rpcError, false))
       }
     )
-  }, [inviteID, inviteKey, joinTeam, loaded, requestInviteLinkDetails])
-
-  const nav = useSafeNavigation()
-
-  const onNavUp = () => nav.safeNavigateUp()
-  const onJoinTeam = () => {
-    setClickedJoin(true)
-    respondToInviteLink?.(true)
   }
-  const onClose = () => {
-    respondToInviteLink?.(true)
-    onNavUp()
-  }
-  React.useEffect(() => {
-    wasWaitingRef.current = waiting
-  }, [waiting])
-
-  React.useEffect(() => {
-    setShowSuccess(wasWaitingRef.current && !waiting && !error)
-  }, [waiting, error])
+  const onClose = () => onNavUp()
 
   const teamname = (details?.teamName.parts || []).join('.')
 

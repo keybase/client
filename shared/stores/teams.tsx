@@ -1,5 +1,5 @@
 import * as S from '@/constants/strings'
-import {ignorePromise, wrapErrors} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {
@@ -836,9 +836,6 @@ export type State = Store & {
       ) => void
       onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
-    dynamic: {
-      respondToInviteLink?: (accept: boolean) => void
-    }
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
@@ -942,7 +939,6 @@ export type State = Store & {
       selected: boolean,
       clearAll?: boolean
     ) => void
-    setRespondToInviteLink: (respondToInviteLink?: (accept: boolean) => void) => void
     setNewTeamInfo: (
       deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
       newTeams: Set<T.Teams.TeamID>,
@@ -1377,9 +1373,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    dynamic: {
-      respondToInviteLink: undefined,
-    },
     eagerLoadTeams: () => {
       if (get().teamMetaSubscribeCount > 0) {
         logger.info('eagerly reloading')
@@ -1701,18 +1694,12 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     },
     joinTeam: teamname => {
       const f = async () => {
+        let handedOffToInvite = false
         try {
           await T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-                set(s => {
-                  s.dispatch.dynamic.respondToInviteLink = wrapErrors((accept: boolean) => {
-                    set(s => {
-                      s.dispatch.dynamic.respondToInviteLink = undefined
-                    })
-                    response.result(accept)
-                  })
-                })
+                handedOffToInvite = true
                 navigateAppend(
                   {
                     name: 'teamInviteLinkJoin',
@@ -1723,6 +1710,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                   },
                   true
                 )
+                response.result(false)
               },
             },
             incomingCallMap: {},
@@ -1730,13 +1718,12 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             waitingKey: S.waitingKeyTeamsJoinTeam,
           })
         } catch (error) {
+          if (handedOffToInvite) {
+            return
+          }
           if (error instanceof RPCError) {
             logger.info(error.message)
           }
-        } finally {
-          set(s => {
-            s.dispatch.dynamic.respondToInviteLink = undefined
-          })
         }
       }
       ignorePromise(f())
@@ -2286,11 +2273,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             membersSelected.delete(username)
           }
         }
-      })
-    },
-    setRespondToInviteLink: respondToInviteLink => {
-      set(s => {
-        s.dispatch.dynamic.respondToInviteLink = respondToInviteLink
       })
     },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
