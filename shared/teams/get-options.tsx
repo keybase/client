@@ -1,12 +1,17 @@
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamsState} from '@/stores/teams'
 import {useNavigation, useRoute} from '@react-navigation/native'
 import type {RouteProp} from '@react-navigation/native'
-import type {RootParamList} from '@/router-v2/route-params'
-import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type TeamsRootParams = {
+  filter?: string
+  sort?: T.Teams.TeamListSort
+}
+type TeamsRootParamList = {teamsRoot: TeamsRootParams | undefined}
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
@@ -18,9 +23,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const route = useRoute<RouteProp<RootParamList, 'teamsRoot'>>()
-  const params = getRouteParamsFromRoute<'teamsRoot'>(route) ?? {}
-  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamsRoot'>>()
+  const route = useRoute<RouteProp<TeamsRootParamList, 'teamsRoot'>>()
+  const params = route.params ?? {}
+  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
   const filterValue = params.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)
   const setFilter = (filter: string) => navigation.setParams({...params, filter})

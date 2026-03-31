@@ -1,7 +1,19 @@
 import type * as React from 'react'
 import type {RouteProp} from '@react-navigation/native'
 // import type {StaticParamList} from '@react-navigation/core'
-import type {routes, modalRoutes, loggedOutRoutes} from './routes'
+import type {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
+import type {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
+import type {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
+import type {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
+import type {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
+import type {newRoutes as loginNewRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
+import type {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
+import type {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
+import type {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
+import type {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
+import type {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
+import type {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
+import type {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 
 // tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
 // but tsgo reports "TS2315: Type 'StaticParamList' is not generic" (works fine with regular tsc).
@@ -50,7 +62,31 @@ type TabRoots =
   | 'devicesRoot'
   | 'settingsRoot'
 
-type _AllScreens = typeof routes & typeof modalRoutes & typeof loggedOutRoutes
+type _AllScreens =
+  & typeof deviceNewRoutes
+  & typeof chatNewRoutes
+  & typeof cryptoNewRoutes
+  & typeof peopleNewRoutes
+  & typeof profileNewRoutes
+  & typeof fsNewRoutes
+  & typeof settingsNewRoutes
+  & typeof teamsNewRoutes
+  & typeof gitNewRoutes
+  & typeof chatNewModalRoutes
+  & typeof cryptoNewModalRoutes
+  & typeof deviceNewModalRoutes
+  & typeof fsNewModalRoutes
+  & typeof gitNewModalRoutes
+  & typeof loginNewModalRoutes
+  & typeof peopleNewModalRoutes
+  & typeof profileNewModalRoutes
+  & typeof settingsNewModalRoutes
+  & typeof signupNewModalRoutes
+  & typeof teamsNewModalRoutes
+  & typeof walletsNewModalRoutes
+  & typeof incomingShareNewModalRoutes
+  & typeof loginNewRoutes
+  & typeof signupNewRoutes
 
 export type RootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}

@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import type {RootParamList} from '@/router-v2/route-params'
 import {RPCError} from '@/util/errors'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import upperFirst from 'lodash/upperFirst'
@@ -9,6 +8,9 @@ import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
+type TeamJoinTeamDialogParamList = {
+  teamJoinTeamDialog: OwnProps | undefined
+}
 
 const getJoinTeamError = (error: unknown) => {
   if (error instanceof RPCError) {
@@ -29,7 +31,9 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
   const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
-  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamJoinTeamDialog'>>()
+  const navigation = useNavigation<
+    NativeStackNavigationProp<TeamJoinTeamDialogParamList, 'teamJoinTeamDialog'>
+  >()
   const navigateUp = C.Router2.navigateUp
   const success = !!successParam
   const handoffToInviteRef = React.useRef(false)
