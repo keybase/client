@@ -3,6 +3,7 @@ import type * as T from './types'
 import * as Tabs from './tabs'
 import {
   StackActions,
+  TabActions,
   CommonActions,
   type NavigationContainerRef,
   useFocusEffect,
@@ -258,10 +259,11 @@ export const switchTab = (name: Tabs.AppTab) => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (!ns) return
+  const tabNavState = ns?.routes?.[0]?.state
+  if (!tabNavState?.key) return
   n.dispatch({
-    ...CommonActions.navigate({name}),
-    target: ns.routes?.[0]?.state?.key,
+    ...TabActions.jumpTo(name),
+    target: tabNavState.key,
   })
 }
 
@@ -281,9 +283,14 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const tabRoutes = tabNavState.routes as Array<Route>
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
   if (chatTabIndex < 0) return
+  const chatTabRoute = tabRoutes[chatTabIndex]
+  const chatStackState = chatTabRoute.state
+  const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
+  const chatStackIndex = chatStackState?.index ?? 0
+  const currentChatRoute = chatStackRoutes?.[chatStackIndex]
+  const currentChatRoot = chatStackRoutes?.[0]
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
-    const currentChatRoot = route.state ? route.state.routes[0] : undefined
     const currentParams =
       currentChatRoot?.name === 'chatRoot' && currentChatRoot.params && typeof currentChatRoot.params === 'object'
         ? currentChatRoot.params
@@ -297,6 +304,24 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
       },
     }
   })
+  const nextChatRoot = updatedRoutes[chatTabIndex]?.state?.routes?.[0]
+  if (
+    tabNavState.index === chatTabIndex &&
+    currentChatRoute?.name === 'chatRoot' &&
+    currentChatRoute.key &&
+    nextChatRoot?.params
+  ) {
+    // When split chat is already showing chatRoot, update that route in place instead of
+    // resetting the whole tab navigator. This avoids an extra same-screen navigation when
+    // the tab becomes visible and chat selects a thread immediately afterward.
+    if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
+      n.dispatch({
+        ...CommonActions.setParams(nextChatRoot.params),
+        target: currentChatRoute.key,
+      })
+    }
+    return
+  }
   n.dispatch({
     ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
     target: tabNavState.key,
