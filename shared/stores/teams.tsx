@@ -766,7 +766,6 @@ type Store = T.Immutable<{
   teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<T.Teams.TeamID, T.RPCChat.WelcomeMessageDisplay>
   teamNameToLoadingInvites: Map<T.Teams.Teamname, Map<string, boolean>>
-  errorInTeamCreation: string
   teamNameToID: Map<T.Teams.Teamname, string>
   teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamnames: Set<T.Teams.Teamname> // TODO remove
@@ -807,7 +806,6 @@ const initialStore: Store = {
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
-  errorInTeamCreation: '',
   errorInTeamJoin: '',
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
@@ -936,7 +934,6 @@ export type State = Store & {
     requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
-    resetErrorInTeamCreation: () => void
     resetState: () => void
     resetTeamJoin: () => void
     resetTeamMetaStale: () => void
@@ -1281,9 +1278,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
-      set(s => {
-        s.errorInTeamCreation = ''
-      })
       const f = async () => {
         try {
           const {teamID} = await T.RPCGen.teamsTeamCreateRpcPromise(
@@ -1312,20 +1306,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               navigateAppend({name: 'profileEditAvatar', params: {createdTeam: true, teamID}})
             }
           }
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInTeamCreation = error.desc
-            }
-          })
-        }
+        } catch {}
       }
       ignorePromise(f())
     },
     createNewTeamFromConversation: (conversationIDKey, teamname) => {
-      set(s => {
-        s.errorInTeamCreation = ''
-      })
       const me = useCurrentUserState.getState().username
       const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
       // exclude bots from the newly created team, they can be added back later.
@@ -2277,11 +2262,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     resetErrorInSettings: () => {
       set(s => {
         s.errorInSettings = ''
-      })
-    },
-    resetErrorInTeamCreation: () => {
-      set(s => {
-        s.errorInTeamCreation = ''
       })
     },
     resetState: Z.defaultReset,
