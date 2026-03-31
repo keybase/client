@@ -209,10 +209,9 @@ export const newRoutes = {
     React.lazy(async () => import('./team/member/index.new')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamsRoot: {
+  teamsRoot: C.makeScreen(React.lazy(async () => import('./container')), {
     getOptions: teamsRootGetOptions,
-    screen: React.lazy(async () => import('./container')),
-  },
+  }),
 }
 
 export const newModalRoutes = {

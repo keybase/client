@@ -10,7 +10,7 @@ export type GetOptionsParams<RouteName extends string = string> = {
 
 export type ScreenComponentProps = {
   route: {params: any}
-  navigation: NativeStackNavigationProp<ParamListBase, string>
+  navigation: NativeStackNavigationProp<ParamListBase>
 }
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {

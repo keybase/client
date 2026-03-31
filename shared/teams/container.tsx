@@ -2,11 +2,13 @@ import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import type {RouteProps2} from '@/router-v2/route-params'
+import type {RootParamList} from '@/router-v2/route-params'
 import Main from './main'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -43,11 +45,12 @@ const orderTeams = (
   })
 }
 
-type Props = RouteProps2<'teamsRoot'>
+type Props = {
+  filter?: string
+  sort?: T.Teams.TeamListSort
+}
 
-const Connected = ({navigation, route}: Props) => {
-  const filter = route.params?.filter ?? ''
-  const sort = route.params?.sort ?? 'role'
+const Connected = ({filter = '', sort = 'role'}: Props) => {
   const data = Teams.useTeamsState(
     C.useShallow(s => {
       const {deletedTeams, activityLevels, teamMeta, dispatch} = s
@@ -77,6 +80,7 @@ const Connected = ({navigation, route}: Props) => {
   useActivityLevels(true)
 
   const nav = useSafeNavigation()
+  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamsRoot'>>()
   const onCreateTeam = () => launchNewTeamWizardOrModal()
   const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
 
@@ -86,7 +90,7 @@ const Connected = ({navigation, route}: Props) => {
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         deletedTeams={deletedTeams}
-        onChangeSort={sortOrder => navigation.setParams({...(route.params ?? {}), filter, sort: sortOrder})}
+        onChangeSort={sortOrder => navigation.setParams({filter, sort: sortOrder})}
         sortOrder={sort}
         teams={teams}
       />
