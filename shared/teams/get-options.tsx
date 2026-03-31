@@ -2,6 +2,9 @@ import * as Kb from '@/common-adapters'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamsState} from '@/stores/teams'
+import {useNavigation, useRoute} from '@react-navigation/native'
+import type {RootParamList, RootRouteProps} from '@/router-v2/route-params'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
@@ -13,9 +16,11 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const filterValue = useTeamsState(s => s.teamListFilter)
+  const {params} = useRoute<RootRouteProps<'teamsRoot'>>()
+  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamsRoot'>>()
+  const filterValue = params?.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)
-  const setFilter = useTeamsState(s => s.dispatch.setTeamListFilter)
+  const setFilter = (filter: string) => navigation.setParams({...params, filter})
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}

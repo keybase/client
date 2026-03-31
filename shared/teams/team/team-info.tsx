@@ -19,24 +19,30 @@ const TeamInfo = (props: Props) => {
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
   const [description, setDescription] = React.useState(teamDetails?.description ?? '')
+  const [descError, setDescError] = React.useState('')
 
   const saveDisabled =
     (description === teamDetails?.description && newName === _leafName) || newName.length < 3
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRename])
+  const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
 
   const errors = {
-    desc: Teams.useTeamsState(s => s.errorInEditDescription),
+    desc: descError,
     rename: C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)?.message,
   }
 
-  const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
   const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
   const onSave = () => {
     if (newName !== _leafName) {
       renameTeam(teamname, parentTeamNameWithDot + newName)
     }
     if (description !== teamDetails?.description) {
-      editTeamDescription(teamID, description)
+      setDescError('')
+      editTeamDescription(
+        [{description, teamID}, C.waitingKeyTeamsTeam(teamID)],
+        () => {},
+        error => setDescError(error.message)
+      )
     }
   }
   const navigateAppend = C.Router2.navigateAppend

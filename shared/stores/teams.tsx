@@ -757,7 +757,6 @@ type Store = T.Immutable<{
   channelSelectedMembers: Map<T.Chat.ConversationIDKey, Set<string>>
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInAddToTeam: string
-  errorInEditDescription: string
   errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
   errorInEditWelcomeMessage: string
   errorInEmailInvite: T.Teams.EmailInviteError
@@ -782,8 +781,6 @@ type Store = T.Immutable<{
   teamSelectedChannels: Map<T.Teams.TeamID, Set<string>>
   teamSelectedMembers: Map<T.Teams.TeamID, Set<string>>
   teamAccessRequestsPending: Set<T.Teams.Teamname>
-  teamListFilter: string
-  teamListSort: T.Teams.TeamListSort
   newTeamWizard: T.Teams.NewTeamWizardState
   addMembersWizard: T.Teams.AddMembersWizardState
   errorInTeamJoin: string
@@ -806,7 +803,6 @@ const initialStore: Store = {
   channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
-  errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
@@ -829,8 +825,6 @@ const initialStore: Store = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
-  teamListFilter: '',
-  teamListSort: 'role',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
@@ -897,7 +891,6 @@ export type State = Store & {
     deleteTeam: (teamID: T.Teams.TeamID) => void
     eagerLoadTeams: () => void
     editMembership: (teamID: T.Teams.TeamID, usernames: Array<string>, role: T.Teams.TeamRoleType) => void
-    editTeamDescription: (teamID: T.Teams.TeamID, description: string) => void
     finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
@@ -975,8 +968,6 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
-    setTeamListFilter: (filter: string) => void
-    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
@@ -1447,23 +1438,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                 s.errorInEditMember.username = usernames[0] ?? ''
                 s.errorInEditMember.teamID = teamID
               }
-            }
-          })
-        }
-      }
-      ignorePromise(f())
-    },
-    editTeamDescription: (teamID, description) => {
-      set(s => {
-        s.errorInEditDescription = ''
-      })
-      const f = async () => {
-        try {
-          await T.RPCGen.teamsSetTeamShowcaseRpcPromise({description, teamID}, S.waitingKeyTeamsTeam(teamID))
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInEditDescription = error.message
             }
           })
         }
@@ -2490,16 +2464,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setTeamListFilter: filter => {
-      set(s => {
-        s.teamListFilter = filter
-      })
-    },
-    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => {
-      set(s => {
-        s.teamListSort = sortOrder
-      })
     },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {
