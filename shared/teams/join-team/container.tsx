@@ -30,6 +30,7 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
   const [open, setOpen] = React.useState(false)
   const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
+  const setRespondToInviteLink = useTeamsState(s => s.dispatch.setRespondToInviteLink)
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
   const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamJoinTeamDialog'>>()
   const navigateUp = C.Router2.navigateUp
@@ -57,28 +58,12 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
         {
           customResponseIncomingCallMap: {
             'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-              const currentDispatch = useTeamsState.getState().dispatch
-              useTeamsState.setState({
-                dispatch: {
-                  ...currentDispatch,
-                  dynamic: {
-                    ...currentDispatch.dynamic,
-                    respondToInviteLink: wrapErrors((accept: boolean) => {
-                      const latestDispatch = useTeamsState.getState().dispatch
-                      useTeamsState.setState({
-                        dispatch: {
-                          ...latestDispatch,
-                          dynamic: {
-                            ...latestDispatch.dynamic,
-                            respondToInviteLink: undefined,
-                          },
-                        },
-                      })
-                      response.result(accept)
-                    }),
-                  },
-                },
-              })
+              setRespondToInviteLink(
+                wrapErrors((accept: boolean) => {
+                  setRespondToInviteLink(undefined)
+                  response.result(accept)
+                })
+              )
               C.Router2.navigateAppend(
                 {
                   name: 'teamInviteLinkJoin',

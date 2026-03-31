@@ -942,6 +942,7 @@ export type State = Store & {
       selected: boolean,
       clearAll?: boolean
     ) => void
+    setRespondToInviteLink: (respondToInviteLink?: (accept: boolean) => void) => void
     setNewTeamInfo: (
       deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
       newTeams: Set<T.Teams.TeamID>,
@@ -2285,6 +2286,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             membersSelected.delete(username)
           }
         }
+      })
+    },
+    setRespondToInviteLink: respondToInviteLink => {
+      set(s => {
+        s.dispatch.dynamic.respondToInviteLink = respondToInviteLink
       })
     },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
