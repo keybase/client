@@ -3,14 +3,31 @@ import type {NativeStackNavigationProp, NativeStackNavigationOptions} from '@rea
 import type {ParamListBase, RouteProp} from '@react-navigation/native'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
-export type GetOptionsParams<RouteName extends string = string> = {
-  navigation: NativeStackNavigationProp<ParamListBase, RouteName>
-  route: RouteProp<ParamListBase, RouteName>
+type RouteNameFor<ParamList extends ParamListBase> = Extract<keyof ParamList, string>
+
+export type GetOptionsParams<
+  ParamList extends ParamListBase = ParamListBase,
+  RouteName extends RouteNameFor<ParamList> = RouteNameFor<ParamList>,
+> = {
+  navigation: NativeStackNavigationProp<ParamList, RouteName>
+  route: RouteProp<ParamList, RouteName>
 }
 
-export type ScreenComponentProps = {
-  route: {params: any}
-  navigation: NativeStackNavigationProp<ParamListBase>
+// Type for screen components that receive navigation props
+export type ScreenProps<
+  ParamList extends ParamListBase = ParamListBase,
+  RouteName extends RouteNameFor<ParamList> = RouteNameFor<ParamList>,
+> = {
+  navigation: NativeStackNavigationProp<ParamList, RouteName>
+  route: RouteProp<ParamList, RouteName>
+}
+
+export type ScreenComponentProps<
+  ParamList extends ParamListBase = ParamListBase,
+  RouteName extends RouteNameFor<ParamList> = RouteNameFor<ParamList>,
+> = {
+  route: RouteProp<ParamList, RouteName>
+  navigation: NativeStackNavigationProp<ParamList, RouteName>
 }
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {
@@ -55,9 +72,36 @@ export type GetOptionsRet =
       })
   | undefined
 
-export type GetOptions = GetOptionsRet | ((p: any) => GetOptionsRet)
-export type RouteDef = {
-  getOptions?: GetOptions
-  screen: React.ComponentType<ScreenComponentProps>
+type AnyScreen = React.ComponentType<any>
+
+export type GetOptions<Screen extends AnyScreen = AnyScreen> =
+  | GetOptionsRet
+  | ((p: React.ComponentProps<Screen>) => GetOptionsRet)
+
+export type RouteDef<Screen extends AnyScreen = AnyScreen> = {
+  getOptions?: GetOptions<Screen>
+  screen: Screen
 }
 export type RouteMap = {[K in string]?: RouteDef}
+
+type RouteDefMatchesScreen<R> = R extends {screen: infer Screen; getOptions: infer Options}
+  ? Screen extends AnyScreen
+    ? Options extends GetOptionsRet
+      ? R
+      : Options extends (p: infer Props) => GetOptionsRet
+        ? [Props] extends [React.ComponentProps<Screen>]
+          ? [React.ComponentProps<Screen>] extends [Props]
+            ? R
+            : never
+          : never
+        : never
+    : never
+  : R extends {screen: infer Screen}
+    ? Screen extends AnyScreen
+      ? R
+      : never
+    : never
+
+export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(routes: {
+  [K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>
+}) => routes
