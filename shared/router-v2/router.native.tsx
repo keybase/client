@@ -171,6 +171,8 @@ const appTabsScreenOptions = (
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarLabelVisibilityMode: (C.isTablet ? 'labeled' : 'selected') as 'labeled' | 'selected',
     ...(isIOS ? {} : {tabBarStyle: Common.tabBarStyle}),
+    tabBarMinimizeBehavior: 'never' as const, // until this actually works on all screens, not sure why it only
+    // works on chat inbox now
     title: tabToLabel.get(routeName) ?? routeName,
   }
 }
