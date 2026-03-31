@@ -69,7 +69,7 @@ const PeopleItems = ({
 }: {
   items: ReadonlyArray<T.Immutable<T.People.PeopleScreenItem>>
   props: Props
-}) => items.map(item => renderPeopleItem(item, props))
+}): Array<React.ReactNode> => items.map(item => renderPeopleItem(item, props))
 
 function EmailVerificationBanner(props: {signupEmail: string}) {
   const {signupEmail} = props
