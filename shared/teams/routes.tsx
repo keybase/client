@@ -155,16 +155,9 @@ const AddFromWhereHeaderTitle = () => {
   return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
 }
 
-const JoinTeamHeaderTitle = () => {
-  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
-  return <>{success ? 'Request sent' : 'Join a team'}</>
-}
+const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => <>{success ? 'Request sent' : 'Join a team'}</>
 
-const JoinTeamHeaderLeft = () => {
-  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
-  if (success) return null
-  return <HeaderLeftButton />
-}
+const JoinTeamHeaderLeft = ({success}: {success?: boolean}) => (success ? null : <HeaderLeftButton />)
 
 const NewTeamInfoHeaderTitle = () => {
   const {teamType, parentTeamID} = Teams.useTeamsState(
@@ -299,10 +292,10 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
-    getOptions: {
-      headerLeft: () => <JoinTeamHeaderLeft />,
-      headerTitle: () => <JoinTeamHeaderTitle />,
-    },
+    getOptions: ({route}) => ({
+      headerLeft: () => <JoinTeamHeaderLeft success={route.params?.success} />,
+      headerTitle: () => <JoinTeamHeaderTitle success={route.params?.success} />,
+    }),
   }),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {
     getOptions: {title: 'Create a team'},

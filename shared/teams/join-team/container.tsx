@@ -1,33 +1,110 @@
 import * as C from '@/constants'
-import upperFirst from 'lodash/upperFirst'
-import {useTeamsState} from '@/stores/teams'
-import * as React from 'react'
+import * as T from '@/constants/types'
+import {wrapErrors} from '@/constants/utils'
 import * as Kb from '@/common-adapters'
+import type {RootParamList} from '@/router-v2/route-params'
+import {useTeamsState} from '@/stores/teams'
+import {RPCError} from '@/util/errors'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import upperFirst from 'lodash/upperFirst'
+import * as React from 'react'
+import {useNavigation} from '@react-navigation/native'
 
-type OwnProps = {initialTeamname?: string}
+type OwnProps = {initialTeamname?: string; success?: boolean}
 
-const Container = (ownProps: OwnProps) => {
-  const initialTeamname = ownProps.initialTeamname
-  const errorText = useTeamsState(s => upperFirst(s.errorInTeamJoin))
-  const open = useTeamsState(s => s.teamJoinSuccessOpen)
-  const success = useTeamsState(s => s.teamJoinSuccess)
-  const successTeamName = useTeamsState(s => s.teamJoinSuccessTeamName)
-  const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
+const getJoinTeamError = (error: unknown) => {
+  if (error instanceof RPCError) {
+    return (
+      error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
+        ? 'Sorry, that team name or token is not valid.'
+        : error.code === T.RPCGen.StatusCode.scnotfound
+          ? 'This invitation is no longer valid, or has expired.'
+          : error.desc
+    )
   }
-  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
-  const onJoinTeam = joinTeam
+  return error instanceof Error ? error.message : 'Something went wrong.'
+}
 
+const Container = ({initialTeamname, success: successParam}: OwnProps) => {
+  const [errorText, setErrorText] = React.useState('')
+  const [open, setOpen] = React.useState(false)
+  const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
+  const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
+  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamJoinTeamDialog'>>()
+  const navigateUp = C.Router2.navigateUp
+  const success = !!successParam
+
   const setName = (n: string) => _setName(n.toLowerCase())
-  const resetTeamJoin = useTeamsState(s => s.dispatch.resetTeamJoin)
+  const onBack = () => navigateUp()
+
   React.useEffect(() => {
-    resetTeamJoin()
-  }, [resetTeamJoin])
+    _setName(initialTeamname ?? '')
+    setErrorText('')
+    setOpen(false)
+    setSuccessTeamName('')
+    if (successParam) {
+      navigation.setParams({initialTeamname, success: false})
+    }
+  }, [initialTeamname, navigation, successParam])
 
   const onSubmit = () => {
-    onJoinTeam(name)
+    setErrorText('')
+    setOpen(false)
+    setSuccessTeamName('')
+    joinTeam(
+      [
+        {
+          customResponseIncomingCallMap: {
+            'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
+              const currentDispatch = useTeamsState.getState().dispatch
+              useTeamsState.setState({
+                dispatch: {
+                  ...currentDispatch,
+                  dynamic: {
+                    ...currentDispatch.dynamic,
+                    respondToInviteLink: wrapErrors((accept: boolean) => {
+                      const latestDispatch = useTeamsState.getState().dispatch
+                      useTeamsState.setState({
+                        dispatch: {
+                          ...latestDispatch,
+                          dynamic: {
+                            ...latestDispatch.dynamic,
+                            respondToInviteLink: undefined,
+                          },
+                        },
+                      })
+                      response.result(accept)
+                    }),
+                  },
+                },
+              })
+              C.Router2.navigateAppend(
+                {
+                  name: 'teamInviteLinkJoin',
+                  params: {
+                    inviteDetails: params.details,
+                    inviteKey: name,
+                  },
+                },
+                true
+              )
+            },
+          },
+          incomingCallMap: {},
+          params: {tokenOrName: name},
+          waitingKey: C.waitingKeyTeamsJoinTeam,
+        },
+      ],
+      result => {
+        setOpen(result.wasOpenTeam)
+        setSuccessTeamName(result.wasTeamName ? name : '')
+        navigation.setParams({initialTeamname, success: true})
+      },
+      error => {
+        setErrorText(upperFirst(getJoinTeamError(error)))
+      }
+    )
   }
 
   return (
@@ -74,15 +151,15 @@ const Container = (ownProps: OwnProps) => {
         )}
       </Kb.ScrollView>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={success ? 'Close' : 'Continue'}
-              onClick={success ? onBack : onSubmit}
-              type={success ? 'Dim' : 'Default'}
-              waitingKey={C.waitingKeyTeamsJoinTeam}
-            />
-          </Kb.ButtonBar>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={success ? 'Close' : 'Continue'}
+            onClick={success ? onBack : onSubmit}
+            type={success ? 'Dim' : 'Default'}
+            waitingKey={C.waitingKeyTeamsJoinTeam}
+          />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )
