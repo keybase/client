@@ -15,8 +15,8 @@ import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsState} from '@/stores/teams'
-import {useProfileState} from '@/stores/profile'
 import {useTrackerState} from '@/stores/tracker'
+import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 
 export type Props = {
@@ -66,12 +66,11 @@ function AuthorSection(p: AuthorProps) {
   const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
 
   const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const showUser = useTrackerState(s => s.dispatch.showUser)
 
   const onAuthorClick = () => {
     if (C.isMobile) {
-      showUserProfile(showUsername)
+      navToProfile(showUsername)
     } else {
       showUser(showUsername, true)
     }

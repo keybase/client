@@ -431,10 +431,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const ThreadWrapperWithProfiler = () => (
-  <PerfProfiler id="MessageList">
-    <ThreadWrapper />
-  </PerfProfiler>
-)
-
-export default ThreadWrapperWithProfiler
+export default ConversationList
