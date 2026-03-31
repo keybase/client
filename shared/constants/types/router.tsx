@@ -93,6 +93,6 @@ type RouteDefMatchesScreen<R> = R extends {screen: infer Screen}
     : never
   : never
 
-export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(routes: {
-  [K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>
-}) => routes
+export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(
+  routes: Routes & {[K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>}
+) => routes

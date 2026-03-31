@@ -8,8 +8,6 @@ import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
@@ -47,9 +45,8 @@ const CheckPassphraseCancelButton = () => {
   )
 }
 
-const VerifyPhoneHeaderTitle = () => {
-  const {params} = useRoute<RootRouteProps<'settingsVerifyPhone'>>()
-  const displayPhone = e164ToDisplay(params.phoneNumber)
+const VerifyPhoneHeaderTitle = ({phoneNumber}: {phoneNumber?: string}) => {
+  const displayPhone = e164ToDisplay(phoneNumber ?? '')
   return (
     <Kb.Text type="BodySmall" negative={true} center={true}>
       {displayPhone || 'Unknown number'}
@@ -178,11 +175,11 @@ const sharedNewModalRoutes = {
       return {default: VerifyPhone}
     }),
     {
-      getOptions: {
+      getOptions: ({route}) => ({
         headerLeft: Kb.Styles.isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
         headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
-        headerTitle: () => <VerifyPhoneHeaderTitle />,
-      },
+        headerTitle: () => <VerifyPhoneHeaderTitle phoneNumber={route.params.phoneNumber} />,
+      }),
     }
   ),
 }
