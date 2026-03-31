@@ -40,14 +40,12 @@ const Connected = (ownProps: OwnProps) => {
   const username = useCurrentUserState(s => s.username)
   const [sending, setSending] = React.useState(false)
   const [sendError, setSendError] = React.useState('')
-  const mountedRef = React.useRef(true)
   const timeoutIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const status = {..._status, deviceID, uid, username}
 
   React.useEffect(() => {
     return () => {
-      mountedRef.current = false
       if (timeoutIDRef.current) {
         clearTimeout(timeoutIDRef.current)
       }
@@ -74,19 +72,15 @@ const Connected = (ownProps: OwnProps) => {
           cpuProfileDir
         )
         logger.info('logSendId is', logSendId)
-        if (mountedRef.current) {
-          setSendError('')
-          setSending(false)
-        }
+        setSendError('')
+        setSending(false)
       }
       run()
         .then(() => {})
         .catch((err: unknown) => {
           logger.warn('err in sending logs', err)
-          if (mountedRef.current) {
-            setSendError(String(err))
-            setSending(false)
-          }
+          setSendError(String(err))
+          setSending(false)
         })
     }, 0)
   }

@@ -3,24 +3,10 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {makePhoneError} from '@/stores/settings-phone'
 
-const useMountedRef = () => {
-  const mountedRef = React.useRef(true)
-
-  React.useEffect(
-    () => () => {
-      mountedRef.current = false
-    },
-    []
-  )
-
-  return mountedRef
-}
-
 export const useAddPhoneNumber = () => {
   const addPhoneNumber = C.useRPC(T.RPCGen.phoneNumbersAddPhoneNumberRpcPromise)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneAddPhoneNumber)
   const [error, setError] = React.useState('')
-  const mountedRef = useMountedRef()
 
   const clearError = () => {
     setError('')
@@ -46,9 +32,7 @@ export const useAddPhoneNumber = () => {
         onSuccess(phoneNumber)
       },
       error_ => {
-        if (mountedRef.current) {
-          setError(makePhoneError(error_))
-        }
+        setError(makePhoneError(error_))
       }
     )
   }
@@ -71,7 +55,6 @@ export const usePhoneVerification = ({
   const verifyPhoneNumberRpc = C.useRPC(T.RPCGen.phoneNumbersVerifyPhoneNumberRpcPromise)
   const [error, setError] = React.useState('')
   const initialResendDone = React.useRef(false)
-  const mountedRef = useMountedRef()
 
   const resendVerificationForPhone = React.useCallback((phoneNumberToVerify: string) => {
     setError('')
@@ -79,30 +62,24 @@ export const usePhoneVerification = ({
       [{phoneNumber: phoneNumberToVerify}, C.waitingKeySettingsPhoneResendVerification],
       () => {},
       error_ => {
-        if (mountedRef.current) {
-          setError(makePhoneError(error_))
-        }
+        setError(makePhoneError(error_))
       }
     )
-  }, [mountedRef, resendVerification])
+  }, [resendVerification])
 
   const verifyPhoneNumber = React.useCallback((phoneNumberToVerify: string, code: string) => {
     setError('')
     verifyPhoneNumberRpc(
       [{code, phoneNumber: phoneNumberToVerify}, C.waitingKeySettingsPhoneVerifyPhoneNumber],
       () => {
-        if (mountedRef.current) {
-          setError('')
-          onSuccess?.()
-        }
+        setError('')
+        onSuccess?.()
       },
       error_ => {
-        if (mountedRef.current) {
-          setError(makePhoneError(error_))
-        }
+        setError(makePhoneError(error_))
       }
     )
-  }, [mountedRef, onSuccess, verifyPhoneNumberRpc])
+  }, [onSuccess, verifyPhoneNumberRpc])
 
   React.useEffect(() => {
     if (!initialResend || initialResendDone.current) {

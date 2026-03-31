@@ -3,12 +3,16 @@ import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 
-const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const subteamFilter = useTeamsState(s => s.subteamFilter)
-  const setSubteamFilter = useTeamsState(s => s.dispatch.setSubteamFilter)
+type Props = {
+  setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
+  subteamFilter: string
+  teamID: T.Teams.TeamID
+}
+
+const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
   const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onCreateSubteam = () => launchNewTeamWizardOrModal(teamID)
-  const onChangeFilter = (filter: string) => setSubteamFilter(filter, teamID)
+  const onChangeFilter = (filter: string) => setSubteamFilter(filter)
   // clear filter on unmount
   React.useEffect(
     () => () => {

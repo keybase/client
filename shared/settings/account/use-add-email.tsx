@@ -25,14 +25,6 @@ export const useAddEmail = () => {
   const setAddedEmail = useSettingsEmailState(s => s.dispatch.setAddedEmail)
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const [error, setError] = React.useState('')
-  const mountedRef = React.useRef(true)
-
-  React.useEffect(
-    () => () => {
-      mountedRef.current = false
-    },
-    []
-  )
 
   const clearError = React.useCallback(() => {
     setError('')
@@ -61,9 +53,7 @@ export const useAddEmail = () => {
         onSuccess(email)
       },
       error_ => {
-        if (mountedRef.current) {
-          setError(makeAddEmailError(error_))
-        }
+        setError(makeAddEmailError(error_))
       }
     )
   }

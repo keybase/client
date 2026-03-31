@@ -125,12 +125,13 @@ export const useBotSections = (
   ]
 }
 
-export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Teams.useTeamsState(s => s.invitesCollapsed)
-  const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = Teams.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
-  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
-
+export const useInvitesSections = (
+  teamID: T.Teams.TeamID,
+  details: T.Teams.TeamDetails,
+  collapsed: boolean,
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
+): Array<Section> => {
+  const onToggleCollapsed = () => setCollapsed(prev => !prev)
   const sections: Array<Section> = []
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
@@ -244,16 +245,23 @@ export const useChannelsSections = (
 export const useSubteamsSections = (
   teamID: T.Teams.TeamID,
   details: T.Teams.TeamDetails,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  subteamFilter: string,
+  setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
 ): Array<Section> => {
-  const subteamsFiltered = Teams.useTeamsState(s => s.subteamsFiltered)
-  const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
+  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const filterLC = subteamFilter.toLowerCase().trim()
+  const subteams = [...details.subteams]
+    .filter(subteamID => !filterLC || teamMeta.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
+    .sort()
   const sections: Array<Section> = []
 
   if (yourOperations.manageSubteams && details.subteams.size) {
     sections.push({
       data: [{type: 'subteam-add'}],
-      renderItem: () => <SubteamAddRow teamID={teamID} />,
+      renderItem: () => (
+        <SubteamAddRow teamID={teamID} subteamFilter={subteamFilter} setSubteamFilter={setSubteamFilter} />
+      ),
     } as const)
   }
   sections.push({
