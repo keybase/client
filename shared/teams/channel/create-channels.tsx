@@ -13,17 +13,9 @@ const CreateChannels = (props: Props) => {
   const teamID = props.teamID
   const teamname = useTeamsState(s => Teams.getTeamNameFromID(s, teamID))
   const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
-  const isMountedRef = React.useRef(false)
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState(false)
-
-  React.useEffect(() => {
-    isMountedRef.current = true
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
 
   React.useEffect(() => {
     setError('')
@@ -68,17 +60,13 @@ const CreateChannels = (props: Props) => {
           )
         }
         loadTeamChannelList(teamID)
-        if (isMountedRef.current) {
-          setSuccess(true)
-        }
+        setSuccess(true)
       } catch (error_) {
-        if (isMountedRef.current && error_ instanceof RPCError) {
+        if (error_ instanceof RPCError) {
           setError(error_.desc)
         }
       } finally {
-        if (isMountedRef.current) {
-          setWaiting(false)
-        }
+        setWaiting(false)
       }
     }
     void f()

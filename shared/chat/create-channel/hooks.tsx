@@ -18,14 +18,6 @@ export default (p: Props) => {
   const [description, onDescriptionChange] = React.useState('')
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  const isMountedRef = React.useRef(false)
-
-  React.useEffect(() => {
-    isMountedRef.current = true
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
 
   const onSubmit = () => {
     if (!channelname) {
@@ -74,9 +66,7 @@ export default (p: Props) => {
           previewConversation({channelname, conversationIDKey, reason: 'newChannel', teamname})
         }
       } catch (error) {
-        if (isMountedRef.current) {
-          setErrorText(upperFirst(error instanceof RPCError ? error.desc : String(error)))
-        }
+        setErrorText(upperFirst(error instanceof RPCError ? error.desc : String(error)))
       }
     }
     void f()
