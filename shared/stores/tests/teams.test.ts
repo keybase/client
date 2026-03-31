@@ -1,11 +1,9 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
 import type * as T from '@/constants/types'
-import {addMembersWizardEmptyState, emptyTeamDetails, useTeamsState} from '../teams'
+import {addMembersWizardEmptyState, useTeamsState} from '../teams'
 
 const parentTeamID = 'team-parent' as T.Teams.TeamID
-const childAlphaID = 'team-alpha' as T.Teams.TeamID
-const childBetaID = 'team-beta' as T.Teams.TeamID
 
 beforeEach(() => {
   resetAllStores()
@@ -39,35 +37,13 @@ test('channel and member selection can add, remove, and clear all choices', () =
   expect(useTeamsState.getState().teamSelectedMembers.has(parentTeamID)).toBe(false)
 })
 
-test('setSubteamFilter derives filtered subteams from team metadata and clears when empty', () => {
-  useTeamsState.setState({
-    teamDetails: new Map([[parentTeamID, {...emptyTeamDetails, subteams: new Set([childAlphaID, childBetaID])}]]),
-    teamMeta: new Map([
-      [childAlphaID, {teamname: 'acme.alpha'}],
-      [childBetaID, {teamname: 'acme.beta'}],
-    ]),
-  } as never)
-
-  useTeamsState.getState().dispatch.setSubteamFilter('alp', parentTeamID)
-  expect(useTeamsState.getState().subteamFilter).toBe('alp')
-  expect(useTeamsState.getState().subteamsFiltered).toEqual(new Set([childAlphaID]))
-
-  useTeamsState.getState().dispatch.setSubteamFilter('', parentTeamID)
-  expect(useTeamsState.getState().subteamsFiltered).toBeUndefined()
-})
-
-test('team list controls and invite collapsing update store-local view state', () => {
+test('team list controls update store-local view state', () => {
   const state = useTeamsState.getState()
 
   state.dispatch.setTeamListFilter('acme')
   state.dispatch.setTeamListSort('activity')
-  state.dispatch.toggleInvitesCollapsed(parentTeamID)
   expect(useTeamsState.getState().teamListFilter).toBe('acme')
   expect(useTeamsState.getState().teamListSort).toBe('activity')
-  expect(useTeamsState.getState().invitesCollapsed.has(parentTeamID)).toBe(true)
-
-  state.dispatch.toggleInvitesCollapsed(parentTeamID)
-  expect(useTeamsState.getState().invitesCollapsed.has(parentTeamID)).toBe(false)
 })
 
 test('add members role updates synchronize top-level and per-member roles', () => {

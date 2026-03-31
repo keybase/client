@@ -69,11 +69,18 @@ const Team = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
+  const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
+  const [subteamFilter, setSubteamFilter] = React.useState('')
 
   const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
   const teamMeta = Teams.useTeamsState(C.useDeep(s => Teams.getTeamMeta(s, teamID)))
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
+
+  React.useEffect(() => {
+    setInvitesCollapsed(false)
+    setSubteamFilter('')
+  }, [teamID])
 
   C.Router2.useSafeFocusEffect(() => {
     return () => teamSeen(teamID)
@@ -97,9 +104,9 @@ const Team = (props: Props) => {
   const sections: Array<Section> = [headerSection]
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
   const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
-  const invitesSections = useInvitesSections(teamID, teamDetails)
+  const invitesSections = useInvitesSections(teamID, teamDetails, invitesCollapsed, setInvitesCollapsed)
   const channelsSections = useChannelsSections(teamID, yourOperations)
-  const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations)
+  const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations, subteamFilter, setSubteamFilter)
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
   switch (selectedTab) {

@@ -758,10 +758,8 @@ type Store = T.Immutable<{
   addUserToTeamsState: T.Teams.AddUserToTeamsState
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   channelSelectedMembers: Map<T.Chat.ConversationIDKey, Set<string>>
-  creatingChannels: boolean
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInAddToTeam: string
-  errorInChannelCreation: string
   errorInEditDescription: string
   errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
   errorInEditWelcomeMessage: string
@@ -778,13 +776,10 @@ type Store = T.Immutable<{
   teamnames: Set<T.Teams.Teamname> // TODO remove
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
-  invitesCollapsed: Set<T.Teams.TeamID>
   teamsWithChosenChannels: Set<T.Teams.Teamname>
   teamRoleMap: T.Teams.TeamRoleMap
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
-  subteamFilter: string
-  subteamsFiltered: Set<T.Teams.TeamID> | undefined
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
   teamDetailsSubscriptionCount: Map<T.Teams.TeamID, number> // >0 if we are eagerly reloading a team
   teamSelectedChannels: Map<T.Teams.TeamID, Set<string>>
@@ -815,10 +810,8 @@ const initialStore: Store = {
   addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
   channelSelectedMembers: new Map(),
-  creatingChannels: false,
   deletedTeams: [],
   errorInAddToTeam: '',
-  errorInChannelCreation: '',
   errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
@@ -826,14 +819,11 @@ const initialStore: Store = {
   errorInSettings: '',
   errorInTeamCreation: '',
   errorInTeamJoin: '',
-  invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
-  subteamFilter: '',
-  subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
@@ -906,7 +896,6 @@ export type State = Store & {
       description?: string
       navToChatOnSuccess: boolean
     }) => void
-    createChannels: (teamID: T.Teams.TeamID, channelnames: Array<string>) => void
     createNewTeam: (
       teamname: string,
       joinSubteam: boolean,
@@ -982,7 +971,6 @@ export type State = Store & {
     ) => void
     setAddMembersWizardIndividualRole: (assertion: string, role: T.Teams.AddingMemberTeamRoleType) => void
     setAddMembersWizardRole: (role: T.Teams.AddingMemberTeamRoleType | 'setIndividually') => void
-    setChannelCreationError: (error: string) => void
     setChannelSelected: (
       teamID: T.Teams.TeamID,
       channel: string,
@@ -1004,7 +992,6 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
-    setSubteamFilter: (filter: string, parentTeam?: T.Teams.TeamID) => void
     setTeamListFilter: (filter: string) => void
     setTeamListSort: (sortOrder: T.Teams.TeamListSort) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
@@ -1038,7 +1025,6 @@ export type State = Store & {
       c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>
     ) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
-    toggleInvitesCollapsed: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamDetails: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamList: () => void
     updateChannelName: (
@@ -1443,47 +1429,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               teamname,
             })
           }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            get().dispatch.setChannelCreationError(error.desc)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    createChannels: (teamID, channelnames) => {
-      set(s => {
-        s.creatingChannels = true
-      })
-      const f = async () => {
-        const teamname = getTeamNameFromID(get(), teamID)
-        if (!teamname) {
-          get().dispatch.setChannelCreationError('Invalid team name')
-          return
-        }
-
-        try {
-          for (const c of channelnames) {
-            await T.RPCChat.localNewConversationLocalRpcPromise({
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname,
-              tlfVisibility: T.RPCGen.TLFVisibility.private,
-              topicName: c,
-              topicType: T.RPCChat.TopicType.chat,
-            })
-          }
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          get().dispatch.setChannelCreationError(error.desc)
-          return
-        }
-        get().dispatch.loadTeamChannelList(teamID)
-        set(s => {
-          s.creatingChannels = false
-        })
+        } catch {}
       }
       ignorePromise(f())
     },
@@ -2590,12 +2536,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       })
     },
-    setChannelCreationError: error => {
-      set(s => {
-        s.creatingChannels = false
-        s.errorInChannelCreation = error
-      })
-    },
     setChannelSelected: (teamID, channel, selected, clearAll) => {
       set(s => {
         if (clearAll) {
@@ -2716,21 +2656,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setSubteamFilter: (filter, parentTeam) => {
-      set(s => {
-        s.subteamFilter = filter
-        if (parentTeam && filter) {
-          const flc = filter.toLowerCase()
-          s.subteamsFiltered = new Set(
-            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
-              s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
-            )
-          )
-        } else {
-          s.subteamsFiltered = undefined
-        }
-      })
     },
     setTeamListFilter: filter => {
       set(s => {
@@ -2965,16 +2890,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    toggleInvitesCollapsed: teamID => {
-      set(s => {
-        const {invitesCollapsed} = s
-        if (invitesCollapsed.has(teamID)) {
-          invitesCollapsed.delete(teamID)
-        } else {
-          invitesCollapsed.add(teamID)
-        }
-      })
-    },
     unsubscribeTeamDetails: teamID => {
       set(s => {
         s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1)
@@ -2998,11 +2913,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
 
       try {
         await T.RPCChat.localPostMetadataRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
-      } catch (error) {
-        if (error instanceof RPCError) {
-          get().dispatch.setChannelCreationError(error.desc)
-        }
-      }
+      } catch {}
     },
     updateTeamRetentionPolicy: metas => {
       const first = metas[0]
