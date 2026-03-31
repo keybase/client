@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
+import logger from '@/logger'
 
 const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -22,29 +23,56 @@ const getOwnerDisabledReason = (
     .find(v => !!v)
 }
 
+const makeAddUserToTeamsResult = (
+  user: string,
+  teamsAddedTo: ReadonlyArray<string>,
+  errorAddingTo: ReadonlyArray<string>
+) => {
+  let result = ''
+  if (teamsAddedTo.length) {
+    result += `${user} was added to `
+    if (teamsAddedTo.length > 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
+    } else if (teamsAddedTo.length === 3) {
+      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
+    } else if (teamsAddedTo.length === 2) {
+      result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
+    } else {
+      result += `${teamsAddedTo[0]}.`
+    }
+  }
+
+  if (errorAddingTo.length) {
+    result += result.length > 0 ? ' But we ' : 'We '
+    result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
+  }
+
+  return result
+}
+
 type OwnProps = {username: string}
 const Container = (ownProps: OwnProps) => {
   const {username: them} = ownProps
   const roles = Teams.useTeamsState(s => s.teamRoleMap.roles)
   const teams = Teams.useTeamsState(s => s.teamMeta)
-  const addUserToTeamsResults = Teams.useTeamsState(s => s.addUserToTeamsResults)
-  const addUserToTeamsState = Teams.useTeamsState(s => s.addUserToTeamsState)
-  const clearAddUserToTeamsResults = Teams.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
-  const addUserToTeams = Teams.useTeamsState(s => s.dispatch.addUserToTeams)
-  const teamProfileAddList = Teams.useTeamsState(s => s.teamProfileAddList)
+  const teamNameToID = Teams.useTeamsState(s => s.teamNameToID)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
-  const _onAddToTeams = addUserToTeams
-  const getTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.getTeamProfileAddList)
-  const resetTeamProfileAddList = Teams.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
+  const loadTeamProfileAddList = C.useRPC(T.RPCGen.teamsTeamProfileAddListRpcPromise)
+  const addUserToTeam = C.useRPC(T.RPCGen.teamsTeamAddMemberRpcPromise)
+  const [teamProfileAddList, setTeamProfileAddList] = React.useState<ReadonlyArray<T.Teams.TeamProfileAddList>>([])
+  const [addUserToTeamsResults, setAddUserToTeamsResults] = React.useState('')
+  const [addUserToTeamsState, setAddUserToTeamsState] =
+    React.useState<T.Teams.AddUserToTeamsState>('notStarted')
+  const teamListRequestID = React.useRef(0)
+  const submitRequestID = React.useRef(0)
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
   const _teamNameToRole = [...teams.values()].reduce(
     (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
     new Map<string, T.Teams.MaybeTeamRoleType>()
   )
-  const onAddToTeams = (role: T.Teams.TeamRoleType, teams: Array<string>) => _onAddToTeams(role, teams, them)
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
@@ -53,17 +81,117 @@ const Container = (ownProps: OwnProps) => {
   const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, _teamNameToRole)
 
   React.useEffect(() => {
-    clearAddUserToTeamsResults()
-    getTeamProfileAddList(them)
-  }, [clearAddUserToTeamsResults, getTeamProfileAddList, them])
+    return () => {
+      teamListRequestID.current += 1
+      submitRequestID.current += 1
+    }
+  }, [])
+
+  const loadTeamList = React.useEffectEvent(() => {
+    const requestID = teamListRequestID.current + 1
+    teamListRequestID.current = requestID
+    loadTeamProfileAddList(
+      [{username: them}, C.waitingKeyTeamsProfileAddList],
+      result => {
+        if (teamListRequestID.current !== requestID) {
+          return
+        }
+        const teamlist = (result ?? []).map(team => ({
+          disabledReason: team.disabledReason,
+          open: team.open,
+          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+        }))
+        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+        setTeamProfileAddList(teamlist)
+      },
+      error => {
+        if (teamListRequestID.current !== requestID) {
+          return
+        }
+        logger.info(`Failed to load profile add-to-team list for ${them}: ${error.message}`)
+        setTeamProfileAddList([])
+      }
+    )
+  })
+
+  const onAddToTeams = React.useEffectEvent(async (role: T.Teams.TeamRoleType, teams: Array<string>) => {
+    const requestID = submitRequestID.current + 1
+    submitRequestID.current = requestID
+    setAddUserToTeamsResults('')
+    setAddUserToTeamsState('notStarted')
+
+    const teamsAddedTo: Array<string> = []
+    const errorAddingTo: Array<string> = []
+
+    for (const team of teams) {
+      const teamID = teamNameToID.get(team)
+      if (!teamID) {
+        logger.warn(`no team ID found for ${team}`)
+        errorAddingTo.push(team)
+        continue
+      }
+
+      const added = await new Promise<boolean>(resolve => {
+        addUserToTeam(
+          [
+            {
+              email: '',
+              phone: '',
+              role: T.RPCGen.TeamRole[role],
+              sendChatNotification: true,
+              teamID,
+              username: them,
+            },
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddUserToTeams(them)],
+          ],
+          () => resolve(true),
+          _ => resolve(false)
+        )
+      })
+
+      if (submitRequestID.current !== requestID) {
+        return
+      }
+
+      if (added) {
+        teamsAddedTo.push(team)
+      } else {
+        errorAddingTo.push(team)
+      }
+    }
+
+    if (submitRequestID.current !== requestID) {
+      return
+    }
+
+    const result = makeAddUserToTeamsResult(them, teamsAddedTo, errorAddingTo)
+    setAddUserToTeamsResults(result)
+    if (errorAddingTo.length > 0) {
+      setAddUserToTeamsState('failed')
+      loadTeamList()
+    } else {
+      setAddUserToTeamsState('succeeded')
+      clearModals()
+    }
+  })
+
+  React.useEffect(() => {
+    setAddUserToTeamsResults('')
+    setAddUserToTeamsState('notStarted')
+    setSelectedTeams(new Set())
+    setRolePickerOpen(false)
+    setSelectedRole('writer')
+    setSendNotification(true)
+    setTeamProfileAddList([])
+    loadTeamList()
+  }, [loadTeamList, them])
 
   const onBack = () => {
     navigateUp()
-    resetTeamProfileAddList()
   }
 
   const onSave = () => {
-    onAddToTeams(selectedRole, [...selectedTeams])
+    void onAddToTeams(selectedRole, [...selectedTeams])
   }
 
   const toggleTeamSelected = (teamName: string, selected: boolean) => {
@@ -101,15 +229,6 @@ const Container = (ownProps: OwnProps) => {
     setRolePickerOpen(false)
   }
   const onToggle = toggleTeamSelected
-
-  React.useEffect(() => {
-    if (addUserToTeamsState === 'succeeded') {
-      clearModals()
-      resetTeamProfileAddList()
-    } else if (addUserToTeamsState === 'failed') {
-      getTeamProfileAddList(them)
-    }
-  }, [addUserToTeamsState, clearModals, resetTeamProfileAddList, getTeamProfileAddList, them])
 
   const selectedTeamCount = selectedTeams.size
 
@@ -221,24 +340,6 @@ type RowProps = {
   isOpen: boolean
   onCheck: (selected: boolean) => void
   them: string
-}
-
-// This state is handled by the state wrapper in the container
-export type ComponentState = {
-  selectedTeams: Set<string>
-  onSave: () => void
-  onToggle: (teamName: string, selected: boolean) => void
-}
-
-export type AddToTeamProps = {
-  title: string
-  addUserToTeamsResults: string
-  addUserToTeamsState: T.Teams.AddUserToTeamsState
-  loadTeamList: () => void
-  onBack: () => void
-  teamProfileAddList: ReadonlyArray<T.Teams.TeamProfileAddList>
-  them: string
-  waiting: boolean
 }
 
 const TeamRow = (props: RowProps) => {
