@@ -308,7 +308,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   if (
     tabNavState.index === chatTabIndex &&
     currentChatRoute?.name === 'chatRoot' &&
-    currentChatRoute.key &&
+    chatStackState?.key &&
     nextChatRoot?.params
   ) {
     // When split chat is already showing chatRoot, update that route in place instead of
@@ -316,8 +316,8 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     // the tab becomes visible and chat selects a thread immediately afterward.
     if (!shallowEqual(currentChatRoute.params, nextChatRoot.params)) {
       n.dispatch({
-        ...CommonActions.setParams(nextChatRoot.params),
-        target: currentChatRoute.key,
+        ...CommonActions.navigate({merge: true, name: 'chatRoot', params: nextChatRoot.params}),
+        target: chatStackState.key,
       })
     }
     return
