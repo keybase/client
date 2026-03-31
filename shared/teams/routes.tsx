@@ -293,8 +293,8 @@ export const newModalRoutes = {
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
     getOptions: ({route}) => ({
-      headerLeft: () => <JoinTeamHeaderLeft success={route.params?.success} />,
-      headerTitle: () => <JoinTeamHeaderTitle success={route.params?.success} />,
+      headerLeft: () => <JoinTeamHeaderLeft success={route.params.success} />,
+      headerTitle: () => <JoinTeamHeaderTitle success={route.params.success} />,
     }),
   }),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import type {RouteProps2} from '@/router-v2/route-params'
 import Main from './main'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
@@ -42,12 +43,11 @@ const orderTeams = (
   })
 }
 
-type Props = {
-  filter?: string
-  sort?: T.Teams.TeamListSort
-}
+type Props = RouteProps2<'teamsRoot'>
 
-const Connected = ({filter = '', sort = 'role'}: Props) => {
+const Connected = ({navigation, route}: Props) => {
+  const filter = route.params?.filter ?? ''
+  const sort = route.params?.sort ?? 'role'
   const data = Teams.useTeamsState(
     C.useShallow(s => {
       const {deletedTeams, activityLevels, teamMeta, dispatch} = s
@@ -86,7 +86,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         deletedTeams={deletedTeams}
-        onChangeSort={sortOrder => C.Router2.navigateAppend({name: 'teamsRoot', params: {filter, sort: sortOrder}}, true)}
+        onChangeSort={sortOrder => navigation.setParams({...(route.params ?? {}), filter, sort: sortOrder})}
         sortOrder={sort}
         teams={teams}
       />

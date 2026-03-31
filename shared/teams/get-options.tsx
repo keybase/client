@@ -16,9 +16,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const {params} = useRoute<RootRouteProps<'teamsRoot'>>()
+  const params = useRoute<RootRouteProps<'teamsRoot'>>().params ?? {}
   const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamsRoot'>>()
-  const filterValue = params?.filter ?? ''
+  const filterValue = params.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)
   const setFilter = (filter: string) => navigation.setParams({...params, filter})
   return numTeams >= 20 ? (

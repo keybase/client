@@ -184,7 +184,7 @@ const Container = (ownProps: OwnProps) => {
     setSendNotification(true)
     setTeamProfileAddList([])
     loadTeamList()
-  }, [loadTeamList, them])
+  }, [them])
 
   const onBack = () => {
     navigateUp()

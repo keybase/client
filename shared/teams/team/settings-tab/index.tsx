@@ -13,6 +13,7 @@ import isEqual from 'lodash/isEqual'
 type Props = {
   allowOpenTrigger: number
   canShowcase: boolean
+  error?: string
   isBigTeam: boolean
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
@@ -185,7 +186,7 @@ const IgnoreAccessRequests = (props: {
 }
 
 export const Settings = (p: Props) => {
-  const {savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
+  const {error, savePublicity, isBigTeam, teamID, yourOperations, teamname, showOpenTeamWarning} = p
   const {canShowcase, allowOpenTrigger} = p
 
   const [newPublicityAnyMember, setNewPublicityAnyMember] = React.useState(p.publicityAnyMember)
