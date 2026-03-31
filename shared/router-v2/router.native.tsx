@@ -177,7 +177,6 @@ const appTabsScreenOptions = (
           tabBarActiveTintColor: Kb.Styles.globalColors.white,
           tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
         }),
-    tabBarControllerMode: C.isIOS && C.isTablet ? ('tabBar' as const) : undefined,
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarLabelVisibilityMode: C.isTablet ? ('labeled' as const) : ('unlabeled' as const),
