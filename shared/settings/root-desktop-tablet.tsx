@@ -91,6 +91,7 @@ const settingsScreens = routeMapToScreenElements(
   makeLayout,
   makeOptions,
   false,
+  false,
   false
 )
 

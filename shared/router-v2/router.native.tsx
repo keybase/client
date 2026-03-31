@@ -63,7 +63,7 @@ const tabStackOptions = ({
 
 // On phones, each tab stack only contains its root screen. All other routes live in
 // the root stack (alongside chatConversation) so they render above the tab bar.
-const tabRootNameSet = new Set(Object.values(tabRoots).filter(Boolean))
+const tabRootNameSet = new Set<string>(Object.values(tabRoots).filter(Boolean))
 const phoneRootRoutes = Object.fromEntries(
   Object.entries(tabRoutes).filter(([name]) => !tabRootNameSet.has(name))
 ) as typeof tabRoutes
