@@ -26,7 +26,7 @@ import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
-import {colors, darkColors} from '@/styles/colors'
+import {colors} from '@/styles/colors'
 
 const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
 

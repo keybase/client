@@ -20,9 +20,13 @@ import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
 type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<React.ComponentType<infer P extends Record<string, unknown> | undefined>> ? P
-  : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined> ? P
-  : undefined
+  T extends React.LazyExoticComponent<
+    React.ComponentType<infer P extends Record<string, unknown> | undefined>
+  >
+    ? P
+    : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined>
+      ? P
+      : undefined
 
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
@@ -157,7 +161,9 @@ export const useSafeFocusEffect = (fn: () => void) => {
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
-  options?: {getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)}
+  options?: {
+    getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)
+  }
 ) {
   return {
     ...options,
@@ -177,7 +183,9 @@ export const clearModals = () => {
     return
   }
   const rootRoutes = ns?.routes ?? []
-  const keepRoutes = rootRoutes.filter((route, index) => index === 0 || rootNonModalRouteNames.has(route.name))
+  const keepRoutes = rootRoutes.filter(
+    (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
+  )
   if (keepRoutes.length !== rootRoutes.length) {
     n.dispatch({
       ...CommonActions.reset({
@@ -284,7 +292,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const chatTabIndex = tabRoutes.findIndex(r => r.name === Tabs.chatTab)
   if (chatTabIndex < 0) return
   const chatTabRoute = tabRoutes[chatTabIndex]
-  const chatStackState = chatTabRoute.state
+  const chatStackState = chatTabRoute?.state
   const chatStackRoutes = chatStackState?.routes as Array<Route> | undefined
   const chatStackIndex = chatStackState?.index ?? 0
   const currentChatRoute = chatStackRoutes?.[chatStackIndex]
@@ -292,7 +300,9 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
     const currentParams =
-      currentChatRoot?.name === 'chatRoot' && currentChatRoot.params && typeof currentChatRoot.params === 'object'
+      currentChatRoot?.name === 'chatRoot' &&
+      currentChatRoot.params &&
+      typeof currentChatRoot.params === 'object'
         ? currentChatRoot.params
         : undefined
     return {
@@ -304,7 +314,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
       },
     }
   })
-  const nextChatRoot = updatedRoutes[chatTabIndex]?.state?.routes?.[0]
+  const nextChatRoot = updatedRoutes[chatTabIndex]?.state?.routes[0]
   if (
     tabNavState.index === chatTabIndex &&
     currentChatRoute?.name === 'chatRoot' &&
@@ -323,7 +333,9 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     return
   }
   n.dispatch({
-    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<typeof CommonActions.reset>[0]),
+    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
+      typeof CommonActions.reset
+    >[0]),
     target: tabNavState.key,
   })
 }
