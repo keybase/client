@@ -14,7 +14,6 @@ import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/r
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
 import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
 // We have normal routes, modal routes, and logged out routes.
@@ -165,12 +164,12 @@ export function routeMapToScreenElements(
   isLoggedOut: boolean,
   isTabScreen: boolean
 ) {
-  return (Object.keys(rs) as Array<keyof KBRootParamList>).flatMap(name => {
-    const rd = rs[name as string]
+  return Object.keys(rs).flatMap(name => {
+    const rd = rs[name]
     if (!rd) return []
     return [
       <Screen
-        key={String(name)}
+        key={name}
         name={name}
         component={rd.screen}
         layout={makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions)}

@@ -275,7 +275,7 @@ export const initPlatformListener = () => {
           routeName = cur
         }
         const ap = getVisiblePath()
-        ap.some(r => {
+        ap.some((r: ReturnType<typeof getVisiblePath>[number]) => {
           if (r.name === 'chatConversation') {
             const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
             param = {selectedConversationIDKey: rParams?.conversationIDKey}

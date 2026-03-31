@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 type ModalHeaderProps = {
@@ -71,7 +71,7 @@ const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, n
 type ModalWrapperProps = {
   children: React.ReactNode
   navigationOptions?: GetOptionsRet
-  navigation: NativeStackNavigationProp<KBRootParamList>
+  navigation: NativeStackNavigationProp<ParamListBase, string>
 }
 
 const ModalWrapper = (p: ModalWrapperProps) => {

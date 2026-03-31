@@ -1,17 +1,16 @@
 import type * as Styles from '@/styles'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp, NativeStackNavigationOptions} from '@react-navigation/native-stack'
-import type {RouteProp} from '@react-navigation/native'
+import type {ParamListBase, RouteProp} from '@react-navigation/native'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
-export type GetOptionsParams<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
-  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
-  route: RouteProp<KBRootParamList, RouteName>
+export type GetOptionsParams<RouteName extends string = string> = {
+  navigation: NativeStackNavigationProp<ParamListBase, RouteName>
+  route: RouteProp<ParamListBase, RouteName>
 }
 
 export type ScreenComponentProps = {
   route: {params: any}
-  navigation: NativeStackNavigationProp<KBRootParamList>
+  navigation: NativeStackNavigationProp<ParamListBase, string>
 }
 // Properties consumed by our layout functions (not React Navigation)
 export type LayoutOptions = {

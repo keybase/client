@@ -3,7 +3,9 @@ import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamsState} from '@/stores/teams'
 import {useNavigation, useRoute} from '@react-navigation/native'
-import type {RootParamList, RootRouteProps} from '@/router-v2/route-params'
+import type {RouteProp} from '@react-navigation/native'
+import type {RootParamList} from '@/router-v2/route-params'
+import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const useHeaderActions = () => {
@@ -16,7 +18,8 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const params = useRoute<RootRouteProps<'teamsRoot'>>().params ?? {}
+  const route = useRoute<RouteProp<RootParamList, 'teamsRoot'>>()
+  const params = getRouteParamsFromRoute<'teamsRoot'>(route) ?? {}
   const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'teamsRoot'>>()
   const filterValue = params.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)
