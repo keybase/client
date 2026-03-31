@@ -3,7 +3,6 @@ import {ignorePromise, wrapErrors} from '@/constants/utils'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {
-  getVisibleScreen,
   clearModals,
   navigateAppend,
   navigateUp,
@@ -890,12 +889,6 @@ export type State = Store & {
     checkRequestedAccess: (teamname: string) => void
     clearAddUserToTeamsResults: () => void
     clearNavBadges: () => void
-    createChannel: (p: {
-      teamID: T.Teams.TeamID
-      channelname: string
-      description?: string
-      navToChatOnSuccess: boolean
-    }) => void
     createNewTeam: (
       teamname: string,
       joinSubteam: boolean,
@@ -1369,67 +1362,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         } catch (err) {
           logError(err)
         }
-      }
-      ignorePromise(f())
-    },
-    createChannel: p => {
-      const f = async () => {
-        const {channelname, description, teamID, navToChatOnSuccess} = p
-        const teamname = getTeamNameFromID(get(), teamID)
-        if (teamname === undefined) {
-          logger.warn('Team name was not in store!')
-          return
-        }
-        try {
-          const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-            {
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname,
-              tlfVisibility: T.RPCGen.TLFVisibility.private,
-              topicName: channelname,
-              topicType: T.RPCChat.TopicType.chat,
-            },
-            S.waitingKeyTeamsCreateChannel(teamID)
-          )
-          // No error if we get here.
-          const newConversationIDKey = T.Chat.conversationIDToKey(result.conv.info.id)
-          if (!newConversationIDKey) {
-            logger.warn('No convoid from newConvoRPC')
-            return
-          }
-          // If we were given a description, set it
-          if (description) {
-            await T.RPCChat.localPostHeadlineNonblockRpcPromise(
-              {
-                clientPrev: 0,
-                conversationID: result.conv.info.id,
-                headline: description,
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                tlfName: teamname,
-                tlfPublic: false,
-              },
-              S.waitingKeyTeamsCreateChannel(teamID)
-            )
-          }
-
-          // Dismiss the create channel dialog.
-          const visibleScreen = getVisibleScreen()
-          if (visibleScreen?.name === 'chatCreateChannel') {
-            clearModals()
-          }
-          // Reload on team page
-          get().dispatch.loadTeamChannelList(teamID)
-          // Select the new channel, and switch to the chat tab.
-          if (navToChatOnSuccess) {
-            get().dispatch.defer.onChatPreviewConversation?.({
-              channelname,
-              conversationIDKey: newConversationIDKey,
-              reason: 'newChannel',
-              teamname,
-            })
-          }
-        } catch {}
       }
       ignorePromise(f())
     },
