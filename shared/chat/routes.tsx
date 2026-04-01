@@ -47,6 +47,9 @@ type ChatSearchBotsRouteParams = {
 type ChatShowNewTeamDialogRouteParams = {
   conversationIDKey?: T.Chat.ConversationIDKey
 }
+const emptyChatBlockingRouteParams: ChatBlockingRouteParams = {}
+const emptyChatSearchBotsRouteParams: ChatSearchBotsRouteParams = {}
+const emptyChatShowNewTeamDialogRouteParams: ChatShowNewTeamDialogRouteParams = {}
 
 const PDFShareButton = ({url}: {url?: string}) => {
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
@@ -175,9 +178,14 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/attachment-get-titles')),
     {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
   ),
-  chatBlockingModal: withRouteParams<ChatBlockingRouteParams>(Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
-    getOptions: {headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />},
-  })),
+  chatBlockingModal: withRouteParams<ChatBlockingRouteParams>({
+    ...Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
+      getOptions: {
+        headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
+      },
+    }),
+    initialParams: emptyChatBlockingRouteParams,
+  }),
   chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container')), {
     getOptions: {headerShown: false},
   }),
@@ -234,12 +242,13 @@ export const newModalRoutes = defineRouteMap({
       overlayStyle: {alignSelf: 'stretch'},
     }),
   }),
-  chatSearchBots: withRouteParams<ChatSearchBotsRouteParams>(
-    Chat.makeChatScreen(React.lazy(async () => import('./conversation/bot/search')), {
+  chatSearchBots: withRouteParams<ChatSearchBotsRouteParams>({
+    ...Chat.makeChatScreen(React.lazy(async () => import('./conversation/bot/search')), {
       canBeNullConvoID: true,
       getOptions: {title: 'Add a bot'},
-    })
-  ),
+    }),
+    initialParams: emptyChatSearchBotsRouteParams,
+  }),
   chatSendToChat: Chat.makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
     {
@@ -250,9 +259,10 @@ export const newModalRoutes = defineRouteMap({
       skipProvider: true,
     }
   ),
-  chatShowNewTeamDialog: withRouteParams<ChatShowNewTeamDialogRouteParams>(
-    Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container')))
-  ),
+  chatShowNewTeamDialog: withRouteParams<ChatShowNewTeamDialogRouteParams>({
+    ...Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+    initialParams: emptyChatShowNewTeamDialogRouteParams,
+  }),
   chatUnfurlMapPopup: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
     {getOptions: {title: 'Location'}}

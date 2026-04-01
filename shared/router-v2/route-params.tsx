@@ -33,6 +33,8 @@ type ExtractScreenParams<Screen> =
       : undefined
 type ExtractRouteParams<Route> = Route extends RouteDef<any, infer Params>
   ? NormalizeParams<Params>
+  : Route extends {initialParams: infer Params}
+    ? NormalizeParams<Params>
   : '__routeParams' extends keyof Route
     ? Route extends {__routeParams?: infer Params}
       ? NormalizeParams<Params>

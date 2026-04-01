@@ -72,11 +72,15 @@ const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet
 const EmptySettingsScreen = () => <></>
 const ManageContactsScreen: React.ComponentType =
   C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
+const emptyFeedbackParams: FeedbackRouteParams = {}
 
 const feedback = withRouteParams<FeedbackRouteParams>(
-  C.makeScreen(React.lazy(async () => import('./feedback/container')), {
-    getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
-  })
+  {
+    ...C.makeScreen(React.lazy(async () => import('./feedback/container')), {
+      getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
+    }),
+    initialParams: emptyFeedbackParams,
+  }
 )
 
 export const sharedNewRoutes = defineRouteMap({
