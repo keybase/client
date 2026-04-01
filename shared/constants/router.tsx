@@ -11,7 +11,7 @@ import {
   type NavigationState,
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
-import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {NavigateAppendArg, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
@@ -56,7 +56,6 @@ registerDebugClear(() => {
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
-export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
@@ -248,7 +247,10 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export const navigateAppend = (path: PathParam, replace?: boolean) => {
+export const navigateAppend = <RouteName extends RouteKeys>(
+  path: NavigateAppendArg<RouteName>,
+  replace?: boolean
+) => {
   DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
   const n = _getNavigator()
   if (!n) {

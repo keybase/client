@@ -3632,10 +3632,13 @@ export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; c
   )
 }
 
-import type {NavigateAppendType} from '@/router-v2/route-params'
+import type {NavigateAppendArg, RouteKeys} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const cid = useChatContext(s => s.id)
-  return (makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendType, replace?: boolean) => {
+  return <RouteName extends RouteKeys>(
+    makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendArg<RouteName>,
+    replace?: boolean
+  ) => {
     navigateAppend(makePath(cid), replace)
   }
 }

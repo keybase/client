@@ -87,12 +87,10 @@ type KeybaseRootParamList = _ExtractParams<_AllScreens> &
 export type RootParamList = KeybaseRootParamList
 
 export type RouteKeys = keyof RootParamList
-type Distribute<U> = U extends RouteKeys
-  ? RootParamList[U] extends undefined
-    ? U
-    : {name: U; params: RootParamList[U]}
-  : never
-export type NavigateAppendType = Distribute<RouteKeys>
+export type NavigateAppendArg<RouteName extends RouteKeys> = RootParamList[RouteName] extends undefined
+  ? RouteName
+  : {name: RouteName; params: RootParamList[RouteName]}
+export type NavigateAppendType = NavigateAppendArg<RouteKeys>
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
 export type RouteProps2<RouteName extends keyof RootParamList> = {
