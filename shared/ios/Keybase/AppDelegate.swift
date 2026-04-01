@@ -1,12 +1,12 @@
+import AVFoundation
 import Expo
+import ExpoModulesCore
+import KBCommon
+import Keybasego
 import React
 import ReactAppDependencyProvider
-import KBCommon
 import UIKit
 import UserNotifications
-import AVFoundation
-import ExpoModulesCore
-import Keybasego
 
 class KeyboardWindow: UIWindow {
   override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -17,13 +17,15 @@ class KeyboardWindow: UIWindow {
 
     if key.keyCode == .keyboardReturnOrEnter {
       if key.modifierFlags.contains(.shift) {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
-                                      object: nil,
-                                      userInfo: ["pressedKey": "shift-enter"])
+        NotificationCenter.default.post(
+          name: NSNotification.Name("hardwareKeyPressed"),
+          object: nil,
+          userInfo: ["pressedKey": "shift-enter"])
       } else {
-        NotificationCenter.default.post(name: NSNotification.Name("hardwareKeyPressed"),
-                                      object: nil,
-                                      userInfo: ["pressedKey": "enter"])
+        NotificationCenter.default.post(
+          name: NSNotification.Name("hardwareKeyPressed"),
+          object: nil,
+          userInfo: ["pressedKey": "enter"])
       }
       return
     }
@@ -33,7 +35,9 @@ class KeyboardWindow: UIWindow {
 }
 
 @UIApplicationMain
-public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInteractionDelegate {
+public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
+  UIDropInteractionDelegate
+{
   var window: UIWindow?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
@@ -62,9 +66,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
-    let wd = MainThreadWatchdog(appStartTime: AppDelegate.appStartTime, writeLog: { [weak self] msg in
-      self?.writeStartupTimingLog(msg)
-    })
+    let wd = MainThreadWatchdog(
+      appStartTime: AppDelegate.appStartTime,
+      writeLog: { [weak self] msg in
+        self?.writeStartupTimingLog(msg)
+      })
     wd.start(context: "cold start")
     self.watchdog = wd
 
@@ -75,11 +81,14 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     wd.install()
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
-      let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
+      let notificationDict = Dictionary(
+        uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
       KbSetInitialNotification(notificationDict)
     }
 
-    NotificationCenter.default.addObserver(forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main) { [weak self] notification in
+    NotificationCenter.default.addObserver(
+      forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main
+    ) { [weak self] notification in
       NSLog("Memory warning received - deferring GC during React Native initialization")
       // see if this helps avoid this crash
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -98,13 +107,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     reactNativeFactory = factory
     bindReactNativeFactory(factory)
 
-#if os(iOS) || os(tvOS)
-    window = KeyboardWindow(frame: UIScreen.main.bounds)
-    factory.startReactNative(
-      withModuleName: "Keybase",
-      in: window,
-      launchOptions: launchOptions)
-#endif
+    #if os(iOS) || os(tvOS)
+      window = KeyboardWindow(frame: UIScreen.main.bounds)
+      factory.startReactNative(
+        withModuleName: "Keybase",
+        in: window,
+        launchOptions: launchOptions)
+    #endif
 
     self.writeStartupTimingLog("After RN init")
     self.closeStartupLogFile()
@@ -125,7 +134,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
+    return super.application(app, open: url, options: options)
+      || RCTLinkingManager.application(app, open: url, options: options)
   }
 
   // Universal Links
@@ -134,8 +144,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
   ) -> Bool {
-    let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
-    return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
+    let result = RCTLinkingManager.application(
+      application, continue: userActivity, restorationHandler: restorationHandler)
+    return super.application(
+      application, continue: userActivity, restorationHandler: restorationHandler) || result
   }
 
   /////// KB specific
@@ -182,7 +194,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
 
     let fileName = URL(fileURLWithPath: file).lastPathComponent
-    let logMessage = String(format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
+    let logMessage = String(
+      format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message
+    )
 
     guard let logData = logMessage.data(using: .utf8) else {
       return
@@ -217,11 +231,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     let isIPad = UIDevice.current.userInterfaceIdiom == .pad
     let isIOS = true
 
-#if targetEnvironment(simulator)
-    let securityAccessGroupOverride = true
-#else
-    let securityAccessGroupOverride = false
-#endif
+    #if targetEnvironment(simulator)
+      let securityAccessGroupOverride = true
+    #else
+      let securityAccessGroupOverride = false
+    #endif
 
     self.writeStartupTimingLog("Before Go init")
 
@@ -229,7 +243,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     NSLog("Starting KeybaseInit (synchronous)...")
     var err: NSError?
     let shareIntentDonator = ShareIntentDonatorImpl()
-    Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
+    Keybasego.KeybaseInit(
+      self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod",
+      securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err
+    )
     if let err { NSLog("KeybaseInit FAILED: \(err)") }
 
     self.writeStartupTimingLog("After Go init")
@@ -272,7 +289,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.resignImageView?.image = UIImage(named: "LaunchImage")
     if let view = self.resignImageView { self.window?.addSubview(view) }
 
-    UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+    UIApplication.shared.setMinimumBackgroundFetchInterval(
+      UIApplication.backgroundFetchIntervalMinimum)
   }
 
   func addDrop(_ rootView: UIView) {
@@ -281,15 +299,20 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     rootView.addInteraction(dropInteraction)
   }
 
-  public func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
+  public func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession)
+    -> Bool
+  {
     return true
   }
 
-  public func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
+  public func dropInteraction(
+    _ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession
+  ) -> UIDropProposal {
     return UIDropProposal(operation: .copy)
   }
 
-  public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
+  public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession)
+  {
     var items: [NSItemProvider] = []
     session.items.forEach { item in items.append(item.itemProvider) }
 
@@ -302,7 +325,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     self.iph?.startProcessing()
   }
 
-  public override func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+  public override func application(
+    _ application: UIApplication,
+    performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
     let fetchStart = CFAbsoluteTimeGetCurrent()
     NSLog("Background fetch queued...")
     DispatchQueue.global(qos: .default).async {
@@ -318,13 +344,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     }
   }
 
-  public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+  public override func application(
+    _ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
     let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
     let token = tokenParts.joined()
     KbSetDeviceToken(token)
   }
 
-  public override func application(_ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+  public override func application(
+    _ application: UIApplication, didReceiveRemoteNotification notification: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
     guard let type = notification["type"] as? String else { return }
     if type == "chat.newmessageSilent_2" {
       DispatchQueue.global(qos: .default).async {
@@ -341,26 +372,34 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         let pusher = PushNotifier()
 
         var err: NSError?
-        Keybasego.KeybaseHandleBackgroundNotification(convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, pusher, false, &err)
+        Keybasego.KeybaseHandleBackgroundNotification(
+          convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount,
+          unixTime, soundName, pusher, false, &err)
         if let err { NSLog("Failed to handle in engine: \(err)") }
         completionHandler(.newData)
         NSLog("Remote notification handle finished...")
       }
     } else {
-      var notificationDict = Dictionary(uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
+      var notificationDict = Dictionary(
+        uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
       notificationDict["userInteraction"] = false
       KbEmitPushNotification(notificationDict)
       completionHandler(.newData)
     }
   }
 
-  public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+  public func userNotificationCenter(
+    _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
     let userInfo = response.notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    var notificationDict = Dictionary(
+      uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = true
 
     let type = notificationDict["type"] as? String ?? "unknown"
-    let convID = notificationDict["convID"] as? String ?? notificationDict["c"] as? String ?? "unknown"
+    let convID =
+      notificationDict["convID"] as? String ?? notificationDict["c"] as? String ?? "unknown"
 
     // Store the notification so it can be processed when app becomes active
     // This ensures navigation works even if React Native isn't ready yet
@@ -371,9 +410,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     completionHandler()
   }
 
-  public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+  public func userNotificationCenter(
+    _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
     let userInfo = notification.request.content.userInfo
-    var notificationDict = Dictionary(uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
+    var notificationDict = Dictionary(
+      uniqueKeysWithValues: userInfo.map { (String(describing: $0.key), $0.value) })
     notificationDict["userInteraction"] = false
     KbEmitPushNotification(notificationDict)
     completionHandler([])
@@ -445,7 +488,10 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
     Keybasego.KeybaseFlushLogs()
     let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
     let fgGap = fgEnterTime > 0 ? CFAbsoluteTimeGetCurrent() - fgEnterTime : 0
-    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch, %.0fms after willEnterForeground", elapsed * 1000, fgGap * 1000))
+    writeStartupTimingLog(
+      String(
+        format: "applicationDidBecomeActive: %.1fms after launch, %.0fms after willEnterForeground",
+        elapsed * 1000, fgGap * 1000))
     NSLog("[Startup] applicationDidBecomeActive: %.0fms after willEnterForeground", fgGap * 1000)
     NSLog("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
@@ -463,9 +509,11 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
         if alreadyReEmitted {
           KbSetInitialNotification(storedNotification)
         } else {
-          NSLog("applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
+          NSLog(
+            "applicationDidBecomeActive: stored notification has userInteraction=true, emitting")
           KbEmitPushNotification(storedNotification)
-          var copy = Dictionary(uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
+          var copy = Dictionary(
+            uniqueKeysWithValues: storedNotification.map { (String(describing: $0.key), $0.value) })
           copy["reEmittedInBecomeActive"] = true
           KbSetInitialNotification(copy)
         }
@@ -480,7 +528,9 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UID
   public override func applicationWillEnterForeground(_ application: UIApplication) {
     fgEnterTime = CFAbsoluteTimeGetCurrent()
     let bgDuration = fgEnterTime - bgEnterWallTime
-    NSLog("applicationWillEnterForeground: start, hiding keyz screen (%.1fs since background)", bgDuration)
+    NSLog(
+      "applicationWillEnterForeground: start, hiding keyz screen (%.1fs since background)",
+      bgDuration)
     hideCover()
     NSLog("applicationWillEnterForeground: done")
   }
@@ -495,15 +545,10 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   // Extension point for config-plugins
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
-    // needed to return the correct URL for expo-dev-client.
-    bridge.bundleURL ?? bundleURL()
+    bundleURL()
   }
 
   override func bundleURL() -> URL? {
-#if DEBUG
-    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry")
-#else
     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
   }
 }
