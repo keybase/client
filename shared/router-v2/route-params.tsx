@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import type {RouteDef} from '@/constants/types/router'
 import type {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import type {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
 import type {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
@@ -30,10 +31,12 @@ type ExtractScreenParams<Screen> =
           ? NormalizeParams<Params>
           : undefined
       : undefined
-type ExtractRouteParams<Route> = '__routeParams' extends keyof Route
-  ? Route extends {__routeParams?: infer Params}
-    ? NormalizeParams<Params>
-    : undefined
+type ExtractRouteParams<Route> = Route extends RouteDef<any, infer Params>
+  ? NormalizeParams<Params>
+  : '__routeParams' extends keyof Route
+    ? Route extends {__routeParams?: infer Params}
+      ? NormalizeParams<Params>
+      : undefined
   : Route extends {screen: infer Screen}
     ? ExtractScreenParams<Screen>
     : undefined

@@ -6,7 +6,8 @@ import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 import {settingsFeedbackTab} from '@/constants/settings'
-import {defineRouteMap} from '@/constants/types/router'
+import {defineRouteMap, withRouteParams} from '@/constants/types/router'
+import type {Props as FeedbackRouteParams} from '../settings/feedback/container'
 
 const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
@@ -25,7 +26,7 @@ const recoverPasswordGetOptions = {
 }
 
 export const newRoutes = defineRouteMap({
-  feedback: settingsRoutes[settingsFeedbackTab],
+  feedback: withRouteParams<FeedbackRouteParams>(settingsRoutes[settingsFeedbackTab]),
   login: {getOptions: {headerShown: false}, screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
     getOptions: {title: 'Recover password'},
