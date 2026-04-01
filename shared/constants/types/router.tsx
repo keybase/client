@@ -115,3 +115,7 @@ type RouteDefMatchesScreen<R> =
 export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(
   routes: Routes & {[K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>}
 ) => routes
+
+export const withRouteParams = <Params, Screen extends AnyScreen>(
+  route: RouteDef<Screen>
+): RouteDef<Screen, Params> => route as RouteDef<Screen, Params>

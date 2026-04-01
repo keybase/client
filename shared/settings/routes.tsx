@@ -5,11 +5,10 @@ import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
-import {defineRouteMap} from '@/constants/types/router'
+import {defineRouteMap, withRouteParams} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import type {StaticScreenProps} from '@react-navigation/core'
 import type {Props as FeedbackRouteParams} from './feedback/container'
 
 const PushPromptSkipButton = () => {
@@ -73,16 +72,11 @@ const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet
 const EmptySettingsScreen = () => <></>
 const ManageContactsScreen: React.ComponentType =
   C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
-const FeedbackScreen = React.lazy(async () => {
-  const {default: FeedbackContainer} = await import('./feedback/container')
-  return {
-    default: (p: StaticScreenProps<FeedbackRouteParams>) => <FeedbackContainer {...(p.route.params ?? {})} />,
-  }
-})
 
-const feedback = C.makeScreen(
-  FeedbackScreen,
-  {getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {}}
+const feedback = withRouteParams<FeedbackRouteParams>(
+  C.makeScreen(React.lazy(async () => import('./feedback/container')), {
+    getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
+  })
 )
 
 export const sharedNewRoutes = defineRouteMap({
