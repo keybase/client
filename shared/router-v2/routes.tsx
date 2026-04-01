@@ -131,6 +131,8 @@ type RouteDefForScreen<R> =
 type CheckedRouteMap<Routes extends Record<string, {screen: AnyScreen}>> = Routes & {
   [K in keyof Routes]: RouteDefForScreen<Routes[K]>
 }
+type CheckedRouteEntry<Routes extends Record<string, {screen: AnyScreen}>> =
+  CheckedRouteMap<Routes>[keyof Routes]
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
@@ -152,8 +154,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, {screen:
       screen: React.ComponentType<any>
     }
   > = {}
-  for (const [name, rd] of Object.entries(rs) as Array<[string, RS[keyof RS]]>) {
-    if (!rd) continue
+  for (const [name, rd] of Object.entries(rs) as Array<[string, CheckedRouteEntry<RS>]>) {
     result[name] = {
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
@@ -179,8 +180,7 @@ export function routeMapToScreenElements<const RS extends Record<string, {screen
   isTabScreen: boolean
 ) {
   return (Object.keys(rs) as Array<keyof RS & string>).flatMap(name => {
-    const rd = rs[name]
-    if (!rd) return []
+    const rd = rs[name] as CheckedRouteEntry<RS>
     return [
       <Screen
         key={name}
