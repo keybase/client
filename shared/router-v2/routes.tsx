@@ -118,51 +118,15 @@ type MakeLayoutFn = (
   getOptions?: GetOptions
 ) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
-type AnyScreen = React.ComponentType<any>
-type RouteDefForScreen<R> =
-  R extends {screen: infer Screen}
-    ? Screen extends AnyScreen
-      ? Omit<R, '__routeParams' | 'getOptions' | 'initialParams' | 'screen'> & {
-          __routeParams?: R extends {__routeParams?: infer Params}
-            ? Params
-            : React.ComponentProps<Screen> extends {route: {params: infer Params}}
-              ? Params
-              : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
-                ? Params
-                : undefined
-          getOptions?: GetOptions<Screen>
-          initialParams?: (R extends {__routeParams?: infer Params}
-            ? Params
-            : React.ComponentProps<Screen> extends {route: {params: infer Params}}
-              ? Params
-              : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
-                ? Params
-                : undefined) extends undefined
-            ? undefined
-            : R extends {__routeParams?: infer Params}
-              ? Params
-              : React.ComponentProps<Screen> extends {route: {params: infer Params}}
-                ? Params
-                : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
-                  ? Params
-                  : undefined
-          screen: Screen
-        }
-      : never
-    : never
-type CheckedRouteMap<Routes extends Record<string, {screen: AnyScreen}>> = Routes & {
-  [K in keyof Routes]: RouteDefForScreen<Routes[K]>
-}
-type CheckedRouteEntry<Routes extends Record<string, {screen: AnyScreen}>> =
-  CheckedRouteMap<Routes>[keyof Routes]
+type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
   return opts as NativeStackNavigationOptions
 }
 
-export function routeMapToStaticScreens<const RS extends Record<string, {screen: AnyScreen}>>(
-  rs: CheckedRouteMap<RS>,
+export function routeMapToStaticScreens<const RS extends Record<string, RouteDef>>(
+  rs: RS,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
   isLoggedOut: boolean,
@@ -194,8 +158,8 @@ export function routeMapToStaticScreens<const RS extends Record<string, {screen:
   return result
 }
 
-export function routeMapToScreenElements<const RS extends Record<string, {screen: AnyScreen}>>(
-  rs: CheckedRouteMap<RS>,
+export function routeMapToScreenElements<const RS extends Record<string, RouteDef>>(
+  rs: RS,
   Screen: React.ComponentType<any>,
   makeLayoutFn: MakeLayoutFn,
   makeOptionsFn: MakeOptionsFn,

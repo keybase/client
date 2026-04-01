@@ -5,6 +5,7 @@ import peopleTeamBuilder from '../team-building/page'
 import ProfileSearch from '../profile/search'
 import {useCurrentUserState} from '@/stores/current-user'
 import {settingsLogOutTab} from '@/constants/settings'
+import {defineRouteMap} from '@/constants/types/router'
 
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
@@ -13,7 +14,7 @@ const HeaderAvatar = () => {
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   peopleRoot: {
     getOptions: {
       headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
@@ -21,7 +22,7 @@ export const newRoutes = {
     },
     screen: React.lazy(async () => import('./container')),
   },
-}
+})
 
 const AccountSignOutButton = () => {
   const navigateAppend = C.Router2.navigateAppend
@@ -36,10 +37,10 @@ const AccountSignOutButton = () => {
   )
 }
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   accountSwitcher: {
     getOptions: {headerRight: () => <AccountSignOutButton />},
     screen: React.lazy(async () => import('../router-v2/account-switcher')),
   },
   peopleTeamBuilder,
-}
+})

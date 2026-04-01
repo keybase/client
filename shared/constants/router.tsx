@@ -20,16 +20,22 @@ import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
 type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<
-    React.ComponentType<infer P extends Record<string, unknown> | undefined>
-  >
+  T extends React.LazyExoticComponent<React.ComponentType<infer P>>
     ? P
-    : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined>
+    : T extends React.ComponentType<infer P>
       ? P
       : undefined
 
+type IsExactlyRecord<T> = [T] extends [Record<string, unknown>]
+  ? [Record<string, unknown>] extends [T]
+    ? true
+    : false
+  : false
+
 type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
-  ? keyof P extends never
+  ? IsExactlyRecord<P> extends true
+    ? undefined
+    : keyof P extends never
     ? undefined
     : P
   : undefined
