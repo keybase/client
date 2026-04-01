@@ -5,6 +5,7 @@ import * as Teams from '@/stores/teams'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {ModalTitle} from '@/teams/common'
 import {useModalHeaderState} from '@/stores/modal-header'
+import {defineRouteMap} from '@/constants/types/router'
 
 const Title = React.lazy(async () => import('./search'))
 
@@ -48,7 +49,7 @@ const EditAvatarHeaderTitle = ({teamID, wizard}: {teamID?: string; wizard?: bool
   return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   profile: C.makeScreen(
     React.lazy(async () => import('./user')),
     {
@@ -64,9 +65,9 @@ export const newRoutes = {
       },
     }
   ),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   profileAddToTeam: C.makeScreen(
     React.lazy(async () => import('./add-to-team')),
     {
@@ -107,4 +108,4 @@ export const newModalRoutes = {
   profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
     getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
   }),
-}
+})

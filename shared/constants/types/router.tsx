@@ -99,9 +99,13 @@ type RouteDefMatchesScreen<R> =
   R extends {screen: infer Screen}
     ? Screen extends AnyScreen
       ? Omit<R, '__routeParams' | 'getOptions' | 'initialParams' | 'screen'> & {
-          __routeParams?: ScreenRouteParams<Screen>
+          __routeParams?: R extends {__routeParams?: infer Params} ? Params : ScreenRouteParams<Screen>
           getOptions?: GetOptions<Screen>
-          initialParams?: ScreenRouteParams<Screen> extends undefined ? undefined : ScreenRouteParams<Screen>
+          initialParams?: (R extends {__routeParams?: infer Params} ? Params : ScreenRouteParams<Screen>) extends undefined
+            ? undefined
+            : R extends {__routeParams?: infer Params}
+              ? Params
+              : ScreenRouteParams<Screen>
           screen: Screen
         }
       : never

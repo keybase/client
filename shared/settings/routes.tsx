@@ -190,7 +190,7 @@ const sharedNewModalRoutes = {
 
 const WebLinks = React.lazy(async () => import('./web-links'))
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   settingsRoot: C.isMobile
     ? C.isPhone
       ? {getOptions: {title: 'More'}, screen: React.lazy(async () => import('./root-phone'))}
@@ -207,9 +207,9 @@ export const newRoutes = {
       title: route.params.title,
     }),
   }),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   ...sharedNewModalRoutes,
   checkPassphraseBeforeDeleteAccount: C.makeScreen(
     React.lazy(async () => import('./delete-confirm/check-passphrase')),
@@ -231,4 +231,4 @@ export const newModalRoutes = {
         },
       })
     : {screen: () => <></>},
-}
+})

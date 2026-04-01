@@ -6,6 +6,7 @@ import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 import {settingsFeedbackTab} from '@/constants/settings'
+import {defineRouteMap} from '@/constants/types/router'
 
 const recoverPasswordStyles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
@@ -23,7 +24,7 @@ const recoverPasswordGetOptions = {
   title: 'Recover password',
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   feedback: settingsRoutes[settingsFeedbackTab],
   login: {getOptions: {headerShown: false}, screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
@@ -71,8 +72,8 @@ export const newRoutes = {
   }),
   ...provisionRoutes,
   ...signupRoutes,
-}
-export const newModalRoutes = {
+})
+export const newModalRoutes = defineRouteMap({
   proxySettingsModal: {
     getOptions: {title: 'Proxy settings'},
     screen: React.lazy(async () => import('../settings/proxy')),
@@ -85,4 +86,4 @@ export const newModalRoutes = {
     getOptions: {gestureEnabled: false, title: 'Set password'},
     screen: React.lazy(async () => import('./recover-password/password')),
   },
-}
+})

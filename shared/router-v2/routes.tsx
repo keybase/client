@@ -122,13 +122,30 @@ type AnyScreen = React.ComponentType<any>
 type RouteDefForScreen<R> =
   R extends {screen: infer Screen}
     ? Screen extends AnyScreen
-      ? Omit<R, 'getOptions' | 'initialParams' | 'screen'> & {
-          getOptions?: GetOptions<Screen>
-          initialParams?: React.ComponentProps<Screen> extends {route: {params: infer Params}}
+      ? Omit<R, '__routeParams' | 'getOptions' | 'initialParams' | 'screen'> & {
+          __routeParams?: R extends {__routeParams?: infer Params}
             ? Params
-            : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
+            : React.ComponentProps<Screen> extends {route: {params: infer Params}}
               ? Params
-              : undefined
+              : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
+                ? Params
+                : undefined
+          getOptions?: GetOptions<Screen>
+          initialParams?: (R extends {__routeParams?: infer Params}
+            ? Params
+            : React.ComponentProps<Screen> extends {route: {params: infer Params}}
+              ? Params
+              : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
+                ? Params
+                : undefined) extends undefined
+            ? undefined
+            : R extends {__routeParams?: infer Params}
+              ? Params
+              : React.ComponentProps<Screen> extends {route: {params: infer Params}}
+                ? Params
+                : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
+                  ? Params
+                  : undefined
           screen: Screen
         }
       : never
