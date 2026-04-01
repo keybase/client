@@ -29,12 +29,17 @@ type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
   ? IsExactlyRecord<P> extends true
     ? undefined
     : keyof P extends never
-    ? undefined
+      ? undefined
       : P
   : undefined
 
-type ScreenParams<COM extends React.ComponentType<any>> = NavigatorParamsFromProps<React.ComponentProps<COM>>
-type ScreenComponent<COM extends React.ComponentType<any>> = (
+type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
+  COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
+
+type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  React.ComponentProps<LazyInnerComponent<COM>>
+>
+type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
   p: StaticScreenProps<ScreenParams<COM>>
 ) => React.ReactElement
 
@@ -168,8 +173,8 @@ export const useSafeFocusEffect = (fn: () => void) => {
 
 // Helper to reduce boilerplate in route definitions
 // Works for components with or without route params
-export function makeScreen<COM extends React.ComponentType<any>>(
-  Component: React.LazyExoticComponent<COM>,
+export function makeScreen<COM extends React.LazyExoticComponent<any>>(
+  Component: COM,
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }

@@ -2024,7 +2024,7 @@ type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
   ? IsExactlyRecord<P> extends true
     ? undefined
     : keyof P extends never
-    ? undefined
+      ? undefined
       : P
   : undefined
 
@@ -2032,17 +2032,20 @@ type AddConversationIDKey<P> = P extends Record<string, unknown>
   ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
   : {conversationIDKey?: T.Chat.ConversationIDKey}
 
-type ChatScreenParams<COM extends React.ComponentType<any>> = NavigatorParamsFromProps<
-  AddConversationIDKey<React.ComponentProps<COM>>
+type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
+  COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
+
+type ChatScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  AddConversationIDKey<React.ComponentProps<LazyInnerComponent<COM>>>
 >
 
-type ChatScreenProps<COM extends React.ComponentType<any>> = StaticScreenProps<ChatScreenParams<COM>>
-type ChatScreenComponent<COM extends React.ComponentType<any>> = (
+type ChatScreenProps<COM extends React.LazyExoticComponent<any>> = StaticScreenProps<ChatScreenParams<COM>>
+type ChatScreenComponent<COM extends React.LazyExoticComponent<any>> = (
   p: ChatScreenProps<COM>
 ) => React.ReactElement
 
-export function makeChatScreen<COM extends React.ComponentType<any>>(
-  Component: React.LazyExoticComponent<COM>,
+export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
+  Component: COM,
   options?: {
     getOptions?:
       | GetOptionsRet
