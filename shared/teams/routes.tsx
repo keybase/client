@@ -10,6 +10,7 @@ import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
+import {defineRouteMap} from '@/constants/types/router'
 
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
@@ -185,7 +186,7 @@ const NewTeamInfoHeaderLeft = () => {
   return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
@@ -215,9 +216,9 @@ export const newRoutes = {
     }),
     initialParams: {},
   },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   contactRestricted,
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
@@ -345,4 +346,4 @@ export const newModalRoutes = {
     },
   }),
   teamsTeamBuilder,
-}
+})

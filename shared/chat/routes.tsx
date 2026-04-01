@@ -11,6 +11,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
+import {defineRouteMap} from '@/constants/types/router'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 const PDFShareButton = ({url}: {url?: string}) => {
@@ -86,7 +87,7 @@ const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
   return <Kb.Text type="BodyBigLink" onClick={clearModals}>Cancel</Kb.Text>
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   chatConversation: Chat.makeChatScreen(Convo, {
     canBeNullConvoID: true,
     getOptions: p => ({
@@ -112,9 +113,9 @@ export const newRoutes = {
         }),
         initialParams: {},
       },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   chatAddToChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel/add-to-channel')),
     {
@@ -219,4 +220,4 @@ export const newModalRoutes = {
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
     {getOptions: {title: 'Location'}}
   ),
-}
+})
