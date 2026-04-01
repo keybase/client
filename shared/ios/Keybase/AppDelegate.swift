@@ -254,15 +254,17 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
       securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err
     )
     if let err {
+      let initResult = "FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))"
+      KbSetInitResult(initResult)
       // Log to system log with public annotation so it's not redacted in logarchive.
       os_log(
         .error, log: AppDelegate.initLog,
         "KeybaseInit FAILED: %{public}@ (code=%ld domain=%{public}@)",
         err.localizedDescription, err.code, err.domain)
       // Also write to ios.log so it's captured in xcappdata even without a device attached.
-      self.writeStartupTimingLog(
-        "KeybaseInit FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))")
+      self.writeStartupTimingLog("KeybaseInit \(initResult)")
     } else {
+      KbSetInitResult("succeeded")
       self.writeStartupTimingLog("KeybaseInit succeeded")
     }
 

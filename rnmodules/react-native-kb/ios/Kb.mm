@@ -78,6 +78,7 @@ static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+static NSString *kbInitResult = nil;
 
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
@@ -396,10 +397,11 @@ RCT_EXPORT_METHOD(notifyJSReady) {
           }
           if (consecutiveErrors <= 5 || consecutiveErrors % 50 == 0) {
             __typeof__(self) strongSelf = weakSelf;
-            os_log(OS_LOG_DEFAULT, "ReadArr loop[%llu] error streak=%llu total=%llu domain=%{public}s code=%ld desc=%{public}s self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
+            os_log(OS_LOG_DEFAULT, "ReadArr loop[%llu] error streak=%llu total=%llu domain=%{public}s code=%ld desc=%{public}s initResult=%{public}s self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
                    (unsigned long long)readLoopGen, (unsigned long long)consecutiveErrors,
                    (unsigned long long)totalErrors, KBStringOrNil(error.domain), (long)error.code,
-                   KBStringOrNil(error.localizedDescription), strongSelf, strongSelf.bridge,
+                   KBStringOrNil(error.localizedDescription), KBStringOrNil(kbInitResult),
+                   strongSelf, strongSelf.bridge,
                    strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
           }
           // Back off on error to avoid spinning at ~35K/sec and starving the main thread CPU
@@ -751,4 +753,8 @@ NSDictionary *KbGetAndClearInitialNotification(void) {
   NSDictionary *notification = kbInitialNotification;
   kbInitialNotification = nil;
   return notification;
+}
+
+void KbSetInitResult(NSString *result) {
+  kbInitResult = result;
 }
