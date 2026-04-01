@@ -19,13 +19,6 @@ import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
-type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<React.ComponentType<infer P>>
-    ? P
-    : T extends React.ComponentType<infer P>
-      ? P
-      : undefined
-
 type IsExactlyRecord<T> = [T] extends [Record<string, unknown>]
   ? [Record<string, unknown>] extends [T]
     ? true
@@ -37,14 +30,12 @@ type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
     ? undefined
     : keyof P extends never
     ? undefined
-    : P
+      : P
   : undefined
 
-type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
-  InferComponentProps<COM>
->
-type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
-  p: StaticScreenProps<ScreenParams<COM>>
+type ScreenParams<P> = NavigatorParamsFromProps<P>
+type ScreenComponent<P> = (
+  p: StaticScreenProps<ScreenParams<P>>
 ) => React.ReactElement
 
 export const navigationRef = createNavigationContainerRef()
@@ -177,27 +168,27 @@ export const useSafeFocusEffect = (fn: () => void) => {
 
 // Helper to reduce boilerplate in route definitions
 // Works for components with or without route params
-export function makeScreen<COM extends React.LazyExoticComponent<any>>(
-  Component: COM,
+export function makeScreen<P, COM extends React.ComponentType<P>>(
+  Component: React.LazyExoticComponent<COM>,
   options?: {
-    getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<P>>) => GetOptionsRet)
   }
-): RouteDef<ScreenComponent<COM>, ScreenParams<COM>> {
+): RouteDef<ScreenComponent<P>, ScreenParams<P>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
-    ? (p: StaticScreenProps<ScreenParams<COM>>) =>
+    ? (p: StaticScreenProps<ScreenParams<P>>) =>
         getOptionsOption({
           ...p,
           route: {
             ...p.route,
-            params: (p.route.params ?? {}) as ScreenParams<COM>,
+            params: (p.route.params ?? {}) as ScreenParams<P>,
           },
         })
     : getOptionsOption
   return {
     ...options,
     getOptions,
-    screen: function Screen(p: StaticScreenProps<ScreenParams<COM>>) {
+    screen: function Screen(p: StaticScreenProps<ScreenParams<P>>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
     },
