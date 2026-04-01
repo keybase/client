@@ -174,10 +174,7 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-): import('./types/router').RouteDef<
-  React.ComponentType<StaticScreenProps<ScreenParams<COM>>>,
-  ScreenParams<COM>
-> {
+): import('./types/router').RouteDef<React.ComponentType<StaticScreenProps<ScreenParams<COM>>>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: StaticScreenProps<ScreenParams<COM>>) =>
