@@ -3619,14 +3619,14 @@ export function useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state:
   return useStore(store, selector)
 }
 
-export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}}
+type ChatRouteParams = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 type RouteParams = {
-  route: {params: {conversationIDKey?: T.Chat.ConversationIDKey}}
+  route: {params?: ChatRouteParams}
 }
 export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) {
   return (
-    <ChatProvider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+    <ChatProvider id={p.rp.route.params?.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
       {p.children}
     </ChatProvider>
   )

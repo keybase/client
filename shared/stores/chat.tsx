@@ -11,7 +11,7 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/constants/router'
-import {type ChatProviderProps, ProviderScreen} from '@/stores/convostate'
+import {ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
@@ -2023,25 +2023,41 @@ type InferComponentProps<T> =
       ? P
       : undefined
 
+type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
+  ? undefined
+  : {} extends P
+    ? P | undefined
+    : P
+
+type AddConversationIDKey<P extends Record<string, unknown> | undefined> = P extends undefined
+  ? {conversationIDKey?: T.Chat.ConversationIDKey}
+  : Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
+
+type ChatScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  AddConversationIDKey<InferComponentProps<COM>>
+>
+
+type ChatScreenProps<COM extends React.LazyExoticComponent<any>> = StaticScreenProps<ChatScreenParams<COM>>
+
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
     getOptions?:
       | GetOptionsRet
-      | ((props: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) => GetOptionsRet)
+      | ((props: ChatScreenProps<COM>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
 ) {
   return {
     ...options,
-    screen: function Screen(p: ChatProviderProps<StaticScreenProps<InferComponentProps<COM>>>) {
+    screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
       return options?.skipProvider ? (
-        <Comp {...p.route.params} />
+        <Comp {...(p.route.params ?? {})} />
       ) : (
         <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
-          <Comp {...p.route.params} />
+          <Comp {...(p.route.params ?? {})} />
         </ProviderScreen>
       )
     },

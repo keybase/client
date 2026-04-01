@@ -28,6 +28,16 @@ type InferComponentProps<T> =
       ? P
       : undefined
 
+type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
+  ? undefined
+  : {} extends P
+    ? P | undefined
+    : P
+
+type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  InferComponentProps<COM>
+>
+
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
 registerDebugClear(() => {
@@ -162,12 +172,12 @@ export const useSafeFocusEffect = (fn: () => void) => {
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
 ) {
   return {
     ...options,
-    screen: function Screen(p: StaticScreenProps<InferComponentProps<COM>>) {
+    screen: function Screen(p: StaticScreenProps<ScreenParams<COM>>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
     },
