@@ -5,6 +5,7 @@ import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
+import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
@@ -129,7 +130,7 @@ export const sharedNewRoutes = {
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
 }
 
-export const settingsDesktopTabRoutes = {
+export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsAboutTab]: sharedNewRoutes[Settings.settingsAboutTab],
   [Settings.settingsAccountTab]: sharedNewRoutes[Settings.settingsAccountTab],
   [Settings.settingsAdvancedTab]: sharedNewRoutes[Settings.settingsAdvancedTab],
@@ -144,7 +145,7 @@ export const settingsDesktopTabRoutes = {
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
   [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
   [Settings.settingsWalletsTab]: sharedNewRoutes[Settings.settingsWalletsTab],
-}
+})
 
 const sharedNewModalRoutes = {
   [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {

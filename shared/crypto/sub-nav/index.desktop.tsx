@@ -13,9 +13,10 @@ import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/nativ
 import {routeMapToScreenElements} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout.desktop'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 
 /* Desktop SubNav */
-const cryptoSubRoutes = {
+const cryptoSubRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     screen: React.lazy(async () => {
       const {DecryptIO} = await import('../decrypt')
@@ -41,7 +42,7 @@ const cryptoSubRoutes = {
       return {default: VerifyIO}
     }),
   },
-}
+})
 function LeftTabNavigator({
   initialRouteName,
   children,

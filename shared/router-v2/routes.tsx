@@ -14,7 +14,7 @@ import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/r
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
 import {defineRouteMap} from '@/constants/types/router'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
 // We have normal routes, modal routes, and logged out routes.
@@ -118,14 +118,27 @@ type MakeLayoutFn = (
   getOptions?: GetOptions
 ) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
+type AnyScreen = React.ComponentType<any>
+type RouteDefForScreen<R> =
+  R extends {screen: infer Screen}
+    ? Screen extends AnyScreen
+      ? Omit<R, 'getOptions' | 'screen'> & {
+          getOptions?: GetOptions<Screen>
+          screen: Screen
+        }
+      : never
+    : never
+type CheckedRouteMap<Routes extends Record<string, {screen: AnyScreen}>> = Routes & {
+  [K in keyof Routes]: RouteDefForScreen<Routes[K]>
+}
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
   return opts as NativeStackNavigationOptions
 }
 
-export function routeMapToStaticScreens(
-  rs: RouteMap,
+export function routeMapToStaticScreens<const RS extends Record<string, {screen: AnyScreen}>>(
+  rs: CheckedRouteMap<RS>,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
   isLoggedOut: boolean,
@@ -139,7 +152,7 @@ export function routeMapToStaticScreens(
       screen: React.ComponentType<any>
     }
   > = {}
-  for (const [name, rd] of Object.entries(rs)) {
+  for (const [name, rd] of Object.entries(rs) as Array<[string, RS[keyof RS]]>) {
     if (!rd) continue
     result[name] = {
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
@@ -156,8 +169,8 @@ export function routeMapToStaticScreens(
   return result
 }
 
-export function routeMapToScreenElements(
-  rs: RouteMap,
+export function routeMapToScreenElements<const RS extends Record<string, {screen: AnyScreen}>>(
+  rs: CheckedRouteMap<RS>,
   Screen: React.ComponentType<any>,
   makeLayoutFn: MakeLayoutFn,
   makeOptionsFn: MakeOptionsFn,
@@ -165,7 +178,7 @@ export function routeMapToScreenElements(
   isLoggedOut: boolean,
   isTabScreen: boolean
 ) {
-  return Object.keys(rs).flatMap(name => {
+  return (Object.keys(rs) as Array<keyof RS & string>).flatMap(name => {
     const rd = rs[name]
     if (!rd) return []
     return [
