@@ -3632,13 +3632,24 @@ export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; c
   )
 }
 
-import type {NavigateAppendArg, RouteKeys} from '@/router-v2/route-params'
+import type {NoParamRouteKeys, ParamRouteKeys, RootParamList} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const cid = useChatContext(s => s.id)
-  return <RouteName extends RouteKeys>(
-    makePath: (cid: T.Chat.ConversationIDKey) => NavigateAppendArg<RouteName>,
+  function chatNavigateAppend<RouteName extends NoParamRouteKeys>(
+    makePath: (cid: T.Chat.ConversationIDKey) => RouteName,
     replace?: boolean
-  ) => {
-    navigateAppend(makePath(cid), replace)
+  ): void
+  function chatNavigateAppend<RouteName extends ParamRouteKeys>(
+    makePath: (cid: T.Chat.ConversationIDKey) => {name: RouteName; params: RootParamList[RouteName]},
+    replace?: boolean
+  ): void
+  function chatNavigateAppend(
+    makePath:
+      | ((cid: T.Chat.ConversationIDKey) => NoParamRouteKeys)
+      | ((cid: T.Chat.ConversationIDKey) => {name: ParamRouteKeys; params: object | undefined}),
+    replace?: boolean
+  ) {
+    navigateAppend(makePath(cid) as never, replace)
   }
+  return chatNavigateAppend
 }

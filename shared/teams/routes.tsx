@@ -11,6 +11,19 @@ import teamsTeamBuilder from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
+import type {StaticScreenProps} from '@react-navigation/core'
+
+type TeamRouteParams = {
+  teamID: T.Teams.TeamID
+  initialTab?: T.Teams.TabKey
+}
+
+const TeamScreen = React.lazy(async () => {
+  const {default: Team} = await import('./team')
+  return {
+    default: (p: StaticScreenProps<TeamRouteParams>) => <Team {...p.route.params} />,
+  }
+})
 
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
@@ -188,7 +201,7 @@ const NewTeamInfoHeaderLeft = () => {
 
 export const newRoutes = defineRouteMap({
   team: C.makeScreen(
-    React.lazy(async () => import('./team')),
+    TeamScreen,
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamChannel: Chat.makeChatScreen(

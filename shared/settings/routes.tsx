@@ -9,6 +9,8 @@ import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
+import type {StaticScreenProps} from '@react-navigation/core'
+import type {Props as FeedbackRouteParams} from './feedback/container'
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
@@ -71,9 +73,15 @@ const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet
 const EmptySettingsScreen = () => <></>
 const ManageContactsScreen: React.ComponentType =
   C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
+const FeedbackScreen = React.lazy(async () => {
+  const {default: FeedbackContainer} = await import('./feedback/container')
+  return {
+    default: (p: StaticScreenProps<FeedbackRouteParams>) => <FeedbackContainer {...(p.route.params ?? {})} />,
+  }
+})
 
 const feedback = C.makeScreen(
-  React.lazy(async () => import('./feedback/container')),
+  FeedbackScreen,
   {getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {}}
 )
 

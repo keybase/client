@@ -12,7 +12,86 @@ import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
+import type {StaticScreenProps} from '@react-navigation/core'
+import type {BlockModalContext} from './blocking/block-modal'
 const Convo = React.lazy(async () => import('./conversation/container'))
+
+type ChatAddToChannelRouteParams = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
+}
+type ChatBlockingRouteParams = {
+  blockUserByDefault?: boolean
+  filterUserByDefault?: boolean
+  flagUserByDefault?: boolean
+  reportsUserByDefault?: boolean
+  context?: BlockModalContext
+  conversationIDKey?: T.Chat.ConversationIDKey
+  others?: Array<string>
+  team?: string
+  username?: string
+}
+type ChatConfirmRemoveBotRouteParams = {
+  botUsername: string
+  teamID?: T.Teams.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+type ChatInstallBotRouteParams = {
+  botUsername: string
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
+}
+type ChatSearchBotsRouteParams = {
+  teamID?: T.Teams.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+type ChatShowNewTeamDialogRouteParams = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const ChatAddToChannelScreen = React.lazy(async () => {
+  const {default: AddToChannel} = await import('./conversation/info-panel/add-to-channel')
+  return {
+    default: (p: StaticScreenProps<ChatAddToChannelRouteParams>) => <AddToChannel {...p.route.params} />,
+  }
+})
+
+const ChatBlockingModalScreen = React.lazy(async () => {
+  const {default: BlockModal} = await import('./blocking/block-modal')
+  return {
+    default: (p: StaticScreenProps<ChatBlockingRouteParams>) => <BlockModal {...(p.route.params ?? {})} />,
+  }
+})
+
+const ChatConfirmRemoveBotScreen = React.lazy(async () => {
+  const {default: ConfirmRemoveBot} = await import('./conversation/bot/confirm')
+  return {
+    default: (p: StaticScreenProps<ChatConfirmRemoveBotRouteParams>) => (
+      <ConfirmRemoveBot {...p.route.params} />
+    ),
+  }
+})
+
+const ChatInstallBotScreen = React.lazy(async () => {
+  const {default: InstallBot} = await import('./conversation/bot/install')
+  return {
+    default: (p: StaticScreenProps<ChatInstallBotRouteParams>) => <InstallBot {...p.route.params} />,
+  }
+})
+
+const ChatSearchBotsScreen = React.lazy(async () => {
+  const {default: SearchBots} = await import('./conversation/bot/search')
+  return {
+    default: (p: StaticScreenProps<ChatSearchBotsRouteParams>) => <SearchBots {...(p.route.params ?? {})} />,
+  }
+})
+
+const ChatShowNewTeamDialogScreen = React.lazy(async () => {
+  const {default: NewTeamDialog} = await import('./new-team-dialog-container')
+  return {
+    default: (_p: StaticScreenProps<ChatShowNewTeamDialogRouteParams>) => <NewTeamDialog />,
+  }
+})
 
 const PDFShareButton = ({url}: {url?: string}) => {
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
@@ -117,7 +196,7 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   chatAddToChannel: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/info-panel/add-to-channel')),
+    ChatAddToChannelScreen,
     {
       getOptions: ({route}) => ({
         headerRight: () => <AddToChannelHeaderRight />,
@@ -141,7 +220,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/attachment-get-titles')),
     {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
   ),
-  chatBlockingModal: Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
+  chatBlockingModal: Chat.makeChatScreen(ChatBlockingModalScreen, {
     getOptions: {headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />},
   }),
   chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container')), {
@@ -151,10 +230,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./punycode-link-warning')),
     {skipProvider: true}
   ),
-  chatConfirmRemoveBot: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/bot/confirm')),
-    {canBeNullConvoID: true}
-  ),
+  chatConfirmRemoveBot: Chat.makeChatScreen(ChatConfirmRemoveBotScreen, {canBeNullConvoID: true}),
   chatCreateChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./create-channel')),
     {skipProvider: true}
@@ -168,7 +244,7 @@ export const newModalRoutes = defineRouteMap({
     {getOptions: C.isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
   ),
   chatInstallBot: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/bot/install')),
+    ChatInstallBotScreen,
     {
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
@@ -201,10 +277,7 @@ export const newModalRoutes = defineRouteMap({
       overlayStyle: {alignSelf: 'stretch'},
     }),
   }),
-  chatSearchBots: Chat.makeChatScreen(
-    React.lazy(async () => import('./conversation/bot/search')),
-    {canBeNullConvoID: true, getOptions: {title: 'Add a bot'}}
-  ),
+  chatSearchBots: Chat.makeChatScreen(ChatSearchBotsScreen, {canBeNullConvoID: true, getOptions: {title: 'Add a bot'}}),
   chatSendToChat: Chat.makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
     {
@@ -215,7 +288,7 @@ export const newModalRoutes = defineRouteMap({
       skipProvider: true,
     }
   ),
-  chatShowNewTeamDialog: Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+  chatShowNewTeamDialog: Chat.makeChatScreen(ChatShowNewTeamDialogScreen),
   chatUnfurlMapPopup: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
     {getOptions: {title: 'Location'}}
