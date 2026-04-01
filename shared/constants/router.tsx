@@ -137,7 +137,7 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   if (!_isLoggedIn(rs)) {
     return []
   }
-  return (rs.routes?.slice(1) ?? []).filter((r: Route) => !rootNonModalRouteNames.has(r.name))
+  return (rs.routes?.slice(1) ?? []).filter(r => !rootNonModalRouteNames.has(r.name))
 }
 
 export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -177,7 +177,7 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-): RouteDef<ScreenComponent<COM>> {
+): RouteDef<ScreenComponent<COM>, ScreenParams<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: StaticScreenProps<ScreenParams<COM>>) =>
@@ -209,7 +209,7 @@ export const clearModals = () => {
   }
   const rootRoutes = ns?.routes ?? []
   const keepRoutes = rootRoutes.filter(
-    (route: Route, index: number) => index === 0 || rootNonModalRouteNames.has(route.name)
+    (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
   )
   if (keepRoutes.length !== rootRoutes.length) {
     n.dispatch({

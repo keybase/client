@@ -2051,7 +2051,7 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
-): RouteDef<ChatScreenComponent<COM>> {
+): RouteDef<ChatScreenComponent<COM>, ChatScreenParams<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: ChatScreenProps<COM>) =>
