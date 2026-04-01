@@ -2023,12 +2023,11 @@ type InferComponentProps<T> =
       ? P
       : undefined
 
-type HasKeys<P extends Record<string, unknown>> = keyof P extends never ? false : true
-type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
-  ? undefined
-  : HasKeys<P> extends true
-    ? P
-    : undefined
+type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
+  ? keyof P extends never
+    ? undefined
+    : P
+  : undefined
 
 type AddConversationIDKey<P extends Record<string, unknown> | undefined> = P extends undefined
   ? {conversationIDKey?: T.Chat.ConversationIDKey}
@@ -2049,7 +2048,10 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
-) {
+): import('@/constants/types/router').RouteDef<
+  React.ComponentType<ChatScreenProps<COM>>,
+  ChatScreenParams<COM>
+> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: ChatScreenProps<COM>) =>

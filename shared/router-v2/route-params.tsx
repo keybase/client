@@ -36,7 +36,11 @@ type ExtractScreenParams<Screen> =
           : undefined
       : undefined
 type _ExtractParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer Screen} ? ExtractScreenParams<Screen> : undefined
+  [K in keyof T]: T[K] extends {__routeParams?: infer Params}
+    ? NormalizeParams<Params>
+    : T[K] extends {screen: infer Screen}
+      ? ExtractScreenParams<Screen>
+      : undefined
 }
 
 type Tabs = {

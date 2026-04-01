@@ -28,12 +28,11 @@ type InferComponentProps<T> =
       ? P
       : undefined
 
-type HasKeys<P extends Record<string, unknown>> = keyof P extends never ? false : true
-type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
-  ? undefined
-  : HasKeys<P> extends true
-    ? P
-    : undefined
+type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
+  ? keyof P extends never
+    ? undefined
+    : P
+  : undefined
 
 type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
   InferComponentProps<COM>
@@ -175,7 +174,10 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-) {
+): import('./types/router').RouteDef<
+  React.ComponentType<StaticScreenProps<ScreenParams<COM>>>,
+  ScreenParams<COM>
+> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: StaticScreenProps<ScreenParams<COM>>) =>
