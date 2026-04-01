@@ -48,7 +48,8 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
-  var startupLogFileHandle: FileHandle?
+  private var startupLogFileHandle: FileHandle?
+  private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
 
   private var watchdog: MainThreadWatchdog?
   private var bgEnterWallTime: CFAbsoluteTime = 0
@@ -154,6 +155,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
   /////// KB specific
 
   private static var appStartTime: CFAbsoluteTime = 0
+  private static let initLog = OSLog(subsystem: "keybase", category: "init")
 
   private static let logDateFormatter: DateFormatter = {
     let f = DateFormatter()
@@ -167,59 +169,62 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
       return
     }
 
-    if self.startupLogFileHandle == nil {
-      if !FileManager.default.fileExists(atPath: logFilePath) {
-        // Match the parent directory's protection class so the file remains accessible
-        // in the background after the device has been unlocked once.
-        FileManager.default.createFile(
-          atPath: logFilePath, contents: nil,
-          attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
-      }
-      if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
-        fileHandle.seekToEndOfFile()
-        self.startupLogFileHandle = fileHandle
-      } else {
-        NSLog("Error opening startup timing log file: \(logFilePath)")
-        return
-      }
-    }
-
-    guard let fileHandle = self.startupLogFileHandle else {
-      return
-    }
-
+    // Capture timestamp on the calling thread so it reflects when the event actually occurred.
     let now = Date()
     let timeInterval = now.timeIntervalSince1970
     let microseconds = Int(timeInterval.truncatingRemainder(dividingBy: 1) * 1_000_000)
     let dateString = AppDelegate.logDateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
-
     let fileName = URL(fileURLWithPath: file).lastPathComponent
     let logMessage = String(
       format: "%@ ▶ [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message
     )
-
     guard let logData = logMessage.data(using: .utf8) else {
       return
     }
 
-    do {
-      try fileHandle.write(contentsOf: logData)
-      try fileHandle.synchronize()
-    } catch {
-      NSLog("Error writing startup timing log: \(error)")
+    // Dispatch file I/O (including fsync) to a background queue so the calling thread
+    // (often the main thread) is never blocked by disk latency.
+    logQueue.async { [weak self] in
+      guard let self else { return }
+      if self.startupLogFileHandle == nil {
+        if !FileManager.default.fileExists(atPath: logFilePath) {
+          // Match the parent directory's protection class so the file remains accessible
+          // in the background after the device has been unlocked once.
+          FileManager.default.createFile(
+            atPath: logFilePath, contents: nil,
+            attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
+        }
+        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
+          fileHandle.seekToEndOfFile()
+          self.startupLogFileHandle = fileHandle
+        } else {
+          NSLog("Error opening startup timing log file: \(logFilePath)")
+          return
+        }
+      }
+      guard let fileHandle = self.startupLogFileHandle else { return }
+      do {
+        try fileHandle.write(contentsOf: logData)
+        try fileHandle.synchronize()
+      } catch {
+        NSLog("Error writing startup timing log: \(error)")
+      }
     }
   }
 
   private func closeStartupLogFile() {
-    if let fileHandle = self.startupLogFileHandle {
-      do {
-        try fileHandle.synchronize()
-        try fileHandle.close()
-      } catch {
-        NSLog("Error closing startup timing log: \(error)")
+    // Use sync so all pending async log writes are flushed before we close the handle.
+    logQueue.sync {
+      if let fileHandle = self.startupLogFileHandle {
+        do {
+          try fileHandle.synchronize()
+          try fileHandle.close()
+        } catch {
+          NSLog("Error closing startup timing log: \(error)")
+        }
+        self.startupLogFileHandle = nil
       }
-      self.startupLogFileHandle = nil
     }
   }
 
@@ -251,7 +256,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
     if let err {
       // Log to system log with public annotation so it's not redacted in logarchive.
       os_log(
-        .error, log: OSLog(subsystem: "keybase", category: "init"),
+        .error, log: AppDelegate.initLog,
         "KeybaseInit FAILED: %{public}@ (code=%ld domain=%{public}@)",
         err.localizedDescription, err.code, err.domain)
       // Also write to ios.log so it's captured in xcappdata even without a device attached.
