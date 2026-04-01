@@ -2032,43 +2032,43 @@ type AddConversationIDKey<P> = P extends Record<string, unknown>
   ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
   : {conversationIDKey?: T.Chat.ConversationIDKey}
 
-type ChatScreenParams<P> = NavigatorParamsFromProps<
-  AddConversationIDKey<P>
+type ChatScreenParams<COM extends React.ComponentType<any>> = NavigatorParamsFromProps<
+  AddConversationIDKey<React.ComponentProps<COM>>
 >
 
-type ChatScreenProps<P> = StaticScreenProps<ChatScreenParams<P>>
-type ChatScreenComponent<P> = (
-  p: ChatScreenProps<P>
+type ChatScreenProps<COM extends React.ComponentType<any>> = StaticScreenProps<ChatScreenParams<COM>>
+type ChatScreenComponent<COM extends React.ComponentType<any>> = (
+  p: ChatScreenProps<COM>
 ) => React.ReactElement
 
-export function makeChatScreen<P, COM extends React.ComponentType<P>>(
+export function makeChatScreen<COM extends React.ComponentType<any>>(
   Component: React.LazyExoticComponent<COM>,
   options?: {
     getOptions?:
       | GetOptionsRet
-      | ((props: ChatScreenProps<P>) => GetOptionsRet)
+      | ((props: ChatScreenProps<COM>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
-): RouteDef<ChatScreenComponent<P>, ChatScreenParams<P>> {
+): RouteDef<ChatScreenComponent<COM>, ChatScreenParams<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
-    ? (p: ChatScreenProps<P>) =>
+    ? (p: ChatScreenProps<COM>) =>
         // getOptions can run before params are materialized on the route object.
         getOptionsOption({
           ...p,
           route: {
             ...p.route,
-            params: (((p.route as {params?: ChatScreenParams<P>}).params ?? {}) as ChatScreenParams<P>),
+            params: (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>),
           },
         })
     : getOptionsOption
   return {
     ...options,
     getOptions,
-    screen: function Screen(p: ChatScreenProps<P>) {
+    screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
-      const params = (((p.route as {params?: ChatScreenParams<P>}).params ?? {}) as ChatScreenParams<P>)
+      const params = (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>)
       return options?.skipProvider ? (
         <Comp {...params} />
       ) : (
