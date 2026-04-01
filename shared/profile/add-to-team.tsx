@@ -114,66 +114,68 @@ const Container = (ownProps: OwnProps) => {
     )
   })
 
-  const onAddToTeams = React.useEffectEvent(async (role: T.Teams.TeamRoleType, teams: Array<string>) => {
-    const requestID = submitRequestID.current + 1
-    submitRequestID.current = requestID
-    setAddUserToTeamsResults('')
-    setAddUserToTeamsState('notStarted')
+  const onAddToTeams = React.useEffectEvent(
+    async (role: T.Teams.TeamRoleType, teams: Array<string>, sendChatNotification: boolean) => {
+      const requestID = submitRequestID.current + 1
+      submitRequestID.current = requestID
+      setAddUserToTeamsResults('')
+      setAddUserToTeamsState('notStarted')
 
-    const teamsAddedTo: Array<string> = []
-    const errorAddingTo: Array<string> = []
+      const teamsAddedTo: Array<string> = []
+      const errorAddingTo: Array<string> = []
 
-    for (const team of teams) {
-      const teamID = teamNameToID.get(team)
-      if (!teamID) {
-        logger.warn(`no team ID found for ${team}`)
-        errorAddingTo.push(team)
-        continue
+      for (const team of teams) {
+        const teamID = teamNameToID.get(team)
+        if (!teamID) {
+          logger.warn(`no team ID found for ${team}`)
+          errorAddingTo.push(team)
+          continue
+        }
+
+        const added = await new Promise<boolean>(resolve => {
+          addUserToTeam(
+            [
+              {
+                email: '',
+                phone: '',
+                role: T.RPCGen.TeamRole[role],
+                sendChatNotification,
+                teamID,
+                username: them,
+              },
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddUserToTeams(them)],
+            ],
+            () => resolve(true),
+            _ => resolve(false)
+          )
+        })
+
+        if (submitRequestID.current !== requestID) {
+          return
+        }
+
+        if (added) {
+          teamsAddedTo.push(team)
+        } else {
+          errorAddingTo.push(team)
+        }
       }
-
-      const added = await new Promise<boolean>(resolve => {
-        addUserToTeam(
-          [
-            {
-              email: '',
-              phone: '',
-              role: T.RPCGen.TeamRole[role],
-              sendChatNotification: true,
-              teamID,
-              username: them,
-            },
-            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddUserToTeams(them)],
-          ],
-          () => resolve(true),
-          _ => resolve(false)
-        )
-      })
 
       if (submitRequestID.current !== requestID) {
         return
       }
 
-      if (added) {
-        teamsAddedTo.push(team)
+      const result = makeAddUserToTeamsResult(them, teamsAddedTo, errorAddingTo)
+      setAddUserToTeamsResults(result)
+      if (errorAddingTo.length > 0) {
+        setAddUserToTeamsState('failed')
+        loadTeamList()
       } else {
-        errorAddingTo.push(team)
+        setAddUserToTeamsState('succeeded')
+        clearModals()
       }
     }
-
-    if (submitRequestID.current !== requestID) {
-      return
-    }
-
-    const result = makeAddUserToTeamsResult(them, teamsAddedTo, errorAddingTo)
-    setAddUserToTeamsResults(result)
-    if (errorAddingTo.length > 0) {
-      setAddUserToTeamsState('failed')
-      loadTeamList()
-    } else {
-      setAddUserToTeamsState('succeeded')
-      clearModals()
-    }
-  })
+  )
 
   React.useEffect(() => {
     setAddUserToTeamsResults('')
@@ -191,7 +193,7 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const onSave = () => {
-    void onAddToTeams(selectedRole, [...selectedTeams])
+    void onAddToTeams(selectedRole, [...selectedTeams], sendNotification)
   }
 
   const toggleTeamSelected = (teamName: string, selected: boolean) => {

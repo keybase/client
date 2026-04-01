@@ -31,6 +31,9 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
   const [details, setDetails] = React.useState(initialInviteDetails)
   const [error, setError] = React.useState('')
   const loaded = details !== undefined || !!error
+  const canLoadDetails = details === undefined && !error && !!inviteID
+  const canJoin = !!inviteKey
+  const missingInviteKeyError = details !== undefined && !canJoin ? 'Sorry, that invite token is not valid.' : ''
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
   const requestInviteLinkDetails = C.useRPC(T.RPCGen.teamsGetInviteLinkDetailsRpcPromise)
   const [clickedJoin, setClickedJoin] = React.useState(false)
@@ -46,28 +49,26 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
   }, [initialInviteDetails, inviteID, inviteKey])
 
   React.useEffect(() => {
-    if (loaded) {
+    if (!canLoadDetails) {
       return
     }
-    if (inviteKey === '') {
-      requestInviteLinkDetails(
-        [{inviteID}],
-        result => {
-          setDetails(result)
-          setError('')
-        },
-        rpcError => {
-          setError(getInviteError(rpcError, true))
-        }
-      )
-    }
-  }, [inviteID, inviteKey, loaded, requestInviteLinkDetails])
+    requestInviteLinkDetails(
+      [{inviteID}],
+      result => {
+        setDetails(result)
+        setError('')
+      },
+      rpcError => {
+        setError(getInviteError(rpcError, true))
+      }
+    )
+  }, [canLoadDetails, inviteID, requestInviteLinkDetails])
 
   const nav = useSafeNavigation()
 
   const onNavUp = () => nav.safeNavigateUp()
   const onJoinTeam = () => {
-    if (!inviteKey) {
+    if (!canJoin) {
       return
     }
     setClickedJoin(true)
@@ -161,11 +162,12 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
             label="Join team"
             onClick={onJoinTeam}
             style={styles.button}
+            disabled={!canJoin}
             waiting={waiting}
           />
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
-        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
+        {!!(error || missingInviteKeyError) && <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>}
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar size={16} username={details.inviterUsername} />
