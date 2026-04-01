@@ -28,9 +28,12 @@ type InferComponentProps<T> =
       ? P
       : undefined
 
+type HasKeys<P extends Record<string, unknown>> = keyof P extends never ? false : true
 type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
   ? undefined
-  : P
+  : HasKeys<P> extends true
+    ? P
+    : undefined
 
 type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
   InferComponentProps<COM>
