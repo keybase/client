@@ -1,5 +1,5 @@
+import type * as React from 'react'
 import type {RouteProp} from '@react-navigation/native'
-import type {StaticParamList} from '@react-navigation/core'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import type {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
@@ -17,6 +17,22 @@ import type {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoute
 import type {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import type {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import type {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
+
+type IsUnknown<T> = unknown extends T ? ([keyof T] extends [never] ? true : false) : false
+type NormalizeParams<T> = IsUnknown<T> extends true ? undefined : T extends object | undefined ? T : undefined
+type ExtractScreenParams<Screen> =
+  Screen extends React.LazyExoticComponent<infer Inner>
+    ? ExtractScreenParams<Inner>
+    : Screen extends React.ComponentType<infer Props>
+      ? Props extends {route: {params: infer Params}}
+        ? NormalizeParams<Params>
+        : Props extends {route: {params?: infer Params}}
+          ? NormalizeParams<Params>
+          : undefined
+      : undefined
+type _ExtractParams<T> = {
+  [K in keyof T]: T[K] extends {screen: infer Screen} ? ExtractScreenParams<Screen> : undefined
+}
 
 type Tabs = {
   'tabs.chatTab': undefined
@@ -58,10 +74,7 @@ type _AllScreens = typeof deviceNewRoutes &
   typeof loginNewRoutes &
   typeof signupNewRoutes
 
-type _SyntheticConfig = {readonly config: {readonly screens: _AllScreens}}
-type AppRouteParamList = StaticParamList<_SyntheticConfig>
-
-type KeybaseRootParamList = AppRouteParamList &
+type KeybaseRootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
 export type RootParamList = KeybaseRootParamList
 

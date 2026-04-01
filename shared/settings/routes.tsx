@@ -77,7 +77,7 @@ const feedback = C.makeScreen(
   {getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {}}
 )
 
-export const sharedNewRoutes = {
+export const sharedNewRoutes = defineRouteMap({
   [Settings.settingsAboutTab]: {
     getOptions: {title: 'About'},
     screen: React.lazy(async () => import('./about')),
@@ -128,7 +128,7 @@ export const sharedNewRoutes = {
   },
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
-}
+})
 
 export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsAboutTab]: sharedNewRoutes[Settings.settingsAboutTab],
