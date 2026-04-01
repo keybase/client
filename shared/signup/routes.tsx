@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
+import {defineRouteMap} from '@/constants/types/router'
 
 const EmailSkipButton = () => {
   const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
@@ -36,7 +37,7 @@ const PhoneSkipButton = () => {
   )
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   signupEnterDevicename: {
     getOptions: {title: 'Name this device'},
     screen: React.lazy(async () => import('./device-name')),
@@ -61,10 +62,10 @@ export const newRoutes = {
     getOptions: {title: 'Send feedback'},
     screen: React.lazy(async () => import('./feedback')),
   },
-}
+})
 
 // Some screens in signup show up after we've actually signed up
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   signupEnterEmail: {
     getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
     screen: React.lazy(async () => import('./email')),
@@ -81,4 +82,4 @@ export const newModalRoutes = {
     getOptions: {title: 'Verify phone number'},
     screen: React.lazy(async () => import('./phone-number/verify')),
   },
-}
+})

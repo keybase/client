@@ -4,6 +4,7 @@ import * as Crypto from '@/constants/crypto'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import cryptoTeamBuilder from '../team-building/page'
 import type {StaticScreenProps} from '@react-navigation/core'
+import {defineRouteMap} from '@/constants/types/router'
 import type {
   CommonOutputRouteParams,
   CryptoInputRouteParams,
@@ -82,7 +83,7 @@ const CryptoTeamBuilderScreen = React.lazy(async () => {
   }
 })
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     getOptions: {headerShown: true, title: 'Decrypt'},
     screen: DecryptInputScreen,
@@ -103,9 +104,9 @@ export const newRoutes = {
     getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
     screen: React.lazy(async () => import('./sub-nav')),
   },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   [Crypto.decryptOutput]: {
     getOptions: {
       headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
@@ -138,4 +139,4 @@ export const newModalRoutes = {
     ...cryptoTeamBuilder,
     screen: CryptoTeamBuilderScreen,
   },
-}
+})
