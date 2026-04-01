@@ -1,4 +1,5 @@
-import type {RouteProp, StaticParamList} from '@react-navigation/native'
+import type {RouteProp} from '@react-navigation/native'
+import type {StaticParamList} from '@react-navigation/core'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import type {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'

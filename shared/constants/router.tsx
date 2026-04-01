@@ -37,6 +37,9 @@ type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
 type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
   InferComponentProps<COM>
 >
+type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
+  p: StaticScreenProps<ScreenParams<COM>>
+) => React.ReactElement
 
 export const navigationRef = createNavigationContainerRef<KBRootParamList>()
 
@@ -134,7 +137,7 @@ export const getModalStack = (navState?: T.Immutable<NavState>) => {
   if (!_isLoggedIn(rs)) {
     return []
   }
-  return (rs.routes?.slice(1) ?? []).filter(r => !rootNonModalRouteNames.has(r.name))
+  return (rs.routes?.slice(1) ?? []).filter((r: Route) => !rootNonModalRouteNames.has(r.name))
 }
 
 export const getVisibleScreen = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -174,7 +177,7 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-): import('./types/router').RouteDef<React.ComponentType<StaticScreenProps<ScreenParams<COM>>>> {
+): import('./types/router').RouteDef<ScreenComponent<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: StaticScreenProps<ScreenParams<COM>>) =>
@@ -206,7 +209,7 @@ export const clearModals = () => {
   }
   const rootRoutes = ns?.routes ?? []
   const keepRoutes = rootRoutes.filter(
-    (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
+    (route: Route, index: number) => index === 0 || rootNonModalRouteNames.has(route.name)
   )
   if (keepRoutes.length !== rootRoutes.length) {
     n.dispatch({
