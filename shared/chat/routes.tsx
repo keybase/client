@@ -202,8 +202,8 @@ export const newModalRoutes = {
     React.lazy(async () => import('./send-to-chat')),
     {
       getOptions: ({route}) => ({
-        headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />,
-        title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
+        headerLeft: () => <SendToChatHeaderLeft canBack={route.params?.canBack} />,
+        title: FS.getSharePathArrayDescription(route.params?.sendPaths || []),
       }),
       skipProvider: true,
     }
