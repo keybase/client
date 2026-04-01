@@ -2025,9 +2025,7 @@ type InferComponentProps<T> =
 
 type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
   ? undefined
-  : {} extends P
-    ? P | undefined
-    : P
+  : P
 
 type AddConversationIDKey<P extends Record<string, unknown> | undefined> = P extends undefined
   ? {conversationIDKey?: T.Chat.ConversationIDKey}
@@ -2049,8 +2047,20 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
     canBeNullConvoID?: boolean
   }
 ) {
+  const getOptionsOption = options?.getOptions
+  const getOptions = typeof getOptionsOption === 'function'
+    ? (p: ChatScreenProps<COM>) =>
+        getOptionsOption({
+          ...p,
+          route: {
+            ...p.route,
+            params: (p.route.params ?? {}) as ChatScreenParams<COM>,
+          },
+        })
+    : getOptionsOption
   return {
     ...options,
+    getOptions,
     screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
       return options?.skipProvider ? (

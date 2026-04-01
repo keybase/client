@@ -98,14 +98,20 @@ export const newRoutes = {
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
   chatRoot: Chat.isSplit
-    ? Chat.makeChatScreen(
-        React.lazy(async () => import('./inbox-and-conversation')),
-        {getOptions: inboxAndConvoGetOptions, skipProvider: true}
-      )
-    : Chat.makeChatScreen(
-        React.lazy(async () => import('./inbox/defer-loading')),
-        {getOptions: inboxGetOptions, skipProvider: true}
-      ),
+    ? {
+        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
+          getOptions: inboxAndConvoGetOptions,
+          skipProvider: true,
+        }),
+        initialParams: {},
+      }
+    : {
+        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox/defer-loading')), {
+          getOptions: inboxGetOptions,
+          skipProvider: true,
+        }),
+        initialParams: {},
+      },
 }
 
 export const newModalRoutes = {
@@ -202,8 +208,8 @@ export const newModalRoutes = {
     React.lazy(async () => import('./send-to-chat')),
     {
       getOptions: ({route}) => ({
-        headerLeft: () => <SendToChatHeaderLeft canBack={route.params?.canBack} />,
-        title: FS.getSharePathArrayDescription(route.params?.sendPaths || []),
+        headerLeft: () => <SendToChatHeaderLeft canBack={route.params.canBack} />,
+        title: FS.getSharePathArrayDescription(route.params.sendPaths || []),
       }),
       skipProvider: true,
     }

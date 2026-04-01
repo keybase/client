@@ -11,20 +11,20 @@ type TeamsRootParams = {
   filter?: string
   sort?: T.Teams.TeamListSort
 }
-type TeamsRootParamList = {teamsRoot: TeamsRootParams | undefined}
+type TeamsRootParamList = {teamsRoot: TeamsRootParams}
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
   const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
+    onJoinTeam: () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}}),
   }
 }
 
 const TeamsFilter = () => {
   const route = useRoute<RouteProp<TeamsRootParamList, 'teamsRoot'>>()
-  const params = route.params ?? {}
+  const params = route.params
   const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
   const filterValue = params.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)

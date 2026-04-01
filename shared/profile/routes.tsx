@@ -83,11 +83,11 @@ export const newModalRoutes = {
   profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
     getOptions: ({route}) => ({
       headerLeft: () => (
-        <EditAvatarHeaderLeft wizard={route.params?.wizard} showBack={route.params?.showBack} />
+        <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
       ),
-      headerRight: () => <EditAvatarHeaderRight wizard={route.params?.wizard} />,
+      headerRight: () => <EditAvatarHeaderRight wizard={route.params.wizard} />,
       headerTitle: () => (
-        <EditAvatarHeaderTitle teamID={route.params?.teamID} wizard={route.params?.wizard} />
+        <EditAvatarHeaderTitle teamID={route.params.teamID} wizard={route.params.wizard} />
       ),
     }),
   }),

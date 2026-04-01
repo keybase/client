@@ -13,12 +13,12 @@ type ChatRootParams = {
   conversationIDKey?: string
   infoPanel?: object
 }
-type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams | undefined}, 'chatRoot'>
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams}, 'chatRoot'>
 
 const Header = () => {
   const {params} = useRoute<ChatRootRoute>()
   return (
-    <Chat.ChatProvider canBeNull={true} id={params?.conversationIDKey ?? Chat.noConversationIDKey}>
+    <Chat.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
       <Header2 />
     </Chat.ChatProvider>
   )
@@ -27,7 +27,7 @@ const Header = () => {
 const Header2 = () => {
   const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = !!params?.infoPanel
+  const infoPanelShowing = !!params.infoPanel
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s

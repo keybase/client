@@ -30,9 +30,7 @@ type InferComponentProps<T> =
 
 type NavigatorParamsFromProps<P extends Record<string, unknown> | undefined> = P extends undefined
   ? undefined
-  : {} extends P
-    ? P | undefined
-    : P
+  : P
 
 type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
   InferComponentProps<COM>
@@ -175,8 +173,20 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
 ) {
+  const getOptionsOption = options?.getOptions
+  const getOptions = typeof getOptionsOption === 'function'
+    ? (p: StaticScreenProps<ScreenParams<COM>>) =>
+        getOptionsOption({
+          ...p,
+          route: {
+            ...p.route,
+            params: (p.route.params ?? {}) as ScreenParams<COM>,
+          },
+        })
+    : getOptionsOption
   return {
     ...options,
+    getOptions,
     screen: function Screen(p: StaticScreenProps<ScreenParams<COM>>) {
       const Comp = Component as any
       return <Comp {...(p.route.params ?? {})} />
@@ -371,7 +381,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         {
           name: 'loggedIn',
           state: {
-            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
           },
         },
         {name: 'chatConversation', params: {conversationIDKey}},

@@ -209,9 +209,12 @@ export const newRoutes = {
     React.lazy(async () => import('./team/member/index.new')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamsRoot: C.makeScreen(React.lazy(async () => import('./container')), {
-    getOptions: teamsRootGetOptions,
-  }),
+  teamsRoot: {
+    ...C.makeScreen(React.lazy(async () => import('./container')), {
+      getOptions: teamsRootGetOptions,
+    }),
+    initialParams: {},
+  },
 }
 
 export const newModalRoutes = {
@@ -292,8 +295,8 @@ export const newModalRoutes = {
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
     getOptions: ({route}) => ({
-      headerLeft: () => <JoinTeamHeaderLeft success={route.params?.success} />,
-      headerTitle: () => <JoinTeamHeaderTitle success={route.params?.success} />,
+      headerLeft: () => <JoinTeamHeaderLeft success={route.params.success} />,
+      headerTitle: () => <JoinTeamHeaderTitle success={route.params.success} />,
     }),
   }),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {

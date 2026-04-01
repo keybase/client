@@ -9,7 +9,7 @@ import {useNavigation} from '@react-navigation/native'
 
 type OwnProps = {initialTeamname?: string; success?: boolean}
 type TeamJoinTeamDialogParamList = {
-  teamJoinTeamDialog: OwnProps | undefined
+  teamJoinTeamDialog: OwnProps
 }
 
 const getJoinTeamError = (error: unknown) => {

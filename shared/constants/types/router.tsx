@@ -73,6 +73,12 @@ export type GetOptionsRet =
   | undefined
 
 type AnyScreen = React.ComponentType<any>
+type ScreenRouteParams<Screen extends AnyScreen> =
+  React.ComponentProps<Screen> extends {route: {params: infer Params}}
+    ? Params
+    : React.ComponentProps<Screen> extends {route: {params?: infer Params}}
+      ? Params
+      : undefined
 
 export type GetOptions<Screen extends AnyScreen = AnyScreen> =
   | GetOptionsRet
@@ -80,16 +86,20 @@ export type GetOptions<Screen extends AnyScreen = AnyScreen> =
 
 export type RouteDef<Screen extends AnyScreen = AnyScreen> = {
   getOptions?: GetOptions<Screen>
+  initialParams?: ScreenRouteParams<Screen> extends undefined ? undefined : ScreenRouteParams<Screen>
   screen: Screen
 }
 export type RouteMap = {[K in string]?: RouteDef}
 
-type RouteDefMatchesScreen<R> = R extends {screen: infer Screen}
-  ? Screen extends AnyScreen
-    ? Omit<R, 'getOptions' | 'screen'> & {
-        getOptions?: GetOptions<Screen>
-        screen: Screen
-      }
+type RouteDefMatchesScreen<R> =
+  R extends {screen: infer Screen}
+    ? Screen extends AnyScreen
+      ? Omit<R, 'getOptions' | 'initialParams' | 'screen'> & {
+          getOptions?: GetOptions<Screen>
+          initialParams?: ScreenRouteParams<Screen> extends undefined ? undefined : ScreenRouteParams<Screen>
+          screen: Screen
+        }
+      : never
     : never
   : never
 

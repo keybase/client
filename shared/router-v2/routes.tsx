@@ -149,6 +149,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, {screen:
   const result: Record<
     string,
     {
+      initialParams?: object
       layout: (props: any) => React.ReactElement
       options: (p: {route: any; navigation: any}) => NativeStackNavigationOptions
       screen: React.ComponentType<any>
@@ -156,6 +157,7 @@ export function routeMapToStaticScreens<const RS extends Record<string, {screen:
   > = {}
   for (const [name, rd] of Object.entries(rs) as Array<[string, CheckedRouteEntry<RS>]>) {
     result[name] = {
+      ...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams as object}),
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
       layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
@@ -186,6 +188,7 @@ export function routeMapToScreenElements<const RS extends Record<string, {screen
         key={name}
         name={name}
         component={rd.screen}
+        {...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams})}
         layout={makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions)}
         options={makeOptionsFn(rd)}
       />,

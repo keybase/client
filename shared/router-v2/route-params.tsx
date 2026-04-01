@@ -9,7 +9,10 @@ import type {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} fro
 import type {newRoutes as loginNewRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
 import type {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import type {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
-import type {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
+import type {
+  newRoutes as settingsNewRoutes,
+  newModalRoutes as settingsNewModalRoutes,
+} from '../settings/routes'
 import type {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
 import type {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import type {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
@@ -51,71 +54,47 @@ type Tabs = {
   'tabs.walletsTab': undefined
 }
 
-type TabRoots =
-  | 'peopleRoot'
-  | 'chatRoot'
-  | 'cryptoRoot'
-  | 'fsRoot'
-  | 'teamsRoot'
-  | 'walletsRoot'
-  | 'gitRoot'
-  | 'devicesRoot'
-  | 'settingsRoot'
-
-type _AllScreens =
-  & typeof deviceNewRoutes
-  & typeof chatNewRoutes
-  & typeof cryptoNewRoutes
-  & typeof peopleNewRoutes
-  & typeof profileNewRoutes
-  & typeof fsNewRoutes
-  & typeof settingsNewRoutes
-  & typeof teamsNewRoutes
-  & typeof gitNewRoutes
-  & typeof chatNewModalRoutes
-  & typeof cryptoNewModalRoutes
-  & typeof deviceNewModalRoutes
-  & typeof fsNewModalRoutes
-  & typeof gitNewModalRoutes
-  & typeof loginNewModalRoutes
-  & typeof peopleNewModalRoutes
-  & typeof profileNewModalRoutes
-  & typeof settingsNewModalRoutes
-  & typeof signupNewModalRoutes
-  & typeof teamsNewModalRoutes
-  & typeof walletsNewModalRoutes
-  & typeof incomingShareNewModalRoutes
-  & typeof loginNewRoutes
-  & typeof signupNewRoutes
+type _AllScreens = typeof deviceNewRoutes &
+  typeof chatNewRoutes &
+  typeof cryptoNewRoutes &
+  typeof peopleNewRoutes &
+  typeof profileNewRoutes &
+  typeof fsNewRoutes &
+  typeof settingsNewRoutes &
+  typeof teamsNewRoutes &
+  typeof gitNewRoutes &
+  typeof chatNewModalRoutes &
+  typeof cryptoNewModalRoutes &
+  typeof deviceNewModalRoutes &
+  typeof fsNewModalRoutes &
+  typeof gitNewModalRoutes &
+  typeof loginNewModalRoutes &
+  typeof peopleNewModalRoutes &
+  typeof profileNewModalRoutes &
+  typeof settingsNewModalRoutes &
+  typeof signupNewModalRoutes &
+  typeof teamsNewModalRoutes &
+  typeof walletsNewModalRoutes &
+  typeof incomingShareNewModalRoutes &
+  typeof loginNewRoutes &
+  typeof signupNewRoutes
 
 export type RootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
 
 export type RouteKeys = keyof RootParamList
-type AllOptional<T> = {
-  [K in keyof T]-?: undefined extends T[K] ? true : false
-}[keyof T] extends true
-  ? true
-  : false
 type Distribute<U> = U extends RouteKeys
   ? RootParamList[U] extends undefined
     ? U
-    : AllOptional<RootParamList[U]> extends true
-      ? {name: U; params: RootParamList[U]} | U
-      : {name: U; params: RootParamList[U]}
+    : {name: U; params: RootParamList[U]}
   : never
 export type NavigateAppendType = Distribute<RouteKeys>
+export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
-type MaybeMissingParamsRouteProp<RouteName extends keyof RootParamList> = Omit<
-  RouteProp<RootParamList, RouteName>,
-  'params'
-> & {
-  params?: RootParamList[RouteName]
+export type RouteProps2<RouteName extends keyof RootParamList> = {
+  route: RootRouteProps<RouteName>
+  navigation: NativeStackNavigationProp<RootParamList, RouteName>
 }
-
-export type RootRouteProps<RouteName extends keyof RootParamList> = RouteName extends TabRoots
-  ? MaybeMissingParamsRouteProp<RouteName>
-  : RouteProp<RootParamList, RouteName>
 
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
   route: unknown

@@ -13,7 +13,7 @@ type TeamsRootParamList = {
   teamsRoot: {
     filter?: string
     sort?: T.Teams.TeamListSort
-  } | undefined
+  }
 }
 
 const orderTeams = (
@@ -88,7 +88,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   const nav = useSafeNavigation()
   const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
   const onCreateTeam = () => launchNewTeamWizardOrModal()
-  const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
+  const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={getTeams}>
