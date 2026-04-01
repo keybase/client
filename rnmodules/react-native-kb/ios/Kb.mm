@@ -11,6 +11,7 @@
 #import <React/RCTCallInvoker.h>
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
+#import <os/log.h>
 #import <cstring>
 #include <atomic>
 #import <jsi/jsi.h>
@@ -395,11 +396,11 @@ RCT_EXPORT_METHOD(notifyJSReady) {
           }
           if (consecutiveErrors <= 5 || consecutiveErrors % 50 == 0) {
             __typeof__(self) strongSelf = weakSelf;
-            NSLog(@"ReadArr loop[%llu] error streak=%llu total=%llu domain=%s code=%ld desc=%s self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
-                  (unsigned long long)readLoopGen, (unsigned long long)consecutiveErrors,
-                  (unsigned long long)totalErrors, KBStringOrNil(error.domain), (long)error.code,
-                  KBStringOrNil(error.localizedDescription), strongSelf, strongSelf.bridge,
-                  strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
+            os_log(OS_LOG_DEFAULT, "ReadArr loop[%llu] error streak=%llu total=%llu domain=%{public}s code=%ld desc=%{public}s self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
+                   (unsigned long long)readLoopGen, (unsigned long long)consecutiveErrors,
+                   (unsigned long long)totalErrors, KBStringOrNil(error.domain), (long)error.code,
+                   KBStringOrNil(error.localizedDescription), strongSelf, strongSelf.bridge,
+                   strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
           }
           // Back off on error to avoid spinning at ~35K/sec and starving the main thread CPU
           // during foreground re-entry (seen during hang investigation: 419K errors in 12s).
