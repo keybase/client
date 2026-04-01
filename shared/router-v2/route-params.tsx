@@ -78,12 +78,6 @@ type KeybaseRootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
 export type RootParamList = KeybaseRootParamList
 
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends KeybaseRootParamList {}
-  }
-}
-
 export type RouteKeys = keyof RootParamList
 type Distribute<U> = U extends RouteKeys
   ? RootParamList[U] extends undefined

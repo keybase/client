@@ -12,7 +12,7 @@ import {
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {GetOptionsRet} from './types/router'
+import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
 import {shallowEqual} from './utils'
@@ -41,7 +41,7 @@ type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
   p: StaticScreenProps<ScreenParams<COM>>
 ) => React.ReactElement
 
-export const navigationRef = createNavigationContainerRef<KBRootParamList>()
+export const navigationRef = createNavigationContainerRef()
 
 registerDebugClear(() => {
   navigationRef.current = null
@@ -177,7 +177,7 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   options?: {
     getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-): import('./types/router').RouteDef<ScreenComponent<COM>> {
+): RouteDef<ScreenComponent<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: StaticScreenProps<ScreenParams<COM>>) =>

@@ -12,7 +12,7 @@ import logger from '@/logger'
 import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/constants/router'
 import {ProviderScreen} from '@/stores/convostate'
-import type {GetOptionsRet} from '@/constants/types/router'
+import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
@@ -2051,15 +2051,16 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
-): import('@/constants/types/router').RouteDef<ChatScreenComponent<COM>> {
+): RouteDef<ChatScreenComponent<COM>> {
   const getOptionsOption = options?.getOptions
   const getOptions = typeof getOptionsOption === 'function'
     ? (p: ChatScreenProps<COM>) =>
+        // getOptions can run before params are materialized on the route object.
         getOptionsOption({
           ...p,
           route: {
             ...p.route,
-            params: (p.route.params ?? {}) as ChatScreenParams<COM>,
+            params: (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>),
           },
         })
     : getOptionsOption
@@ -2068,11 +2069,12 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
     getOptions,
     screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
+      const params = (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>)
       return options?.skipProvider ? (
-        <Comp {...(p.route.params ?? {})} />
+        <Comp {...params} />
       ) : (
         <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
-          <Comp {...(p.route.params ?? {})} />
+          <Comp {...params} />
         </ProviderScreen>
       )
     },

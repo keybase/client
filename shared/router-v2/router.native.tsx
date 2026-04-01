@@ -22,6 +22,7 @@ import type {SFSymbol} from 'sf-symbols-typescript'
 import {makeLayout} from './screen-layout.native'
 import {useRootKey} from './hooks.native'
 import {createLinkingConfig} from './linking'
+import type {RootParamList} from './route-params'
 import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
@@ -220,7 +221,7 @@ const rootStackScreenOptions = {headerBackButtonDisplayMode: 'minimal'} satisfie
 const modalScreenOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<ReactNavigation.RootParamList>
+  navigation: NavigationProp<RootParamList>
 }): NativeStackNavigationOptions => {
   const cancelItem: NativeStackNavigationOptions =
     Platform.OS === 'ios'
