@@ -3,6 +3,7 @@ import Expo
 import ExpoModulesCore
 import KBCommon
 import Keybasego
+import OSLog
 import React
 import ReactAppDependencyProvider
 import UIKit
@@ -247,7 +248,18 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
       self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod",
       securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err
     )
-    if let err { NSLog("KeybaseInit FAILED: \(err)") }
+    if let err {
+      // Log to system log with public annotation so it's not redacted in logarchive.
+      os_log(
+        .error, log: OSLog(subsystem: "keybase", category: "init"),
+        "KeybaseInit FAILED: %{public}@ (code=%ld domain=%{public}@)",
+        err.localizedDescription, err.code, err.domain)
+      // Also write to ios.log so it's captured in xcappdata even without a device attached.
+      self.writeStartupTimingLog(
+        "KeybaseInit FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))")
+    } else {
+      self.writeStartupTimingLog("KeybaseInit succeeded")
+    }
 
     self.writeStartupTimingLog("After Go init")
   }

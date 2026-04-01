@@ -118,13 +118,15 @@ func noteReadError(c net.Conn, err error) {
 	}
 }
 
-// log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
+// log writes to kbCtx.Log if available, otherwise falls back to stderr.
+// Stderr is captured in crash logs and the Xcode console, making early Init
+// messages (before kbCtx.Log is set up by Configure) visible in diagnostics.
 func log(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
 	} else {
-		fmt.Printf("%s\n", msg)
+		fmt.Fprintf(os.Stderr, "keybase: %s\n", msg)
 	}
 }
 
