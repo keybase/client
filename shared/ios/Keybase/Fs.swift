@@ -22,11 +22,12 @@ import Foundation
             .appendingPathComponent("logs")
             .appendingPathComponent("ios.log").path
 
+        let logDirURL = oldLogURL.appendingPathComponent("logs")
         if !skipLogFile {
-            // cleanup old log files
+            // cleanup old log files (they live in the logs/ subdir, not directly under oldLogURL)
             let fm = FileManager.default
             ["ios.log", "ios.log.ek"].forEach {
-                try? fm.removeItem(at: oldLogURL.appendingPathComponent($0))
+                try? fm.removeItem(at: logDirURL.appendingPathComponent($0))
             }
         }
         // Create LevelDB and log directories with a slightly lower data protection
@@ -45,11 +46,15 @@ import Foundation
             "kbfs_sync_cache",
             "kbfs_settings",
             "synced_tlf_config",
-            "logs"
         ].forEach {
             createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
         }
-        // Mark avatars, which are in the caches dir
+        // Log and avatar dirs live under the caches dir, not Application Support.
+        // This must run after the cleanup above so that any surviving ios.log from a
+        // previous session (created by Go with default FileProtectionComplete) has its
+        // protection downgraded to completeUntilFirstUserAuthentication before
+        // KeybaseInit tries to open it on a locked device.
+        createBackgroundReadableDirectory(path: logDirURL.path, setAllFiles: true)
         createBackgroundReadableDirectory(path: oldLogURL.appendingPathComponent("avatars").path, setAllFiles: true)
 
         let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
