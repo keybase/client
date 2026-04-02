@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"runtime/trace"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -61,16 +59,6 @@ var (
 	connMutex   sync.Mutex // Protects conn operations
 )
 
-var (
-	connGeneration     atomic.Uint64
-	resetGeneration    atomic.Uint64
-	jsReadySignalCount atomic.Uint64
-	writeErrCount      atomic.Uint64
-	readErrCount       atomic.Uint64
-	readErrStreak      atomic.Uint64
-	readErrStreakStart atomic.Int64
-)
-
 func describeConn(c net.Conn) string {
 	if c == nil {
 		return "<nil>"
@@ -78,44 +66,11 @@ func describeConn(c net.Conn) string {
 	return fmt.Sprintf("%T@%p", c, c)
 }
 
-func describeErr(err error) string {
-	if err == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("%T: %v", err, err)
-}
-
 func appStateForLog() string {
 	if kbCtx == nil || kbCtx.MobileAppState == nil {
 		return "<unknown>"
 	}
 	return fmt.Sprintf("%v", kbCtx.MobileAppState.State())
-}
-
-func noteReadSuccess(c net.Conn, n int) {
-	streak := readErrStreak.Swap(0)
-	startUnix := readErrStreakStart.Swap(0)
-	if streak == 0 {
-		return
-	}
-	var dur time.Duration
-	if startUnix > 0 {
-		dur = time.Since(time.Unix(0, startUnix))
-	}
-	log("Go: ReadArr recovered after streak=%d conn=%s nextReadBytes=%d appState=%s duration=%s",
-		streak, describeConn(c), n, appStateForLog(), dur)
-}
-
-func noteReadError(c net.Conn, err error) {
-	total := readErrCount.Add(1)
-	streak := readErrStreak.Add(1)
-	if streak == 1 {
-		readErrStreakStart.Store(time.Now().UnixNano())
-	}
-	if streak <= 5 || streak == 10 || streak%50 == 0 {
-		log("Go: ReadArr error streak=%d total=%d conn=%s appState=%s err=%s eof=%v",
-			streak, total, describeConn(c), appStateForLog(), describeErr(err), errors.Is(err, io.EOF))
-	}
 }
 
 // log writes to kbCtx.Log if available, otherwise falls back to stderr.
@@ -530,9 +485,8 @@ func WriteArr(b []byte) (err error) {
 
 	n, err := currentConn.Write(bytes)
 	if err != nil {
-		total := writeErrCount.Add(1)
-		log("Go: WriteArr error total=%d conn=%s len=%d appState=%s err=%s",
-			total, describeConn(currentConn), len(bytes), appStateForLog(), describeErr(err))
+		log("Go: WriteArr error conn=%s len=%d appState=%s err=%v",
+			describeConn(currentConn), len(bytes), appStateForLog(), err)
 		return fmt.Errorf("Write error: %s", err)
 	}
 	if n != len(bytes) {
@@ -573,12 +527,10 @@ func ReadArr() (data []byte, err error) {
 
 	n, err := currentConn.Read(buffer)
 	if n > 0 && err == nil {
-		noteReadSuccess(currentConn, n)
 		return buffer[0:n], nil
 	}
 
 	if err != nil {
-		noteReadError(currentConn, err)
 		// Attempt to fix the connection
 		if ierr := Reset(); ierr != nil {
 			log("failed to Reset: %v", ierr)
@@ -592,7 +544,6 @@ func ReadArr() (data []byte, err error) {
 // ensureConnection establishes the loopback connection if not already connected.
 // Must be called with connMutex held.
 func ensureConnection() error {
-	start := time.Now()
 	if !isInited() {
 		log("ensureConnection: keybase not initialized")
 		return errors.New("keybase not initialized")
@@ -603,8 +554,6 @@ func ensureConnection() error {
 	}
 
 	var err error
-	log("ensureConnection: attempting dial listener=%T@%p existingConn=%s appState=%s",
-		kbCtx.LoopbackListener, kbCtx.LoopbackListener, describeConn(conn), appStateForLog())
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
 		// The listener was closed (isClosed=true, returns syscall.EINVAL). Recreate it and
@@ -621,14 +570,12 @@ func ensureConnection() error {
 			log("ensureConnection: Dial failed after restart: %v", err)
 			return fmt.Errorf("failed to dial after loopback restart: %s", err)
 		}
-		gen := connGeneration.Add(1)
-		log("ensureConnection: loopback server restarted successfully in %v gen=%d conn=%s appState=%s",
-			time.Since(start), gen, describeConn(conn), appStateForLog())
+		log("ensureConnection: loopback server restarted successfully conn=%s appState=%s",
+			describeConn(conn), appStateForLog())
 		return nil
 	}
-	gen := connGeneration.Add(1)
-	log("Go: Established loopback connection in %v gen=%d conn=%s appState=%s",
-		time.Since(start), gen, describeConn(conn), appStateForLog())
+	log("Go: Established loopback connection conn=%s appState=%s",
+		describeConn(conn), appStateForLog())
 	return nil
 }
 
@@ -637,19 +584,18 @@ func Reset() error {
 	connMutex.Lock()
 	defer connMutex.Unlock()
 
-	resetID := resetGeneration.Add(1)
-	log("Go: Reset #%d start conn=%s appState=%s", resetID, describeConn(conn), appStateForLog())
+	log("Go: Reset start conn=%s appState=%s", describeConn(conn), appStateForLog())
 	if conn != nil {
 		conn.Close()
 		conn = nil
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
-		log("Go: Reset #%d complete without listener appState=%s", resetID, appStateForLog())
+		log("Go: Reset complete without listener appState=%s", appStateForLog())
 		return nil
 	}
 
 	// Connection will be re-established lazily on next read/write
-	log("Go: Connection reset, will reconnect on next operation (reset=%d appState=%s)", resetID, appStateForLog())
+	log("Go: Connection reset, will reconnect on next operation appState=%s", appStateForLog())
 	return nil
 }
 
@@ -657,18 +603,11 @@ func Reset() error {
 // This unblocks the ReadArr loop and allows bidirectional communication.
 // jsReadyCh is closed once and stays closed — repeated calls from engine resets are no-ops.
 func NotifyJSReady() {
-	call := jsReadySignalCount.Add(1)
-	notified := false
 	jsReadyOnce.Do(func() {
-		notified = true
-		log("Go: JS signaled ready, unblocking RPC communication (call=%d appState=%s conn=%s)",
-			call, appStateForLog(), describeConn(conn))
+		log("Go: JS signaled ready, unblocking RPC communication appState=%s conn=%s",
+			appStateForLog(), describeConn(conn))
 		close(jsReadyCh)
 	})
-	if !notified {
-		log("Go: NotifyJSReady called again (no-op, channel already closed — engine reset?) call=%d appState=%s conn=%s",
-			call, appStateForLog(), describeConn(conn))
-	}
 }
 
 // ForceGC Forces a gc

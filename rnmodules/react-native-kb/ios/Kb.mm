@@ -11,9 +11,7 @@
 #import <React/RCTCallInvoker.h>
 #import <UIKit/UIKit.h>
 #import <UserNotifications/UserNotifications.h>
-#import <os/log.h>
 #import <cstring>
-#include <atomic>
 #import <jsi/jsi.h>
 #import <sys/utsname.h>
 #import <objc/runtime.h>
@@ -26,14 +24,12 @@ using namespace facebook;
 using namespace std;
 using namespace kb;
 
-extern void *currentRuntime;
-
 // used to keep track of objects getting destroyed on the js side
 class KBTearDown : public jsi::HostObject {
 public:
   KBTearDown() { Tearup(); }
   virtual ~KBTearDown() {
-    NSLog(@"KBTeardown!!! currentRuntime=%p", currentRuntime);
+    NSLog(@"KBTeardown!!!");
     Teardown();
   }
   virtual jsi::Value get(jsi::Runtime &, const jsi::PropNameID &name) {
@@ -104,16 +100,6 @@ static NSString *kbInitResult = nil;
 jsi::Runtime *_jsRuntime;
 std::shared_ptr<KBJSScheduler> jsScheduler;
 
-// sanity check the runtime isn't out of sync due to reload etc
-void *currentRuntime = nil;
-std::atomic<uint64_t> gKbInstallCount{0};
-std::atomic<uint64_t> gNotifyJSReadyCount{0};
-std::atomic<uint64_t> gReadLoopGeneration{0};
-
-static const char *KBStringOrNil(NSString *value) {
-  return value ? value.UTF8String : "<nil>";
-}
-
 RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
@@ -172,10 +158,8 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)invalidate {
-  NSLog(@"Kb.invalidate: self=%p bridge=%p readQueue=%p jsRuntime=%p currentRuntime=%p scheduler=%p",
-        self, self.bridge, self.readQueue, [self javaScriptRuntimePointer], currentRuntime, jsScheduler.get());
+  NSLog(@"Kb.invalidate");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  currentRuntime = nil;
   _jsRuntime = nil;
   kbPasteImageEnabled = NO;
   [super invalidate];
@@ -214,15 +198,6 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
       NSLog(@"Failed to find jsi in sendToJS invokeAsync!!!");
       return;
     }
-    if (currentRuntime && currentRuntime != jsRuntimePtr) {
-      NSLog(@"sendToJS: stored runtime mismatch self=%p bridge=%p storedRuntime=%p currentRuntime=%p callbackRuntime=%p",
-            strongSelf, strongSelf.bridge, jsRuntimePtr, currentRuntime, &jsiRuntime);
-    }
-    if (currentRuntime && currentRuntime != &jsiRuntime) {
-      NSLog(@"sendToJS: callback runtime mismatch self=%p bridge=%p storedRuntime=%p currentRuntime=%p callbackRuntime=%p",
-            strongSelf, strongSelf.bridge, jsRuntimePtr, currentRuntime, &jsiRuntime);
-    }
-
     int size = (int)[data length];
     if (size <= 0) {
       NSLog(@"Invalid data size in sendToJS: %d", size);
@@ -333,8 +308,7 @@ RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
 RCT_EXPORT_METHOD(engineReset) {
-  NSLog(@"engineReset: called (JS hot reload), resetting Go engine self=%p bridge=%p jsRuntime=%p currentRuntime=%p scheduler=%p",
-        self, self.bridge, [self javaScriptRuntimePointer], currentRuntime, jsScheduler.get());
+  NSLog(@"engineReset: called (JS hot reload), resetting Go engine");
   NSError *error = nil;
   KeybaseReset(&error);
   [self sendEventWithName:metaEventName body:metaEventEngineReset];
@@ -345,15 +319,9 @@ RCT_EXPORT_METHOD(engineReset) {
 
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
-  uint64_t notifyCount = gNotifyJSReadyCount.fetch_add(1) + 1;
 
-  NSLog(@"notifyJSReady[%llu]: called from JS, queuing main thread block self=%p bridge=%p jsRuntime=%p currentRuntime=%p scheduler=%p",
-        (unsigned long long)notifyCount, self, self.bridge, [self javaScriptRuntimePointer], currentRuntime, jsScheduler.get());
+  NSLog(@"notifyJSReady: called from JS self=%p bridge=%p", self, self.bridge);
   dispatch_async(dispatch_get_main_queue(), ^{
-    uint64_t readLoopGen = gReadLoopGeneration.fetch_add(1) + 1;
-    NSLog(@"notifyJSReady[%llu]: main thread block executing self=%p bridge=%p jsRuntime=%p currentRuntime=%p nextReadLoop=%llu",
-          (unsigned long long)notifyCount, self, self.bridge, [self javaScriptRuntimePointer], currentRuntime,
-          (unsigned long long)readLoopGen);
     // Setup infrastructure
     [[NSNotificationCenter defaultCenter]
         addObserver:self
@@ -364,25 +332,15 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 
     // Signal to Go that JS is ready
     KeybaseNotifyJSReady();
-    NSLog(@"notifyJSReady[%llu]: Notified Go that JS is ready, starting ReadArr loop=%llu queue=%p",
-          (unsigned long long)notifyCount, (unsigned long long)readLoopGen, self.readQueue);
+    NSLog(@"notifyJSReady: Notified Go that JS is ready, starting ReadArr loop");
 
     // Start the read loop
     dispatch_async(self.readQueue, ^{
-      uint64_t consecutiveErrors = 0;
-      uint64_t totalErrors = 0;
-      CFAbsoluteTime errorStreakStart = 0;
-      NSLog(@"ReadArr loop[%llu] start self=%p bridge=%p readQueue=%p jsRuntime=%p currentRuntime=%p scheduler=%p",
-            (unsigned long long)readLoopGen, self, self.bridge, self.readQueue, [self javaScriptRuntimePointer],
-            currentRuntime, jsScheduler.get());
       while (true) {
         {
           __typeof__(self) strongSelf = weakSelf;
           if (!strongSelf || !strongSelf.bridge) {
-            NSLog(@"ReadArr loop[%llu] exit: bridge dead self=%p bridge=%p totalErrors=%llu consecutiveErrors=%llu jsRuntime=%p currentRuntime=%p",
-                  (unsigned long long)readLoopGen, strongSelf, strongSelf.bridge, (unsigned long long)totalErrors,
-                  (unsigned long long)consecutiveErrors,
-                  strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
+            NSLog(@"ReadArr loop exit: bridge dead");
             return;
           }
         }
@@ -390,34 +348,11 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         NSError *error = nil;
         NSData *data = KeybaseReadArr(&error);
         if (error) {
-          totalErrors++;
-          consecutiveErrors++;
-          if (errorStreakStart == 0) {
-            errorStreakStart = CFAbsoluteTimeGetCurrent();
-          }
-          if (consecutiveErrors <= 5 || consecutiveErrors % 50 == 0) {
-            __typeof__(self) strongSelf = weakSelf;
-            os_log(OS_LOG_DEFAULT, "ReadArr loop[%llu] error streak=%llu total=%llu domain=%{public}s code=%ld desc=%{public}s initResult=%{public}s self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
-                   (unsigned long long)readLoopGen, (unsigned long long)consecutiveErrors,
-                   (unsigned long long)totalErrors, KBStringOrNil(error.domain), (long)error.code,
-                   KBStringOrNil(error.localizedDescription), KBStringOrNil(kbInitResult),
-                   strongSelf, strongSelf.bridge,
-                   strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
-          }
+          NSLog(@"Error reading data: %@", error);
           // Back off on error to avoid spinning at ~35K/sec and starving the main thread CPU
           // during foreground re-entry (seen during hang investigation: 419K errors in 12s).
           [NSThread sleepForTimeInterval:0.1];
         } else if (data) {
-          if (consecutiveErrors > 0) {
-            CFAbsoluteTime streakDuration = errorStreakStart > 0 ? CFAbsoluteTimeGetCurrent() - errorStreakStart : 0;
-            __typeof__(self) strongSelf = weakSelf;
-            NSLog(@"ReadArr loop[%llu] recovered after streak=%llu total=%llu duration=%.3fs nextBytes=%lu self=%p bridge=%p jsRuntime=%p currentRuntime=%p",
-                  (unsigned long long)readLoopGen, (unsigned long long)consecutiveErrors,
-                  (unsigned long long)totalErrors, streakDuration, (unsigned long)data.length,
-                  strongSelf, strongSelf.bridge, strongSelf ? [strongSelf javaScriptRuntimePointer] : nil, currentRuntime);
-            consecutiveErrors = 0;
-            errorStreakStart = 0;
-          }
           __typeof__(self) strongSelf = weakSelf;
           if (strongSelf) {
             [strongSelf sendToJS:data];
@@ -432,19 +367,9 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
     RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
-    void *previousRuntime = currentRuntime;
     _jsRuntime = (jsi::Runtime *)cxxBridge.runtime;
-    currentRuntime = cxxBridge.runtime;
     auto &rnRuntime = *(jsi::Runtime *)cxxBridge.runtime;
     jsScheduler = std::make_shared<KBJSScheduler>(rnRuntime, _callInvoker.callInvoker);
-    uint64_t installCount = gKbInstallCount.fetch_add(1) + 1;
-    NSLog(@"install[%llu]: self=%p bridge=%p runtime=%p previousRuntime=%p scheduler=%p callInvoker=%p",
-          (unsigned long long)installCount, self, self.bridge, cxxBridge.runtime, previousRuntime, jsScheduler.get(),
-          _callInvoker.callInvoker.get());
-    if (previousRuntime && previousRuntime != cxxBridge.runtime) {
-      NSLog(@"install[%llu]: runtime changed without a matching invalidate? previousRuntime=%p newRuntime=%p bridge=%p",
-            (unsigned long long)installCount, previousRuntime, cxxBridge.runtime, self.bridge);
-    }
 
     // stash the current runtime to keep in sync
     auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue, const Value *arguments, size_t count) -> Value {

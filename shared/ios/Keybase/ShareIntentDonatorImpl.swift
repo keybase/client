@@ -51,7 +51,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
       NSLog("ShareIntentDonator: donateShareConversations: empty conversations array")
       return
     }
-    NSLog("ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count)
+    NSLog(
+      "ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count
+    )
     donateConversations(conversations)
   }
 
@@ -97,7 +99,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Loads avatar URL(s) and composites them. Apple requires a non-nil image for share sheet suggestions.
-  private func loadAvatars(urls: [URL], intent: INSendMessageIntent, completion: @escaping () -> Void) {
+  private func loadAvatars(
+    urls: [URL], intent: INSendMessageIntent, completion: @escaping () -> Void
+  ) {
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       let images = urls.compactMap { (try? Data(contentsOf: $0)).flatMap { UIImage(data: $0) } }
       if let combined = self?.compositeAvatarImages(images), let data = combined.pngData() {
@@ -129,7 +133,8 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let size: CGFloat = 192
     let circleSize = size * 0.65
     let leftRect = CGRect(origin: .zero, size: CGSize(width: circleSize, height: circleSize))
-    let rightRect = CGRect(x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
+    let rightRect = CGRect(
+      x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
     let fullRect = CGRect(origin: .zero, size: CGSize(width: size, height: size))
     let format = UIGraphicsImageRendererFormat()
     format.opaque = false
@@ -142,7 +147,8 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
         let scale = max(size / imgSize.width, size / imgSize.height)
         let scaledW = imgSize.width * scale
         let scaledH = imgSize.height * scale
-        let drawRect = CGRect(x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
+        let drawRect = CGRect(
+          x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
         self.drawImageInCircle(img, in: fullRect, drawRect: drawRect, context: cgContext)
       } else {
         self.drawImageInCircle(images[0], in: leftRect, drawRect: leftRect, context: cgContext)
@@ -152,7 +158,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Draws an image clipped to an oval. Uses aspect fill when drawRect differs from clip rect.
-  private func drawImageInCircle(_ image: UIImage, in clipRect: CGRect, drawRect: CGRect, context: CGContext) {
+  private func drawImageInCircle(
+    _ image: UIImage, in clipRect: CGRect, drawRect: CGRect, context: CGContext
+  ) {
     context.saveGState()
     UIBezierPath(ovalIn: clipRect).addClip()
     image.draw(in: drawRect)
@@ -163,7 +171,9 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let interaction = INInteraction(intent: intent, response: nil)
     interaction.donate { error in
       if let error = error {
-        NSLog("ShareIntentDonator: donateIntent failed for %@: %@", intent.conversationIdentifier ?? "?", error.localizedDescription)
+        NSLog(
+          "ShareIntentDonator: donateIntent failed for %@: %@",
+          intent.conversationIdentifier ?? "?", error.localizedDescription)
       }
     }
   }
