@@ -10,7 +10,7 @@ import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
-import {defineRouteMap, withRouteParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 
 type TeamRouteParams = {
   teamID: T.Teams.TeamID
@@ -192,10 +192,10 @@ const NewTeamInfoHeaderLeft = () => {
 }
 
 export const newRoutes = defineRouteMap({
-  team: withRouteParams<TeamRouteParams>(C.makeScreen(
+  team: C.makeScreen(
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
-  )),
+  ),
   teamChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./channel')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}

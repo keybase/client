@@ -5,7 +5,7 @@ import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
-import {defineRouteMap, withRouteParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
@@ -74,14 +74,12 @@ const ManageContactsScreen: React.ComponentType =
   C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
 const emptyFeedbackParams: FeedbackRouteParams = {}
 
-const feedback = withRouteParams<FeedbackRouteParams>(
-  {
-    ...C.makeScreen(React.lazy(async () => import('./feedback/container')), {
-      getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
-    }),
-    initialParams: emptyFeedbackParams,
-  }
-)
+const feedback = {
+  ...C.makeScreen(React.lazy(async () => import('./feedback/container')), {
+    getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
+  }),
+  initialParams: emptyFeedbackParams,
+}
 
 export const sharedNewRoutes = defineRouteMap({
   [Settings.settingsAboutTab]: {

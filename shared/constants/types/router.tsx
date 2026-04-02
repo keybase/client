@@ -84,38 +84,19 @@ export type GetOptions<Screen extends AnyScreen = AnyScreen> =
   | GetOptionsRet
   | ((p: React.ComponentProps<Screen>) => GetOptionsRet)
 
-export type RouteDef<
-  Screen extends AnyScreen = AnyScreen,
-  Params = ScreenRouteParams<Screen>,
-> = {
+export type RouteDef<Screen extends AnyScreen = AnyScreen, Params = ScreenRouteParams<Screen>> = {
   __routeParams?: Params
   getOptions?: GetOptions<Screen>
-  initialParams?: Params extends undefined ? undefined : Params
+  initialParams?: Params
   screen: Screen
 }
 export type RouteMap = {[K in string]?: RouteDef}
 
-type RouteDefMatchesScreen<R> =
-  R extends {screen: infer Screen}
-    ? Screen extends AnyScreen
-      ? Omit<R, '__routeParams' | 'getOptions' | 'initialParams' | 'screen'> & {
-          __routeParams?: R extends {__routeParams?: infer Params} ? Params : ScreenRouteParams<Screen>
-          getOptions?: GetOptions<Screen>
-          initialParams?: (R extends {__routeParams?: infer Params} ? Params : ScreenRouteParams<Screen>) extends undefined
-            ? undefined
-            : R extends {__routeParams?: infer Params}
-              ? Params
-              : ScreenRouteParams<Screen>
-          screen: Screen
-        }
-      : never
-    : never
-  : never
+export const defineRouteMap = <const Routes,>(routes: Routes) => routes
 
-export const defineRouteMap = <const Routes extends Record<string, {screen: AnyScreen}>>(
-  routes: Routes & {[K in keyof Routes]: RouteDefMatchesScreen<Routes[K]>}
-) => routes
-
-export const withRouteParams = <Params, Screen extends AnyScreen>(
+// tsgo does not support partial type argument application: providing Params explicitly
+// while letting Screen be inferred causes "Expected 2 type arguments, but got 1".
+// Adding Screen = AnyScreen as a default fixes this.
+export const withRouteParams = <Params, Screen extends AnyScreen = AnyScreen>(
   route: RouteDef<Screen>
 ): RouteDef<Screen, Params> => route as RouteDef<Screen, Params>

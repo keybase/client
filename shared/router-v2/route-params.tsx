@@ -1,50 +1,24 @@
-import type * as React from 'react'
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import type {RouteDef} from '@/constants/types/router'
-import type {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
-import type {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
-import type {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
-import type {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
-import type {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
-import type {newRoutes as loginNewRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
-import type {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
-import type {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
-import type {
-  newRoutes as settingsNewRoutes,
-  newModalRoutes as settingsNewModalRoutes,
-} from '../settings/routes'
-import type {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
-import type {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
-import type {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
-import type {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
+import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
-type IsUnknown<T> = unknown extends T ? ([keyof T] extends [never] ? true : false) : false
-type NormalizeParams<T> = IsUnknown<T> extends true ? undefined : T extends object | undefined ? T : undefined
-type ExtractScreenParams<Screen> =
-  Screen extends React.LazyExoticComponent<infer Inner>
-    ? ExtractScreenParams<Inner>
-    : Screen extends React.ComponentType<infer Props>
-      ? Props extends {route: {params: infer Params}}
-        ? NormalizeParams<Params>
-        : Props extends {route: {params?: infer Params}}
-          ? NormalizeParams<Params>
-          : undefined
-      : undefined
-type ExtractRouteParams<Route> = Route extends RouteDef<any, infer Params>
-  ? NormalizeParams<Params>
-  : Route extends {initialParams: infer Params}
-    ? NormalizeParams<Params>
-  : '__routeParams' extends keyof Route
-    ? Route extends {__routeParams?: infer Params}
-      ? NormalizeParams<Params>
-      : undefined
-  : Route extends {screen: infer Screen}
-    ? ExtractScreenParams<Screen>
-    : undefined
-
+// tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
+// but tsgo reports "TS2315: Type 'StaticParamList' is not generic" (works fine with regular tsc).
+// Once tsgo fixes re-exported generic type aliases, replace _ExtractParams:
+//   type _SyntheticConfig = {readonly config: {readonly screens: _AllScreens}}
+//   export type RootParamList = StaticParamList<_SyntheticConfig> & Tabs & {...}
+//
+// Similarly, avoid matching on RouteDef<any, infer Params> — tsgo fails to infer Params
+// through conditional types in RouteDef's field definitions. Instead, extract params
+// directly from the screen function's route prop, which tsgo handles correctly.
 type _ExtractParams<T> = {
-  [K in keyof T]: ExtractRouteParams<T[K]>
+  [K in keyof T]: T[K] extends {screen: infer U}
+    ? U extends (args: infer V) => any
+      ? V extends {route: {params: infer W}}
+        ? W
+        : undefined
+      : undefined
+    : undefined
 }
 
 type Tabs = {
@@ -62,34 +36,10 @@ type Tabs = {
   'tabs.walletsTab': undefined
 }
 
-type _AllScreens = typeof deviceNewRoutes &
-  typeof chatNewRoutes &
-  typeof cryptoNewRoutes &
-  typeof peopleNewRoutes &
-  typeof profileNewRoutes &
-  typeof fsNewRoutes &
-  typeof settingsNewRoutes &
-  typeof teamsNewRoutes &
-  typeof gitNewRoutes &
-  typeof chatNewModalRoutes &
-  typeof cryptoNewModalRoutes &
-  typeof deviceNewModalRoutes &
-  typeof fsNewModalRoutes &
-  typeof gitNewModalRoutes &
-  typeof loginNewModalRoutes &
-  typeof peopleNewModalRoutes &
-  typeof profileNewModalRoutes &
-  typeof settingsNewModalRoutes &
-  typeof signupNewModalRoutes &
-  typeof teamsNewModalRoutes &
-  typeof walletsNewModalRoutes &
-  typeof incomingShareNewModalRoutes &
-  typeof loginNewRoutes &
-  typeof signupNewRoutes
+type _AllScreens = typeof routes & typeof modalRoutes & typeof loggedOutRoutes
 
-type KeybaseRootParamList = _ExtractParams<_AllScreens> &
+export type RootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
-export type RootParamList = KeybaseRootParamList
 
 export type RouteKeys = keyof RootParamList
 export type NoParamRouteKeys = {
