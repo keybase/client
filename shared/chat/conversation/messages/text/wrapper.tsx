@@ -4,7 +4,7 @@ import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
-import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
+import {WrapperMessageView, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 
@@ -46,8 +46,8 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 }
 
 function WrapperText(p: Props) {
-  const {ordinal} = p
-  const messageData = useMessageData(ordinal)
+  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
+  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {type, showCenteredHighlight} = common
   const {isEditing, hasReactions} = messageData
@@ -87,9 +87,9 @@ function WrapperText(p: Props) {
   }
 
   return (
-    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren} messageData={messageData}>
+    <WrapperMessageView {...p} {...common} bottomChildren={bottomChildren} messageData={messageData}>
       {children}
-    </WrapperMessage>
+    </WrapperMessageView>
   )
 }
 

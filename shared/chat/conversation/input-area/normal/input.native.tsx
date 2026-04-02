@@ -14,6 +14,7 @@ import type {Props as InputLowLevelProps, PlatformInputProps as Props, TextInfo,
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {Keyboard, TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData, useColorScheme} from 'react-native'
 import {MaxInputAreaContext} from './max-input-area-context'
+import {useAnimatedKeyboard} from 'react-native-keyboard-controller'
 import {
   default as Animated,
   skipAnimations,
@@ -431,11 +432,15 @@ const AnimatedInput = (() => {
       const {expanded, inputRef, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
-      const maxHeight = maxInputArea - inputAreaHeight - 15
-      const as = useAnimatedStyle(() => ({
-        maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
-        minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
-      }))
+      const keyboard = useAnimatedKeyboard()
+      const maxHeightBase = maxInputArea - inputAreaHeight - 15
+      const as = useAnimatedStyle(() => {
+        const maxHeight = maxHeightBase - keyboard.height.value
+        return {
+          maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
+          minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
+        }
+      })
       React.useEffect(() => {
         if (expanded !== lastExpandedRef.current) {
           lastExpandedRef.current = expanded

@@ -123,6 +123,7 @@ function FileContainer(p: OwnProps) {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        relative={true}
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
@@ -182,7 +183,7 @@ function FileContainer(p: OwnProps) {
           </Kb.Box2>
         )}
         {!!progressLabel && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.progressOverlay}>
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
@@ -245,6 +246,7 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
+      progressOverlay: {bottom: 0, left: 0, position: 'absolute', right: 0},
       retry: {
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',

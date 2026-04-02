@@ -277,7 +277,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
   const suggestDesktop = {marginLeft: 15, marginRight: 15, marginTop: 'auto'}
   return {
     container: Kb.Styles.platformStyles({
-      isMobile: {justifyContent: 'flex-end'},
+      isMobile: {backgroundColor: Kb.Styles.globalColors.white, justifyContent: 'flex-end'},
     }),
     suggestionOverlay: Kb.Styles.platformStyles({
       isElectron: suggestDesktop,

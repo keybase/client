@@ -3,7 +3,8 @@ import * as Chat from '@/stores/chat'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -21,15 +22,6 @@ const Offline = () => (
   </Kb.Banner>
 )
 
-const LoadingLine = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const showLoader = C.Waiting.useAnyWaiting([
-    C.waitingKeyChatThreadLoad(conversationIDKey),
-    C.waitingKeyChatInboxSyncStarted,
-  ])
-  return showLoader ? <Kb.LoadingLine /> : null
-}
-
 const Conversation = function Conversation() {
   const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = (e: LayoutEvent) => {
@@ -39,71 +31,42 @@ const Conversation = function Conversation() {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
-  const innerComponent = (
-    <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-        <ThreadLoadStatus />
-        <PinnedMessage />
-        <ListArea />
-        <LoadingLine />
-      </Kb.Box2>
-      <InvitationToBlock />
-      <Banner />
-      <MaxInputAreaContext value={maxInputArea}>
-        <InputArea />
-      </MaxInputAreaContext>
-    </Kb.BoxGrow>
-  )
-
   const insets = useSafeAreaInsets()
-  const headerHeight = Kb.Styles.isTablet ? 115 : 44
-  const windowHeight = useSafeAreaFrame().height
-  const height = windowHeight - insets.top - headerHeight
 
-  const safeStyle = Kb.Styles.isAndroid
-    ? {paddingBottom: insets.bottom}
-    : {
-        height,
-        maxHeight: height,
-        minHeight: height,
-        paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
-      }
-
-  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
-
-  const content = (
-    <Kb.Box2
-      direction="vertical"
-      flex={1}
-      fullWidth={true}
-      fullHeight={true}
-      key={conversationIDKey}
-          relative={true}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {threadLoadedOffline && <Offline />}
-        {innerComponent}
-      </Kb.Box2>
-      <PortalHost name="convOverlay" />
-    </Kb.Box2>
-  )
+  const showLoader = C.Waiting.useAnyWaiting([
+    C.waitingKeyChatThreadLoad(conversationIDKey),
+    C.waitingKeyChatInboxSyncStarted,
+  ])
+  const loadingLine = showLoader ? <Kb.LoadingLine /> : null
+  const offline = Chat.useChatContext(s => s.meta.offline) ? <Offline /> : null
 
   return (
     <PerfProfiler id="Conversation">
-      {Kb.Styles.isAndroid ? (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          {content}
+      <Kb.Box2
+        direction="vertical"
+        flex={1}
+        fullWidth={true}
+        fullHeight={true}
+        key={conversationIDKey}
+        relative={true}
+        style={{paddingBottom: insets.bottom}}
+      >
+        {offline}
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} onLayout={onLayout}>
+          <ThreadLoadStatus />
+          <PinnedMessage />
+          <ListArea />
+          {loadingLine}
+          <KeyboardStickyView offset={{closed: 0, opened: insets.bottom}}>
+            <InvitationToBlock />
+            <Banner />
+            <MaxInputAreaContext value={maxInputArea}>
+              <InputArea />
+            </MaxInputAreaContext>
+          </KeyboardStickyView>
         </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          <Kb.KeyboardAvoidingView2
-            extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-            behavior="translate-with-padding"
-          >
-            {content}
-          </Kb.KeyboardAvoidingView2>
-        </Kb.Box2>
-      )}
+        <PortalHost name="convOverlay" />
+      </Kb.Box2>
     </PerfProfiler>
   )
 }

@@ -107,7 +107,39 @@ const ErrorMessage = () => {
   )
 }
 
-function SpecialTopMessage() {
+// Outer gate: minimal reads, manages visibility timer, mounts inner only when needed.
+function SpecialTopMessage({isOnScreen = true}: {isOnScreen?: boolean}) {
+  const {hasLoadedEver, moreToLoadBack, ordinal} = Chat.useChatContext(
+    C.useShallow(s => ({
+      hasLoadedEver: s.messageOrdinals !== undefined,
+      moreToLoadBack: s.moreToLoadBack,
+      ordinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
+    }))
+  )
+  const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
+  // Hold off until the thread has actually loaded — avoids flashing cards while initial
+  // data is in flight. Once loaded: show immediately at the true top, delay otherwise.
+  const [visible, setVisible] = React.useState(false)
+  React.useEffect(() => {
+    if (!hasLoadedEver) {
+      setVisible(false)
+      return
+    }
+    if (loadMoreType === 'noMoreToLoad') {
+      setVisible(true)
+      return
+    }
+    setVisible(false)
+    if (!isOnScreen) return
+    const timer = setTimeout(() => setVisible(true), 3000)
+    return () => clearTimeout(timer)
+  }, [hasLoadedEver, isOnScreen, loadMoreType, ordinal])
+
+  if (!visible) return null
+  return <SpecialTopMessageInner />
+}
+
+function SpecialTopMessageInner() {
   const username = useCurrentUserState(s => s.username)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -123,7 +155,6 @@ function SpecialTopMessage() {
           : s.id === Chat.pendingErrorConversationIDKey
             ? 'error'
             : 'done'
-
       const partAll = s.participants.all
       const partNum = partAll.length
       const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
@@ -149,30 +180,6 @@ function SpecialTopMessage() {
   )
   const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
   const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
-  // we defer showing this so it doesn't flash so much
-  const [allowDigging, setAllowDigging] = React.useState(false)
-  const lastOrdinalRef = React.useRef(ordinal)
-
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  React.useEffect(() => {
-    if (ordinal !== lastOrdinalRef.current) {
-      setAllowDigging(false)
-      lastOrdinalRef.current = ordinal
-      digTimerRef.current && clearTimeout(digTimerRef.current)
-      digTimerRef.current = setTimeout(() => {
-        setAllowDigging(true)
-      }, 3000)
-    }
-  }, [ordinal])
-
-  React.useEffect(() => {
-    return () => {
-      if (digTimerRef.current) {
-        clearTimeout(digTimerRef.current)
-        digTimerRef.current = undefined
-      }
-    }
-  }, [])
 
   const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
@@ -181,7 +188,6 @@ function SpecialTopMessage() {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
@@ -203,7 +209,7 @@ function SpecialTopMessage() {
           <MakeTeamCard />
         </Kb.Box2>
       )}
-      {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
+      {loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
@@ -227,7 +233,6 @@ const styles = Kb.Styles.styleSheetCreate(
       more: {
         paddingBottom: Kb.Styles.globalMargins.medium,
       },
-      spacer: {height: Kb.Styles.globalMargins.small},
     }) as const
 )
 
