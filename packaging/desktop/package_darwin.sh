@@ -114,7 +114,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # TODO build and publish an arm64 version
-# The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
+# The KeybaseInstaller.app installs the FSKit driver, keybase.Helper, services and CLI via a native app
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.94-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.7-darwin.tgz"
@@ -193,7 +193,7 @@ get_deps() { (
 	echo "Using local updater binpath: $updater_binpath"
 	cp "$updater_binpath" .
 
-	echo "Using installer from $installer_url"
+echo "Using installer (with FSKit driver) from $installer_url"
 	curl -J -L -Ss "$installer_url" | tar zx
 
 	echo "Using updater from $updater_url"
