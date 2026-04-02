@@ -16,19 +16,22 @@ export type PushNotification =
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
+      forUid?: string
       membersType?: RPCChatTypes.ConversationMembersType
       type: 'chat.newmessage'
       unboxPayload: string
       userInteraction: boolean
     }
   | {
+      forUid?: string
       type: 'follow'
       userInteraction: boolean
       username: string
     }
   | {
-      type: 'chat.extension'
       conversationIDKey: ChatTypes.ConversationIDKey
+      forUid?: string
+      type: 'chat.extension'
     }
   | {
       type: 'settings.contacts'
