@@ -9,12 +9,6 @@ export type GetOptionsParams<RouteName extends keyof KBRootParamList = keyof KBR
   route: RouteProp<KBRootParamList, RouteName>
 }
 
-// Type for screen components that receive navigation props
-export type ScreenProps<RouteName extends keyof KBRootParamList = keyof KBRootParamList> = {
-  navigation: NativeStackNavigationProp<KBRootParamList, RouteName>
-  route: RouteProp<KBRootParamList, RouteName>
-}
-
 export type ScreenComponentProps = {
   route: {params: any}
   navigation: NativeStackNavigationProp<KBRootParamList>

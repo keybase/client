@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 // import type {StaticParamList} from '@react-navigation/core'
 import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
@@ -74,12 +73,6 @@ type MaybeMissingParamsRouteProp<RouteName extends keyof RootParamList> = Omit<
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteName extends TabRoots
   ? MaybeMissingParamsRouteProp<RouteName>
   : RouteProp<RootParamList, RouteName>
-
-// Tab roots can mount before any params object exists, even when the screen prop type is an object.
-export type RouteProps2<RouteName extends keyof RootParamList> = {
-  route: RootRouteProps<RouteName>
-  navigation: NativeStackNavigationProp<RootParamList, RouteName>
-}
 
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
   route: unknown

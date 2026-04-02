@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade React Navigation"
+  short_description: "Migrate React Navigation across major versions"
+  default_prompt: "Use $upgrade-react-navigation to upgrade React Navigation from 6.x to 7.x or from 7.x to 8.x."
