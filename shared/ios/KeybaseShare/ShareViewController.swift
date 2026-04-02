@@ -8,10 +8,10 @@
 
 import Foundation
 import Intents
-import UIKit
-import MobileCoreServices
-import Keybasego
 import KBCommon
+import Keybasego
+import MobileCoreServices
+import UIKit
 
 @objc(ShareViewController)
 public class ShareViewController: UIViewController {
@@ -33,7 +33,11 @@ public class ShareViewController: UIViewController {
           let sel = #selector(UIApplication.open(_:options:completionHandler:))
           if r.responds(to: sel) {
             let imp = r.method(for: sel)
-            typealias Func = @convention(c) (AnyObject, Selector, URL, [UIApplication.OpenExternalURLOptionsKey: Any], ((Bool) -> Void)?) -> Void
+            typealias Func =
+              @convention(c) (
+                AnyObject, Selector, URL, [UIApplication.OpenExternalURLOptionsKey: Any],
+                ((Bool) -> Void)?
+              ) -> Void
             let f = unsafeBitCast(imp, to: Func.self)
             f(r, sel, url, [:], nil)
             return
@@ -54,7 +58,9 @@ public class ShareViewController: UIViewController {
   }
 
   func showProgressView() {
-    let alertController = UIAlertController(title: "Working on it", message: "\n\nPreparing content for sharing into Keybase.", preferredStyle: .alert)
+    let alertController = UIAlertController(
+      title: "Working on it", message: "\n\nPreparing content for sharing into Keybase.",
+      preferredStyle: .alert)
     alert = alertController
     let spinner = UIActivityIndicatorView(style: .medium)
     spinner.translatesAutoresizingMaskIntoConstraints = false
@@ -62,7 +68,7 @@ public class ShareViewController: UIViewController {
     alertController.view.addSubview(spinner)
     NSLayoutConstraint.activate([
       spinner.centerXAnchor.constraint(equalTo: alertController.view.centerXAnchor),
-      spinner.centerYAnchor.constraint(equalTo: alertController.view.centerYAnchor, constant: -8)
+      spinner.centerYAnchor.constraint(equalTo: alertController.view.centerYAnchor, constant: -8),
     ])
     present(alertController, animated: true, completion: nil)
   }
@@ -76,9 +82,10 @@ public class ShareViewController: UIViewController {
     if let intent = extensionContext?.intent as? INSendMessageIntent {
       selectedConvID = intent.conversationIdentifier
     }
-    let itemArrs = extensionContext?.inputItems.compactMap {
-      ($0 as? NSExtensionItem)?.attachments
-    } ?? []
+    let itemArrs =
+      extensionContext?.inputItems.compactMap {
+        ($0 as? NSExtensionItem)?.attachments
+      } ?? []
 
     weak var weakSelf = self
     iph = ItemProviderHelper(forShare: true, withItems: itemArrs) {

@@ -1,12 +1,15 @@
 import Foundation
 
 @objc class FsHelper: NSObject {
-    @objc func setupFs(_ skipLogFile: Bool, setupSharedHome shouldSetupSharedHome: Bool) -> [String: String] {
+    @objc func setupFs(_ skipLogFile: Bool, setupSharedHome shouldSetupSharedHome: Bool) -> [String:
+        String]
+    {
         let setupFsStartTime = CFAbsoluteTimeGetCurrent()
         NSLog("setupFs: starting")
 
         var home = NSHomeDirectory()
-        let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.keybase")
+        let sharedURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.keybase")
         var sharedHome = sharedURL?.relativePath ?? ""
 
         home = setupAppHome(home: home, sharedHome: sharedHome)
@@ -18,9 +21,12 @@ import Foundation
         // Put logs in a subdir that is entirely background readable
         let oldLogURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Keybase")
-        let serviceLogFile = skipLogFile ? "" : oldLogURL
-            .appendingPathComponent("logs")
-            .appendingPathComponent("ios.log").path
+        let serviceLogFile =
+            skipLogFile
+            ? ""
+            : oldLogURL
+                .appendingPathComponent("logs")
+                .appendingPathComponent("ios.log").path
 
         let logDirURL = oldLogURL.appendingPathComponent("logs")
         if !skipLogFile {
@@ -47,7 +53,8 @@ import Foundation
             "kbfs_settings",
             "synced_tlf_config",
         ].forEach {
-            createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
+            createBackgroundReadableDirectory(
+                path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
         }
         // Log and avatar dirs live under the caches dir, not Application Support.
         // This must run after the cleanup above so that any surviving ios.log from a
@@ -55,7 +62,8 @@ import Foundation
         // protection downgraded to completeUntilFirstUserAuthentication before
         // KeybaseInit tries to open it on a locked device.
         createBackgroundReadableDirectory(path: logDirURL.path, setAllFiles: true)
-        createBackgroundReadableDirectory(path: oldLogURL.appendingPathComponent("avatars").path, setAllFiles: true)
+        createBackgroundReadableDirectory(
+            path: oldLogURL.appendingPathComponent("avatars").path, setAllFiles: true)
 
         let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime
         NSLog("setupFs: completed in %.3f seconds", setupFsElapsed)
@@ -63,7 +71,7 @@ import Foundation
         return [
             "home": home,
             "sharedHome": sharedHome,
-            "logFile": serviceLogFile
+            "logFile": serviceLogFile,
         ]
     }
 
@@ -87,9 +95,12 @@ import Foundation
         // directory accessible as long as the user has unlocked the phone once. The
         // files are still stored on the disk encrypted (note for the chat database,
         // it means we are encrypting it twice), and are inaccessible otherwise.
-        let noProt = [FileAttributeKey.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+        let noProt = [
+            FileAttributeKey.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication
+        ]
         NSLog("creating background readable directory: path: \(path) setAllFiles: \(setAllFiles)")
-        _ = try? fm.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: noProt)
+        _ = try? fm.createDirectory(
+            atPath: path, withIntermediateDirectories: true, attributes: noProt)
         do {
             try fm.setAttributes(noProt, ofItemAtPath: path)
         } catch {
@@ -116,7 +127,9 @@ import Foundation
                 }
             }
             let dirElapsed = CFAbsoluteTimeGetCurrent() - dirStartTime
-            NSLog("createBackgroundReadableDirectory completed for: \(path), processed \(fileCount) files, total: %.3f seconds", dirElapsed)
+            NSLog(
+                "createBackgroundReadableDirectory completed for: \(path), processed \(fileCount) files, total: %.3f seconds",
+                dirElapsed)
         } else {
             NSLog("Error creating enumerator for path: \(path)")
         }
@@ -193,7 +206,8 @@ import Foundation
         _ = addSkipBackupAttribute(to: sharedKeybasePath)
 
         guard maybeMigrateDirectory(source: appKeybasePath, dest: sharedKeybasePath),
-              maybeMigrateDirectory(source: appEraseableKVPath, dest: sharedEraseableKVPath) else {
+            maybeMigrateDirectory(source: appEraseableKVPath, dest: sharedEraseableKVPath)
+        else {
             return home
         }
 
