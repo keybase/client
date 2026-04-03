@@ -15,10 +15,6 @@ import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
-type ChatAddToChannelRouteParams = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  teamID: T.Teams.TeamID
-}
 type ChatBlockingRouteParams = {
   blockUserByDefault?: boolean
   filterUserByDefault?: boolean
@@ -29,16 +25,6 @@ type ChatBlockingRouteParams = {
   others?: Array<string>
   team?: string
   username?: string
-}
-type ChatConfirmRemoveBotRouteParams = {
-  botUsername: string
-  teamID?: T.Teams.TeamID
-  conversationIDKey?: T.Chat.ConversationIDKey
-}
-type ChatInstallBotRouteParams = {
-  botUsername: string
-  conversationIDKey?: T.Chat.ConversationIDKey
-  teamID?: T.Teams.TeamID
 }
 type ChatSearchBotsRouteParams = {
   teamID?: T.Teams.TeamID

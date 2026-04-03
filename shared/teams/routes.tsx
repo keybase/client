@@ -12,11 +12,6 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
 
-type TeamRouteParams = {
-  teamID: T.Teams.TeamID
-  initialTab?: T.Teams.TabKey
-}
-
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
   return <ModalTitle teamID={teamID} title={title || 'Browse all channels'} />

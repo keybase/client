@@ -72,7 +72,7 @@ export type GetOptionsRet =
       })
   | undefined
 
-type AnyScreen = React.ComponentType<any>
+type AnyScreen = React.ComponentType<any> | React.LazyExoticComponent<any>
 type ScreenRouteParams<Screen extends AnyScreen> =
   React.ComponentProps<Screen> extends {route: {params: infer Params}}
     ? Params
@@ -86,7 +86,10 @@ export type GetOptions<Screen extends AnyScreen = AnyScreen> =
 
 export type RouteDef<Screen extends AnyScreen = AnyScreen, Params = ScreenRouteParams<Screen>> = {
   __routeParams?: Params
-  getOptions?: GetOptions<Screen>
+  // Use `any` for the function param to avoid RouteDef being contravariant in Screen.
+  // GetOptions<Screen> would cause RouteDef<SpecificScreen> to not be assignable to RouteDef<AnyScreen>
+  // because of function parameter contravariance. Typed getOptions are used in makeScreen / makeChatScreen.
+  getOptions?: GetOptionsRet | ((p: any) => GetOptionsRet)
   initialParams?: Params
   screen: Screen
 }

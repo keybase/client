@@ -46,6 +46,11 @@ export type NoParamRouteKeys = {
   [K in RouteKeys]: RootParamList[K] extends undefined ? K : never
 }[RouteKeys]
 export type ParamRouteKeys = Exclude<RouteKeys, NoParamRouteKeys>
+// Routes with required params would break if navigated to without params.
+// Routes where all params are optional can be safely navigated to with just a name string.
+export type AllOptionalParamRouteKeys = {
+  [K in ParamRouteKeys]: {} extends NonNullable<RootParamList[K]> ? K : never
+}[ParamRouteKeys]
 export type NavigateAppendArg<RouteName extends RouteKeys> = RootParamList[RouteName] extends undefined
   ? RouteName
   : {name: RouteName; params: RootParamList[RouteName]}

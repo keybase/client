@@ -2014,11 +2014,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   }
 })
 
-type IsExactlyRecord<T> = [T] extends [Record<string, unknown>]
-  ? [Record<string, unknown>] extends [T]
-    ? true
-    : false
-  : false
+// See constants/router.tsx IsExactlyRecord for explanation
+type IsExactlyRecord<T> = string extends keyof T ? true : false
 
 type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
   ? IsExactlyRecord<P> extends true

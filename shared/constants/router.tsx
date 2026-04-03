@@ -12,6 +12,7 @@ import {
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {
+  AllOptionalParamRouteKeys,
   NoParamRouteKeys,
   ParamRouteKeys,
   RouteKeys,
@@ -24,11 +25,13 @@ import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
-type IsExactlyRecord<T> = [T] extends [Record<string, unknown>]
-  ? [Record<string, unknown>] extends [T]
-    ? true
-    : false
-  : false
+// Detects the unconstrained Record<string,unknown> index-signature type.
+// We can't use bidirectional assignability ([Record] extends [T] && [T] extends [Record])
+// because TypeScript allows Record<string,unknown> to be assigned to any all-optional-property
+// type, making the check incorrectly return true for {x?: string} etc.
+// Instead, check for an index signature: string extends keyof T is true only for
+// Record<string,unknown>-like types (index signatures), not for specific property types.
+type IsExactlyRecord<T> = string extends keyof T ? true : false
 
 type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
   ? IsExactlyRecord<P> extends true
@@ -248,7 +251,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export function navigateAppend<RouteName extends NoParamRouteKeys>(path: RouteName, replace?: boolean): void
+export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(path: RouteName, replace?: boolean): void
 export function navigateAppend<RouteName extends ParamRouteKeys>(
   path: {name: RouteName; params: KBRootParamList[RouteName]},
   replace?: boolean
