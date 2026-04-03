@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native'
-// import type {StaticParamList} from '@react-navigation/core'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
 // tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
@@ -7,6 +7,10 @@ import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 // Once tsgo fixes re-exported generic type aliases, replace _ExtractParams:
 //   type _SyntheticConfig = {readonly config: {readonly screens: _AllScreens}}
 //   export type RootParamList = StaticParamList<_SyntheticConfig> & Tabs & {...}
+//
+// Similarly, avoid matching on RouteDef<any, infer Params> — tsgo fails to infer Params
+// through conditional types in RouteDef's field definitions. Instead, extract params
+// directly from the screen function's route prop, which tsgo handles correctly.
 type _ExtractParams<T> = {
   [K in keyof T]: T[K] extends {screen: infer U}
     ? U extends (args: infer V) => any
@@ -32,47 +36,31 @@ type Tabs = {
   'tabs.walletsTab': undefined
 }
 
-type TabRoots =
-  | 'peopleRoot'
-  | 'chatRoot'
-  | 'cryptoRoot'
-  | 'fsRoot'
-  | 'teamsRoot'
-  | 'walletsRoot'
-  | 'gitRoot'
-  | 'devicesRoot'
-  | 'settingsRoot'
-
 type _AllScreens = typeof routes & typeof modalRoutes & typeof loggedOutRoutes
 
 export type RootParamList = _ExtractParams<_AllScreens> &
   Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
 
 export type RouteKeys = keyof RootParamList
-type AllOptional<T> = {
-  [K in keyof T]-?: undefined extends T[K] ? true : false
-}[keyof T] extends true
-  ? true
-  : false
-type Distribute<U> = U extends RouteKeys
-  ? RootParamList[U] extends undefined
-    ? U
-    : AllOptional<RootParamList[U]> extends true
-      ? {name: U; params: RootParamList[U]} | U
-      : {name: U; params: RootParamList[U]}
-  : never
-export type NavigateAppendType = Distribute<RouteKeys>
+export type NoParamRouteKeys = {
+  [K in RouteKeys]: RootParamList[K] extends undefined ? K : never
+}[RouteKeys]
+export type ParamRouteKeys = Exclude<RouteKeys, NoParamRouteKeys>
+// Routes with required params would break if navigated to without params.
+// Routes where all params are optional can be safely navigated to with just a name string.
+export type AllOptionalParamRouteKeys = {
+  [K in ParamRouteKeys]: {} extends NonNullable<RootParamList[K]> ? K : never
+}[ParamRouteKeys]
+export type NavigateAppendArg<RouteName extends RouteKeys> = RootParamList[RouteName] extends undefined
+  ? RouteName
+  : {name: RouteName; params: RootParamList[RouteName]}
+export type NavigateAppendType = NavigateAppendArg<RouteKeys>
+export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
-type MaybeMissingParamsRouteProp<RouteName extends keyof RootParamList> = Omit<
-  RouteProp<RootParamList, RouteName>,
-  'params'
-> & {
-  params?: RootParamList[RouteName]
+export type RouteProps2<RouteName extends keyof RootParamList> = {
+  route: RootRouteProps<RouteName>
+  navigation: NativeStackNavigationProp<RootParamList, RouteName>
 }
-
-export type RootRouteProps<RouteName extends keyof RootParamList> = RouteName extends TabRoots
-  ? MaybeMissingParamsRouteProp<RouteName>
-  : RouteProp<RootParamList, RouteName>
 
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(
   route: unknown

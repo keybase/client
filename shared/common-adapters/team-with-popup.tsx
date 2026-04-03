@@ -114,8 +114,6 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     memberCount: meta.memberCount,
     teamID,
   }
-  const joinTeam = Teams.useTeamsState(s => s.dispatch.joinTeam)
-  const _onJoinTeam = joinTeam
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   const _onViewTeam = (teamID: T.Teams.TeamID) => {
@@ -129,7 +127,7 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     isMember: stateProps.isMember,
     isOpen: stateProps.isOpen,
     memberCount: stateProps.memberCount,
-    onJoinTeam: () => _onJoinTeam(ownProps.teamName),
+    onJoinTeam: () => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: ownProps.teamName}}),
     onViewTeam: () => _onViewTeam(stateProps.teamID),
     prefix: ownProps.prefix,
     shouldLoadTeam: ownProps.shouldLoadTeam,

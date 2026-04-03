@@ -147,7 +147,7 @@ const useUserData = (username: string) => {
   }
   const {navigateAppend, navigateUp} = C.Router2
   const onAddIdentity = () => {
-    navigateAppend('profileProofsList')
+    navigateAppend({name: 'profileProofsList', params: {}})
   }
   const onBack = () => {
     navigateUp()

@@ -1,5 +1,5 @@
 import * as S from '@/constants/strings'
-import {ignorePromise, wrapErrors} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
 import {
@@ -753,23 +753,18 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
 
 type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
-  addUserToTeamsResults: string
-  addUserToTeamsState: T.Teams.AddUserToTeamsState
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   channelSelectedMembers: Map<T.Chat.ConversationIDKey, Set<string>>
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInAddToTeam: string
-  errorInEditDescription: string
   errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
   errorInEditWelcomeMessage: string
   errorInEmailInvite: T.Teams.EmailInviteError
-  errorInSettings: string
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   newTeams: Set<T.Teams.TeamID>
   teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<T.Teams.TeamID, T.RPCChat.WelcomeMessageDisplay>
   teamNameToLoadingInvites: Map<T.Teams.Teamname, Map<string, boolean>>
-  errorInTeamCreation: string
   teamNameToID: Map<T.Teams.Teamname, string>
   teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamnames: Set<T.Teams.Teamname> // TODO remove
@@ -784,40 +779,26 @@ type Store = T.Immutable<{
   teamSelectedChannels: Map<T.Teams.TeamID, Set<string>>
   teamSelectedMembers: Map<T.Teams.TeamID, Set<string>>
   teamAccessRequestsPending: Set<T.Teams.Teamname>
-  teamListFilter: string
-  teamListSort: T.Teams.TeamListSort
   newTeamWizard: T.Teams.NewTeamWizardState
   addMembersWizard: T.Teams.AddMembersWizardState
-  errorInTeamJoin: string
-  teamInviteDetails: T.Teams.TeamInviteState
-  teamJoinSuccess: boolean
-  teamJoinSuccessOpen: boolean
-  teamJoinSuccessTeamName: string
   teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamIDToRetentionPolicy: Map<T.Teams.TeamID, T.Retention.RetentionPolicy>
   treeLoaderTeamIDToSparseMemberInfos: Map<T.Teams.TeamID, Map<string, T.Teams.TreeloaderSparseMemberInfo>>
   teamMemberToTreeMemberships: Map<T.Teams.TeamID, Map<string, T.Teams.TeamTreeMemberships>>
   teamMemberToLastActivity: Map<T.Teams.TeamID, Map<string, number>>
-  teamProfileAddList: Array<T.Teams.TeamProfileAddList>
 }>
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
-  addUserToTeamsResults: '',
-  addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
-  errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
-  errorInSettings: '',
-  errorInTeamCreation: '',
-  errorInTeamJoin: '',
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
@@ -830,12 +811,6 @@ const initialStore: Store = {
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
-  teamInviteDetails: {inviteID: '', inviteKey: ''},
-  teamJoinSuccess: false,
-  teamJoinSuccessOpen: false,
-  teamJoinSuccessTeamName: '',
-  teamListFilter: '',
-  teamListSort: 'role',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
@@ -843,7 +818,6 @@ const initialStore: Store = {
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
-  teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
@@ -862,9 +836,6 @@ export type State = Store & {
       ) => void
       onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
-    dynamic: {
-      respondToInviteLink?: (accept: boolean) => void
-    }
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
@@ -878,7 +849,6 @@ export type State = Store & {
       sendChatNotification: boolean,
       fromTeamBuilder?: boolean
     ) => void
-    addUserToTeams: (role: T.Teams.TeamRoleType, teams: Array<string>, user: string) => void
     cancelAddMembersWizard: () => void
     channelSetMemberSelected: (
       conversationIDKey: T.Chat.ConversationIDKey,
@@ -887,7 +857,6 @@ export type State = Store & {
       clearAll?: boolean
     ) => void
     checkRequestedAccess: (teamname: string) => void
-    clearAddUserToTeamsResults: () => void
     clearNavBadges: () => void
     createNewTeam: (
       teamname: string,
@@ -905,14 +874,12 @@ export type State = Store & {
     deleteTeam: (teamID: T.Teams.TeamID) => void
     eagerLoadTeams: () => void
     editMembership: (teamID: T.Teams.TeamID, usernames: Array<string>, role: T.Teams.TeamRoleType) => void
-    editTeamDescription: (teamID: T.Teams.TeamID, description: string) => void
     finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
-    getTeamProfileAddList: (username: string) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
     inviteToTeamByEmail: (
       invitees: string,
@@ -929,7 +896,6 @@ export type State = Store & {
       fullName: string,
       loadingKey?: string
     ) => void
-    joinTeam: (teamname: string, deeplink?: boolean) => void
     launchNewTeamWizardOrModal: (subteamOf?: T.Teams.TeamID) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID, _subscribe?: boolean) => void
@@ -942,21 +908,15 @@ export type State = Store & {
     notifyTreeMembershipsPartial: (membership: T.RPCChat.Keybase1.TeamTreeMembership) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
     removeMember: (teamID: T.Teams.TeamID, username: string) => void
     removePendingInvite: (teamID: T.Teams.TeamID, inviteID: string) => void
     renameTeam: (oldName: string, newName: string) => void
-    requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
-    resetErrorInSettings: () => void
-    resetErrorInTeamCreation: () => void
     resetState: () => void
-    resetTeamJoin: () => void
     resetTeamMetaStale: () => void
-    resetTeamProfileAddList: () => void
     saveChannelMembership: (
       teamID: T.Teams.TeamID,
       oldChannelState: T.Teams.ChannelMembershipState,
@@ -985,8 +945,6 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
-    setTeamListFilter: (filter: string) => void
-    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
@@ -1256,66 +1214,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    addUserToTeams: (role, teams, user) => {
-      const f = async () => {
-        const teamsAddedTo: Array<string> = []
-        const errorAddingTo: Array<string> = []
-        for (const team of teams) {
-          try {
-            const teamID = getTeamID(get(), team)
-            if (teamID === T.Teams.noTeamID) {
-              logger.warn(`no team ID found for ${team}`)
-              errorAddingTo.push(team)
-              continue
-            }
-            await T.RPCGen.teamsTeamAddMemberRpcPromise(
-              {
-                email: '',
-                phone: '',
-                role: T.RPCGen.TeamRole[role],
-                sendChatNotification: true,
-                teamID,
-                username: user,
-              },
-              [S.waitingKeyTeamsTeam(teamID), S.waitingKeyTeamsAddUserToTeams(user)]
-            )
-            teamsAddedTo.push(team)
-          } catch {
-            errorAddingTo.push(team)
-          }
-        }
-
-        // TODO: We should split these results into two messages, showing one in green and
-        // the other in red instead of lumping them together.
-        let result = ''
-        if (teamsAddedTo.length) {
-          result += `${user} was added to `
-          if (teamsAddedTo.length > 3) {
-            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
-          } else if (teamsAddedTo.length === 3) {
-            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
-          } else if (teamsAddedTo.length === 2) {
-            result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
-          } else {
-            result += `${teamsAddedTo[0]}.`
-          }
-        }
-
-        if (errorAddingTo.length) {
-          if (result.length > 0) {
-            result += ' But we '
-          } else {
-            result += 'We '
-          }
-          result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
-        }
-        set(s => {
-          s.addUserToTeamsResults = result
-          s.addUserToTeamsState = errorAddingTo.length > 0 ? 'failed' : 'succeeded'
-        })
-      }
-      ignorePromise(f())
-    },
     cancelAddMembersWizard: () => {
       set(s => {
         s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState})
@@ -1348,12 +1246,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    clearAddUserToTeamsResults: () => {
-      set(s => {
-        s.addUserToTeamsResults = ''
-        s.addUserToTeamsState = 'notStarted'
-      })
-    },
     clearNavBadges: () => {
       const f = async () => {
         try {
@@ -1366,9 +1258,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
-      set(s => {
-        s.errorInTeamCreation = ''
-      })
       const f = async () => {
         try {
           const {teamID} = await T.RPCGen.teamsTeamCreateRpcPromise(
@@ -1397,20 +1286,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               navigateAppend({name: 'profileEditAvatar', params: {createdTeam: true, teamID}})
             }
           }
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInTeamCreation = error.desc
-            }
-          })
-        }
+        } catch {}
       }
       ignorePromise(f())
     },
     createNewTeamFromConversation: (conversationIDKey, teamname) => {
-      set(s => {
-        s.errorInTeamCreation = ''
-      })
       const me = useCurrentUserState.getState().username
       const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
       // exclude bots from the newly created team, they can be added back later.
@@ -1492,9 +1372,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    dynamic: {
-      respondToInviteLink: undefined,
-    },
     eagerLoadTeams: () => {
       if (get().teamMetaSubscribeCount > 0) {
         logger.info('eagerly reloading')
@@ -1523,23 +1400,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                 s.errorInEditMember.username = usernames[0] ?? ''
                 s.errorInEditMember.teamID = teamID
               }
-            }
-          })
-        }
-      }
-      ignorePromise(f())
-    },
-    editTeamDescription: (teamID, description) => {
-      set(s => {
-        s.errorInEditDescription = ''
-      })
-      const f = async () => {
-        try {
-          await T.RPCGen.teamsSetTeamShowcaseRpcPromise({description, teamID}, S.waitingKeyTeamsTeam(teamID))
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInEditDescription = error.message
             }
           })
         }
@@ -1646,23 +1506,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       return
-    },
-    getTeamProfileAddList: username => {
-      const f = async () => {
-        const res =
-          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, S.waitingKeyTeamsProfileAddList)) ??
-          []
-        const teamlist = res.map(team => ({
-          disabledReason: team.disabledReason,
-          open: team.open,
-          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
-        }))
-        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-        set(s => {
-          s.teamProfileAddList = teamlist
-        })
-      }
-      ignorePromise(f())
     },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
@@ -1848,69 +1691,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    joinTeam: (teamname, deeplink) => {
-      set(s => {
-        s.teamInviteDetails.inviteDetails = undefined
-      })
-
-      const f = async () => {
-        // In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-        // alternative flow, but we're not concerned with that here). In that case,
-        // we can fully manage the UX from inside of this handler.
-        // In the "Join team" flow, user pastes their link into the input box, which
-        // then calls `joinTeam` on its own. Since we need to switch to another modal,
-        // we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-        // do the nav in the modal.
-        get().dispatch.resetTeamJoin()
-        try {
-          const result = await T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener({
-            customResponseIncomingCallMap: {
-              'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-                set(s => {
-                  s.teamInviteDetails.inviteDetails = T.castDraft(params.details)
-                })
-                if (!deeplink) {
-                  navigateAppend('teamInviteLinkJoin', true)
-                }
-                set(s => {
-                  s.dispatch.dynamic.respondToInviteLink = wrapErrors((accept: boolean) => {
-                    set(s => {
-                      s.dispatch.dynamic.respondToInviteLink = undefined
-                    })
-                    response.result(accept)
-                  })
-                })
-              },
-            },
-            incomingCallMap: {},
-            params: {tokenOrName: teamname},
-            waitingKey: S.waitingKeyTeamsJoinTeam,
-          })
-          set(s => {
-            s.teamJoinSuccess = true
-            s.teamJoinSuccessOpen = result.wasOpenTeam
-            s.teamJoinSuccessTeamName = result.wasTeamName ? teamname : ''
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            const desc =
-              error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
-                ? 'Sorry, that team name or token is not valid.'
-                : error.code === T.RPCGen.StatusCode.scnotfound
-                  ? 'This invitation is no longer valid, or has expired.'
-                  : error.desc
-            set(s => {
-              s.errorInTeamJoin = desc
-            })
-          }
-        } finally {
-          set(s => {
-            s.dispatch.dynamic.respondToInviteLink = undefined
-          })
-        }
-      }
-      ignorePromise(f())
-    },
     launchNewTeamWizardOrModal: subteamOf => {
       set(s => {
         s.newTeamWizard = T.castDraft({
@@ -2052,12 +1832,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             s.teamIDToWelcomeMessage.set(teamID, message)
           })
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              logger.error(error)
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.error(error)
+          }
         }
       }
       ignorePromise(f())
@@ -2269,14 +2046,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         new Set<T.Teams.Teamname>(bodyToJSON(chosenChannels?.item.body) as Array<string>)
       )
     },
-    openInviteLink: (inviteID, inviteKey) => {
-      set(s => {
-        s.teamInviteDetails.inviteDetails = undefined
-        s.teamInviteDetails.inviteID = inviteID
-        s.teamInviteDetails.inviteKey = inviteKey
-      })
-      navigateAppend('teamInviteLinkJoin')
-    },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
         try {
@@ -2362,64 +2131,16 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    requestInviteLinkDetails: () => {
-      const f = async () => {
-        try {
-          const details = await T.RPCGen.teamsGetInviteLinkDetailsRpcPromise({
-            inviteID: get().teamInviteDetails.inviteID,
-          })
-          set(s => {
-            s.teamInviteDetails.inviteDetails = T.castDraft(details)
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            const desc =
-              error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
-                ? 'Sorry, that invite token is not valid.'
-                : error.code === T.RPCGen.StatusCode.scnotfound
-                  ? 'This invitation is no longer valid, or has expired.'
-                  : error.desc
-            set(s => {
-              s.errorInTeamJoin = desc
-            })
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     resetErrorInEmailInvite: () => {
       set(s => {
         s.errorInEmailInvite.message = ''
         s.errorInEmailInvite.malformed = new Set()
       })
     },
-    resetErrorInSettings: () => {
-      set(s => {
-        s.errorInSettings = ''
-      })
-    },
-    resetErrorInTeamCreation: () => {
-      set(s => {
-        s.errorInTeamCreation = ''
-      })
-    },
     resetState: Z.defaultReset,
-    resetTeamJoin: () => {
-      set(s => {
-        s.errorInTeamJoin = ''
-        s.teamJoinSuccess = false
-        s.teamJoinSuccessOpen = false
-        s.teamJoinSuccessTeamName = ''
-      })
-    },
     resetTeamMetaStale: () => {
       set(s => {
         s.teamMetaStale = true
-      })
-    },
-    resetTeamProfileAddList: () => {
-      set(s => {
-        s.teamProfileAddList = []
       })
     },
     saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
@@ -2496,11 +2217,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           ])
           get().dispatch.getTeams(false)
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.info(error.message)
+          }
         }
       }
       ignorePromise(f())
@@ -2589,30 +2308,17 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    setTeamListFilter: filter => {
-      set(s => {
-        s.teamListFilter = filter
-      })
-    },
-    setTeamListSort: (sortOrder: T.Teams.TeamListSort) => {
-      set(s => {
-        s.teamListSort = sortOrder
-      })
-    },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {
         try {
           const servicePolicy = Util.retentionPolicyToServiceRetentionPolicy(policy)
           await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-            S.waitingKeyTeamsTeam(teamID),
+            S.waitingKeyTeamsSetRetentionPolicy(teamID),
           ])
         } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              logger.error(error.message)
-              s.errorInSettings = error.desc
-            }
-          })
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
         }
       }
       ignorePromise(f())

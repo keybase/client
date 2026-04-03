@@ -13,14 +13,14 @@ import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef, RouteMap} from '@/constants/types/router'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import {defineRouteMap} from '@/constants/types/router'
+import type {GetOptions, GetOptionsParams, GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test
 // of whether we're on a loggedIn route: loggedOut routes have no selected tab.
-export const routes = {
+export const routes = defineRouteMap({
   ...deviceNewRoutes,
   ...chatNewRoutes,
   ...cryptoNewRoutes,
@@ -30,7 +30,7 @@ export const routes = {
   ...settingsNewRoutes,
   ...teamsNewRoutes,
   ...gitNewRoutes,
-} satisfies RouteMap
+})
 
 if (__DEV__) {
   const allRouteKeys = [
@@ -65,7 +65,7 @@ export const tabRoots = {
   [Tabs.searchTab]: '',
 } as const
 
-export const modalRoutes = {
+export const modalRoutes = defineRouteMap({
   ...chatNewModalRoutes,
   ...cryptoNewModalRoutes,
   ...deviceNewModalRoutes,
@@ -79,7 +79,7 @@ export const modalRoutes = {
   ...teamsNewModalRoutes,
   ...walletsNewModalRoutes,
   ...incomingShareNewModalRoutes,
-} satisfies RouteMap
+})
 
 if (__DEV__) {
   const allModalKeys = [
@@ -104,7 +104,7 @@ if (__DEV__) {
   }
 }
 
-export const loggedOutRoutes = {..._loggedOutRoutes, ...signupNewRoutes} satisfies RouteMap
+export const loggedOutRoutes = defineRouteMap({..._loggedOutRoutes, ...signupNewRoutes})
 
 type LayoutFn = (props: {
   children: React.ReactNode
@@ -118,14 +118,15 @@ type MakeLayoutFn = (
   getOptions?: GetOptions
 ) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
+type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
   return opts as NativeStackNavigationOptions
 }
 
-export function routeMapToStaticScreens(
-  rs: RouteMap,
+export function routeMapToStaticScreens<const RS extends Record<string, RouteDef>>(
+  rs: RS,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
   isLoggedOut: boolean,
@@ -134,14 +135,15 @@ export function routeMapToStaticScreens(
   const result: Record<
     string,
     {
+      initialParams?: object
       layout: (props: any) => React.ReactElement
       options: (p: {route: any; navigation: any}) => NativeStackNavigationOptions
       screen: React.ComponentType<any>
     }
   > = {}
-  for (const [name, rd] of Object.entries(rs)) {
-    if (!rd) continue
+  for (const [name, rd] of Object.entries(rs) as Array<[string, CheckedRouteEntry<RS>]>) {
     result[name] = {
+      ...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams as object}),
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
       layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
@@ -156,8 +158,8 @@ export function routeMapToStaticScreens(
   return result
 }
 
-export function routeMapToScreenElements(
-  rs: RouteMap,
+export function routeMapToScreenElements<const RS extends Record<string, RouteDef>>(
+  rs: RS,
   Screen: React.ComponentType<any>,
   makeLayoutFn: MakeLayoutFn,
   makeOptionsFn: MakeOptionsFn,
@@ -165,14 +167,14 @@ export function routeMapToScreenElements(
   isLoggedOut: boolean,
   isTabScreen: boolean
 ) {
-  return (Object.keys(rs) as Array<keyof KBRootParamList>).flatMap(name => {
-    const rd = rs[name as string]
-    if (!rd) return []
+  return (Object.keys(rs) as Array<keyof RS & string>).flatMap(name => {
+    const rd = rs[name] as CheckedRouteEntry<RS>
     return [
       <Screen
-        key={String(name)}
+        key={name}
         name={name}
         component={rd.screen}
+        {...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams})}
         layout={makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions)}
         options={makeOptionsFn(rd)}
       />,

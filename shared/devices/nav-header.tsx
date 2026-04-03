@@ -14,7 +14,7 @@ export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; r
 
 export const HeaderRightActions = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const onAdd = () => navigateAppend('deviceAdd')
+  const onAdd = () => navigateAppend({name: 'deviceAdd', params: {}})
   return (
     <Kb.Button
       small={true}

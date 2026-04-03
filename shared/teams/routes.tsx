@@ -10,6 +10,7 @@ import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
+import {defineRouteMap} from '@/constants/types/router'
 
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
@@ -155,16 +156,9 @@ const AddFromWhereHeaderTitle = () => {
   return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
 }
 
-const JoinTeamHeaderTitle = () => {
-  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
-  return <>{success ? 'Request sent' : 'Join a team'}</>
-}
+const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => <>{success ? 'Request sent' : 'Join a team'}</>
 
-const JoinTeamHeaderLeft = () => {
-  const success = Teams.useTeamsState(s => s.teamJoinSuccess)
-  if (success) return null
-  return <HeaderLeftButton />
-}
+const JoinTeamHeaderLeft = ({success}: {success?: boolean}) => (success ? null : <HeaderLeftButton />)
 
 const NewTeamInfoHeaderTitle = () => {
   const {teamType, parentTeamID} = Teams.useTeamsState(
@@ -192,7 +186,7 @@ const NewTeamInfoHeaderLeft = () => {
   return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   team: C.makeScreen(
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
@@ -217,12 +211,14 @@ export const newRoutes = {
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
   teamsRoot: {
-    getOptions: teamsRootGetOptions,
-    screen: React.lazy(async () => import('./container')),
+    ...C.makeScreen(React.lazy(async () => import('./container')), {
+      getOptions: teamsRootGetOptions,
+    }),
+    initialParams: {},
   },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   contactRestricted,
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
@@ -299,10 +295,10 @@ export const newModalRoutes = {
   teamInviteByEmail: C.makeScreen(React.lazy(async () => import('./invite-by-email'))),
   teamInviteLinkJoin: C.makeScreen(React.lazy(async () => import('./join-team/join-from-invite'))),
   teamJoinTeamDialog: C.makeScreen(React.lazy(async () => import('./join-team/container')), {
-    getOptions: {
-      headerLeft: () => <JoinTeamHeaderLeft />,
-      headerTitle: () => <JoinTeamHeaderTitle />,
-    },
+    getOptions: ({route}) => ({
+      headerLeft: () => <JoinTeamHeaderLeft success={route.params.success} />,
+      headerTitle: () => <JoinTeamHeaderTitle success={route.params.success} />,
+    }),
   }),
   teamNewTeamDialog: C.makeScreen(React.lazy(async () => import('./new-team')), {
     getOptions: {title: 'Create a team'},
@@ -350,4 +346,4 @@ export const newModalRoutes = {
     },
   }),
   teamsTeamBuilder,
-}
+})

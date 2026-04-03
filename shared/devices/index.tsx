@@ -9,8 +9,9 @@ import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {HeaderTitle} from './nav-header'
 import {useNavigation} from '@react-navigation/native'
-import type {RootParamList} from '@/router-v2/route-params'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type DevicesRootParamList = {devicesRoot: undefined}
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -44,7 +45,7 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootParamList, 'devicesRoot'>>()
+  const navigation = useNavigation<NativeStackNavigationProp<DevicesRootParamList, 'devicesRoot'>>()
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)

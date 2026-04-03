@@ -103,7 +103,7 @@ export const makeChatConversationState = (conversationIDKey: string): PartialNav
         name: 'loggedIn',
         state: {
           index: 0,
-          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+          routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
         },
       },
       {name: 'chatConversation', params: {conversationIDKey}},

@@ -381,14 +381,14 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
-  const {joinTeam, showTeamByName} = useTeamsState(
+  const {showTeamByName} = useTeamsState(
     C.useShallow(s => ({
-      joinTeam: s.dispatch.joinTeam,
       showTeamByName: s.dispatch.showTeamByName,
     }))
   )
 
   const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
@@ -402,7 +402,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         position="right center"
         onChat={undefined}
         onHidden={hidePopup}
-        onJoinTeam={() => joinTeam(name)}
+        onJoinTeam={() => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: name}})}
         onViewTeam={() => {
           clearModals()
           showTeamByName(name)

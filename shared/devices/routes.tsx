@@ -5,6 +5,7 @@ import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/he
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {useProvisionState} from '@/stores/provision'
+import {defineRouteMap} from '@/constants/types/router'
 
 const AddDeviceCancelButton = () => {
   const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
@@ -22,7 +23,7 @@ const AddDeviceCancelButton = () => {
   )
 }
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   devicePage: C.makeScreen(
     React.lazy(async () => import('./device-page')),
     {getOptions: {title: ''}}
@@ -46,9 +47,9 @@ export const newRoutes = {
         },
     screen: React.lazy(async () => import('.')),
   },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   ...provisionNewRoutes,
   deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device')), {
     getOptions: {
@@ -61,4 +62,4 @@ export const newModalRoutes = {
     getOptions: {gestureEnabled: false, overlayNoClose: true},
     screen: React.lazy(async () => import('./paper-key')),
   },
-}
+})

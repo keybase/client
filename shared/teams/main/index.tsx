@@ -2,7 +2,6 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {useTeamsState} from '@/stores/teams'
 import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {
@@ -12,8 +11,10 @@ type DeletedTeam = {
 
 export type Props = {
   deletedTeams: ReadonlyArray<DeletedTeam>
+  onChangeSort: (sortOrder: T.Teams.TeamListSort) => void
   onCreateTeam: () => void
   onJoinTeam: () => void
+  sortOrder: T.Teams.TeamListSort
   teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
@@ -56,8 +57,7 @@ const sortOrderToTitle = {
   alphabetical: 'Alphabetical',
   role: 'Your role',
 }
-const SortHeader = () => {
-  const onChangeSort = useTeamsState(s => s.dispatch.setTeamListSort)
+const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSort']; sortOrder: Props['sortOrder']}) => {
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
@@ -85,7 +85,6 @@ const SortHeader = () => {
     }
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
-  const sortOrder = useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
@@ -105,12 +104,12 @@ const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 type TeamItem = T.Teams.TeamMeta
 
 const Teams = function Teams(p: Props) {
-  const {deletedTeams, teams, onCreateTeam, onJoinTeam} = p
+  const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
 
   const listHeader = (
     <>
       <TeamBigButtons onCreateTeam={onCreateTeam} onJoinTeam={onJoinTeam} empty={teams.length === 0} />
-      <SortHeader />
+      <SortHeader onChangeSort={onChangeSort} sortOrder={sortOrder} />
       {deletedTeams.map(dt => (
         <Kb.Banner color="blue" key={'deletedTeamBannerFor' + dt.teamName}>
           <Kb.BannerParagraph

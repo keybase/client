@@ -37,15 +37,6 @@ test('channel and member selection can add, remove, and clear all choices', () =
   expect(useTeamsState.getState().teamSelectedMembers.has(parentTeamID)).toBe(false)
 })
 
-test('team list controls update store-local view state', () => {
-  const state = useTeamsState.getState()
-
-  state.dispatch.setTeamListFilter('acme')
-  state.dispatch.setTeamListSort('activity')
-  expect(useTeamsState.getState().teamListFilter).toBe('acme')
-  expect(useTeamsState.getState().teamListSort).toBe('activity')
-})
-
 test('add members role updates synchronize top-level and per-member roles', () => {
   useTeamsState.setState({
     addMembersWizard: {

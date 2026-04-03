@@ -149,7 +149,7 @@ const handleKeybaseLink = (link: string) => {
       }
       break
     case 'team-invite-link':
-      useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+      navigateAppend({name: 'teamInviteLinkJoin', params: {inviteID: parts[1] ?? '', inviteKey: parts[2] || ''}})
       return
     default:
       break
