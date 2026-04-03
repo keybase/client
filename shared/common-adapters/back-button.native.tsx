@@ -20,7 +20,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
   const onNavUp = React.useCallback(() => {
     // this helps with some timing issues w/ dismissing keyboard avoiding views
     Keyboard.dismiss()
-    navigateUp()
+    setTimeout(() => navigateUp(), 50)
   }, [navigateUp])
   const onBack = props.disabled ? noop : (props.onClick ?? onNavUp)
   return (

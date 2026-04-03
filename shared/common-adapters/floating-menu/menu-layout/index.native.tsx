@@ -134,7 +134,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
 
   // hide keyboards that are up
   useOnMountOnce(() => {
-    Keyboard.dismiss()
+    setTimeout(() => Keyboard.dismiss(), 50)
   })
 
   const items = menuItemsWithDividers.map((mi, idx) =>

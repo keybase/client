@@ -354,7 +354,7 @@ const Routable = (props: RoutableProps) => {
   const onDidPick = navigateUp
 
   C.useOnMountOnce(() => {
-    Keyboard.dismiss()
+    setTimeout(() => Keyboard.dismiss(), 50)
   })
 
   return (
