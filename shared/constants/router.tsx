@@ -33,13 +33,14 @@ import {makeUUID} from '@/util/uuid'
 // Record<string,unknown>-like types (index signatures), not for specific property types.
 type IsExactlyRecord<T> = string extends keyof T ? true : false
 
-type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
-  ? IsExactlyRecord<P> extends true
-    ? undefined
-    : keyof P extends never
+type NavigatorParamsFromProps<P> =
+  P extends Record<string, unknown>
+    ? IsExactlyRecord<P> extends true
       ? undefined
-      : P
-  : undefined
+      : keyof P extends never
+        ? undefined
+        : P
+    : undefined
 
 type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
   COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
@@ -188,21 +189,24 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   }
 ): RouteDef<ScreenComponent<COM>, ScreenParams<COM>> {
   const getOptionsOption = options?.getOptions
-  const getOptions = typeof getOptionsOption === 'function'
-    ? (p: StaticScreenProps<ScreenParams<COM>>) =>
-        getOptionsOption({
-          ...p,
-          route: {
-            ...p.route,
-            params: (p.route.params ?? {}) as ScreenParams<COM>,
-          },
-        })
-    : getOptionsOption
+  const getOptions =
+    typeof getOptionsOption === 'function'
+      ? (p: StaticScreenProps<ScreenParams<COM>>) =>
+          getOptionsOption({
+            ...p,
+            route: {
+              ...p.route,
+              // eslint-disable-next-line
+              params: (p.route.params ?? {}) as ScreenParams<COM>,
+            },
+          })
+      : getOptionsOption
   return {
     ...options,
     getOptions,
     screen: function Screen(p: StaticScreenProps<ScreenParams<COM>>) {
       const Comp = Component as any
+      // eslint-disable-next-line
       return <Comp {...(p.route.params ?? {})} />
     },
   }
@@ -251,7 +255,10 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(path: RouteName, replace?: boolean): void
+export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(
+  path: RouteName,
+  replace?: boolean
+): void
 export function navigateAppend<RouteName extends ParamRouteKeys>(
   path: {name: RouteName; params: KBRootParamList[RouteName]},
   replace?: boolean
