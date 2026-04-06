@@ -59,8 +59,8 @@ const makeUnverifiedInboxUIItem = (
   supersedes: null,
   teamRetention: null,
   teamType: T.RPCChat.TeamType.simple,
-  tlfID: 'tlf-id',
   time: 0,
+  tlfID: 'tlf-id',
   topicType: T.RPCChat.TopicType.chat,
   version: 1,
   visibility: T.RPCGen.TLFVisibility.private,
@@ -91,8 +91,8 @@ test('conversation metadata tolerates base64 and Uint8Array supersede IDs from t
   const supersededByID = new Uint8Array([102, 119, 136, 153, 170, 187])
   const item = makeUnverifiedInboxUIItem({
     // The service has historically sent base64 strings here even though the generated type says Uint8Array.
-    supersedes: [makeConversationMetadata(Buffer.from(supersedesID).toString('base64'))],
     supersededBy: [makeConversationMetadata(supersededByID)],
+    supersedes: [makeConversationMetadata(Buffer.from(supersedesID).toString('base64'))],
   })
 
   const meta = Meta.unverifiedInboxUIItemToConversationMeta(item)
