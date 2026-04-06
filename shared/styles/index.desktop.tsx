@@ -208,7 +208,7 @@ export * from './styles-base'
 
 export {themed as globalColors} from './colors'
 export const borderRadius = 4
-export {default as classNames} from 'classnames'
+export {default as classNames} from './class-names'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
