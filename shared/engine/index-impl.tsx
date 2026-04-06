@@ -64,6 +64,16 @@ class Engine {
     this._setupDebugging()
   }
 
+  rebindCallbacks(
+    emitWaiting: (changes: BatchParams) => void,
+    onConnected: (c: boolean) => void,
+    onEngineIncoming?: (action: EngineGen.Actions) => void
+  ) {
+    this._emitWaiting = emitWaiting
+    this._onConnectedCB = onConnected
+    this._onEngineIncoming = onEngineIncoming
+  }
+
   _setupDebugging() {
     if (!__DEV__) {
       return
@@ -299,9 +309,11 @@ const makeEngine = (
 
   if (!engine) {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
-    initEngine(engine)
-    initEngineListener(engineListener)
+  } else {
+    engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
   }
+  initEngine(engine)
+  initEngineListener(engineListener)
   return engine
 }
 

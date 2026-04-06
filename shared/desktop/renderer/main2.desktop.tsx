@@ -178,9 +178,19 @@ const setupHMR = () => {
 
 const load = async () => {
   if (global.DEBUGLoaded) {
-    // HMR detected — reinit subscriptions on new store instances
-    console.log('HMR: reinitializing store subscriptions')
+    // HMR detected — keep the existing engine/transport and rebind it to the
+    // new module instance so incoming RPCs hit the current handlers.
+    console.log('HMR: rebinding engine and reinitializing store subscriptions')
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(
+      batch,
+      () => {
+        // do nothing we wait for the remote version from node
+      },
+      onEngineIncoming
+    )
     initPlatformListener()
+    eng.listenersAreReady()
     return
   }
   global.DEBUGLoaded = true

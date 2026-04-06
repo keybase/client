@@ -566,6 +566,30 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const uploadStatusSub = {id: ''}
   const journalStatusSub = {id: ''}
   let pollJournalStatusPolling = false
+  let asyncGeneration = 0
+
+  const shouldRunBackgroundFSRPC = () => {
+    const {loggedIn, userSwitching} = useConfigState.getState()
+    return loggedIn && !userSwitching
+  }
+
+  const isCurrentAsyncGeneration = (generation: number) =>
+    generation === asyncGeneration && shouldRunBackgroundFSRPC()
+
+  const clearSubscriptions = () => {
+    fsBadgeSub.id = ''
+    settingsSub.id = ''
+    uploadStatusSub.id = ''
+    journalStatusSub.id = ''
+  }
+
+  const unsubscribeAll = () => {
+    const subscriptionIDs = [fsBadgeSub.id, settingsSub.id, uploadStatusSub.id, journalStatusSub.id]
+    subscriptionIDs.forEach(subscriptionID => {
+      subscriptionID && get().dispatch.unsubscribe(subscriptionID)
+    })
+    clearSubscriptions()
+  }
 
   const subscribeAndLoad = (
     sub: {id: string},
@@ -590,10 +614,17 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
+        if (!shouldRunBackgroundFSRPC()) {
+          return
+        }
+        const generation = asyncGeneration
         const connected = await T.RPCGen.configWaitForClientRpcPromise({
           clientType: T.RPCGen.ClientType.kbfs,
           timeout: 0, // Don't wait; just check if it's there.
         })
+        if (!isCurrentAsyncGeneration(generation)) {
+          return
+        }
         const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
         const kbfsDaemonStatus = get().kbfsDaemonStatus
         const {kbfsDaemonRpcStatusChanged, waitForKbfsDaemon} = get().dispatch
@@ -1486,7 +1517,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     onSubscriptionNotify: (cid, topic) => {
       const f = async () => {
-        if (cid !== clientID) {
+        if (cid !== clientID || !shouldRunBackgroundFSRPC()) {
           return
         }
         switch (topic) {
@@ -1518,10 +1549,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       ignorePromise(f())
     },
     pollJournalStatus: () => {
-      if (pollJournalStatusPolling) {
+      if (pollJournalStatusPolling || !shouldRunBackgroundFSRPC()) {
         return
       }
       pollJournalStatusPolling = true
+      const generation = asyncGeneration
 
       const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
         if (!endEstimate) {
@@ -1533,11 +1565,14 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
 
       const f = async () => {
         try {
-          while (true) {
+          while (isCurrentAsyncGeneration(generation)) {
             const {syncingPaths, totalSyncingBytes, endEstimate} =
               await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
                 filter: T.RPCGen.ListFilter.filterSystemHidden,
               })
+            if (!isCurrentAsyncGeneration(generation)) {
+              return
+            }
             get().dispatch.journalUpdate(
               (syncingPaths || []).map(T.FS.stringToPath),
               totalSyncingBytes,
@@ -1553,7 +1588,13 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
-          pollJournalStatusPolling = false
+          if (generation === asyncGeneration) {
+            pollJournalStatusPolling = false
+          }
+          if (!isCurrentAsyncGeneration(generation)) {
+            get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
+            return
+          }
           get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
@@ -1566,6 +1607,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       })
     },
     resetState: () => {
+      asyncGeneration++
+      pollJournalStatusPolling = false
+      waitForKbfsDaemonInProgress = false
+      unsubscribeAll()
       set(s => ({
         ...s,
         ...initialStore,
@@ -1802,12 +1847,22 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     userFileEditsLoad: () => {
       const f = async () => {
+        if (!shouldRunBackgroundFSRPC()) {
+          return
+        }
+        const generation = asyncGeneration
         try {
           const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+          if (!isCurrentAsyncGeneration(generation)) {
+            return
+          }
           set(s => {
             s.tlfUpdates = T.castDraft(userTlfHistoryRPCToState(writerEdits || []))
           })
         } catch (error) {
+          if (!isCurrentAsyncGeneration(generation)) {
+            return
+          }
           errorToActionOrThrow(error)
         }
       }
@@ -1827,10 +1882,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       ignorePromise(f())
     },
     waitForKbfsDaemon: () => {
-      if (waitForKbfsDaemonInProgress) {
+      if (waitForKbfsDaemonInProgress || !shouldRunBackgroundFSRPC()) {
         return
       }
       waitForKbfsDaemonInProgress = true
+      const generation = asyncGeneration
       set(s => {
         s.kbfsDaemonStatus.rpcStatus = T.FS.KbfsDaemonRpcStatus.Waiting
       })
@@ -1842,7 +1898,12 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           })
         } catch {}
 
-        waitForKbfsDaemonInProgress = false
+        if (generation === asyncGeneration) {
+          waitForKbfsDaemonInProgress = false
+        }
+        if (!isCurrentAsyncGeneration(generation)) {
+          return
+        }
         get().dispatch.checkKbfsDaemonRpcStatus()
       }
       ignorePromise(f())
