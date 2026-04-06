@@ -382,6 +382,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
       port: devServerPort,
       devMiddleware: {
         publicPath: devServerDistURL.slice(0, -1),
+        writeToDisk: true,
       },
       client: {
         overlay: true,

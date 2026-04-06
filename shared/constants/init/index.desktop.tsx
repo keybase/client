@@ -353,10 +353,6 @@ export const initPlatformListener = () => {
     if (isLinux) {
       useConfigState.getState().dispatch.initUseNativeFrame()
     }
-    useConfigState.getState().dispatch.initNotifySound()
-    useConfigState.getState().dispatch.initForceSmallNav()
-    useConfigState.getState().dispatch.initOpenAtLogin()
-    useConfigState.getState().dispatch.initAppUpdateLoop()
 
     const initializeInputMonitor = () => {
       const inputMonitor = new InputMonitor()

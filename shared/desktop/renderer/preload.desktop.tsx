@@ -31,9 +31,7 @@ if (isRenderer) {
         activeChanged: (changedAtMs: number, isUserActive: boolean) => {
           ignorePromise(invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'}))
         },
-        appStartedUp: () => {
-          ignorePromise(invoke({type: 'appStartedUp'}))
-        },
+        appStartedUp: () => invoke({type: 'appStartedUp'}),
         clipboardAvailableFormats: async () => {
           return invoke({type: 'clipboardAvailableFormats'})
         },

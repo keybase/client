@@ -64,7 +64,7 @@ export type KB2 = {
   }
   functions: {
     engineSend?: (buff: Uint8Array) => void
-    appStartedUp?: () => void
+    appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string
     activeChanged?: (changedAtMs: number, isUserActive: boolean) => void
