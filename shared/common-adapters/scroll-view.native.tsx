@@ -7,10 +7,12 @@ import {ScrollView, type ScrollViewProps} from 'react-native'
 function BetterScrollView(props: ScrollViewProps & {ref?: React.Ref<ScrollView>}) {
   const {ref, ...rest} = props
   const keyboardShouldPersistTaps = props.keyboardShouldPersistTaps ?? 'handled'
+  const contentInsetAdjustmentBehavior = props.contentInsetAdjustmentBehavior ?? 'automatic'
   return (
     <ScrollView
       ref={ref}
       {...rest}
+      contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
       overScrollMode="never"
     />

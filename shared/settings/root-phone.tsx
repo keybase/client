@@ -193,7 +193,7 @@ function SettingsNav() {
   ]
 
   return (
-    <Kb.ScrollView contentInsetAdjustmentBehavior="automatic" style={Kb.Styles.globalStyles.fullHeight}>
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullHeight}>
       {sections.map(section => (
         <React.Fragment key={section.title || '_top'}>
           {section.title ? (
