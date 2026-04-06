@@ -1,8 +1,8 @@
 import * as React from 'react'
 import type {Props} from '.'
+import shallowEqual from '@/util/shallow-equal'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import noop from 'lodash/noop'
-import shallowEqual from 'shallowequal'
 
 const FloatingBox = (props: Props) => {
   const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
