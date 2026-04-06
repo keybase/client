@@ -30,7 +30,7 @@ import {
   getVisibleScreen,
 } from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
-import {uint8ArrayToString} from 'uint8array-extras'
+import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'

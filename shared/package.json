@@ -136,7 +136,6 @@
     "react-native-worklets": "0.8.1",
     "react-native-zoom-toolkit": "5.0.1",
     "shallowequal": "1.1.0",
-    "uint8array-extras": "1.5.0",
     "use-debounce": "10.1.1",
     "util": "0.12.5",
     "zustand": "5.0.12"

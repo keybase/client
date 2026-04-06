@@ -3,7 +3,7 @@ import * as Common from './common'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import * as _Message from './message'
 import type * as Meta from './meta'
-import {uint8ArrayToHex, hexToUint8Array} from 'uint8array-extras'
+import {uint8ArrayToHex, hexToUint8Array} from '@/util/uint8array'
 
 // Static config data we use for various things
 export type StaticConfig = {
