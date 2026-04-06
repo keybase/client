@@ -146,6 +146,22 @@ test('parseMarkdown parses service decoration payloads as opaque nodes', () => {
   expect(content[0]?.['content']).toBe(encoded.slice('$>kb$'.length, -'$<kb$'.length))
 })
 
+test('Markdown renders service decoration payloads after base64 and UTF-8 decoding', () => {
+  const url = 'https://example.com/naive/🙂'
+  const encoded = makeServiceDecorationTag({
+    link: {punycode: '', url},
+    typ: T.RPCChat.UITextDecorationTyp.link,
+  })
+
+  render(
+    <Markdown serviceOnly={true} serviceOnlyNoWrap={true}>
+      {encoded}
+    </Markdown>
+  )
+
+  expect(document.body.textContent).toContain(url)
+})
+
 test('parseMarkdown recognizes emoji shortcodes and unicode emoji', () => {
   const shortcode = paragraphContent(':wave:')
   expect(shortcode.map(node => node.type)).toEqual(['emoji'])
