@@ -8,6 +8,20 @@ const Kb = {
   Text,
   Toast,
 }
+const normalizeSrc = (src: string) => {
+  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(src)
+  if (src.startsWith('/') || isWindowsPath) {
+    let path = src.replace(/\\/g, '/')
+    if (isWindowsPath && !path.startsWith('/')) {
+      path = '/' + path
+    }
+    return encodeURI(`file://${path}`).replace(/#/g, '%23')
+  }
+  if (src.startsWith('file://') && (src.includes(' ') || src.includes('#'))) {
+    return encodeURI(src).replace(/#/g, '%23')
+  }
+  return src
+}
 
 function ZoomableImage(p: Props) {
   const {src, onIsZoomed, onLoaded, dragPan, onChanged, onError, forceDims} = p
@@ -140,7 +154,7 @@ function ZoomableImage(p: Props) {
         onError={onError}
         className="fade-anim-enter fade-anim-enter-active"
         ref={imgRef}
-        src={src || undefined}
+        src={src ? normalizeSrc(src) : undefined}
         style={imgStyle}
       />
       <Kb.Toast visible={showToast} attachTo={containerRef}>
