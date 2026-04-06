@@ -8,6 +8,12 @@ import * as T from '@/constants/types'
 import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from './index'
 import ServiceDecoration from './service-decoration'
 
+jest.mock('@/common-adapters/emoji', () => ({
+  RPCToEmojiData: jest.fn(),
+  __esModule: true,
+  default: () => null,
+}))
+
 const makeServiceDecorationTag = (payload: unknown) =>
   `$>kb$${Buffer.from(JSON.stringify(payload)).toString('base64')}$<kb$`
 
