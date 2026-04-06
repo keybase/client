@@ -11,6 +11,7 @@ import ImageIcon from './image-icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
+import {useIsFocused} from '@react-navigation/core'
 
 const Kb = {
   BackButton,
@@ -85,16 +86,23 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload, isWaiting} = props
+  const isFocused = useIsFocused()
+  const autoReloadedForFocusRef = React.useRef(false)
   const isWaitingRef = React.useRef(isWaiting)
   const reloadOnMountRef = React.useRef(reloadOnMount)
   const onReloadRef = React.useRef(onReload)
-  React.useEffect(() => {
-    isWaitingRef.current = isWaiting
-    reloadOnMountRef.current = reloadOnMount
-    onReloadRef.current = onReload
-  }, [isWaiting, reloadOnMount, onReload])
+  isWaitingRef.current = isWaiting
+  reloadOnMountRef.current = reloadOnMount
+  onReloadRef.current = onReload
+  if (!isFocused) {
+    autoReloadedForFocusRef.current = false
+  }
   const [stableReload] = React.useState(() => () => {
-    reloadOnMountRef.current && !isWaitingRef.current && onReloadRef.current()
+    if (!reloadOnMountRef.current || isWaitingRef.current || autoReloadedForFocusRef.current) {
+      return
+    }
+    autoReloadedForFocusRef.current = true
+    onReloadRef.current()
   })
   C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
