@@ -11,7 +11,7 @@ import ImageIcon from './image-icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
-import {useIsFocused} from '@react-navigation/core'
+import {NavigationContext} from '@react-navigation/core'
 
 const Kb = {
   BackButton,
@@ -21,6 +21,9 @@ const Kb = {
   ScrollView,
   Text,
 }
+
+const autoReloadedNavigations = new WeakSet<object>()
+const pendingAutoReloadNavigations = new WeakSet<object>()
 
 type ReloadProps = {
   onBack?: () => void
@@ -86,21 +89,38 @@ export type Props = {
 
 const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload, isWaiting} = props
-  const isFocused = useIsFocused()
-  const autoReloadedForFocusRef = React.useRef(false)
+  const navigation = React.useContext(NavigationContext)
   React.useEffect(() => {
-    if (!isFocused) {
-      autoReloadedForFocusRef.current = false
-    }
-  }, [isFocused])
-  const stableReload = React.useEffectEvent(() => {
-    if (!reloadOnMount || isWaiting || autoReloadedForFocusRef.current) {
+    if (!navigation) {
       return
     }
-    autoReloadedForFocusRef.current = true
+    return navigation.addListener('blur', () => {
+      autoReloadedNavigations.delete(navigation)
+      pendingAutoReloadNavigations.delete(navigation)
+    })
+  }, [navigation])
+  const maybeAutoReload = React.useEffectEvent(() => {
+    if (!navigation || !reloadOnMount || autoReloadedNavigations.has(navigation)) {
+      return
+    }
+    if (isWaiting) {
+      pendingAutoReloadNavigations.add(navigation)
+      return
+    }
+    autoReloadedNavigations.add(navigation)
+    pendingAutoReloadNavigations.delete(navigation)
     onReload()
   })
+  const [stableReload] = React.useState(() => () => {
+    maybeAutoReload()
+  })
   C.Router2.useSafeFocusEffect(stableReload)
+  React.useEffect(() => {
+    if (!navigation || isWaiting || !pendingAutoReloadNavigations.has(navigation)) {
+      return
+    }
+    maybeAutoReload()
+  }, [isWaiting, maybeAutoReload, navigation])
   if (!props.needsReload) {
     return <>{props.children}</>
   }
