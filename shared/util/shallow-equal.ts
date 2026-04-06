@@ -1,5 +1,3 @@
-const hasOwnProperty = Object.prototype.hasOwnProperty
-
 const isObjectLike = (value: unknown): value is object => typeof value === 'object' && value !== null
 
 const shallowEqual = (objA: unknown, objB: unknown): boolean => {
@@ -20,12 +18,9 @@ const shallowEqual = (objA: unknown, objB: unknown): boolean => {
     return false
   }
 
-  const bHasOwnProperty = hasOwnProperty.bind(recordB) as (key: string) => boolean
+  for (const key of keysA) {
 
-  for (let idx = 0; idx < keysA.length; idx++) {
-    const key = keysA[idx]!
-
-    if (!bHasOwnProperty(key)) {
+    if (!Object.prototype.hasOwnProperty.call(recordB, key)) {
       return false
     }
 

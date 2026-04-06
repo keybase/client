@@ -30,7 +30,7 @@ test('only compares own enumerable keys', () => {
 
   expect(shallowEqual(a, b)).toBe(true)
 
-  const withOwnShared = {shared: 1, local: 2}
+  const withOwnShared = {local: 2, shared: 1}
   expect(shallowEqual(a, withOwnShared)).toBe(false)
 })
 
