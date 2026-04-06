@@ -1,4 +1,3 @@
-import URL from 'url-parse'
 import * as Electron from 'electron'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
@@ -29,11 +28,19 @@ const setupDefaultSession = () => {
     if (permission === 'fullscreen') {
       return callback(true)
     }
-    const ourURL = new URL(htmlFile)
-    const requestURL = new URL(webContents.getURL())
+
+    let ourPathname = ''
+    let requestPathname = ''
+    try {
+      ourPathname = new URL(htmlFile).pathname
+      requestPathname = new URL(webContents.getURL()).pathname
+    } catch {
+      return callback(false)
+    }
+
     if (
       permission === 'notifications' &&
-      requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
+      requestPathname.toLowerCase() === ourPathname.toLowerCase()
     ) {
       // Allow notifications
       return callback(true)

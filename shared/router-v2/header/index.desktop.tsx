@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
-import * as ReactIs from 'react-is'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
@@ -11,18 +10,32 @@ import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
 type HeaderTitleProps = {
-  children: string
+  children: React.ReactNode
   tintColor?: string
+}
+
+type RawOptions = {
+  headerMode?: string
+  title?: React.ReactNode
+  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}>
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
+  headerRightActions?: React.ReactNode | React.JSXElementConstructor<object>
+  subHeader?: React.ReactNode | React.JSXElementConstructor<object>
+  headerTransparent?: boolean
+  headerShadowVisible?: boolean
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.CollapsibleStyle
 }
 
 type Options = {
   headerMode?: string
   title?: React.ReactNode
-  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps>
+  headerTitle?: React.ReactNode
   headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
   headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
-  headerRightActions?: React.JSXElementConstructor<object>
-  subHeader?: React.JSXElementConstructor<object>
+  headerRightActions?: React.ReactNode
+  subHeader?: React.ReactNode
   headerTransparent?: boolean
   headerShadowVisible?: boolean
   headerBottomStyle?: Kb.Styles.StylesCrossPlatform
@@ -70,12 +83,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onMinimize}
         style={styles.appIconBox}
       >
-        <Kb.Icon
-          color="inherit"
-          onClick={onMinimize}
-          style={styles.appIcon}
-          type="iconfont-app-minimize"
-        />
+        <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
       </Kb.ClickableBox>
       <Kb.ClickableBox
         className="hover_background_color_black_05 color_black_50 hover_color_black"
@@ -94,19 +102,14 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onCloseWindow}
         style={styles.appIconBox}
       >
-        <Kb.Icon
-          color="inherit"
-          onClick={onCloseWindow}
-          style={styles.appIcon}
-          type="iconfont-app-close"
-        />
+        <Kb.Icon color="inherit" onClick={onCloseWindow} style={styles.appIcon} type="iconfont-app-close" />
       </Kb.ClickableBox>
     </Kb.Box2>
   )
 }
 
 function DesktopHeader(p: Props) {
-  const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
+  const {back, navigation, options, loggedIn, useNativeFrame, isMaximized} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
@@ -124,30 +127,19 @@ function DesktopHeader(p: Props) {
   }
 
   if (headerTitle) {
-    if (React.isValidElement(headerTitle)) {
-      titleNode = headerTitle
-    } else if (ReactIs.isValidElementType(headerTitle)) {
-      const CustomTitle = headerTitle
-      const props = {params}
-      titleNode = <CustomTitle {...props}>{title}</CustomTitle>
-    }
+    titleNode = headerTitle
   }
 
   let rightActions: React.ReactNode = null
-  if (ReactIs.isValidElementType(headerRightActions)) {
-    const CustomActions = headerRightActions
-    rightActions = <CustomActions />
+  if (headerRightActions) {
+    rightActions = headerRightActions
   } else if (typeof headerRight === 'function') {
     rightActions = headerRight({tintColor: ''})
   } else if (headerRight) {
     rightActions = headerRight
   }
 
-  let subHeaderNode: React.ReactNode = null
-  if (ReactIs.isValidElementType(subHeader)) {
-    const CustomSubHeader = subHeader
-    subHeaderNode = <CustomSubHeader />
-  }
+  const subHeaderNode = subHeader ?? null
 
   let style: Kb.Styles.StylesCrossPlatform = null
   if (headerTransparent) {
@@ -327,6 +319,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
   back?: NativeStackHeaderProps['back']
+  options: RawOptions
 }
 
 function DesktopHeaderWrapper(p: HeaderProps) {
@@ -335,18 +328,36 @@ function DesktopHeaderWrapper(p: HeaderProps) {
   const loggedIn = useConfigState(s => s.loggedIn)
   const isMaximized = useConfigState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
+    _options
+  let headerTitleNode = headerTitle
+  if (typeof headerTitle === 'function') {
+    const HeaderTitle = headerTitle as React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}>
+    headerTitleNode = <HeaderTitle params={params}>{title}</HeaderTitle>
+  }
+
+  let headerRightActionsNode = headerRightActions
+  if (typeof headerRightActions === 'function') {
+    const HeaderRightActions = headerRightActions as React.JSXElementConstructor<object>
+    headerRightActionsNode = <HeaderRightActions />
+  }
+
+  let subHeaderNode = subHeader
+  if (typeof subHeader === 'function') {
+    const SubHeader = subHeader as React.JSXElementConstructor<object>
+    subHeaderNode = <SubHeader />
+  }
   const options = {
     headerBottomStyle,
     headerLeft,
     headerMode,
     headerRight,
-    headerRightActions,
+    headerRightActions: headerRightActionsNode,
     headerShadowVisible,
     headerStyle,
-    headerTitle,
+    headerTitle: headerTitleNode,
     headerTransparent,
-    subHeader,
+    subHeader: subHeaderNode,
     title,
   }
 
