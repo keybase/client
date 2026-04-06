@@ -1896,10 +1896,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             clientType: T.RPCGen.ClientType.kbfs,
             timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
           })
-        } catch {}
-
-        if (generation === asyncGeneration) {
-          waitForKbfsDaemonInProgress = false
+        } catch {
+        } finally {
+          if (generation === asyncGeneration) {
+            waitForKbfsDaemonInProgress = false
+          }
         }
         if (!isCurrentAsyncGeneration(generation)) {
           return
