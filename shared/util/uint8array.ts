@@ -1,4 +1,3 @@
-const objectToString = Object.prototype.toString
 const uint8ArrayStringified = '[object Uint8Array]'
 const arrayBufferStringified = '[object ArrayBuffer]'
 
@@ -11,7 +10,7 @@ const isType = (value: unknown, typeConstructor: unknown, typeStringified: strin
     return true
   }
 
-  return objectToString.call(value) === typeStringified
+  return Object.prototype.toString.call(value) === typeStringified
 }
 
 const isUint8Array = (value: unknown): value is Uint8Array =>
@@ -20,19 +19,19 @@ const isUint8Array = (value: unknown): value is Uint8Array =>
 const isArrayBuffer = (value: unknown): value is ArrayBuffer =>
   isType(value, ArrayBuffer, arrayBufferStringified)
 
-const assertUint8Array = (value: unknown): asserts value is Uint8Array => {
+function assertUint8Array(value: unknown): asserts value is Uint8Array {
   if (!isUint8Array(value)) {
     throw new TypeError(`Expected \`Uint8Array\`, got \`${typeof value}\``)
   }
 }
 
-const assertUint8ArrayOrArrayBuffer = (value: unknown): asserts value is Uint8Array | ArrayBuffer => {
+function assertUint8ArrayOrArrayBuffer(value: unknown): asserts value is Uint8Array | ArrayBuffer {
   if (!isUint8Array(value) && !isArrayBuffer(value)) {
     throw new TypeError(`Expected \`Uint8Array\` or \`ArrayBuffer\`, got \`${typeof value}\``)
   }
 }
 
-const assertString = (value: unknown): asserts value is string => {
+function assertString(value: unknown): asserts value is string {
   if (typeof value !== 'string') {
     throw new TypeError(`Expected \`string\`, got \`${typeof value}\``)
   }
@@ -65,6 +64,7 @@ export const uint8ArrayToHex = (array: Uint8Array): string => {
   assertUint8Array(array)
 
   let hexString = ''
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of -- Keep the indexed loop for parity with the upstream hot path.
   for (let index = 0; index < array.length; index++) {
     hexString += byteToHexLookupTable[array[index]!]
   }
