@@ -51,9 +51,13 @@ export type ParamRouteKeys = Exclude<RouteKeys, NoParamRouteKeys>
 export type AllOptionalParamRouteKeys = {
   [K in ParamRouteKeys]: {} extends NonNullable<RootParamList[K]> ? K : never
 }[ParamRouteKeys]
-export type NavigateAppendArg<RouteName extends RouteKeys> = RootParamList[RouteName] extends undefined
-  ? RouteName
-  : {name: RouteName; params: RootParamList[RouteName]}
+export type NavigateAppendArg<RouteName extends RouteKeys> = RouteName extends RouteName
+  ? RootParamList[RouteName] extends undefined
+    ? RouteName
+    : {} extends NonNullable<RootParamList[RouteName]>
+      ? RouteName | {name: RouteName; params: RootParamList[RouteName]}
+      : {name: RouteName; params: RootParamList[RouteName]}
+  : never
 export type NavigateAppendType = NavigateAppendArg<RouteKeys>
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
