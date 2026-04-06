@@ -63,7 +63,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (buff: Uint8Array) => void
+    engineSend?: (message: unknown) => void
     appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string

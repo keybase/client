@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {errors as transportErrors} from 'framed-msgpack-rpc'
+import {errors as transportErrors} from '@/engine/rpc-transport'
 import RPCError from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {

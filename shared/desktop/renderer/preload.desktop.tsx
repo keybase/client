@@ -72,7 +72,7 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: Uint8Array) => {
+        engineSend: (buf: unknown) => {
           ignorePromise(invoke({payload: {buf}, type: 'engineSend'}))
         },
         exitApp: (code: number) => {
