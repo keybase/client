@@ -88,21 +88,17 @@ const Reloadable = (props: Props) => {
   const {reloadOnMount, onReload, isWaiting} = props
   const isFocused = useIsFocused()
   const autoReloadedForFocusRef = React.useRef(false)
-  const isWaitingRef = React.useRef(isWaiting)
-  const reloadOnMountRef = React.useRef(reloadOnMount)
-  const onReloadRef = React.useRef(onReload)
-  isWaitingRef.current = isWaiting
-  reloadOnMountRef.current = reloadOnMount
-  onReloadRef.current = onReload
-  if (!isFocused) {
-    autoReloadedForFocusRef.current = false
-  }
-  const [stableReload] = React.useState(() => () => {
-    if (!reloadOnMountRef.current || isWaitingRef.current || autoReloadedForFocusRef.current) {
+  React.useEffect(() => {
+    if (!isFocused) {
+      autoReloadedForFocusRef.current = false
+    }
+  }, [isFocused])
+  const stableReload = React.useEffectEvent(() => {
+    if (!reloadOnMount || isWaiting || autoReloadedForFocusRef.current) {
       return
     }
     autoReloadedForFocusRef.current = true
-    onReloadRef.current()
+    onReload()
   })
   C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
