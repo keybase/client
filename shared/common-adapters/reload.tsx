@@ -11,6 +11,7 @@ import ImageIcon from './image-icon'
 import type {RPCError} from '@/util/errors'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
+import {NavigationContext} from '@react-navigation/core'
 
 const Kb = {
   BackButton,
@@ -20,6 +21,9 @@ const Kb = {
   ScrollView,
   Text,
 }
+
+const autoReloadedNavigations = new WeakSet<object>()
+const pendingAutoReloadNavigations = new WeakSet<object>()
 
 type ReloadProps = {
   onBack?: () => void
@@ -45,7 +49,14 @@ function Reload(props: ReloadProps) {
         </Kb.Box2>
       )}
       <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          flex={1}
+          style={styles.reload}
+          gap="small"
+          padding="small"
+        >
           <Kb.ImageIcon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
@@ -72,6 +83,7 @@ function Reload(props: ReloadProps) {
 
 export type Props = {
   children: React.ReactNode
+  isWaiting: boolean
   needsReload: boolean
   onBack?: () => void
   onFeedback: () => void
@@ -83,17 +95,39 @@ export type Props = {
 }
 
 const Reloadable = (props: Props) => {
-  const {reloadOnMount, onReload} = props
-  const reloadOnMountRef = React.useRef(reloadOnMount)
-  const onReloadRef = React.useRef(onReload)
+  const {reloadOnMount, onReload, isWaiting} = props
+  const navigation = React.useContext(NavigationContext)
   React.useEffect(() => {
-    reloadOnMountRef.current = reloadOnMount
-    onReloadRef.current = onReload
-  }, [reloadOnMount, onReload])
+    if (!navigation) {
+      return
+    }
+    return navigation.addListener('blur', () => {
+      autoReloadedNavigations.delete(navigation)
+      pendingAutoReloadNavigations.delete(navigation)
+    })
+  }, [navigation])
+  const maybeAutoReload = React.useEffectEvent(() => {
+    if (!navigation || !reloadOnMount || autoReloadedNavigations.has(navigation)) {
+      return
+    }
+    if (isWaiting) {
+      pendingAutoReloadNavigations.add(navigation)
+      return
+    }
+    autoReloadedNavigations.add(navigation)
+    pendingAutoReloadNavigations.delete(navigation)
+    onReload()
+  })
   const [stableReload] = React.useState(() => () => {
-    reloadOnMountRef.current && onReloadRef.current()
+    maybeAutoReload()
   })
   C.Router2.useSafeFocusEffect(stableReload)
+  React.useEffect(() => {
+    if (!navigation || isWaiting || !pendingAutoReloadNavigations.has(navigation)) {
+      return
+    }
+    maybeAutoReload()
+  }, [isWaiting, navigation])
   if (!props.needsReload) {
     return <>{props.children}</>
   }
@@ -163,6 +197,7 @@ export type OwnProps = {
 
 const ReloadContainer = (ownProps: OwnProps) => {
   let error = C.Waiting.useAnyErrors(ownProps.waitingKeys)
+  const isWaiting = C.Waiting.useAnyWaiting(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && C.isNetworkErr(error.code) ? error : undefined
@@ -191,6 +226,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
 
   const props = {
     children: ownProps.children,
+    isWaiting,
     needsReload: stateProps.needsReload,
     onBack: ownProps.onBack,
     onFeedback: () => _onFeedback(_loggedIn),

@@ -65,10 +65,6 @@ function ReloadableDevices() {
 
   const newlyChangedItemIds = badged
 
-  C.Router2.useSafeFocusEffect(() => {
-    loadDevices()
-  })
-
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
