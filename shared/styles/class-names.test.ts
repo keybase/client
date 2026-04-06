@@ -25,7 +25,7 @@ test('only includes own enumerable object-map keys', () => {
   const proto = {shared: true}
   const value = Object.create(proto) as Record<string, boolean>
 
-  value.local = true
+  value['local'] = true
 
   expect(classNames(value)).toBe('local')
 })

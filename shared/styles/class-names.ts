@@ -3,10 +3,10 @@
  * strings, falsey values, object maps, and arrays of those values.
  */
 
-type ClassNameMap = Record<string, boolean | null | undefined>
+type ClassNameMap = Record<string, unknown>
 type ClassNameArg = ClassNameMap | ReadonlyArray<ClassNameArg> | string | false | null | undefined
 
-const hasOwnProperty = Object.prototype.hasOwnProperty
+const hasOwnProperty = (obj: object, key: string) => Object.prototype.hasOwnProperty.call(obj, key)
 
 const appendClass = (value: string, newClass: string): string => {
   if (!newClass) {
@@ -37,8 +37,9 @@ const parseValue = (arg: Exclude<ClassNameArg, false | null | undefined>): strin
   }
 
   let classes = ''
-  for (const key in arg) {
-    if (hasOwnProperty.call(arg, key) && arg[key]) {
+  const map = arg as ClassNameMap
+  for (const key in map) {
+    if (hasOwnProperty(map, key) && map[key]) {
       classes = appendClass(classes, key)
     }
   }
