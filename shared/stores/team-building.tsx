@@ -358,14 +358,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       set(s => {
         s.error = ''
       })
-      get().dispatch.closeTeamBuilding()
-      const {teamSoFar} = get()
-      if (get().namespace === 'teams') {
-        get().dispatch.defer.onAddMembersWizardPushMembers(
-          [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-        )
-        get().dispatch.finishedTeamBuilding()
+      const {namespace, selectedRole, sendNotification, teamSoFar} = get()
+      if (namespace !== 'teams') {
+        get().dispatch.closeTeamBuilding()
+        return
       }
+      const members = [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'} as const))
+      get().dispatch.closeTeamBuilding()
+      get().dispatch.defer.onAddMembersWizardPushMembers(members)
+      set(() => ({
+        ...initialStore,
+        namespace,
+        selectedRole,
+        sendNotification,
+        teamSoFar,
+      }))
     },
     finishedTeamBuilding: () => {
       const {teamSoFar, selectedRole, sendNotification, namespace} = get()
