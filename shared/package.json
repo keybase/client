@@ -135,7 +135,6 @@
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.8.1",
     "react-native-zoom-toolkit": "5.0.1",
-    "shallowequal": "1.1.0",
     "use-debounce": "10.1.1",
     "util": "0.12.5",
     "zustand": "5.0.12"
@@ -161,7 +160,6 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@types/react-measure": "2.0.12",
-    "@types/shallowequal": "1.1.5",
     "@types/webpack-env": "1.18.8",
     "@typescript/native-preview": "7.0.0-dev.20260331.1",
     "@testing-library/dom": "10.4.1",
