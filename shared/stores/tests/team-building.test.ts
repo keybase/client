@@ -70,14 +70,21 @@ test('finishTeamBuilding snapshots selected members before close reset', () => {
   const alice = makeUser('alice')
   const pushedMembers: Array<Array<T.Teams.AddingMember>> = []
 
-  store.setState(s => {
-    s.dispatch.closeTeamBuilding = () => {
-      store.getState().dispatch.resetState()
-    }
-    s.dispatch.defer.onAddMembersWizardPushMembers = members => {
-      pushedMembers.push(members)
-    }
-  })
+  store.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      closeTeamBuilding: () => {
+        store.getState().dispatch.resetState()
+      },
+      defer: {
+        ...s.dispatch.defer,
+        onAddMembersWizardPushMembers: members => {
+          pushedMembers.push(members)
+        },
+      },
+    },
+  }))
 
   store.getState().dispatch.addUsersToTeamSoFar([alice])
   store.getState().dispatch.finishTeamBuilding()

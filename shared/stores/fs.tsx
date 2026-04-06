@@ -1564,6 +1564,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
 
       const f = async () => {
+        let shouldRefreshDaemonStatus = false
         try {
           while (isCurrentAsyncGeneration(generation)) {
             const {syncingPaths, totalSyncingBytes, endEstimate} =
@@ -1591,13 +1592,13 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           if (generation === asyncGeneration) {
             pollJournalStatusPolling = false
           }
-          if (!isCurrentAsyncGeneration(generation)) {
-            get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
-            return
-          }
+          shouldRefreshDaemonStatus = isCurrentAsyncGeneration(generation)
           get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
-          get().dispatch.checkKbfsDaemonRpcStatus()
         }
+        if (!shouldRefreshDaemonStatus) {
+          return
+        }
+        get().dispatch.checkKbfsDaemonRpcStatus()
       }
       ignorePromise(f())
     },

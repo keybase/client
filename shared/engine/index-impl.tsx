@@ -27,8 +27,8 @@ class Engine {
     ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
   }
   _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
-    'keybase.1.config.waitForClient': true,
     'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
+    'keybase.1.config.waitForClient': true,
   }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
