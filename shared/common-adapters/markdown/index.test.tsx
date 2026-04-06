@@ -6,6 +6,7 @@ import {fireEvent} from '@testing-library/dom'
 import {render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
 import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from './index'
+import ServiceDecoration from './service-decoration'
 
 const makeServiceDecorationTag = (payload: unknown) =>
   `$>kb$${Buffer.from(JSON.stringify(payload)).toString('base64')}$<kb$`
@@ -146,7 +147,7 @@ test('parseMarkdown parses service decoration payloads as opaque nodes', () => {
   expect(content[0]?.['content']).toBe(encoded.slice('$>kb$'.length, -'$<kb$'.length))
 })
 
-test('Markdown renders service decoration payloads after base64 and UTF-8 decoding', () => {
+test('ServiceDecoration renders payloads after base64 and UTF-8 decoding', () => {
   const url = 'https://example.com/naive/🙂'
   const encoded = makeServiceDecorationTag({
     link: {punycode: '', url},
@@ -154,9 +155,12 @@ test('Markdown renders service decoration payloads after base64 and UTF-8 decodi
   })
 
   render(
-    <Markdown serviceOnly={true} serviceOnlyNoWrap={true}>
-      {encoded}
-    </Markdown>
+    <ServiceDecoration
+      json={encoded.slice('$>kb$'.length, -'$<kb$'.length)}
+      styles={{linkStyle: undefined, wrapStyle: undefined} as any}
+      disableBigEmojis={false}
+      disableEmojiAnimation={false}
+    />
   )
 
   expect(document.body.textContent).toContain(url)
