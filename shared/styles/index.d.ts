@@ -138,7 +138,7 @@ export type {
   _StylesDesktop,
   _StylesMobile,
 } from './css'
-export {default as classNames} from 'classnames'
+export {default as classNames} from './class-names'
 export declare const undynamicColor: (col: string) => string
 // add file:// if its a pure path
 export declare const normalizePath: (p: string) => string
