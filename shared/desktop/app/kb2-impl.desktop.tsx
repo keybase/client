@@ -16,7 +16,7 @@ if (_pathSep !== '/' && _pathSep !== '\\') {
 }
 
 const kb2: KB2['constants'] = {
-  assetRoot: __HOT__ ? '/' : path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
+  assetRoot: path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
   configOverload: {}, // filled in later
   dokanPath: path.resolve(
     (env['LOCALAPPDATA'] as string | undefined) ?? '',

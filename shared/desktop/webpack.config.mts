@@ -379,6 +379,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     devServer: {
       compress: false,
       hot: isHot,
+      liveReload: false,
       port: devServerPort,
       devMiddleware: {
         publicPath: devServerDistURL.slice(0, -1),
@@ -393,7 +394,6 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
         },
       },
       static: [
-        {directory: distDir, publicPath: devServerDistPath},
         {directory: rootDir, publicPath: '/', watch: false},
       ],
     },
