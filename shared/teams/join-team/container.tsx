@@ -46,10 +46,7 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
     setErrorText('')
     setOpen(false)
     setSuccessTeamName('')
-    if (successParam) {
-      navigation.setParams({initialTeamname, success: false})
-    }
-  }, [initialTeamname, navigation, successParam])
+  }, [initialTeamname])
 
   const onSubmit = () => {
     setErrorText('')
