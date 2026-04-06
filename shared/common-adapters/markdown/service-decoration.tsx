@@ -14,7 +14,7 @@ import {useClickURL} from '@/common-adapters/text-url'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
 import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
-import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
+import {parseServiceDecoration} from './service-decoration-parser'
 
 const prefix = 'keybase://'
 const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
@@ -134,12 +134,8 @@ export type Props = {
 const ServiceDecoration = (p: Props) => {
   const {json, allowFontScaling, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
-  // Parse JSON to get the type of the decoration
-  let parsed: T.RPCChat.UITextDecoration
-  try {
-    const jsonString = uint8ArrayToString(base64ToUint8Array(json))
-    parsed = JSON.parse(jsonString) as T.RPCChat.UITextDecoration
-  } catch {
+  const parsed = parseServiceDecoration(json)
+  if (!parsed) {
     return null
   }
   if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
