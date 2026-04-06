@@ -64,3 +64,30 @@ test('finishedTeamBuilding clears transient state but preserves namespace and se
   expect(store.getState().searchQuery).toBe('')
   expect(store.getState().searchResults.size).toBe(0)
 })
+
+test('finishTeamBuilding snapshots selected members before close reset', () => {
+  const store = createTBStore('teams')
+  const alice = makeUser('alice')
+  const pushedMembers: Array<Array<T.Teams.AddingMember>> = []
+
+  store.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      closeTeamBuilding: () => {
+        store.getState().dispatch.resetState()
+      },
+      defer: {
+        ...s.dispatch.defer,
+        onAddMembersWizardPushMembers: members => {
+          pushedMembers.push(members)
+        },
+      },
+    },
+  }))
+
+  store.getState().dispatch.addUsersToTeamSoFar([alice])
+  store.getState().dispatch.finishTeamBuilding()
+
+  expect(pushedMembers).toEqual([[{assertion: 'alice', role: 'writer'}]])
+})

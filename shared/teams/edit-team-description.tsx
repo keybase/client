@@ -12,8 +12,8 @@ const EditTeamDescription = (props: Props) => {
   const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID))
   const waitingKey = C.waitingKeyTeamsTeam(teamID)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const error = Teams.useTeamsState(s => s.errorInEditDescription)
   const origDescription = Teams.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
+  const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
 
   if (teamID === T.Teams.noTeamID || teamname === undefined) {
     throw new Error(
@@ -22,10 +22,17 @@ const EditTeamDescription = (props: Props) => {
   }
 
   const [description, setDescription] = React.useState(origDescription)
-  const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
+  const [error, setError] = React.useState('')
 
   const navigateUp = C.Router2.navigateUp
-  const onSave = () => editTeamDescription(teamID, description)
+  const onSave = () => {
+    setError('')
+    editTeamDescription(
+      [{description, teamID}, waitingKey],
+      () => {},
+      error => setError(error.message)
+    )
+  }
   const onClose = () => navigateUp()
 
   const wasWaitingRef = React.useRef(waiting)
@@ -96,4 +103,3 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 export default EditTeamDescription
-

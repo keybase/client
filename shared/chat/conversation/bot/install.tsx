@@ -157,7 +157,7 @@ const InstallBotPopup = (props: Props) => {
     })
   }
   const onFeedback = () => {
-    navigateAppend('feedback')
+    navigateAppend({name: 'feedback', params: {}})
   }
 
   const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)

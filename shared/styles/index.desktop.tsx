@@ -214,6 +214,5 @@ export const dimensionWidth = 0
 export const dimensionHeight = 0
 export const headerExtraHeight = 0
 export const undynamicColor = (col: string) => col
-// nothing on desktop, it all works
 export const normalizePath = (p: string) => p
 export const unnormalizePath = (p: string) => p

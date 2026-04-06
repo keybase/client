@@ -35,6 +35,20 @@ const teamPlaceHolders: {[key: string]: IconType} = {
 const AVATAR_CONTAINER_SIZE = 175
 const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
+const normalizeImageOverrideUrl = (url: string) => {
+  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
+  if (url.startsWith('/') || isWindowsPath) {
+    let path = url.replace(/\\/g, '/')
+    if (isWindowsPath && !path.startsWith('/')) {
+      path = '/' + path
+    }
+    return encodeURI(`file://${path}`).replace(/#/g, '%23')
+  }
+  if (url.startsWith('file://') && (url.includes(' ') || url.includes('#'))) {
+    return encodeURI(url).replace(/#/g, '%23')
+  }
+  return url
+}
 
 function Avatar(p: Props) {
   const {size, teamname, username, isTeam: _isTeam, onClick: _onClick, style, children} = p
@@ -49,7 +63,7 @@ function Avatar(p: Props) {
 
   let bgImage: string | undefined
   if (imageOverrideUrl) {
-    bgImage = `url("${encodeURI(imageOverrideUrl)}")`
+    bgImage = `url("${normalizeImageOverrideUrl(imageOverrideUrl)}")`
   } else if (address && name) {
     const typ = isTeam ? 'team' : 'user'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960

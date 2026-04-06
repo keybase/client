@@ -10,9 +10,7 @@ const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname
-  errorText: string
   onCancel: () => void
-  onClearError: () => void
   onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
@@ -21,16 +19,19 @@ export const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
+  const errorText = upperFirst(C.Waiting.useAnyErrors(C.waitingKeyTeamsCreation)?.message ?? '')
+  const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
 
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam
 
-  const onSubmitCb = () => (isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false))
+  const onSubmitCb = () => {
+    dispatchClearWaiting(C.waitingKeyTeamsCreation)
+    return isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false)
+  }
   const disabled = name.length < 2
 
-  // clear error we may have hit on unmount
-  const {onClearError} = props
-  React.useEffect(() => () => onClearError(), [onClearError])
+  React.useEffect(() => () => dispatchClearWaiting(C.waitingKeyTeamsCreation), [dispatchClearWaiting])
 
   return (
     <>
@@ -51,7 +52,7 @@ export const CreateNewTeam = (props: Props) => {
           />
         </Kb.Banner>
       ) : null}
-      {props.errorText ? <Kb.Banner color="red">{props.errorText}</Kb.Banner> : null}
+      {errorText ? <Kb.Banner color="red">{errorText}</Kb.Banner> : null}
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
           <Kb.Input3
@@ -119,22 +120,17 @@ type OwnProps = {subteamOf?: T.Teams.TeamID}
 const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const baseTeam = Teams.useTeamsState(s => Teams.getTeamMeta(s, subteamOf).teamname)
-  const errorText = Teams.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const resetErrorInTeamCreation = Teams.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
   const createNewTeam = Teams.useTeamsState(s => s.dispatch.createNewTeam)
-  const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
     createNewTeam(teamname, joinSubteam)
   }
   const props = {
     baseTeam,
-    errorText,
     onCancel,
-    onClearError,
     onSubmit,
   }
   return <CreateNewTeam {...props} />

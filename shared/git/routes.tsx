@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type * as NavHeader from './nav-header'
+import {defineRouteMap} from '@/constants/types/router'
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   gitRoot: C.makeScreen(
     React.lazy(async () => import('.')),
     {
@@ -18,9 +19,9 @@ export const newRoutes = {
           },
     }
   ),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo')), {
     getOptions: {title: 'Delete repo?'},
   }),
@@ -28,4 +29,4 @@ export const newModalRoutes = {
     getOptions: {title: 'New repository'},
   }),
   gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
-}
+})

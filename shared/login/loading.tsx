@@ -25,7 +25,7 @@ const SplashContainer = () => {
 
   const onFeedback = C.isMobile
     ? () => {
-        navigateAppend('feedback')
+        navigateAppend({name: 'feedback', params: {}})
       }
     : undefined
   const onRetry = retriesLeft === 0 ? startHandshake : undefined

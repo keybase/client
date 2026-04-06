@@ -4,31 +4,30 @@ import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
-import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
+import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
 
+type ChatRootParams = {
+  conversationIDKey?: string
+  infoPanel?: object
+}
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams}, 'chatRoot'>
+
 const Header = () => {
-  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
+  const {params} = useRoute<ChatRootRoute>()
   return (
-    <Chat.ChatProvider
-      canBeNull={true}
-      id={
-        // eslint-disable-next-line
-        (params as {conversationIDKey?: string} | undefined)?.conversationIDKey ?? Chat.noConversationIDKey
-      }
-    >
+    <Chat.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
       <Header2 />
     </Chat.ChatProvider>
   )
 }
 
 const Header2 = () => {
-  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
+  const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = !!params?.infoPanel
+  const infoPanelShowing = !!params.infoPanel
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s

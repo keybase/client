@@ -1,14 +1,24 @@
 import * as C from '@/constants'
 import {useIsFocused} from '@react-navigation/core'
-import type {NavigateAppendType} from '@/router-v2/route-params'
+import type {AllOptionalParamRouteKeys, NoParamRouteKeys, ParamRouteKeys, RootParamList} from '@/router-v2/route-params'
 
 export const useSafeNavigation = () => {
   const isFocused = useIsFocused()
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
+  function safeNavigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(path: RouteName, replace?: boolean): void
+  function safeNavigateAppend<RouteName extends ParamRouteKeys>(
+    path: {name: RouteName; params: RootParamList[RouteName]},
+    replace?: boolean
+  ): void
+  function safeNavigateAppend(
+    path: NoParamRouteKeys | AllOptionalParamRouteKeys | {name: ParamRouteKeys; params: object | undefined},
+    replace?: boolean
+  ) {
+    return isFocused && navigateAppend(path as never, replace)
+  }
   return {
-    safeNavigateAppend: (path: NavigateAppendType, replace?: boolean) =>
-      isFocused && navigateAppend(path, replace),
+    safeNavigateAppend,
     safeNavigateUp: () => isFocused && navigateUp(),
   }
 }

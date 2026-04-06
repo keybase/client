@@ -32,9 +32,9 @@ const useData = () => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
-      navigateAppend(settingsFeedbackTab)
+      navigateAppend({name: settingsFeedbackTab, params: {}})
     } else {
-      navigateAppend('feedback')
+      navigateAppend({name: 'feedback', params: {}})
     }
   }
   const onDismiss = () => {

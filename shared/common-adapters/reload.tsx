@@ -183,9 +183,9 @@ const ReloadContainer = (ownProps: OwnProps) => {
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
       navigateAppend(C.Tabs.settingsTab)
-      navigateAppend(settingsFeedbackTab)
+      navigateAppend({name: settingsFeedbackTab, params: {}})
     } else {
-      navigateAppend('feedback')
+      navigateAppend({name: 'feedback', params: {}})
     }
   }
 

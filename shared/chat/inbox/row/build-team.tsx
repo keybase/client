@@ -12,7 +12,7 @@ function BuildTeam() {
     launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {
-    nav.safeNavigateAppend('teamJoinTeamDialog')
+    nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
   }
 
   return (

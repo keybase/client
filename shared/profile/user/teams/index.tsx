@@ -19,18 +19,17 @@ const Container = (ownProps: OwnProps) => {
       _roles: s.teamRoleMap.roles,
       _teamNameToID: s.teamNameToID,
       _youAreInTeams: s.teamnames.size > 0,
-      joinTeam: s.dispatch.joinTeam,
       showTeamByName: s.dispatch.showTeamByName,
     }))
   )
-  const {joinTeam, showTeamByName, _roles} = teamsState
+  const {showTeamByName, _roles} = teamsState
   const {_teamNameToID, _youAreInTeams} = teamsState
   const teamShowcase = d.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
   const _onEdit = () => {
     navigateAppend('profileShowcaseTeamOffer')
   }
-  const onJoinTeam = joinTeam
+  const onJoinTeam = (teamname: string) => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)

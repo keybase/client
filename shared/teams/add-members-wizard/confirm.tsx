@@ -58,6 +58,7 @@ const AddMembersConfirm = () => {
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
   const [emailMessage, setEmailMessage] = React.useState('')
+  const [isEditingEmailMessage, setIsEditingEmailMessage] = React.useState(false)
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
@@ -115,8 +116,8 @@ const AddMembersConfirm = () => {
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
-            {emailMessage === '' ? (
-              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
+            {!isEditingEmailMessage ? (
+              <Kb.Text type="BodySmallPrimaryLink" onClick={() => setIsEditingEmailMessage(true)}>
                 Include a note in your email
               </Kb.Text>
             ) : (

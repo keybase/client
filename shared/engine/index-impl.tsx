@@ -26,6 +26,10 @@ class Engine {
     'keybase.1.secretUi.getPassphrase': true,
     ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
   }
+  _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
+    'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
+    'keybase.1.config.waitForClient': true,
+  }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -62,6 +66,16 @@ class Engine {
       () => this._onDisconnect()
     )
     this._setupDebugging()
+  }
+
+  rebindCallbacks(
+    emitWaiting: (changes: BatchParams) => void,
+    onConnected: (c: boolean) => void,
+    onEngineIncoming?: (action: EngineGen.Actions) => void
+  ) {
+    this._emitWaiting = emitWaiting
+    this._onConnectedCB = onConnected
+    this._onEngineIncoming = onEngineIncoming
   }
 
   _setupDebugging() {
@@ -202,6 +216,7 @@ class Engine {
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap,
+      dangling: !!this._backgroundSessionMethods[method as MethodKey],
       incomingCallMap,
       waitingKey,
     })
@@ -299,9 +314,11 @@ const makeEngine = (
 
   if (!engine) {
     engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
-    initEngine(engine)
-    initEngineListener(engineListener)
+  } else {
+    engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
   }
+  initEngine(engine)
+  initEngineListener(engineListener)
   return engine
 }
 

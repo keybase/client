@@ -11,24 +11,48 @@ import {
   type NavigationState,
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
-import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
-import type {GetOptionsRet} from './types/router'
+import type {
+  AllOptionalParamRouteKeys,
+  NoParamRouteKeys,
+  ParamRouteKeys,
+  RouteKeys,
+  RootParamList as KBRootParamList,
+} from '@/router-v2/route-params'
+import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
 import {shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 
-type InferComponentProps<T> =
-  T extends React.LazyExoticComponent<
-    React.ComponentType<infer P extends Record<string, unknown> | undefined>
-  >
-    ? P
-    : T extends React.ComponentType<infer P extends Record<string, unknown> | undefined>
-      ? P
-      : undefined
+// Detects the unconstrained Record<string,unknown> index-signature type.
+// We can't use bidirectional assignability ([Record] extends [T] && [T] extends [Record])
+// because TypeScript allows Record<string,unknown> to be assigned to any all-optional-property
+// type, making the check incorrectly return true for {x?: string} etc.
+// Instead, check for an index signature: string extends keyof T is true only for
+// Record<string,unknown>-like types (index signatures), not for specific property types.
+type IsExactlyRecord<T> = string extends keyof T ? true : false
 
-export const navigationRef = createNavigationContainerRef<KBRootParamList>()
+type NavigatorParamsFromProps<P> =
+  P extends Record<string, unknown>
+    ? IsExactlyRecord<P> extends true
+      ? undefined
+      : keyof P extends never
+        ? undefined
+        : P
+    : undefined
+
+type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
+  COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
+
+type ScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  React.ComponentProps<LazyInnerComponent<COM>>
+>
+type ScreenComponent<COM extends React.LazyExoticComponent<any>> = (
+  p: StaticScreenProps<ScreenParams<COM>>
+) => React.ReactElement
+
+export const navigationRef = createNavigationContainerRef()
 
 registerDebugClear(() => {
   navigationRef.current = null
@@ -37,7 +61,6 @@ registerDebugClear(() => {
 export type Route = NavigationState<KBRootParamList>['routes'][0]
 // still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
-export type PathParam = NavigateAppendType
 export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
@@ -162,13 +185,28 @@ export const useSafeFocusEffect = (fn: () => void) => {
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?: GetOptionsRet | ((props: StaticScreenProps<InferComponentProps<COM>>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: StaticScreenProps<ScreenParams<COM>>) => GetOptionsRet)
   }
-) {
+): RouteDef<ScreenComponent<COM>, ScreenParams<COM>> {
+  const getOptionsOption = options?.getOptions
+  const getOptions =
+    typeof getOptionsOption === 'function'
+      ? (p: StaticScreenProps<ScreenParams<COM>>) =>
+          getOptionsOption({
+            ...p,
+            route: {
+              ...p.route,
+              // eslint-disable-next-line
+              params: (p.route.params ?? {}) as ScreenParams<COM>,
+            },
+          })
+      : getOptionsOption
   return {
     ...options,
-    screen: function Screen(p: StaticScreenProps<InferComponentProps<COM>>) {
+    getOptions,
+    screen: function Screen(p: StaticScreenProps<ScreenParams<COM>>) {
       const Comp = Component as any
+      // eslint-disable-next-line
       return <Comp {...(p.route.params ?? {})} />
     },
   }
@@ -217,7 +255,18 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export const navigateAppend = (path: PathParam, replace?: boolean) => {
+export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(
+  path: RouteName,
+  replace?: boolean
+): void
+export function navigateAppend<RouteName extends ParamRouteKeys>(
+  path: {name: RouteName; params: KBRootParamList[RouteName]},
+  replace?: boolean
+): void
+export function navigateAppend(
+  path: RouteKeys | {name: RouteKeys; params: object | undefined},
+  replace?: boolean
+) {
   DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
   const n = _getNavigator()
   if (!n) {
@@ -361,7 +410,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         {
           name: 'loggedIn',
           state: {
-            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot'}]}}],
+            routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
           },
         },
         {name: 'chatConversation', params: {conversationIDKey}},

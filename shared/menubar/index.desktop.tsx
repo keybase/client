@@ -459,8 +459,11 @@ const LoggedIn = (p: Props) => {
   }, 5000)
 
   React.useEffect(() => {
+    if (kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
+      return
+    }
     refreshUserFileEdits()
-  }, [refreshUserFileEdits, windowShownCount])
+  }, [refreshUserFileEdits, windowShownCount, kbfsDaemonStatus.rpcStatus])
 
   return (
     <>

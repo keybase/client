@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {OriginalOrCompressedButton} from '.'
+import {defineRouteMap} from '@/constants/types/router'
 
 const IncomingShareHeaderLeft = () => {
   const onAction = useModalHeaderState(s => s.onAction)
@@ -35,7 +36,7 @@ const IncomingShareHeaderTitle = () => {
   )
 }
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   incomingShareNew: C.makeScreen(React.lazy(async () => import('.')), {
     getOptions: {
       headerLeft: () => <IncomingShareHeaderLeft />,
@@ -43,4 +44,4 @@ export const newModalRoutes = {
       headerTitle: () => <IncomingShareHeaderTitle />,
     },
   }),
-}
+})

@@ -45,7 +45,7 @@ if (module.hot) {
   module.hot.accept()
 }
 
-const setupApp = () => {
+const setupApp = async () => {
   disableDragDrop()
 
   const {batch} = C.useWaitingState.getState().dispatch
@@ -56,8 +56,6 @@ const setupApp = () => {
     },
     onEngineIncoming
   )
-  initPlatformListener()
-  eng.listenersAreReady()
 
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
@@ -66,6 +64,18 @@ const setupApp = () => {
       } catch {}
     }, 0)
   })
+
+  initPlatformListener()
+
+  // Let the main process reset its transport before startup effects begin
+  // issuing RPCs on a renderer reload.
+  await appStartedUp?.()
+
+  useConfigState.getState().dispatch.initNotifySound()
+  useConfigState.getState().dispatch.initForceSmallNav()
+  useConfigState.getState().dispatch.initOpenAtLogin()
+  useConfigState.getState().dispatch.initAppUpdateLoop()
+  eng.listenersAreReady()
 
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
@@ -82,8 +92,6 @@ const setupApp = () => {
       .then(() => {})
       .catch(() => {})
   }, 5 * 1000)
-
-  appStartedUp?.()
 }
 
 const useDarkHookup = () => {
@@ -168,19 +176,29 @@ const setupHMR = () => {
   module.hot.accept(['../../common-adapters/index'], () => {})
 }
 
-const load = () => {
+const load = async () => {
   if (global.DEBUGLoaded) {
-    // HMR detected — reinit subscriptions on new store instances
-    console.log('HMR: reinitializing store subscriptions')
+    // HMR detected — keep the existing engine/transport and rebind it to the
+    // new module instance so incoming RPCs hit the current handlers.
+    console.log('HMR: rebinding engine and reinitializing store subscriptions')
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(
+      batch,
+      () => {
+        // do nothing we wait for the remote version from node
+      },
+      onEngineIncoming
+    )
     initPlatformListener()
+    eng.listenersAreReady()
     return
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
   preloadFonts()
-  setupApp()
+  await setupApp()
   setupHMR()
   render()
 }
 
-load()
+void load()

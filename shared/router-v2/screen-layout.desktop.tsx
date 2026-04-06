@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 type ModalHeaderProps = {
@@ -36,7 +36,7 @@ const ModalHeader = (props: ModalHeaderProps) => (
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
-const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, noClose?: boolean) => {
+const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noClose?: boolean) => {
   const backgroundRef = React.useRef<HTMLDivElement>(null)
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
   // window around to count
@@ -71,7 +71,7 @@ const useMouseClick = (navigation: NativeStackNavigationProp<KBRootParamList>, n
 type ModalWrapperProps = {
   children: React.ReactNode
   navigationOptions?: GetOptionsRet
-  navigation: NativeStackNavigationProp<KBRootParamList>
+  navigation: NativeStackNavigationProp<ParamListBase>
 }
 
 const ModalWrapper = (p: ModalWrapperProps) => {

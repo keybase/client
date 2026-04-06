@@ -6,6 +6,7 @@ import * as FS from '@/stores/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {Filename, ItemIcon} from './common'
 import {OriginalOrCompressedButton} from '@/incoming-share'
+import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
 
@@ -66,7 +67,7 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 )
 const noShrinkStyle = {flexShrink: 0} as const
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   fsRoot: C.makeScreen(FsRoot, {
     getOptions: (ownProps?) => {
       // strange edge case where the root can actually have no params
@@ -84,9 +85,9 @@ export const newRoutes = {
           }
     },
   }),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   barePreview: C.makeScreen(
     React.lazy(async () => {
       const {BarePreview} = await import('./filepreview')
@@ -114,4 +115,4 @@ export const newModalRoutes = {
       async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
     ),
   },
-}
+})

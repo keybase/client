@@ -7,7 +7,6 @@ import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
-import type {RootParamList} from '@/router-v2/route-params'
 import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/constants/settings'
 
@@ -73,7 +72,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 type NavType = NavigatorTypeBagBase & {
-  ParamList: Pick<RootParamList, keyof typeof settingsDesktopTabRoutes>
+  ParamList: {[K in keyof typeof settingsDesktopTabRoutes]: undefined}
 }
 
 export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>

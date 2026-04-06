@@ -17,7 +17,7 @@ import {kbfsNotification} from '@/util/platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import {NotifyPopup} from '@/util/misc'
 import {noKBFSFailReason} from '@/constants/config'
-import {initSharedSubscriptions, _onEngineIncoming} from './shared'
+import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
 import {wrapErrors} from '@/util/debug'
 import * as Constants from '@/constants/fs'
 import * as Tabs from '@/constants/tabs'
@@ -127,6 +127,21 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
       useConfigState
         .getState()
         .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+      break
+    }
+    case 'keybase.1.NotifySession.loggedOut': {
+      if (useConfigState.getState().userSwitching) {
+        logger.info('Resetting renderer engine for account switch logout')
+        getEngine().reset()
+      }
+      break
+    }
+    case 'keybase.1.NotifySession.loggedIn': {
+      if (useConfigState.getState().userSwitching) {
+        logger.info('Refreshing renderer session registration for account switch login')
+        getEngine().reset()
+        onSharedEngineConnected()
+      }
       break
     }
     default:
@@ -353,10 +368,6 @@ export const initPlatformListener = () => {
     if (isLinux) {
       useConfigState.getState().dispatch.initUseNativeFrame()
     }
-    useConfigState.getState().dispatch.initNotifySound()
-    useConfigState.getState().dispatch.initForceSmallNav()
-    useConfigState.getState().dispatch.initOpenAtLogin()
-    useConfigState.getState().dispatch.initAppUpdateLoop()
 
     const initializeInputMonitor = () => {
       const inputMonitor = new InputMonitor()
