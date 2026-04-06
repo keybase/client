@@ -14,6 +14,7 @@ function List<T>({ref, ...p}: Props<T>) {
         ref={ref as any}
         {...listProps}
         testID={p.testID}
+        contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
         bounces={p.bounces}
