@@ -49,7 +49,14 @@ function Reload(props: ReloadProps) {
         </Kb.Box2>
       )}
       <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.reload} gap="small" padding="small">
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          flex={1}
+          style={styles.reload}
+          gap="small"
+          padding="small"
+        >
           <Kb.ImageIcon type="icon-illustration-zen-240-180" />
           <Kb.Text center={true} type="Header">
             {"We're having a hard time loading this page."}
@@ -120,7 +127,7 @@ const Reloadable = (props: Props) => {
       return
     }
     maybeAutoReload()
-  }, [isWaiting, maybeAutoReload, navigation])
+  }, [isWaiting, navigation])
   if (!props.needsReload) {
     return <>{props.children}</>
   }
