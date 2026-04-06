@@ -113,7 +113,6 @@
     "expo-task-manager": "55.0.10",
     "expo-video": "55.0.11",
     "google-libphonenumber": "3.2.44",
-    "iced-runtime": "1.0.4",
     "immer": "11.1.4",
     "lodash": "4.17.23",
     "lottie-react-native": "7.3.6",
@@ -199,7 +198,6 @@
     "webpack-merge": "6.0.1"
   },
   "resolutions": {
-    "**/purepack": "keybase/nullModule",
     "**/@types/react": "19.2.14"
   },
   "typecoverage": {
