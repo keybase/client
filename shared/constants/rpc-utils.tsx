@@ -1,5 +1,5 @@
 import * as T from './types'
-import {uint8ArrayToString} from 'uint8array-extras'
+import {uint8ArrayToString} from '@/util/uint8array'
 
 type Device = {
   deviceNumberOfType: number

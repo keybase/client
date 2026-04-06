@@ -1,5 +1,5 @@
 import type * as T from '@/constants/types'
-import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
+import {base64ToUint8Array, uint8ArrayToString} from '@/util/uint8array'
 
 export const parseServiceDecoration = (json: string): T.RPCChat.UITextDecoration | undefined => {
   try {
