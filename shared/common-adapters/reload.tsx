@@ -72,6 +72,7 @@ function Reload(props: ReloadProps) {
 
 export type Props = {
   children: React.ReactNode
+  isWaiting: boolean
   needsReload: boolean
   onBack?: () => void
   onFeedback: () => void
@@ -83,15 +84,17 @@ export type Props = {
 }
 
 const Reloadable = (props: Props) => {
-  const {reloadOnMount, onReload} = props
+  const {reloadOnMount, onReload, isWaiting} = props
+  const isWaitingRef = React.useRef(isWaiting)
   const reloadOnMountRef = React.useRef(reloadOnMount)
   const onReloadRef = React.useRef(onReload)
   React.useEffect(() => {
+    isWaitingRef.current = isWaiting
     reloadOnMountRef.current = reloadOnMount
     onReloadRef.current = onReload
-  }, [reloadOnMount, onReload])
+  }, [isWaiting, reloadOnMount, onReload])
   const [stableReload] = React.useState(() => () => {
-    reloadOnMountRef.current && onReloadRef.current()
+    reloadOnMountRef.current && !isWaitingRef.current && onReloadRef.current()
   })
   C.Router2.useSafeFocusEffect(stableReload)
   if (!props.needsReload) {
@@ -163,6 +166,7 @@ export type OwnProps = {
 
 const ReloadContainer = (ownProps: OwnProps) => {
   let error = C.Waiting.useAnyErrors(ownProps.waitingKeys)
+  const isWaiting = C.Waiting.useAnyWaiting(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && C.isNetworkErr(error.code) ? error : undefined
@@ -191,6 +195,7 @@ const ReloadContainer = (ownProps: OwnProps) => {
 
   const props = {
     children: ownProps.children,
+    isWaiting,
     needsReload: stateProps.needsReload,
     onBack: ownProps.onBack,
     onFeedback: () => _onFeedback(_loggedIn),
