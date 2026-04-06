@@ -12,20 +12,6 @@ declare module 'fs-extra' {
   export const writeJsonSync: (dst: string, o: {}) => void
 }
 
-declare module 'url-parse' {
-  export class URLParse {
-    constructor(url: string)
-    hostname: string
-    protocol: string
-    username: string
-    port: string
-    pathname: string
-    query: string
-    password: string
-  }
-  export default URLParse
-}
-
 declare module 'emoji-datasource-apple' {
   type EmojiSkinTone = '1F3FA' | '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
   export type EmojiData = {

@@ -7,6 +7,7 @@
 - When a component reads multiple adjacent values from the same store hook, prefer a consolidated selector with `C.useShallow(...)` instead of multiple separate subscriptions.
 - Keep types accurate. Do not use casts or misleading annotations to mask a real type mismatch just to get around an issue; fix the type or fix the implementation.
 - Do not add new exported functions, types, or constants unless they are required outside the file. Prefer file-local helpers for one-off implementation details and tests.
+- Do not edit lockfiles by hand. They are generated artifacts. If you cannot regenerate one locally, leave it unchanged.
 - Do not use `navigation.setOptions` for header state in this repo. Pass header-driving state through route params so `getOptions` can read it synchronously, or use [`shared/stores/modal-header.tsx`](/Users/ChrisNojima/SourceCode/go/src/github.com/keybase/client/shared/stores/modal-header.tsx) when the flow already uses the shared modal header mechanism.
 - Components must not mutate Zustand stores directly with `useXState.setState`, `getState()`-based writes, or similar ad hoc store mutation. If a component needs to affect store state, route it through a store dispatch action or move the state out of the store.
 - During refactors, do not delete existing guards, conditionals, or platform/test-specific behavior unless you have proven they are dead and the user asked for that behavior change. Port checks like `androidIsTestDevice` forward into the new code path instead of silently dropping them.

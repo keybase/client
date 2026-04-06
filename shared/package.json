@@ -124,7 +124,6 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-error-boundary": "5.0.0",
-    "react-is": "19.2.0",
     "react-native": "0.83.4",
     "react-native-gesture-handler": "3.0.0-beta.2",
     "react-native-kb": "file:../rnmodules/react-native-kb",
@@ -138,7 +137,6 @@
     "react-native-zoom-toolkit": "5.0.1",
     "shallowequal": "1.1.0",
     "uint8array-extras": "1.5.0",
-    "url-parse": "1.5.10",
     "use-debounce": "10.1.1",
     "util": "0.12.5",
     "zustand": "5.0.12"
@@ -163,7 +161,6 @@
     "@types/lodash-es": "4.17.12",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@types/react-is": "19.2.0",
     "@types/react-measure": "2.0.12",
     "@types/shallowequal": "1.1.5",
     "@types/webpack-env": "1.18.8",
