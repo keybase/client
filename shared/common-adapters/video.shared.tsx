@@ -8,7 +8,7 @@ const Kb = {
 }
 
 const allowedHosts = new Set(['127.0.0.1', 'localhost'])
-const hasAllowedChars = (url: string) => /^[a-zA-Z0-9=.%:?/&_-]*$/.test(url)
+const hasAllowedChars = (url: string) => /^[a-zA-Z0-9=.%:?/&_\-]*$/.test(url)
 const hasScheme = (url: string) => /^[a-z][a-z\d+.-]*:/i.test(url)
 
 const isAllowedHostURL = (url: string) => {
