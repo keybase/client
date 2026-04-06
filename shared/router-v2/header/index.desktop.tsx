@@ -14,6 +14,20 @@ type HeaderTitleProps = {
   tintColor?: string
 }
 
+type RawOptions = {
+  headerMode?: string
+  title?: React.ReactNode
+  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}>
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
+  headerRightActions?: React.ReactNode | React.JSXElementConstructor<object>
+  subHeader?: React.ReactNode | React.JSXElementConstructor<object>
+  headerTransparent?: boolean
+  headerShadowVisible?: boolean
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.CollapsibleStyle
+}
+
 type Options = {
   headerMode?: string
   title?: React.ReactNode
@@ -315,6 +329,7 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaximized'> & {
   back?: NativeStackHeaderProps['back']
+  options: RawOptions
 }
 
 function DesktopHeaderWrapper(p: HeaderProps) {
