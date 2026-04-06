@@ -7,7 +7,7 @@ test('returns true for the same reference', () => {
   expect(shallowEqual(value, value)).toBe(true)
 })
 
-test('returns false when either side is null or a primitive', () => {
+test('uses strict equality for primitives and rejects null/object mismatches', () => {
   expect(shallowEqual(null, {})).toBe(false)
   expect(shallowEqual({}, null)).toBe(false)
   expect(shallowEqual(1, 1)).toBe(true)

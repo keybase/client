@@ -1,22 +1,26 @@
 const hasOwnProperty = Object.prototype.hasOwnProperty
 
-const shallowEqual = (objA: any, objB: any): boolean => {
+const isObjectLike = (value: unknown): value is object => typeof value === 'object' && value !== null
+
+const shallowEqual = (objA: unknown, objB: unknown): boolean => {
   if (objA === objB) {
     return true
   }
 
-  if (typeof objA !== 'object' || !objA || typeof objB !== 'object' || !objB) {
+  if (!isObjectLike(objA) || !isObjectLike(objB)) {
     return false
   }
 
-  const keysA = Object.keys(objA)
-  const keysB = Object.keys(objB)
+  const recordA = objA as Record<string, unknown>
+  const recordB = objB as Record<string, unknown>
+  const keysA = Object.keys(recordA)
+  const keysB = Object.keys(recordB)
 
   if (keysA.length !== keysB.length) {
     return false
   }
 
-  const bHasOwnProperty = hasOwnProperty.bind(objB) as (key: string) => boolean
+  const bHasOwnProperty = hasOwnProperty.bind(recordB) as (key: string) => boolean
 
   for (let idx = 0; idx < keysA.length; idx++) {
     const key = keysA[idx]!
@@ -25,8 +29,8 @@ const shallowEqual = (objA: any, objB: any): boolean => {
       return false
     }
 
-    const valueA = objA[key]
-    const valueB = objB[key]
+    const valueA = recordA[key]
+    const valueB = recordB[key]
 
     if (valueA !== valueB) {
       return false
