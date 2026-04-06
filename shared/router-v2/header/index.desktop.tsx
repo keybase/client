@@ -83,12 +83,7 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onMinimize}
         style={styles.appIconBox}
       >
-        <Kb.Icon
-          color="inherit"
-          onClick={onMinimize}
-          style={styles.appIcon}
-          type="iconfont-app-minimize"
-        />
+        <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
       </Kb.ClickableBox>
       <Kb.ClickableBox
         className="hover_background_color_black_05 color_black_50 hover_color_black"
@@ -107,19 +102,14 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
         onClick={onCloseWindow}
         style={styles.appIconBox}
       >
-        <Kb.Icon
-          color="inherit"
-          onClick={onCloseWindow}
-          style={styles.appIcon}
-          type="iconfont-app-close"
-        />
+        <Kb.Icon color="inherit" onClick={onCloseWindow} style={styles.appIcon} type="iconfont-app-close" />
       </Kb.ClickableBox>
     </Kb.Box2>
   )
 }
 
 function DesktopHeader(p: Props) {
-  const {back, navigation, options, loggedIn, useNativeFrame, params, isMaximized} = p
+  const {back, navigation, options, loggedIn, useNativeFrame, isMaximized} = p
   const {headerMode, title, headerTitle, headerRight, headerRightActions, subHeader} = options
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
@@ -338,7 +328,8 @@ function DesktopHeaderWrapper(p: HeaderProps) {
   const loggedIn = useConfigState(s => s.loggedIn)
   const isMaximized = useConfigState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
-  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = _options
+  const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
+    _options
   let headerTitleNode = headerTitle
   if (typeof headerTitle === 'function') {
     const HeaderTitle = headerTitle as React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}>
