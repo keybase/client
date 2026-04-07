@@ -103,7 +103,8 @@ class NativeTransport extends TransportShared {
         this.scheduleReconnect()
       })
       socket.on('data', data => {
-        this.packetizeData(new Uint8Array(data.buffer, data.byteOffset, data.byteLength))
+        const bytes = typeof data === 'string' ? Buffer.from(data) : data
+        this.packetizeData(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength))
       })
       socket.on('error', err => {
         logger.warn('Desktop RPC socket error', err)
