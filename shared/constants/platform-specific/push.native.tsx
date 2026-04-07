@@ -34,6 +34,7 @@ type DataNewMessageSilent2 = DataCommon & {
 }
 type DataFollow = DataCommon & {
   type: 'follow'
+  targetUID?: string
   username?: string
 }
 type DataChatExtension = DataCommon & {
@@ -70,6 +71,8 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
 
     const data = _n as PushN
     const userInteraction = !!data.userInteraction
+    const dataUid = data as {uid?: string; targetUID?: string}
+    const forUid = dataUid.uid
 
     switch (data.type) {
       case 'chat.readmessage': {
@@ -83,6 +86,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         return data.convID
           ? {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
+              forUid,
               membersType: anyToConversationMembersType(data.t),
               type: 'chat.newmessage',
               unboxPayload: data.m || '',
@@ -105,6 +109,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
       case 'follow':
         return data.username
           ? {
+              forUid: forUid ?? dataUid.targetUID,
               type: 'follow',
               userInteraction,
               username: data.username,
@@ -114,6 +119,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         return data.convID
           ? {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
+              forUid,
               type: 'chat.extension',
             }
           : undefined
@@ -198,6 +204,31 @@ export const initPushListener = () => {
   })
 
   storeRegistry.getState('push').dispatch.initialPermissionsCheck()
+
+  // Second half of the account-switch-for-notification flow: when the uid
+  // changes (i.e. login completes after a switch initiated in handlePush in
+  // constants/push.native.tsx), replay the pending notification for the new
+  // account if it was addressed to them.
+  storeRegistry.getStore('current-user').subscribe((s, old) => {
+    if (s.uid === old.uid) return
+    const pushState = storeRegistry.getState('push')
+    const pending = pushState.pendingPushNotification
+    if (!pending) return
+    const forUid = (pending as {forUid?: string}).forUid
+    if (!forUid || forUid !== s.uid) return
+    pushState.dispatch.clearPendingPushNotification()
+    pushState.dispatch.handlePush(pending)
+  })
+
+  // Clear pending push on logout, but not during an account switch — the switch
+  // flow sets userSwitching=true before triggering logout, and the pending
+  // notification must survive until the new account finishes bootstrapping.
+  storeRegistry.getStore('config').subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    if (!s.loggedIn && !s.userSwitching) {
+      storeRegistry.getState('push').dispatch.clearPendingPushNotification()
+    }
+  })
 
   const listenNative = async () => {
     const RNEmitter = getNativeEmitter()

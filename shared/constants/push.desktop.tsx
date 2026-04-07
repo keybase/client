@@ -15,6 +15,7 @@ export const usePushState = Z.createZustand<State>(() => {
     checkPermissions: async () => {
       return Promise.resolve(false)
     },
+    clearPendingPushNotification: () => {},
     deleteToken: () => {},
     handlePush: () => {},
     initialPermissionsCheck: () => {},

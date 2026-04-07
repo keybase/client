@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"runtime"
+	"strconv"
+	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -19,6 +22,42 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/kyokomi/emoji"
 )
+
+var (
+	seenNotificationsMtx sync.Mutex
+	seenNotifications, _ = lru.New(100)
+
+	multipleAccountsMtx    sync.Mutex
+	multipleAccountsCached *bool
+)
+
+// accountCacheLogoutHook implements libkb.LogoutHook. It clears the cached
+// result of hasMultipleLoggedInAccounts so that the next background
+// notification recomputes it against the post-logout account list.
+type accountCacheLogoutHook struct{}
+
+func (accountCacheLogoutHook) OnLogout(_ libkb.MetaContext) error {
+	multipleAccountsMtx.Lock()
+	multipleAccountsCached = nil
+	multipleAccountsMtx.Unlock()
+	return nil
+}
+
+func hasMultipleLoggedInAccounts(ctx context.Context) bool {
+	multipleAccountsMtx.Lock()
+	defer multipleAccountsMtx.Unlock()
+	if multipleAccountsCached != nil {
+		return *multipleAccountsCached
+	}
+	users, err := kbCtx.GetUsersWithStoredSecrets(ctx)
+	if err != nil {
+		// Don't cache on error; retry next time.
+		return false
+	}
+	result := len(users) > 1
+	multipleAccountsCached = &result
+	return result
+}
 
 type Person struct {
 	KeybaseUsername string
@@ -47,6 +86,8 @@ type ChatNotification struct {
 	IsPlaintext         bool
 	SoundName           string
 	BadgeCount          int
+	// Title is the notification title, e.g. "username@keybase"
+	Title string
 }
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
@@ -106,6 +147,23 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return libkb.LoginRequiredError{}
 	}
 	mp := chat.NewMobilePush(gc)
+	// Dedupe by convID||msgID
+	dupKey := strConvID + "||" + strconv.Itoa(intMessageID)
+	// Optimistic early-exit: check under the mutex so that if another goroutine
+	// is currently in the display+add critical section below, we wait for it to
+	// finish and then see the cache entry rather than proceeding with redundant work.
+	seenNotificationsMtx.Lock()
+	_, isDup := seenNotifications.Get(dupKey)
+	seenNotificationsMtx.Unlock()
+	if isDup {
+		// Cancel any duplicate visible notifications
+		if len(pushID) > 0 {
+			mp.AckNotificationSuccess(ctx, []string{pushID})
+		}
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
+		// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
+		return nil
+	}
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
@@ -119,6 +177,11 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return err
 	}
 
+	currentUsername := string(kbCtx.Env.GetUsername())
+	title := "Keybase"
+	if hasMultipleLoggedInAccounts(ctx) {
+		title = fmt.Sprintf("%s@keybase", currentUsername)
+	}
 	chatNotification := ChatNotification{
 		IsPlaintext: displayPlaintext,
 		Message: &Message{
@@ -131,10 +194,12 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		TopicName:           conv.Info.TopicName,
 		TlfName:             conv.Info.TlfName,
 		IsGroupConversation: len(conv.Info.Participants) > 2,
-		ConversationName:    utils.FormatConversationName(conv.Info, string(kbCtx.Env.GetUsername())),
+		ConversationName:    utils.FormatConversationName(conv.Info, currentUsername),
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
+		Title:               title,
 	}
+	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: title=%s", chatNotification.Title)
 
 	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
 	if err == nil && msgUnboxed.IsValid() {
@@ -195,6 +260,22 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 
 	// only display and ack this notification if we actually have something to display
 	if pusher != nil && (len(chatNotification.Message.Plaintext) > 0 || len(chatNotification.Message.ServerMessage) > 0) {
+		// Lock and check if we've already processed this notification.
+		seenNotificationsMtx.Lock()
+		defer seenNotificationsMtx.Unlock()
+		if _, ok := seenNotifications.Get(dupKey); ok {
+			// Cancel any duplicate visible notifications
+			if len(pushID) > 0 {
+				mp.AckNotificationSuccess(ctx, []string{pushID})
+			}
+			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: duplicate notification convID=%s msgID=%d", strConvID, intMessageID)
+			// Return nil (not an error) so Android does not treat this as failure and show a fallback notification.
+			return nil
+		}
+		// Add to cache before displaying so that any concurrent goroutine that
+		// reaches the second check while DisplayChatNotification is running will
+		// see the entry and bail out rather than displaying a duplicate.
+		seenNotifications.Add(dupKey, struct{}{})
 		pusher.DisplayChatNotification(&chatNotification)
 		if len(pushID) > 0 {
 			mp.AckNotificationSuccess(ctx, []string{pushID})
