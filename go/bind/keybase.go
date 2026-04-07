@@ -59,13 +59,29 @@ var (
 	connMutex   sync.Mutex // Protects conn operations
 )
 
-// log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
+func describeConn(c net.Conn) string {
+	if c == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("%T@%p", c, c)
+}
+
+func appStateForLog() string {
+	if kbCtx == nil || kbCtx.MobileAppState == nil {
+		return "<unknown>"
+	}
+	return fmt.Sprintf("%v", kbCtx.MobileAppState.State())
+}
+
+// log writes to kbCtx.Log if available, otherwise falls back to stderr.
+// Stderr is captured in crash logs and the Xcode console, making early Init
+// messages visible before kbCtx.Log is configured.
 func log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
 	} else {
-		fmt.Printf("%s\n", msg)
+		fmt.Fprintf(os.Stderr, "keybase: %s\n", msg)
 	}
 }
 
@@ -469,9 +485,13 @@ func WriteArr(b []byte) (err error) {
 
 	n, err := currentConn.Write(bytes)
 	if err != nil {
+		log("Go: WriteArr error conn=%s len=%d appState=%s err=%v",
+			describeConn(currentConn), len(bytes), appStateForLog(), err)
 		return fmt.Errorf("Write error: %s", err)
 	}
 	if n != len(bytes) {
+		log("Go: WriteArr short write conn=%s wrote=%d expected=%d appState=%s",
+			describeConn(currentConn), n, len(bytes), appStateForLog())
 		return errors.New("Did not write all the data")
 	}
 	return nil
@@ -524,20 +544,36 @@ func ReadArr() (data []byte, err error) {
 // ensureConnection establishes the loopback connection if not already connected.
 // Must be called with connMutex held.
 func ensureConnection() error {
-	start := time.Now()
 	if !isInited() {
+		log("ensureConnection: keybase not initialized")
 		return errors.New("keybase not initialized")
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		log("ensureConnection: loopback listener not initialized (kbCtx nil: %v)", kbCtx == nil)
 		return errors.New("loopback listener not initialized")
 	}
 
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
-		return fmt.Errorf("Failed to dial loopback listener: %s", err)
+		log("ensureConnection: Dial failed (%v), restarting loopback server", err)
+		l, rerr := kbCtx.MakeLoopbackServer()
+		if rerr != nil {
+			log("ensureConnection: MakeLoopbackServer failed: %v", rerr)
+			return fmt.Errorf("failed to restart loopback server: %s", rerr)
+		}
+		go func() { _ = kbSvc.ListenLoop(l) }()
+		conn, err = kbCtx.LoopbackListener.Dial()
+		if err != nil {
+			log("ensureConnection: Dial failed after restart: %v", err)
+			return fmt.Errorf("failed to dial after loopback restart: %s", err)
+		}
+		log("ensureConnection: loopback server restarted successfully conn=%s appState=%s",
+			describeConn(conn), appStateForLog())
+		return nil
 	}
-	log("Go: Established loopback connection in %v", time.Since(start))
+	log("Go: Established loopback connection conn=%s appState=%s",
+		describeConn(conn), appStateForLog())
 	return nil
 }
 
@@ -546,24 +582,28 @@ func Reset() error {
 	connMutex.Lock()
 	defer connMutex.Unlock()
 
+	log("Go: Reset start conn=%s appState=%s", describeConn(conn), appStateForLog())
 	if conn != nil {
 		conn.Close()
 		conn = nil
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		log("Go: Reset complete without listener appState=%s", appStateForLog())
 		return nil
 	}
 
 	// Connection will be re-established lazily on next read/write
-	log("Go: Connection reset, will reconnect on next operation")
+	log("Go: Connection reset, will reconnect on next operation appState=%s", appStateForLog())
 	return nil
 }
 
 // NotifyJSReady signals that the JavaScript side is ready to send/receive RPCs.
 // This unblocks the ReadArr loop and allows bidirectional communication.
+// jsReadyCh is closed once and stays closed, so repeated engine resets are no-ops.
 func NotifyJSReady() {
 	jsReadyOnce.Do(func() {
-		log("Go: JS signaled ready, unblocking RPC communication")
+		log("Go: JS signaled ready, unblocking RPC communication appState=%s conn=%s",
+			appStateForLog(), describeConn(conn))
 		close(jsReadyCh)
 	})
 }

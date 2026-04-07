@@ -352,6 +352,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 	uids []keybase1.UID, fullNameFreshness, networkTimeBudget time.Duration,
 	forceNetworkForFullNames bool,
 ) (res []libkb.UsernamePackage, err error) {
+	defer libkb.CTrace(ctx, g.GetLog(), "UIDMap.MapUIDsToUsernamePackages", &err, g.GetClock())()
 	u.Lock()
 	defer u.Unlock()
 

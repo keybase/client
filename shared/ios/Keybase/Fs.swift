@@ -26,10 +26,9 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
         let serviceLogFile = skipLogFile ? "" : logURL.appendingPathComponent("ios.log").path
 
         if !skipLogFile {
-            // cleanup old log files
             let fm = FileManager.default
             ["ios.log", "ios.log.ek"].forEach {
-                try? fm.removeItem(at: Self.cacheKeybaseURL.appendingPathComponent($0))
+                try? fm.removeItem(at: logURL.appendingPathComponent($0))
             }
         }
         // Create LevelDB and log directories with a slightly lower data protection
@@ -46,12 +45,11 @@ private let log = Logger(subsystem: "com.keybase.app", category: "fs")
             "kbfs_quota_cache",
             "kbfs_sync_cache",
             "kbfs_settings",
-            "synced_tlf_config",
-            "logs"
+            "synced_tlf_config"
         ].forEach {
             createBackgroundReadableDirectory(path: appKeybaseURL.appendingPathComponent($0).path, setAllFiles: true)
         }
-        // Mark avatars, which are in the caches dir
+        createBackgroundReadableDirectory(path: logURL.path, setAllFiles: true)
         createBackgroundReadableDirectory(path: Self.cacheKeybaseURL.appendingPathComponent("avatars").path, setAllFiles: true)
 
         let setupFsElapsed = CFAbsoluteTimeGetCurrent() - setupFsStartTime

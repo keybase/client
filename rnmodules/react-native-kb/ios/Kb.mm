@@ -51,6 +51,7 @@ static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+static NSString *kbInitResult = nil;
 
 @interface Kb ()
 @property dispatch_queue_t readQueue;
@@ -297,6 +298,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         NSData *data = KeybaseReadArr(&error);
         if (error) {
           NSLog(@"Error reading data: %@", error);
+          [NSThread sleepForTimeInterval:0.1];
         } else if (data) {
           __typeof__(self) strongSelf = weakSelf;
           if (strongSelf && strongSelf->kbBridge_) {
@@ -572,4 +574,8 @@ NSDictionary *KbGetAndClearInitialNotification(void) {
   NSDictionary *notification = kbInitialNotification;
   kbInitialNotification = nil;
   return notification;
+}
+
+void KbSetInitResult(NSString *result) {
+  kbInitResult = result;
 }

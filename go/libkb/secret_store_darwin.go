@@ -216,7 +216,8 @@ func HasSecretStore() bool {
 	return true
 }
 
-func (k KeychainSecretStore) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
+func (k KeychainSecretStore) GetUsersWithStoredSecrets(mctx MetaContext) (_ []string, err error) {
+	defer mctx.Trace("KeychainSecretStore.GetUsersWithStoredSecrets", &err)()
 	accounts, err := keychain.GetAccountsForService(k.serviceName(mctx))
 	if err != nil {
 		mctx.Debug("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)

@@ -597,6 +597,9 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
                     } else {
                         NativeLogger.error("Exception in ReadFromKBLib.run", e)
                     }
+                    // Back off on error to avoid spinning at full CPU speed when Go is
+                    // unavailable (e.g. during init or loopback restart).
+                    try { Thread.sleep(100) } catch (ie: InterruptedException) { Thread.currentThread().interrupt() }
                 }
             } while (!Thread.currentThread().isInterrupted && reactContext.hasActiveReactInstance())
         }

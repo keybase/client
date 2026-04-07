@@ -44,6 +44,7 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *Bootstrap) lookupFullname(m libkb.MetaContext, uv keybase1.UserVersion) {
+	defer m.Trace("Bootstrap.lookupFullname", nil)()
 	pkgs, err := m.G().UIDMapper.MapUIDsToUsernamePackagesOffline(m.Ctx(), m.G(), []keybase1.UID{uv.Uid}, time.Duration(0))
 	if err != nil {
 		m.Warning("UID -> Username failed lookup: %s", err)
@@ -62,7 +63,8 @@ func (e *Bootstrap) lookupFullname(m libkb.MetaContext, uv keybase1.UserVersion)
 }
 
 // Run starts the engine.
-func (e *Bootstrap) Run(m libkb.MetaContext) error {
+func (e *Bootstrap) Run(m libkb.MetaContext) (err error) {
+	defer m.Trace("Bootstrap.Run", &err)()
 	e.status.Registered = e.signedUp(m)
 
 	// if any Login engine worked previously, then ActiveDevice will

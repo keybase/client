@@ -25,3 +25,6 @@ FOUNDATION_EXPORT void KbSetDeviceToken(NSString *token);
 FOUNDATION_EXPORT void KbSetInitialNotification(NSDictionary *notification);
 FOUNDATION_EXPORT void KbEmitPushNotification(NSDictionary *notification);
 FOUNDATION_EXPORT NSDictionary *KbGetAndClearInitialNotification(void);
+
+// Init result - stored for inclusion in ReadArr error logs
+FOUNDATION_EXPORT void KbSetInitResult(NSString *result);

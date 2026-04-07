@@ -175,6 +175,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
+		ForceAttemptHTTP2:     true,
 	}
 
 	xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {

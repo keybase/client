@@ -348,22 +348,22 @@ func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClie
 	return h.G().ConnectionManager.WaitForClientType(arg.ClientType, arg.Timeout.Duration()), nil
 }
 
-func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (keybase1.BootstrapStatus, error) {
+func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (res keybase1.BootstrapStatus, err error) {
+	m := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer m.Trace("GetBootstrapStatus", &err)()
 	eng := engine.NewBootstrap(h.G())
-	m := libkb.NewMetaContext(ctx, h.G())
-	if err := engine.RunEngine2(m, eng); err != nil {
-		return keybase1.BootstrapStatus{}, err
+	if err = engine.RunEngine2(m, eng); err != nil {
+		return res, err
 	}
-	status := eng.Status()
-	h.G().Log.CDebugf(ctx, "GetBootstrapStatus: attempting to get HTTP server address")
-	for range 40 { // wait at most 2 seconds
-		addr, err := h.svc.httpSrv.Addr()
-		if err != nil {
-			h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
+	res = eng.Status()
+	m.Debug("GetBootstrapStatus: attempting to get HTTP server address")
+	for i := 0; i < 40; i++ { // wait at most 2 seconds
+		addr, addrErr := h.svc.httpSrv.Addr()
+		if addrErr != nil {
+			m.Debug("GetBootstrapStatus: failed to get HTTP server address: %s", addrErr)
 		} else {
-			h.G().Log.CDebugf(ctx, "GetBootstrapStatus: http server: addr: %s token: %s", addr,
-				h.svc.httpSrv.Token())
-			status.HttpSrvInfo = &keybase1.HttpSrvInfo{
+			m.Debug("GetBootstrapStatus: http server: addr: %s token: %s", addr, h.svc.httpSrv.Token())
+			res.HttpSrvInfo = &keybase1.HttpSrvInfo{
 				Address: addr,
 				Token:   h.svc.httpSrv.Token(),
 			}
@@ -371,10 +371,10 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	if status.HttpSrvInfo == nil {
-		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP srv info after max attempts")
+	if res.HttpSrvInfo == nil {
+		m.Debug("GetBootstrapStatus: failed to get HTTP srv info after max attempts")
 	}
-	return status, nil
+	return res, nil
 }
 
 func (h ConfigHandler) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) error {

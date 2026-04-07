@@ -46,34 +46,20 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   var fsPaths: [String: String] = [:]
   var shutdownTask: UIBackgroundTaskIdentifier = .invalid
   var iph: ItemProviderHelper?
-  var startupLogFileHandle: FileHandle?
-
-  private var watchdog: MainThreadWatchdog?
+  private var startupLogFileHandle: FileHandle?
+  private let logQueue = DispatchQueue(label: "kb.startup.log", qos: .utility)
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    if AppDelegate.appStartTime == 0 {
-      AppDelegate.appStartTime = CFAbsoluteTimeGetCurrent()
-    }
-
     let skipLogFile = false
     self.fsPaths = FsHelper().setupFs(skipLogFile, setupSharedHome: true)
     FsPathsHolder.shared().fsPaths = self.fsPaths
 
     self.writeStartupTimingLog("didFinishLaunchingWithOptions start")
-    let wd = MainThreadWatchdog(appStartTime: AppDelegate.appStartTime, writeLog: { [weak self] msg in
-      self?.writeStartupTimingLog(msg)
-    })
-    wd.start(context: "cold start")
-    self.watchdog = wd
 
     self.didLaunchSetupBefore()
-    // Install the SIGUSR1 stack-capture handler after KeybaseInit — Go's runtime
-    // initializes its own signal handlers during KeybaseInit and would overwrite
-    // anything registered before it.
-    wd.install()
 
     if let remoteNotification = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
       let notificationDict = Dictionary(uniqueKeysWithValues: remoteNotification.map { (String(describing: $0.key), $0.value) })
@@ -144,8 +130,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
 
   /////// KB specific
 
-  private static var appStartTime: CFAbsoluteTime = 0
-
   private static let logDateFormatter: DateFormatter = {
     let f = DateFormatter()
     f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
@@ -158,43 +142,56 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
       return
     }
 
-    if self.startupLogFileHandle == nil {
-      if !FileManager.default.fileExists(atPath: logFilePath) {
-        FileManager.default.createFile(atPath: logFilePath, contents: nil, attributes: nil)
-      }
-
-      if let fileHandle = try? FileHandle(forWritingTo: URL(fileURLWithPath: logFilePath)) {
-        try? fileHandle.seekToEnd()
-        self.startupLogFileHandle = fileHandle
-      }
-    }
-
-    guard let fileHandle = self.startupLogFileHandle else {
-      return
-    }
-
     let now = Date()
     let timeInterval = now.timeIntervalSince1970
     let microseconds = Int(timeInterval.truncatingRemainder(dividingBy: 1) * 1_000_000)
     let dateString = AppDelegate.logDateFormatter.string(from: now)
     let timestamp = String(format: "%@.%06dZ", dateString, microseconds)
-
     let fileName = URL(fileURLWithPath: file).lastPathComponent
     let logMessage = String(format: "%@ \u{25B6} [DEBU keybase %@:%d] Delegate startup: %@\n", timestamp, fileName, line, message)
-
     guard let logData = logMessage.data(using: .utf8) else {
       return
     }
 
-    try? fileHandle.write(contentsOf: logData)
-    try? fileHandle.synchronize()
+    logQueue.async { [weak self] in
+      guard let self else { return }
+      if self.startupLogFileHandle == nil {
+        if !FileManager.default.fileExists(atPath: logFilePath) {
+          FileManager.default.createFile(
+            atPath: logFilePath,
+            contents: nil,
+            attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+          )
+        }
+        if let fileHandle = FileHandle(forWritingAtPath: logFilePath) {
+          fileHandle.seekToEndOfFile()
+          self.startupLogFileHandle = fileHandle
+        } else {
+          NSLog("Error opening startup timing log file: \(logFilePath)")
+          return
+        }
+      }
+      guard let fileHandle = self.startupLogFileHandle else { return }
+      do {
+        try fileHandle.write(contentsOf: logData)
+        try fileHandle.synchronize()
+      } catch {
+        NSLog("Error writing startup timing log: \(error)")
+      }
+    }
   }
 
   private func closeStartupLogFile() {
-    if let fileHandle = self.startupLogFileHandle {
-      try? fileHandle.synchronize()
-      try? fileHandle.close()
-      self.startupLogFileHandle = nil
+    logQueue.sync {
+      if let fileHandle = self.startupLogFileHandle {
+        do {
+          try fileHandle.synchronize()
+          try fileHandle.close()
+        } catch {
+          NSLog("Error closing startup timing log: \(error)")
+        }
+        self.startupLogFileHandle = nil
+      }
     }
   }
 
@@ -220,7 +217,15 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     var err: NSError?
     let shareIntentDonator = ShareIntentDonatorImpl()
     Keybasego.KeybaseInit(self.fsPaths["homedir"], self.fsPaths["sharedHome"], self.fsPaths["logFile"], "prod", securityAccessGroupOverride, nil, nil, systemVer, isIPad, nil, isIOS, shareIntentDonator, &err)
-    if let err { log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)") }
+    if let err {
+      let initResult = "FAILED: \(err.localizedDescription) (code=\(err.code) domain=\(err.domain))"
+      KbSetInitResult(initResult)
+      log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)")
+      self.writeStartupTimingLog("KeybaseInit \(initResult)")
+    } else {
+      KbSetInitResult("succeeded")
+      self.writeStartupTimingLog("KeybaseInit succeeded")
+    }
 
     self.writeStartupTimingLog("After Go init")
   }
@@ -234,8 +239,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     case .inactive: Keybasego.KeybaseSetAppStateInactive()
     default: Keybasego.KeybaseSetAppStateForeground()
     }
-    NSLog("notifyAppState: done")
-    Keybasego.KeybaseFlushLogs()
   }
 
   func didLaunchSetupBefore() {
@@ -404,7 +407,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {
-    watchdog?.start(context: "background entered")
+    application.ignoreSnapshotOnNextApplicationLaunch()
     PerfFPSMonitor.appDidEnterBackground()
     log.info("applicationDidEnterBackground: cancelling outstanding animations...")
     self.resignImageView?.layer.removeAllAnimations()
@@ -414,7 +417,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     log.info("applicationDidEnterBackground: notifying go.")
     let requestTime = Keybasego.KeybaseAppDidEnterBackground()
     log.info("applicationDidEnterBackground: after notifying go.")
-    Keybasego.KeybaseFlushLogs()
 
     if requestTime && (self.shutdownTask == UIBackgroundTaskIdentifier.invalid) {
       let app = UIApplication.shared
@@ -440,10 +442,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
-    watchdog?.stop()
-    Keybasego.KeybaseFlushLogs()
-    let elapsed = CFAbsoluteTimeGetCurrent() - AppDelegate.appStartTime
-    writeStartupTimingLog(String(format: "applicationDidBecomeActive: %.1fms after launch", elapsed * 1000))
     log.info("applicationDidBecomeActive: hiding keyz screen.")
     hideCover()
     log.info("applicationDidBecomeActive: notifying service.")
@@ -479,6 +477,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
     PerfFPSMonitor.appWillEnterForeground()
     hideCover()
     NSLog("applicationWillEnterForeground: done")
+  }
+
+  func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
+    NSLog("[Startup] applicationProtectedDataDidBecomeAvailable")
   }
 
 }
