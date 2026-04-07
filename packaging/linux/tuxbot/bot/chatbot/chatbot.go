@@ -121,13 +121,13 @@ func (l ChatLogger) VDebug(format string, args ...interface{}) {
 func (l ChatLogger) Debug(format string, args ...interface{}) {
 	msg := l.msg(format, args...)
 	fmt.Println(msg)
-	if _, err := l.API.SendMessage(l.DebugChannel, msg); err != nil {
+	if _, err := l.API.SendMessage(l.DebugChannel, "%s", msg); err != nil {
 		fmt.Printf("unable to SendMessage: %v", err)
 	}
 }
 
 func (l ChatLogger) Info(format string, args ...interface{}) {
-	if _, err := l.API.SendMessage(l.InfoChannel, l.msg(format, args...)); err != nil {
+	if _, err := l.API.SendMessage(l.InfoChannel, "%s", l.msg(format, args...)); err != nil {
 		fmt.Printf("unable to SendMessage: %v", err)
 	}
 	if l.InfoChannel.Name != l.DebugChannel.Name || l.InfoChannel.TopicName != l.DebugChannel.TopicName {

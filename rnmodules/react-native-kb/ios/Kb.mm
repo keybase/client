@@ -74,6 +74,7 @@ static __weak Kb *kbSharedInstance = nil;
 static BOOL kbPasteImageEnabled = NO;
 static NSString *kbStoredDeviceToken = nil;
 static NSDictionary *kbInitialNotification = nil;
+static NSString *kbInitResult = nil;
 
 @interface RCTBridge (JSIRuntime)
 - (void *)runtime;
@@ -98,9 +99,6 @@ static NSDictionary *kbInitialNotification = nil;
 
 jsi::Runtime *_jsRuntime;
 std::shared_ptr<KBJSScheduler> jsScheduler;
-
-// sanity check the runtime isn't out of sync due to reload etc
-void *currentRuntime = nil;
 
 RCT_EXPORT_MODULE()
 
@@ -160,8 +158,8 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)invalidate {
+  NSLog(@"Kb.invalidate");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  currentRuntime = nil;
   _jsRuntime = nil;
   kbPasteImageEnabled = NO;
   [super invalidate];
@@ -200,7 +198,6 @@ RCT_EXPORT_METHOD(setEnablePasteImage:(BOOL)enabled) {
       NSLog(@"Failed to find jsi in sendToJS invokeAsync!!!");
       return;
     }
-
     int size = (int)[data length];
     if (size <= 0) {
       NSLog(@"Invalid data size in sendToJS: %d", size);
@@ -311,6 +308,7 @@ RCT_EXPORT_METHOD(shareListenersRegistered) {
 }
 
 RCT_EXPORT_METHOD(engineReset) {
+  NSLog(@"engineReset: called (JS hot reload), resetting Go engine");
   NSError *error = nil;
   KeybaseReset(&error);
   [self sendEventWithName:metaEventName body:metaEventEngineReset];
@@ -322,6 +320,7 @@ RCT_EXPORT_METHOD(engineReset) {
 RCT_EXPORT_METHOD(notifyJSReady) {
   __weak __typeof__(self) weakSelf = self;
 
+  NSLog(@"notifyJSReady: called from JS self=%p bridge=%p", self, self.bridge);
   dispatch_async(dispatch_get_main_queue(), ^{
     // Setup infrastructure
     [[NSNotificationCenter defaultCenter]
@@ -333,7 +332,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
 
     // Signal to Go that JS is ready
     KeybaseNotifyJSReady();
-    NSLog(@"Notified Go that JS is ready, starting ReadArr loop");
+    NSLog(@"notifyJSReady: Notified Go that JS is ready, starting ReadArr loop");
 
     // Start the read loop
     dispatch_async(self.readQueue, ^{
@@ -341,7 +340,7 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         {
           __typeof__(self) strongSelf = weakSelf;
           if (!strongSelf || !strongSelf.bridge) {
-            NSLog(@"Bridge dead, bailing from ReadArr loop");
+            NSLog(@"ReadArr loop exit: bridge dead");
             return;
           }
         }
@@ -350,6 +349,9 @@ RCT_EXPORT_METHOD(notifyJSReady) {
         NSData *data = KeybaseReadArr(&error);
         if (error) {
           NSLog(@"Error reading data: %@", error);
+          // Back off on error to avoid spinning at ~35K/sec and starving the main thread CPU
+          // during foreground re-entry (seen during hang investigation: 419K errors in 12s).
+          [NSThread sleepForTimeInterval:0.1];
         } else if (data) {
           __typeof__(self) strongSelf = weakSelf;
           if (strongSelf) {
@@ -676,4 +678,8 @@ NSDictionary *KbGetAndClearInitialNotification(void) {
   NSDictionary *notification = kbInitialNotification;
   kbInitialNotification = nil;
   return notification;
+}
+
+void KbSetInitResult(NSString *result) {
+  kbInitResult = result;
 }

@@ -42,6 +42,11 @@ type SocketWrapper struct {
 func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
 	g.socketWrapperMu.Lock()
 	defer g.socketWrapperMu.Unlock()
+	if g.LoopbackListener != nil {
+		g.Log.Debug("MakeLoopbackServer: replacing existing loopback listener (old isClosed=%v)", g.LoopbackListener.isClosed)
+	} else {
+		g.Log.Debug("MakeLoopbackServer: creating new loopback listener")
+	}
 	g.LoopbackListener = NewLoopbackListener(g)
 	l = g.LoopbackListener
 	return l, err

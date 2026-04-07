@@ -82,10 +82,10 @@ func newTransientEphemeralKeyError(err EphemeralKeyError) EphemeralKeyError {
 const (
 	DefaultHumanErrMsg           = "This exploding message is not available"
 	DefaultPluralHumanErrMsg     = "%d exploding messages are not available"
-	DeviceCloneErrMsg            = "cloned devices do not support exploding messages"
-	DeviceCloneWithOneshotErrMsg = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
-	DeviceAfterEKErrMsg          = "because this device was created after it was sent"
-	MemberAfterEKErrMsg          = "because you joined the team after it was sent"
+	DeviceCloneErrMsg            = "because this device has been cloned"
+	DeviceCloneWithOneshotErrMsg = "because this device is running in `oneshot` mode; to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
+	DeviceAfterEKErrMsg          = "because this device was created after the message was sent"
+	MemberAfterEKErrMsg          = "because you joined the team after the message was sent"
 	DeviceStaleErrMsg            = "because this device wasn't online to generate an exploding key"
 	UserStaleErrMsg              = "because you weren't online to generate new exploding keys"
 )
@@ -159,7 +159,7 @@ func humanMsgWithPrefix(humanMsg string) string {
 	if humanMsg == "" {
 		humanMsg = DefaultHumanErrMsg
 	} else if !strings.Contains(humanMsg, DefaultHumanErrMsg) {
-		humanMsg = fmt.Sprintf("%s, %s", DefaultHumanErrMsg, humanMsg)
+		humanMsg = fmt.Sprintf("%s %s", DefaultHumanErrMsg, humanMsg)
 	}
 	return humanMsg
 }

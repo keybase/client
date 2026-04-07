@@ -59,13 +59,29 @@ var (
 	connMutex   sync.Mutex // Protects conn operations
 )
 
-// log writes to kbCtx.Log if available, otherwise falls back to fmt.Printf
+func describeConn(c net.Conn) string {
+	if c == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("%T@%p", c, c)
+}
+
+func appStateForLog() string {
+	if kbCtx == nil || kbCtx.MobileAppState == nil {
+		return "<unknown>"
+	}
+	return fmt.Sprintf("%v", kbCtx.MobileAppState.State())
+}
+
+// log writes to kbCtx.Log if available, otherwise falls back to stderr.
+// Stderr is captured in crash logs and the Xcode console, making early Init
+// messages (before kbCtx.Log is set up by Configure) visible in diagnostics.
 func log(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
 	} else {
-		fmt.Printf("%s\n", msg)
+		fmt.Fprintf(os.Stderr, "keybase: %s\n", msg)
 	}
 }
 
@@ -469,9 +485,13 @@ func WriteArr(b []byte) (err error) {
 
 	n, err := currentConn.Write(bytes)
 	if err != nil {
+		log("Go: WriteArr error conn=%s len=%d appState=%s err=%v",
+			describeConn(currentConn), len(bytes), appStateForLog(), err)
 		return fmt.Errorf("Write error: %s", err)
 	}
 	if n != len(bytes) {
+		log("Go: WriteArr short write conn=%s wrote=%d expected=%d appState=%s",
+			describeConn(currentConn), n, len(bytes), appStateForLog())
 		return errors.New("Did not write all the data")
 	}
 	return nil
@@ -525,18 +545,37 @@ func ReadArr() (data []byte, err error) {
 // Must be called with connMutex held.
 func ensureConnection() error {
 	if !isInited() {
+		log("ensureConnection: keybase not initialized")
 		return errors.New("keybase not initialized")
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		log("ensureConnection: loopback listener not initialized (kbCtx nil: %v)", kbCtx == nil)
 		return errors.New("loopback listener not initialized")
 	}
 
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
-		return fmt.Errorf("Failed to dial loopback listener: %s", err)
+		// The listener was closed (isClosed=true, returns syscall.EINVAL). Recreate it and
+		// start a new ListenLoop goroutine, then retry the dial once.
+		log("ensureConnection: Dial failed (%v), restarting loopback server", err)
+		l, rerr := kbCtx.MakeLoopbackServer()
+		if rerr != nil {
+			log("ensureConnection: MakeLoopbackServer failed: %v", rerr)
+			return fmt.Errorf("failed to restart loopback server: %s", rerr)
+		}
+		go func() { _ = kbSvc.ListenLoop(l) }()
+		conn, err = kbCtx.LoopbackListener.Dial()
+		if err != nil {
+			log("ensureConnection: Dial failed after restart: %v", err)
+			return fmt.Errorf("failed to dial after loopback restart: %s", err)
+		}
+		log("ensureConnection: loopback server restarted successfully conn=%s appState=%s",
+			describeConn(conn), appStateForLog())
+		return nil
 	}
-	log("Go: Established loopback connection")
+	log("Go: Established loopback connection conn=%s appState=%s",
+		describeConn(conn), appStateForLog())
 	return nil
 }
 
@@ -545,24 +584,28 @@ func Reset() error {
 	connMutex.Lock()
 	defer connMutex.Unlock()
 
+	log("Go: Reset start conn=%s appState=%s", describeConn(conn), appStateForLog())
 	if conn != nil {
 		conn.Close()
 		conn = nil
 	}
 	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		log("Go: Reset complete without listener appState=%s", appStateForLog())
 		return nil
 	}
 
 	// Connection will be re-established lazily on next read/write
-	log("Go: Connection reset, will reconnect on next operation")
+	log("Go: Connection reset, will reconnect on next operation appState=%s", appStateForLog())
 	return nil
 }
 
 // NotifyJSReady signals that the JavaScript side is ready to send/receive RPCs.
 // This unblocks the ReadArr loop and allows bidirectional communication.
+// jsReadyCh is closed once and stays closed — repeated calls from engine resets are no-ops.
 func NotifyJSReady() {
 	jsReadyOnce.Do(func() {
-		log("Go: JS signaled ready, unblocking RPC communication")
+		log("Go: JS signaled ready, unblocking RPC communication appState=%s conn=%s",
+			appStateForLog(), describeConn(conn))
 		close(jsReadyCh)
 	})
 }
@@ -588,6 +631,12 @@ func IsAppStateForeground() bool {
 		return false
 	}
 	return kbCtx.MobileAppState.State() == keybase1.MobileAppState_FOREGROUND
+}
+
+// FlushLogs synchronously flushes any buffered log data to disk. Call this
+// before background suspension and after foreground resume to prevent log loss.
+func FlushLogs() {
+	logger.FlushLogFile()
 }
 
 func SetAppStateForeground() {
@@ -639,36 +688,39 @@ func waitForInit(maxDur time.Duration) error {
 	}
 }
 
-func BackgroundSync() {
+// BackgroundSync runs a short background sync pulse. Returns a non-empty status
+// string on early exit or error so Swift can log it via NSLog.
+func BackgroundSync() string {
 	// On Android there is a race where this function can be called before Init when starting up in the
 	// background. Let's wait a little bit here for Init to get run, and bail out if it never does.
 	if err := waitForInit(5 * time.Second); err != nil {
-		return
+		return fmt.Sprintf("waitForInit timeout: %v", err)
 	}
 	defer kbCtx.Trace("BackgroundSync", nil)()
 
 	// Skip the sync if we aren't in the background
 	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
-		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
-		return
+		msg := fmt.Sprintf("skipping, app not in background state: %v", state)
+		kbCtx.Log.Debug("BackgroundSync: %s", msg)
+		return msg
 	}
 
 	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
 	kbCtx.MobileAppState.Update(nextState)
-	doneCh := make(chan struct{})
+	resultCh := make(chan string, 1)
 	go func() {
-		defer func() { close(doneCh) }()
 		select {
 		case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
 			// if literally anything happens, let's get out of here
-			kbCtx.Log.Debug("BackgroundSync: bailing out early, appstate change: %v", state)
-			return
+			msg := fmt.Sprintf("bailing out early, appstate change: %v", state)
+			kbCtx.Log.Debug("BackgroundSync: %s", msg)
+			resultCh <- msg
 		case <-time.After(10 * time.Second):
 			kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
-			return
+			resultCh <- "completed 10s window"
 		}
 	}()
-	<-doneCh
+	return <-resultCh
 }
 
 // pushPendingMessageFailure sends at most one notification that a message

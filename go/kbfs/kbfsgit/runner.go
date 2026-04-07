@@ -682,6 +682,21 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		r.printStageEndIfNeeded)
 }
 
+// bestBranchFromCandidates selects the best branch for HEAD from a set of
+// candidate branch names (prefer main > master > alphabetically first).
+func bestBranchFromCandidates(best plumbing.ReferenceName, candidate plumbing.ReferenceName) plumbing.ReferenceName {
+	switch {
+	case candidate == "refs/heads/main":
+		return candidate
+	case candidate == "refs/heads/master" && best != "refs/heads/main":
+		return candidate
+	case best == "" || (best != "refs/heads/main" && best != "refs/heads/master" && candidate < best):
+		return candidate
+	default:
+		return best
+	}
+}
+
 // handleList: From https://git-scm.com/docs/git-remote-helpers
 //
 // Lists the refs, one per line, in the format "<value> <name> [<attr>
@@ -708,9 +723,18 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	if err != nil {
 		return err
 	}
+	defer refs.Close()
 
-	var symRefs []string
+	type symRefInfo struct {
+		name   plumbing.ReferenceName
+		target plumbing.ReferenceName
+	}
+	var symRefs []symRefInfo
+	hashRefNames := make(map[plumbing.ReferenceName]bool)
 	hashesSeen := false
+	// Track the best fallback branch for HEAD in case its target
+	// doesn't exist (prefer main > master > alphabetically first).
+	var bestBranch plumbing.ReferenceName
 	for {
 		ref, err := refs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -725,6 +749,11 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		case plumbing.HashReference:
 			value = ref.Hash().String()
 			hashesSeen = true
+			hashRefNames[ref.Name()] = true
+			// Track best branch for fallback HEAD.
+			if strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+				bestBranch = bestBranchFromCandidates(bestBranch, ref.Name())
+			}
 		case plumbing.SymbolicReference:
 			value = "@" + ref.Target().String()
 		default:
@@ -737,7 +766,10 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 			// cloning an empty repo will result in an error because
 			// the HEAD symbolic ref points to a ref that doesn't
 			// exist.
-			symRefs = append(symRefs, refStr)
+			symRefs = append(symRefs, symRefInfo{
+				name:   ref.Name(),
+				target: ref.Target(),
+			})
 			continue
 		}
 		r.log.CDebugf(ctx, "Listing ref %s", refStr)
@@ -748,7 +780,30 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	}
 
 	if hashesSeen && !forPush {
-		for _, refStr := range symRefs {
+		for _, sr := range symRefs {
+			target := sr.target
+			// If the symref target doesn't exist among hash refs,
+			// rewrite it to point to the best available branch,
+			// but only for HEAD. Other symrefs are emitted as-is.
+			if !hashRefNames[target] {
+				if sr.name == plumbing.HEAD {
+					if bestBranch == "" {
+						r.log.CDebugf(ctx,
+							"Skipping HEAD symref %s -> %s (no branches available)",
+							sr.name, target)
+						continue
+					}
+					r.log.CDebugf(ctx,
+						"Rewriting HEAD symref from %s to %s",
+						target, bestBranch)
+					target = bestBranch
+				} else {
+					r.log.CDebugf(ctx,
+						"Emitting non-HEAD symref %s -> %s with unknown target",
+						sr.name, target)
+				}
+			}
+			refStr := "@" + target.String() + " " + sr.name.String() + "\n"
 			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
 			_, err = r.output.Write([]byte(refStr))
 			if err != nil {
@@ -1828,6 +1883,53 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	// If HEAD points to a nonexistent ref, update it to point to the
+	// best available branch in the repo (prefer main > master > alphabetical).
+	// We intentionally repair HEAD even when the target was explicitly
+	// deleted in this batch, because a broken HEAD causes clone failures.
+	// This must happen before waitForJournal so the HEAD update is
+	// included in the same flush.
+	head, headErr := repo.Storer.Reference(plumbing.HEAD)
+	if headErr == nil && head.Type() == plumbing.SymbolicReference {
+		_, targetErr := repo.Storer.Reference(head.Target())
+		var bestBranch plumbing.ReferenceName
+		if targetErr == plumbing.ErrReferenceNotFound {
+			allRefs, refsErr := repo.References()
+			if refsErr == nil {
+				defer allRefs.Close()
+				for {
+					ref, nextErr := allRefs.Next()
+					if errors.Cause(nextErr) == io.EOF {
+						break
+					}
+					if nextErr != nil {
+						break
+					}
+					if ref.Type() != plumbing.HashReference {
+						continue
+					}
+					if !strings.HasPrefix(ref.Name().String(), "refs/heads/") {
+						continue
+					}
+					bestBranch = bestBranchFromCandidates(bestBranch, ref.Name())
+				}
+			}
+		}
+		if bestBranch != "" {
+			newHead := plumbing.NewSymbolicReference(
+				plumbing.HEAD, bestBranch)
+			if setErr := repo.Storer.SetReference(
+				newHead); setErr != nil {
+				r.log.CDebugf(ctx,
+					"Error updating HEAD to %s: %+v",
+					bestBranch, setErr)
+			} else {
+				r.log.CDebugf(ctx,
+					"Updated HEAD to point to %s", bestBranch)
+			}
+		}
 	}
 
 	err = r.waitForJournal(ctx)

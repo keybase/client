@@ -132,7 +132,10 @@ func TestEphemeralPluralization(t *testing.T) {
 	require.Equal(t, humanMsg, pluralized)
 
 	pluralized = PluralizeErrorMessage(humanMsg, 2)
-	require.Equal(t, "2 exploding messages are not available, because this device was created after it was sent", pluralized)
+	require.Equal(t, "2 exploding messages are not available because this device was created after the messages were sent", pluralized)
+
+	pluralized = PluralizeErrorMessage(humanMsgWithPrefix(MemberAfterEKErrMsg), 3)
+	require.Equal(t, "3 exploding messages are not available because you joined the team after the messages were sent", pluralized)
 
 	pluralized = PluralizeErrorMessage(DefaultHumanErrMsg, 2)
 	require.Equal(t, "2 exploding messages are not available", pluralized)

@@ -1,6 +1,4 @@
-• On iOS quicky share to recent conversations
-• Emoji 16 support
-• iOS HEIC Avatar support
-• Better sharing/push support
-• Various bug fixes and performance improvements
+• Improve git default branch handling
+• Fix widget opening into chat search mode
+• Fix copy/move menu in KBFS
 

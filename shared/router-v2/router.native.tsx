@@ -182,6 +182,9 @@ const RNApp = React.memo(function RNApp() {
   const rootKey = Hooks.useRootKey()
 
   if (initialStateState !== 'loaded' || !loggedInLoaded) {
+    logger.info(
+      `[Router] showing SimpleLoading: initialStateState=${initialStateState} loggedInLoaded=${loggedInLoaded}`
+    )
     return (
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
         <Shared.SimpleLoading />

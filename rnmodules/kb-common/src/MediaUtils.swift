@@ -1,7 +1,7 @@
-import Foundation
 import AVFoundation
-import UIKit
+import Foundation
 import ImageIO
+import UIKit
 
 struct MediaProcessingConfig {
     static let imageMaxPixelSize: Int = 1200
@@ -35,12 +35,14 @@ class MediaUtils: NSObject {
         return [
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: MediaProcessingConfig.imageMaxPixelSize
+            kCGImageSourceThumbnailMaxPixelSize: MediaProcessingConfig.imageMaxPixelSize,
         ] as CFDictionary
     }
 
-    @objc static func processImage(fromOriginal url: URL,
-                                 completion: @escaping (Error?, URL?) -> Void) {
+    @objc static func processImage(
+        fromOriginal url: URL,
+        completion: @escaping (Error?, URL?) -> Void
+    ) {
         processImageAsync(fromOriginal: url) { result in
             switch result {
             case .success(let url):
@@ -51,8 +53,10 @@ class MediaUtils: NSObject {
         }
     }
 
-    static func processImageAsync(fromOriginal url: URL,
-                                completion: @escaping ProcessMediaCompletion) {
+    static func processImageAsync(
+        fromOriginal url: URL,
+        completion: @escaping ProcessMediaCompletion
+    ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 let processedURL = try processImageSync(fromOriginal: url)
@@ -89,8 +93,10 @@ class MediaUtils: NSObject {
         return scaledURL
     }
 
-    @objc static func processVideo(fromOriginal url: URL,
-                                 completion: @escaping (Error?, URL?) -> Void) {
+    @objc static func processVideo(
+        fromOriginal url: URL,
+        completion: @escaping (Error?, URL?) -> Void
+    ) {
         processVideoAsync(fromOriginal: url) { result in
             switch result {
             case .success(let url):
@@ -101,9 +107,11 @@ class MediaUtils: NSObject {
         }
     }
 
-    static func processVideoAsync(fromOriginal url: URL,
-                                progress: ProcessMediaProgressCallback? = nil,
-                                completion: @escaping ProcessMediaCompletion) {
+    static func processVideoAsync(
+        fromOriginal url: URL,
+        progress: ProcessMediaProgressCallback? = nil,
+        completion: @escaping ProcessMediaCompletion
+    ) {
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 let processedURL = try processVideoSync(fromOriginal: url, progress: progress)
@@ -118,8 +126,10 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func processVideoSync(fromOriginal url: URL,
-                                       progress: ProcessMediaProgressCallback? = nil) throws -> URL {
+    private static func processVideoSync(
+        fromOriginal url: URL,
+        progress: ProcessMediaProgressCallback? = nil
+    ) throws -> URL {
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw MediaUtilsError.invalidInput("File does not exist at path: \(url.path)")
         }
@@ -134,10 +144,11 @@ class MediaUtils: NSObject {
 
         let exportSettings = determineOptimalExportSettings(for: asset)
 
-        try exportVideoWithSettings(asset: asset,
-                                   outputURL: processedURL,
-                                   settings: exportSettings,
-                                   progress: progress)
+        try exportVideoWithSettings(
+            asset: asset,
+            outputURL: processedURL,
+            settings: exportSettings,
+            progress: progress)
 
         return processedURL
     }
@@ -156,13 +167,16 @@ class MediaUtils: NSObject {
         generator.appliesPreferredTrackTransform = true
 
         do {
-            _ = try generator.copyCGImage(at: CMTime(seconds: 0, preferredTimescale: 1), actualTime: nil)
+            _ = try generator.copyCGImage(
+                at: CMTime(seconds: 0, preferredTimescale: 1), actualTime: nil)
         } catch {
-            throw MediaUtilsError.videoProcessingFailed("Failed to generate video thumbnail: \(error.localizedDescription)")
+            throw MediaUtilsError.videoProcessingFailed(
+                "Failed to generate video thumbnail: \(error.localizedDescription)")
         }
     }
 
-    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings {
+    private static func determineOptimalExportSettings(for asset: AVURLAsset) -> VideoExportSettings
+    {
         let videoTracks = asset.tracks(withMediaType: .video)
         guard let firstVideoTrack = videoTracks.first else {
             return VideoExportSettings.default
@@ -173,8 +187,9 @@ class MediaUtils: NSObject {
         let fileSize = getFileSize(for: asset.url)
 
         // Determine if we need to scale down
-        let needsScaling = pixelCount > MediaProcessingConfig.videoMaxPixels ||
-                          fileSize > MediaProcessingConfig.videoMaxFileSize
+        let needsScaling =
+            pixelCount > MediaProcessingConfig.videoMaxPixels
+            || fileSize > MediaProcessingConfig.videoMaxFileSize
 
         if needsScaling {
             return VideoExportSettings.mediumQuality
@@ -183,22 +198,25 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func exportVideoWithSettings(asset: AVURLAsset,
-                                              outputURL: URL,
-                                              settings: VideoExportSettings,
-                                              progress: ProcessMediaProgressCallback?) throws {
+    private static func exportVideoWithSettings(
+        asset: AVURLAsset,
+        outputURL: URL,
+        settings: VideoExportSettings,
+        progress: ProcessMediaProgressCallback?
+    ) throws {
 
         let semaphore = DispatchSemaphore(value: 0)
         var exportError: Error?
 
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: settings.preset) else {
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: settings.preset)
+        else {
             throw MediaUtilsError.videoProcessingFailed("Failed to create export session")
         }
 
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mp4
         exportSession.shouldOptimizeForNetworkUse = true
-        exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing() // Strips location data
+        exportSession.metadataItemFilter = AVMetadataItemFilter.forSharing()  // Strips location data
 
         // Set up progress monitoring
         if let progress = progress {
@@ -223,11 +241,13 @@ class MediaUtils: NSObject {
         semaphore.wait()
 
         if let error = exportError {
-            throw MediaUtilsError.videoProcessingFailed("Export failed: \(error.localizedDescription)")
+            throw MediaUtilsError.videoProcessingFailed(
+                "Export failed: \(error.localizedDescription)")
         }
 
         guard exportSession.status == .completed else {
-            throw MediaUtilsError.videoProcessingFailed("Export session failed with status: \(exportSession.status)")
+            throw MediaUtilsError.videoProcessingFailed(
+                "Export session failed with status: \(exportSession.status)")
         }
     }
 
@@ -240,19 +260,25 @@ class MediaUtils: NSObject {
         }
     }
 
-    private static func scaleDownCGImageSource(_ img: CGImageSource, dstURL: URL, options: CFDictionary) throws {
+    private static func scaleDownCGImageSource(
+        _ img: CGImageSource, dstURL: URL, options: CFDictionary
+    ) throws {
         guard let scaledRef = CGImageSourceCreateThumbnailAtIndex(img, 0, options) else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create thumbnail")
         }
 
-        guard let scaled = UIImage(cgImage: scaledRef).jpegData(compressionQuality: MediaProcessingConfig.imageCompressionQuality) else {
+        guard
+            let scaled = UIImage(cgImage: scaledRef).jpegData(
+                compressionQuality: MediaProcessingConfig.imageCompressionQuality)
+        else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create JPEG data")
         }
 
         do {
             try scaled.write(to: dstURL)
         } catch {
-            throw MediaUtilsError.fileOperationFailed("Failed to write scaled image: \(error.localizedDescription)")
+            throw MediaUtilsError.fileOperationFailed(
+                "Failed to write scaled image: \(error.localizedDescription)")
         }
     }
 
@@ -270,17 +296,22 @@ class MediaUtils: NSObject {
             try? FileManager.default.removeItem(at: tmpDstURL)
         }
 
-        guard let cgDestination = CGImageDestinationCreateWithURL(tmpDstURL as CFURL, type!, count, nil) else {
+        guard
+            let cgDestination = CGImageDestinationCreateWithURL(
+                tmpDstURL as CFURL, type!, count, nil)
+        else {
             throw MediaUtilsError.imageProcessingFailed("Failed to create image destination")
         }
 
-        let removeExifProperties = [
-            kCGImagePropertyExifDictionary: kCFNull,
-            kCGImagePropertyGPSDictionary: kCFNull
-        ] as CFDictionary
+        let removeExifProperties =
+            [
+                kCGImagePropertyExifDictionary: kCFNull,
+                kCGImagePropertyGPSDictionary: kCFNull,
+            ] as CFDictionary
 
         for index in 0..<count {
-            CGImageDestinationAddImageFromSource(cgDestination, cgSource, index, removeExifProperties)
+            CGImageDestinationAddImageFromSource(
+                cgDestination, cgSource, index, removeExifProperties)
         }
 
         guard CGImageDestinationFinalize(cgDestination) else {
@@ -288,9 +319,12 @@ class MediaUtils: NSObject {
         }
 
         do {
-            try FileManager.default.replaceItem(at: url, withItemAt: tmpDstURL, backupItemName: nil, options: [], resultingItemURL: nil)
+            try FileManager.default.replaceItem(
+                at: url, withItemAt: tmpDstURL, backupItemName: nil, options: [],
+                resultingItemURL: nil)
         } catch {
-            throw MediaUtilsError.fileOperationFailed("Failed to replace original file: \(error.localizedDescription)")
+            throw MediaUtilsError.fileOperationFailed(
+                "Failed to replace original file: \(error.localizedDescription)")
         }
     }
 }

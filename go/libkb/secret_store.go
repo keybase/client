@@ -112,7 +112,8 @@ func NewSecretStore(m MetaContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreAll, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreAll, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) (_ []keybase1.ConfiguredAccount, err error) {
+	defer m.Trace("GetConfiguredAccountsFromProvisionedUsernames", &err)()
 	if !currentUsername.IsNil() {
 		allUsernames = append(allUsernames, currentUsername)
 	}
@@ -321,7 +322,8 @@ func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUserna
 	return s.disk.ClearSecret(m, username)
 }
 
-func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
+func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) (_ []string, err error) {
+	defer m.Trace("SecretStoreLocked.GetUsersWithStoredSecrets", &err)()
 	if s == nil || s.isNil() {
 		return nil, nil
 	}

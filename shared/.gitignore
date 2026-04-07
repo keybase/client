@@ -55,3 +55,4 @@ main.jsbundle
 
 coverage-ts
 temp.log
+.watchman-cookie-*

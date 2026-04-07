@@ -31,7 +31,7 @@ const Container = (op: OwnProps) => {
       const pathItemActionMenu = s.pathItemActionMenu
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
-      const {favoriteIgnore, startRename, dismissDownload} = s.dispatch
+      const {favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = s.dispatch
       const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
@@ -44,8 +44,10 @@ const Container = (op: OwnProps) => {
         openPathInSystemFileManagerDesktop,
         pathItem,
         pathItemActionMenu,
+        setMoveOrCopySource,
         setPathItemActionMenuView,
         sfmiEnabled,
+        showMoveOrCopy,
         startRename,
       }
     })
@@ -53,7 +55,7 @@ const Container = (op: OwnProps) => {
 
   const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
   const {setPathItemActionMenuView, download, newFolderRow, openPathInSystemFileManagerDesktop} = data
-  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload} = data
+  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = data
 
   const {downloadID, downloadIntent, view} = pathItemActionMenu
   const username = useCurrentUserState(s => s.username)
@@ -272,6 +274,19 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
+  const itemMoveOrCopy = layout.moveOrCopy
+    ? ([
+        {
+          icon: 'iconfont-copy',
+          onClick: hideAndCancelAfter(() => {
+            setMoveOrCopySource(path)
+            showMoveOrCopy(T.FS.getPathParent(path))
+          }),
+          title: 'Copy or move',
+        },
+      ] as const)
+    : []
+
   const items: Kb.MenuItems = [
     ...itemNewFolder,
     ...itemChatTeam,
@@ -282,6 +297,7 @@ const Container = (op: OwnProps) => {
     ...itemSendToChat,
     ...itemSendToApp,
     ...itemDownload,
+    ...itemMoveOrCopy,
     ...itemIgnore,
     ...itemRename,
     ...itemArchive,
