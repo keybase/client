@@ -366,13 +366,15 @@ const useScrolling = (p: {
 }
 
 const useItems = (p: {
+  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
   messageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
-  const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
+  const {messageTypeMap, messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
+  const lastOrdinal = messageOrdinals.at(-1)
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
     const type = messageTypeMap?.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
@@ -393,11 +395,15 @@ const useItems = (p: {
           'WrapperMessage-hoverBox',
           'WrapperMessage-decorated',
           'WrapperMessage-hoverColor',
-          {highlighted: centeredOrdinal === ordinal || editingOrdinal === ordinal}
+          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
         )}
       >
         <Separator trailingItem={ordinal} />
-        <Clazz ordinal={ordinal} />
+        <Clazz
+          isCenteredHighlight={centeredHighlightOrdinal === ordinal}
+          isLastMessage={lastOrdinal === ordinal}
+          ordinal={ordinal}
+        />
       </div>
     )
   }
@@ -487,9 +493,11 @@ const ThreadWrapper = function ThreadWrapper() {
     C.useShallow(s => {
       const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
       const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
-      const centeredOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
+      const centeredHighlightOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
+      const centeredOrdinal = mco?.ordinal
       const containsLatestMessage = s.isCaughtUp()
       return {
+        centeredHighlightOrdinal,
         centeredOrdinal,
         containsLatestMessage,
         conversationIDKey,
@@ -500,7 +508,7 @@ const ThreadWrapper = function ThreadWrapper() {
       }
     })
   )
-  const {conversationIDKey, editingOrdinal, centeredOrdinal} = data
+  const {conversationIDKey, editingOrdinal, centeredHighlightOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
@@ -561,7 +569,13 @@ const ThreadWrapper = function ThreadWrapper() {
     }
   }
 
-  const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
+  const items = useItems({
+    centeredHighlightOrdinal,
+    centeredOrdinal,
+    editingOrdinal,
+    messageOrdinals,
+    messageTypeMap,
+  })
   const setListContents = useHandleListResize({
     centeredOrdinal,
     isLockedToBottom,

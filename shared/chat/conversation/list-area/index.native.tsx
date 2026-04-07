@@ -104,12 +104,17 @@ const ConversationList = function ConversationList() {
   const [lastED, setLastED] = React.useState(extraData)
 
   const loaded = Chat.useChatContext(s => s.loaded)
-  const centeredOrdinal =
-    Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
+  const messageCenterOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)
+  const centeredHighlightOrdinal =
+    messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
+      ? messageCenterOrdinal.ordinal
+      : T.Chat.numberToOrdinal(-1)
+  const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
   const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
+  const lastOrdinal = messageOrdinals.at(-1)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -126,7 +131,15 @@ const ConversationList = function ConversationList() {
     const type = messageTypeMap.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
     if (!Clazz) return null
-    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
+    return (
+      <PerfProfiler id={`Msg-${type}`}>
+        <Clazz
+          isCenteredHighlight={centeredHighlightOrdinal === ordinal}
+          isLastMessage={lastOrdinal === ordinal}
+          ordinal={ordinal}
+        />
+      </PerfProfiler>
+    )
   }
 
   const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
