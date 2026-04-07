@@ -3,8 +3,8 @@ import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemUsersAddedToConvType from './container'
 
 function SystemUsersAddedToConv(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
+  const {ordinal, isCenteredHighlight} = p
+  const common = useCommon(ordinal, isCenteredHighlight)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
 
   if (message?.type !== 'systemUsersAddedToConversation') return null

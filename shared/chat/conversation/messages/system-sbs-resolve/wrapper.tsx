@@ -5,8 +5,8 @@ import type SystemJoinedType from '../system-joined/container'
 import {useCurrentUserState} from '@/stores/current-user'
 
 function WrapperSystemInvite(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
+  const {ordinal, isCenteredHighlight} = p
+  const common = useCommon(ordinal, isCenteredHighlight)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
   const you = useCurrentUserState(s => s.username)
 

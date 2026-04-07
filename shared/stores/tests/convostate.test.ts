@@ -134,6 +134,26 @@ const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
   ...override,
 })
 
+test('getReactionOrder sorts emojis by earliest reaction timestamp', () => {
+  const reactions = new Map([
+    [':fire:', makeReaction('carol', 70)],
+    [
+      ':+1:',
+      {
+        decorated: ':+1:',
+        users: [
+          {timestamp: 50, username: 'alice'},
+          {timestamp: 30, username: 'bob'},
+        ],
+      },
+    ],
+    [':wave:', makeReaction('bob', 60)],
+    [':eyes:', makeReaction('dave', 40)],
+  ])
+
+  expect(Message.getReactionOrder(reactions)).toEqual([':+1:', ':eyes:', ':wave:', ':fire:'])
+})
+
 const applyState = (
   store: {getState: () => any; setState: (state: any) => void},
   partial: Partial<ConvoState> & {messageIDToOrdinal?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>}

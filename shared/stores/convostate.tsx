@@ -585,17 +585,6 @@ const createSlice =
       return clientPrev || T.Chat.numberToMessageID(0)
     }
 
-    const getReactionOrder = (reactions: ReadonlyMap<string, T.Chat.ReactionDesc>): Array<string> => {
-      const keys = [...reactions.keys()]
-      const scoreMap = new Map(
-        keys.map(emoji => [
-          emoji,
-          reactions.get(emoji)!.users.reduce((min, r) => Math.min(min, r.timestamp), Infinity),
-        ])
-      )
-      return keys.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
-    }
-
     const clearMessageIDIndexForOrdinal = (
       state: Z.WritableDraft<ConvoState>,
       ordinal: T.Chat.Ordinal,
@@ -635,7 +624,7 @@ const createSlice =
         sm.set(o, p)
         const m = s.messageMap.get(o)
         if (m) um.set(o, getUsernameToShow(m, pMessage, you))
-        if (m?.reactions?.size) rm.set(o, getReactionOrder(m.reactions))
+        if (m?.reactions?.size) rm.set(o, Message.getReactionOrder(m.reactions))
         pMessage = m as T.Chat.Message | undefined
         p = o
       }
@@ -984,7 +973,7 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          s.reactionOrderMap.set(targetOrdinal, getReactionOrder(m.reactions))
+          s.reactionOrderMap.set(targetOrdinal, Message.getReactionOrder(m.reactions))
         }
       })
     }
@@ -3511,7 +3500,7 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              s.reactionOrderMap.set(targetOrdinal, m.reactions ? getReactionOrder(m.reactions) : [])
+              s.reactionOrderMap.set(targetOrdinal, m.reactions ? Message.getReactionOrder(m.reactions) : [])
             }
           })
         }

@@ -11,7 +11,6 @@ export type Props = {
   // desktop
   className?: string
   onContextMenu?: () => void
-  onMouseLeave?: () => void
   onMouseOver?: () => void
 }
 declare function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}): React.ReactNode

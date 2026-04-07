@@ -3,8 +3,8 @@ import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemChangeRetentionType from './container'
 
 function SystemChangeRetention(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
+  const {ordinal, isCenteredHighlight} = p
+  const common = useCommon(ordinal, isCenteredHighlight)
   const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
 
   if (message?.type !== 'systemChangeRetention') return null

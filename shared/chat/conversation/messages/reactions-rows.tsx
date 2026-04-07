@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Message from '@/constants/chat/message'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -18,7 +19,7 @@ function ReactionsRowContainer() {
       const fromMap = s.reactionOrderMap.get(ordinal)
       if (fromMap?.length) return fromMap
       const reactions = s.messageMap.get(ordinal)?.reactions
-      return reactions?.size ? [...reactions.keys()] : emptyEmojis
+      return reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis
     })
   )
 

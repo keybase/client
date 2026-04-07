@@ -206,7 +206,7 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 // Combined selector hook that fetches all message data in a single subscription
 export const useMessageData = (
   ordinal: T.Chat.Ordinal,
-  isCenteredHighlight = false
+  isCenteredHighlight?: boolean
 ) => {
   const you = useCurrentUserState(s => s.username)
 
@@ -240,6 +240,14 @@ export const useMessageData = (
       const textType: 'error' | 'sent' | 'pending' = m.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
       const showReplyTo = m.type === 'text' ? !!m.replyTo : false
       const text = m.type === 'text' ? (m.decoratedText?.stringValue() ?? m.text.stringValue()) : ''
+      const {messageCenterOrdinal} = s
+      const showCenteredHighlight =
+        isCenteredHighlight ??
+        !!(
+          messageCenterOrdinal &&
+          messageCenterOrdinal.highlightMode !== 'none' &&
+          messageCenterOrdinal.ordinal === ordinal
+        )
 
       return {
         botname,
@@ -254,7 +262,7 @@ export const useMessageData = (
         hasUnfurlPrompts,
         isEditing,
         shouldShowPopup,
-        showCenteredHighlight: isCenteredHighlight,
+        showCenteredHighlight,
         showCoinsIcon,
         showExplodingCountdown,
         showReplyTo,
@@ -284,8 +292,8 @@ export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<type
 }
 
 // Legacy version for backward compatibility with other wrappers
-export const useCommon = (ordinal: T.Chat.Ordinal) => {
-  const data = useMessageData(ordinal)
+export const useCommon = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
+  const data = useMessageData(ordinal, isCenteredHighlight)
   const {type, shouldShowPopup, showCenteredHighlight} = data
 
   const shouldShow = () => {
@@ -372,8 +380,6 @@ function TextAndSiblings(p: TSProps) {
   const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
   const {type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
-  const [hovering, setHovering] = React.useState(false)
-  const showDesktopReactionsPopup = hovering || showingPicker
   const pressableProps = Kb.Styles.isMobile
     ? {
         onLongPress: decorate ? showPopup : undefined,
@@ -387,8 +393,6 @@ function TextAndSiblings(p: TSProps) {
           active: showingPopup || showingPicker,
         }),
         onContextMenu: showPopup,
-        onMouseLeave: () => setHovering(false),
-        onMouseOver: () => setHovering(true),
       }
 
   const content = exploding ? (
@@ -412,7 +416,6 @@ function TextAndSiblings(p: TSProps) {
             hasReactions={hasReactions}
             bottomChildren={bottomChildren}
             canShowReactionsPopup={canShowReactionsPopup}
-            showDesktopReactionsPopup={showDesktopReactionsPopup}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
           />
@@ -519,7 +522,6 @@ function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
 
 type BProps = {
   showingPopup: boolean
-  showDesktopReactionsPopup: boolean
   setShowingPicker: (s: boolean) => void
   bottomChildren?: React.ReactNode
   canShowReactionsPopup: boolean
@@ -529,69 +531,22 @@ type BProps = {
   messageType: T.Chat.MessageType
   ecrType: EditCancelRetryType
 }
-
-function DesktopEmojiRowPopup(p: {
-  hasUnfurlList: boolean
-  messageType: T.Chat.MessageType
-  setShowingPicker: (s: boolean) => void
-}) {
-  const {hasUnfurlList, messageType, setShowingPicker} = p
-  const popupRef = React.useRef<Kb.MeasureRef | null>(null)
-  const [position, setPosition] = React.useState<'bottom' | 'top'>('bottom')
-  const [measured, setMeasured] = React.useState(false)
-
-  React.useLayoutEffect(() => {
-    const popupNode = popupRef.current
-    if (!popupNode) {
-      return
-    }
-    const {bottom, top} = popupNode.getBoundingClientRect()
-    const {clientHeight} = document.documentElement
-
-    if (position === 'bottom' && bottom > clientHeight && top >= 0) {
-      setPosition('top')
-      return
-    }
-    if (position === 'top' && top < 0 && bottom <= clientHeight) {
-      setPosition('bottom')
-      return
-    }
-    setMeasured(true)
-  }, [position])
-
-  return (
-    <Kb.Box2
-      className="WrapperMessage-emojiButton"
-      direction="vertical"
-      ref={popupRef}
-      style={Kb.Styles.collapseStyles([
-        position === 'top' ? styles.emojiRowPositionTop : styles.emojiRowPositionBottom,
-        !measured && styles.emojiRowMeasuring,
-      ])}
-    >
-      <EmojiRow
-        hasUnfurls={hasUnfurlList}
-        messageType={messageType}
-        onShowingEmojiPicker={setShowingPicker}
-        style={styles.emojiRow}
-      />
-    </Kb.Box2>
-  )
-}
 // reactions
 function BottomSide(p: BProps) {
-  const {showingPopup, showDesktopReactionsPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
+  const {showingPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
   const {hasReactions, hasUnfurlList, messageType} = p
 
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const canShowDesktopReactionsPopup = !C.isMobile && !hasReactions && canShowReactionsPopup
   const desktopReactionsPopup =
-    canShowDesktopReactionsPopup && showDesktopReactionsPopup && !showingPopup ? (
-      <DesktopEmojiRowPopup
-        hasUnfurlList={hasUnfurlList}
+    canShowDesktopReactionsPopup && !showingPopup ? (
+      <EmojiRow
+        className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
+        hasUnfurls={hasUnfurlList}
         messageType={messageType}
-        setShowingPicker={setShowingPicker}
+        onShowingEmojiPicker={setShowingPicker}
+        style={styles.emojiRow}
       />
     ) : null
 
@@ -694,9 +649,9 @@ function RightSide(p: RProps) {
 }
 
 export function WrapperMessage(p: WMProps) {
-  const {ordinal, isCenteredHighlight = false} = p
+  const {ordinal, isCenteredHighlight} = p
   const messageData = useMessageData(ordinal, isCenteredHighlight)
-  return <WrapperMessageView {...p} messageData={messageData} />
+  return <WrapperMessageView {...p} messageData={messageData} showCenteredHighlight={messageData.showCenteredHighlight} />
 }
 
 export function WrapperMessageView(p: WMProps & {messageData: ReturnType<typeof useMessageData>}) {
@@ -792,28 +747,10 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           border: `1px solid ${Kb.Styles.globalColors.black_10}`,
           borderRadius: Kb.Styles.borderRadius,
-          paddingRight: Kb.Styles.globalMargins.xtiny,
-        },
-      }),
-      emojiRowMeasuring: Kb.Styles.platformStyles({
-        isElectron: {
-          opacity: 0,
-          pointerEvents: 'none',
-        },
-      }),
-      emojiRowPositionBottom: Kb.Styles.platformStyles({
-        isElectron: {
           bottom: -Kb.Styles.globalMargins.medium + 3,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
-          zIndex: 2,
-        },
-      }),
-      emojiRowPositionTop: Kb.Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-          right: 96,
-          top: -Kb.Styles.globalMargins.medium + 5,
           zIndex: 2,
         },
       }),
