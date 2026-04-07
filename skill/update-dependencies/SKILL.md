@@ -7,10 +7,10 @@ description: Use when updating npm/yarn dependencies in shared/package.json. Use
 
 ## Packages to NEVER update with this skill
 
-Only these are pinned to the Expo SDK version — do not touch:
+These are pinned to the Expo SDK version — do not touch:
 - `react`, `react-dom`, `react-is`, `react-test-renderer` — must match Expo SDK
-
-Everything else — including `react-native`, `react-native-*`, and `@react-native/*` — is **not** Expo-locked and can be updated normally.
+- `react-native` — must stay on the minor version Expo SDK expects (e.g., Expo 55 → react-native 0.83.x). Do NOT update across minor versions.
+- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must match the `react-native` version (e.g., react-native 0.83.x → these stay at 0.83.x). Do NOT update across minor versions.
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
 
