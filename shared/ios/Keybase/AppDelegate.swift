@@ -222,6 +222,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate, UIDropInte
       KbSetInitResult(initResult)
       log.error("KeybaseInit FAILED: \(err.localizedDescription, privacy: .public)")
       self.writeStartupTimingLog("KeybaseInit \(initResult)")
+      fatalError("KeybaseInit failed: \(initResult)")
     } else {
       KbSetInitResult("succeeded")
       self.writeStartupTimingLog("KeybaseInit succeeded")
