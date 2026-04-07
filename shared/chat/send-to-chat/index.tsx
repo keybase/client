@@ -1,14 +1,13 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
   canBack?: boolean
@@ -19,49 +18,29 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onCancel = () => clearModals()
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => navigateUp()
 
   return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={canBack ? onBack : onCancel}
-      header={{
-        leftButton: canBack ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Back
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onCancel}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: FS.getSharePathArrayDescription(sendPaths || []),
-      }}
-    >
-      <MobileSendToChat
-        canBack={canBack}
-        isFromShareExtension={isFromShareExtension}
-        sendPaths={sendPaths}
-        text={text}
-      />
-    </Kb.Modal>
+    <MobileSendToChat
+      canBack={canBack}
+      isFromShareExtension={isFromShareExtension}
+      sendPaths={sendPaths}
+      text={text}
+    />
   )
 }
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.Router2.navigateAppend
+  const clearModals = C.Router2.clearModals
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = Chat.getConvoState(conversationIDKey)
     text && dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
-        props: {
+        name: 'chatAttachmentGetTitles',
+        params: {
           conversationIDKey,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
@@ -70,7 +49,6 @@ export const MobileSendToChat = (props: Props) => {
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,
         },
-        selected: 'chatAttachmentGetTitles',
       })
     } else {
       clearModals()
@@ -87,7 +65,7 @@ const DesktopSendToChat = (props: Props) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(Chat.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = useCurrentUserState(s => s.username)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onCancel = () => {
     clearModals()
   }
@@ -108,20 +86,18 @@ const DesktopSendToChat = (props: Props) => {
     Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
-    <Kb.PopupWrapper>
-      <DesktopSendToChatRender
-        enabled={conversationIDKey !== Chat.noConversationIDKey}
-        convName={convName}
-        // If we ever support sending multiples from desktop this will need to
-        // change.
-        path={sendPaths[0]}
-        title={title}
-        setTitle={setTitle}
-        onSend={onSend}
-        onSelect={onSelect}
-        onCancel={onCancel}
-      />
-    </Kb.PopupWrapper>
+    <DesktopSendToChatRender
+      enabled={conversationIDKey !== Chat.noConversationIDKey}
+      convName={convName}
+      // If we ever support sending multiples from desktop this will need to
+      // change.
+      path={sendPaths[0]}
+      title={title}
+      setTitle={setTitle}
+      onSend={onSend}
+      onSelect={onSelect}
+      onCancel={onCancel}
+    />
   )
 }
 
@@ -159,10 +135,9 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             dropdownButtonStyle={desktopStyles.dropdown}
             onSelect={props.onSelect}
           />
-          <Kb.LabeledInput
+          <Kb.Input3
             placeholder="Title"
             value={props.title}
-            style={desktopStyles.input}
             onChangeText={props.setTitle}
           />
         </Kb.Box2>
@@ -203,9 +178,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       header: {
         paddingTop: Kb.Styles.globalMargins.mediumLarge,
-      },
-      input: {
-        width: '100%',
       },
       pathItem: {
         marginTop: Kb.Styles.globalMargins.mediumLarge,

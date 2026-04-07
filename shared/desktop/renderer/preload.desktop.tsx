@@ -1,12 +1,13 @@
 import * as Electron from 'electron'
-import type {Actions} from '@/actions/remote-gen'
+import type {Actions} from '@/constants/remote-actions'
 import {
+  type EngineRPCMessage,
   injectPreload,
   type KB2,
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from '@/util/electron.desktop'
-import type * as RPCTypes from '@/constants/types/rpc-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {Action} from '../app/ipctypes'
 
 const isRenderer = process.type === 'renderer'
@@ -31,9 +32,7 @@ if (isRenderer) {
         activeChanged: (changedAtMs: number, isUserActive: boolean) => {
           ignorePromise(invoke({payload: {changedAtMs, isUserActive}, type: 'activeChanged'}))
         },
-        appStartedUp: () => {
-          ignorePromise(invoke({type: 'appStartedUp'}))
-        },
+        appStartedUp: async () => invoke({type: 'appStartedUp'}),
         clipboardAvailableFormats: async () => {
           return invoke({type: 'clipboardAvailableFormats'})
         },
@@ -74,7 +73,7 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: Uint8Array) => {
+        engineSend: (buf: EngineRPCMessage) => {
           ignorePromise(invoke({payload: {buf}, type: 'engineSend'}))
         },
         exitApp: (code: number) => {
@@ -102,6 +101,9 @@ if (isRenderer) {
         },
         ipcRendererOn: (channel: string, cb: (event: unknown, action: unknown) => void) => {
           Electron.ipcRenderer.on(channel, cb)
+          return () => {
+            Electron.ipcRenderer.removeListener(channel, cb)
+          }
         },
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
@@ -267,7 +269,9 @@ if (isRenderer) {
   const {default: kb2consts} = require('../app/kb2-impl.desktop') as {default: KB2['constants']}
   const getMainWindow = () => {
     const e = require('electron')
-    const w = e.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
+    const w = e.BrowserWindow.getAllWindows().find((w: Electron.BrowserWindow) =>
+      w.webContents.getURL().includes('/main.')
+    )
     return w
   }
 

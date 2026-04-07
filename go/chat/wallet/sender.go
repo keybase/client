@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -109,12 +110,7 @@ func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, part
 }
 
 func (s *Sender) validConvUsername(ctx context.Context, username string, parts []string) bool {
-	for _, p := range parts {
-		if username == p {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(parts, username)
 }
 
 func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,

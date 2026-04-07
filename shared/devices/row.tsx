@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceIcon from './device-icon'
@@ -7,27 +6,27 @@ import type * as T from '@/constants/types'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 
 type OwnProps = {
-  deviceID: T.Devices.DeviceID
+  canRevoke: boolean
+  device: T.Devices.Device
   firstItem: boolean
 }
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
-const Container = React.memo(function Container(ownProps: OwnProps) {
-  const {deviceID, firstItem} = ownProps
-  const device = Devices.useDevicesState(s => s.deviceMap.get(deviceID))
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showExistingDevicePage = React.useCallback(() => {
-    navigateAppend({props: {deviceID}, selected: 'devicePage'})
-  }, [navigateAppend, deviceID])
+function Container(ownProps: OwnProps) {
+  const {canRevoke, device, firstItem} = ownProps
+  const {deviceID} = device
+  const navigateAppend = C.Router2.navigateAppend
+  const showExistingDevicePage = () => {
+    navigateAppend({name: 'devicePage', params: {canRevoke, device}})
+  }
 
   const isNew = React.useContext(NewContext).has(deviceID)
-  if (!device) return null
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       firstItem={firstItem}
       onClick={showExistingDevicePage}
@@ -40,7 +39,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
         />
       }
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
               {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
@@ -58,7 +57,7 @@ const Container = React.memo(function Container(ownProps: OwnProps) {
       }
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

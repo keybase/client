@@ -1,10 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {ModalTitle} from './common'
-import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {teamID: T.Teams.TeamID}
 
@@ -14,8 +12,8 @@ const EditTeamDescription = (props: Props) => {
   const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID))
   const waitingKey = C.waitingKeyTeamsTeam(teamID)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const error = Teams.useTeamsState(s => s.errorInEditDescription)
   const origDescription = Teams.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
+  const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
 
   if (teamID === T.Teams.noTeamID || teamname === undefined) {
     throw new Error(
@@ -24,34 +22,50 @@ const EditTeamDescription = (props: Props) => {
   }
 
   const [description, setDescription] = React.useState(origDescription)
-  const editTeamDescription = Teams.useTeamsState(s => s.dispatch.editTeamDescription)
+  const [error, setError] = React.useState('')
 
-  const nav = useSafeNavigation()
-  const onSave = () => editTeamDescription(teamID, description)
-  const onClose = () => nav.safeNavigateUp()
+  const navigateUp = C.Router2.navigateUp
+  const onSave = () => {
+    setError('')
+    editTeamDescription(
+      [{description, teamID}, waitingKey],
+      () => {},
+      error => setError(error.message)
+    )
+  }
+  const onClose = () => navigateUp()
 
   const wasWaitingRef = React.useRef(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaitingRef.current && !error) nav.safeNavigateUp()
-  }, [waiting, wasWaitingRef, nav, error])
+    if (!waiting && wasWaitingRef.current && !error) navigateUp()
+  }, [waiting, wasWaitingRef, navigateUp, error])
 
   React.useEffect(() => {
     wasWaitingRef.current = waiting
   }, [waiting])
 
   return (
-    <Kb.Modal
-      mode="Default"
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-      onClose={onClose}
-      footer={{
-        content: (
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
+      <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+          <Kb.Input3
+            placeholder="Team description"
+            onChangeText={setDescription}
+            value={description}
+            multiline={true}
+            rowsMin={3}
+            rowsMax={3}
+            maxLength={280}
+            autoFocus={true}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
             <Kb.Button
@@ -61,24 +75,8 @@ const EditTeamDescription = (props: Props) => {
               waiting={waiting}
             />
           </Kb.ButtonBar>
-        ),
-      }}
-      header={{title: <ModalTitle teamID={teamID} title="Edit team description" />}}
-      allowOverflow={true}
-    >
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-        <Kb.LabeledInput
-          placeholder="Team description"
-          onChangeText={setDescription}
-          value={description}
-          multiline={true}
-          rowsMin={3}
-          rowsMax={3}
-          maxLength={280}
-          autoFocus={true}
-        />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
@@ -88,12 +86,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
   },
-  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
-  title: {
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
-  },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default EditTeamDescription
-

@@ -1,0 +1,13 @@
+appId: keybase.ios
+
+---
+
+- runFlow: escape-to-tabs.yaml
+
+- tapOn:
+    text: "Chat"
+
+- extendedWaitUntil:
+    visible:
+      id: "inboxList"
+    timeout: 10000

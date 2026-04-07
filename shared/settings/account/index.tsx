@@ -1,11 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsState, settingsPasswordTab} from '@/constants/settings'
+import {openURL} from '@/util/misc'
+import {loadSettings} from '../load-settings'
+import {usePWState} from '@/stores/settings-password'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {settingsPasswordTab} from '@/constants/settings'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -25,19 +28,19 @@ const AddButton = (props: AddButtonProps) => (
     label={`Add ${props.kind}`}
     small={true}
     disabled={props.disabled}
-    className="tooltip-top-right"
     tooltip={props.disabled ? `You're already at the maximum ${props.kind}s` : undefined}
   />
 )
 
 const EmailPhone = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
   const contactKeys = [..._emails.keys(), ...(_phones ? _phones.keys() : [])]
   const tooManyEmails = _emails.size >= 10 // If you change this, also change in keybase/config/prod/email.iced
   const tooManyPhones = !!_phones && _phones.size >= 10 // If you change this, also change in keybase/config/prod/phone_numbers.iced
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/phones-and-emails')
   const onAddEmail = () => {
     navigateAppend('settingsAddEmail')
   }
@@ -54,12 +57,11 @@ const EmailPhone = () => {
         <Kb.Text type="BodySmall">
           Secures your account by letting us send important notifications, and allows friends and teammates to
           find you by phone number or email.{' '}
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/chat/phones-and-emails">
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
-              boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
@@ -81,7 +83,7 @@ const EmailPhone = () => {
 }
 
 const Password = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
     navigateAppend(settingsPasswordTab)
   }
@@ -113,7 +115,16 @@ const Password = () => {
 }
 
 const WebAuthTokenLogin = () => {
-  const loginBrowserViaWebAuthToken = useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const generateWebAuthToken = C.useRPC(T.RPCGen.configGenerateWebAuthTokenRpcPromise)
+  const loginBrowserViaWebAuthToken = () => {
+    generateWebAuthToken(
+      [undefined],
+      link => {
+        openURL(link)
+      },
+      () => {}
+    )
+  }
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -133,7 +144,7 @@ const WebAuthTokenLogin = () => {
 }
 
 const DeleteAccount = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
     navigateAppend('deleteConfirm')
   }
@@ -178,23 +189,12 @@ const AccountSettings = () => {
       editPhone: s.dispatch.editPhone,
     }))
   )
-  const {loadSettings} = useSettingsState(
-    C.useShallow(s => ({
-      loadSettings: s.dispatch.loadSettings,
-    }))
-  )
-  const {loadHasRandomPw, loadRememberPassword} = usePWState(
+  const {loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      loadRememberPassword: s.dispatch.loadRememberPassword,
     }))
   )
-  const {navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
+  const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
@@ -202,12 +202,11 @@ const AccountSettings = () => {
   const onClearAddedPhone = clearAddedPhone
   const onReload = () => {
     loadSettings()
-    loadRememberPassword()
     loadHasRandomPw()
   }
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
-    navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
+    navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
     clearAddedPhone()
   }
   const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
@@ -239,8 +238,8 @@ const AccountSettings = () => {
               onClick={onAddPhone}
               label="Add a new number"
               small={true}
-              backgroundColor="yellow"
-              style={styles.topButton}
+              style={Kb.Styles.collapseStyles([styles.topButton, styles.primaryOnYellow])}
+              labelStyle={styles.primaryOnYellowLabel}
             />
           </Kb.Banner>
         )}
@@ -277,11 +276,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   contactRows: Kb.Styles.platformStyles({
     isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
   }),
-  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
   },
+  primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
+  primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
   progress: {
     height: 16,
     width: 16,

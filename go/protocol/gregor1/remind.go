@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/gregor1/remind.avdl
 
 package gregor1
@@ -31,11 +31,11 @@ func RemindProtocol(i RemindInterface) rpc.Protocol {
 		Name: "gregor.1.remind",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getReminders": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetRemindersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetRemindersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetRemindersArg)(nil), args)
@@ -46,11 +46,11 @@ func RemindProtocol(i RemindInterface) rpc.Protocol {
 				},
 			},
 			"deleteReminders": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteRemindersArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteRemindersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteRemindersArg)(nil), args)
@@ -72,13 +72,13 @@ type RemindClient struct {
 // maxReminders back.
 func (c RemindClient) GetReminders(ctx context.Context, maxReminders int) (res ReminderSet, err error) {
 	__arg := GetRemindersArg{MaxReminders: maxReminders}
-	err = c.Cli.Call(ctx, "gregor.1.remind.getReminders", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "gregor.1.remind.getReminders", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // deleteReminders deletes all of the reminders by ReminderID
 func (c RemindClient) DeleteReminders(ctx context.Context, reminderIDs []ReminderID) (err error) {
 	__arg := DeleteRemindersArg{ReminderIDs: reminderIDs}
-	err = c.Cli.Call(ctx, "gregor.1.remind.deleteReminders", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "gregor.1.remind.deleteReminders", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

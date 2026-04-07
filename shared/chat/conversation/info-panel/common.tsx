@@ -1,8 +1,9 @@
-import type * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
+import type * as Chat from '@/stores/chat'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
+import * as C from '@/constants'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -25,14 +26,14 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
   const getMembers = useTeamsState(s => s.dispatch.getMembers)
   if (lastTID !== teamID) {
     setLastTID(teamID)
-    getMembers(teamID)
+    C.ignorePromise(getMembers(teamID))
   }
   const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const bots = React.useMemo(() => {
+  const bots = (() => {
     const ret = new Set<string>()
     teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))
     return ret
-  }, [teamMembers])
+  })()
   const teamHumanCount = (teamMembers?.size ?? 0) - bots.size
   return {bots, teamHumanCount}
 }

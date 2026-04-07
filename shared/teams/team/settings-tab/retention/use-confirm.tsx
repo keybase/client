@@ -11,7 +11,7 @@ const initialStore: Store = {
 }
 type State = Store & {
   dispatch: {
-    resetState: 'default'
+    resetState: () => void
     openModal: () => void
     closeModal: () => void
     updateConfirm: (rt: T.Retention.RetentionPolicy | undefined) => void
@@ -30,7 +30,7 @@ export const useConfirm = Z.createZustand<State>(set => {
         s.modalOpen = true
       })
     },
-    resetState: 'default',
+    resetState: Z.defaultReset,
     updateConfirm: rt => {
       set(s => {
         s.modalOpen = false

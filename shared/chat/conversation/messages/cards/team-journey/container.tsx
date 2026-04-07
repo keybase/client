@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -20,8 +20,8 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const welcomeMessage = {display: '', raw: '', set: false}
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
   const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
+  const navigateAppend = C.Router2.navigateAppend
+  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
   const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)
@@ -135,7 +135,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
           <Kb.Box2 direction="horizontal" style={image ? styles.text : undefined} alignSelf="flex-start">
             {textComponent}
           </Kb.Box2>
-          {!!image && <Kb.Icon style={styles.image} type={image} />}
+          {!!image && <Kb.ImageIcon style={styles.image} type={image} />}
         </Kb.Box2>
         <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <Kb.Box2
@@ -189,7 +189,6 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         size={32}
         isTeam={true}
         teamname={teamname}
-        skipBackground={true}
         style={avatarStyle}
         onClick={deactivateButtons ? undefined : onAuthorClick}
       />
@@ -211,7 +210,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
       {!Kb.Styles.isMobile && !deactivateButtons && (
-        <Kb.Icon type="iconfont-close" onClick={onDismiss} fontSize={12} />
+        <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} fontSize={12} />
       )}
     </Kb.Box2>
   )
@@ -241,13 +240,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {marginLeft: Kb.Styles.globalMargins.tiny},
       }),
-      avatarTeamSettings: Kb.Styles.platformStyles({
-        isElectron: {
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginTop: 0,
-        },
-        isMobile: {marginLeft: Kb.Styles.globalMargins.xtiny},
-      }),
       bottomLine: {
         ...Kb.Styles.globalStyles.flexGrow,
         alignItems: 'baseline',
@@ -274,37 +266,9 @@ const styles = Kb.Styles.styleSheetCreate(
             Kb.Styles.globalMargins.mediumLarge, // avatar
         },
       }),
-      contentHorizontalPadTeamSettings: Kb.Styles.platformStyles({
-        isElectron: {
-          paddingLeft:
-            // Space for below the avatar
-            Kb.Styles.globalMargins.tiny + // right margin
-            Kb.Styles.globalMargins.tiny + // left margin
-            Kb.Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Kb.Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          paddingLeft:
-            // Space for below the avatar
-            Kb.Styles.globalMargins.tiny + // right margin
-            Kb.Styles.globalMargins.tiny + // left margin
-            Kb.Styles.globalMargins.mediumLarge, // avatar
-        },
-      }),
       contentWithImage: {minHeight: 70},
       image: Kb.Styles.platformStyles({
         isElectron: {marginTop: -33},
-      }),
-      imageSettingsTab: Kb.Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          top: 0,
-        },
-        isElectron: {
-          left: '50%',
-          marginLeft: 15,
-        },
-        isMobile: {right: 25},
       }),
       teamnameText: {color: Kb.Styles.globalColors.black},
       text: {maxWidth: Kb.Styles.isMobile ? '70%' : 320},

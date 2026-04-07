@@ -19,19 +19,18 @@ function useAutocompleter<U>(
   React.useEffect(() => {
     prevFilterLCaseRef.current = filterLCase
   }, [filterLCase])
-  const itemsFiltered = React.useMemo(() => {
+  const itemsFiltered = (() => {
     let itemsFiltered = filterLCase
       ? items.filter(item => item.label.toLowerCase().includes(filterLCase))
       : items
     itemsFiltered = itemsFiltered.slice(0, 5)
     return itemsFiltered
-  }, [items, filterLCase])
+  })()
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
-        <Kb.Overlay
+        <Kb.Popup
           attachTo={attachTo}
           onHidden={hidePopup}
           matchDimension={true}
@@ -56,18 +55,15 @@ function useAutocompleter<U>(
               </Kb.Box2>
             </Kb.ClickableBox>
           ))}
-        </Kb.Overlay>
+        </Kb.Popup>
       )
-    },
-    [onSelect, selected, itemsFiltered]
-  )
+    }
 
   const {popup, popupAnchor, showPopup, hidePopup} = Kb.usePopup2(makePopup)
 
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]
-  const onKeyDown = React.useCallback(
-    (evt: {key: string}) => {
+  const onKeyDown = (evt: {key: string}) => {
       let diff = 0
       switch (evt.key) {
         case 'ArrowDown':
@@ -90,9 +86,7 @@ function useAutocompleter<U>(
       if (newSelected !== selected) {
         setSelected(newSelected)
       }
-    },
-    [selected, setSelected, numItems, onSelect, selectedItem]
-  )
+    }
 
   return {hidePopup, onKeyDown, popup, popupAnchor, showPopup}
 }

@@ -1,18 +1,87 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
-import * as Settings from '@/constants/settings/util'
+import * as Settings from '@/constants/settings'
+import {defineRouteMap} from '@/constants/types/router'
+import {usePushState} from '@/stores/push'
+import {usePWState} from '@/stores/settings-password'
+import {e164ToDisplay} from '@/util/phone-numbers'
+import type {Props as FeedbackRouteParams} from './feedback/container'
+
+const PushPromptSkipButton = () => {
+  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
+  const clearModals = C.Router2.clearModals
+  return (
+    <Kb.ClickableBox
+      onClick={() => {
+        rejectPermissions()
+        clearModals()
+      }}
+    >
+      <Kb.Text type="BodyBig" negative={true}>
+        Skip
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
+
+const PasswordHeaderTitle = () => {
+  const hasRandomPW = usePWState(s => !!s.randomPW)
+  return <Kb.Text type="BodyBig">{hasRandomPW ? 'Set a password' : 'Change password'}</Kb.Text>
+}
+
+const CheckPassphraseCancelButton = () => {
+  const navigateUp = C.Router2.navigateUp
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        navigateUp()
+      }}
+    >
+      Cancel
+    </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderTitle = ({phoneNumber}: {phoneNumber?: string}) => {
+  const displayPhone = e164ToDisplay(phoneNumber ?? '')
+  return (
+    <Kb.Text type="BodySmall" negative={true} center={true}>
+      {displayPhone || 'Unknown number'}
+    </Kb.Text>
+  )
+}
+
+const VerifyPhoneHeaderLeft = () => {
+  const clearModals = C.Router2.clearModals
+  return (
+    <Kb.BackButton
+      onClick={() => {
+        clearModals()
+      }}
+      iconColor={Kb.Styles.globalColors.white}
+    />
+  )
+}
 
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
+const EmptySettingsScreen = () => <></>
+const ManageContactsScreen: React.ComponentType =
+  C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
+const emptyFeedbackParams: FeedbackRouteParams = {}
 
-const feedback = C.makeScreen(
-  React.lazy(async () => import('./feedback/container')),
-  {getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {}}
-)
+const feedback = {
+  ...C.makeScreen(React.lazy(async () => import('./feedback/container')), {
+    getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
+  }),
+  initialParams: emptyFeedbackParams,
+}
 
-export const sharedNewRoutes = {
+export const sharedNewRoutes = defineRouteMap({
   [Settings.settingsAboutTab]: {
     getOptions: {title: 'About'},
     screen: React.lazy(async () => import('./about')),
@@ -48,7 +117,6 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./files')),
   },
   [Settings.settingsGitTab]: gitRoutes.gitRoot,
-  [Settings.settingsInvitationsTab]: {screen: React.lazy(async () => import('./invites'))},
   [Settings.settingsNotificationsTab]: {
     getOptions: {title: 'Notifications'},
     screen: React.lazy(async () => import('./notifications')),
@@ -58,51 +126,75 @@ export const sharedNewRoutes = {
     screen: React.lazy(async () => import('./screenprotector')),
   },
   [Settings.settingsWalletsTab]: {...walletsRoutes.walletsRoot},
-  [Settings.settingsWhatsNewTab]: {
-    getOptions: C.isMobile ? {title: 'Keybase FM 87.7'} : undefined,
-    screen: React.lazy(async () => import('../whats-new/container')),
-  },
   dbNukeConfirm: {
     getOptions: {title: 'Confirm'},
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
-  inviteSent: C.makeScreen(React.lazy(async () => import('./invite-generated'))),
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
-  removeDevice: devicesRoutes.deviceRevoke,
-}
+})
+
+export const settingsDesktopTabRoutes = defineRouteMap({
+  [Settings.settingsAboutTab]: sharedNewRoutes[Settings.settingsAboutTab],
+  [Settings.settingsAccountTab]: sharedNewRoutes[Settings.settingsAccountTab],
+  [Settings.settingsAdvancedTab]: sharedNewRoutes[Settings.settingsAdvancedTab],
+  [Settings.settingsArchiveTab]: sharedNewRoutes[Settings.settingsArchiveTab],
+  [Settings.settingsChatTab]: sharedNewRoutes[Settings.settingsChatTab],
+  [Settings.settingsCryptoTab]: sharedNewRoutes[Settings.settingsCryptoTab],
+  [Settings.settingsDevicesTab]: sharedNewRoutes[Settings.settingsDevicesTab],
+  [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
+  [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
+  [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
+  [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
+  [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
+  [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
+  [Settings.settingsWalletsTab]: sharedNewRoutes[Settings.settingsWalletsTab],
+})
 
 const sharedNewModalRoutes = {
-  [Settings.settingsLogOutTab]: {screen: React.lazy(async () => import('./logout'))},
-  [Settings.settingsPasswordTab]: {screen: React.lazy(async () => import('./password'))},
-  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal'))),
+  [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
+    getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
+  }),
+  [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
+    getOptions: {headerTitle: () => <PasswordHeaderTitle />},
+  }),
+  archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
+    getOptions: {title: 'Backup'},
+  }),
   deleteConfirm: {screen: React.lazy(async () => import('./delete-confirm'))},
-  disableCertPinningModal: {screen: React.lazy(async () => import('./disable-cert-pinning-modal'))},
-  settingsAddEmail: {
-    screen: React.lazy(async () => {
+  settingsAddEmail: C.makeScreen(
+    React.lazy(async () => {
       const {Email} = await import('./account/add-modals')
       return {default: Email}
     }),
-  },
-  settingsAddPhone: {
-    screen: React.lazy(async () => {
+    {getOptions: C.isMobile ? {title: 'Add email address'} : {title: 'Add an email address'}}
+  ),
+  settingsAddPhone: C.makeScreen(
+    React.lazy(async () => {
       const {Phone} = await import('./account/add-modals')
       return {default: Phone}
     }),
-  },
-
+    {getOptions: C.isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
+  ),
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
-  settingsVerifyPhone: {
-    screen: React.lazy(async () => {
+  settingsVerifyPhone: C.makeScreen(
+    React.lazy(async () => {
       const {VerifyPhone} = await import('./account/add-modals')
       return {default: VerifyPhone}
     }),
-  },
+    {
+      getOptions: ({route}) => ({
+        headerLeft: Kb.Styles.isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
+        headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+        headerTitle: () => <VerifyPhoneHeaderTitle phoneNumber={route.params.phoneNumber} />,
+      }),
+    }
+  ),
 }
 
 const WebLinks = React.lazy(async () => import('./web-links'))
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   settingsRoot: C.isMobile
     ? C.isPhone
       ? {getOptions: {title: 'More'}, screen: React.lazy(async () => import('./root-phone'))}
@@ -111,26 +203,36 @@ export const newRoutes = {
   ...sharedNewRoutes,
   [Settings.settingsContactsTab]: {
     getOptions: {header: undefined, title: 'Contacts'},
-    screen: C.isMobile ? React.lazy(async () => import('./manage-contacts')) : () => <></>,
+    screen: ManageContactsScreen,
   },
   webLinks: C.makeScreen(WebLinks, {
-    getOptions: ({route}: C.ViewPropsToPageProps<typeof WebLinks>) => ({
+    getOptions: ({route}) => ({
       header: undefined,
       title: route.params.title,
     }),
   }),
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   ...sharedNewModalRoutes,
-  checkPassphraseBeforeDeleteAccount: {
-    screen: React.lazy(async () => import('./delete-confirm/check-passphrase')),
-  },
+  checkPassphraseBeforeDeleteAccount: C.makeScreen(
+    React.lazy(async () => import('./delete-confirm/check-passphrase')),
+    {getOptions: {headerLeft: () => <CheckPassphraseCancelButton />}}
+  ),
   modalFeedback: feedback,
-  settingsContactsJoined: {screen: React.lazy(async () => import('./contacts-joined'))},
-  settingsPushPrompt: {
-    screen: C.isMobile ? React.lazy(async () => import('./notifications/push-prompt')) : () => <></>,
-  },
-}
-
-export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+  settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
+  settingsPushPrompt: C.isMobile
+    ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
+        getOptions: {
+          headerLeft: () => null,
+          headerRight: () => <PushPromptSkipButton />,
+          headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
+          headerTitle: () => (
+            <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
+              Allow notifications
+            </Kb.Text>
+          ),
+        },
+      })
+    : {screen: () => <></>},
+})

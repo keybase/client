@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -176,12 +177,7 @@ func LatestCommit(token string, repo string, contexts []string) (*Commit, error)
 }
 
 func stringInSlice(str string, list []string) bool {
-	for _, s := range list {
-		if s == str {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, str)
 }
 
 // CIStatuses lists statuses for CI

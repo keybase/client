@@ -1,40 +1,35 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import type {FloatingMenuProps} from './types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
+  previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
+  setView: (view: T.FS.PathItemActionMenuView) => void
+  view: T.FS.PathItemActionMenuView
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {path, floatingMenuProps} = ownProps
-  const {_pathItemActionMenu, size, setPathItemActionMenuView, download} = useFSState(
+  const {path, floatingMenuProps, previousView, setView, view} = ownProps
+  const {download, size} = useFSState(
     C.useShallow(s => {
-      const _pathItemActionMenu = s.pathItemActionMenu
       const size = FS.getPathItem(s.pathItems, path).size
-      const setPathItemActionMenuView = s.dispatch.setPathItemActionMenuView
       const download = s.dispatch.download
-      return {_pathItemActionMenu, download, setPathItemActionMenuView, size}
+      return {download, size}
     })
   )
-  const _confirm = React.useCallback(
-    ({view, previousView}: typeof _pathItemActionMenu) => {
-      download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
-      setPathItemActionMenuView(previousView)
-    },
-    [setPathItemActionMenuView, download, path]
-  )
+  const confirm = () => {
+    download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
+    setView(previousView)
+  }
   const action =
-    _pathItemActionMenu.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
+    view === T.FS.PathItemActionMenuView.ConfirmSaveMedia
       ? 'save-media'
       : 'send-to-other-app'
-
-  const confirm = () => _confirm(_pathItemActionMenu)
 
   return (
     <Kb.FloatingMenu
@@ -85,16 +80,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       confirmTextBox: {
         padding: Kb.Styles.globalMargins.medium,
-      },
-      menuRowText: {
-        color: Kb.Styles.globalColors.blueDark,
-      },
-      menuRowTextDisabled: {
-        color: Kb.Styles.globalColors.blueDark,
-        opacity: 0.6,
-      },
-      progressIndicator: {
-        marginRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

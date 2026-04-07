@@ -1,16 +1,17 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useSettingsEmailState} from '@/constants/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 const addSpacer = (into: string, add: string) => {
   return into + (into.length ? ' • ' : '') + add
 }
 
 const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
-  <Kb.Box
+  <Kb.Box2
+    direction="vertical"
     style={Kb.Styles.collapseStyles([
       styles.badge,
       p.menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
@@ -24,7 +25,7 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
   const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
   const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
 
-  const menuItems = React.useMemo(() => {
+  const menuItems = (() => {
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
@@ -72,46 +73,30 @@ const EmailPhoneRow = (p: {contactKey: string}) => {
       : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
     menuItems.push(deleteItem)
     return menuItems
-  }, [
-    moreThanOneEmail,
-    onDelete,
-    onMakePrimary,
-    onToggleSearchable,
-    onVerify,
-    primary,
-    searchable,
-    type,
-    verified,
-  ])
+  })()
 
-  const header = React.useMemo(
-    () => (
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-        <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
-        {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
-      </Kb.Box2>
-    ),
-    [address, primary]
+  const header = (
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+      <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
+      {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+    </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeText="Cancel"
-          visible={true}
-          position="bottom right"
-          header={Kb.Styles.isMobile ? header : undefined}
-          onHidden={hidePopup}
-          items={menuItems}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [menuItems, header]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeText="Cancel"
+        visible={true}
+        position="bottom right"
+        header={Kb.Styles.isMobile ? header : undefined}
+        onHidden={hidePopup}
+        items={menuItems}
+        closeOnSelect={true}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -224,15 +209,14 @@ const useData = (contactKey: string) => {
   }
 
   const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
-  const resendVerificationForPhoneNumber = useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const dispatchProps = {
     email: {
       _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
         navigateAppend({
-          props: {address, lastEmail, searchable, type: 'email'},
-          selected: 'settingsDeleteAddress',
+          name: 'settingsDeleteAddress',
+          params: {address, lastEmail, searchable, type: 'email'},
         }),
       onMakePrimary: () => {
         editEmail({email: contactKey, makePrimary: true})
@@ -243,13 +227,12 @@ const useData = (contactKey: string) => {
     },
     phone: {
       _onDelete: (address: string, searchable: boolean) =>
-        navigateAppend({props: {address, searchable, type: 'phone'}, selected: 'settingsDeleteAddress'}),
+        navigateAppend({name: 'settingsDeleteAddress', params: {address, searchable, type: 'phone'}}),
       _onToggleSearchable: (setSearchable: boolean) => {
         editPhone(contactKey, undefined, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
-        resendVerificationForPhoneNumber(phoneNumber)
-        navigateAppend('settingsVerifyPhone')
+        navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
       },
       onMakePrimary: () => {}, // this is not a supported phone action
     },

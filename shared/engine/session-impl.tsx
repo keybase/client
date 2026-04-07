@@ -2,14 +2,14 @@ import {
   StatusCode,
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
-} from '@/constants/types/rpc-gen'
+} from '@/constants/rpc/rpc-gen'
 import {rpcLog, type InvokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
 import {getEngine} from './require'
 import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -61,9 +61,6 @@ class Session {
     this._dangling = p.dangling || false
   }
 
-  setId(_: SessionID) {
-    throw new Error("Can't set sessionID")
-  }
   getId(): SessionID {
     return this._id
   }
@@ -195,11 +192,6 @@ class Session {
 
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
-    if (__DEV__) {
-      if (Object.hasOwn(this._seqIDResponded, String(seqID))) {
-        console.log('Cancelling seqid found, current session state', this)
-      }
-    }
     return Object.hasOwn(this._seqIDResponded, String(seqID))
   }
 }

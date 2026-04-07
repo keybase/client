@@ -1,10 +1,29 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {HeaderLeftCancel, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
+import * as Kb from '@/common-adapters'
+import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
+import {useProvisionState} from '@/stores/provision'
+import {defineRouteMap} from '@/constants/types/router'
 
-export const newRoutes = {
+const AddDeviceCancelButton = () => {
+  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
+  const navigateUp = C.Router2.navigateUp
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        cancel?.()
+        navigateUp()
+      }}
+    >
+      Cancel
+    </Kb.Text>
+  )
+}
+
+export const newRoutes = defineRouteMap({
   devicePage: C.makeScreen(
     React.lazy(async () => import('./device-page')),
     {getOptions: {title: ''}}
@@ -13,7 +32,7 @@ export const newRoutes = {
     React.lazy(async () => import('./device-revoke')),
     {
       getOptions: {
-        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel {...p} />,
+        headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftButton mode="cancel" {...p} />,
         title: '',
       },
     }
@@ -23,20 +42,24 @@ export const newRoutes = {
       ? {title: 'Devices'}
       : {
           headerRightActions: HeaderRightActions,
-          headerTitle: HeaderTitle,
+          headerTitle: () => <HeaderTitle activeCount={0} revokedCount={0} />,
           title: 'Devices',
         },
     screen: React.lazy(async () => import('.')),
   },
-}
+})
 
-export const newModalRoutes = {
+export const newModalRoutes = defineRouteMap({
   ...provisionNewRoutes,
-  deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device'))),
+  deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device')), {
+    getOptions: {
+      headerLeft: C.isMobile ? () => <AddDeviceCancelButton /> : undefined,
+      modalStyle: {width: 620},
+      title: 'Add a device',
+    },
+  }),
   devicePaperKey: {
-    getOptions: {gesturesEnabled: false, modal2: true, modal2NoClose: true},
+    getOptions: {gestureEnabled: false, overlayNoClose: true},
     screen: React.lazy(async () => import('./paper-key')),
   },
-}
-
-export type RootParamListDevices = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+})

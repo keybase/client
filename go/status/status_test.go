@@ -32,7 +32,7 @@ func TestMergeExtendedStatus(t *testing.T) {
 	err := jsonw.EnsureMaxDepthBytesDefault([]byte(fullStatus))
 	require.NoError(t, err)
 
-	fullStatusMap := map[string]interface{}{}
+	fullStatusMap := map[string]any{}
 	err = json.Unmarshal([]byte(fullStatus), &fullStatusMap)
 	require.NoError(t, err)
 	_, ok := fullStatusMap["status"]

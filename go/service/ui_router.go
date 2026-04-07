@@ -6,6 +6,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -59,9 +60,7 @@ func (u *UIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
 
 	// Copy the map
 	res := map[libkb.UIKind]libkb.ConnectionID{}
-	for k, v := range u.uis {
-		res[k] = v
-	}
+	maps.Copy(res, u.uis)
 	return res
 }
 

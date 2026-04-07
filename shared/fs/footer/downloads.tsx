@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()
@@ -33,7 +33,7 @@ const Desktop = () => {
   const {downloadIDs, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
       downloadIDs: s.downloads.regularDownloads,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
     }))
   )
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
@@ -64,7 +64,7 @@ const Desktop = () => {
             />
           </Kb.WithTooltip>
         )}
-        <Kb.Box style={styles.space} />
+        <Kb.Box2 direction="horizontal" flex={1} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
@@ -95,7 +95,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: 4,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },
-      space: {flex: 1},
     }) as const
 )
 

@@ -7,7 +7,7 @@ import useQR from './hooks'
 const QRScan = () => {
   const {waiting, onSubmitTextCode} = useQR()
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction="vertical" relative={true} overflow="hidden" style={styles.container}>
       {!waiting && (
         <QRScanner
           notAuthorizedView={<QRNotAuthorized />}
@@ -29,8 +29,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'stretch',
     backgroundColor: Kb.Styles.globalColors.black,
     height: 160,
-    overflow: 'hidden',
-    position: 'relative',
   },
   waiting: {
     ...Kb.Styles.globalStyles.fillAbsolute,

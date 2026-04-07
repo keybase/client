@@ -1,10 +1,47 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as C from '@/constants'
 import {InfoIcon} from './common'
+import {usePushState} from '@/stores/push'
+import {setSignupEmail} from '@/people/signup-email'
+import {defineRouteMap} from '@/constants/types/router'
 
-export const newRoutes = {
-  signupEnterDevicename: {screen: React.lazy(async () => import('./device-name'))},
+const EmailSkipButton = () => {
+  const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        setSignupEmail(C.noEmail)
+        showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+      }}
+    >
+      Skip
+    </Kb.Text>
+  )
+}
+
+const PhoneSkipButton = () => {
+  const navigateAppend = C.Router2.navigateAppend
+  return (
+    <Kb.Text
+      type="BodyBigLink"
+      onClick={() => {
+        navigateAppend('signupEnterEmail', true)
+      }}
+    >
+      Skip
+    </Kb.Text>
+  )
+}
+
+export const newRoutes = defineRouteMap({
+  signupEnterDevicename: {
+    getOptions: {title: 'Name this device'},
+    screen: React.lazy(async () => import('./device-name')),
+  },
   signupEnterUsername: {
     getOptions: {
       headerBottomStyle: {height: undefined},
@@ -17,18 +54,32 @@ export const newRoutes = {
           <InfoIcon />
         </Kb.Box2>
       ),
+      title: 'Create account',
     },
     screen: React.lazy(async () => import('./username')),
   },
-  signupSendFeedbackLoggedOut: {screen: React.lazy(async () => import('./feedback'))},
-}
+  signupSendFeedbackLoggedOut: {
+    getOptions: {title: 'Send feedback'},
+    screen: React.lazy(async () => import('./feedback')),
+  },
+})
 
 // Some screens in signup show up after we've actually signed up
-export const newModalRoutes = {
-  signupEnterEmail: {screen: React.lazy(async () => import('./email'))},
-  signupEnterPhoneNumber: {screen: React.lazy(async () => import('./phone-number'))},
-  signupSendFeedbackLoggedIn: {screen: React.lazy(async () => import('./feedback'))},
-  signupVerifyPhoneNumber: {screen: React.lazy(async () => import('./phone-number/verify'))},
-}
-
-export type RootParamListSignup = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export const newModalRoutes = defineRouteMap({
+  signupEnterEmail: {
+    getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
+    screen: React.lazy(async () => import('./email')),
+  },
+  signupEnterPhoneNumber: {
+    getOptions: {headerLeft: () => null, headerRight: () => <PhoneSkipButton />, title: 'Your phone number'},
+    screen: React.lazy(async () => import('./phone-number')),
+  },
+  signupSendFeedbackLoggedIn: {
+    getOptions: {title: 'Send feedback'},
+    screen: React.lazy(async () => import('./feedback')),
+  },
+  signupVerifyPhoneNumber: {
+    getOptions: {title: 'Verify phone number'},
+    screen: React.lazy(async () => import('./phone-number/verify')),
+  },
+})

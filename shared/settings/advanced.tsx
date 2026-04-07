@@ -3,14 +3,74 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
-import {useSettingsState, traceInProgressKey, processorProfileInProgressKey} from '@/constants/settings'
-import {usePWState} from '@/constants/settings-password'
-import {useFSState} from '@/constants/fs'
-import {useConfigState} from '@/constants/config'
+import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
+import {usePWState} from '@/stores/settings-password'
+import {useFSState} from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
+import {ignorePromise, timeoutPromise} from '@/constants/utils'
+import {pprofDir} from '@/constants/platform'
+import {clearLocalLogs} from '@/util/misc'
+import {useWaitingState} from '@/stores/waiting'
 
 let initialUseNativeFrame: boolean | undefined
 
 const showMakeIcons = __DEV__ && (false as boolean)
+
+const runPprofAction = (
+  rpc: () => Promise<void>,
+  waitingKey: string,
+  durationSeconds: number
+) => {
+  const f = async () => {
+    await rpc()
+    const {decrement, increment} = useWaitingState.getState().dispatch
+    increment(waitingKey)
+    await timeoutPromise(durationSeconds * 1_000)
+    decrement(waitingKey)
+  }
+  ignorePromise(f())
+}
+
+const useLockdownMode = () => {
+  const [lockdownModeEnabled, setLockdownModeEnabled] = React.useState<boolean | undefined>(undefined)
+  const loadLockdownModeRPC = C.useRPC(T.RPCGen.accountGetLockdownModeRpcPromise)
+  const setLockdownModeRPC = C.useRPC(T.RPCGen.accountSetLockdownModeRpcPromise)
+
+  const loadLockdownMode = React.useCallback(() => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+    loadLockdownModeRPC(
+      [undefined],
+      result => {
+        setLockdownModeEnabled(result.status)
+      },
+      () => {
+        setLockdownModeEnabled(undefined)
+      }
+    )
+  }, [loadLockdownModeRPC])
+
+  const setLockdownMode = React.useCallback(
+    (enabled: boolean) => {
+      if (!useConfigState.getState().loggedIn) {
+        return
+      }
+      setLockdownModeRPC(
+        [{enabled}, C.waitingKeySettingsSetLockdownMode],
+        () => {
+          setLockdownModeEnabled(enabled)
+        },
+        () => {
+          setLockdownModeEnabled(undefined)
+        }
+      )
+    },
+    [setLockdownModeRPC]
+  )
+
+  return {loadLockdownMode, lockdownModeEnabled, setLockdownMode}
+}
 
 const UseNativeFrame = () => {
   const {onChangeUseNativeFrame, useNativeFrame} = useConfigState(
@@ -40,15 +100,15 @@ const UseNativeFrame = () => {
   )
 }
 
-const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
-  const {hasRandomPW, settingLockdownMode} = p
-  const {lockdownModeEnabled, setLockdownMode} = useSettingsState(
-    C.useShallow(s => ({
-      lockdownModeEnabled: !!s.lockdownModeEnabled,
-      setLockdownMode: s.dispatch.setLockdownMode,
-    }))
-  )
+const LockdownCheckbox = (p: {
+  hasRandomPW: boolean
+  lockdownModeEnabled?: boolean
+  setLockdownMode: (enabled: boolean) => void
+  settingLockdownMode: boolean
+}) => {
+  const {hasRandomPW, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
   const onChangeLockdownMode = setLockdownMode
+  const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
   const disabled = hasRandomPW || settingLockdownMode
@@ -65,12 +125,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
             With this setting on you will not be able to reset your account, even from the app. Protect your
             account by installing Keybase on several devices, or by keeping a paper key in a safe place.
           </Kb.Text>
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/lockdown/index">
+          <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
             <Kb.Icon
               type="iconfont-open-browser"
               sizeType="Tiny"
-              boxStyle={styles.displayInline}
               color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
@@ -84,32 +143,26 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
-  const pwState = usePWState(
+  const {hasRandomPW, loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       hasRandomPW: !!s.randomPW,
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
-      loadRememberPassword: s.dispatch.loadRememberPassword,
-      rememberPassword: s.rememberPassword,
-      setRememberPassword: s.dispatch.setRememberPassword,
     }))
   )
-  const {hasRandomPW, loadHasRandomPw, loadRememberPassword, rememberPassword, setRememberPassword} = pwState
   const {onSetOpenAtLogin, openAtLogin} = useConfigState(
     C.useShallow(s => ({
       onSetOpenAtLogin: s.dispatch.setOpenAtLogin,
       openAtLogin: s.openAtLogin,
     }))
   )
-  const {loadLockdownMode} = useSettingsState(
-    C.useShallow(s => ({
-      loadLockdownMode: s.dispatch.loadLockdownMode,
-    }))
-  )
+  const {loadLockdownMode, lockdownModeEnabled, setLockdownMode} = useLockdownMode()
   const setLockdownModeError = C.Waiting.useAnyErrors(C.waitingKeySettingsSetLockdownMode)?.message || ''
-  const onChangeRememberPassword = setRememberPassword
+  const [rememberPassword, setRememberPassword] = React.useState<boolean | undefined>(undefined)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
   const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
+  const loadRememberPassword = C.useRPC(T.RPCGen.configGetRememberPassphraseRpcPromise)
+  const submitRememberPassword = C.useRPC(T.RPCGen.configSetRememberPassphraseRpcPromise)
 
   // load it
   React.useEffect(() => {
@@ -133,7 +186,32 @@ const Advanced = () => {
     }
   }, [disableSpellCheck, loadDisableSpellcheck])
 
+  React.useEffect(() => {
+    if (rememberPassword === undefined) {
+      loadRememberPassword(
+        [undefined],
+        remember => {
+          setRememberPassword(remember)
+        },
+        () => {
+          setRememberPassword(true)
+        }
+      )
+    }
+  }, [loadRememberPassword, rememberPassword])
+
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
+  const onChangeRememberPassword = (remember: boolean) => {
+    const previous = rememberPassword
+    setRememberPassword(remember)
+    submitRememberPassword(
+      [{remember}],
+      () => {},
+      () => {
+        setRememberPassword(previous)
+      }
+    )
+  }
 
   const onToggleDisableSpellcheck = () => {
     const next = !disableSpellCheck
@@ -156,64 +234,71 @@ const Advanced = () => {
   React.useEffect(() => {
     loadHasRandomPw()
     loadLockdownMode()
-    loadRememberPassword()
-  }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
+  }, [loadHasRandomPw, loadLockdownMode])
 
   return (
-    <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
-          {settingLockdownMode && <Kb.ProgressIndicator />}
-          <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
-          {!!setLockdownModeError && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              {setLockdownModeError}
-            </Kb.Text>
-          )}
-          {!hasRandomPW && (
-            <Kb.Checkbox
-              checked={rememberPassword}
-              labelComponent={
-                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                  <Kb.Text type="BodySmall">
-                    {"You won't be asked for your password when restarting the app or your device."}
-                  </Kb.Text>
-                </Kb.Box2>
-              }
-              onCheck={onChangeRememberPassword}
+    <Kb.KeyboardAvoidingView2>
+      <Kb.ScrollView style={styles.scrollview}>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+            {settingLockdownMode && <Kb.ProgressIndicator />}
+            <LockdownCheckbox
+              hasRandomPW={hasRandomPW}
+              lockdownModeEnabled={lockdownModeEnabled}
+              setLockdownMode={setLockdownMode}
+              settingLockdownMode={settingLockdownMode}
             />
-          )}
-          {C.isLinux ? <UseNativeFrame /> : null}
-          {!C.isMobile && (
-            <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
-          )}
-          {!C.isMobile && (
-            <Kb.Checkbox
-              label={
-                'Disable spellchecking' +
-                (disableSpellCheckInitialValue !== undefined &&
-                disableSpellCheckInitialValue !== disableSpellCheck
-                  ? ' (restart required)'
-                  : '')
-              }
-              disabled={disableSpellCheck === undefined}
-              checked={!!disableSpellCheck}
-              onCheck={onToggleDisableSpellcheck}
-            />
-          )}
+            {!!setLockdownModeError && (
+              <Kb.Text type="BodySmall" style={styles.error}>
+                {setLockdownModeError}
+              </Kb.Text>
+            )}
+            {!hasRandomPW && (
+              <Kb.Checkbox
+                checked={!!rememberPassword}
+                disabled={rememberPassword === undefined}
+                labelComponent={
+                  <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+                    <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                    <Kb.Text type="BodySmall">
+                      {"You won't be asked for your password when restarting the app or your device."}
+                    </Kb.Text>
+                  </Kb.Box2>
+                }
+                onCheck={onChangeRememberPassword}
+              />
+            )}
+            {C.isLinux ? <UseNativeFrame /> : null}
+            {!C.isMobile && (
+              <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
+            )}
+            {!C.isMobile && (
+              <Kb.Checkbox
+                label={
+                  'Disable spellchecking' +
+                  (disableSpellCheckInitialValue !== undefined &&
+                  disableSpellCheckInitialValue !== disableSpellCheck
+                    ? ' (restart required)'
+                    : '')
+                }
+                disabled={disableSpellCheck === undefined}
+                checked={!!disableSpellCheck}
+                onCheck={onToggleDisableSpellcheck}
+              />
+            )}
+          </Kb.Box2>
+          <Kb.Divider style={styles.proxyDivider} />
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
+          >
+            <ProxySettings />
+          </Kb.Box2>
+          <Developer />
         </Kb.Box2>
-        <Kb.Divider style={styles.proxyDivider} />
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
-        >
-          <ProxySettings />
-        </Kb.Box2>
-        <Developer />
-      </Kb.Box2>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 
@@ -240,20 +325,41 @@ const Developer = () => {
 
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = C.Waiting.useAnyWaiting(traceInProgressKey)
-  const {onProcessorProfile, onTrace} = useSettingsState(
-    C.useShallow(s => ({
-      onProcessorProfile: s.dispatch.processorProfile,
-      onTrace: s.dispatch.trace,
-    }))
-  )
+  const onProcessorProfile = () => {
+    runPprofAction(
+      async () =>
+        T.RPCGen.pprofLogProcessorProfileRpcPromise({
+          logDirForMobile: pprofDir,
+          profileDurationSeconds: processorProfileDurationSeconds,
+        }),
+      processorProfileInProgressKey,
+      processorProfileDurationSeconds
+    )
+  }
+  const onTrace = () => {
+    runPprofAction(
+      async () =>
+        T.RPCGen.pprofLogTraceRpcPromise({
+          logDirForMobile: pprofDir,
+          traceDurationSeconds,
+        }),
+      traceInProgressKey,
+      traceDurationSeconds
+    )
+  }
   const processorProfileInProgress = C.Waiting.useAnyWaiting(processorProfileInProgressKey)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
   const onMakeIcons = () => navigateAppend('makeIcons')
-  const onClearLogs = useSettingsState(s => s.dispatch.clearLogs)
+  const onClearLogs = () => {
+    const f = async () => {
+      await clearLocalLogs()
+    }
+    ignorePromise(f())
+  }
 
   return (
-    <Kb.Box style={styles.developerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.developerContainer}>
       <Kb.Text center={true} type="BodySmallSemibold" onClick={onLabelClick} style={styles.text}>
         {"Please don't do anything below here unless instructed to by a developer."}
       </Kb.Text>
@@ -295,60 +401,40 @@ const Developer = () => {
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`Trace (${traceDurationSeconds}s)`}
-            onClick={() => onTrace(traceDurationSeconds)}
+            onClick={onTrace}
           />
           <Kb.Button
             waiting={processorProfileInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
-            label={`CPU Profile (${traceDurationSeconds}s)`}
-            onClick={() => onProcessorProfile(processorProfileDurationSeconds)}
+            label={`CPU Profile (${processorProfileDurationSeconds}s)`}
+            onClick={onProcessorProfile}
           />
           <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
             Trace and profile files are included in logs sent with feedback.
           </Kb.Text>
         </>
       )}
-      <Kb.Box style={styles.filler} />
-    </Kb.Box>
+      <Kb.Box2 direction="vertical" flex={1} />
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkboxContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
-      },
       developerButtons: {
         marginTop: Kb.Styles.globalMargins.small,
       },
       developerContainer: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
         paddingBottom: Kb.Styles.globalMargins.medium,
       },
-      displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
       divider: {
         marginTop: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
       error: {
         color: Kb.Styles.globalColors.redDark,
-      },
-      filler: {
-        flex: 1,
-      },
-      progressContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 32,
       },
       proxyDivider: {
         marginBottom: Kb.Styles.globalMargins.small,

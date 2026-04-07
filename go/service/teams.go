@@ -662,7 +662,7 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	defer h.G().CTrace(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), &err)()
 
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
-	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+	loader := func(mctx libkb.MetaContext) (any, error) {
 		return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
 			arg.IncludeKBFSKeys)
 	}

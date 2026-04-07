@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/ephemeral.avdl
 
 package keybase1
@@ -424,7 +424,8 @@ func (o TeamEphemeralKeyBoxed) DeepCopy() TeamEphemeralKeyBoxed {
 	}
 }
 
-type EphemeralInterface interface{}
+type EphemeralInterface interface {
+}
 
 func EphemeralProtocol(i EphemeralInterface) rpc.Protocol {
 	return rpc.Protocol{

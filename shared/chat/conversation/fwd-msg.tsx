@@ -1,8 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useModalHeaderState} from '@/stores/modal-header'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
@@ -41,7 +42,7 @@ const TeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     clearModals()
   }
@@ -50,7 +51,7 @@ const TeamPicker = (props: Props) => {
 
   let preview: React.ReactNode = (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Kb.Icon type="icon-file-uploading-48" />
+      <Kb.ImageIcon type="icon-file-uploading-48" />
     </Kb.Box2>
   )
 
@@ -164,10 +165,10 @@ const TeamPicker = (props: Props) => {
               {error}
             </Kb.Text>
           ) : (
-            <Kb.List2
+            <Kb.List
               indexAsKey={true}
               items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
           )}
@@ -177,13 +178,11 @@ const TeamPicker = (props: Props) => {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.BoxGrow2 style={styles.boxGrow}>{preview}</Kb.BoxGrow2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-          <Kb.PlainInput
-            style={styles.input}
+          <Kb.Input3
+            containerStyle={styles.input}
             autoFocus={true}
             autoCorrect={true}
             placeholder="Add a caption..."
-            multiline={false}
-            padding="tiny"
             onEnterKeyDown={onSubmit}
             onChangeText={setTitle}
             value={title}
@@ -199,22 +198,14 @@ const TeamPicker = (props: Props) => {
       </Kb.Box2>
     )
 
-  return (
-    <Kb.Modal
-      noScrollView={true}
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption',
-      }}
-    >
-      {content}
-    </Kb.Modal>
-  )
+  React.useEffect(() => {
+    useModalHeaderState.setState({title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'})
+    return () => {
+      useModalHeaderState.setState({title: ''})
+    }
+  }, [pickerState])
+
+  return content
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -249,11 +240,8 @@ const styles = Kb.Styles.styleSheetCreate(
       input: Kb.Styles.platformStyles({
         common: {
           borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderWidth: 1,
           marginBottom: Kb.Styles.globalMargins.tiny,
           minHeight: 40,
-          padding: Kb.Styles.globalMargins.xtiny,
           width: '100%',
         },
         isElectron: {maxHeight: 100},

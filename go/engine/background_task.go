@@ -199,7 +199,7 @@ func (e *BackgroundTask) meta(s string) {
 	}
 }
 
-func (e *BackgroundTask) log(m libkb.MetaContext, format string, args ...interface{}) {
+func (e *BackgroundTask) log(m libkb.MetaContext, format string, args ...any) {
 	content := fmt.Sprintf(format, args...)
 	m.Debug("%s %s", e.Name(), content)
 }

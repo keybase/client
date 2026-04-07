@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/kvstore.avdl
 
 package keybase1
@@ -210,11 +210,11 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 		Name: "keybase.1.kvstore",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getKVEntry": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetKVEntryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetKVEntryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetKVEntryArg)(nil), args)
@@ -225,11 +225,11 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 				},
 			},
 			"putKVEntry": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PutKVEntryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PutKVEntryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PutKVEntryArg)(nil), args)
@@ -240,11 +240,11 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 				},
 			},
 			"listKVNamespaces": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListKVNamespacesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListKVNamespacesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListKVNamespacesArg)(nil), args)
@@ -255,11 +255,11 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 				},
 			},
 			"listKVEntries": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListKVEntriesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListKVEntriesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListKVEntriesArg)(nil), args)
@@ -270,11 +270,11 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 				},
 			},
 			"delKVEntry": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DelKVEntryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DelKVEntryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DelKVEntryArg)(nil), args)
@@ -293,26 +293,26 @@ type KvstoreClient struct {
 }
 
 func (c KvstoreClient) GetKVEntry(ctx context.Context, __arg GetKVEntryArg) (res KVGetResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kvstore.getKVEntry", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.getKVEntry", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KvstoreClient) PutKVEntry(ctx context.Context, __arg PutKVEntryArg) (res KVPutResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kvstore.putKVEntry", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.putKVEntry", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KvstoreClient) ListKVNamespaces(ctx context.Context, __arg ListKVNamespacesArg) (res KVListNamespaceResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kvstore.listKVNamespaces", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.listKVNamespaces", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KvstoreClient) ListKVEntries(ctx context.Context, __arg ListKVEntriesArg) (res KVListEntryResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kvstore.listKVEntries", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.listKVEntries", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KvstoreClient) DelKVEntry(ctx context.Context, __arg DelKVEntryArg) (res KVDeleteEntryResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kvstore.delKVEntry", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.delKVEntry", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -7,17 +7,17 @@ export const FocusContext = React.createContext<{
   setInputRef: (inputRef: FocusRefType) => void
 }>({focusInput: () => {}, setInputRef: () => {}})
 
-export const FocusProvider = React.memo(function FocusProvider({children}: {children: React.ReactNode}) {
+export const FocusProvider = function FocusProvider({children}: {children: React.ReactNode}) {
   const inputRef = React.useRef<FocusRefType>(null)
-  const setInputRef = React.useCallback((r: FocusRefType) => {
+  const setInputRef = (r: FocusRefType) => {
     inputRef.current = r
-  }, [])
-  const focusInput = React.useCallback(() => {
+  }
+  const focusInput = () => {
     inputRef.current?.focus()
-  }, [])
-  const value = React.useMemo(() => ({focusInput, setInputRef}), [setInputRef, focusInput])
-  return <FocusContext.Provider value={value}>{children}</FocusContext.Provider>
-})
+  }
+  const value = {focusInput, setInputRef}
+  return <FocusContext value={value}>{children}</FocusContext>
+}
 
 type ScrollType = {
   scrollUp: () => void
@@ -36,23 +36,20 @@ export const ScrollContext = React.createContext<
   setScrollRef: () => {},
 })
 
-export const ScrollProvider = React.memo(function ScrollProvider({children}: {children: React.ReactNode}) {
+export const ScrollProvider = function ScrollProvider({children}: {children: React.ReactNode}) {
   const scrollRef = React.useRef<ScrollRefType>(null)
-  const setScrollRef = React.useCallback((r: ScrollRefType) => {
+  const setScrollRef = (r: ScrollRefType) => {
     scrollRef.current = r
-  }, [])
-  const scrollUp = React.useCallback(() => {
+  }
+  const scrollUp = () => {
     scrollRef.current?.scrollUp()
-  }, [])
-  const scrollDown = React.useCallback(() => {
+  }
+  const scrollDown = () => {
     scrollRef.current?.scrollDown()
-  }, [])
-  const scrollToBottom = React.useCallback(() => {
+  }
+  const scrollToBottom = () => {
     scrollRef.current?.scrollToBottom()
-  }, [])
-  const value = React.useMemo(
-    () => ({scrollDown, scrollToBottom, scrollUp, setScrollRef}),
-    [scrollDown, scrollToBottom, scrollUp, setScrollRef]
-  )
-  return <ScrollContext.Provider value={value}>{children}</ScrollContext.Provider>
-})
+  }
+  const value = {scrollDown, scrollToBottom, scrollUp, setScrollRef}
+  return <ScrollContext value={value}>{children}</ScrollContext>
+}

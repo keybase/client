@@ -86,7 +86,7 @@ go/keybase_freebsd
 go/keybase_netbsd
 go/keybase_openbsd
 
+.playwright-cli
 .cursor
-.claude
+.claude/settings.local.json
 .*-mcp
-CLAUDE.md

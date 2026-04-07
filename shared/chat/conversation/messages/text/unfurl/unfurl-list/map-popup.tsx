@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 type Props = {
   coord: T.Chat.Coordinate
@@ -19,7 +19,7 @@ const UnfurlMapPopup = (props: Props) => {
   const author = props.author ?? ''
   const httpSrv = useConfigState(s => s.httpSrv)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     clearModals()
   }
@@ -37,18 +37,9 @@ const UnfurlMapPopup = (props: Props) => {
   const height = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionHeight) : 300
   const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
-    <Kb.Modal
-      scrollViewContainerStyle={{maxWidth: undefined}}
-      header={{
-        leftButton: (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
-          </Kb.Text>
-        ),
-        title: 'Location',
-      }}
-      footer={{
-        content: (
+    <>
+      <LocationMap mapSrc={mapSrc} height={height} width={width} />
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
             {isAuthor && isLiveLocation && (
@@ -61,12 +52,26 @@ const UnfurlMapPopup = (props: Props) => {
               />
             )}
           </Kb.Box2>
-        ),
-      }}
-    >
-      <LocationMap mapSrc={mapSrc} height={height} width={width} />
-    </Kb.Modal>
+      </Kb.Box2>
+    </>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+}))
 
 export default UnfurlMapPopup

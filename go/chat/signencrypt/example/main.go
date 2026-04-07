@@ -13,7 +13,7 @@ import (
 	"github.com/keybase/client/go/kbcrypto"
 )
 
-func failf(format string, args ...interface{}) {
+func failf(format string, args ...any) {
 	log.Printf(format, args...)
 	os.Exit(1)
 }

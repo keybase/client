@@ -1,18 +1,17 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useConfigState} from '@/constants/config'
-import * as DarkMode from '@/constants/darkmode'
+import {useConfigState} from '@/stores/config'
+import * as DarkMode from '@/stores/darkmode'
 
 const Display = () => {
   const allowAnimatedEmojis = useConfigState(s => s.allowAnimatedEmojis)
   const forceSmallNav = useConfigState(s => s.forceSmallNav)
   const setForceSmallNav = useConfigState(s => s.dispatch.setForceSmallNav)
-  const toggleForceSmallNav = React.useCallback(() => {
+  const toggleForceSmallNav = () => {
     setForceSmallNav(!forceSmallNav)
-  }, [forceSmallNav, setForceSmallNav])
+  }
 
   const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
   const toggleAnimatedEmoji = C.useRPC(T.RPCChat.localToggleEmojiAnimationsRpcPromise)
@@ -29,7 +28,7 @@ const Display = () => {
   }
   return (
     <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="Header">Appearance</Kb.Text>
@@ -70,17 +69,14 @@ const Display = () => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ScrollView>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    flex: 1,
     padding: Kb.Styles.globalMargins.small,
-    width: '100%',
   },
   scrollview: {
     width: '100%',

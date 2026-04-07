@@ -1,4 +1,4 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Z from '@/util/zustand'
 import type * as T from '@/constants/types'
 
@@ -10,16 +10,16 @@ const initialStore: Store = {
   openedRow: Chat.noConversationIDKey,
 }
 
-interface State extends Store {
+type State = Store & {
   dispatch: {
     setOpenRow: (row: T.Chat.ConversationIDKey) => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
 export const useOpenedRowState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
-    resetState: 'default',
+    resetState: Z.defaultReset,
     setOpenRow: row => {
       set(state => {
         state.openedRow = row

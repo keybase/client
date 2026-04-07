@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
@@ -71,10 +71,10 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
+    () => {
       setFocused(true)
       return () => setFocused(false)
-    }, [setFocused])
+    }
   )
 
   // For boosting the list to scroll not behind the popup on mobile
@@ -113,13 +113,13 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       {!Kb.Styles.isPhone && <Kb.BoxGrow />}
       {children}
       {/* bottom safe area */}
-      {Kb.Styles.isPhone && <Kb.Box style={{height: bottom}} />}
+      {Kb.Styles.isPhone && <Kb.Box2 direction="vertical" style={{height: bottom}} />}
     </Kb.Box2>
   )
   return Kb.Styles.isMobile ? (
     <>
-      {<Kb.Box style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
-      <Kb.FloatingBox>{popup}</Kb.FloatingBox>
+      {<Kb.Box2 direction="vertical" style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
+      <Kb.Popup>{popup}</Kb.Popup>
     </>
   ) : (
     popup
@@ -209,7 +209,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   if (!membersSet) {
     // we shouldn't be rendered
     return null
@@ -218,9 +218,9 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
 
   // Members tab functions
   const onAddToChannel = () =>
-    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
+    navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: members}})
   const onRemoveFromTeam = () =>
-    navigateAppend({props: {members: members, teamID}, selected: 'teamReallyRemoveMember'})
+    navigateAppend({name: 'teamReallyRemoveMember', params: {members: members, teamID}})
 
   return (
     <ActionsWrapper>
@@ -304,8 +304,8 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   // Channels tab functions
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
+  const navigateAppend = C.Router2.navigateAppend
+  const onDelete = () => navigateAppend({name: 'teamDeleteChannel', params: {teamID}})
 
   return (
     <ActionsWrapper>
@@ -321,7 +321,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
     }))
   )
   const {channelname} = channelInfo
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   if (!membersSet.size) {
     // we shouldn't be rendered
@@ -331,11 +331,11 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
 
   // Members tab functions
   const onAddToChannel = () =>
-    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
+    navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: members}})
   const onRemoveFromChannel = () =>
     navigateAppend({
-      props: {conversationIDKey, members: [...members], teamID},
-      selected: 'teamReallyRemoveChannelMember',
+      name: 'teamReallyRemoveChannelMember',
+      params: {conversationIDKey, members: [...members], teamID},
     })
 
   return (

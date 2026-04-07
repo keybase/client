@@ -1,42 +1,23 @@
 import * as C from '@/constants'
-import {useSettingsEmailState} from '@/constants/settings-email'
-import {useSettingsNotifState} from '@/constants/settings-notifications'
-import {useSettingsState, settingsAccountTab} from '@/constants/settings'
+import {settingsAccountTab} from '@/constants/settings'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import type {UseNotificationSettingsResult} from './use-notification-settings'
 
-const useNotifications = () => {
-  const _groups = useSettingsNotifState(s => s.groups)
-  const allowEdit = useSettingsNotifState(s => s.allowEdit)
-  const toggle = useSettingsNotifState(s => s.dispatch.toggle)
+const useNotifications = (notificationSettings: UseNotificationSettingsResult) => {
+  const {allowEdit, groups, toggle} = notificationSettings
   const showEmailSection = useSettingsEmailState(s => s.emails.size > 0)
-  const waitingForResponse = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
-    navigateUp()
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onClickYourAccount = () => {
     navigateAppend(settingsAccountTab)
-  }
-  const onToggle = toggle
-  const onToggleUnsubscribeAll = toggle
-  const loadSettings = useSettingsState(s => s.dispatch.loadSettings)
-  const refresh = useSettingsNotifState(s => s.dispatch.refresh)
-
-  const onRefresh = () => {
-    loadSettings()
-    refresh()
   }
 
   return {
     allowEdit,
-    groups: _groups,
-    onBack,
+    groups,
     onClickYourAccount,
-    onRefresh,
-    onToggle,
-    onToggleUnsubscribeAll,
-    showEmailSection: showEmailSection,
-    waitingForResponse: waitingForResponse,
+    onToggle: toggle,
+    onToggleUnsubscribeAll: toggle,
+    showEmailSection,
   }
 }
 

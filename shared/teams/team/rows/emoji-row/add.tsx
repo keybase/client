@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -15,17 +15,17 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const canManageEmoji = useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
     nav.safeNavigateAppend({
-      props: {conversationIDKey: convID, teamID},
-      selected: 'teamAddEmoji',
+      name: 'teamAddEmoji',
+      params: {conversationIDKey: convID, teamID},
     })
   const onAddAlias = () =>
     nav.safeNavigateAppend({
-      props: {conversationIDKey: convID},
-      selected: 'teamAddEmojiAlias',
+      name: 'teamAddEmojiAlias',
+      params: {conversationIDKey: convID},
     })
   // clear filter on unmount
   return !canManageEmoji ? null : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Button
           mode="Secondary"
@@ -61,7 +61,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
     ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    justifyContent: 'space-between',
   },
   filterInput: {
     marginRight: Kb.Styles.globalMargins.tiny,
@@ -72,7 +71,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
-  text: {padding: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default AddEmoji

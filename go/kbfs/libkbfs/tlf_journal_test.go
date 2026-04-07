@@ -964,7 +964,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdCount := 10
 
 	prevRoot := firstPrevRoot
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -979,7 +979,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	_, mdEnd, _, err := tlfJournal.getJournalEnds(ctx)
 	require.NoError(t, err)
 
-	for i := 0; i < mdCount; i++ {
+	for range mdCount {
 		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, defaultFlushContext())
 		require.NoError(t, err)
 		require.True(t, flushed)
@@ -1059,7 +1059,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 type orderedBlockServer struct {
 	BlockServer
 	lock      *sync.Mutex
-	puts      *[]interface{}
+	puts      *[]any
 	onceOnPut func()
 }
 
@@ -1084,7 +1084,7 @@ func (s *orderedBlockServer) Shutdown(context.Context) {}
 type orderedMDServer struct {
 	MDServer
 	lock      *sync.Mutex
-	puts      *[]interface{}
+	puts      *[]any
 	onceOnPut func() error
 }
 
@@ -1144,7 +1144,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 	md1 := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
 
 	var lock sync.Mutex
-	var puts []interface{}
+	var puts []any
 
 	bserver := orderedBlockServer{
 		lock: &lock,
@@ -1200,12 +1200,12 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 	// but there are other possible orderings which respect the
 	// above is-put-before constraints and also respect the
 	// kbfsmd.Revision ordering.
-	expectedPuts1 := []interface{}{
+	expectedPuts1 := []any{
 		bid1, kbfsmd.Revision(10), bid2, bid3,
 		kbfsmd.Revision(11), kbfsmd.Revision(12),
 	}
 	// This is possible since block puts are done in parallel.
-	expectedPuts2 := []interface{}{
+	expectedPuts2 := []any{
 		bid1, kbfsmd.Revision(10), bid3, bid2,
 		kbfsmd.Revision(11), kbfsmd.Revision(12),
 	}
@@ -1231,7 +1231,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	md1 := config.makeMD(firstRev, firstPrevRoot)
 
 	var lock sync.Mutex
-	var puts []interface{}
+	var puts []any
 
 	bserver := orderedBlockServer{
 		lock: &lock,
@@ -1363,7 +1363,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
 	var lock sync.Mutex
-	var puts []interface{}
+	var puts []any
 
 	bserver := orderedBlockServer{
 		lock: &lock,
@@ -1385,7 +1385,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Revision 1
 	var bids []kbfsblock.ID
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
-	for i := 0; i < rev1BlockEnd; i++ {
+	for i := range rev1BlockEnd {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
 		bids = append(bids, bid)
@@ -1434,7 +1434,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 		require.True(t, ok)
 		if mdID == md1.Revision() {
 			md1Slot = i
-			for j := 0; j < rev1BlockEnd; j++ {
+			for j := range rev1BlockEnd {
 				t.Logf("Checking bid %s at %d", bids[j], i)
 				require.True(t, bidsSeen[bids[j]])
 			}
@@ -1467,7 +1467,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	tlfJournal.onBranchChange = testBranchChangeListener{branchCh}
 
 	var lock sync.Mutex
-	var puts []interface{}
+	var puts []any
 
 	unpauseBlockPutCh := make(chan struct{})
 	noticeBlockPutCh := make(chan struct{})
@@ -1485,7 +1485,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 
 	// Revision 1
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
-	for i := 0; i < rev1BlockEnd; i++ {
+	for i := range rev1BlockEnd {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
 		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
@@ -1512,7 +1512,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	<-noticeBlockPutCh
 
 	markers := uint64(1)
-	for i := 0; i < ForcedBranchSquashRevThreshold+1; i++ {
+	for range ForcedBranchSquashRevThreshold + 1 {
 		rev++
 		md := config.makeMD(rev, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -1629,7 +1629,7 @@ func testTLFJournalFlushRetry(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdCount := 10
 
 	prevRoot := firstPrevRoot
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -1660,7 +1660,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 		ctx, tempdir, config, cancel, tlfJournal, delegate)
 
 	var bids []kbfsblock.ID
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
 		bids = append(bids, bid)
@@ -1673,7 +1673,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdCount := 3
 
 	prevRoot := firstPrevRoot
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -1751,7 +1751,7 @@ func testTLFJournalSquashByBytes(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdCount := 3
 
 	prevRoot := firstPrevRoot
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
@@ -1783,7 +1783,7 @@ func testTLFJournalFirstRevNoSquash(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdCount := 4
 
 	var firstMdID, prevRoot kbfsmd.ID
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)

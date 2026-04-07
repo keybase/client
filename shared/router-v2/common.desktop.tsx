@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Header from './header/index.desktop'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {TabActions} from '@react-navigation/core'
 import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 
@@ -16,7 +16,7 @@ export const defaultNavigationOptions = {
   header: (p: object) => <Header {...(p as any)} />,
   headerBackTitle: 'temp',
   headerBackVisible: true,
-  headerLeft: (p: object) => <HeaderLeftArrow {...p} />,
+  headerLeft: (p: object) => <HeaderLeftButton {...p} />,
   headerLeftContainerStyle: {
     paddingLeft: 8,
     width: actionWidth,
@@ -55,7 +55,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
     navRef.current = navigation
   }, [navigation])
 
-  const onSelectTab = React.useCallback((tab: string) => {
+  const onSelectTab = (tab: string) => {
     const r = routesRef.current?.find((r: {name?: string; key?: string}) => {
       return r.name === tab
     })
@@ -65,7 +65,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
       ? navRef.current.emit({
           canPreventDefault: true,
           target: key,
-          // @ts-ignore
+          // @ts-ignore tabPress is valid but not in the emit type
           type: 'tabPress',
         })
       : {defaultPrevented: false}
@@ -76,7 +76,7 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
         target: stateKeyRef.current,
       })
     }
-  }, [])
+  }
 
   return onSelectTab
 }

@@ -3,12 +3,12 @@ import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   disabled: boolean
   mixedMode?: boolean
   name: string
@@ -22,12 +22,12 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 }
 
 const TLFContainer = (p: OwnProps) => {
-  const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
+  const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
   const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
-  const onOpen = useOpen({destinationPickerIndex, path})
+  const onOpen = useOpen({destinationPickerSource, path})
   const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
   // Only include the user if they're the only one
   const usernames = !_usernames.length ? [username] : _usernames
@@ -53,13 +53,13 @@ const TLFContainer = (p: OwnProps) => {
   )
 
   const avatar = (
-    <Kb.Box style={styles.avatarBox}>
+    <Kb.Box2 direction="horizontal" style={styles.avatarBox}>
       {FS.isTeamPath(path) ? (
         <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
       ) : (
         <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={usernames} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   return (
@@ -67,10 +67,11 @@ const TLFContainer = (p: OwnProps) => {
       {!!loadPathMetadata && <FsPathMetadataLoader path={path} />}
       <StillCommon
         path={path}
+        inDestinationPicker={!!destinationPickerSource}
         onOpen={disabled ? undefined : onOpen}
         mixedMode={mixedMode}
         writingToJournal={false}
-        body={Kb.Styles.isMobile ? <Kb.Box style={rowStyles.itemBox}>{content}</Kb.Box> : undefined}
+        body={Kb.Styles.isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
         content={
           !Kb.Styles.isMobile ? (
             <>

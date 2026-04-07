@@ -13,8 +13,6 @@ class Request {
   param: object
   // Let others know our waiting state
   _waitingHandler: SimpleWaiting
-  // If we're waiting for a response
-  _waiting: boolean = false
 
   constructor(method: MethodKey, param: object, waitingHandler: SimpleWaiting) {
     this.method = method
@@ -23,7 +21,6 @@ class Request {
   }
 
   updateWaiting(waiting: boolean, err?: RPCError) {
-    this._waiting = waiting
     this._waitingHandler(waiting, err)
   }
 }

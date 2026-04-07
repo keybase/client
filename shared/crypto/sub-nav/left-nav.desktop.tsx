@@ -43,7 +43,14 @@ const SubNav = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
         <Kb.BoxGrow>
-          <Kb.List items={getRows()} renderItem={renderItem} keyProperty="key" style={styles.list} />
+          <Kb.List
+            items={getRows()}
+            renderItem={renderItem}
+            keyProperty="key"
+            extraData={props.selected}
+            style={styles.list}
+            itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
+          />
         </Kb.BoxGrow>
       </Kb.Box2>
       {props.children}

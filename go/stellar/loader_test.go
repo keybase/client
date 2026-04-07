@@ -24,7 +24,7 @@ func TestLoaderClean(t *testing.T) {
 	require.Equal(t, 0, n)
 	require.Equal(t, 0, loader.RequestsLen())
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		addRandomPayment(t, loader)
 		addRandomRequest(t, loader)
 	}
@@ -37,7 +37,7 @@ func TestLoaderClean(t *testing.T) {
 	require.Equal(t, 0, n)
 	require.Equal(t, 10, loader.RequestsLen())
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		addRandomPayment(t, loader)
 		addRandomRequest(t, loader)
 	}
@@ -54,7 +54,7 @@ func TestLoaderClean(t *testing.T) {
 	require.Equal(t, 40, loader.RequestsLen())
 
 	// make sure clean works more than one time:
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		addRandomPayment(t, loader)
 		addRandomRequest(t, loader)
 	}

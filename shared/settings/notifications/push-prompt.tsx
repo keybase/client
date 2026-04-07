@@ -1,56 +1,19 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
 const PushPrompt = () => {
-  const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onNoPermissions = React.useCallback(() => {
-    rejectPermissions()
-    clearModals()
-  }, [rejectPermissions, clearModals])
-  const onRequestPermissions = React.useCallback(() => {
+  const clearModals = C.Router2.clearModals
+  const onRequestPermissions = () => {
     requestPermissions()
     clearModals()
-  }, [requestPermissions, clearModals])
+  }
+
   return (
-    <Kb.Modal
-      header={{
-        hideBorder: true,
-        rightButton: (
-          <Kb.ClickableBox onClick={onNoPermissions}>
-            <Kb.Text type="BodyBig" negative={true}>
-              Skip
-            </Kb.Text>
-          </Kb.ClickableBox>
-        ),
-        style: styles.header,
-        title: (
-          <Kb.Text type="Header" lineClamp={1} center={true} negative={true}>
-            Allow notifications
-          </Kb.Text>
-        ),
-      }}
-      footer={{
-        content: (
-          <Kb.WaitingButton
-            fullWidth={true}
-            onClick={onRequestPermissions}
-            label="Allow notifications"
-            waitingKey={C.waitingKeyPushPermissionsRequesting}
-            style={styles.button}
-            type="Success"
-          />
-        ),
-        hideBorder: true,
-        style: styles.footer,
-      }}
-      mobileStyle={styles.background}
-    >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Icon type="illustration-turn-on-notifications" style={styles.image} />
+    <>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
+        <Kb.ImageIcon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
         </Kb.Text>
@@ -59,14 +22,23 @@ const PushPrompt = () => {
           is a crucial security setting.
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooterNoBorder, styles.footer])}>
+          <Kb.WaitingButton
+            fullWidth={true}
+            onClick={onRequestPermissions}
+            label="Allow notifications"
+            waitingKey={C.waitingKeyPushPermissionsRequesting}
+            style={styles.button}
+            type="Success"
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      background: {backgroundColor: Kb.Styles.globalColors.blue},
       button: Kb.Styles.platformStyles({
         common: {
           maxHeight: 40,
@@ -78,19 +50,25 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.blue,
-        justifyContent: 'center',
         padding: Kb.Styles.globalMargins.small,
       },
       footer: {
         backgroundColor: Kb.Styles.globalColors.blue,
       },
-      header: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        color: Kb.Styles.globalColors.white,
-      },
       image: Kb.Styles.platformStyles({
         isTablet: {
           alignSelf: 'center',
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
         },
       }),
     }) as const

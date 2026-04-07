@@ -173,7 +173,7 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		}
 	}()
 
-	for tries := 0; tries < maxRetries; tries++ {
+	for tries := range maxRetries {
 		mctx.Debug("keygenIfNeeded attempt #%d: %v", tries, err)
 		merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 		if err != nil {
@@ -448,7 +448,7 @@ func (e *EKLib) teambotCacheKey(teamID keybase1.TeamID, botUID keybase1.UID, gen
 	return fmt.Sprintf("%s-%s-%d", teamID, botUID, generation)
 }
 
-func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
+func (e *EKLib) isEntryExpired(val any) (*teamEKGenCacheEntry, bool) {
 	cacheEntry, ok := val.(*teamEKGenCacheEntry)
 	if !ok || cacheEntry == nil {
 		return nil, false

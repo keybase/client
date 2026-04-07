@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_audit.avdl
 
 package keybase1
@@ -28,11 +28,11 @@ func NotifyAuditProtocol(i NotifyAuditInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyAudit",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"rootAuditError": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RootAuditErrorArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RootAuditErrorArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RootAuditErrorArg)(nil), args)
@@ -43,11 +43,11 @@ func NotifyAuditProtocol(i NotifyAuditInterface) rpc.Protocol {
 				},
 			},
 			"boxAuditError": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BoxAuditErrorArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BoxAuditErrorArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BoxAuditErrorArg)(nil), args)
@@ -67,12 +67,12 @@ type NotifyAuditClient struct {
 
 func (c NotifyAuditClient) RootAuditError(ctx context.Context, message string) (err error) {
 	__arg := RootAuditErrorArg{Message: message}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.rootAuditError", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.rootAuditError", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyAuditClient) BoxAuditError(ctx context.Context, message string) (err error) {
 	__arg := BoxAuditErrorArg{Message: message}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.boxAuditError", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.boxAuditError", []any{__arg}, 0*time.Millisecond)
 	return
 }

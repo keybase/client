@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package io.keybase.ossifrage
 
 import android.app.Application
@@ -8,7 +6,6 @@ import android.content.res.Configuration
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.multidex.MultiDex
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
@@ -17,21 +14,17 @@ import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
-import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.common.ReleaseLevel
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
-import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
-import com.facebook.react.defaults.DefaultReactNativeHost
 import expo.modules.ApplicationLifecycleDispatcher.onApplicationCreate
 import expo.modules.ApplicationLifecycleDispatcher.onConfigurationChanged
+import expo.modules.ExpoReactHostFactory
 import io.keybase.ossifrage.modules.BackgroundSyncWorker
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import java.util.concurrent.TimeUnit
-import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ReactNativeHostWrapper
 
 internal class AppLifecycleListener(private val context: Context?) :
     DefaultLifecycleObserver {
@@ -40,29 +33,22 @@ internal class AppLifecycleListener(private val context: Context?) :
             try {
                 Glide.get(context!!).clearDiskCache()
             } catch (e: Exception) {
+                NativeLogger.warn("AppLifecycleListener: error clearing Glide disk cache", e)
             }
         }.start()
     }
 }
 
 class MainApplication : Application(), ReactApplication {
-    // ReactNativeHost is still required by getDefaultReactHost even in new architecture
-    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
-      this,
-      object : DefaultReactNativeHost(this) {
-        override fun getPackages(): List<ReactPackage> =
-            PackageList(this).packages.apply {
-              add(KBReactPackage())
+
+    override val reactHost: ReactHost by lazy {
+        ExpoReactHostFactory.getDefaultReactHost(
+            context = applicationContext,
+            packageList = PackageList(this).packages.apply {
+                add(KBReactPackage())
             }
-
-        override fun getJSMainModuleName(): String = "index"
-        override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
-        override val isNewArchEnabled: Boolean = true
-    })
-
-    override val reactHost: ReactHost
-        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+        )
+    }
 
 
     override fun onCreate() {
@@ -93,11 +79,6 @@ class MainApplication : Application(), ReactApplication {
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             AppLifecycleListener(context)
         )
-    }
-
-    override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(base)
-        MultiDex.install(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

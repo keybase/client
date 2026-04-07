@@ -1,34 +1,33 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
-import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
-import * as Teams from '@/constants/teams'
+import {useRoute, type RouteProp} from '@react-navigation/native'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import * as Teams from '@/stores/teams'
+
+type ChatRootParams = {
+  conversationIDKey?: string
+  infoPanel?: object
+}
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams}, 'chatRoot'>
 
 const Header = () => {
-  const {params} = useRoute<RootRouteProps<'chatRoot'>>()
+  const {params} = useRoute<ChatRootRoute>()
   return (
-    <Chat.ChatProvider
-      canBeNull={true}
-      id={
-        // eslint-disable-next-line
-        params?.conversationIDKey ?? Chat.noConversationIDKey
-      }
-    >
+    <Chat.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
       <Header2 />
     </Chat.ChatProvider>
   )
 }
 
 const Header2 = () => {
+  const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
-  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
+  const infoPanelShowing = !!params.infoPanel
   const data = Chat.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s
@@ -65,11 +64,9 @@ const Header2 = () => {
   const {id: conversationIDKey, openFolder: onOpenFolder, toggleThreadSearch, participants} = data
 
   // length ===1 means just you so show yourself
-  const withoutSelf = React.useMemo(() => {
-    return participants && participants.length > 1
-      ? participants.filter(part => part !== username)
-      : participants
-  }, [participants, username])
+  const withoutSelf = participants && participants.length > 1
+    ? participants.filter(part => part !== username)
+    : participants
 
   const canEditDesc = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname).editChannelDescription)
   const otherInfo = useUsersState(s => s.infoMap.get(first))
@@ -77,35 +74,31 @@ const Header2 = () => {
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
 
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onToggleThreadSearch = () => {
     toggleThreadSearch()
-  }, [toggleThreadSearch])
-  const unMuteConversation = React.useCallback(() => {
+  }
+  const unMuteConversation = () => {
     mute(false)
-  }, [mute])
+  }
 
-  const onToggleInfoPanel = React.useCallback(() => {
+  const onToggleInfoPanel = () => {
     showInfoPanel(!infoPanelShowing, undefined)
-  }, [showInfoPanel, infoPanelShowing])
+  }
 
   const showActions = Chat.isValidConversationIDKey(conversationIDKey)
 
-  const descStyleOverride = React.useMemo(
-    () =>
-      ({
-        del: styles.markdownOverride,
-        em: styles.markdownOverride,
-        fence: styles.markdownOverride,
-        inlineCode: styles.markdownOverride,
-        kbfsPath: styles.markdownOverride,
-        link: styles.markdownOverride,
-        mailto: styles.markdownOverride,
-        paragraph: styles.markdownOverride,
-        preview: styles.markdownOverride,
-        strong: styles.markdownOverride,
-      }) as StyleOverride,
-    []
-  )
+  const descStyleOverride = {
+    del: styles.markdownOverride,
+    em: styles.markdownOverride,
+    fence: styles.markdownOverride,
+    inlineCode: styles.markdownOverride,
+    kbfsPath: styles.markdownOverride,
+    link: styles.markdownOverride,
+    mailto: styles.markdownOverride,
+    paragraph: styles.markdownOverride,
+    preview: styles.markdownOverride,
+    strong: styles.markdownOverride,
+  } as StyleOverride
 
   let description = !!desc && (
     <Kb.Markdown
@@ -240,7 +233,7 @@ const Header2 = () => {
   )
 
   const bottomRow = renderDescription ? (
-    <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+    <Kb.Box2 direction="vertical" overflow="hidden" style={styles.descriptionContainer} fullWidth={true}>
       {!!fullName && !!withoutSelf && withoutSelf.length === 1 ? (
         <Kb.BoxGrow>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
@@ -270,7 +263,7 @@ const Header2 = () => {
   ) : null
 
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="horizontal" flex={1} style={styles.container}>
       {leftSide}
       <Kb.Box2
         direction="horizontal"
@@ -298,7 +291,6 @@ const styles = Kb.Styles.styleSheetCreate(
       actionIcons: {paddingBottom: Kb.Styles.globalMargins.tiny},
       clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
-        flexGrow: 1,
         flexShrink: 0,
         height: 40 - 1,
         width: '100%',
@@ -317,7 +309,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       descriptionContainer: {
         height: 17,
-        overflow: 'hidden',
       },
       descriptionTextContainer: Kb.Styles.platformStyles({
         isElectron: {alignItems: 'baseline'},

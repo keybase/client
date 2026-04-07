@@ -6,8 +6,8 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
@@ -23,13 +23,13 @@ const DeleteTeamContainer = (op: OwnProps) => {
         .filter(name => !!name)
     : undefined
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
   const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
-  const _onDelete = React.useCallback(() => {
+  const _onDelete = () => {
     deleteTeam(teamID)
-  }, [deleteTeam, teamID])
+  }
   const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
 
   const [checks, setChecks] = React.useState({
@@ -109,7 +109,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
 const Header = (props: {teamname: string}) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
   </>
 )
 

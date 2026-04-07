@@ -482,7 +482,7 @@ func (u *userPlusDevice) readInviteEmails(email string) []string {
 	}
 
 	exp := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		token, err := tokens.AtIndex(i).GetString()
 		if err != nil {
 			u.tc.T.Fatal(err)
@@ -554,7 +554,7 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 
 func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
 	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
@@ -571,7 +571,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 
 func (u *userPlusDevice) waitForMetadataUpdateGregor(reason string) {
 	// process 10 team rotations or 10s worth of time
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		select {
 		case <-u.notifications.metadataUpdateCh:
 			u.tc.T.Logf("metadata update received for reason %q", reason)
@@ -604,7 +604,7 @@ func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.Badge
 }
 
 func (u *userPlusDevice) drainGregor() {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		select {
 		case <-u.notifications.changeCh:
 			u.tc.T.Logf("dropped notification")
@@ -628,7 +628,7 @@ func (u *userPlusDevice) waitForAnyRotateByID(teamID keybase1.TeamID, toSeqno ke
 
 	// process 20 team rotate notifications or 10s worth of time
 	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("rotate received: %s", spew.Sdump(arg))
@@ -647,7 +647,7 @@ func (u *userPlusDevice) waitForAnyRotateByID(teamID keybase1.TeamID, toSeqno ke
 func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
 	// process 20 team rotate notifications or 10s worth of time
 	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("membership change received: %+v", arg)
@@ -707,7 +707,7 @@ func (u *userPlusDevice) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 }
 
 func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqno) {
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		after, err := teams.Load(context.TODO(), u.tc.G, keybase1.LoadTeamArg{
 			Name:        team,
 			ForceRepoll: true,
@@ -729,7 +729,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 
 func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
 	args.ForceRepoll = true
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		details, err := teams.Load(context.Background(), u.tc.G, args)
 		if err != nil {
 			require.Fail(u.tc.T, fmt.Sprintf("error while loading team %v: %v", args, err))
@@ -1263,7 +1263,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 		revokeAttemptsMax := 3
 		var err error
-		for i := 0; i < revokeAttemptsMax; i++ {
+		for i := range revokeAttemptsMax {
 			t.Logf("revoke attempt %v / %v", i+1, revokeAttemptsMax)
 			revokeEngine := engine.NewRevokeDeviceEngine(alice.tc.G, engine.RevokeDeviceEngineArgs{
 				ID:        target.ID,
@@ -1960,13 +1960,13 @@ func TestForceRepollState(t *testing.T) {
 	require.NoError(t, err)
 
 	team := tt.users[0].createTeam()
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
 		tt.users[0].removeTeamMember(team, tt.users[1].username)
 	}
 	found := false
 	w := 10 * time.Millisecond
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		found = tt.users[0].tc.G.GetTeamLoader().(*teams.TeamLoader).InForceRepollMode(mctx)
 		if found {
 			break

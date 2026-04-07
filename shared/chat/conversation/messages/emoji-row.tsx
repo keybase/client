@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -8,41 +8,50 @@ import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 
 type OwnProps = {
   className?: string
+  hasUnfurls?: boolean
+  messageType?: T.Chat.MessageType
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
+function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
 
-  const {hasUnfurls, setReplyTo, toggleMessageReaction, type} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal)
-      const type = m?.type
-      const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
-      const {toggleMessageReaction, setReplyTo} = s.dispatch
-      return {hasUnfurls, setReplyTo, toggleMessageReaction, type}
-    })
-  )
+  const {setReplyTo, toggleMessageReaction, type: subscriptionType, hasUnfurls: subscriptionHasUnfurls} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const {toggleMessageReaction, setReplyTo} = s.dispatch
+        // When both are provided as props, skip message map lookup (constant return = no re-renders)
+        if (p.messageType !== undefined && p.hasUnfurls !== undefined) {
+          return {hasUnfurls: false as boolean, setReplyTo, toggleMessageReaction, type: null as T.Chat.MessageType | null}
+        }
+        const m = s.messageMap.get(ordinal)
+        return {
+          hasUnfurls: p.hasUnfurls !== undefined ? false : (m?.unfurls?.size ?? 0) > 0,
+          setReplyTo,
+          toggleMessageReaction,
+          type: p.messageType !== undefined ? null : (m?.type ?? null),
+        }
+      })
+    )
+  const type = p.messageType ?? subscriptionType ?? undefined
+  const hasUnfurls = p.hasUnfurls ?? subscriptionHasUnfurls
 
   const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = Chat.useChatNavigateAppend()
-  const _onForward = React.useCallback(() => {
+  const _onForward = () => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal},
-      selected: 'chatForwardMsgPick',
+      name: 'chatForwardMsgPick',
+      params: {conversationIDKey, ordinal},
     }))
-  }, [navigateAppend, ordinal])
-  const onReact = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
-  const _onReply = React.useCallback(() => {
+  }
+  const onReact = (emoji: string) => {
+    toggleMessageReaction(ordinal, emoji)
+  }
+  const _onReply = () => {
     setReplyTo(ordinal)
-  }, [setReplyTo, ordinal])
+  }
 
   const onForward = hasUnfurls || type === 'attachment' ? _onForward : undefined
   const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
@@ -56,7 +65,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const _showPicker = () => _setShowingPicker(true)
   const _hidePicker = () => _setShowingPicker(false)
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([styles.container, style])}
@@ -69,32 +78,32 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.Box
+        <Kb.ClickableBox
           className="hover_container"
           onClick={_showPicker}
           style={styles.iconContainer}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.Box>
+        </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.Box className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
         {!!onForward && (
-          <Kb.Box
+          <Kb.ClickableBox
             className="hover_container"
             onClick={onForward}
             style={styles.iconContainer}
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.Box>
+          </Kb.ClickableBox>
         )}
       </Kb.Box2>
       {showingPicker && (
-        <Kb.FloatingBox
+        <Kb.Popup
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
           position="top right"
@@ -102,16 +111,16 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
           propagateOutsideClicks={false}
         >
           <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
-        </Kb.FloatingBox>
+        </Kb.Popup>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
-})
+}
 
 const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) => {
   const [hovering, setHovering] = React.useState(false)
-  const _setHovering = React.useCallback(() => setHovering(true), [])
-  const _setNotHovering = React.useCallback(() => setHovering(false), [])
+  const _setHovering = () => setHovering(true)
+  const _setNotHovering = () => setHovering(false)
   return (
     <Kb.ClickableBox
       onClick={props.onClick}

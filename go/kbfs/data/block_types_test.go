@@ -5,6 +5,7 @@
 package data
 
 import (
+	"maps"
 	"sync"
 	"testing"
 
@@ -120,9 +121,7 @@ func (dbf *dirBlockFuture) NewEmpty() Block {
 func (dbf *dirBlockFuture) Set(other Block) {
 	otherDbf := other.(*dirBlockFuture)
 	childrenCopy := make(map[string]dirEntryFuture, len(otherDbf.Children))
-	for k, v := range otherDbf.Children {
-		childrenCopy[k] = v
-	}
+	maps.Copy(childrenCopy, otherDbf.Children)
 	ptrsCopy := make([]indirectDirPtrFuture, len(otherDbf.IPtrs))
 	copy(ptrsCopy, otherDbf.IPtrs)
 	dbf.Children = childrenCopy

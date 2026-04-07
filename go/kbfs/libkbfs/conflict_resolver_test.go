@@ -91,7 +91,7 @@ type failingCodec struct {
 	kbfscodec.Codec
 }
 
-func (fc failingCodec) Encode(interface{}) ([]byte, error) {
+func (fc failingCodec) Encode(any) ([]byte, error) {
 	return nil, errors.New("Stopping resolution process early")
 }
 
@@ -389,7 +389,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 		if !ok || (len(v) != len(v2)) {
 			break
 		}
-		for i := 0; i < len(v); i++ {
+		for i := range v {
 			if x, ok := v[i].(*dropUnmergedAction); ok {
 				y := v2[i].(*dropUnmergedAction)
 				y.op.setWriterInfo(x.op.getWriterInfo())

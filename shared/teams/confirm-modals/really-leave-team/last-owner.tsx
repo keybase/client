@@ -8,26 +8,7 @@ type Props = {
 }
 
 const ReallyLeaveTeam = (props: Props) => (
-  <Kb.Modal
-    mode="Wide"
-    onClose={props.onBack}
-    header={{hideBorder: true}}
-    footer={{
-      content: (
-        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            onClick={props.onBack}
-            label="Got it"
-            fullWidth={true}
-            type="Dim"
-            disabled={props.stillLoadingTeam}
-          />
-        </Kb.ButtonBar>
-      ),
-      hideBorder: true,
-      style: styles.footer,
-    }}
-  >
+  <>
     {props.stillLoadingTeam ? (
       <Kb.ProgressIndicator type="Huge" />
     ) : (
@@ -61,7 +42,18 @@ const ReallyLeaveTeam = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     )}
-  </Kb.Modal>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+      <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+        <Kb.Button
+          onClick={props.onBack}
+          label="Got it"
+          fullWidth={true}
+          type="Dim"
+          disabled={props.stillLoadingTeam}
+        />
+      </Kb.ButtonBar>
+    </Kb.Box2>
+  </>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -115,6 +107,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       height: 34,
       lineHeight: 34,
       width: 34,
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

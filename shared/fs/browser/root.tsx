@@ -1,16 +1,15 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import TlfType from './rows/tlf-type'
 import Tlf from './rows/tlf'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
-  destinationPickerIndex?: number
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
 }
 
 type SectionListItem = {
@@ -33,11 +32,11 @@ const rootRows: Array<SectionListItem> = [
   },
 ]
 
-const getRenderItem = (destinationPickerIndex?: number) =>
+const getRenderItem = (destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource) =>
   function WrapTLF({item, section}: {item: SectionListItem; section: {key: string}}) {
     return section.key === 'section-top' ? (
       <WrapRow>
-        <TlfType name={item.name as T.FS.TlfType} destinationPickerIndex={destinationPickerIndex} />
+        <TlfType name={item.name as T.FS.TlfType} destinationPickerSource={destinationPickerSource} />
       </WrapRow>
     ) : (
       <WrapRow>
@@ -46,7 +45,7 @@ const getRenderItem = (destinationPickerIndex?: number) =>
           name={item.name}
           tlfType={item.tlfType}
           mixedMode={true}
-          destinationPickerIndex={destinationPickerIndex}
+          destinationPickerSource={destinationPickerSource}
         />
       </WrapRow>
     )
@@ -65,48 +64,45 @@ const useTopNTlfs = (
   tlfType: T.FS.TlfType
 }> =>
   // TODO move these sorting to Go HOTPOT-433
-  React.useMemo(
-    () =>
-      [...tlfs.values()]
-        .filter(({isIgnored}) => !isIgnored)
-        .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
-        .slice(0, n)
-        .map(({name, tlfMtime}) => ({
-          name,
-          tlfMtime,
-          tlfType,
-        })),
-    [tlfs, n, tlfType]
-  )
+  [...tlfs.values()]
+    .filter(({isIgnored}) => !isIgnored)
+    .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
+    .slice(0, n)
+    .map(({name, tlfMtime}) => ({
+      name,
+      tlfMtime,
+      tlfType,
+    }))
 
-const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
+const useRecentTlfs = (
+  n: number,
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+): Array<SectionListItem> => {
   const tlfs = useFSState(s => s.tlfs)
   const username = useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)
   const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)
-  return React.useMemo(() => {
-    const recent = [...privateTopN, ...publicTopN, ...teamTopN]
-      .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
-      .map(({name, tlfType}) => ({name, tlfType}))
-    const afterFilter =
-      // This isn't perfect since it doesn't cover the case where a team TLF
-      // could be readonly. But to do that we'd need some new caching in KBFS
-      // to plumb it into the Tlfs structure without awful overhead.
-      typeof destinationPickerIndex === 'number'
-        ? recent.filter(
-            ({name, tlfType}) =>
-              !FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
-          )
-        : recent
-    return afterFilter.slice(0, n)
-  }, [destinationPickerIndex, privateTopN, publicTopN, teamTopN, n, username])
+  const recent = [...privateTopN, ...publicTopN, ...teamTopN]
+    .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)
+    .map(({name, tlfType}) => ({name, tlfType}))
+  const afterFilter =
+    // This isn't perfect since it doesn't cover the case where a team TLF
+    // could be readonly. But to do that we'd need some new caching in KBFS
+    // to plumb it into the Tlfs structure without awful overhead.
+    destinationPickerSource
+      ? recent.filter(
+          ({name, tlfType}) =>
+            !FS.hideOrDisableInDestinationPicker(tlfType, name, username, true)
+        )
+      : recent
+  return afterFilter.slice(0, n)
 }
 
-const Root = React.memo(function Root({destinationPickerIndex}: Props) {
-  const top10 = useRecentTlfs(10, destinationPickerIndex)
+function Root({destinationPickerSource}: Props) {
+  const top10 = useRecentTlfs(10, destinationPickerSource)
   const sections = [
-    ...(destinationPickerIndex
+    ...(destinationPickerSource
       ? [] // don't show sfmi banner in destination picker
       : [
           {
@@ -129,7 +125,7 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
       title: 'Recent folders',
     },
   ]
-  const renderItem = React.useMemo(() => getRenderItem(destinationPickerIndex), [destinationPickerIndex])
+  const renderItem = getRenderItem(destinationPickerSource)
 
   return (
     <Kb.BoxGrow>
@@ -141,6 +137,6 @@ const Root = React.memo(function Root({destinationPickerIndex}: Props) {
       />
     </Kb.BoxGrow>
   )
-})
+}
 
 export default Root

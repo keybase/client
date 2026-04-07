@@ -1,0 +1,29 @@
+appId: keybase.ios
+
+---
+
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: "true"
+
+- runFlow: ../subflows/navigate-to-teams.yaml
+
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          id: "teamsList"
+          direction: UP
+          duration: 150
+
+- repeat:
+    times: 3
+    commands:
+      - swipe:
+          id: "teamsList"
+          direction: DOWN
+          duration: 150
+
+# Press Home to trigger app background → flushes profiler data
+- pressKey: Home

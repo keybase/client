@@ -140,7 +140,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 	// Hopefully this is enough for slow CI but you never know.
 	wait := 10 * time.Millisecond * libkb.CITimeMultiplier(g)
 	found := false
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		if poller(i) {
 			found = true
 			break

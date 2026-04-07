@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
-import Box from './box'
+import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
@@ -17,7 +17,7 @@ import {useSafeAreaFrame} from 'react-native-safe-area-context'
 // "top center" for now.
 
 const Kb = {
-  Box,
+  Box2,
   ClickableBox,
   Portal,
   Text,
@@ -32,12 +32,13 @@ type Dims = {
 
 const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => (
   <Kb.Portal hostName="popup-root">
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       pointerEvents="box-none"
       style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, props.style])}
     >
       {props.children}
-    </Kb.Box>
+    </Kb.Box2>
   </Kb.Portal>
 )
 
@@ -52,17 +53,14 @@ const WithTooltip = (props: Props) => {
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
-  const isMounted = C.useIsMounted()
   const {width: screenWidth, height: screenHeight} = useSafeAreaFrame()
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        setVisible(false)
-      }
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      setVisible(false)
+    }
+  })
 
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
@@ -86,10 +84,6 @@ const WithTooltip = (props: Props) => {
       }),
     ] as const)
       .then(([c, t]) => {
-        if (!isMounted()) {
-          return
-        }
-
         const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
         const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
         if (position === 'bottom center') {

@@ -297,7 +297,7 @@ func (k *TeamEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEp
 // of posting a new key, causing the post to fail. Detect these conditions
 // and retry.
 func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error) {
-	for tries := 0; tries < maxRetries; tries++ {
+	for tries := range maxRetries {
 		if err = retryFn(); err == nil {
 			return nil
 		}

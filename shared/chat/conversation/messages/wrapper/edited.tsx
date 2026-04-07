@@ -1,32 +1,18 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useIsHighlighted, useOrdinal} from '../ids-context'
+import {useIsHighlighted} from '../ids-context'
 
-export const useEdited = () => {
-  const ordinal = useOrdinal()
-  const hasBeenEdited = Chat.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    const hasBeenEdited = message?.hasBeenEdited ?? false
-    return hasBeenEdited
-  })
-
+export const useEdited = (hasBeenEdited: boolean) => {
   const showCenteredHighlight = useIsHighlighted()
-  const edited = React.useMemo(() => {
-    return hasBeenEdited ? (
-      <Kb.Text
-        key="isEdited"
-        type="BodyTiny"
-        fixOverdraw={!showCenteredHighlight}
-        style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
-        virtualText={true}
-      >
-        EDITED
-      </Kb.Text>
-    ) : null
-  }, [showCenteredHighlight, hasBeenEdited])
-
-  return edited
+  return hasBeenEdited ? (
+    <Kb.Text
+      key="isEdited"
+      type="BodyTiny"
+      style={showCenteredHighlight ? styles.editedHighlighted : styles.edited}
+      virtualText={true}
+    >
+      EDITED
+    </Kb.Text>
+  ) : null
 }
 
 const styles = Kb.Styles.styleSheetCreate(

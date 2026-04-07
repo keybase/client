@@ -1,15 +1,20 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import type * as T from '@/constants/types'
 import Main from './main'
-import openURL from '@/util/open-url'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/constants/config'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type TeamsRootParamList = {
+  teamsRoot: {
+    filter?: string
+    sort?: T.Teams.TeamListSort
+  }
+}
 
 const orderTeams = (
   teams: ReadonlyMap<string, T.Teams.TeamMeta>,
@@ -46,51 +51,34 @@ const orderTeams = (
   })
 }
 
-const Connected = () => {
+type Props = {
+  filter?: string
+  sort?: T.Teams.TeamListSort
+}
+
+const Connected = ({filter = '', sort = 'role'}: Props) => {
   const data = Teams.useTeamsState(
     C.useShallow(s => {
-      const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
-      const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
-      const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = dispatch
+      const {deletedTeams, activityLevels, teamMeta, dispatch} = s
+      const {newTeamRequests, newTeams, teamIDToResetUsers} = s
+      const {getTeams, launchNewTeamWizardOrModal} = dispatch
       return {
         activityLevels,
         deletedTeams,
         getTeams,
         launchNewTeamWizardOrModal,
-        manageChatChannels,
         newTeamRequests,
         newTeams,
         teamIDToResetUsers,
-        teamListFilter,
-        teamListSort,
         teamMeta,
       }
     })
   )
   const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
-  const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
-  const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = data
+  const {teamIDToResetUsers, teamMeta: _teams} = data
+  const {getTeams, launchNewTeamWizardOrModal} = data
 
-  const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
-
-  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
-  const onHideChatBanner = () => {
-    updateGregorCategory('sawChatBanner', 'true')
-  }
-  const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
-  }
-  const onReadMore = () => {
-    openURL('https://keybase.io/blog/introducing-keybase-teams')
-  }
-
-  const teams = React.useMemo(
-    () =>
-      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
-    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
-  )
-
-  const loadTeams = getTeams
+  const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -98,28 +86,19 @@ const Connected = () => {
   useActivityLevels(true)
 
   const nav = useSafeNavigation()
+  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
   const onCreateTeam = () => launchNewTeamWizardOrModal()
-  const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
-
-  const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
-  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
 
   return (
-    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={getTeams}>
       <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
-        onManageChat={onManageChat}
-        onViewTeam={onViewTeam}
         deletedTeams={deletedTeams}
-        loaded={loaded}
-        newTeamRequests={newTeamRequests}
-        newTeams={newTeams}
-        onHideChatBanner={onHideChatBanner}
-        onOpenFolder={onOpenFolder}
-        onReadMore={onReadMore}
+        onChangeSort={sortOrder => navigation.setParams({filter, sort: sortOrder})}
+        sortOrder={sort}
         teams={teams}
-        teamresetusers={teamIDToResetUsers}
       />
     </Kb.Reloadable>
   )

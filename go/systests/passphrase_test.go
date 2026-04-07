@@ -367,13 +367,13 @@ func (n *testRecoverUIRecover) OutputDesc(od libkb.OutputDescriptor, s string) e
 	return nil
 }
 
-func (n *testRecoverUIRecover) Printf(f string, args ...interface{}) (int, error) {
+func (n *testRecoverUIRecover) Printf(f string, args ...any) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
 
-func (n *testRecoverUIRecover) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+func (n *testRecoverUIRecover) PrintfUnescaped(f string, args ...any) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
 	return len(s), nil

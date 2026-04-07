@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatDurationForAutoreset} from '@/util/timestamp'
@@ -18,7 +18,7 @@ const ResetModalImpl = () => {
       onCancelReset: s.dispatch.cancelReset,
     }))
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   React.useEffect(() => {
     if (!active) {
       navigateUp()
@@ -43,27 +43,19 @@ const ResetModalImpl = () => {
         top: 0,
       }}
     >
-      <Kb.Modal
-        header={{title: 'Account reset initiated'}}
-        footer={{
-          content: (
-            <Kb.WaitingButton
-              type="Danger"
-              fullWidth={true}
-              onClick={onCancelReset}
-              waitingKey={C.waitingKeyAutoresetCancel}
-              label="Cancel account reset"
-            />
-          ),
-        }}
-        banners={
-          error ? (
-            <Kb.Banner color="red" key="errors">
-              <Kb.BannerParagraph bannerColor="red" content={error} />
-            </Kb.Banner>
-          ) : null
-        }
-      >
+      <>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+          <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>Account reset initiated</Kb.Text>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          </Kb.Box2>
+        </Kb.Box2>
+        {error ? (
+          <Kb.Banner color="red" key="errors">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null}
         <Kb.Box2 fullWidth={true} direction="vertical">
           <Kb.Box2
             gap="small"
@@ -73,26 +65,58 @@ const ResetModalImpl = () => {
             style={styles.textContainer}
             centerChildren={true}
           >
-            <Kb.Icon
+            <Kb.ImageIcon
               type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-              color={Kb.Styles.globalColors.black_20}
-              fontSize={48}
+              style={styles.skullIcon}
             />
             <Kb.Text type="Body" center={true}>
               {msg}
             </Kb.Text>
             <Kb.Text type="Body" center={true}>
-              But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
+              {"But... it looks like you're already logged in. Congrats! You should cancel the reset, since "}
               clearly you have access to your devices.
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Modal>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.WaitingButton
+            type="Danger"
+            fullWidth={true}
+            onClick={onCancelReset}
+            waitingKey={C.waitingKeyAutoresetCancel}
+            label="Cancel account reset"
+          />
+        </Kb.Box2>
+      </>
     </Kb.SafeAreaView>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  header: {
+    borderBottomColor: Kb.Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+    minHeight: 48,
+  },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  skullIcon: {
+    height: 48,
+    width: 48,
+  },
   textContainer: Kb.Styles.platformStyles({
     common: {
       paddingLeft: Kb.Styles.globalMargins.small,

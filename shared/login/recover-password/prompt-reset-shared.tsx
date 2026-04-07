@@ -1,29 +1,28 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
-import * as React from 'react'
+import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 
 export type Props = {
   resetPassword?: boolean
+  skipPassword: boolean
+  username: string
 }
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const skipPassword = AutoReset.useAutoResetState(s => s.skipPassword)
   const error = AutoReset.useAutoResetState(s => s.error)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const {resetPassword} = props
+  const {resetPassword, skipPassword, username} = props
 
   const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
-  const username = useRecoverState(s => s.username)
 
-  const onContinue = React.useCallback(() => {
+  const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
       nav.safeNavigateUp()
@@ -33,18 +32,18 @@ const PromptReset = (props: Props) => {
       submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
-      resetAccount()
+      resetAccount(username)
     } else {
-      nav.safeNavigateAppend('resetKnowPassword', true)
+      nav.safeNavigateAppend({name: 'resetKnowPassword', params: {username}}, true)
     }
-  }, [submitResetPassword, resetAccount, skipPassword, resetPassword, nav])
-  const onBack = React.useCallback(() => {
+  }
+  const onBack = () => {
     if (skipPassword) {
       startRecoverPassword({replaceRoute: true, username})
     } else {
       nav.safeNavigateUp()
     }
-  }, [startRecoverPassword, skipPassword, nav, username])
+  }
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
 
   return (
@@ -67,7 +66,6 @@ const PromptReset = (props: Props) => {
       onBack={onBack}
       noBackground={true}
       title={title}
-      leftActionText="Cancel"
     >
       <Kb.Box2
         alignItems="center"
@@ -111,7 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     maxWidth: 500,
   },
-  questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
   topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',

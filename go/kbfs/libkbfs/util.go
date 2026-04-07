@@ -92,12 +92,12 @@ const (
 
 // Warninger is an interface that only waprs the Warning method.
 type Warninger interface {
-	Warning(format string, args ...interface{})
+	Warning(format string, args ...any)
 }
 
 // CtxWithRandomIDReplayable returns a replayable context with a
 // random id associated with the given log key.
-func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
+func CtxWithRandomIDReplayable(ctx context.Context, tagKey any,
 	tagName string, log Warninger,
 ) context.Context {
 	ctx = logger.ConvertRPCTagsToLogTags(ctx)

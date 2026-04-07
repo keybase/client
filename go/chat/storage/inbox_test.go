@@ -128,7 +128,7 @@ func TestInboxQueries(t *testing.T) {
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 20
 	var convs []types.RemoteConversation
-	for i := 0; i < numConvs; i++ {
+	for i := range numConvs {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
 		convs = append(convs, conv)
 	}
@@ -248,7 +248,7 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 20
 	var convs []types.RemoteConversation
-	for i := 0; i < numConvs; i++ {
+	for i := range numConvs {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
 		conv.Conv.MaxMsgSummaries = nil
 		convs = append(convs, conv)
@@ -770,7 +770,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil))
 	var joinedConvs []types.RemoteConversation
 	numJoinedConvs := 5
-	for i := 0; i < numJoinedConvs; i++ {
+	for i := range numJoinedConvs {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
 		conv.Conv.Metadata.IdTriple.Tlfid = tlfID
 		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
@@ -837,7 +837,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	sort.Sort(utils.ByConvID(roleUpdates))
 	sort.Sort(utils.RemoteConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
-	for i := 0; i < len(res); i++ {
+	for i := range res {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
 		require.Equal(t, keybase1.TeamRole_WRITER, res[i].Conv.ReaderInfo.UntrustedTeamRole)

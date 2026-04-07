@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -346,7 +347,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 		reader := newCountingReader(&buf)
 		decoder := json.NewDecoder(reader)
-		var obj interface{}
+		var obj any
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
 		jsonBytes = reader.numRead()
@@ -394,10 +395,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 		timeout = arg.InitialTimeout
 	}
 
-	retries := 1
-	if arg.RetryCount > 1 {
-		retries = arg.RetryCount
-	}
+	retries := max(arg.RetryCount, 1)
 
 	multiplier := 1.0
 	if arg.RetryMultiplier != 0.0 {
@@ -405,7 +403,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 	}
 
 	var lastErr error
-	for i := 0; i < retries; i++ {
+	for i := range retries {
 		if i > 0 {
 			m.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
@@ -459,10 +457,8 @@ func checkHTTPStatus(arg APIArg, resp *http.Response) error {
 	} else {
 		set = arg.HTTPStatus
 	}
-	for _, status := range set {
-		if resp.StatusCode == status {
-			return nil
-		}
+	if slices.Contains(set, resp.StatusCode) {
+		return nil
 	}
 	return NewAPIErrorFromHTTPResponse(resp)
 }
@@ -686,10 +682,8 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		set = []int{SCOk}
 	}
 
-	for _, status := range set {
-		if ast.Code == status {
-			return nil
-		}
+	if slices.Contains(set, ast.Code) {
+		return nil
 	}
 
 	return appStatusToTypedError(ast)

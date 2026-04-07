@@ -4,13 +4,14 @@ import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  filter?: string
   path: T.FS.Path // path to the parent folder containering the rows,
-  destinationPickerIndex?: number
   headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
@@ -101,12 +102,12 @@ const getTlfRowsFromTlfs = (
   tlfs: T.Immutable<Map<string, T.FS.Tlf>>,
   tlfType: T.Immutable<T.FS.TlfType>,
   username: string,
-  destinationPickerIndex?: number
+  inDestinationPicker?: boolean
 ): Array<SortableRowItem> =>
   [...tlfs]
     .filter(([_, {isIgnored}]) => !isIgnored)
     .map(([name, {isNew, tlfMtime}]) => ({
-      disabled: FS.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
+      disabled: FS.hideOrDisableInDestinationPicker(tlfType, name, username, inDestinationPicker),
       isNew,
       key: `tlf:${name}`,
       name,
@@ -118,7 +119,6 @@ const getTlfRowsFromTlfs = (
 
 type StateProps = {
   _edits: T.FS.Edits
-  _filter: string | undefined
   _pathItems: T.FS.PathItems
   _sortSetting: T.FS.SortSetting
   _tlfs: T.FS.Tlfs
@@ -128,7 +128,7 @@ type StateProps = {
 const getTlfItemsFromStateProps = (
   stateProps: StateProps,
   path: T.FS.Path,
-  destinationPickerIndex?: number
+  inDestinationPicker?: boolean
 ): Array<RowTypes.NamedRowItem> => {
   if (stateProps._tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
@@ -139,7 +139,7 @@ const getTlfItemsFromStateProps = (
   const {tlfList, tlfType} = FS.getTlfListAndTypeFromPath(stateProps._tlfs, path)
 
   return sortRowItems(
-    getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
+    getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, inDestinationPicker),
     stateProps._sortSetting,
     (T.FS.pathIsNonTeamTLFList(path) && stateProps._username) || ''
   )
@@ -148,7 +148,7 @@ const getTlfItemsFromStateProps = (
 const getNormalRowItemsFromStateProps = (
   stateProps: StateProps,
   path: T.FS.Path,
-  destinationPickerIndex?: number
+  inDestinationPicker?: boolean
 ): Array<RowTypes.NamedRowItem> => {
   const level = T.FS.getPathLevel(path)
   switch (level) {
@@ -156,7 +156,7 @@ const getNormalRowItemsFromStateProps = (
     case 1:
       return [] // should never happen
     case 2:
-      return getTlfItemsFromStateProps(stateProps, path, destinationPickerIndex)
+      return getTlfItemsFromStateProps(stateProps, path, inDestinationPicker)
     default:
       return getInTlfItemsFromStateProps(stateProps, path)
   }
@@ -171,31 +171,30 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {_edits, _filter, _pathItems, _sortSetting, _tlfs} = useFSState(
+  const {_edits, _pathItems, _sortSetting, _tlfs} = useFSState(
     C.useShallow(s => {
       const _edits = s.edits
-      const _filter = s.folderViewFilter
       const _pathItems = s.pathItems
       const _sortSetting = FS.getPathUserSetting(s.pathUserSettings, o.path).sort
       const _tlfs = s.tlfs
-      return {_edits, _filter, _pathItems, _sortSetting, _tlfs}
+      return {_edits, _pathItems, _sortSetting, _tlfs}
     })
   )
   const _username = useCurrentUserState(s => s.username)
 
   const s = {
     _edits,
-    _filter,
     _pathItems,
     _sortSetting,
     _tlfs,
     _username,
   }
+  const inDestinationPicker = !!o.destinationPickerSource
 
-  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, o.destinationPickerIndex)
-  const filteredRowItems = filterRowItems(normalRowItems, _filter)
+  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, inDestinationPicker)
+  const filteredRowItems = filterRowItems(normalRowItems, o.filter)
   const props = {
-    destinationPickerIndex: o.destinationPickerIndex,
+    destinationPickerSource: o.destinationPickerSource,
     emptyMode: !normalRowItems.length
       ? 'empty'
       : !filteredRowItems.length
@@ -204,7 +203,7 @@ const Container = (o: OwnProps) => {
     items: [
       ...(o.headerRows || []),
       // don't show top bar in destinationPicker.
-      ...(typeof o.destinationPickerIndex === 'number' ? [] : topBarAsRow(o.path)),
+      ...(inDestinationPicker ? [] : topBarAsRow(o.path)),
       ...filteredRowItems,
       ...// If we are in the destination picker, inject two empty rows so when
       // user scrolls to the bottom nothing is blocked by the
@@ -213,7 +212,7 @@ const Container = (o: OwnProps) => {
       // TODO: add `footerRows` and inject these from destination-picker, so that
       // Rows componenet don't need to worry about whether it's in
       // destinationPicker mode or not.
-      (!C.isMobile && typeof o.destinationPickerIndex === 'number'
+      (!C.isMobile && inDestinationPicker
         ? [
             {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
             {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,

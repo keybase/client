@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
 import fs from 'fs'
 import path from 'path'
@@ -9,6 +9,13 @@ import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '@/constants/platform'
 import logger from '@/logger'
 import zlib from 'zlib'
+import {
+  ExitCodeAuthCanceledError,
+  ExitCodeFuseKextError,
+  ExitCodeFuseKextPermissionError,
+  ExitFuseCriticalUpdate,
+  ExitFuseCriticalUpdateFailed,
+} from '@/constants/values'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
@@ -56,18 +63,6 @@ type ResultType =
   | undefined
 
 const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: ErrorTypes) => {
-  // Copied from old constants/favorite.js
-  // See Installer.m: KBExitFuseKextError
-  const ExitCodeFuseKextError = 4
-  // See Installer.m: KBExitFuseKextPermissionError
-  const ExitCodeFuseKextPermissionError = 5
-  // See Installer.m: KBExitAuthCanceledError
-  const ExitCodeAuthCanceledError = 6
-  // See Installer.m: KBExitFuseCriticalUpdate
-  const ExitFuseCriticalUpdate = 8
-  // See install_darwin.go: exitCodeFuseCriticalUpdateFailed
-  const ExitFuseCriticalUpdateFailed = 300
-
   const results = result?.componentResults || []
   results.forEach(cr => {
     if (cr.status?.code === 0) {

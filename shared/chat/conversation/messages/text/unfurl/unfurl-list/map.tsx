@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -9,10 +9,10 @@ import {formatDurationForLocation} from '@/util/timestamp'
 import {getUnfurlInfo} from './use-state'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
-const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
+function UnfurlMap(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -55,7 +55,8 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {height, width, imageURL, youAreAuthor, time, id} = data
   const onViewMap = () => {
     navigateAppend({
-      props: {
+      name: 'chatUnfurlMapPopup',
+      params: {
         author,
         conversationIDKey: id,
         coord,
@@ -63,7 +64,6 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
         url,
       },
-      selected: 'chatUnfurlMapPopup',
     })
   }
 
@@ -94,7 +94,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
       )}
     </Kb.Box2>
   )
-})
+}
 
 type AgeProps = {
   time: number

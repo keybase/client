@@ -1,4 +1,4 @@
-import type * as RPCTypes from './rpc-gen'
+import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType

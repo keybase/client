@@ -20,7 +20,7 @@ type Pathable struct {
 
 type DiskLRUEntry struct {
 	Key          string
-	Value        interface{}
+	Value        any
 	Ctime        time.Time
 	LastAccessed time.Time
 }
@@ -160,7 +160,7 @@ func (d *DiskLRU) MaxSize() int {
 	return d.maxSize
 }
 
-func (d *DiskLRU) debug(ctx context.Context, lctx libkb.LRUContext, msg string, args ...interface{}) {
+func (d *DiskLRU) debug(ctx context.Context, lctx libkb.LRUContext, msg string, args ...any) {
 	lctx.GetLog().CDebugf(ctx, fmt.Sprintf("DiskLRU: %s(%d): ", d.name, d.version)+msg, args...)
 }
 
@@ -286,7 +286,7 @@ func (d *DiskLRU) removeEntry(ctx context.Context, lctx libkb.LRUContext, index 
 }
 
 func (d *DiskLRU) addEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex, key string,
-	value interface{},
+	value any,
 ) (evicted *DiskLRUEntry, err error) {
 	// Add the new item
 	index.Put(key)
@@ -326,7 +326,7 @@ func (d *DiskLRU) addEntry(ctx context.Context, lctx libkb.LRUContext, index *di
 	return evicted, nil
 }
 
-func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, value interface{}) (evicted *DiskLRUEntry, err error) {
+func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, value any) (evicted *DiskLRUEntry, err error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -444,7 +444,7 @@ func (d *DiskLRU) getPath(entry DiskLRUEntry) (res string, ok bool) {
 	if res, ok = entry.Value.(string); ok {
 		return res, ok
 	}
-	if _, ok = entry.Value.(map[string]interface{}); ok {
+	if _, ok = entry.Value.(map[string]any); ok {
 		var pathable Pathable
 		jstr, _ := json.Marshal(entry.Value)
 		_ = json.Unmarshal(jstr, &pathable)

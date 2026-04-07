@@ -1,17 +1,18 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as Kb from '@/common-adapters'
 import PeopleItem from './item'
-import * as Settings from '@/constants/settings/util'
-import {usePeopleState} from '@/constants/people'
+import * as Settings from '@/constants/settings'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
   badged: boolean
   confirmLabel?: string
+  dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
   dismissable: boolean
+  getData: (markViewed?: boolean, force?: boolean) => void
   iconUrl?: string
   id: T.RPCGen.HomeScreenAnnouncementID
   text: string
@@ -19,11 +20,9 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
-  const loadPeople = usePeopleState(s => s.dispatch.loadPeople)
-  const dismissAnnouncement = usePeopleState(s => s.dispatch.dismissAnnouncement)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
+    ownProps
+  const {navigateAppend, switchTab} = C.Router2
   const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {
@@ -69,11 +68,11 @@ const Container = (ownProps: OwnProps) => {
       default:
     }
     dismissAnnouncement(id)
-    loadPeople(true, 10)
+    getData(true, true)
   }
   const _onDismiss = () => {
     dismissAnnouncement(id)
-    loadPeople(true, 10)
+    getData(true, true)
   }
   const onDismiss = dismissable ? _onDismiss : undefined
 
@@ -82,9 +81,9 @@ const Container = (ownProps: OwnProps) => {
       badged={badged}
       icon={
         iconUrl ? (
-          <Kb.Image2 src={iconUrl} style={styles.icon} />
+          <Kb.Image src={iconUrl} style={styles.icon} />
         ) : (
-          <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
+          <Kb.ImageIcon type="icon-keybase-logo-80" style={styles.icon} />
         )
       }
     >

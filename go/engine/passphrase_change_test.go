@@ -179,7 +179,7 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 	// cache is properly busted.
 	newPassphrase := "password1234"
 	numChanges := 3
-	for i := 0; i < numChanges; i++ {
+	for i := range numChanges {
 
 		arg := &keybase1.PassphraseChangeArg{
 			Passphrase: newPassphrase,
@@ -229,7 +229,7 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 	// cache is properly busted.
 	newPassphrase := "password1234"
 	numChanges := 3
-	for i := 0; i < numChanges; i++ {
+	for i := range numChanges {
 
 		arg := &keybase1.PassphraseChangeArg{
 			Passphrase: newPassphrase,

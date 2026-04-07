@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build (!windows && !darwin) || netbsd || openbsd || freebsd
-// +build !windows,!darwin netbsd openbsd freebsd
 
 package install
 

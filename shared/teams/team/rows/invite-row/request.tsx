@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../menu-header.new'
+import {navToProfile} from '@/constants/router'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -42,8 +42,7 @@ export const TeamRequestRow = (props: Props) => {
   const approveWord = reset ? 'Readmit' : 'Approve'
   const denyWord = reset ? 'Remove' : 'Deny'
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
@@ -76,13 +75,11 @@ export const TeamRequestRow = (props: Props) => {
           positionFallbacks={positionFallbacks}
         />
       )
-    },
-    [approveWord, ctime, denyWord, fullName, props, reset, username]
-  )
+    }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type="Small"
       icon={<Kb.Avatar username={username} size={32} />}
       body={
@@ -118,7 +115,7 @@ export const TeamRequestRow = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-            floatingContainerStyle={styles.floatingRolePicker}
+
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
             onCancel={props.onCancelRolePicker}
@@ -134,7 +131,7 @@ export const TeamRequestRow = (props: Props) => {
               waiting={props.waiting}
             />
           </FloatingRolePicker>
-          <Kb.Button
+          <Kb.IconButton
             mode="Secondary"
             type="Dim"
             small={true}
@@ -160,52 +157,7 @@ const styleCharm = {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   bg: {backgroundColor: Kb.Styles.globalColors.white},
-  clickContainer: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 1,
-    },
-    isElectron: {width: 'initial'},
-  }),
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-      alignItems: 'center',
-      flexDirection: 'row',
-      flexGrow: 0,
-      flexShrink: 1,
-      height: 48,
-      justifyContent: 'space-between',
-      width: '100%',
-    },
-    isPhone: {
-      flexDirection: 'column',
-      height: 112,
-    },
-    isTablet: {height: 56},
-  }),
   disabled: {backgroundColor: Kb.Styles.globalColors.white, opacity: 0.4},
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
-  floatingRolePickerContainer: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginTop: 0,
-    },
-    isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
-  }),
-  icon: {
-    marginLeft: Kb.Styles.globalMargins.small,
-    marginRight: Kb.Styles.globalMargins.tiny,
-  },
   ignoreButton: {marginLeft: Kb.Styles.globalMargins.xtiny},
   letInButton: {
     backgroundColor: Kb.Styles.globalColors.green,
@@ -214,11 +166,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   newFullName: {
     ...Kb.Styles.globalStyles.flexOne,
     paddingRight: Kb.Styles.globalMargins.xtiny,
-  },
-  userDetails: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    flexGrow: 1,
-    marginLeft: Kb.Styles.globalMargins.small,
   },
 }))
 
@@ -291,9 +238,8 @@ const Container = (ownProps: OwnProps) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
-    showUserProfile(username)
+    navToProfile(username)
   }
   const props = {
     _notifLabel: _notifLabel,

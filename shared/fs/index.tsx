@@ -5,12 +5,13 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
+  lastClosedPublicBannerTlf?: string
   path: T.FS.Path
   pathType: T.FS.PathType
 }
@@ -40,7 +41,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
   switch (props.pathType) {
     case T.FS.PathType.Folder:
-      return <Browser path={props.path} />
+      return <Browser lastClosedPublicBannerTlf={props.lastClosedPublicBannerTlf} path={props.path} />
     case T.FS.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
@@ -57,7 +58,10 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = {path?: T.FS.Path}
+type OwnProps = {
+  lastClosedPublicBannerTlf?: string
+  path?: T.FS.Path
+}
 
 const Connected = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
@@ -68,16 +72,17 @@ const Connected = (ownProps: OwnProps) => {
       return {_pathItem, kbfsDaemonStatus}
     })
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const emitBarePreview = () => {
     navigateUp()
-    navigateAppend({props: {path}, selected: 'barePreview'})
+    navigateAppend({name: 'barePreview', params: {path}})
   }
   const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,
+    lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
     path,
     pathType: isDefinitelyFolder ? T.FS.PathType.Folder : _pathItem.type,
   }

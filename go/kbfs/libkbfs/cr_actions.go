@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -1100,13 +1101,7 @@ func (cal crActionList) collapse() crActionList {
 				// Add attributes to the current top action, if not
 				// already there.
 				for _, a := range action.attr {
-					found := false
-					for _, topA := range topAction.attr {
-						if a == topA {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(topAction.attr, a)
 					if !found {
 						topAction.attr = append(topAction.attr, a)
 					}

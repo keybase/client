@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
-import type * as T from '@/constants/types'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import MenuHeader from '../team/rows/menu-header.new'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -34,12 +33,8 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const {infoMap, setUserBlocks} = useUsersState(
-    C.useShallow(s => ({
-      infoMap: s.infoMap,
-      setUserBlocks: s.dispatch.setUserBlocks,
-    }))
-  )
+  const infoMap = useUsersState(s => s.infoMap)
+  const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
   const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
@@ -55,10 +50,17 @@ const ChannelMemberRow = (props: Props) => {
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const crown = React.useMemo(() => {
+  const crown = (() => {
     const type = crownIcon(roleType)
-    return active && type ? <Kb.Icon type={type} style={styles.crownIcon} fontSize={10} /> : null
-  }, [active, roleType])
+    return active && type ? (
+      <Kb.Icon
+        type={type}
+        color={roleType === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        style={styles.crownIcon}
+        fontSize={10}
+      />
+    ) : null
+  })()
   const fullNameLabel =
     fullname && active ? (
       <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
@@ -83,15 +85,15 @@ const ChannelMemberRow = (props: Props) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const onChat = React.useCallback(() => {
+  const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
-  }, [username, previewConversation])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onEditMember = React.useCallback(() => {
+  }
+  const navigateAppend = C.Router2.navigateAppend
+  const onEditMember = () => {
     yourOperations.manageMembers &&
       username &&
-      navigateAppend({props: {teamID, username}, selected: 'teamMember'})
-  }, [yourOperations.manageMembers, username, navigateAppend, teamID])
+      navigateAppend({name: 'teamMember', params: {teamID, username}})
+  }
   const checkCircle = (
     <Kb.CheckCircle
       checked={memberSelected}
@@ -105,12 +107,12 @@ const ChannelMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={username} size={32} />
 
-      <Kb.Box2 direction="vertical" style={styles.nameContainer}>
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+      <Kb.Box2 direction="vertical" flex={1} style={styles.nameContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ConnectedUsernames type="BodySemibold" usernames={props.username} />
-        </Kb.Box>
+        </Kb.Box2>
 
-        <Kb.Box style={styles.nameContainerInner}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
           {fullNameLabel}
           {crown}
           {!active && (
@@ -123,110 +125,100 @@ const ChannelMemberRow = (props: Props) => {
             {!!active && Teams.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onOpenProfile = () => username && showUserProfile(username)
-      const onRemoveFromChannel = () =>
-        navigateAppend({
-          props: {conversationIDKey, members: [username], teamID},
-          selected: 'teamReallyRemoveChannelMember',
-        })
-      const onBlock = () => {
-        username &&
-          setUserBlocks([
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onOpenProfile = () => username && navToProfile(username)
+    const onRemoveFromChannel = () =>
+      navigateAppend({
+        name: 'teamReallyRemoveChannelMember',
+        params: {conversationIDKey, members: [username], teamID},
+      })
+    const onBlock = () => {
+      username &&
+        setUserBlocks(
+          [
             {
-              setChatBlock: true,
-              setFollowBlock: true,
-              username,
+              blocks: [
+                {
+                  setChatBlock: true,
+                  setFollowBlock: true,
+                  username,
+                },
+              ],
             },
-          ])
-      }
+            C.waitingKeyUsersSetUserBlocks,
+          ],
+          () => {},
+          () => {}
+        )
+    }
 
-      const menuItems: Kb.MenuItems = [
-        'Divider',
-        ...(yourOperations.manageMembers
-          ? ([
-              {
-                icon: 'iconfont-chat',
-                onClick: () =>
-                  navigateAppend({props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}),
-                title: 'Add to channels...',
-              },
-              {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
-            ] as Kb.MenuItems)
-          : []),
-        {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
-        {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
-        ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-        ...((yourOperations.manageMembers || isYou) && !props.isGeneral
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-remove',
-                onClick: onRemoveFromChannel,
-                title: 'Remove from channel',
-              },
-            ] as Kb.MenuItems)
-          : []),
-        ...(!isYou
-          ? ([
-              {
-                danger: true,
-                icon: 'iconfont-user-block',
-                onClick: onBlock,
-                title: 'Block',
-              },
-            ] as Kb.MenuItems)
-          : []),
-      ]
-      const menuHeader = (
-        <MenuHeader
-          username={username}
-          fullName={fullname}
-          label={
-            <Kb.Box2 direction="horizontal">
-              <Kb.Text type="BodySmall">{crown}</Kb.Text>
-              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-            </Kb.Box2>
-          }
-        />
-      )
-
-      return (
-        <Kb.FloatingMenu
-          header={menuHeader}
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    },
-    [
-      navigateAppend,
-      setUserBlocks,
-      fullname,
-      roleLabel,
-      teamID,
-      yourOperations,
-      username,
-      isYou,
-      onChat,
-      onEditMember,
-      props.isGeneral,
-      conversationIDKey,
-      crown,
-      showUserProfile,
+    const menuItems: Kb.MenuItems = [
+      'Divider',
+      ...(yourOperations.manageMembers
+        ? ([
+            {
+              icon: 'iconfont-chat',
+              onClick: () =>
+                navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: [username]}}),
+              title: 'Add to channels...',
+            },
+            {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
+          ] as Kb.MenuItems)
+        : []),
+      {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
+      {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
+      ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+      ...((yourOperations.manageMembers || isYou) && !props.isGeneral
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-remove',
+              onClick: onRemoveFromChannel,
+              title: 'Remove from channel',
+            },
+          ] as Kb.MenuItems)
+        : []),
+      ...(!isYou
+        ? ([
+            {
+              danger: true,
+              icon: 'iconfont-user-block',
+              onClick: onBlock,
+              title: 'Block',
+            },
+          ] as Kb.MenuItems)
+        : []),
     ]
-  )
+    const menuHeader = (
+      <MenuHeader
+        username={username}
+        fullName={fullname}
+        label={
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text type="BodySmall">{crown}</Kb.Text>
+            <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+          </Kb.Box2>
+        }
+      />
+    )
+
+    return (
+      <Kb.FloatingMenu
+        header={menuHeader}
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
@@ -237,7 +229,7 @@ const ChannelMemberRow = (props: Props) => {
       style={yourOperations.manageMembers ? styles.mobileMarginsHack : undefined}
     >
       {popup}
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-chat"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -245,7 +237,7 @@ const ChannelMemberRow = (props: Props) => {
         small={true}
         tooltip="Open chat"
       />
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -265,7 +257,7 @@ const ChannelMemberRow = (props: Props) => {
       }
     : {}
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
@@ -292,9 +284,8 @@ const styles = Kb.Styles.styleSheetCreate(
       fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
       listItemMargin: {marginLeft: 0},
       marginRight: {marginRight: Kb.Styles.globalMargins.xtiny},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
-      nameContainer: {flex: 1, marginLeft: Kb.Styles.globalMargins.small},
-      nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
+      nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
       selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
       widenClickableArea: {margin: -5, padding: 5},
     }) as const

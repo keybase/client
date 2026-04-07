@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,23 +11,20 @@ import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
   const createConversationError = Chat.useChatState(s => s.createConversationError)
   const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
-  const _onCreateWithoutThem = React.useCallback(
-    (allowedUsers: ReadonlyArray<string>) => {
-      createConversation(allowedUsers)
-    },
-    [createConversation]
-  )
+  const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
+    createConversation(allowedUsers)
+  }
 
   const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
-  const _onBack = React.useCallback(() => {
+  const _onBack = () => {
     navigateToInbox()
-  }, [navigateToInbox])
+  }
   const onBack = Kb.Styles.isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: ReadonlyArray<string> = []
@@ -73,7 +70,7 @@ const ErrorMessage = () => {
       {createConversationDisallowedUsers.length > 0 && (
         <>
           {createConversationDisallowedUsers.map((username, idx) => (
-            <Kb.ListItem2
+            <Kb.ListItem
               key={username}
               type={Kb.Styles.isMobile ? 'Large' : 'Small'}
               icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
@@ -110,7 +107,7 @@ const ErrorMessage = () => {
   )
 }
 
-const SpecialTopMessage = React.memo(function SpecialTopMessage() {
+function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const data = Chat.useChatContext(
     C.useShallow(s => {
@@ -177,50 +174,50 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     }
   }, [])
 
-  const openPrivateFolder = React.useCallback(() => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
-  }, [username])
+  const openPrivateFolder = () => {
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
+  }
 
   return (
-    <Kb.Box>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
-      <Kb.Box style={styles.spacer} />
+      <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {pendingState === 'error' && <ErrorMessage />}
       {loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           {isHelloBotConversation ? (
             <HelloBotCard />
           ) : (
             <NewChatCard self={isSelfConversation} openPrivateFolder={openPrivateFolder} />
           )}
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {showTeamOffer && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <MakeTeamCard />
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
-        <Kb.Box style={styles.more}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
           </Kb.Text>
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )}
       {!Kb.Styles.isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -228,10 +225,7 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBar: {padding: Kb.Styles.globalMargins.small},
       errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
         paddingBottom: Kb.Styles.globalMargins.medium,
-        width: '100%',
       },
       spacer: {height: Kb.Styles.globalMargins.small},
     }) as const

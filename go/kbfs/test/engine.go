@@ -16,10 +16,10 @@ import (
 )
 
 // User is an implementation-defined object which acts as a handle to a particular user.
-type User interface{}
+type User any
 
 // Node is an implementation-defined object which acts as a handle to a particular filesystem node.
-type Node interface{}
+type Node any
 
 type username string
 

@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 
 //go:build !production && !staging
-// +build !production,!staging
 
 package main
 

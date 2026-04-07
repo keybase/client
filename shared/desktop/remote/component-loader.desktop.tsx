@@ -1,67 +1,51 @@
-// This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
-// Also protects it with an error boundary
-import * as React from 'react'
+/// <reference types="webpack-env" />
+// Loads a remote component. Receives props from the main window via IPC.
+import type * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import * as Kb from '@/common-adapters'
-import RemoteStore from './store.desktop'
-import Root from '../renderer/container.desktop'
+import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import KB2 from '@/util/electron.desktop'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
+import {type RemoteComponentName, useRemotePropsReceiver} from './remote-component.desktop'
 
 setServiceDecoration(ServiceDecoration)
 
-const {closeWindow, showInactive} = KB2.functions
+const {closeWindow} = KB2.functions
 
 disableDragDrop()
 module.hot?.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
-
-type Props<DeserializeProps, SerializeProps> = {
-  child: (p: DeserializeProps) => React.ReactNode
-  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
-  name: RemoteComponents
-  params: string
+type Props<P> = {
+  Component: React.ComponentType<P>
+  component: RemoteComponentName
+  param: string
   showOnProps: boolean
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-function RemoteComponentLoader<DeserializeProps, SerializeProps>(p: Props<DeserializeProps, SerializeProps>) {
-  const storeRef = React.useRef<undefined | RemoteStore<DeserializeProps, SerializeProps>>(undefined)
-  const {deserialize, name, params, showOnProps} = p
-  const [value, setValue] = React.useState<DeserializeProps | undefined>()
-
-  React.useEffect(() => {
-    if (!storeRef.current) {
-      storeRef.current = new RemoteStore<DeserializeProps, SerializeProps>({
-        deserialize,
-        gotPropsCallback: () => {
-          if (showOnProps) {
-            showInactive?.()
-          }
-        },
-        onUpdated: v => {
-          setValue(v)
-        },
-        windowComponent: name,
-        windowParam: params,
-      })
-    }
-    setValue(storeRef.current._value)
-  }, [deserialize, name, params, showOnProps])
+function RemoteComponentLoader<P>(p: Props<P>) {
+  const {Component, component, param, showOnProps} = p
+  const value = useRemotePropsReceiver<P>({component, param, showOnProps})
 
   if (!value) return null
 
   return (
-    <div id="RemoteComponentRoot" style={Kb.Styles.collapseStylesDesktop([p.style ?? styles.container])}>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([p.style ?? styles.container])}
+    >
       <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-        <Root>{p.child(value)}</Root>
+        <GlobalKeyEventHandler>
+          <Component {...value} />
+        </GlobalKeyEventHandler>
       </ErrorBoundary>
-    </div>
+    </Kb.Box2>
   )
 }
 
@@ -78,15 +62,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       errorFallback: {backgroundColor: Kb.Styles.globalColors.white},
-      loading: {backgroundColor: Kb.Styles.globalColors.greyDark},
     }) as const
 )
 
-export default function Loader<DeserializeProps, SerializeProps>(options: {
-  child: (p: DeserializeProps) => React.ReactNode
-  deserialize: (state?: DeserializeProps, props?: Partial<SerializeProps>) => DeserializeProps
-  name: RemoteComponents
-  params?: string
+export default function loadRemoteComponent<P>(options: {
+  Component: React.ComponentType<P>
+  component: RemoteComponentName
+  param?: string
   style?: Kb.Styles.StylesCrossPlatform
   showOnProps?: boolean
 }) {
@@ -94,13 +76,12 @@ export default function Loader<DeserializeProps, SerializeProps>(options: {
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.createRoot(node).render(
-      <RemoteComponentLoader<DeserializeProps, SerializeProps>
-        name={options.name}
-        params={options.params || ''}
+      <RemoteComponentLoader<P>
+        Component={options.Component}
+        component={options.component}
+        param={options.param ?? ''}
         style={options.style}
         showOnProps={options.showOnProps ?? true}
-        deserialize={options.deserialize}
-        child={options.child}
       />
     )
   }

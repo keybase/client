@@ -1,21 +1,18 @@
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import Modal from './modal'
 
 const ProveWebsiteChoice = () => {
-  const cancelAddProof = useProfileState(s => s.dispatch.dynamic.cancelAddProof)
-  const addProof = useProfileState(s => s.dispatch.addProof)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.Router2.navigateAppend
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
-    cancelAddProof?.()
-    clearModals()
+    navigateUp()
   }
   const onDNS = () => {
-    addProof('dns', 'profile')
+    navigateAppend({name: 'profileProofsList', params: {platform: 'dns'}})
   }
   const onFile = () => {
-    addProof('web', 'profile')
+    navigateAppend({name: 'profileProofsList', params: {platform: 'web'}})
   }
 
   return (

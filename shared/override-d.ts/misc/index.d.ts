@@ -1,16 +1,3 @@
-declare module 'qrcode-generator' {
-  const gen: (
-    n: number,
-    s: string
-  ) => {
-    addData: (s: string) => void
-    make: () => void
-    getModuleCount: () => number
-    createDataURL: (n: number) => string
-  }
-  export default gen
-}
-
 declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
   var png: string
   export default png
@@ -23,20 +10,6 @@ declare module 'fs-extra' {
   export const removeSync: (src: string) => void
   export const statSync: StatSyncFn
   export const writeJsonSync: (dst: string, o: {}) => void
-}
-
-declare module 'url-parse' {
-  export class URLParse {
-    constructor(url: string)
-    hostname: string
-    protocol: string
-    username: string
-    port: string
-    pathname: string
-    query: string
-    password: string
-  }
-  export default URLParse
 }
 
 declare module 'emoji-datasource-apple' {

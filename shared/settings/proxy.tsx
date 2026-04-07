@@ -2,23 +2,27 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useSettingsState} from '@/constants/settings'
+import logger from '@/logger'
+import type {RPCError} from '@/util/errors'
 
 const useConnect = () => {
-  const allowTlsMitmToggle = useSettingsState(s => s.didToggleCertificatePinning)
-  const setDidToggleCertificatePinning = useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
-  const proxyData = useSettingsState(s => s.proxyData)
-  const saveProxyData = useSettingsState(s => s.dispatch.setProxyData)
-  const loadProxyData = useSettingsState(s => s.dispatch.loadProxyData)
-  const resetCertPinningToggle = () => {
-    setDidToggleCertificatePinning()
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const [allowTlsMitmToggle, setDidToggleCertificatePinning] = React.useState<boolean | undefined>(undefined)
+  const [proxyData, setProxyData] = React.useState<T.RPCGen.ProxyData | undefined>(undefined)
+  const [showDisableCertPinningWarning, setShowDisableCertPinningWarning] = React.useState(false)
+  const loadProxyData = C.useRPC(T.RPCGen.configGetProxyDataRpcPromise)
+  const saveProxyData = C.useRPC(T.RPCGen.configSetProxyDataRpcPromise)
   const onBack = () => {
-    navigateAppend('login')
+    C.Router2.navigateUp()
   }
   const onDisableCertPinning = () => {
-    navigateAppend('disableCertPinningModal')
+    setShowDisableCertPinningWarning(true)
+  }
+  const onCancelDisableCertPinning = () => {
+    setShowDisableCertPinningWarning(false)
+  }
+  const onConfirmDisableCertPinning = () => {
+    setDidToggleCertificatePinning(true)
+    setShowDisableCertPinningWarning(false)
   }
   const onEnableCertPinning = () => {
     setDidToggleCertificatePinning(false)
@@ -27,11 +31,14 @@ const useConnect = () => {
     allowTlsMitmToggle,
     loadProxyData,
     onBack,
+    onCancelDisableCertPinning,
+    onConfirmDisableCertPinning,
     onDisableCertPinning,
     onEnableCertPinning,
     proxyData,
-    resetCertPinningToggle,
     saveProxyData,
+    setProxyData,
+    showDisableCertPinningWarning,
   }
 
   return props
@@ -58,48 +65,66 @@ const proxyTypeToDisplayName = {
 }
 
 type Props = {
-  loadProxyData: () => void
-  resetCertPinningToggle: () => void
   allowTlsMitmToggle?: boolean
+  loadProxyData: (
+    args: [undefined],
+    setResult: (result: T.RPCGen.ProxyData) => void,
+    setError: (error: RPCError) => void
+  ) => void
   onBack: () => void
+  onCancelDisableCertPinning: () => void
+  onConfirmDisableCertPinning: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
   proxyData?: T.RPCGen.ProxyData
-  saveProxyData: (proxyData: T.RPCGen.ProxyData) => void
+  saveProxyData: (
+    args: [{proxyData: T.RPCGen.ProxyData}],
+    setResult: () => void,
+    setError: (error: RPCError) => void
+  ) => void
+  setProxyData: React.Dispatch<React.SetStateAction<T.RPCGen.ProxyData | undefined>>
+  showDisableCertPinningWarning: boolean
 }
 
 const ProxySettingsComponent = (props: Props) => {
-  const {loadProxyData, resetCertPinningToggle, proxyData} = props
+  const {loadProxyData, proxyData, setProxyData} = props
   const [address, setAddress] = React.useState('')
   const [port, setPort] = React.useState('')
   const [proxyType, setProxyType] = React.useState<'noProxy' | 'httpConnect' | 'socks'>('noProxy')
 
-  React.useEffect(() => {
-    loadProxyData()
-  }, [loadProxyData])
+  const applyProxyData = React.useCallback((proxyData_: T.RPCGen.ProxyData) => {
+    const addressPort = proxyData_.addressWithPort.split(':')
+    const newAddress = addressPort.slice(0, addressPort.length - 1).join(':')
+    const newPort = addressPort.length >= 2 ? (addressPort.at(-1) ?? '') : '8080'
+    const newProxyType = T.RPCGen.ProxyType[proxyData_.proxyType] as typeof proxyType
+
+    setAddress(newAddress)
+    setPort(newPort)
+    setProxyType(newProxyType)
+  }, [])
 
   React.useEffect(() => {
-    return () => {
-      resetCertPinningToggle()
-    }
-  }, [resetCertPinningToggle])
+    loadProxyData(
+      [undefined],
+      result => {
+        setProxyData(result)
+        applyProxyData(result)
+      },
+      error => {
+        logger.warn('Error loading proxy data', error)
+      }
+    )
+  }, [applyProxyData, loadProxyData, setProxyData])
 
   const lastProxyDataRef = React.useRef(proxyData)
   React.useEffect(() => {
     if (lastProxyDataRef.current !== proxyData) {
       if (proxyData) {
-        const addressPort = proxyData.addressWithPort.split(':')
-        const newAddress = addressPort.slice(0, addressPort.length - 1).join(':')
-        const newPort = addressPort.length >= 2 ? (addressPort.at(-1) ?? '') : '8080'
-        const newProxyType = T.RPCGen.ProxyType[proxyData.proxyType] as typeof proxyType
-
-        setAddress(newAddress)
-        setPort(newPort)
-        setProxyType(newProxyType)
+        applyProxyData(proxyData)
       }
     }
     lastProxyDataRef.current = proxyData
-  }, [proxyData])
+  }, [applyProxyData, proxyData])
 
   const certPinning = (): boolean => {
     if (props.allowTlsMitmToggle === undefined) {
@@ -117,20 +142,54 @@ const ProxySettingsComponent = (props: Props) => {
     }
   }
 
-  const saveProxySettings = () => {
-    const proxyData = {
+  const saveProxySettings = (nextProxyType = proxyType) => {
+    const nextProxyData = {
       addressWithPort: address + ':' + port,
       certPinning: certPinning(),
-      proxyType: T.RPCGen.ProxyType[proxyType],
+      proxyType: T.RPCGen.ProxyType[nextProxyType],
     }
-    props.saveProxyData(proxyData)
+    props.saveProxyData(
+      [{proxyData: nextProxyData}],
+      () => {
+        setProxyData(nextProxyData)
+      },
+      error => {
+        logger.warn('Error in saving proxy data', error)
+      }
+    )
   }
 
   const proxyTypeSelected = (newProxyType: typeof proxyType) => {
     setProxyType(newProxyType)
     if (newProxyType === 'noProxy') {
-      saveProxySettings()
+      saveProxySettings(newProxyType)
     }
+  }
+
+  if (props.showDisableCertPinningWarning) {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        flex={1}
+        gap="small"
+        style={styles.warningContainer}
+      >
+        <Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Kb.Styles.globalColors.red} />
+        <Kb.Text center={true} type="Header" style={styles.warningHeader}>
+          Are you sure you want to allow TLS interception?
+        </Kb.Text>
+        <Kb.Text center={true} type="Body" style={styles.warningBody}>
+          This means your proxy or your ISP will be able to view all traffic between you and Keybase servers.
+          It is not recommended to use this option unless absolutely required.
+        </Kb.Text>
+        <Kb.ButtonBar>
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancelDisableCertPinning} />
+          <Kb.Button type="Danger" label="Yes, I am sure" onClick={props.onConfirmDisableCertPinning} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    )
   }
 
   return (
@@ -150,9 +209,9 @@ const ProxySettingsComponent = (props: Props) => {
       {proxyType === 'noProxy' ? null : (
         <>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.NewInput placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
+          <Kb.Input3 placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.NewInput placeholder="8080" onChangeText={setPort} value={port} />
+          <Kb.Input3 placeholder="8080" onChangeText={setPort} value={port} />
         </>
       )}
       <Kb.Checkbox
@@ -161,55 +220,28 @@ const ProxySettingsComponent = (props: Props) => {
         label="Allow TLS Interception"
         style={styles.proxySetting}
       />
-      <Kb.Button onClick={saveProxySettings} label="Save Proxy Settings" />
+      <Kb.Button onClick={() => saveProxySettings()} label="Save Proxy Settings" />
     </>
   )
 }
 
 const ProxySettingsPopup = (props: Props) => {
-  if (Kb.Styles.isMobile) {
-    return (
-      <Kb.HeaderHocWrapper onBack={props.onBack}>
-        <Kb.Box style={styles.popupBox}>
-          <Kb.Box style={styles.proxySettingPopupBox}>
-            <ProxySettingsComponent {...props} />
-          </Kb.Box>
-        </Kb.Box>
-      </Kb.HeaderHocWrapper>
-    )
-  }
   return (
-    <Kb.PopupDialog>
-      <Kb.Box style={styles.popupBox}>
-        <Kb.BackButton onClick={props.onBack} />
-        <Kb.Box style={styles.proxySettingPopupBox}>
+    <>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
+        {!Kb.Styles.isMobile && <Kb.BackButton onClick={props.onBack} />}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
           <ProxySettingsComponent {...props} />
-        </Kb.Box>
-      </Kb.Box>
-    </Kb.PopupDialog>
+        </Kb.Box2>
+      </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  divider: {
-    marginTop: Kb.Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  flexButtons: {
-    display: 'flex',
-    flexShrink: 0,
-    flexWrap: 'wrap',
-    marginTop: Kb.Styles.globalMargins.tiny,
-  },
   popupBox: {
     minHeight: '40%',
     padding: Kb.Styles.globalMargins.small,
-  },
-  proxyContainer: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    paddingBottom: Kb.Styles.globalMargins.medium,
-    paddingTop: Kb.Styles.globalMargins.medium,
   },
   proxySetting: {marginBottom: Kb.Styles.globalMargins.small},
   proxySettingPopupBox: {padding: Kb.Styles.globalMargins.xlarge},
@@ -219,6 +251,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       cursor: 'default',
     },
   }),
+  warningBody: {maxWidth: 420},
+  warningContainer: {padding: Kb.Styles.globalMargins.medium},
+  warningHeader: {maxWidth: 420},
 }))
 
 export {ProxySettings}

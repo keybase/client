@@ -1,33 +1,26 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 
 const ConversationError = () => {
   const text = Chat.useChatContext(s => s.meta.snippet ?? '')
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>
-      <Kb.Text style={styles.body} type="Body">
+      <Kb.Text type="Body">
         The error is:
       </Kb.Text>
-      <Kb.Box style={styles.errorBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.CopyableText style={styles.errorText} value={text} />
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      body: {marginTop: Kb.Styles.globalMargins.small},
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         padding: Kb.Styles.globalMargins.medium,
-        width: '100%',
-      },
-      errorBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        marginTop: Kb.Styles.globalMargins.small,
       },
       errorText: {flexGrow: 1},
     }) as const

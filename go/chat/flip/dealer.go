@@ -94,7 +94,7 @@ type Game struct {
 	me                     *playerControl
 	commitmentCompleteHash Hash
 	clock                  func() clockwork.Clock
-	clogf                  func(ctx context.Context, fmt string, args ...interface{})
+	clogf                  func(ctx context.Context, fmt string, args ...any)
 
 	// To handle reorderings between CommitmentComplete and commitements,
 	// wee need some extra bookkeeping.

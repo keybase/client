@@ -770,7 +770,7 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 
 	// The first two puts shouldn't encounter any backpressure...
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTrackerType,
 			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
@@ -925,7 +925,7 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 
 	// The first two puts shouldn't encounter any backpressure...
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		// Ensure the disk block cache doesn't interfere with the journal
 		// limits.
 		availBytes, err := bdl.reserveBytes(ctx, workingSetCacheLimitTrackerType, blockBytes)
@@ -1130,7 +1130,7 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 
 	// The first two puts shouldn't encounter any backpressure...
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTrackerType,
 			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
@@ -1254,7 +1254,7 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 
 	// The first seven puts shouldn't encounter any backpressure...
 
-	for i := 0; i < 7; i++ {
+	for i := range 7 {
 		_, _, err := bdl.reserveWithBackpressure(ctx, journalLimitTrackerType, blockBytes,
 			blockFiles, chargedTo)
 		require.NoError(t, err)

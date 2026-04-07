@@ -1,22 +1,14 @@
-import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
-import Text, {
-  type TextType,
-  type Background,
-  type StylesTextCrossPlatform,
-  type AllowedColors,
-  type LineClampType,
-  type TextTypeBold,
-} from './text'
+import Text from './text'
 import {backgroundModeIsNegative} from './text.shared'
-import isArray from 'lodash/isArray'
+import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
-import {useTrackerState} from '@/constants/tracker2'
-import {useUsersState} from '@/constants/users'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useUsersState} from '@/stores/users'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export type User = {
   username: string
@@ -50,7 +42,6 @@ export type Props = {
   underline?: boolean
   usernames: ReadonlyArray<string> | string
   withProfileCardPopup?: boolean
-  fixOverdraw?: boolean | 'auto'
   virtualText?: boolean // desktop only see text.desktop
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
@@ -90,7 +81,7 @@ type UsernameProps = {
   you: string
   withProfileCardPopup: boolean
 }
-const Username = React.memo(function Username(p: UsernameProps) {
+function Username(p: UsernameProps) {
   const {colorFollowing, colorBroken, username, notFollowingColorOverride, colorYou} = p
   const {inline, style, lineClamp, selectable, type, backgroundMode, showAnd, underline} = p
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
@@ -99,39 +90,19 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const following = useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onOpenProfile = React.useCallback(
-    (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation()
-      showUserProfile(username)
-    },
-    [showUserProfile, username]
-  )
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onOpenTracker = React.useCallback(
-    (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation()
-      showUser(username, true)
-    },
-    [showUser, username]
-  )
-  const onPassThrough = React.useCallback(() => {
-    if (typeof onUsernameClicked === 'function') {
-      onUsernameClicked(username)
-    }
-  }, [username, onUsernameClicked])
   let onClicked: undefined | ((evt?: React.BaseSyntheticEvent) => void)
-  switch (onUsernameClicked) {
-    case 'tracker':
-      onClicked = onOpenTracker
-      break
-    case 'profile':
-      onClicked = onOpenProfile
-      break
-    default:
-      if (typeof onUsernameClicked === 'function') {
-        onClicked = onPassThrough
-      }
+  if (onUsernameClicked === 'tracker') {
+    onClicked = (evt?: React.BaseSyntheticEvent) => {
+      evt?.stopPropagation()
+      useTrackerState.getState().dispatch.showUser(username, true)
+    }
+  } else if (onUsernameClicked === 'profile') {
+    onClicked = (evt?: React.BaseSyntheticEvent) => {
+      evt?.stopPropagation()
+      navToProfile(username)
+    }
+  } else if (typeof onUsernameClicked === 'function') {
+    onClicked = () => onUsernameClicked(username)
   }
 
   let userStyle: Styles.StylesCrossPlatform = Styles.platformStyles({
@@ -203,7 +174,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   ) : (
     renderText()
   )
-})
+}
 
 type UsernamesTextProps = {
   users: Array<string>
@@ -227,13 +198,11 @@ type UsernamesTextProps = {
 }
 const UsernamesText = (p: UsernamesTextProps) => {
   const {showAnd, inlineGrammar, users, joinerStyle, commaColor, ...rest} = p
-  const derivedJoinerStyle = React.useMemo(() => {
-    return Styles.collapseStyles([
-      joinerStyle,
-      styles.joinerStyle,
-      {color: commaColor},
-    ]) as StylesTextCrossPlatform
-  }, [commaColor, joinerStyle])
+  const derivedJoinerStyle = Styles.collapseStyles([
+    joinerStyle,
+    styles.joinerStyle,
+    {color: commaColor},
+  ]) as StylesTextCrossPlatform
 
   const lastIdx = users.length - 1
   return (
@@ -260,90 +229,76 @@ const UsernamesText = (p: UsernamesTextProps) => {
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
 
-const Usernames = React.memo(
-  function Usernames(p: Props) {
-    const {backgroundMode, commaColor, inline, containerStyle, className} = p
-    const {joinerStyle, lineClamp, notFollowingColorOverride, onUsernameClicked, prefix, selectable} = p
-    const {showAnd, inlineGrammar, colorYou, skipSelf, style, suffix, suffixType, title} = p
-    const {usernames, fixOverdraw, virtualText, type} = p
-    const colorFollowing = p.colorFollowing ?? true
-    const colorBroken = p.colorBroken ?? true
-    const underline = p.underline ?? true
-    const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = useCurrentUserState(s => s.username)
+function Usernames(p: Props) {
+  const {backgroundMode, commaColor, inline, containerStyle, className} = p
+  const {joinerStyle, lineClamp, notFollowingColorOverride, onUsernameClicked, prefix, selectable} = p
+  const {showAnd, inlineGrammar, colorYou, skipSelf, style, suffix, suffixType, title} = p
+  const {usernames, virtualText, type} = p
+  const colorFollowing = p.colorFollowing ?? true
+  const colorBroken = p.colorBroken ?? true
+  const underline = p.underline ?? true
+  const withProfileCardPopup = p.withProfileCardPopup ?? true
+  const you = useCurrentUserState(s => s.username)
 
-    const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-    const containerStyle2: Styles.StylesCrossPlatform = inline ? styles.inlineStyle : styles.nonInlineStyle
-    const bgMode = backgroundMode
-    const isNegative = backgroundModeIsNegative(bgMode)
+  const containerStyle2: Styles.StylesCrossPlatform = inline ? styles.inlineStyle : styles.nonInlineStyle
+  const bgMode = backgroundMode
+  const isNegative = backgroundModeIsNegative(bgMode)
 
-    const names = React.useMemo(() => {
-      const n = typeof usernames === 'string' ? [usernames] : usernames
-      return n.reduce<Array<string>>((arr, n) => {
-        if (n !== you || !skipSelf) {
-          arr.push(n)
-        }
-        return arr
-      }, [])
-    }, [usernames, skipSelf, you])
+  const n = typeof usernames === 'string' ? [usernames] : usernames
+  const names = n.reduce<Array<string>>((arr, n) => {
+    if (n !== you || !skipSelf) {
+      arr.push(n)
+    }
+    return arr
+  }, [])
 
-    return (
-      <Text
-        className={className}
+  return (
+    <Text
+      className={className}
+      type={type}
+      negative={isNegative}
+      style={Styles.collapseStyles([containerStyle2, containerStyle])}
+      title={title}
+      ellipsizeMode="tail"
+      lineClamp={lineClamp}
+      {...(inline ? inlineProps : {})}
+    >
+      {!!prefix && (
+        <Text type={type} negative={isNegative} style={style}>
+          {prefix}
+        </Text>
+      )}
+      <UsernamesText
+        backgroundMode={backgroundMode}
+        colorBroken={colorBroken}
+        colorFollowing={colorFollowing}
+        colorYou={colorYou}
+        commaColor={commaColor}
+        inlineGrammar={inlineGrammar}
+        joinerStyle={joinerStyle}
+        notFollowingColorOverride={notFollowingColorOverride}
+        onUsernameClicked={onUsernameClicked}
+        selectable={selectable}
+        showAnd={showAnd}
+        underline={underline}
         type={type}
-        negative={isNegative}
-        fixOverdraw={fixOverdraw === 'auto' ? canFixOverdraw : (fixOverdraw ?? false)}
-        style={Styles.collapseStyles([containerStyle2, containerStyle])}
-        title={title}
-        ellipsizeMode="tail"
-        lineClamp={lineClamp}
-        {...(inline ? inlineProps : {})}
-      >
-        {!!prefix && (
-          <Text type={type} negative={isNegative} style={style}>
-            {prefix}
-          </Text>
-        )}
-        <UsernamesText
-          backgroundMode={backgroundMode}
-          colorBroken={colorBroken}
-          colorFollowing={colorFollowing}
-          colorYou={colorYou}
-          commaColor={commaColor}
-          inlineGrammar={inlineGrammar}
-          joinerStyle={joinerStyle}
-          notFollowingColorOverride={notFollowingColorOverride}
-          onUsernameClicked={onUsernameClicked}
-          selectable={selectable}
-          showAnd={showAnd}
-          underline={underline}
-          type={type}
-          virtualText={virtualText}
-          withProfileCardPopup={withProfileCardPopup}
-          you={you}
-          users={names}
-        />
-        {!!suffix && (
-          <Text
-            type={suffixType || type}
-            negative={isNegative}
-            style={Styles.collapseStyles([style, {marginLeft: Styles.globalMargins.xtiny}])}
-          >
-            {suffix}
-          </Text>
-        )}
-      </Text>
-    )
-  },
-  (p, n) => {
-    return C.shallowEqual(p, n, (v: unknown, o: unknown) => {
-      if (isArray(v) && isArray(o)) {
-        return C.shallowEqual(v, o)
-      }
-      return undefined
-    })
-  }
-)
+        virtualText={virtualText}
+        withProfileCardPopup={withProfileCardPopup}
+        you={you}
+        users={names}
+      />
+      {!!suffix && (
+        <Text
+          type={suffixType || type}
+          negative={isNegative}
+          style={Styles.collapseStyles([style, {marginLeft: Styles.globalMargins.xtiny}])}
+        >
+          {suffix}
+        </Text>
+      )}
+    </Text>
+  )
+}
 
 // 15550123456@phone => +1 (555) 012-3456
 // [test@example.com]@email => test@example.com

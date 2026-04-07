@@ -214,7 +214,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		}
 		var contxt context.Context
 		contxt, canceler = context.WithCancel(context.Background())
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 			if err != nil {
 				// cancel provisionee run:
@@ -350,7 +350,7 @@ var paperKeyNotFound = libkb.NotFoundError{
 func (e *loginProvision) getValidPaperKey(m libkb.MetaContext, expectedPrefix *string) (keys *libkb.DeviceWithKeys, err error) {
 	defer m.Trace("loginProvision#getValidPaperKey", &err)()
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		keys, err = e.getValidPaperKeyOnce(m, i, err, expectedPrefix)
 		if err == nil {
 			return keys, err
@@ -561,7 +561,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		ExistingDevices: names,
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		devname, err := m.UIs().ProvisionUI.PromptNewDeviceName(m.Ctx(), arg)
 		if err != nil {
 			return "", err

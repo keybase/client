@@ -73,8 +73,8 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 	if len(v) == 0 {
 		return 0, nil
 	}
-	parts := strings.Split(v, ",")
-	for _, p := range parts {
+	parts := strings.SplitSeq(v, ",")
+	for p := range parts {
 		if len(p) == 0 {
 			return 0, errors.New("cannot specify an empty user")
 		}

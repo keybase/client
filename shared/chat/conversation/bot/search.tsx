@@ -1,13 +1,19 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import * as S from '@/constants/strings'
+import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
+import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 
 type Props = {teamID?: T.Teams.TeamID}
+type BotSearchResults = {
+  bots: ReadonlyArray<T.RPCGen.FeaturedBot>
+  users: ReadonlyArray<string>
+}
 
 const renderSectionHeader = ({section}: {section: {title?: string}}) => {
   return <Kb.SectionDivider label={section.title} />
@@ -26,47 +32,95 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const botsState = useBotsState(
-    C.useShallow(s => ({
-      botSearchResults: s.botSearchResults,
-      featuredBotsMap: s.featuredBotsMap,
-      getFeaturedBots: s.dispatch.getFeaturedBots,
-      searchFeaturedAndUsers: s.dispatch.searchFeaturedAndUsers,
-      setSearchFeaturedAndUsersResults: s.dispatch.setSearchFeaturedAndUsersResults,
-    }))
+  const [botSearchResults, setBotSearchResults] = React.useState(
+    new Map<string, BotSearchResults | undefined>()
   )
-  const {botSearchResults, featuredBotsMap, getFeaturedBots} = botsState
-  const {searchFeaturedAndUsers, setSearchFeaturedAndUsersResults} = botsState
+  const {featuredBots} = useFeaturedBotPage()
+  const featuredBotsMap = new Map(featuredBots.map(bot => [bot.botUsername, bot] as const))
+  const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
+  const searchUsers = C.useRPC(T.RPCGen.userSearchUserSearchRpcPromise)
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyBotsSearchUsers, C.waitingKeyBotsSearchFeatured])
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
-  const onClose = () => {
-    clearModals()
-  }
+  const navigateAppend = C.Router2.navigateAppend
 
-  const onSearch = debounce((query: string) => {
-    setLastQuery(query)
-    if (query.length > 0) {
-      searchFeaturedAndUsers(query)
-    } else {
-      setSearchFeaturedAndUsersResults(query, undefined)
-    }
-  }, 200)
+  const setResultsForQuery = React.useCallback((query: string, results?: BotSearchResults) => {
+    setBotSearchResults(prev => {
+      const next = new Map(prev)
+      next.set(query, results)
+      return next
+    })
+  }, [])
+  const onSearch = React.useMemo(
+    () =>
+      debounce((query: string) => {
+        setLastQuery(query)
+        if (query.length === 0) {
+          setResultsForQuery(query, undefined)
+          return
+        }
+
+        let nextBots: ReadonlyArray<T.RPCGen.FeaturedBot> = []
+        let nextUsers: ReadonlyArray<string> = []
+        let pending = 2
+        let failed = false
+        const finish = () => {
+          pending -= 1
+          if (pending === 0 && !failed) {
+            setResultsForQuery(query, {bots: nextBots, users: nextUsers})
+          }
+        }
+
+        searchFeaturedBots(
+          [{limit: 10, offset: 0, query}, S.waitingKeyBotsSearchFeatured],
+          result => {
+            nextBots = result.bots ?? []
+            finish()
+          },
+          error => {
+            failed = true
+            logger.info(`searchFeaturedAndUsers: failed to run bot search: ${error.message}`)
+          }
+        )
+        searchUsers(
+          [
+            {
+              includeContacts: false,
+              includeServicesSummary: false,
+              maxResults: 10,
+              query,
+              service: 'keybase',
+            },
+            S.waitingKeyBotsSearchUsers,
+          ],
+          result => {
+            nextUsers =
+              result?.reduce<Array<string>>((usernames, user) => {
+                const username = user.keybase?.username
+                if (username) {
+                  usernames.push(username)
+                }
+                return usernames
+              }, []) ?? []
+            finish()
+          },
+          error => {
+            failed = true
+            logger.info(`searchFeaturedAndUsers: failed to run user search: ${error.message}`)
+          }
+        )
+      }, 200),
+    [searchFeaturedBots, searchUsers, setResultsForQuery]
+  )
   const onSelect = (username: string) => {
     navigateAppend({
-      props: {botUsername: username, conversationIDKey, teamID},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: username, conversationIDKey, teamID},
     })
   }
 
   C.useOnMountOnce(() => {
-    setSearchFeaturedAndUsersResults('', undefined)
-    getFeaturedBots()
+    setResultsForQuery('', undefined)
   })
+  React.useEffect(() => () => onSearch.cancel(), [onSearch])
 
   const botData: Array<Item> =
     lastQuery.length > 0
@@ -74,7 +128,7 @@ const SearchBotPopup = (props: Props) => {
           .get(lastQuery)
           ?.bots.slice()
           .map(bot => ({bot, type: 'bot'}) as const) ?? [])
-      : getFeaturedSorted(featuredBotsMap).map(bot => ({bot, type: 'bot'}))
+      : getFeaturedSorted(featuredBots).map(bot => ({bot, type: 'bot'}))
   if (!botData.length && !waiting) {
     botData.push({type: 'dummy', value: resultEmptyPlaceholder})
   }
@@ -134,24 +188,13 @@ const SearchBotPopup = (props: Props) => {
     title: 'Users',
   } satisfies Section
   return (
-    <Kb.Modal
-      onClose={onClose}
-      noScrollView={true}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: 'Add a bot',
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.modal}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
           <Kb.SearchFilter
             size="full-width"
             focusOnMount={true}
-            onChange={onSearch}
+            onChange={query => onSearch(query)}
             placeholderText="Search featured bots or users..."
             waiting={waiting}
           />
@@ -163,7 +206,7 @@ const SearchBotPopup = (props: Props) => {
           style={{flexGrow: 1}}
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 

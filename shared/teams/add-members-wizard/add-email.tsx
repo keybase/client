@@ -1,10 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
-import {ModalTitle} from '../common'
 
 type Props = {
   errorMessage?: string
@@ -15,11 +13,8 @@ const waitingKey = 'emailLookup'
 const AddEmail = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
   const [error, setError] = React.useState('')
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
@@ -49,32 +44,12 @@ const AddEmail = (props: Props) => {
   }
 
   return (
-    <Kb.Modal
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Email list" />,
-      }}
-      allowOverflow={true}
-      footer={{
-        content: (
-          <Kb.Button
-            fullWidth={true}
-            label="Continue"
-            onClick={onContinue}
-            disabled={disabled}
-            waiting={waiting}
-          />
-        ),
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="err">
-            {error}
-          </Kb.Banner>
-        ) : null
-      }
-      mode="DefaultFullHeight"
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -83,13 +58,12 @@ const AddEmail = (props: Props) => {
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             error={!!props.errorMessage}
             multiline={true}
             onChangeText={text => setInvitees(text)}
             placeholder="Email addresses"
-            hoverPlaceholder="Ex: daniel@domain.com, kim@domain.com, etc."
             rowsMin={3}
             rowsMax={8}
             value={invitees}
@@ -103,7 +77,16 @@ const AddEmail = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">Separate all addresses with commas.</Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.Button
+            fullWidth={true}
+            label="Continue"
+            onClick={onContinue}
+            disabled={disabled}
+            waiting={waiting}
+          />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -116,13 +99,19 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
   errorText: {color: Kb.Styles.globalColors.redDark},
-  wordBreak: Kb.Styles.platformStyles({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
     isElectron: {
-      wordBreak: 'break-all',
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

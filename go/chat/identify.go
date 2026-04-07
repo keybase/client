@@ -196,7 +196,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 
 	fails := make(chan keybase1.TLFIdentifyFailure)
 	const numIdentifiers = 3
-	for i := 0; i < numIdentifiers; i++ {
+	for range numIdentifiers {
 		group.Go(func() error {
 			for assertion := range assertions {
 				f, err := t.identifyUser(ectx, assertion, private, identBehavior)

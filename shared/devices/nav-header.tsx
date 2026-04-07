@@ -1,25 +1,20 @@
 import * as C from '@/constants'
-import type * as DevicesType from '@/constants/devices'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 
-export const HeaderTitle = () => {
-  const Devices = require('@/constants/devices') as typeof DevicesType
-  const numActive = Devices.useActiveDeviceCounts()
-  const numRevoked = Devices.useRevokedDeviceCounts()
+export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => {
   return (
     <Kb.Box2 direction="vertical" style={styles.headerTitle}>
       <Kb.Text type="Header">Devices</Kb.Text>
       <Kb.Text type="BodySmall">
-        {numActive} Active • {numRevoked} Revoked
+        {activeCount} Active • {revokedCount} Revoked
       </Kb.Text>
     </Kb.Box2>
   )
 }
 
 export const HeaderRightActions = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onAdd = React.useCallback(() => navigateAppend('deviceAdd'), [navigateAppend])
+  const navigateAppend = C.Router2.navigateAppend
+  const onAdd = () => navigateAppend({name: 'deviceAdd', params: {}})
   return (
     <Kb.Button
       small={true}

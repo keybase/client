@@ -1,15 +1,14 @@
 import * as C from '@/constants'
 import './account-switcher.css'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {settingsLogOutTab} from '@/constants/settings/util'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useProvisionState} from '@/constants/provision'
+import {settingsLogOutTab} from '@/constants/settings'
+import {useTrackerState} from '@/stores/tracker'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: ReadonlyArray<T>,
@@ -22,9 +21,8 @@ const Container = () => {
   const you = useCurrentUserState(s => s.username)
   const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
-  const _onProfileClick = useProfileState(s => s.dispatch.showUserProfile)
-  const onLoginAsAnotherUser = useProvisionState(s => s.dispatch.startProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
+  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
@@ -36,10 +34,10 @@ const Container = () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = React.useCallback(() => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onSignOut = () => {
     navigateAppend(settingsLogOutTab)
-  }, [navigateAppend])
+  }
 
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {
@@ -50,7 +48,7 @@ const Container = () => {
     fullname,
     onCancel,
     onLoginAsAnotherUser,
-    onProfileClick: () => _onProfileClick(you),
+    onProfileClick: () => navToProfile(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
@@ -62,15 +60,7 @@ const Container = () => {
   }
 
   return (
-    <Kb.HeaderHocWrapper
-      leftAction="cancel"
-      onCancel={props.onCancel}
-      // else right isn't pushed over, will address in nav5
-      title=" "
-      rightActionLabel="Sign out"
-      onRightAction={props.onSignOut}
-      rightActionColor="red"
-    >
+    <>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
           {Kb.Styles.isMobile && <MobileHeader {...props} />}
@@ -85,7 +75,7 @@ const Container = () => {
           {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.HeaderHocWrapper>
+    </>
   )
 }
 
@@ -161,7 +151,7 @@ const AccountRow = (props: AccountRowProps) => {
         props.onSelectAccount(props.entry.account.username)
       }
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       type={Kb.Styles.isMobile ? 'Large' : 'Small'}
       icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
@@ -213,10 +203,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {wordBreak: 'break-all'},
   }),
   progressIndicator: {bottom: 0, position: 'absolute', right: 0},
-  row: {
-    paddingBottom: -Kb.Styles.globalMargins.small,
-    paddingTop: -Kb.Styles.globalMargins.small,
-  },
+  signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {
     paddingLeft: Kb.Styles.globalMargins.small,

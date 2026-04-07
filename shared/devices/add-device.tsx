@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
+import * as T from '@/constants/types'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -11,38 +11,50 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Devices.useNextDeviceIconNumber()
+  const [iconNumbers, setIconNumbers] = React.useState({
+    desktop: 1 as T.Devices.IconNumber,
+    mobile: 1 as T.Devices.IconNumber,
+  } as const)
   const addNewDevice = useProvisionState(s => s.dispatch.addNewDevice)
+  const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
 
-  const onAddComputer = React.useCallback(() => {
+  C.useOnMountOnce(() => {
+    loadDeviceHistory(
+      [undefined, C.waitingKeyDevices],
+      results => {
+        const devices =
+          results?.map(result => ({
+            deviceNumberOfType: result.device.deviceNumberOfType,
+            type: T.Devices.stringToDeviceType(result.device.type),
+          })) ?? []
+        setIconNumbers(T.Devices.nextDeviceIconNumbers(devices))
+      },
+      _ => {}
+    )
+  })
+
+  const onAddComputer = () => {
     addNewDevice('desktop')
-  }, [addNewDevice])
+  }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
 
   // don't allow mutliple clicks to add paper key
   const canAddPaperKeyRef = React.useRef(true)
-  const onAddPaperKey = React.useCallback(() => {
+  const onAddPaperKey = () => {
     if (!canAddPaperKeyRef.current) return
     canAddPaperKeyRef.current = false
     navigateAppend('devicePaperKey')
     setTimeout(() => {
       canAddPaperKeyRef.current = true
     }, 1000)
-  }, [navigateAppend])
+  }
 
-  const onAddPhone = React.useCallback(() => {
+  const onAddPhone = () => {
     addNewDevice('mobile')
-  }, [addNewDevice])
-  const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => {
-    cancel?.()
-    navigateUp()
-  }, [cancel, navigateUp])
-
+  }
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
+    <>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2
           direction="vertical"
@@ -53,7 +65,6 @@ export default function AddDevice(ownProps: OwnProps) {
           gapEnd={true}
         >
           <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-            {!Kb.Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
             <Kb.Text type="Body" center={true}>
               Protect your account by having more devices and paper keys.
             </Kb.Text>
@@ -84,7 +95,7 @@ export default function AddDevice(ownProps: OwnProps) {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -127,7 +138,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       gap="xtiny"
       gapEnd={!Kb.Styles.isMobile}
     >
-      <Kb.Icon type={getIconType(type, iconNumber)} />
+      <Kb.ImageIcon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>

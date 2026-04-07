@@ -150,8 +150,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	config2 := libkbfs.ConfigAsUser(config, "user2")
-	ctx2, cancel2 := context.WithCancel(context.Background())
-	defer cancel2()
+	ctx2 := t.Context()
 	tempdir, err := os.MkdirTemp(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer func() { _ = os.RemoveAll(tempdir) }()

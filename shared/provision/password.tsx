@@ -3,15 +3,15 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useProvisionState} from '@/constants/provision'
+import {useState as useRecoverState} from '@/stores/recover-password'
+import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
   const error = useProvisionState(s => s.error)
   const resetEmailSent = useRecoverState(s => s.resetEmailSent)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, username})
@@ -20,12 +20,9 @@ const Password = () => {
     navigateUp()
   }
   const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = React.useCallback(
-    (password: string) => !waiting && _onSubmit?.(password),
-    [_onSubmit, waiting]
-  )
+  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
   const [password, setPassword] = React.useState('')
-  const _onSubmitClick = React.useCallback(() => onSubmit(password), [password, onSubmit])
+  const _onSubmitClick = () => onSubmit(password)
   const resetState = useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
@@ -36,6 +33,7 @@ const Password = () => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={!Kb.Styles.isMobile}
       banners={
         <>
           {resetEmailSent ? (
@@ -72,18 +70,17 @@ const Password = () => {
           username={username}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
-          lighterPlaceholders={true}
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Password"
               onEnterKeyDown={_onSubmitClick}
               onChangeText={setPassword}
               value={password}
               textType="BodySemibold"
-              type="password"
+              secureTextEntry={true}
             />
             <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
               Forgot password?

@@ -23,13 +23,13 @@ module.exports = {
     return require('./banner').BannerParagraph
   },
   get BottomSheetBackdrop() {
-    return require('./bottom-sheet').BottomSheetBackdrop
+    return require('./popup/bottom-sheet').BottomSheetBackdrop
   },
   get BottomSheetModal() {
-    return require('./bottom-sheet').BottomSheetModal
+    return require('./popup/bottom-sheet').BottomSheetModal
   },
   get BottomSheetScrollView() {
-    return require('./bottom-sheet').BottomSheetScrollView
+    return require('./popup/bottom-sheet').BottomSheetScrollView
   },
   get Box() {
     return require('./box').default
@@ -39,15 +39,6 @@ module.exports = {
   },
   get Box2Animated() {
     return require('./box').Box2Animated
-  },
-  get Box2Div() {
-    return require('./box').Box2Div
-  },
-  get Box2Measure() {
-    return require('./box').Box2Measure
-  },
-  get Box2View() {
-    return require('./box').Box2View
   },
   get BoxGrow() {
     return require('./box-grow').default
@@ -120,35 +111,29 @@ module.exports = {
   get ErrorBoundary() {
     return require('./error-boundary').default
   },
-  get FloatingBox() {
-    return require('./floating-box').default
-  },
   get FloatingMenu() {
     return require('./floating-menu').default
-  },
-  get FloatingModalContext() {
-    return require('./floating-menu/context').FloatingModalContext
   },
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HeaderHocHeader() {
-    return require('./header-hoc').HeaderHocHeader
-  },
-  get HeaderHocWrapper() {
-    return require('./header-hoc').HeaderHocWrapper
-  },
-  get HeaderLeftBlank() {
-    return require('./header-hoc').HeaderLeftBlank
-  },
-  get HeaderLeftCancel() {
-    return require('./header-hoc').HeaderLeftCancel
+  get HeaderLeftButton() {
+    return require('./header-buttons').HeaderLeftButton
   },
   get Icon() {
     return require('./icon').default
   },
-  get Image2() {
-    return require('./image2').default
+  get IconAuto() {
+    return require('./icon-auto').default
+  },
+  get IconButton() {
+    return require('./button').IconButton
+  },
+  get Image() {
+    return require('./image').default
+  },
+  get ImageIcon() {
+    return require('./image-icon').default
   },
   get InfoNote() {
     return require('./info-note').default
@@ -156,26 +141,17 @@ module.exports = {
   get InlineDropdown() {
     return require('./dropdown').InlineDropdown
   },
-  get Input2() {
-    return require('./input2').Input2
+  get Input3() {
+    return require('./input3').default
   },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
-  get LabeledInput() {
-    return require('./labeled-input').default
-  },
   get List() {
     return require('./list').default
   },
-  get List2() {
-    return require('./list2').default
-  },
   get ListItem() {
     return require('./list-item').default
-  },
-  get ListItem2() {
-    return require('./list-item2').default
   },
   get LoadingLine() {
     return require('./loading-line').default
@@ -186,29 +162,11 @@ module.exports = {
   get Meta() {
     return require('./meta').default
   },
-  get MobilePopup() {
-    return require('./mobile-popup').default
-  },
-  get Modal() {
-    return require('./modal').default
-  },
-  get Modal2() {
-    return require('./modal2').default
-  },
-  get ModalHeader() {
-    return require('./modal').Header
-  },
   get NameWithIcon() {
     return require('./name-with-icon').default
   },
   get NativeEmoji() {
     return require('./emoji/native-emoji').default
-  },
-  get NewInput() {
-    return require('./new-input').default
-  },
-  get Overlay() {
-    return require('./overlay').default
   },
   get PhoneInput() {
     return require('./phone-input').default
@@ -216,20 +174,11 @@ module.exports = {
   get Placeholder() {
     return require('./placeholder').default
   },
-  get PlainInput() {
-    return require('./plain-input').default
-  },
   get PlatformIcon() {
     return require('./platform-icon').default
   },
-  get PopupDialog() {
-    return require('./popup-dialog').default
-  },
-  get PopupHeaderText() {
-    return require('./popup-header-text').default
-  },
-  get PopupWrapper() {
-    return require('./header-or-popup').PopupWrapper
+  get Popup() {
+    return require('./popup/index').default
   },
   get ProfileCard() {
     return require('./profile-card').default
@@ -294,9 +243,6 @@ module.exports = {
   get Text() {
     return require('./text').default
   },
-  get Text2() {
-    return require('./text2').Text2
-  },
   get TimelineMarker() {
     return require('./timeline-marker').default
   },
@@ -324,14 +270,14 @@ module.exports = {
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },
-  get largeListItem2Height() {
-    return require('./list-item2').largeHeight
+  get largeListItemHeight() {
+    return require('./list-item').largeHeight
   },
-  get smallListItem2Height() {
-    return require('./list-item2').smallHeight
+  get smallListItemHeight() {
+    return require('./list-item').smallHeight
   },
-  get urlsToImgSet() {
-    return require('./icon').urlsToImgSet
+  get useClickURL() {
+    return require('./text-url').useClickURL
   },
   get useHotKey() {
     return require('./hot-key').useHotKey
@@ -339,11 +285,8 @@ module.exports = {
   get useInterval() {
     return require('./use-timers').useInterval
   },
-  get useModalHeaderTitleAndCancel() {
-    return require('./modal').useModalHeaderTitleAndCancel
-  },
   get usePopup2() {
-    return require('./use-popup').usePopup2
+    return require('./popup/use-popup').usePopup2
   },
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets

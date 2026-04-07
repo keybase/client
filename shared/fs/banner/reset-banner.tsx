@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useTrackerState} from '@/constants/tracker2'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
-import {useProfileState} from '@/constants/profile'
+import {useTrackerState} from '@/stores/tracker'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
+import {navToProfile} from '@/constants/router'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -15,31 +14,21 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
-  const _onOpenWithoutResetUsers = React.useCallback(
-    (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
-      const pathElems = T.FS.getPathElements(currPath)
-      if (pathElems.length < 3) return
-      const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
-      const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      FS.makeActionForOpenPathInFilesTab(filteredPath)
-    },
-    []
-  )
-  const _onReAddToTeam = React.useCallback(
-    (id: T.RPCGen.TeamID, username: string) => {
-      letResetUserBackIn(id, username)
-    },
-    [letResetUserBackIn]
-  )
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
+    const pathElems = T.FS.getPathElements(currPath)
+    if (pathElems.length < 3) return
+    const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
+    const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
+    FS.navToPath(filteredPath)
+  }
+  const _onReAddToTeam = (id: T.RPCGen.TeamID, username: string) => {
+    letResetUserBackIn(id, username)
+  }
 
   const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onViewProfile = React.useCallback(
-    (username: string) => () => {
-      C.isMobile ? showUserProfile(username) : showUser(username, true)
-    },
-    [showUser, showUserProfile]
-  )
+  const onViewProfile = (username: string) => () => {
+    C.isMobile ? navToProfile(username) : showUser(username, true)
+  }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(
       path,
@@ -61,7 +50,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       centerChildren={true}
       style={Kb.Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
     >
-      <Kb.Icon
+      <Kb.IconAuto
         type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
         style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
       />
@@ -92,11 +81,11 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           If you want to let them into this folder and the matching chat, you should either:
         </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.listTextContainer}>
-        <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
+      <Kb.Box2 direction="vertical" style={styles.listTextContainer} gap="tiny" gapStart={true} justifyContent="center">
+        <Kb.Text type="BodySemibold" negative={true}>
           1. Be satisfied with their new proofs, or
         </Kb.Text>
-        <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
+        <Kb.Text type="BodySemibold" negative={true}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
         </Kb.Text>
       </Kb.Box2>
@@ -110,17 +99,16 @@ const ConnectedBanner = (ownProps: OwnProps) => {
           <Kb.Box2 direction={C.isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
             <Kb.Button
               mode="Secondary"
-              backgroundColor="red"
               label={'View ' + p + "'s profile"}
               onClick={onViewProfile(p)}
-              style={styles.button}
+              style={Kb.Styles.collapseStyles([styles.button, styles.secondaryOnRed])}
+              labelStyle={styles.secondaryOnRedLabel}
             />
             <Kb.Button
-              type="Danger"
-              backgroundColor="red"
               label={'Let ' + p + ' back in'}
               onClick={onReAddToTeam(p)}
-              style={styles.button}
+              style={Kb.Styles.collapseStyles([styles.button, styles.primaryOnRed])}
+              labelStyle={styles.primaryOnRedLabel}
             />
           </Kb.Box2>
         ))}
@@ -154,7 +142,7 @@ export const asRows = (
     : noRows
 
 /*
- * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
+ * This banner is used as part of a List in fs/folder/rows/rows.js, so it's
  * important to keep height stable, thus all the height/minHeight/maxHeight in
  * styles.  Please make sure the height is still calculated in getHeight when
  * layout changes.
@@ -185,10 +173,15 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       listTextContainer: {
         ...fixedHeight(C.isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
-        justifyContent: 'center',
         maxWidth: C.isMobile ? 280 : 400,
       },
-      listTextContent: {marginTop: Kb.Styles.globalMargins.tiny},
+      primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},
+      secondaryOnRed: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.black_20},
+        isMobile: {borderWidth: 0},
+      }),
+      secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
       textDontLetThemIn: {
         ...fixedHeight(Kb.Styles.globalMargins.mediumLarge),
         marginBottom: Kb.Styles.globalMargins.tiny,

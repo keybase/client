@@ -5,9 +5,7 @@ import android.app.RemoteInput
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
@@ -15,16 +13,14 @@ import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 
 class ChatBroadcastReceiver : BroadcastReceiver() {
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     private fun getMessageText(intent: Intent): String? {
         val remoteInput = RemoteInput.getResultsFromIntent(intent)
         return remoteInput?.getCharSequence(KEY_TEXT_REPLY)?.toString()
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
     override fun onReceive(context: Context, intent: Intent) {
         setupKBRuntime(context, false)
-        val convData = ConvData(intent)
+        val convData = ConvData.fromIntent(intent)
         val openConv = intent.getParcelableExtra<PendingIntent>("openConvPendingIntent")
         val repliedNotification = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setContentIntent(openConv)
@@ -53,30 +49,15 @@ class ChatBroadcastReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        @JvmField
-        var KEY_TEXT_REPLY = "key_text_reply"
+        const val KEY_TEXT_REPLY = "key_text_reply"
     }
 }
 
-internal class ConvData {
-    @JvmField
-    var convID: String?
-    var tlfName: String?
-    var lastMsgId: Long
-
-    constructor(convId: String?, tlfName: String?, lastMsgId: Long) {
-        convID = convId
-        this.tlfName = tlfName
-        this.lastMsgId = lastMsgId
-    }
-
-    constructor(intent: Intent) {
-        val data = intent.getBundleExtra("ConvData")
-        convID = data!!.getString("convID")
-        tlfName = data.getString("tlfName")
-        lastMsgId = data.getLong("lastMsgId")
-    }
-
+internal data class ConvData(
+    @JvmField val convID: String?,
+    val tlfName: String?,
+    val lastMsgId: Long
+) {
     fun intoIntent(context: Context?): Intent {
         val data = Bundle()
         data.putString("convID", convID)
@@ -85,5 +66,16 @@ internal class ConvData {
         val intent = Intent(context, ChatBroadcastReceiver::class.java)
         intent.putExtra("ConvData", data)
         return intent
+    }
+
+    companion object {
+        fun fromIntent(intent: Intent): ConvData {
+            val data = intent.getBundleExtra("ConvData")!!
+            return ConvData(
+                convID = data.getString("convID"),
+                tlfName = data.getString("tlfName"),
+                lastMsgId = data.getLong("lastMsgId")
+            )
+        }
     }
 }

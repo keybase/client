@@ -1,7 +1,3 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import type * as T from '@/constants/types'
 import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
@@ -12,28 +8,8 @@ type Props = {
   hasCoinFlip: boolean
 }
 
-export const useBottom = (ordinal: T.Chat.Ordinal) => {
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
-      const hasUnfurlList = (message?.unfurls?.size ?? 0) > 0
-      const id = message?.id
-      const hasUnfurlPrompts = !!id && !!s.unfurlPrompt.get(id)?.size
-      return {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts}
-    })
-  )
-
-  return React.useMemo(
-    () => (
-      <WrapperTextBottom
-        hasCoinFlip={hasCoinFlip}
-        hasUnfurlList={hasUnfurlList}
-        hasUnfurlPrompts={hasUnfurlPrompts}
-      />
-    ),
-    [hasCoinFlip, hasUnfurlList, hasUnfurlPrompts]
-  )
+export const useBottom = (data: Props) => {
+  return <WrapperTextBottom hasCoinFlip={data.hasCoinFlip} hasUnfurlList={data.hasUnfurlList} hasUnfurlPrompts={data.hasUnfurlPrompts} />
 }
 
 const WrapperTextBottom = function WrapperTextBottom(p: Props) {

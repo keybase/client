@@ -1,6 +1,5 @@
-import URL from 'url-parse'
 import * as Electron from 'electron'
-import * as RemoteGen from '@/actions/remote-gen'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as R from '@/constants/remote'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
@@ -8,12 +7,12 @@ import {showDevTools} from '@/local-debug'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {assetRoot, htmlPrefix} from './html-root.desktop'
+import {htmlURL, preloadPath} from './html-root.desktop'
 import KB2 from '@/util/electron.desktop'
 
 const {env} = KB2.constants
 
-let htmlFile = `${htmlPrefix}${assetRoot}main${__FILE_SUFFIX__}.html`
+let htmlFile = htmlURL('main')
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
@@ -29,11 +28,19 @@ const setupDefaultSession = () => {
     if (permission === 'fullscreen') {
       return callback(true)
     }
-    const ourURL = new URL(htmlFile)
-    const requestURL = new URL(webContents.getURL())
+
+    let ourPathname = ''
+    let requestPathname = ''
+    try {
+      ourPathname = new URL(htmlFile).pathname
+      requestPathname = new URL(webContents.getURL()).pathname
+    } catch {
+      return callback(false)
+    }
+
     if (
       permission === 'notifications' &&
-      requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
+      requestPathname.toLowerCase() === ourPathname.toLowerCase()
     ) {
       // Allow notifications
       return callback(true)
@@ -322,7 +329,7 @@ const MainWindow = () => {
       devTools: showDevTools,
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
-      preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
+      preload: preloadPath,
       spellcheck: !disableSpellCheck,
     },
     width: windowState.width,

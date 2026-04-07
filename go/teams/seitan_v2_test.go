@@ -256,7 +256,7 @@ func TestIsSeitanyAndAlphabetCoverage(t *testing.T) {
 
 	verifyCoverage := func(ikeyGen func() (s string, err error)) {
 		coverage := make(map[byte]bool)
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			s, err := ikeyGen()
 			require.NoError(t, err)
 			require.True(t, IsSeitany(s))

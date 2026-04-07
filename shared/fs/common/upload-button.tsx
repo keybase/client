@@ -1,10 +1,9 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -16,6 +15,7 @@ type UploadButtonProps = {
   openAndUploadBoth?: () => void
   openAndUploadDirectory?: () => void
   openAndUploadFile?: () => void
+  pickAndUploadFile?: () => void
   pickAndUploadMixed?: () => void
   pickAndUploadPhoto?: () => void
   pickAndUploadVideo?: () => void
@@ -23,28 +23,27 @@ type UploadButtonProps = {
 }
 
 const UploadButton = (props: UploadButtonProps) => {
-  const {pickAndUploadPhoto, pickAndUploadVideo, openAndUploadDirectory, openAndUploadFile} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          items={[
-            ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
-            ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
-            ...(openAndUploadDirectory ? [{onClick: openAndUploadDirectory, title: 'Upload directory'}] : []),
-            ...(openAndUploadFile ? [{onClick: openAndUploadFile, title: 'Upload file'}] : []),
-          ]}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    },
-    [openAndUploadDirectory, openAndUploadFile, pickAndUploadPhoto, pickAndUploadVideo]
-  )
+  const {pickAndUploadPhoto, pickAndUploadVideo, pickAndUploadFile, openAndUploadDirectory, openAndUploadFile: openAndUploadFileDesktop} = props
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        items={[
+          ...(props.pickAndUploadMixed ? [{onClick: props.pickAndUploadMixed, title: 'Upload photos/videos'}] : []),
+          ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
+          ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
+          ...(pickAndUploadFile ? [{onClick: pickAndUploadFile, title: 'Upload file'}] : []),
+          ...(openAndUploadDirectory ? [{onClick: openAndUploadDirectory, title: 'Upload directory'}] : []),
+          ...(openAndUploadFileDesktop ? [{onClick: openAndUploadFileDesktop, title: 'Upload file'}] : []),
+        ]}
+        position="bottom left"
+        closeOnSelect={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   if (!props.canUpload) {
@@ -53,12 +52,8 @@ const UploadButton = (props: UploadButtonProps) => {
   if (props.openAndUploadBoth) {
     return <Kb.Button small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
   }
-  if (props.pickAndUploadMixed) {
-    return <Kb.Icon type="iconfont-upload" padding="tiny" onClick={props.pickAndUploadMixed} />
-  }
-  // Either Android, or non-darwin desktop. Android doesn't support mixed
-  // mode; Linux/Windows don't support opening file or dir from the same
-  // dialog. In both cases a menu is needed.
+  // On mobile, always show the menu (iOS gets mixed + file, Android gets photo + video + file).
+  // On non-darwin desktop, show menu for file vs directory.
   return (
     <>
       {C.isMobile ? (
@@ -73,8 +68,9 @@ const UploadButton = (props: UploadButtonProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, ownProps.path))
-  const openAndUploadDesktop = useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
-  const pickAndUploadMobile = useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
+  const openAndUploadDesktop = useFSState(s => s.dispatch.defer.openAndUploadDesktop)
+  const pickAndUploadMobile = useFSState(s => s.dispatch.defer.pickAndUploadMobile)
+  const pickDocumentsMobile = useFSState(s => s.dispatch.defer.pickDocumentsMobile)
   const _openAndUploadBoth = () => {
     openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
   }
@@ -90,7 +86,7 @@ const Container = (ownProps: OwnProps) => {
   const _pickAndUploadMixed = () => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Mixed, ownProps.path)
   }
-  const pickAndUploadMixed = C.isIOS ? _pickAndUploadMixed : undefined
+  const pickAndUploadMixed = C.isMobile ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Photo, ownProps.path)
   }
@@ -99,13 +95,18 @@ const Container = (ownProps: OwnProps) => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Video, ownProps.path)
   }
   const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
+  const _pickAndUploadFileMobile = () => {
+    pickDocumentsMobile?.(ownProps.path)
+  }
+  const pickAndUploadFileMobile = C.isMobile ? _pickAndUploadFileMobile : undefined
 
   const props = {
     canUpload: _pathItem.type === T.FS.PathType.Folder && _pathItem.writable,
     openAndUploadBoth,
     openAndUploadDirectory,
     openAndUploadFile,
-    pickAndUploadMixed,
+    pickAndUploadFile: pickAndUploadFileMobile,
+    pickAndUploadMixed: C.isIOS ? pickAndUploadMixed : undefined,
     pickAndUploadPhoto,
     pickAndUploadVideo,
     style: ownProps.style,

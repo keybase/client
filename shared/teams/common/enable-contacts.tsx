@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 /**
  * Popup explaining that Keybase doesn't have contact permissions with a link to
@@ -11,7 +11,7 @@ import {useConfigState} from '@/constants/config'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
-  const onOpenSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
 
   const [showingPopup, setShowingPopup] = React.useState(noAccess)
   React.useEffect(() => {
@@ -23,7 +23,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   }
 
   return showingPopup ? (
-    <Kb.MobilePopup>
+    <Kb.Popup onHidden={onClosePopup}>
       <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header" style={styles.header}>
@@ -39,7 +39,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
           <Kb.Button label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.MobilePopup>
+    </Kb.Popup>
   ) : null
 }
 

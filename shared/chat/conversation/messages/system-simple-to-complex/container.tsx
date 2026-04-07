@@ -1,21 +1,20 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemSimpleToComplex}
 
-const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplexContainer(p: OwnProps) {
+function SystemSimpleToComplexContainer(p: OwnProps) {
   const {message} = p
   const teamID = Chat.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
   const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
-  const onManageChannels = React.useCallback(() => {
+  const onManageChannels = () => {
     manageChatChannels(teamID)
-  }, [manageChatChannels, teamID])
+  }
   const {team, author} = message
   return (
     <UserNotice>
@@ -52,7 +51,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
       </Kb.Box2>
     </UserNotice>
   )
-})
+}
 
 const bullet = '\u2022 '
 

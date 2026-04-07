@@ -1,40 +1,52 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Git from '@/constants/git'
+import * as T from '@/constants/types'
 
-type OwnProps = {id: string}
+type OwnProps = {
+  name: string
+  teamname?: string
+}
 
-const emptyGit = Git.makeGitInfo()
 const Container = (ownProps: OwnProps) => {
-  const {id} = ownProps
-  const git = Git.useGitState(s => s.idToInfo.get(id) || emptyGit)
-  const error = Git.useGitState(s => s.error)
-  const _name = git.name || ''
-  const teamname = git.teamname || ''
+  const {_name, teamname = ''} = {_name: ownProps.name, teamname: ownProps.teamname}
+  const [error, setError] = React.useState('')
   const waitingKey = C.waitingKeyGitLoading
 
-  const deletePersonalRepo = Git.useGitState(s => s.dispatch.deletePersonalRepo)
-  const deleteTeamRepo = Git.useGitState(s => s.dispatch.deleteTeamRepo)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const deletePersonalRepo = C.useRPC(T.RPCGen.gitDeletePersonalRepoRpcPromise)
+  const deleteTeamRepo = C.useRPC(T.RPCGen.gitDeleteTeamRepoRpcPromise)
+  const navigateUp = C.Router2.navigateUp
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {
-      deleteTeamRepo(name, teamname, notifyTeam)
+      deleteTeamRepo(
+        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     } else {
-      deletePersonalRepo(name)
+      deletePersonalRepo(
+        [{repoName: name}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     }
-    navigateUp()
   }
   const onClose = () => {
     navigateUp()
   }
-  const onDelete = (notifyTeam: boolean) => _onDelete(teamname, name, notifyTeam)
+  const onDelete = (notifyTeam: boolean) => _onDelete(teamname, _name, notifyTeam)
 
   const [name, setName] = React.useState('')
   const [notifyTeam, setNotifyTeam] = React.useState(true)
-
-  if (!_name) return null
 
   const matchesName = () => {
     if (name === _name) {
@@ -50,26 +62,27 @@ const Container = (ownProps: OwnProps) => {
 
   const onSubmit = () => {
     if (matchesName()) {
+      setError('')
       onDelete(notifyTeam)
     }
   }
   return (
-    <Kb.PopupWrapper onCancel={onClose} title="Delete repo?">
+    <>
       <Kb.ScrollView>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
           {!!error && (
-            <Kb.Box style={styles.error}>
+            <Kb.Box2 direction="vertical" style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {error.message}
+                {error}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
           </Kb.Text>
-          <Kb.Icon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Kb.Box style={styles.avatarBox}>
+          <Kb.ImageIcon type={teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
+          <Kb.Box2 direction="horizontal" alignItems="center" style={styles.avatarBox}>
             {!!teamname && (
               <Kb.Avatar
                 isTeam={true}
@@ -84,7 +97,7 @@ const Container = (ownProps: OwnProps) => {
             >
               {teamname ? `${teamname}/${_name}` : _name}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
           <Kb.Text center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
             {teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
@@ -93,7 +106,7 @@ const Container = (ownProps: OwnProps) => {
           <Kb.Text style={styles.confirm} type="BodySemibold">
             Enter the name of the repository to&nbsp;confirm:
           </Kb.Text>
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             value={name}
             onChangeText={setName}
@@ -125,16 +138,14 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatarBox: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     marginBottom: Kb.Styles.globalMargins.medium,
   },
   buttonBar: {alignItems: 'center'},
@@ -149,8 +160,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       flex: 1,
       height: '100%',
     },

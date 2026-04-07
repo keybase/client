@@ -3,30 +3,29 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
-type Props = {pipelineStarted: boolean}
+type Props = {pipelineStarted: boolean; username: string}
 
 const formatTimeLeft = (endTime: number) => {
   return formatDuration(endTime - Date.now())
 }
 
-const Waiting = (props: Props) => {
-  const {pipelineStarted} = props
+const Waiting = ({pipelineStarted, username}: Props) => {
   const endTime = AutoReset.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
   const nav = useSafeNavigation()
-  const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
+  const onClose = () => nav.safeNavigateAppend('login', true)
   const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
-  const onSendAgain = React.useCallback(() => {
+  const onSendAgain = () => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
-    resetAccount()
-  }, [resetAccount])
+    resetAccount(username)
+  }
   const _sendAgainWaiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaitingRef = React.useRef(sendAgainWaiting)
@@ -47,7 +46,7 @@ const Waiting = (props: Props) => {
         setFormattedTime(newFormattedTime)
       }
       if (endTime < Date.now()) {
-        nav.safeNavigateAppend('resetEnterPassword', true)
+        nav.safeNavigateAppend({name: 'resetEnterPassword', params: {username}}, true)
       }
     }
 
@@ -55,7 +54,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav, username])
 
   return (
     <SignupScreen
@@ -99,7 +98,7 @@ const Waiting = (props: Props) => {
               <Kb.Text type="Body" style={styles.mainText} center={true}>
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.positionRelative}>
+              <Kb.Box2 direction="horizontal" centerChildren={true} relative={true}>
                 <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
                   Send again
                 </Kb.Text>
@@ -123,9 +122,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   mainText: {
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
     maxWidth: 300,
-  },
-  positionRelative: {
-    position: 'relative',
   },
   progressContainer: {
     ...Kb.Styles.globalStyles.fillAbsolute,

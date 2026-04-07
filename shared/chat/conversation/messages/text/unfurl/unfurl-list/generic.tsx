@@ -1,14 +1,13 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
-import * as React from 'react'
 import UnfurlImage from './image'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {getUnfurlInfo, useActions} from './use-state'
 
-const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
+function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
@@ -56,6 +55,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     ordinal
   )
 
+  const titleUrlProps = Kb.useClickURL(data?.url ?? '')
+
   if (!data) return null
 
   const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
@@ -63,9 +64,9 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-      {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
-      <Kb.BoxGrow style={styles.fastStyle}>
-        <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
+      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+      <Kb.BoxGrow>
+        <Kb.Text type="BodySmall" lineClamp={1}>
           {siteName}
           {publishTime ? (
             <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
@@ -80,20 +81,20 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
           padding="xtiny"
           className="unfurl-closebox"
           fontSize={12}
+          color={Kb.Styles.globalColors.black_20}
         />
       ) : null}
     </Kb.Box2>
   )
 
   const snippet = description ? (
-    <Kb.Text type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
+    <Kb.Text type="Body" lineClamp={5} selectable={true}>
       {description}
       {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
         <>
           {' '}
           <Kb.Icon
-            boxStyle={styles.collapseBox}
-            noContainer={Kb.Styles.isMobile}
+            style={styles.collapseBox}
             onClick={onToggleCollapse}
             sizeType="Tiny"
             type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
@@ -122,7 +123,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const rightImage =
     imageLocation === 'side' && mediaUrl ? (
       <Kb.Box2 direction="vertical">
-        <Kb.Image2 src={mediaUrl} style={styles.sideImage} />
+        <Kb.Image src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null
 
@@ -131,7 +132,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
         {publisher}
-        <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={url}>
+        <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>
           {title}
         </Kb.Text>
         {snippet}
@@ -140,7 +141,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {rightImage}
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -150,7 +151,6 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {alignSelf: 'center'},
       }),
       closeBox: Kb.Styles.platformStyles({
-        common: {backgroundColor: Kb.Styles.globalColors.fastBlank},
         isElectron: {
           alignSelf: 'flex-start',
           marginLeft: 'auto',
@@ -160,11 +160,11 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {display: 'inline'},
       }),
       container: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start', backgroundColor: Kb.Styles.globalColors.fastBlank},
+        common: {alignSelf: 'flex-start'},
         isElectron: {maxWidth: 500},
         isTablet: {maxWidth: 500},
       }),
-      fastStyle: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+
       favicon: Kb.Styles.platformStyles({
         common: {
           borderRadius: Kb.Styles.borderRadius,
@@ -175,7 +175,6 @@ const styles = Kb.Styles.styleSheetCreate(
       innerContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
           minWidth: 150,
         },
         isMobile: {
@@ -199,12 +198,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       siteNameContainer: Kb.Styles.platformStyles({
-        common: {alignSelf: 'flex-start', backgroundColor: Kb.Styles.globalColors.fastBlank},
+        common: {alignSelf: 'flex-start'},
         isElectron: {minHeight: 16},
         isMobile: {minHeight: 21},
       }),
       url: {
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         ...Kb.Styles.globalStyles.fontSemibold,
       },
     }) as const

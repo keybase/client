@@ -1,11 +1,11 @@
-import type * as Framed from 'framed-msgpack-rpc'
 import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
 import {wrapErrors} from '@/util/debug'
+import type {ErrorType} from './rpc-transport'
 
-type WaitingKey = string | Array<string>
+type WaitingKey = string | ReadonlyArray<string>
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: WaitingKey) => {
@@ -17,7 +17,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
   const response: Partial<CommonResponseHandler> = {}
 
   if (r.error) {
-    response.error = (e: Framed.ErrorType) => {
+    response.error = (e: ErrorType) => {
       // Waiting on the server again
       if (waitingKey) {
         getEngine().dispatchWaitingAction(waitingKey, true)
@@ -39,7 +39,6 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
   return response
 }
 
-// TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
 async function listener(p: {
   method: string
   params?: object
@@ -87,7 +86,6 @@ async function listener(p: {
           }
         }
 
-        // defer to process network first
         setTimeout(() => {
           const invokeAndDispatch = wrapErrors(async () => {
             if (response) {

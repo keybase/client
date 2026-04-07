@@ -7,14 +7,10 @@ import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import type {Props} from '.'
 import Todo from './todo'
-import {useSignupState} from '@/constants/signup'
-import {usePeopleState} from '@/constants/people'
+import {clearSignupEmail} from './signup-email'
 // import WotTask from './wot-task'
 
-const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Props) => React.ReactNode = (
-  item,
-  props
-) => {
+const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
   switch (item.type) {
     case 'todo':
       return (
@@ -25,6 +21,8 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
           instructions={item.instructions}
           key={item.todoType}
           metadata={item.metadata}
+          setResentEmail={props.setResentEmail}
+          skipTodo={props.skipTodo}
           todoType={item.todoType}
         />
       )
@@ -48,6 +46,8 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
           badged={item.badged}
           confirmLabel={item.confirmLabel}
           dismissable={item.dismissable}
+          dismissAnnouncement={props.dismissAnnouncement}
+          getData={props.getData}
           iconUrl={item.iconUrl}
           id={item.id}
           key={item.text}
@@ -60,16 +60,26 @@ const itemToComponent: (item: T.Immutable<T.People.PeopleScreenItem>, props: Pro
   }
 }
 
-const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
-  const clearJustSignedUpEmail = useSignupState(s => s.dispatch.clearJustSignedUpEmail)
-  const signupEmail = useSignupState(s => s.justSignedUpEmail)
+const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signupEmail: string) =>
+  item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !signupEmail
+
+const PeopleItems = ({
+  items,
+  props,
+}: {
+  items: ReadonlyArray<T.Immutable<T.People.PeopleScreenItem>>
+  props: Props
+}): Array<React.ReactNode> => items.map((item): React.ReactNode => renderPeopleItem(item, props))
+
+function EmailVerificationBanner(props: {signupEmail: string}) {
+  const {signupEmail} = props
   React.useEffect(
     () =>
       // Only have a cleanup function
       () => {
-        signupEmail && clearJustSignedUpEmail()
+        signupEmail && clearSignupEmail()
       },
-    [clearJustSignedUpEmail, signupEmail]
+    [signupEmail]
   )
 
   if (!signupEmail) {
@@ -82,11 +92,13 @@ const EmailVerificationBanner = React.memo(function EmailVerificationBanner() {
   return (
     <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
   )
-})
+}
 
-const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificationBanner() {
-  const resentEmail = usePeopleState(s => s.resentEmail)
-  const setResentEmail = usePeopleState(s => s.dispatch.setResentEmail)
+function ResentEmailVerificationBanner(props: {
+  resentEmail: string
+  setResentEmail: (email: string) => void
+}) {
+  const {resentEmail, setResentEmail} = props
   React.useEffect(
     () =>
       // Only have a cleanup function
@@ -110,16 +122,16 @@ const ResentEmailVerificationBanner = React.memo(function ResentEmailVerificatio
       />
     </Kb.Banner>
   )
-})
+}
 
-export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
+export function PeoplePageList(props: Props) {
+  const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
+
   return (
-    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-      <EmailVerificationBanner />
-      <ResentEmailVerificationBanner />
-      {props.newItems
-        .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
-        .map((item): React.ReactNode => itemToComponent(item, props))}
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+      <EmailVerificationBanner signupEmail={props.signupEmail} />
+      <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
+      <PeopleItems items={visibleNewItems} props={props} />
       {/*Array.from(props.wotUpdates, ([key, item]) => (
         <WotTask
           key={key}
@@ -131,7 +143,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       ))*/}
 
       <FollowSuggestions suggestions={props.followSuggestions} />
-      {props.oldItems.map((item): React.ReactNode => itemToComponent(item, props))}
-    </Kb.Box>
+      <PeopleItems items={props.oldItems} props={props} />
+    </Kb.Box2>
   )
-})
+}

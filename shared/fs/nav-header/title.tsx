@@ -3,9 +3,10 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 
 type Props = {
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   path: T.FS.Path
   inDestinationPicker?: boolean
 }
@@ -13,55 +14,52 @@ type Props = {
 const Breadcrumb = (props: Props) => {
   const apath = props.path || FS.defaultPath
   // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
-  const ancestors = React.useMemo(() => {
-    return apath === FS.defaultPath
+  const ancestors =
+    apath === FS.defaultPath
       ? []
       : T.FS.getPathElements(apath)
           .slice(1, -1)
           .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [FS.defaultPath])
-  }, [apath])
   const {inDestinationPicker} = props
   const nav = useSafeNavigation()
-  const onOpenPath = React.useCallback(
-    (path: T.FS.Path) => {
-      inDestinationPicker
-        ? FS.makeActionsForDestinationPickerOpen(0, path)
-        : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
-    },
-    [nav, inDestinationPicker]
-  )
+  const onOpenPath = (path: T.FS.Path) => {
+    inDestinationPicker
+      ? props.destinationPickerSource &&
+        nav.safeNavigateAppend({
+          name: 'destinationPicker',
+          params: {parentPath: path, source: props.destinationPickerSource},
+        })
+      : nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          containerStyle={styles.floating}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          items={ancestors
-            .slice(0, -2)
-            .reverse()
-            .map(path => ({
-              onClick: () => onOpenPath(path),
-              title: T.FS.getPathName(path),
-              view: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kbfs.ItemIcon path={path} size={16} />
-                  <Kb.Text type="Body" lineClamp={1}>
-                    {T.FS.getPathName(path)}
-                  </Kb.Text>
-                </Kb.Box2>
-              ),
-            }))}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    },
-    [ancestors, onOpenPath]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        containerStyle={styles.floating}
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        items={ancestors
+          .slice(0, -2)
+          .reverse()
+          .map(path => ({
+            onClick: () => onOpenPath(path),
+            title: T.FS.getPathName(path),
+            view: (
+              <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+                <Kbfs.ItemIcon path={path} size={16} />
+                <Kb.Text type="Body" lineClamp={1}>
+                  {T.FS.getPathName(path)}
+                </Kb.Text>
+              </Kb.Box2>
+            ),
+          }))}
+        position="bottom left"
+        closeOnSelect={true}
+      />
+    )
+  }
 
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -134,17 +132,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      dropdown: {
-        marginLeft: -Kb.Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
-      },
       floating: Kb.Styles.platformStyles({
         isElectron: {
           width: 196,
         },
       }),
-      icon: {
-        padding: Kb.Styles.globalMargins.tiny,
-      },
       mainTitleText: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       rootTitle: {
         alignSelf: 'center',
