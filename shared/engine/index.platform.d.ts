@@ -1,27 +1,25 @@
-export type PayloadType = {
-  method: string
-  param: Array<{sessionID?: number}>
-  response?: {cancelled: boolean; seqid: number; result?: (r?: unknown) => void}
-}
+import type {
+  ConnectDisconnectCB,
+  IncomingRPCCallbackType,
+  InvokeType,
+  PayloadType,
+  RPCMessage,
+  RPCTransport,
+} from './rpc-transport'
 
-export type SendArg = [number, number, unknown, unknown]
+export type {ConnectDisconnectCB, IncomingRPCCallbackType, InvokeType, PayloadType, RPCMessage}
 
-// Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
-// a list of arguments, but it expects exactly one element with keyed
-// arguments.
-export type InvokeType = (method: string, args: [object], cb: (err: unknown, data: unknown) => void) => void
 export type CreateClientType = {
-  transport: {
+  transport: RPCTransport & {
     needsConnect: boolean
     reset: () => void
-    send: (buf: Uint8Array) => void
+    close?: () => void
+    send: (message: unknown) => boolean
+    packetizeData: (data: Uint8Array) => void
+    dispatchDecodedMessage: (message: unknown) => void
   }
   invoke: InvokeType
 }
-
-export type IncomingRPCCallbackType = (payload: PayloadType) => void
-export type RpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
-export type ConnectDisconnectCB = () => void
 
 declare function createClient(
   incomingRPCCallback: IncomingRPCCallbackType,

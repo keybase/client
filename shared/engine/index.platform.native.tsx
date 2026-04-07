@@ -1,19 +1,19 @@
 import {LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import type {IncomingRPCCallbackType, ConnectDisconnectCB, CreateClientType} from './index.platform'
+import type {RPCMessage} from './rpc-transport'
 import logger from '@/logger'
 import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
 
 class NativeTransport extends LocalTransport {
-  send(msg: unknown) {
+  protected writeMessage(message: RPCMessage) {
     try {
       if (!global.rpcOnGo) {
         logger.error('>>>> rpcOnGo send before rpcOnGo global?')
       }
-      global.rpcOnGo?.(msg)
+      global.rpcOnGo?.(message)
     } catch (e) {
       logger.error('>>>> rpcOnGo JS thrown!', e)
     }
-    return true
   }
 }
 
@@ -31,10 +31,10 @@ function createClient(
       if (count > 1) {
         const arr = objs as Array<unknown>
         for (const obj of arr) {
-          client.transport._dispatch(obj)
+          client.transport.dispatchDecodedMessage(obj)
         }
       } else {
-        client.transport._dispatch(objs)
+        client.transport.dispatchDecodedMessage(objs)
       }
     } catch (e) {
       logger.error('>>>> rpcOnJs JS thrown!', e)
@@ -52,12 +52,12 @@ function createClient(
       logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
-  
+
   // Signal that JS is ready to send/receive RPCs
   // This sets up native infrastructure and starts bidirectional communication
   logger.info('JS engine ready, notifying native side')
   notifyJSReady()
-  
+
   return client
 }
 

@@ -23,6 +23,9 @@ export type SaveDialogOptions = {
   message?: string
 }
 
+import type {RPCMessage as EngineRPCMessage} from '@/engine/rpc-transport'
+export type {EngineRPCMessage}
+
 export type KB2 = {
   constants: {
     assetRoot: string
@@ -63,7 +66,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (buff: Uint8Array) => void
+    engineSend?: (message: EngineRPCMessage) => void
     appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string

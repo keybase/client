@@ -1,9 +1,9 @@
-import type * as Framed from 'framed-msgpack-rpc'
 import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
 import {wrapErrors} from '@/util/debug'
+import type {ErrorType} from './rpc-transport'
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -17,7 +17,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
   const response: Partial<CommonResponseHandler> = {}
 
   if (r.error) {
-    response.error = (e: Framed.ErrorType) => {
+    response.error = (e: ErrorType) => {
       // Waiting on the server again
       if (waitingKey) {
         getEngine().dispatchWaitingAction(waitingKey, true)
