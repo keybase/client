@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -264,7 +265,7 @@ func findRoleDowngrade(points []keybase1.UserLogPoint, role keybase1.TeamRole) *
 func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 	role keybase1.TeamRole, scl keybase1.SigChainLocation,
 ) (err error) {
-	mkErr := func(format string, args ...interface{}) error {
+	mkErr := func(format string, args ...any) error {
 		msg := fmt.Sprintf(format, args...)
 		if role.IsOrAbove(keybase1.TeamRole_ADMIN) {
 			return NewAdminPermissionError(t.GetID(), uv, msg)
@@ -2354,11 +2355,8 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		// If we have the invite, also check if invite role matches role
 		// added.
 		var foundUV bool
-		for _, updatedUV := range roleUpdates[inviteMD.Invite.Role] {
-			if uv.Eq(updatedUV) {
-				foundUV = true
-				break
-			}
+		if slices.ContainsFunc(roleUpdates[inviteMD.Invite.Role], uv.Eq) {
+			foundUV = true
 		}
 		if !foundUV {
 			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV,

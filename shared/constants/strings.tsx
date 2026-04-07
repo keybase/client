@@ -1,6 +1,6 @@
 import * as Platforms from './platform'
 import type * as T from './types'
-import {conversationIDKeyToString} from './types/chat2/common'
+import {conversationIDKeyToString} from './types/chat/common'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const addEmailWaitingKey = 'settings:addEmail'
@@ -18,7 +18,6 @@ export const waitingKeyChatCreating = 'chat:creatingConvo'
 export const waitingKeyChatInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyChatBotAdd = 'chat:botAdd'
 export const waitingKeyChatBotRemove = 'chat:botRemove'
-export const waitingKeyChatLoadingEmoji = 'chat:loadingEmoji'
 export const waitingKeyChatThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
@@ -26,8 +25,8 @@ export const waitingKeyChatUnpin = (conversationIDKey: T.Chat.ConversationIDKey)
 export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
-export const waitingKeyTracker = 'tracker2:waitingKey'
-export const waitingKeyTrackerProfileLoad = 'tracker2:profileLoad'
+export const waitingKeyTracker = 'tracker:waitingKey'
+export const waitingKeyTrackerProfileLoad = 'tracker:profileLoad'
 
 export const waitingKeyProvision = 'provision:waiting'
 export const waitingKeyProvisionForgotUsername = 'provision:forgotUsername'
@@ -43,6 +42,8 @@ export const waitingKeyDevices = 'devices:devicesPage'
 export const waitingKeyRecoverPassword = 'recover-password:waiting'
 
 export const waitingKeyCrypto = 'cryptoWaiting'
+
+export const searchWaitingKey = 'teamBuilding:search'
 
 export const waitingKeyTeamsLoaded = 'teams:loaded'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
@@ -64,6 +65,7 @@ export const waitingKeyTeamsDeleteTeam = (teamID: T.Teams.TeamID) => `teamDelete
 export const waitingKeyTeamsLeaveTeam = (teamname: T.Teams.Teamname) => `teamLeave:${teamname}`
 export const waitingKeyTeamsRename = 'teams:rename'
 export const waitingKeyTeamsLoadWelcomeMessage = (teamID: T.Teams.TeamID) => `loadWelcomeMessage:${teamID}`
+export const waitingKeyTeamsSetRetentionPolicy = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
 export const waitingKeyTeamsLoadTeamTreeActivity = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`
 export const waitingKeyTeamsEditMembership = (teamID: T.Teams.TeamID, ...usernames: ReadonlyArray<string>) =>
@@ -95,6 +97,8 @@ export const waitingKeyFSFolderList = 'fs:folderList'
 export const waitingKeyFSStat = 'fs:stat'
 export const waitingKeyFSCommitEdit = 'fs:commitEditWaitingKey'
 export const waitingKeyFSSetSyncOnCellular = 'fs:setSyncOnCellular'
+
+export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 
 export const waitingKeyGitLoading = 'git:loading'
 

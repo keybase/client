@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 	"sync"
 	"time"
@@ -816,9 +817,7 @@ func (k *KeybaseServiceBase) getLastWriterInfo(
 	newLastWriters := make(
 		map[kbfscrypto.VerifyingKey]keybase1.MerkleRootV2,
 		len(teamInfo.LastWriters)+1)
-	for k, v := range teamInfo.LastWriters {
-		newLastWriters[k] = v
-	}
+	maps.Copy(newLastWriters, teamInfo.LastWriters)
 	newLastWriters[verifyingKey] = *res.Res
 	teamInfo.LastWriters = newLastWriters
 	return teamInfo, nil
@@ -1061,9 +1060,7 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 	}
 
 	if len(revokedKidNames) > 0 {
-		for k, v := range revokedKidNames {
-			kidNames[k] = v
-		}
+		maps.Copy(kidNames, revokedKidNames)
 	}
 
 	for _, incarnation := range upk.PastIncarnations {
@@ -1075,17 +1072,11 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 		}
 
 		if len(revokedKidNames) > 0 {
-			for k, v := range revokedKidNames {
-				kidNames[k] = v
-			}
+			maps.Copy(kidNames, revokedKidNames)
 		}
 
-		for k, v := range revokedVerifyingKeysPast {
-			revokedVerifyingKeys[k] = v
-		}
-		for k, v := range revokedCryptPublicKeysPast {
-			revokedCryptPublicKeys[k] = v
-		}
+		maps.Copy(revokedVerifyingKeys, revokedVerifyingKeysPast)
+		maps.Copy(revokedCryptPublicKeys, revokedCryptPublicKeysPast)
 	}
 
 	u := idutil.UserInfo{

@@ -2,21 +2,30 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
-import {useProvisionState} from '@/constants/provision'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
+import * as T from '@/constants/types'
+import type {RPCError} from '@/util/errors'
+
+const decodeForgotUsernameError = (error: RPCError) => {
+  switch (error.code) {
+    case T.RPCGen.StatusCode.scnotfound:
+      return "We couldn't find an account with that email address. Try again?"
+    case T.RPCGen.StatusCode.scinputerror:
+      return "That doesn't look like a valid email address. Try again?"
+    default:
+      return error.desc
+  }
+}
 
 const ForgotUsername = () => {
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
-  // trigger a default phone number country rpc if it's not already loaded
-  React.useEffect(() => {
-    !defaultCountry && loadDefaultPhoneCountry()
-  }, [defaultCountry, loadDefaultPhoneCountry])
+  const defaultCountry = useDefaultPhoneCountry()
+  const recoverUsernameWithEmail = C.useRPC(T.RPCGen.accountRecoverUsernameWithEmailRpcPromise)
+  const recoverUsernameWithPhone = C.useRPC(T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise)
 
-  const forgotUsernameResult = useProvisionState(s => s.forgotUsernameResult)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvisionForgotUsername)
+  const [forgotUsernameResult, setForgotUsernameResult] = React.useState('')
 
   const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
@@ -25,21 +34,28 @@ const ForgotUsername = () => {
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
 
-  const forgotUsername = useProvisionState(s => s.dispatch.forgotUsername)
-
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     if (!emailSelected && phoneNumber) {
-      forgotUsername(phoneNumber)
+      recoverUsernameWithPhone(
+        [{phone: phoneNumber}, C.waitingKeyProvisionForgotUsername],
+        () => setForgotUsernameResult('success'),
+        error => setForgotUsernameResult(decodeForgotUsernameError(error))
+      )
     } else if (emailSelected) {
-      forgotUsername(undefined, email)
+      recoverUsernameWithEmail(
+        [{email}, C.waitingKeyProvisionForgotUsername],
+        () => setForgotUsernameResult('success'),
+        error => setForgotUsernameResult(decodeForgotUsernameError(error))
+      )
     }
-  }, [forgotUsername, email, phoneNumber, emailSelected])
+  }
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === undefined) || (emailSelected && !email)
 
   return (
     <SignupScreen
+      hideDesktopHeader={!Kb.Styles.isMobile}
       banners={
         <>
           {errorBanner(error)}
@@ -69,7 +85,7 @@ const ForgotUsername = () => {
           selected={emailSelected}
         />
         {emailSelected && (
-          <Kb.LabeledInput
+          <Kb.Input3
             autoFocus={true}
             placeholder="Email address"
             onEnterKeyDown={onSubmit}

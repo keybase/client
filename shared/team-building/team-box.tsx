@@ -39,7 +39,7 @@ const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
-const UserBubbleCollection = React.memo(function UserBubbleCollection(p: {
+const UserBubbleCollection = function UserBubbleCollection(p: {
   teamSoFar: Props['teamSoFar']
   onRemove: Props['onRemove']
 }) {
@@ -57,7 +57,7 @@ const UserBubbleCollection = React.memo(function UserBubbleCollection(p: {
       ))}
     </>
   )
-})
+}
 
 const TeamBox = (props: Props) => {
   // Scroll to the end when a new user is added so they are visible.
@@ -71,12 +71,6 @@ const TeamBox = (props: Props) => {
     prevLastRef.current = last
   }, [prevLastRef, last])
 
-  const addMorePrompt = props.teamSoFar.length === 1 && (
-    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
-      {`Keep adding people, or click ${props.goButtonLabel ?? 'Start'} when done.`}
-    </Kb.Text>
-  )
-
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
@@ -87,7 +81,6 @@ const TeamBox = (props: Props) => {
           contentContainerStyle={styles.scrollContent}
         >
           <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-          {addMorePrompt}
         </Kb.ScrollView>
       </Kb.Box2>
     </Kb.Box2>
@@ -103,7 +96,6 @@ const TeamBox = (props: Props) => {
         >
           <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-            {addMorePrompt}
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
@@ -123,7 +115,6 @@ const TeamBox = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
       bubbles: Kb.Styles.platformStyles({
         isElectron: {
           overflow: 'hidden',
@@ -154,32 +145,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      search: Kb.Styles.platformStyles({
-        common: {
-          flex: 1,
-          flexWrap: 'wrap',
-        },
-        isElectron: {
-          ...Kb.Styles.globalStyles.rounded,
-          backgroundColor: Kb.Styles.globalColors.white,
-          borderColor: Kb.Styles.globalColors.black_20,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          maxHeight: 170,
-          minHeight: 40,
-          overflowY: 'scroll',
-        },
-        isMobile: {
-          borderBottomColor: Kb.Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
-          minHeight: 48,
-        },
-      }),
-      searchIcon: {
-        alignSelf: 'center',
-        marginLeft: 10,
-      },
     }) as const
 )
 

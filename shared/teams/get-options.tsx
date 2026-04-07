@@ -1,21 +1,34 @@
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
+import {useNavigation, useRoute} from '@react-navigation/native'
+import type {RouteProp} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type TeamsRootParams = {
+  filter?: string
+  sort?: T.Teams.TeamListSort
+}
+type TeamsRootParamList = {teamsRoot: TeamsRootParams}
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
   const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () => nav.safeNavigateAppend('teamJoinTeamDialog'),
+    onJoinTeam: () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}}),
   }
 }
 
 const TeamsFilter = () => {
-  const filterValue = useTeamsState(s => s.teamListFilter)
+  const route = useRoute<RouteProp<TeamsRootParamList, 'teamsRoot'>>()
+  const params = route.params
+  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
+  const filterValue = params.filter ?? ''
   const numTeams = useTeamsState(s => s.teamMeta.size)
-  const setFilter = useTeamsState(s => s.dispatch.setTeamListFilter)
+  const setFilter = (filter: string) => navigation.setParams({...params, filter})
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
@@ -10,14 +10,15 @@ import type * as T from '@/constants/types'
 type Props = {
   ordinal: T.Chat.Ordinal
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  mode?: 'modal' | 'bottomsheet'
   onHidden: () => void
   position: Kb.Styles.Position
   style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 
-const MessagePopup = React.memo(function MessagePopup(p: Props) {
-  const {ordinal, attachTo, onHidden, position, style, visible} = p
+function MessagePopup(p: Props) {
+  const {ordinal, attachTo, onHidden, position, style, visible, mode} = p
   const type = Chat.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
@@ -38,6 +39,7 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
         <TextMessage
           ordinal={ordinal}
           attachTo={attachTo}
+          mode={mode}
           onHidden={onHidden}
           position={position}
           style={style}
@@ -48,6 +50,7 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <JourneycardMessage
           attachTo={attachTo}
+          mode={mode}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -59,6 +62,7 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <AttachmentMessage
           attachTo={attachTo}
+          mode={mode}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -76,40 +80,36 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
     case undefined:
       return null
   }
-})
+}
 
 // Mobile only
 type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
   const {pop} = C.useNav()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo} = p
-      return pop ? (
-        <Kb.FloatingModalContext.Provider value={true}>
-          <MessagePopup
-            ordinal={ordinal}
-            key="popup"
-            attachTo={attachTo}
-            onHidden={pop}
-            position="top right"
-            visible={true}
-          />
-        </Kb.FloatingModalContext.Provider>
-      ) : null
-    },
-    [ordinal, pop]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo} = p
+    return pop ? (
+      <MessagePopup
+        ordinal={ordinal}
+        key="popup"
+        attachTo={attachTo}
+        mode="modal"
+        onHidden={pop}
+        position="top right"
+        visible={true}
+      />
+    ) : null
+  }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
     showPopup()
   }
 
   return (
-    <Kb.Box2Measure direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 
@@ -120,26 +120,22 @@ export const useMessagePopup = (p: {
 }) => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const {ordinal, shouldShow, style} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (shouldShow?.() ?? true) ? (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <Kb.FloatingModalContext.Provider value="bottomsheet">
-            <MessagePopup
-              ordinal={ordinal}
-              key="popup"
-              attachTo={attachTo}
-              onHidden={hidePopup}
-              position="top right"
-              style={style}
-              visible={true}
-            />
-          </Kb.FloatingModalContext.Provider>
-        </Chat.ChatProvider>
-      ) : null
-    },
-    [ordinal, shouldShow, style, conversationIDKey]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (shouldShow?.() ?? true) ? (
+      <Chat.ChatProvider id={conversationIDKey}>
+        <MessagePopup
+          ordinal={ordinal}
+          key="popup"
+          attachTo={attachTo}
+          mode="bottomsheet"
+          onHidden={hidePopup}
+          position="top right"
+          style={style}
+          visible={true}
+        />
+      </Chat.ChatProvider>
+    ) : null
+  }
   return Kb.usePopup2(makePopup)
 }

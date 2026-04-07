@@ -32,17 +32,17 @@ import (
 // MergeStatusJSON merges the given `obj` into the given `status` JSON blob.
 // If any errors occur the original `status` is returned. Otherwise a new JSON
 // blob is created of the form {"status": status, key: obj}
-func MergeStatusJSON(obj interface{}, key, status string) string {
+func MergeStatusJSON(obj any, key, status string) string {
 	if err := jsonw.EnsureMaxDepthBytesDefault([]byte(status)); err != nil {
 		return status
 	}
 
-	var statusObj map[string]interface{}
+	var statusObj map[string]any
 	if err := json.Unmarshal([]byte(status), &statusObj); err != nil {
 		return status
 	}
 
-	statusMap := make(map[string]interface{})
+	statusMap := make(map[string]any)
 	statusMap["status"] = statusObj
 	statusMap[key] = obj
 
@@ -271,7 +271,7 @@ func findFirstNewline(b []byte) []byte {
 	return b[(index + 1):]
 }
 
-func appendError(log logger.Logger, collected []byte, format string, args ...interface{}) []byte {
+func appendError(log logger.Logger, collected []byte, format string, args ...any) []byte {
 	msg := "Error reading logs: " + fmt.Sprintf(format, args...)
 	log.Errorf(msg)
 	return append(collected, []byte("\n"+msg+"\n")...)

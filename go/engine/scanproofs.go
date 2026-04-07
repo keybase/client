@@ -455,7 +455,7 @@ func (e *ScanProofsEngine) GetRemoteProofChainLink(m libkb.MetaContext, uid keyb
 }
 
 func (e *ScanProofsEngine) ParseIndices(indices string) (start int, end int, reterr error) {
-	wrap := func(format string, arg ...interface{}) error {
+	wrap := func(format string, arg ...any) error {
 		f2 := fmt.Sprintf("Invalid indices: %s", format)
 		return fmt.Errorf(f2, arg...)
 	}

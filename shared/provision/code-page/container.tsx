@@ -1,21 +1,15 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan'
 import Troubleshooting from '../troubleshooting'
-import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
-import {type Device, useProvisionState} from '@/constants/provision'
+import * as T from '@/constants/types'
+import {useCurrentUserState} from '@/stores/current-user'
+import {type Device, useProvisionState} from '@/stores/provision'
 
 const CodePageContainer = () => {
-  const {deviceID, storeDeviceName} = useCurrentUserState(
-    C.useShallow(s => ({
-      deviceID: s.deviceID,
-      storeDeviceName: s.deviceName,
-    }))
-  )
+  const storeDeviceName = useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   const provisionState = useProvisionState(
     C.useShallow(s => ({
@@ -28,24 +22,29 @@ const CodePageContainer = () => {
   )
   const {error, otherDevice, provisionDeviceName, submitTextCode, textCode} = provisionState
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const currentDevice = Devices.useDevicesState(s => s.deviceMap.get(deviceID)) ?? Devices.emptyDevice
-  const iconNumber = Devices.useDeviceIconNumber(otherDevice.id)
+  const currentDevice = {
+    created: 0,
+    currentDevice: false,
+    deviceID: T.Devices.stringToDeviceID(''),
+    deviceNumberOfType: 0,
+    lastUsed: 0,
+    name: currentDeviceName,
+    type: currentDeviceType,
+  } satisfies T.Devices.Device
+  const iconNumber = T.Devices.deviceNumberToIconNumber(otherDevice.deviceNumberOfType)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
 
-  const _onSubmitTextCode = React.useCallback(
-    (code: string) => {
-      !waiting && submitTextCode?.(code)
-    },
-    [submitTextCode, waiting]
-  )
+  const _onSubmitTextCode = (code: string) => {
+    !waiting && submitTextCode?.(code)
+  }
 
   const [code, setCode] = React.useState('')
   const [troubleshooting, setTroubleshooting] = React.useState(false)
 
-  const defaultTab = React.useMemo(() => {
+  const defaultTab = (() => {
     const getTabOrOpposite = (tabToShowToNew: Tab) => {
       if (!currentDeviceAlreadyProvisioned) return tabToShowToNew
       switch (tabToShowToNew) {
@@ -64,7 +63,7 @@ const CodePageContainer = () => {
       case 'desktop':
         return otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
-  }, [currentDeviceAlreadyProvisioned, otherDevice.type])
+  })()
 
   const [tab, setTab] = React.useState<Tab>(defaultTab)
 
@@ -73,22 +72,10 @@ const CodePageContainer = () => {
   }, [defaultTab])
 
   const tabBackground = () => (tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green)
-  const buttonBackground = () => (tab === 'QR' ? 'blue' : 'green')
+  const buttonType = () => (tab === 'QR' ? 'Default' as const : 'Success' as const)
+  const buttonLabelStyle = () => (tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel)
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
-
-  const header = () => {
-    return Kb.Styles.isMobile
-      ? {
-          leftButton: (
-            <Kb.Text type="BodyBig" onClick={onBack} negative={true}>
-              {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-            </Kb.Text>
-          ),
-          style: {backgroundColor: tabBackground()},
-        }
-      : undefined
-  }
 
   const body = () => {
     let content: React.ReactNode = null
@@ -120,9 +107,10 @@ const CodePageContainer = () => {
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
+          justifyContent="center"
           style={currentDeviceAlreadyProvisioned ? styles.imageContainerOnLeft : styles.imageContainerOnRight}
         >
-          <Kb.Icon
+          <Kb.ImageIcon
             type={tab === 'QR' ? 'illustration-bg-provisioning-blue' : 'illustration-bg-provisioning-green'}
             style={currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight}
           />
@@ -139,9 +127,9 @@ const CodePageContainer = () => {
           </>
         )}
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Kb.Styles.globalStyles.flexGrow}>
-            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny" justifyContent="space-between">
               <Instructions
                 currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
                 currentDevice={currentDevice}
@@ -166,9 +154,9 @@ const CodePageContainer = () => {
           !currentDeviceAlreadyProvisioned &&
           heyWaitBanner()}
         {!inModal() && troubleshooting && (
-          <Kb.Overlay onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
+          <Kb.Popup onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
             {troubleshootingContent()}
-          </Kb.Overlay>
+          </Kb.Popup>
         )}
       </Kb.Box2>
     )
@@ -191,22 +179,24 @@ const CodePageContainer = () => {
           {tab === 'enterText' && (
             <Kb.WaitingButton
               fullWidth={true}
-              backgroundColor={buttonBackground()}
+              type={buttonType()}
               label="Continue"
               onClick={onSubmitTextCode}
               disabled={!code || waiting}
-              style={styles.enterTextButton}
+              style={Kb.Styles.collapseStyles([styles.enterTextButton, styles.primaryOnColor])}
+              labelStyle={buttonLabelStyle()}
               waitingKey={C.waitingKeyProvision}
             />
           )}
           {tab !== 'enterText' && inModal() && !Kb.Styles.isMobile && (
             <Kb.WaitingButton
               fullWidth={true}
-              backgroundColor={buttonBackground()}
+              type={buttonType()}
               label="Close"
               onClick={onBack}
               onlyDisable={true}
-              style={styles.closeButton}
+              style={Kb.Styles.collapseStyles([styles.closeButton, styles.primaryOnColor])}
+              labelStyle={buttonLabelStyle()}
               waitingKey={C.waitingKeyProvision}
             />
           )}
@@ -253,16 +243,12 @@ const CodePageContainer = () => {
   }
   const content = body()
   if (inModal()) {
+    const f = footer()
     return (
-      <Kb.Modal
-        header={header()}
-        footer={footer()}
-        onClose={onBack}
-        mode="Wide"
-        mobileStyle={{backgroundColor: tabBackground()}}
-      >
+      <>
         {content}
-      </Kb.Modal>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([f.hideBorder ? styles.modalFooterNoBorder : styles.modalFooter, f.style])}>{f.content}</Kb.Box2>
+      </>
     )
   }
   return content
@@ -346,16 +332,13 @@ const EnterText = (props: {
 }) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(
-    (e?: React.KeyboardEvent) => {
-      e?.preventDefault()
-      code && onSubmitTextCode(code)
-    },
-    [code, onSubmitTextCode]
-  )
+  const onSubmit = (e?: React.KeyboardEvent) => {
+    e?.preventDefault()
+    code && onSubmitTextCode(code)
+  }
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
-      <Kb.PlainInput
+      <Kb.Input3
         autoFocus={true}
         multiline={true}
         onChangeText={setCode}
@@ -363,7 +346,9 @@ const EnterText = (props: {
         rowsMin={3}
         placeholder={`Type the ${props.otherDevice.type === 'mobile' ? '9' : '8'}-word secret code`}
         textType="Terminal"
-        style={styles.enterTextInput}
+        hideBorder={true}
+        containerStyle={styles.enterTextContainer2}
+        inputStyle={styles.enterTextColor}
         value={code}
       />
     </Kb.Box2>
@@ -404,9 +389,8 @@ const Instructions = (p: {
   let content: React.ReactNode
 
   const icon = (
-    <Kb.Icon
+    <Kb.ImageIcon
       type={iconType}
-      sizeType="Default"
       style={Kb.Styles.collapseStyles([
         styles.deviceIcon,
         p.currentDevice.type === 'desktop' && styles.deviceIconDesktop,
@@ -515,7 +499,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       container: Kb.Styles.platformStyles({
-        common: {justifyContent: 'space-between'},
         isElectron: {
           height: '100%',
           padding: Kb.Styles.globalMargins.large,
@@ -546,25 +529,21 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: Kb.Styles.isMobile ? undefined : 460,
         width: '90%',
       },
+      enterTextColor: {color: Kb.Styles.globalColors.greenDark},
       enterTextContainer: {
         alignItems: Kb.Styles.isMobile ? 'stretch' : 'center',
         alignSelf: 'stretch',
       },
-      enterTextInput: Kb.Styles.platformStyles({
+      enterTextContainer2: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.fontTerminalSemibold,
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 4,
-          color: Kb.Styles.globalColors.greenDark,
           paddingBottom: 15,
           paddingLeft: 20,
           paddingRight: 20,
           paddingTop: 15,
         },
-        isElectron: {
-          fontSize: 16,
-          maxWidth: 460,
-        },
+        isElectron: {maxWidth: 460},
         isMobile: {width: '100%'},
       }),
       flexWrap: Kb.Styles.platformStyles({isMobile: {flexWrap: 'wrap'}}),
@@ -580,17 +559,43 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
-        justifyContent: 'center',
       },
       imageContainerOnRight: {
         ...Kb.Styles.globalStyles.fillAbsolute,
         ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
-        justifyContent: 'center',
       },
       instructions: {color: Kb.Styles.globalColors.white},
       instructionsContainer: {padding: Kb.Styles.globalMargins.tiny},
       instructionsUpper: {marginBottom: Kb.Styles.globalMargins.tiny},
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
+      modalFooterNoBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
+      primaryOnColor: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnGreenLabel: {color: Kb.Styles.globalColors.greenDark},
       qrContainer: Kb.Styles.platformStyles({
         common: {
           // MUST be white, else darkmode messes up the qr code
@@ -611,10 +616,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
-      },
-      scrollContainer: {
-        flexGrow: 1,
-        position: 'relative',
       },
       switchTab: {
         marginBottom: Kb.Styles.globalMargins.xtiny,

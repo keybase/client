@@ -1,0 +1,4 @@
+interface:
+  display_name: "Migrate React Navigation to Static Config"
+  short_description: "Convert JSX navigators to static config"
+  default_prompt: "Use $migrate-to-static-config to migrate React Navigation navigators from dynamic JSX to static config."

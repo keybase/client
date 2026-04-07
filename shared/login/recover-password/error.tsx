@@ -2,14 +2,15 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
-const ConnectedError = () => {
+type Props = {route: {params: {error: string}}}
+
+const ConnectedError = ({route}: Props) => {
   const loggedIn = useConfigState(s => s.loggedIn)
-  const error = useRecoverState(s => s.error)
-  const popStack = C.useRouterState(s => s.dispatch.popStack)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const {error} = route.params
+  const popStack = C.Router2.popStack
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     loggedIn ? navigateUp() : popStack()
   }

@@ -1,26 +1,19 @@
 {
   "compilerOptions": {
     "allowJs": false,
-    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    "alwaysStrict": true,
-    "assumeChangesOnlyAffectDirectDependencies": false,
-    "baseUrl": ".",
     "checkJs": false,
-    "declaration": true,
-    "exactOptionalPropertyTypes": false,
-    "forceConsistentCasingInFileNames": false,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["ESNext", "dom"],
-    "module": "commonjs",
-    "noErrorTruncation": true,
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noImplicitOverride": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -36,9 +29,10 @@
     "sourceMap": false,
     "strict": true,
     "target": "esnext",
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
+    "types": ["jest", "node", "webpack-env"]
   },
-  "include": ["./**/*.ts", "./**/*.tsx"],
+  "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
   "exclude": [
     "**/node_modules",
     "./desktop/dist",
@@ -53,5 +47,6 @@
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
     "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
-  }
+  },
+  "extends": "expo/tsconfig.base"
 }

@@ -1,5 +1,4 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
@@ -32,17 +31,17 @@ const ReplyPreview = () => {
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
   const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
-  const onCancel = React.useCallback(() => {
+  const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
-  }, [setReplyTo])
+  }
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
@@ -52,10 +51,10 @@ const ReplyPreview = () => {
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!imageURL && (
-                <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                  <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-                    <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-                  </Kb.Box>
+                <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
+                  <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
+                    <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+                  </Kb.Box2>
                 </Kb.Box2>
               )}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
@@ -63,10 +62,10 @@ const ReplyPreview = () => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} boxStyle={styles.close} />
+          <Kb.Icon onClick={onCancel} type="iconfont-remove" style={styles.close} />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -92,12 +91,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       replyContainer: {
-        justifyContent: 'space-between',
         padding: Kb.Styles.globalMargins.tiny,
-      },
-      replyImageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
       },
       text: Kb.Styles.platformStyles({
         isElectron: {

@@ -1,10 +1,11 @@
 import * as C from '@/constants'
-import * as TB from '@/constants/team-building'
+import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import type * as T from 'constants/types'
+import type * as T from '@/constants/types'
 import ContinueButton from './continue-button'
-import {useSettingsPhoneState} from '@/constants/settings-phone'
+import {searchWaitingKey} from '@/constants/strings'
+import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 type PhoneSearchProps = {
   continueLabel: string
@@ -18,13 +19,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
-  const waiting = C.Waiting.useAnyWaiting(TB.searchWaitingKey)
-  const loadDefaultPhoneCountry = useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
-  // trigger a default phone number country rpc if it's not already loaded
-  const defaultCountry = useSettingsPhoneState(s => s.defaultCountry)
-  React.useEffect(() => {
-    !defaultCountry && loadDefaultPhoneCountry()
-  }, [defaultCountry, loadDefaultPhoneCountry])
+  const waiting = C.Waiting.useAnyWaiting(searchWaitingKey)
+  const defaultCountry = useDefaultPhoneCountry()
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     setPhoneValidity(validity)
@@ -42,7 +38,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   const canSubmit = !!user && !waiting && isPhoneValid
 
-  const _onContinue = React.useCallback(() => {
+  const _onContinue = () => {
     if (!canSubmit) {
       return
     }
@@ -51,12 +47,12 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setPhoneValidity(false)
-  }, [addUsersToTeamSoFar, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
+  }
 
   return (
     <>
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.flexGrow}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} flex={1}>
           <Kb.PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
@@ -79,7 +75,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
               {!Kb.Styles.isMobile && (
                 <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
-              {namespace === 'chat2' ? (
+              {namespace === 'chat' ? (
                 <Kb.Text type="BodySmall" style={styles.helperText}>
                   Start a chat with any phone contact, then tell them to install Keybase. Your messages will
                   unlock after they sign up.
@@ -123,7 +119,6 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      button: {flexGrow: 0},
       containerStyle: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -142,9 +137,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '90%'},
       }),
-      flexGrow: {
-        flex: 1,
-      },
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
@@ -155,7 +147,6 @@ const styles = Kb.Styles.styleSheetCreate(
       loading: {alignSelf: 'center'},
       userMatchMention: {
         alignSelf: 'flex-start',
-        justifyContent: 'center',
       },
     }) as const
 )

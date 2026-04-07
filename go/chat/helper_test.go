@@ -22,7 +22,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 
 	var refList []gregor1.UID
-	for i := 0; i < maxUsers; i++ {
+	for i := range maxUsers {
 		tlfName := ""
 		for j := i; j >= 0; j-- {
 			tlfName += world.GetUsers()[j].Username
@@ -150,7 +150,7 @@ func TestTopicNameRace(t *testing.T) {
 		topicName := "LOSERS"
 		attempts := 2
 		retCh := make(chan ncRes, attempts)
-		for i := 0; i < attempts; i++ {
+		for range attempts {
 			go func() {
 				ctx = globals.CtxAddLogTags(ctx, tc.Context())
 				conv, _, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
@@ -160,7 +160,7 @@ func TestTopicNameRace(t *testing.T) {
 			}()
 		}
 		var convID chat1.ConversationID
-		for i := 0; i < attempts; i++ {
+		for range attempts {
 			res := <-retCh
 			require.NoError(t, res.err)
 			if convID.IsNil() {

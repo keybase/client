@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {type Props as ButtonProps} from '@/common-adapters/button'
-import openURL from '@/util/open-url'
-import {useConfigState} from '@/constants/config'
+import {type ButtonProps} from '@/common-adapters/button'
+import {openURL} from '@/util/misc'
+import {useConfigState} from '@/stores/config'
 
 type InfoIconProps = {
   invisible?: boolean
@@ -12,44 +12,38 @@ type InfoIconProps = {
 
 export const InfoIcon = (props: InfoIconProps) => {
   const loggedIn = useConfigState(s => s.loggedIn)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onDocumentation = () => openURL('https://book.keybase.io/docs')
-      const onFeedback = () => {
-        navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
-      }
+  const navigateAppend = C.Router2.navigateAppend
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onDocumentation = () => openURL('https://book.keybase.io/docs')
+    const onFeedback = () => {
+      navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
+    }
 
-      return (
-        <Kb.FloatingMenu
-          items={[
-            {onClick: onFeedback, title: 'Send feedback'},
-            {onClick: onDocumentation, title: 'Documentation'},
-          ]}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [navigateAppend, loggedIn]
-  )
+    return (
+      <Kb.FloatingMenu
+        items={[
+          {onClick: onFeedback, title: 'Send feedback'},
+          {onClick: onDocumentation, title: 'Documentation'},
+        ]}
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <>
-      <Kb.Icon
-        type="iconfont-question-mark"
-        onClick={props.invisible ? undefined : showPopup}
-        ref={popupAnchor}
-        style={Kb.Styles.collapseStyles([
-          Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}}),
-          props.invisible && styles.opacityNone,
-          props.style,
-        ])}
-      />
+      <Kb.Box2 direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}>
+        <Kb.Icon
+          type="iconfont-question-mark"
+          onClick={props.invisible ? undefined : showPopup}
+          style={Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}})}
+        />
+      </Kb.Box2>
       {popup}
     </>
   )
@@ -76,11 +70,11 @@ const Header = (props: HeaderProps) => (
     style={Kb.Styles.collapseStyles([styles.headerContainer, props.style])}
   >
     {(props.showInfoIcon || props.showInfoIconRow) && (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer} justifyContent="flex-end">
         <InfoIcon invisible={props.negative || (props.showInfoIconRow && !props.showInfoIcon)} />
       </Kb.Box2>
     )}
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} relative={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
@@ -112,7 +106,7 @@ const Header = (props: HeaderProps) => (
         />
       )}
       {props.rightActionComponent && (
-        <Kb.Box2 direction="horizontal" style={styles.rightAction}>
+        <Kb.Box2 direction="horizontal" style={styles.rightAction} justifyContent="center">
           {props.rightActionComponent}
         </Kb.Box2>
       )}
@@ -136,7 +130,6 @@ type SignupScreenProps = {
   negativeHeader?: boolean
   noBackground?: boolean
   onBack?: () => void
-  skipMobileHeader?: boolean
   headerStyle?: Kb.Styles.StylesCrossPlatform
   containerStyle?: Kb.Styles.StylesCrossPlatform
   contentContainerStyle?: Kb.Styles.StylesCrossPlatform
@@ -147,110 +140,91 @@ type SignupScreenProps = {
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
   onRightAction?: () => void
-  leftAction?: 'back' | 'cancel'
-  leftActionText?: string
   showHeaderInfoicon?: boolean
   showHeaderInfoiconRow?: boolean
+  hideDesktopHeader?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
-export const SignupScreen = (props: SignupScreenProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    fullHeight={true}
-    alignItems="center"
-    style={styles.whiteBackground}
-  >
-    {!Kb.Styles.isMobile && (
-      <Header
-        onBack={props.onBack}
-        title={props.title}
-        titleComponent={props.titleComponent}
-        showInfoIcon={!!props.showHeaderInfoicon}
-        showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={Kb.Styles.collapseStyles([
-          props.noBackground && styles.whiteHeaderContainer,
-          props.headerStyle,
-        ])}
-        negative={!!props.negativeHeader}
-        rightActionComponent={props.rightActionComponent}
-        rightActionLabel={props.rightActionLabel}
-        onRightAction={props.onRightAction}
-      />
-    )}
-    {Kb.Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.ModalHeader
-        leftButton={
-          props.onBack ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-              {(props.leftActionText ?? 'Back') || (props.leftAction ?? 'cancel')}
-            </Kb.Text>
-          ) : null
-        }
-        rightButton={
-          props.onRightAction ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
-              {props.rightActionLabel || props.rightActionComponent}
-            </Kb.Text>
-          ) : null
-        }
-        style={props.headerStyle}
-        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
-      />
-    )}
-    {Kb.Styles.isMobile && props.header}
+export const SignupScreen = (props: SignupScreenProps) => {
+  const showDesktopHeader = !Kb.Styles.isMobile && !props.hideDesktopHeader
+
+  return (
     <Kb.Box2
-      alignItems="center"
       direction="vertical"
-      style={Kb.Styles.collapseStyles([
-        styles.background,
-        props.noBackground ? styles.whiteBackground : styles.blueBackground,
-        props.containerStyle,
-      ])}
       fullWidth={true}
+      fullHeight={true}
+      alignItems="center"
+      style={styles.whiteBackground}
     >
+      {showDesktopHeader && (
+        <Header
+          onBack={props.onBack}
+          title={props.title}
+          titleComponent={props.titleComponent}
+          showInfoIcon={!!props.showHeaderInfoicon}
+          showInfoIconRow={!!props.showHeaderInfoiconRow}
+          style={Kb.Styles.collapseStyles([
+            props.noBackground && styles.whiteHeaderContainer,
+            props.headerStyle,
+          ])}
+          negative={!!props.negativeHeader}
+          rightActionComponent={props.rightActionComponent}
+          rightActionLabel={props.rightActionLabel}
+          onRightAction={props.onRightAction}
+        />
+      )}
+      {Kb.Styles.isMobile && props.header}
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        relative={true}
+        style={Kb.Styles.collapseStyles([
+          styles.background,
+          props.noBackground ? styles.whiteBackground : styles.blueBackground,
+          props.containerStyle,
+        ])}
         fullWidth={true}
       >
-        {props.children}
-      </Kb.Box2>
-      {!!props.footer && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.footer}>
-          {props.footer}
-        </Kb.Box2>
-      )}
-      {/* Banners after children so they go on top */}
-      {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
-      {!!props.buttons && (
-        <Kb.ButtonBar
-          direction="column"
-          fullWidth={Kb.Styles.isMobile && !Kb.Styles.isTablet}
-          style={styles.buttonBar}
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+          fullWidth={true}
         >
-          {props.buttons.map(b =>
-            b.waitingKey !== undefined ? (
-              <Kb.WaitingButton
-                key={b.label}
-                style={styles.button}
-                {...b}
-                // TS doesn't narrow the type inside ButtonMeta, so still thinks
-                // waitingKey can be undefined unless we pull it out
-                waitingKey={b.waitingKey}
-                fullWidth={true}
-              />
-            ) : (
-              <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-            )
-          )}
-        </Kb.ButtonBar>
-      )}
+          {props.children}
+        </Kb.Box2>
+        {!!props.footer && (
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.footer}>
+            {props.footer}
+          </Kb.Box2>
+        )}
+        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
+        {!!props.buttons && (
+          <Kb.ButtonBar
+            direction="column"
+            fullWidth={Kb.Styles.isMobile && !Kb.Styles.isTablet}
+            style={styles.buttonBar}
+          >
+            {props.buttons.map(b =>
+              b.waitingKey !== undefined ? (
+                <Kb.WaitingButton
+                  key={b.label}
+                  style={styles.button}
+                  {...b}
+                  waitingKey={b.waitingKey}
+                  fullWidth={true}
+                />
+              ) : (
+                <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+              )
+            )}
+          </Kb.ButtonBar>
+        )}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 export const errorBanner = (error: string) =>
   error.trim() ? (
@@ -272,7 +246,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       background: {
         flex: 1,
-        position: 'relative',
       },
       banners: {
         left: 0,
@@ -320,11 +293,11 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
       }),
-      headerContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-      },
+      headerContainer: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.white},
+        isElectron: Kb.Styles.desktopStyles.windowDragging,
+      }),
       infoIconContainer: {
-        justifyContent: 'flex-end',
         ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, 0),
       },
       opacityNone: {
@@ -335,7 +308,6 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           alignSelf: 'flex-end',
           bottom: 0,
-          justifyContent: 'center',
           paddingRight: Kb.Styles.globalMargins.small,
           position: 'absolute',
           right: 0,
@@ -353,7 +325,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       titleContainer: {
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, Kb.Styles.globalMargins.small),
-        position: 'relative',
       },
       whiteBackground: {
         backgroundColor: Kb.Styles.globalColors.white,

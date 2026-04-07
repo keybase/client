@@ -1,24 +1,24 @@
+/// <reference types="webpack-env" />
 // Entry point to the chrome part of the app
 import Main from '@/app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import type * as RemoteGen from '@/actions/remote-gen'
-import Root from './container.desktop'
+import type * as RemoteGen from '@/constants/remote-actions'
+import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {makeEngine} from '@/engine'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
-import {dumpLogs} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
-import {debugWarning} from '@/util/debug-warning'
-import {useConfigState} from '@/constants/config'
-import type {default as NewMainType} from '../../app/main.desktop'
+import {useConfigState} from '@/stores/config'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
-import {useDarkModeState} from '@/constants/darkmode'
-import {initPlatformListener} from '@/constants/platform-specific'
+import {useDarkModeState} from '@/stores/darkmode'
+import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.desktop'
+import {eventFromRemoteWindows} from './remote-event-handler.desktop'
+import type {default as NewMainType} from '../../app/main.desktop'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
@@ -45,23 +45,37 @@ if (module.hot) {
   module.hot.accept()
 }
 
-const setupApp = () => {
+const setupApp = async () => {
   disableDragDrop()
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(batch, () => {
-    // do nothing we wait for the remote version from node
-  })
-  initPlatformListener()
-  eng.listenersAreReady()
+  const eng = makeEngine(
+    batch,
+    () => {
+      // do nothing we wait for the remote version from node
+    },
+    onEngineIncoming
+  )
 
   ipcRendererOn?.('KBdispatchAction', (_: unknown, action: unknown) => {
     setTimeout(() => {
       try {
-        useConfigState.getState().dispatch.eventFromRemoteWindows(action as RemoteGen.Actions)
+        eventFromRemoteWindows(action as RemoteGen.Actions)
       } catch {}
     }, 0)
   })
+
+  initPlatformListener()
+
+  // Let the main process reset its transport before startup effects begin
+  // issuing RPCs on a renderer reload.
+  await appStartedUp?.()
+
+  useConfigState.getState().dispatch.initNotifySound()
+  useConfigState.getState().dispatch.initForceSmallNav()
+  useConfigState.getState().dispatch.initOpenAtLogin()
+  useConfigState.getState().dispatch.initAppUpdateLoop()
+  eng.listenersAreReady()
 
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
@@ -72,51 +86,77 @@ const setupApp = () => {
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
-    dumpLogs()
+    useConfigState
+      .getState()
+      .dispatch.dumpLogs('startup')
       .then(() => {})
       .catch(() => {})
   }, 5 * 1000)
-
-  appStartedUp?.()
 }
 
-const FontLoader = () => (
-  <div style={{height: 0, overflow: 'hidden', width: 0}}>
-    <p style={{fontFamily: 'kb'}}>kb</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 500}}>source code pro 500</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 400}}>keybase 400</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 400}}>keybase 400 i</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 600}}>keybase 600</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 600}}>keybase 600 i</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 700}}>keybase 700</p>
-    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 700}}>keybase 700 i</p>
-  </div>
-)
+const useDarkHookup = () => {
+  const initedRef = React.useRef(false)
+  const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)
+  React.useEffect(() => {
+    const m = window.matchMedia('(prefers-color-scheme: dark)')
+    if (!initedRef.current) {
+      initedRef.current = true
+      setSystemDarkMode(m.matches)
+    }
 
-const UseStrict = true as boolean
-const WRAP = UseStrict
-  ? ({children}: {children: React.ReactNode}) => <React.StrictMode>{children}</React.StrictMode>
-  : ({children}: {children: React.ReactNode}) => <>{children}</>
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemDarkMode(e.matches)
+    }
+    m.addEventListener('change', handler)
+    return () => {
+      m.removeEventListener('change', handler)
+    }
+  }, [setSystemDarkMode])
+}
+
+const Root = ({children}: {children: React.ReactNode}) => {
+  useDarkHookup()
+  return (
+    <GlobalKeyEventHandler>
+      {children}
+    </GlobalKeyEventHandler>
+  )
+}
+
+const preloadFonts = () => {
+  void document.fonts.load('400 16px "kb"')
+  void document.fonts.load('500 16px "Source Code Pro"')
+  void document.fonts.load('600 16px "Source Code Pro"')
+  void document.fonts.load('400 16px "Keybase"')
+  void document.fonts.load('italic 400 16px "Keybase"')
+  void document.fonts.load('600 16px "Keybase"')
+  void document.fonts.load('italic 600 16px "Keybase"')
+  void document.fonts.load('700 16px "Keybase"')
+  void document.fonts.load('italic 700 16px "Keybase"')
+}
+
+// Cache React root across HMR to avoid remounting the entire tree
+// eslint-disable-next-line
+const _rootRef: {current?: ReactDOM.Root} = (globalThis as any).__hmr_reactRoot ??= {}
 
 const render = (Component = Main) => {
-  const root = document.getElementById('root')
-  if (!root) {
+  const rootEl = document.getElementById('root')
+  if (!rootEl) {
     throw new Error('No root element?')
   }
 
-  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
-  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
-  // else all nav stuff is broken
-  ReactDOM.createRoot(root).render(
-    <WRAP>
+  if (!_rootRef.current) {
+    _rootRef.current = ReactDOM.createRoot(rootEl)
+  }
+
+  _rootRef.current.render(
+    <React.StrictMode>
       <Root>
-        <FontLoader />
         <div style={{display: 'flex', flex: 1}}>
           <Component />
         </div>
       </Root>
-    </WRAP>
+    </React.StrictMode>
   )
 }
 
@@ -136,34 +176,29 @@ const setupHMR = () => {
   module.hot.accept(['../../common-adapters/index'], () => {})
 }
 
-const load = () => {
+const load = async () => {
   if (global.DEBUGLoaded) {
-    // only load once
-    console.log('Bail on load() on HMR')
+    // HMR detected — keep the existing engine/transport and rebind it to the
+    // new module instance so incoming RPCs hit the current handlers.
+    console.log('HMR: rebinding engine and reinitializing store subscriptions')
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(
+      batch,
+      () => {
+        // do nothing we wait for the remote version from node
+      },
+      onEngineIncoming
+    )
+    initPlatformListener()
+    eng.listenersAreReady()
     return
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
-  setupApp()
+  preloadFonts()
+  await setupApp()
   setupHMR()
-
-  if (__DEV__) {
-    // let us load devtools first
-    const DEBUG_DEFER = false as boolean
-    if (DEBUG_DEFER) {
-      debugWarning('DEBUG_DEFER on!!!')
-      const e = <div>temp</div>
-      const root = document.getElementById('root')
-      root && ReactDOM.createRoot(root).render(e)
-      setTimeout(() => {
-        render()
-      }, 5000)
-    } else {
-      render()
-    }
-  } else {
-    render()
-  }
+  render()
 }
 
-load()
+void load()

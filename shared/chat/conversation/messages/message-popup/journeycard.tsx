@@ -1,11 +1,12 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as React from 'react'
+import type * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  mode?: 'modal' | 'bottomsheet'
   onHidden: () => void
   ordinal: T.Chat.Ordinal
   position: Position
@@ -14,15 +15,15 @@ type OwnProps = {
 }
 
 const JourneyCard = (ownProps: OwnProps) => {
-  const {ordinal, attachTo, onHidden, style, visible, position} = ownProps
+  const {ordinal, attachTo, mode, onHidden, style, visible, position} = ownProps
   const cardType = Chat.useChatContext(
     s => s.messageMap.get(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
   )
 
   const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
-  const onDismiss = React.useCallback(() => {
+  const onDismiss = () => {
     dismissJourneycard(cardType, ordinal)
-  }, [dismissJourneycard, cardType, ordinal])
+  }
 
   const items: Kb.MenuItems = [{icon: 'iconfont-close', onClick: onDismiss, title: 'Dismiss message'}]
 
@@ -31,6 +32,7 @@ const JourneyCard = (ownProps: OwnProps) => {
       attachTo={attachTo}
       closeOnSelect={true}
       items={items}
+      mode={mode}
       onHidden={onHidden}
       position={position}
       containerStyle={style}

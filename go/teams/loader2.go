@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"slices"
 
 	"golang.org/x/crypto/nacl/secretbox"
 
@@ -201,12 +202,10 @@ var whitelistedTeamLinkSigsForAdminPermissionDemote = []keybase1.SigID{
 }
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *ChainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
-	for _, okSigID := range whitelistedTeamLinkSigsForKeyInUserSigchain {
-		if link.SigID().Eq(okSigID) {
-			// This proof is whitelisted, so don't check it.
-			l.G().Log.CDebugf(ctx, "addProofsForKeyInUserSigchain: skipping exceptional link: %v", link.SigID())
-			return
-		}
+	if slices.ContainsFunc(whitelistedTeamLinkSigsForKeyInUserSigchain, link.SigID().Eq) {
+		// This proof is whitelisted, so don't check it.
+		l.G().Log.CDebugf(ctx, "addProofsForKeyInUserSigchain: skipping exceptional link: %v", link.SigID())
+		return
 	}
 
 	event1Link := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), nil)
@@ -424,12 +423,10 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID key
 	event3Demote := bookends.right
 	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
 	if event3Demote != nil {
-		for _, okSigID := range whitelistedTeamLinkSigsForAdminPermissionDemote {
-			if link.SigID().Eq(okSigID) {
-				// This proof is whitelisted, so don't check it.
-				l.G().Log.CDebugf(ctx, "addProofsForAdminPermission: [demote] skipping exceptional link: %v", link.SigID())
-				return
-			}
+		if slices.ContainsFunc(whitelistedTeamLinkSigsForAdminPermissionDemote, link.SigID().Eq) {
+			// This proof is whitelisted, so don't check it.
+			l.G().Log.CDebugf(ctx, "addProofsForAdminPermission: [demote] skipping exceptional link: %v", link.SigID())
+			return
 		}
 		proofSet.AddNeededHappensBeforeProof(ctx, event2Link, *event3Demote, "team link before adminship demotion")
 	}

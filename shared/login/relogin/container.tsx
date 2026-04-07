@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useState as useRecoverState} from '@/stores/recover-password'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
+import {useProvisionState} from '@/stores/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -17,19 +17,16 @@ const ReloginContainer = () => {
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
     navigateAppend('signupSendFeedbackLoggedOut')
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''
-  const loggedInMap = React.useMemo(
-    () => new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),
-    [_users]
-  )
+  const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
   const users = sortBy(_users, 'username')
 
   const [password, setPassword] = React.useState('')
@@ -55,21 +52,18 @@ const ReloginContainer = () => {
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
 
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     onLogin(selectedUser, password)
-  }, [selectedUser, password, onLogin])
+  }
 
-  const selectedUserChange = React.useCallback(
-    (user: string) => {
-      setLoginError()
-      setPassword('')
-      setSelectedUser(user)
-      if (loggedInMap.get(user)) {
-        onLogin(user, '')
-      }
-    },
-    [setLoginError, setPassword, setSelectedUser, onLogin, loggedInMap]
-  )
+  const selectedUserChange = (user: string) => {
+    setLoginError()
+    setPassword('')
+    setSelectedUser(user)
+    if (loggedInMap.get(user)) {
+      onLogin(user, '')
+    }
+  }
 
   React.useEffect(() => {
     setSelectedUser(pselectedUser)

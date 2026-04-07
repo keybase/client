@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/merkle.avdl
 
 package keybase1
@@ -73,11 +73,11 @@ func MerkleProtocol(i MerkleInterface) rpc.Protocol {
 		Name: "keybase.1.merkle",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getCurrentMerkleRoot": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetCurrentMerkleRootArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetCurrentMerkleRootArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetCurrentMerkleRootArg)(nil), args)
@@ -88,11 +88,11 @@ func MerkleProtocol(i MerkleInterface) rpc.Protocol {
 				},
 			},
 			"verifyMerkleRootAndKBFS": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]VerifyMerkleRootAndKBFSArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]VerifyMerkleRootAndKBFSArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]VerifyMerkleRootAndKBFSArg)(nil), args)
@@ -116,7 +116,7 @@ type MerkleClient struct {
 // we force a GET and a round-trip.
 func (c MerkleClient) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec int) (res MerkleRootAndTime, err error) {
 	__arg := GetCurrentMerkleRootArg{FreshnessMsec: freshnessMsec}
-	err = c.Cli.Call(ctx, "keybase.1.merkle.getCurrentMerkleRoot", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.merkle.getCurrentMerkleRoot", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -124,6 +124,6 @@ func (c MerkleClient) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec in
 // root of the keybase server's Merkle tree, and that the given KBFS root
 // is included in that global root.
 func (c MerkleClient) VerifyMerkleRootAndKBFS(ctx context.Context, __arg VerifyMerkleRootAndKBFSArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.merkle.verifyMerkleRootAndKBFS", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.merkle.verifyMerkleRootAndKBFS", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

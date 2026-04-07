@@ -1,0 +1,58 @@
+import type * as T from '@/constants/types'
+import * as Z from '@/util/zustand'
+
+// This store has no dependencies on other stores and is safe to import directly from other stores.
+type Store = T.Immutable<{
+  deviceID: T.RPCGen.DeviceID
+  deviceName: string
+  uid: string
+  username: string
+}>
+
+const initialStore: Store = {
+  deviceID: '',
+  deviceName: '',
+  uid: '',
+  username: '',
+}
+
+type Bootstrap = {
+  deviceID: string
+  deviceName: string
+  uid: string
+  username: string
+}
+
+export type State = Store & {
+  dispatch: {
+    // ONLY used by remote windows
+    replaceUsername: (u: string) => void
+    setBootstrap: (b: Bootstrap) => void
+    resetState: () => void
+  }
+}
+
+export const useCurrentUserState = Z.createZustand<State>('current-user', set => {
+  const dispatch: State['dispatch'] = {
+    replaceUsername: u => {
+      set(s => {
+        s.username = u
+      })
+    },
+    resetState: Z.defaultReset,
+    setBootstrap: b => {
+      set(s => {
+        const {deviceID, deviceName, uid, username} = b
+        s.deviceID = deviceID
+        s.deviceName = deviceName
+        s.uid = uid
+        s.username = username
+      })
+    },
+  }
+
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

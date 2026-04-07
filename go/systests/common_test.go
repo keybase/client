@@ -55,15 +55,15 @@ type baseNullUI struct {
 
 type dumbUI struct{}
 
-func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
+func (d dumbUI) Printf(format string, args ...any) (int, error) {
 	return 0, nil
 }
 
-func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
+func (d dumbUI) PrintfStderr(format string, args ...any) (int, error) {
 	return 0, nil
 }
 
-func (d dumbUI) PrintfUnescaped(format string, args ...interface{}) (int, error) {
+func (d dumbUI) PrintfUnescaped(format string, args ...any) (int, error) {
 	return 0, nil
 }
 

@@ -90,7 +90,7 @@ func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex ExportJSON, rk *RotateKey
 
 	var ptks []PerTeamKey
 	var innerKeys []KeyPair
-	for i := 0; i < n; i++ {
+	for i := range n {
 		ptk := PerTeamKey{
 			AppkeyDerivationVersion: 1,
 			Generation:              PerTeamKeyGeneration(5),

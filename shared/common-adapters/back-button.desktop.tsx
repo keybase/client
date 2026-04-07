@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import Icon from './icon'
 import Text from './text'
@@ -10,8 +10,8 @@ const Kb = {
   Text,
 }
 
-const BackButton = React.memo(function BackButton(props: Props) {
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+function BackButton(props: Props) {
+  const navigateUp = C.Router2.navigateUp
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => navigateUp())
   const _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()
@@ -44,7 +44,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
       )}
     </div>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

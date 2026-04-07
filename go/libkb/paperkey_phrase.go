@@ -19,7 +19,7 @@ type PaperKeyPhrase string
 // the given version.
 func MakePaperKeyPhrase(version uint8) (PaperKeyPhrase, error) {
 	nbits := PaperKeySecretEntropy + PaperKeyIDBits + PaperKeyVersionBits
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		words, err := SecWordList(nbits)
 		if err != nil {
 			return "", err

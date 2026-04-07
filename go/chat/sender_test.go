@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -427,7 +428,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Send a bunch of blocking messages
 	var sentRef []sentRecord
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
@@ -450,7 +451,7 @@ func TestNonblockTimer(t *testing.T) {
 	outbox.SetClock(clock)
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
@@ -485,7 +486,7 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	// Send a bunch of blocking messages
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
@@ -524,7 +525,7 @@ func TestNonblockTimer(t *testing.T) {
 	// Should get a blast of all 5
 
 	var olen int
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		select {
 		case olen = <-listener.incomingRemote:
 		case <-time.After(20 * time.Second):
@@ -565,7 +566,7 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
 
 func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
 	require.Equal(t, len(obids), len(obrs), "wrong length")
-	for i := 0; i < len(obids); i++ {
+	for i := range obids {
 		require.Equal(t, obids[i], obrs[i].OutboxID)
 	}
 }
@@ -594,7 +595,7 @@ func TestFailingSender(t *testing.T) {
 
 	// Send nonblock
 	var obids []chat1.OutboxID
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		obid, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:      trip,
@@ -606,7 +607,7 @@ func TestFailingSender(t *testing.T) {
 		require.NoError(t, err)
 		obids = append(obids, obid)
 	}
-	for i := 0; i < deliverMaxAttempts; i++ {
+	for range deliverMaxAttempts {
 		tc.ChatG.MessageDeliverer.ForceDeliverLoop(context.TODO())
 	}
 
@@ -745,7 +746,7 @@ func TestDisconnectedFailure(t *testing.T) {
 
 	// Send nonblock
 	obids := []chat1.OutboxID{}
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		obid, _, err = sender.Send(ctx, conv.GetConvID(), mkMsg(), 0, nil, nil, nil)
 		require.NoError(t, err)
 		obids = append(obids, obid)
@@ -1131,7 +1132,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		localConv := localizeConv(ctx, t, tc, uid, conv)
 
 		// Send a bunch of messages on this convo
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			_, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
 					Conv:              conv.Metadata.IdTriple,
@@ -1469,7 +1470,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.Error(t, err)
 		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
 		merr = err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-		sortUIDs := func(uids []keybase1.UID) { sort.Slice(uids, func(i, j int) bool { return uids[i] < uids[j] }) }
+		sortUIDs := func(uids []keybase1.UID) { slices.Sort(uids) }
 		expectedUIDs := []keybase1.UID{uid1, uid2}
 		sortUIDs(expectedUIDs)
 		sortUIDs(merr.UIDs)
@@ -1623,7 +1624,7 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 
 	// Send a bunch of blocking reaction messages
 	var sentRef []sentRecord
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
@@ -1682,7 +1683,7 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	outbox.SetClock(clock)
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,

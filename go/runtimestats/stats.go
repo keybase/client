@@ -38,7 +38,7 @@ func NewRunner(g *globals.Context) *Runner {
 	return r
 }
 
-func (r *Runner) debug(ctx context.Context, msg string, args ...interface{}) {
+func (r *Runner) debug(ctx context.Context, msg string, args ...any) {
 	r.G().Log.CDebugf(ctx, "RuntimeStats.Runner: %s", fmt.Sprintf(msg, args...))
 }
 

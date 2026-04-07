@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 export {}
 
 export type RequestIdleCallbackHandle = unknown
@@ -24,6 +26,8 @@ declare global {
   var DEBUGEngine: unknown
   var DEBUGLoaded: boolean | undefined
   var KBCONSTANTS: unknown
+  var KBINBOX: unknown
+  var KBCONVOSTATE: unknown
   var DEBUGLog: (s: unknown) => void
   var DEBUGWarn: (s: unknown) => void
   var DEBUGInfo: (s: unknown) => void
@@ -34,8 +38,8 @@ declare global {
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var rpcOnGo: undefined | ((b: unknown) => void)
-  var rpcOnJs: undefined | ((b: unknown) => void)
+  var rpcOnGo: undefined | ((msg: unknown) => void)
+  var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
   // RN
   var __turboModuleProxy: unknown
 }

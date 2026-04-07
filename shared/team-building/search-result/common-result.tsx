@@ -4,11 +4,9 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {
   serviceIdToIconFont,
-  serviceIdToAccentColor,
   serviceMapToArray,
   serviceIdToAvatarIcon,
 } from '../shared'
-import {useColorScheme} from 'react-native'
 
 export type ResultProps = {
   bottomRow?: React.ReactNode
@@ -35,6 +33,17 @@ export type CommonResultProps = ResultProps & {
   rowStyle?: Kb.Styles.StylesCrossPlatform
 }
 
+type BottomRowProps = {
+  isKeybaseResult: boolean
+  username: string
+  isPreExistingTeamMember: boolean
+  keybaseUsername?: string
+  followingState: T.TB.FollowingState
+  displayLabel: string
+  prettyName: string
+  services: {[K in T.TB.ServiceIdWithContact]?: string}
+}
+
 /*
  * Case 1: the service is 'keybase' (isKeybaseResult = true)
  *
@@ -50,6 +59,26 @@ export type CommonResultProps = ResultProps & {
  *    {prettyName} if the user added it. Can fallback to username if no prettyName is set
  *    {service icons} if the user has proofs
  */
+const getRowAction = (props: ResultProps) => {
+  if (props.isPreExistingTeamMember) {
+    return undefined
+  }
+  return props.inTeam ? () => props.onRemove(props.userId) : () => props.onAdd(props.userId)
+}
+
+const FallbackResultInfo = ({displayLabel, prettyName}: Pick<ResultProps, 'displayLabel' | 'prettyName'>) => (
+  <>
+    <Kb.Text type="BodySemibold" lineClamp={1}>
+      {prettyName}
+    </Kb.Text>
+    {!!displayLabel && displayLabel !== prettyName && (
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        {displayLabel}
+      </Kb.Text>
+    )}
+  </>
+)
+
 const CommonResult = (props: CommonResultProps) => {
   /*
    * Regardless of the service that is being searched, if we find that a
@@ -59,11 +88,10 @@ const CommonResult = (props: CommonResultProps) => {
   const isKeybaseResult = props.resultForService === 'keybase'
   const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
-  const onAdd = !props.isPreExistingTeamMember ? () => props.onAdd(props.userId) : undefined
-  const onRemove = !props.isPreExistingTeamMember ? () => props.onRemove(props.userId) : undefined
+  const onClick = getRowAction(props)
 
   return (
-    <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
+    <Kb.ClickableBox onClick={onClick}>
       <Kb.Box2
         className="hover_background_color_blueLighter2 hover_container"
         direction="horizontal"
@@ -80,14 +108,14 @@ const CommonResult = (props: CommonResultProps) => {
           keybaseUsername={keybaseUsername}
           pictureUrl={props.pictureUrl}
         />
-        <Kb.Box2 direction="vertical" style={styles.username}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
           {serviceUsername ? (
             <>
               <Username
                 followingState={props.followingState}
                 isKeybaseResult={isKeybaseResult}
                 keybaseUsername={keybaseUsername}
-                username={serviceUsername || ''}
+                username={serviceUsername}
               />
               {props.bottomRow ?? (
                 <BottomRow
@@ -98,21 +126,12 @@ const CommonResult = (props: CommonResultProps) => {
                   keybaseUsername={keybaseUsername}
                   prettyName={props.prettyName}
                   services={props.services}
-                  username={serviceUsername || ''}
+                  username={serviceUsername}
                 />
               )}
             </>
           ) : (
-            <>
-              <Kb.Text type="BodySemibold" lineClamp={1}>
-                {props.prettyName}
-              </Kb.Text>
-              {!!props.displayLabel && props.displayLabel !== props.prettyName && (
-                <Kb.Text type="BodySmall" lineClamp={1}>
-                  {props.displayLabel}
-                </Kb.Text>
-              )}
-            </>
+            <FallbackResultInfo displayLabel={props.displayLabel} prettyName={props.prettyName} />
           )}
         </Kb.Box2>
         <Kb.Box2
@@ -139,6 +158,18 @@ const isPreExistingTeamMemberText = (prettyName: string, username: string) =>
 const textWithConditionalSeparator = (text: string, conditional: boolean) =>
   `${text}${conditional ? ` ${dotSeparator}` : ''}`
 
+const shouldOmitFirstIconMargin = ({
+  displayLabel,
+  isKeybaseResult,
+  keybaseUsername,
+  prettyName,
+}: Pick<ServicesIconsProps, 'displayLabel' | 'isKeybaseResult' | 'keybaseUsername' | 'prettyName'>) =>
+  !isKeybaseResult
+    ? !keybaseUsername && !prettyName && !displayLabel
+    : prettyName
+      ? prettyName === keybaseUsername
+      : !displayLabel
+
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -148,7 +179,6 @@ const Avatar = ({
   resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
-  const isDarkMode = useColorScheme() === 'dark'
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
@@ -158,37 +188,27 @@ const Avatar = ({
   }
 
   return (
-    <Kb.Icon
-      fontSize={avatarSize}
+    <Kb.ImageIcon
       type={serviceIdToAvatarIcon(resultForService)}
-      colorOverride={serviceIdToAccentColor(resultForService, isDarkMode)}
+      style={{height: avatarSize, width: avatarSize}}
     />
   )
 }
 
 // If service icons are the only item present in the bottom row, then don't apply margin-left to the first icon
-const ServicesIcons = (props: {
+type ServicesIconsProps = {
   services: {[K in T.TB.ServiceIdWithContact]?: string}
   prettyName: string
   displayLabel: string
   isKeybaseResult: boolean
   keybaseUsername?: string
-}) => {
+}
+
+const ServicesIcons = (props: ServicesIconsProps) => {
   const serviceIds = serviceMapToArray(props.services)
-  // When the result is from a non-keybase service, we could have:
-  //  1. keybase username
-  //  2. pretty name or display label. prettyName can fallback to username if no prettyName is set.
-  //
-  // When the result is from the keybase service, we could have:
-  //  1. prettyName that matches the username - in which case it will be hidden
-  //  1. No prettyName and also no displayLabel
-  const firstIconNoMargin = !props.isKeybaseResult
-    ? !props.keybaseUsername && !props.prettyName && !props.displayLabel
-    : props.prettyName
-      ? props.prettyName === props.keybaseUsername
-      : !props.displayLabel
+  const firstIconNoMargin = shouldOmitFirstIconMargin(props)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} style={styles.services}>
+    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
@@ -248,37 +268,40 @@ const MobileScrollView = ({children}: {children: React.ReactNode}) =>
     <>{children}</>
   )
 
-const BottomRow = (props: {
-  isKeybaseResult: boolean
-  username: string
-  isPreExistingTeamMember: boolean
-  keybaseUsername?: string
+const KeybaseUsernameLabel = ({
+  followingState,
+  keybaseUsername,
+}: {
   followingState: T.TB.FollowingState
-  displayLabel: string
-  prettyName: string
-  services: {[K in T.TB.ServiceIdWithContact]?: string}
-}) => {
+  keybaseUsername: string
+}) => (
+  <>
+    <Kb.Text
+      type="BodyBold"
+      style={followingStateToStyle(followingState)}
+      lineClamp={1}
+    >
+      {keybaseUsername}
+    </Kb.Text>
+    <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
+    <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
+    <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
+  </>
+)
+
+const BottomRow = (props: BottomRowProps) => {
   const serviceUserIsAlsoKeybaseUser = !props.isKeybaseResult && props.keybaseUsername
   const showServicesIcons = props.isKeybaseResult || !!props.keybaseUsername
-  const keybaseUsernameComponent = serviceUserIsAlsoKeybaseUser ? (
-    <>
-      <Kb.Text
-        type="BodyBold"
-        style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
-        lineClamp={1}
-      >
-        {props.keybaseUsername}
-      </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
-      <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
-    </>
-  ) : null
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start" style={styles.bottomRowContainer}>
       <MobileScrollView>
-        {keybaseUsernameComponent}
+        {serviceUserIsAlsoKeybaseUser && props.keybaseUsername ? (
+          <KeybaseUsernameLabel
+            followingState={props.followingState}
+            keybaseUsername={props.keybaseUsername}
+          />
+        ) : null}
         {props.isPreExistingTeamMember ? (
           <Kb.Text type="BodySmall" lineClamp={1}>
             {isPreExistingTeamMemberText(props.prettyName, props.username)}
@@ -317,16 +340,18 @@ const Username = (props: {
   isKeybaseResult: boolean
   keybaseUsername?: string
   username: string
-}) => (
-  <Kb.Text
-    type={props.isKeybaseResult && props.keybaseUsername ? 'BodyBold' : 'BodySemibold'}
-    style={followingStateToStyle(
-      props.isKeybaseResult && props.keybaseUsername ? props.followingState : 'NoState'
-    )}
-  >
-    {props.username}
-  </Kb.Text>
-)
+}) => {
+  const showFollowingState = props.isKeybaseResult && props.keybaseUsername
+
+  return (
+    <Kb.Text
+      type={showFollowingState ? 'BodyBold' : 'BodySemibold'}
+      style={followingStateToStyle(showFollowingState ? props.followingState : 'NoState')}
+    >
+      {props.username}
+    </Kb.Text>
+  )
+}
 
 export const userResultHeight = Kb.Styles.isMobile ? Kb.Styles.globalMargins.xlarge : 48
 const styles = Kb.Styles.styleSheetCreate(() => ({
@@ -343,18 +368,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'baseline',
     display: 'flex',
   },
-  contactName: {
-    lineHeight: 22,
-  },
   highlighted: Kb.Styles.platformStyles({
     isElectron: {
       backgroundColor: Kb.Styles.globalColors.blueLighter2,
       borderRadius: Kb.Styles.borderRadius,
     },
   }),
-  keybaseServiceIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
   // Default padding to people search vlaues:
   // top/bottom: 8, left/right: 12
   //
@@ -367,17 +386,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: Kb.Styles.globalMargins.xtiny,
   },
-  services: {
-    justifyContent: 'flex-start',
-  },
   username: {
-    flex: 1,
     marginLeft: Kb.Styles.globalMargins.small,
   },
 }))
 
-const followingStateToStyle = (followingState: T.TB.FollowingState) => {
-  return {
+const followingStateToStyle = (followingState: T.TB.FollowingState) =>
+  ({
     Following: {
       color: Kb.Styles.globalColors.greenDark,
     },
@@ -390,7 +405,6 @@ const followingStateToStyle = (followingState: T.TB.FollowingState) => {
     You: {
       color: Kb.Styles.globalColors.black,
     },
-  }[followingState]
-}
+  })[followingState]
 
 export default CommonResult

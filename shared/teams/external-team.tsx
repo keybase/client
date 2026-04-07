@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {navToProfile} from '@/constants/router'
 
 type Props = {teamname: string}
 
@@ -135,7 +135,7 @@ const Header = ({info}: ExternalTeamProps) => {
   const nav = useSafeNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
-    nav.safeNavigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
+    nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
@@ -177,15 +177,14 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
-      onClick={() => showUserProfile(member.username)}
+      onClick={() => navToProfile(member.username)}
       body={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
+        <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (
@@ -201,6 +200,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
             {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon
                 type={`iconfont-crown-${roleString}` as Kb.IconType}
+                color={roleString === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
                 sizeType="Small"
                 style={styles.crownIcon}
               />
@@ -209,7 +209,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
           </Kb.Box2>
         </Kb.Box2>
       }
-      action={<Kb.Button type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
+      action={<Kb.IconButton type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
       onlyShowActionOnHover="fade"
     />
   )
@@ -235,7 +235,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
   memberBody: {
-    flex: 1,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   meta: Kb.Styles.platformStyles({

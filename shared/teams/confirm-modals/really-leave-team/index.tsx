@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
@@ -20,7 +20,7 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
       <Kb.Icon
         type="iconfont-leave"
         color={Kb.Styles.globalColors.white}
@@ -102,19 +102,10 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 24,
         marginRight: -46,
         marginTop: -20,
-        overflow: 'hidden',
         width: 24,
         zIndex: 1,
       },
       prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-      spinnerContainer: {
-        alignItems: 'center',
-        flex: 1,
-        padding: Kb.Styles.globalMargins.xlarge,
-      },
-      spinnerProgressIndicator: {
-        width: Kb.Styles.globalMargins.medium,
-      },
     }) as const
 )
 
@@ -129,19 +120,16 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const stillLoadingTeam = !members
   const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
   const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDeleteTeam = React.useCallback(() => {
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
+  const onDeleteTeam = () => {
     navigateUp()
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
-  }, [navigateUp, navigateAppend, teamID])
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+  }
   const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
-  const _onLeave = React.useCallback(
-    (permanent: boolean) => {
+  const _onLeave = (permanent: boolean) => {
       leaveTeam(teamname, permanent, 'teams')
-    },
-    [leaveTeam, teamname]
-  )
+    }
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
   const onLeave = useSafeSubmit(_onLeave, !leaving)

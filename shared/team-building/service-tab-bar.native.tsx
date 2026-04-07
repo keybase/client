@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {useColorScheme} from 'react-native'
@@ -39,9 +38,8 @@ const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
-const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtension(props: {
+const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: {
   offset?: SharedValue<number>
-  servicesCount: number
 }) {
   'use no memo'
   const {offset} = props
@@ -58,7 +56,7 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
   })
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={{position: 'relative'}}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
       <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
@@ -74,9 +72,9 @@ const TabletBottomBorderExtension = React.memo(function TabletBottomBorderExtens
       />
     </Kb.Box2>
   )
-})
+}
 
-const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
+const ServiceIcon = function ServiceIcon(props: IconProps) {
   'use no memo'
   const {offset, isActive, service, label, onClick} = props
 
@@ -117,7 +115,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
   return (
     <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, animatedWidth]}>
-        <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
+        <Kb.Box2 direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
             <Kb.Badge
               border={true}
@@ -153,18 +151,12 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
       />
     </Kb.ClickableBox>
   )
-})
+}
 
 export const ServiceTabBar = (props: Props) => {
   'use no memo'
   const {onChangeService, offset, services, selectedService} = props
   const bounceX = useSharedValue(40)
-  const onClick = React.useCallback(
-    (service: T.TB.ServiceIdWithContact) => {
-      onChangeService(service)
-    },
-    [onChangeService]
-  )
 
   React.useEffect(() => {
     bounceX.set(0)
@@ -211,13 +203,11 @@ export const ServiceTabBar = (props: Props) => {
           offset={offset}
           service={service}
           label={serviceIdToLongLabel(service)}
-          onClick={onClick}
+          onClick={onChangeService}
           isActive={selectedService === service}
         />
       ))}
-      {Kb.Styles.isTablet ? (
-        <TabletBottomBorderExtension offset={offset} servicesCount={services.length} />
-      ) : null}
+      {Kb.Styles.isTablet ? <TabletBottomBorderExtension offset={offset} /> : null}
     </AnimatedScrollView>
   )
 }
@@ -249,7 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.xtiny,
         overflow: 'hidden',
       },
-      pendingAnimation: {height: 17, width: 17},
       scroll: {
         flexGrow: 0,
         flexShrink: 0,
@@ -260,11 +249,6 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'relative',
-      },
-      tabBarContainer: {
-        backgroundColor: Kb.Styles.globalColors.white,
-        shadowOffset: {height: 3, width: 0},
-        shadowRadius: 2,
       },
     }) as const
 )

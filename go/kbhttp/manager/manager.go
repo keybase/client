@@ -49,7 +49,7 @@ func NewSrv(g *libkb.GlobalContext) *Srv {
 	return h
 }
 
-func (r *Srv) debug(ctx context.Context, msg string, args ...interface{}) {
+func (r *Srv) debug(ctx context.Context, msg string, args ...any) {
 	r.G().Log.CDebugf(ctx, "Srv: %s", fmt.Sprintf(msg, args...))
 }
 
@@ -65,7 +65,7 @@ func (r *Srv) startHTTPSrv() {
 	token, _ := libkb.RandHexString("", 32)
 	maxTries := 2
 	success := false
-	for i := 0; i < maxTries; i++ {
+	for range maxTries {
 		if err := r.httpSrv.Start(); err != nil {
 			if err == kbhttp.ErrPinnedPortInUse {
 				// If we hit this, just try again and get a different port.

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -48,20 +49,20 @@ func (e *LogoutEngine) printSwitchInfo(mctx libkb.MetaContext) (err error) {
 		if len(loggedInAccounts) > 1 {
 			maybePlural = "s"
 		}
-		accountsList := ""
+		var accountsList strings.Builder
 		for idx, acct := range loggedInAccounts {
-			accountsList += string(acct)
+			accountsList.WriteString(string(acct))
 			if idx < len(loggedInAccounts)-2 {
-				accountsList += ", "
+				accountsList.WriteString(", ")
 			}
 			if idx == len(loggedInAccounts)-2 {
-				accountsList += " and "
+				accountsList.WriteString(" and ")
 			}
 
 		}
 		mctx.Info(
 			"You can still sign in to keybase account%s %s"+
-				" without a password.", maybePlural, accountsList)
+				" without a password.", maybePlural, accountsList.String())
 	}
 	return nil
 }

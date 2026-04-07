@@ -142,9 +142,9 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 }
 
 func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client, error) {
-	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
+	extraLog := func(ctx context.Context, msg string, args ...any) {}
 	if g.Env.GetExtraNetLogging() {
-		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
+		extraLog = func(ctx context.Context, msg string, args ...any) {
 			if ctx == nil {
 				g.Log.Debug(msg, args...)
 			} else {
@@ -338,7 +338,7 @@ func NewInstrumentedRoundTripper(g *GlobalContext, tagger func(*http.Request) st
 		RoundTripper: xprt,
 		tagger:       tagger,
 		gzipPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return gzip.NewWriter(io.Discard)
 			},
 		},

@@ -1,20 +1,18 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 
-type OwnProps = {deviceID: string}
+type OwnProps = {canRevoke: boolean; device: T.Devices.Device}
 
 const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
   const {first, last, closedCircle} = p
   return (
-    <Kb.Box style={styles.marker}>
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
-      <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-      <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
-    </Kb.Box>
+    <Kb.Box2 direction="vertical" alignItems="center" alignSelf="stretch">
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+      <Kb.Box2 direction="vertical" style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+    </Kb.Box2>
   )
 }
 
@@ -37,7 +35,7 @@ const TimelineLabel = (p: {
         </Kb.Text>
       )}
       {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-      {spacerOnBottom && <Kb.Box style={{height: 15}} />}
+      {spacerOnBottom && <Kb.Box2 direction="vertical" style={{height: 15}} />}
     </Kb.Box2>
   )
 }
@@ -92,22 +90,20 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 }
 
 const DevicePage = (ownProps: OwnProps) => {
-  const id = ownProps.deviceID
-  const iconNumber = Devices.useDeviceIconNumber(id)
-  const device = Devices.useDevicesState(s => s.deviceMap.get(id))
-  const canRevoke = Devices.useActiveDeviceCounts() > 1
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showRevokeDevicePage = React.useCallback(() => {
-    navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})
-  }, [navigateAppend, id])
+  const {canRevoke, device} = ownProps
+  const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
+  const navigateAppend = C.Router2.navigateAppend
+  const showRevokeDevicePage = () => {
+    navigateAppend({name: 'deviceRevoke', params: {device}})
+  }
 
-  const metaOne = device?.currentDevice ? (
+  const metaOne = device.currentDevice ? (
     'Current device'
-  ) : device?.revokedAt ? (
+  ) : device.revokedAt ? (
     <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Kb.Styles.globalColors.red} />
   ) : null
 
-  const deviceType = device?.type ?? 'desktop'
+  const deviceType = device.type
 
   const maybeIcon = (
     {
@@ -140,9 +136,9 @@ const DevicePage = (ownProps: OwnProps) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={icon} title={device?.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-      {device ? <Timeline device={device} /> : null}
-      {device?.revokedAt ? null : (
+      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Timeline device={device} />
+      {device.revokedAt ? null : (
         <Kb.Button
           disabled={!canRevoke}
           type="Danger"
@@ -175,10 +171,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 8,
       },
       invisible: {opacity: 0},
-      marker: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-      },
       meta: {
         alignSelf: 'center',
         marginTop: 4,

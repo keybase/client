@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
-import {useSignupState} from '@/constants/signup'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -8,9 +7,9 @@ import type {RPCError} from '@/util/errors'
 import * as Kb from '@/common-adapters'
 import UserCard from '@/login/user-card'
 import {SignupScreen, errorBanner} from '@/signup/common'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
 
-type OwnProps = {fromReset?: boolean}
+type OwnProps = {fromReset?: boolean; username?: string}
 
 const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineError = ''
@@ -34,8 +33,6 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = AutoReset.useAutoResetState(s => s.username)
-  const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = useProvisionState(
     C.useShallow(s => decodeInlineError(s.inlineError))
@@ -43,32 +40,35 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
   const _username = useProvisionState(s => s.username)
+  const resetBannerUser = op.fromReset ? _username : undefined
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = useSafeSubmit(navigateUp, hasError)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
-  const _onGoToSignup = requestAutoInvite
+  const navigateAppend = C.Router2.navigateAppend
+  const onForgotUsername = () => navigateAppend('forgotUsername')
+  const requestAutoInvite = useRequestAutoInvite()
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
-  const _onSubmit = React.useCallback(
-    (username: string) => {
-      !waiting && _setUsername?.(username)
-    },
-    [_setUsername, waiting]
-  )
-  const [username, setUsername] = React.useState(_username)
-  const onSubmit = React.useCallback(() => {
+  const _onSubmit = (username: string) => {
+    !waiting && _setUsername?.(username)
+  }
+  const [username, setUsername] = React.useState(op.username ?? _username)
+  React.useEffect(() => {
+    if (op.username && op.username !== _username) {
+      _setUsername?.(op.username)
+    }
+  }, [op.username, _username, _setUsername])
+  const onSubmit = () => {
     _onSubmit(username)
-  }, [_onSubmit, username])
-  const onGoToSignup = React.useCallback(() => {
-    _onGoToSignup(username)
-  }, [_onGoToSignup, username])
+  }
+  const onGoToSignup = () => {
+    requestAutoInvite(username)
+  }
 
   return (
     <SignupScreen
+      hideDesktopHeader={!Kb.Styles.isMobile}
       onRightAction={onGoToSignup}
       rightActionLabel="Create account"
       banners={
@@ -121,11 +121,10 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
           style={styles.card}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
-          lighterPlaceholders={true}
           avatarSize={96}
         >
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-            <Kb.LabeledInput
+            <Kb.Input3
               autoFocus={true}
               placeholder="Username"
               maxLength={C.maxUsernameLength}
@@ -133,7 +132,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
               onChangeText={setUsername}
               value={username}
               textType="BodySemibold"
-              placeholderInline={true}
             />
             <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?

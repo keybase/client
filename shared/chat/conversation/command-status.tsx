@@ -1,7 +1,7 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const empty = {
   actions: [],
@@ -13,7 +13,7 @@ const Container = () => {
   const info = Chat.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
@@ -39,7 +39,7 @@ const Container = () => {
   }
 
   return (
-    <Kb.Box style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -51,9 +51,8 @@ const Container = () => {
           type="iconfont-remove"
           style={styles.close}
           color={textColor(props.displayType)}
-          boxStyle={styles.close}
         />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} gap="tiny">
           <Kb.Text type="BodySmall" style={Kb.Styles.collapseStyles([{color: textColor(props.displayType)}])}>
             {props.displayText}
           </Kb.Text>
@@ -73,7 +72,7 @@ const Container = () => {
           })}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -112,7 +111,6 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         padding: Kb.Styles.globalMargins.tiny,
       },
-      contentContainer: {flex: 1},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,

@@ -28,9 +28,9 @@ const CoinFlipError = (props: Props) => {
 }
 
 const CoinFlipGenericError = () => {
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const sendFeedback = () => {
-    navigateAppend('modalFeedback')
+    navigateAppend({name: 'modalFeedback', params: {}})
   }
   return (
     <Kb.Text selectable={true} style={styles.error} type="BodySmall">
@@ -46,26 +46,29 @@ type AbsenteeProps = {
   error: T.RPCChat.UICoinFlipAbsenteeError
 }
 
-const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
-    <Kb.Text selectable={true} type="Body">
-      Uh oh, a participant disappeared:
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
-        {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
-      </Kb.Text>
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
+  const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
       <Kb.Text selectable={true} type="Body">
-        It was likely a network problem, but they could be trying to pull a fast one.
+        Uh oh, a participant disappeared:
       </Kb.Text>
-      <Kb.Text type="BodyPrimaryLink" onClickURL="https://keybase.io/coin-flip">
-        Learn More
-      </Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+          {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+        <Kb.Text selectable={true} type="Body">
+          It was likely a network problem, but they could be trying to pull a fast one.
+        </Kb.Text>
+        <Kb.Text type="BodyPrimaryLink" {...learnMoreUrlProps}>
+          Learn More
+        </Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const CoinFlipTimeoutError = () => (
   <Kb.Text selectable={true} style={styles.error} type="BodySmall">

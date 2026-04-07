@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import * as FS from '@/constants/fs/util'
-import * as Teams from '@/constants/teams'
+import * as FS from '@/constants/fs'
+import * as Teams from '@/stores/teams'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
@@ -90,15 +90,15 @@ const Container = (ownProps: OwnProps) => {
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const onLeaveTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
+    navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   }
   const onOpenFolder = (teamname: string) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']

@@ -9,37 +9,40 @@ import {
   createNavigatorFactory,
   type NavigationContainerRef,
 } from '@react-navigation/core'
-import type {TypedNavigator, NavigatorTypeBagBase, StaticConfig} from '@react-navigation/native'
-import {makeNavScreens} from '@/router-v2/shim'
+import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
+import {routeMapToScreenElements} from '@/router-v2/routes'
+import {makeLayout} from '@/router-v2/screen-layout.desktop'
+import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 
 /* Desktop SubNav */
-const cryptoSubRoutes = {
+const cryptoSubRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     screen: React.lazy(async () => {
-      const {DecryptIO} = await import('../operations/decrypt')
+      const {DecryptIO} = await import('../decrypt')
       return {default: DecryptIO}
     }),
   },
   [Crypto.encryptTab]: {
     screen: React.lazy(async () => {
-      const {EncryptIO} = await import('../operations/encrypt')
+      const {EncryptIO} = await import('../encrypt')
       return {default: EncryptIO}
     }),
   },
   [Crypto.signTab]: {
     screen: React.lazy(async () => {
-      const {SignIO} = await import('../operations/sign')
+      const {SignIO} = await import('../sign')
       return {default: SignIO}
     }),
   },
 
   [Crypto.verifyTab]: {
     screen: React.lazy(async () => {
-      const {VerifyIO} = await import('../operations/verify')
+      const {VerifyIO} = await import('../verify')
       return {default: VerifyIO}
     }),
   },
-}
+})
 function LeftTabNavigator({
   initialRouteName,
   children,
@@ -69,11 +72,15 @@ function LeftTabNavigator({
         </Kb.Box2>
         <Kb.BoxGrow>
           {state.routes.map((route, i) => {
-            return i === state.index ? (
-              <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key]?.render()}
-              </Kb.Box2>
-            ) : null
+            const selected = i === state.index
+            const desc = descriptors[route.key]
+            return (
+              <React.Activity key={route.name} mode={selected ? 'visible' : 'hidden'}>
+                <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+                  {desc?.render()}
+                </Kb.Box2>
+              </React.Activity>
+            )
           })}
         </Kb.BoxGrow>
       </Kb.Box2>
@@ -92,12 +99,16 @@ type NavType = NavigatorTypeBagBase & {
   }
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as () => TypedNavigator<
-  NavType,
-  StaticConfig<NavigatorTypeBagBase>
->
+export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
 const TabNavigator = createLeftTabNavigator()
-const cryptoScreens = makeNavScreens(cryptoSubRoutes, TabNavigator.Screen, false, false)
+const makeOptions = (rd: RouteDef) => {
+  return ({route, navigation}: GetOptionsParams) => {
+    const no = rd.getOptions
+    const opt = typeof no === 'function' ? no({navigation, route}) : no
+    return {...opt}
+  }
+}
+const cryptoScreens = routeMapToScreenElements(cryptoSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false, false)
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
     {cryptoScreens}

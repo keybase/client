@@ -2,28 +2,28 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props} from '.'
-import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
-import {ModalTitle} from '@/teams/common'
+import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
+import {useModalHeaderState} from '@/stores/modal-header'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
   const props = useHooks(p)
   const {image, error: _error, onSave: _onSave, type} = props
-  const {onBack, wizard, waitingKey, onClose, onSkip, teamID} = props
+  const {wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
   const nav = useSafeNavigation()
-  const navUp = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const navUp = () => nav.safeNavigateUp()
 
-  const onChooseNewAvatar = React.useCallback(() => {
+  const onChooseNewAvatar = () => {
     const f = async () => {
       try {
         const result = await launchImageLibraryAsync('photo')
-        const first = result.assets?.reduce<typeof image>((acc, a) => {
+        const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
           if (!acc && (a.type === 'image' || a.type === 'video')) {
-            return a as typeof image
+            return a as ImageInfo
           }
           return acc
         }, undefined)
@@ -37,20 +37,38 @@ const AvatarUploadWrapper = (p: Props) => {
       }
     }
     C.ignorePromise(f())
-  }, [setImageError, setSelectedImage, navUp, props.wizard])
+  }
 
   const noImage = !image
   React.useEffect(() => {
-    if (!props.wizard && noImage) {
-      onChooseNewAvatar()
+    if (!wizard && noImage) {
+      const f = async () => {
+        try {
+          const result = await launchImageLibraryAsync('photo')
+          const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
+            if (!acc && (a.type === 'image' || a.type === 'video')) {
+              return a as ImageInfo
+            }
+            return acc
+          }, undefined)
+          if (!result.canceled && first) {
+            setSelectedImage(first)
+          } else {
+            nav.safeNavigateUp()
+          }
+        } catch (error) {
+          setImageError(String(error))
+        }
+      }
+      C.ignorePromise(f())
     }
-  }, [noImage, props.wizard, onChooseNewAvatar])
+  }, [noImage, wizard, nav])
 
   const error = _error || imageError
 
   const _zoomRef = React.useRef<AvatarZoomRef>(null)
 
-  const avatar_size = React.useCallback(() => {
+  const avatar_size = () => {
     const margin = type === 'team' ? Kb.Styles.globalMargins.large : Kb.Styles.globalMargins.medium
     const big = Kb.Styles.dimensionWidth - margin * 2
     if (C.isTablet) {
@@ -58,9 +76,9 @@ const AvatarUploadWrapper = (p: Props) => {
     } else {
       return big
     }
-  }, [type])
+  }
 
-  const onSave = React.useCallback(() => {
+  const onSave = () => {
     if (!selectedImage) {
       throw new Error('Missing image when saving avatar')
     }
@@ -76,18 +94,15 @@ const AvatarUploadWrapper = (p: Props) => {
     } else {
       _onSave(selectedImage.uri)
     }
-  }, [selectedImage, _onSave])
+  }
 
-  const getImageStyle = React.useCallback(
-    (): Kb.Styles.StylesCrossPlatform => ({
-      borderRadius: type === 'team' ? 32 : avatar_size(),
-      height: avatar_size(),
-      width: avatar_size(),
-    }),
-    [type, avatar_size]
-  )
+  const getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
+    borderRadius: type === 'team' ? 32 : avatar_size(),
+    height: avatar_size(),
+    width: avatar_size(),
+  })
 
-  const renderImageZoomer = React.useCallback(() => {
+  const renderImageZoomer = () => {
     if (type === 'team' && !selectedImage) {
       return (
         <Kb.ClickableBox
@@ -106,67 +121,55 @@ const AvatarUploadWrapper = (p: Props) => {
         ref={_zoomRef}
       />
     ) : null
-  }, [type, selectedImage, onChooseNewAvatar, getImageStyle])
+  }
+
+  React.useEffect(() => {
+    if (type === 'team') {
+      useModalHeaderState.setState({editAvatarHasImage: !!selectedImage})
+    }
+    return () => {
+      useModalHeaderState.setState({editAvatarHasImage: false})
+    }
+  }, [type, selectedImage])
 
   if (type === 'team') {
     return (
-      <Kb.Modal
-        banners={
-          error ? (
-            <Kb.Banner key="err" color="red">
-              <Kb.Text type="Body">{error}</Kb.Text>
-            </Kb.Banner>
-          ) : null
-        }
-        header={{
-          leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-          rightButton: wizard ? (
-            <Kb.Text type="BodyBigLink" onClick={onSkip}>
-              Skip
-            </Kb.Text>
-          ) : undefined,
-
-          title: (
-            <ModalTitle
-              teamID={teamID ?? ''}
-              title={selectedImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'}
-            />
-          ),
-        }}
-        footer={{
-          content: (
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={wizard ? 'Continue' : 'Save'}
-              onClick={onSave}
-              disabled={!selectedImage}
-              waitingKey={waitingKey}
-            />
-          ),
-        }}
-      >
-        <Kb.Box2 direction="vertical" style={styles.wizardContainer} fullHeight={true} gap="small">
+      <>
+        {error ? (
+          <Kb.Banner key="err" color="red">
+            <Kb.Text type="Body">{error}</Kb.Text>
+          </Kb.Banner>
+        ) : null}
+        <Kb.Box2 direction="vertical" style={styles.wizardContainer} gap="small">
           {renderImageZoomer()}
-          <Kb.Box style={styles.flexReallyGrow} />
+          <Kb.Box2 direction="vertical" style={styles.flexReallyGrow} />
           <Kb.Button
             label={selectedImage ? 'Pick a new avatar' : 'Pick an avatar'}
             mode="Secondary"
             onClick={onChooseNewAvatar}
           />
         </Kb.Box2>
-      </Kb.Modal>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={!selectedImage}
+            waitingKey={waitingKey}
+          />
+        </Kb.Box2>
+      </>
     )
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader onCancel={onClose} title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+    <>
       {error ? (
         <Kb.Banner color="red">
           <Kb.Text type="Body">{error}</Kb.Text>
         </Kb.Banner>
       ) : null}
-      <Kb.Box style={styles.container}>
-        <Kb.Box>{renderImageZoomer()}</Kb.Box>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical">{renderImageZoomer()}</Kb.Box2>
         <Kb.ButtonBar direction="column">
           <Kb.WaitingButton
             fullWidth={true}
@@ -176,8 +179,8 @@ const AvatarUploadWrapper = (p: Props) => {
             waitingKey={waitingKey}
           />
         </Kb.ButtonBar>
-      </Kb.Box>
-    </Kb.Box2>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -188,74 +191,62 @@ type AvatarZoomRef = {
   getRect: () => {width: number; height: number; x: number; y: number} | undefined
 }
 
-const AvatarZoom = React.forwardRef<AvatarZoomRef, {src?: string; width: number; height: number}>(
-  function AvatarZoom(p, ref) {
-    const {src, width, height} = p
-    const resolution = React.useMemo(() => {
-      return {height, width}
-    }, [width, height])
+function AvatarZoom(p: {src?: string; width: number; height: number; ref?: React.Ref<AvatarZoomRef>}) {
+  const {src, width, height, ref} = p
+  const resolution = {height, width}
 
-    React.useImperativeHandle(ref, () => {
-      // we don't use this in mobile for now, and likely never
-      return {
-        getRect: () => {
-          const c = czref.current?.crop(avatarSize)
-          if (c) {
-            const rescale = resolution.width / (c.resize?.width ?? 1)
-            const {originX: x, originY: y, width, height} = c.crop
-            return {
-              height: height * rescale,
-              width: width * rescale,
-              x: x * rescale,
-              y: y * rescale,
-            }
+  React.useImperativeHandle(ref, () => {
+    // we don't use this in mobile for now, and likely never
+    return {
+      getRect: () => {
+        const c = czref.current?.crop(avatarSize)
+        if (c) {
+          const rescale = width / (c.resize?.width ?? 1)
+          const {originX: x, originY: y, width: cw, height: ch} = c.crop
+          return {
+            height: ch * rescale,
+            width: cw * rescale,
+            x: x * rescale,
+            y: y * rescale,
           }
-          return
-        },
-      }
-    }, [resolution])
-    const czref = React.useRef<CropZoomRefType>(null)
-
-    const imageStyle = React.useMemo(() => {
-      // For CropZoom, we want the image to always cover the crop area
-      // So we fit to the larger dimension to ensure coverage
-      const imageAspectRatio = resolution.width / resolution.height
-      const isWider = imageAspectRatio > 1
-
-      if (isWider) {
-        // Image is wider - fit to height so it covers vertically
-        return {
-          height: avatarSize,
-          width: avatarSize * imageAspectRatio,
         }
-      } else {
-        // Image is taller - fit to width so it covers horizontally
-        return {
-          height: avatarSize / imageAspectRatio,
-          width: avatarSize,
-        }
-      }
-    }, [resolution])
+        return
+      },
+    }
+  }, [width])
+  const czref = React.useRef<CropZoomRefType>(null)
 
-    return (
-      <Kb.Box2
-        direction="vertical"
-        style={{
-          borderRadius: avatarSize / 2,
-          height: avatarSize,
-          overflow: 'hidden',
-          width: avatarSize,
-        }}
-      >
-        {src ? (
-          <CropZoom cropSize={cropSize} resolution={resolution} ref={czref} panMode="clamp" minScale={1}>
-            <Kb.Image2 src={src} style={imageStyle} />
-          </CropZoom>
-        ) : null}
-      </Kb.Box2>
-    )
-  }
-)
+  const imageAspectRatio = resolution.width / resolution.height
+  const isWider = imageAspectRatio > 1
+
+  const imageStyle = isWider
+    ? {
+        height: avatarSize,
+        width: avatarSize * imageAspectRatio,
+      }
+    : {
+        height: avatarSize / imageAspectRatio,
+        width: avatarSize,
+      }
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      overflow="hidden"
+      style={{
+        borderRadius: avatarSize / 2,
+        height: avatarSize,
+        width: avatarSize,
+      }}
+    >
+      {src ? (
+        <CropZoom cropSize={cropSize} resolution={resolution} ref={czref} panMode="clamp" minScale={1}>
+          <Kb.Image src={src} style={imageStyle} />
+        </CropZoom>
+      ) : null}
+    </Kb.Box2>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -272,10 +263,20 @@ const styles = Kb.Styles.styleSheetCreate(
       flexReallyGrow: {
         flexGrow: 1000,
       },
-      image: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
+      modalFooter: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          borderStyle: 'solid' as const,
+          borderTopColor: Kb.Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          minHeight: 56,
+        },
+        isElectron: {
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
+          overflow: 'hidden',
+        },
+      }),
       placeholder: {
         alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_05,
@@ -285,20 +286,11 @@ const styles = Kb.Styles.styleSheetCreate(
         display: 'flex',
         justifyContent: 'center',
       },
-      standardScreen: {...Kb.Styles.padding(0), flexGrow: 1},
       wizardContainer: {
         ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
         backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flex: 1,
       },
-      zoomContainer: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.grey,
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          overflow: 'hidden',
-          position: 'relative',
-        },
-        isTablet: {alignSelf: 'center'},
-      }),
     }) as const
 )
 

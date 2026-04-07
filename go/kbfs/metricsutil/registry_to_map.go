@@ -12,10 +12,10 @@ import "github.com/rcrowley/go-metrics"
 
 // registryToMap returns a map representation of all the metrics in
 // the Registry.
-func registryToMap(r metrics.Registry) map[string]map[string]interface{} {
-	data := make(map[string]map[string]interface{})
-	r.Each(func(name string, i interface{}) {
-		values := make(map[string]interface{})
+func registryToMap(r metrics.Registry) map[string]map[string]any {
+	data := make(map[string]map[string]any)
+	r.Each(func(name string, i any) {
+		values := make(map[string]any)
 		switch metric := i.(type) {
 		case metrics.Counter:
 			values["count"] = metric.Count()
@@ -74,9 +74,9 @@ func registryToMap(r metrics.Registry) map[string]map[string]interface{} {
 
 // RegistryToInterfaceMap returns a map representation of all the
 // metrics in the Registry, but with the value type being interface{}.
-func RegistryToInterfaceMap(r metrics.Registry) map[string]interface{} {
+func RegistryToInterfaceMap(r metrics.Registry) map[string]any {
 	metricsMap := registryToMap(r)
-	interfaceMap := make(map[string]interface{})
+	interfaceMap := make(map[string]any)
 	for k, v := range metricsMap {
 		interfaceMap[k] = v
 	}

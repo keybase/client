@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image/gif"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"sort"
@@ -137,9 +138,7 @@ func (s *DevConvEmojiSource) getAliasLookup(ctx context.Context, uid gregor1.UID
 	defer s.aliasLookupLock.Unlock()
 	if s.aliasLookup != nil {
 		res = make(map[string]chat1.Emoji, len(s.aliasLookup))
-		for alias, emoji := range s.aliasLookup {
-			res[alias] = emoji
-		}
+		maps.Copy(res, s.aliasLookup)
 		return res, nil
 	}
 	res = make(map[string]chat1.Emoji)

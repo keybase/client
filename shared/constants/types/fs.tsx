@@ -1,4 +1,4 @@
-import * as RPCTypes from './rpc-gen'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type * as Devices from './devices'
 import {isWindows} from '../platform'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -329,6 +329,7 @@ export type DownloadState = Readonly<{
 
 export type DownloadInfo = Readonly<{
   filename: string
+  intent?: DownloadIntent
   isRegularDownload: boolean
   path: Path
   startTime: number
@@ -357,6 +358,7 @@ export enum MobilePickType {
   Photo = 'photo',
   Video = 'video',
   Mixed = 'mixed',
+  File = 'file',
 }
 
 export enum FileEditType {
@@ -425,8 +427,6 @@ export enum PathItemActionMenuView {
 export type PathItemActionMenu = Readonly<{
   downloadID: string | undefined
   downloadIntent: DownloadIntent | undefined
-  previousView: PathItemActionMenuView
-  view: PathItemActionMenuView
 }>
 
 export enum DriverStatusType {

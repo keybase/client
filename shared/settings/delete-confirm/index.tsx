@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {usePWState} from '@/constants/settings-password'
-import {useSettingsState} from '@/constants/settings'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useDeleteAccount} from '../use-delete-account'
+import {usePWState} from '@/stores/settings-password'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -37,14 +37,14 @@ const Checkboxes = (props: CheckboxesProps) => (
 
 const DeleteConfirm = () => {
   const hasPassword = usePWState(s => !s.randomPW)
-  const deleteAccountForever = useSettingsState(s => s.dispatch.deleteAccountForever)
+  const deleteAccountForever = useDeleteAccount()
   const username = useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onDeleteForever = () => {
     if (C.androidIsTestDevice) {
       // dont do this in a preflight test
@@ -74,7 +74,7 @@ const DeleteConfirm = () => {
       header={
         <>
           <Kb.Avatar username={username} size={64} />
-          <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+          <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
         </>
       }
       onCancel={onCancel}

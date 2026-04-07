@@ -1,34 +1,49 @@
 import * as C from '@/constants'
-import * as Git from '@/constants/git'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as T from '@/constants/types'
 
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
 
 const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Git.useGitState(s => s.error)
+  const [error, setError] = React.useState('')
   const teamnames = Teams.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(Teams.sortTeamnames)
   const waitingKey = C.waitingKeyGitLoading
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
+  const createPersonalRepo = C.useRPC(T.RPCGen.gitCreatePersonalRepoRpcPromise)
+  const createTeamRepo = C.useRPC(T.RPCGen.gitCreateTeamRepoRpcPromise)
   const getTeams = Teams.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = navigateUp
-  const createPersonalRepo = Git.useGitState(s => s.dispatch.createPersonalRepo)
-  const createTeamRepo = Git.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
-      createTeamRepo(name, teamname, notifyTeam)
+      createTeamRepo(
+        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     } else {
-      createPersonalRepo(name)
+      createPersonalRepo(
+        [{repoName: name}, waitingKey],
+        () => {
+          navigateUp()
+        },
+        err => {
+          setError(err.message)
+        }
+      )
     }
-    navigateUp()
   }
   const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const switchTab = C.Router2.switchTab
   const onNewTeam = () => {
     switchTab(C.Tabs.teamsTab)
     launchNewTeamWizardOrModal()
@@ -49,7 +64,7 @@ const Container = (ownProps: OwnProps) => {
   const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem} justifyContent="flex-start">
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
@@ -57,21 +72,21 @@ const Container = (ownProps: OwnProps) => {
 
     if (item === NewTeamSentry) {
       return (
-        <Kb.Box
+        <Kb.Box2
           key={NewTeamSentry}
+          direction="horizontal"
+          alignItems="center"
           style={{
-            ...Kb.Styles.globalStyles.flexBoxRow,
-            alignItems: 'center',
             paddingLeft: Kb.Styles.globalMargins.small,
           }}
         >
           <Kb.Text type="Header">New team...</Kb.Text>
-        </Kb.Box>
+        </Kb.Box2>
       )
     }
 
     return (
-      <Kb.Box2 direction="vertical" key={item} style={styles.avatarBox}>
+      <Kb.Box2 direction="horizontal" key={item} alignItems="center" style={styles.avatarBox}>
         <Kb.Avatar
           isTeam={true}
           teamname={item}
@@ -108,6 +123,7 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const onSubmit = () => {
+    setError('')
     onCreate(name, selectedTeam, isTeam && notifyTeam)
   }
 
@@ -115,20 +131,20 @@ const Container = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <Kb.PopupWrapper onCancel={onClose}>
+    <>
       <Kb.ScrollView>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
           {!!error && (
-            <Kb.Box style={styles.error}>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
               <Kb.Text type="Body" negative={true}>
-                {error.message}
+                {error}
               </Kb.Text>
-            </Kb.Box>
+            </Kb.Box2>
           )}
           <Kb.Text type="Header" style={{marginBottom: 27}}>
             New {isTeam ? 'team' : 'personal'} git repository
           </Kb.Text>
-          <Kb.Icon
+          <Kb.IconAuto
             type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
             style={styles.addIcon}
           />
@@ -145,7 +161,7 @@ const Container = (ownProps: OwnProps) => {
               style={styles.dropdown}
             />
           )}
-          <Kb.LabeledInput
+          <Kb.Input3
             value={name}
             autoFocus={true}
             onChangeText={setName}
@@ -175,9 +191,9 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ScrollView>
-    </Kb.PopupWrapper>
+    </>
   )
 }
 
@@ -186,8 +202,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       addIcon: {marginBottom: 27},
       avatarBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.small,
         width: '100%',
@@ -199,8 +213,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           flex: 1,
           height: '100%',
           padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
@@ -217,7 +229,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       dropdownItem: {
-        justifyContent: 'flex-start',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
       error: {

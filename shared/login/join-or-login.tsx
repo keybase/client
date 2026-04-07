@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import * as Kb from '@/common-adapters'
 import {InfoIcon} from '@/signup/common'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
+import {useProvisionState} from '@/stores/provision'
 
 const Intro = () => {
   const justDeletedSelf = useConfigState(s => s.justDeletedSelf)
@@ -18,13 +18,13 @@ const Intro = () => {
   const isOnline = useConfigState(s => s.isOnline)
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const checkIsOnline = loadIsOnline
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = () => {
     startProvision()
   }
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => {
     requestAutoInvite()
   }
@@ -34,12 +34,10 @@ const Intro = () => {
   const [showing, setShowing] = React.useState(true)
   Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      setShowing(true)
-      return () => setShowing(false)
-    }, [])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setShowing(true)
+    return () => setShowing(false)
+  })
 
   return (
     <Kb.Box2
@@ -49,7 +47,7 @@ const Intro = () => {
       alignItems="center"
       style={styles.container}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="flex-end" style={styles.header}>
         <InfoIcon />
       </Kb.Box2>
       {!!bannerMessage && <Kb.Banner color="blue">{bannerMessage}</Kb.Banner>}
@@ -62,7 +60,7 @@ const Intro = () => {
         centerChildren={true}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Icon type="icon-keybase-logo-64" />
+          <Kb.ImageIcon type="icon-keybase-logo-64" />
           <Kb.Text type="HeaderBig" style={styles.text}>
             Join Keybase
           </Kb.Text>
@@ -87,18 +85,6 @@ const Intro = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: {
-        backgroundColor: Kb.Styles.globalColors.blue,
-        justifyContent: 'center',
-        minHeight: 40,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
-        paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
-        paddingTop: Kb.Styles.globalMargins.tiny,
-        position: 'absolute',
-        top: 50,
-      },
-      bannerMessage: {color: Kb.Styles.globalColors.white},
       buttonBar: Kb.Styles.platformStyles({
         isElectron: {
           paddingBottom: Kb.Styles.globalMargins.xlarge - Kb.Styles.globalMargins.tiny, // tiny added inside buttonbar
@@ -116,7 +102,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.white,
       },
       header: Kb.Styles.platformStyles({
-        common: {justifyContent: 'flex-end'},
         isElectron: {padding: Kb.Styles.globalMargins.small},
         isMobile: {
           paddingRight: Kb.Styles.globalMargins.small,

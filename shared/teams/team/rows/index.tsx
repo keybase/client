@@ -1,7 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Meta from '@/constants/chat/meta'
+import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
@@ -14,7 +15,7 @@ import {RequestRow, InviteRow} from './invite-row'
 import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -124,12 +125,13 @@ export const useBotSections = (
   ]
 }
 
-export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Teams.useTeamsState(s => s.invitesCollapsed)
-  const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = Teams.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
-  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
-
+export const useInvitesSections = (
+  teamID: T.Teams.TeamID,
+  details: T.Teams.TeamDetails,
+  collapsed: boolean,
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>
+): Array<Section> => {
+  const onToggleCollapsed = () => setCollapsed(prev => !prev)
   const sections: Array<Section> = []
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
@@ -243,22 +245,29 @@ export const useChannelsSections = (
 export const useSubteamsSections = (
   teamID: T.Teams.TeamID,
   details: T.Teams.TeamDetails,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  subteamFilter: string,
+  setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
 ): Array<Section> => {
-  const subteamsFiltered = Teams.useTeamsState(s => s.subteamsFiltered)
-  const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
+  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const filterLC = subteamFilter.toLowerCase().trim()
+  const subteams = [...details.subteams]
+    .filter(subteamID => !filterLC || teamMeta.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
+    .sort()
   const sections: Array<Section> = []
 
   if (yourOperations.manageSubteams && details.subteams.size) {
     sections.push({
       data: [{type: 'subteam-add'}],
-      renderItem: () => <SubteamAddRow teamID={teamID} />,
+      renderItem: () => (
+        <SubteamAddRow teamID={teamID} subteamFilter={subteamFilter} setSubteamFilter={setSubteamFilter} />
+      ),
     } as const)
   }
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
-    renderItem: ({item, index}: {item: Item; index: number}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} firstItem={index === 0} /> : null,
+    renderItem: ({item}: {item: Item}) =>
+      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} /> : null,
   } as const)
 
   if (details.subteams.size) {
@@ -274,17 +283,41 @@ export const useSubteamsSections = (
 
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
-  const generalConvID = Chat.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
-  const findGeneralConvIDFromTeamID = Chat.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
+  const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
+  const requestIDRef = React.useRef(0)
+
   React.useEffect(() => {
-    if (!conversationIDKey && teamID) {
-      if (!generalConvID) {
-        findGeneralConvIDFromTeamID(teamID)
-      } else {
-        setConversationIDKey(generalConvID)
+    setConversationIDKey(undefined)
+  }, [teamID])
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    if (conversationIDKey || !teamID) {
+      return
+    }
+    const requestID = requestIDRef.current
+    findGeneralConvIDFromTeamID(
+      [{teamID}],
+      conv => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(conv)
+        if (!meta) {
+          return
+        }
+        metasReceived([meta])
+        setConversationIDKey(meta.conversationIDKey)
+      },
+      () => {}
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
   return conversationIDKey
 }
 
@@ -295,7 +328,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
-  const doGetUserEmoji = React.useCallback(() => {
+  const doGetUserEmoji = React.useEffectEvent(() => {
     if (!convID || convID === Chat.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
@@ -319,7 +352,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       },
       _ => setCustomEmoji([])
     )
-  }, [convID, getUserEmoji, shouldActuallyLoad])
+  })
 
   const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
@@ -330,7 +363,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
       setLastUpdatedTrigger(updatedTrigger)
       doGetUserEmoji()
     }
-  }, [doGetUserEmoji, lastActuallyLoad, lastUpdatedTrigger, shouldActuallyLoad, updatedTrigger])
+  }, [lastActuallyLoad, lastUpdatedTrigger, shouldActuallyLoad, updatedTrigger])
 
   C.useOnMountOnce(() => {
     doGetUserEmoji()

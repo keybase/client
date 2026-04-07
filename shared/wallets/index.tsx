@@ -2,24 +2,24 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
+import {loadAccountsWaitingKey} from '@/constants/strings'
+import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
 
-const Row = (p: {account: Wallets.Account}) => {
+const Row = (p: {account: Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onRemove = React.useCallback(() => {
-    navigateAppend({props: {accountID}, selected: 'removeAccount'})
-  }, [navigateAppend, accountID])
-  const onCopied = React.useCallback(() => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onRemove = () => {
+    navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
+  }
+  const onCopied = () => {
     setSK('')
     setErr('')
-  }, [])
-  const onReveal = React.useCallback(() => {
+  }
+  const onReveal = () => {
     setErr('')
     setSK('')
     getSecretKey(
@@ -31,7 +31,7 @@ const Row = (p: {account: Wallets.Account}) => {
         setErr(e.desc)
       }
     )
-  }, [getSecretKey, accountID])
+  }
 
   return (
     <Kb.Box2
@@ -111,16 +111,24 @@ const Row = (p: {account: Wallets.Account}) => {
 }
 
 const Container = () => {
+  const [accounts, setAccounts] = React.useState<Array<Account>>([])
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
-
-  const load = useWalletsState(s => s.dispatch.load)
+  const loadAccounts = C.useRPC(T.RPCStellar.localGetWalletAccountsLocalRpcPromise)
 
   C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      load()
+    () => {
+      loadAccounts(
+        [undefined, loadAccountsWaitingKey],
+        res => {
+          setAccounts((res ?? []).map(toAccount))
+        },
+        () => {
+          setAccounts([])
+        }
+      )
       checkDisclaimer(
-        [undefined, Wallets.loadAccountsWaitingKey],
+        [undefined, loadAccountsWaitingKey],
         r => {
           setAcceptedDisclaimer(r)
         },
@@ -129,21 +137,14 @@ const Container = () => {
         }
       )
       return () => {}
-    }, [load, checkDisclaimer])
+    }
   )
 
-  const accountMap = useWalletsState(s => s.accountMap)
-  const accounts = React.useMemo(() => {
-    return [...accountMap.values()].sort((a, b) => {
-      if (a.isDefault) return -1
-      if (b.isDefault) return 1
-      return a.name < b.name ? -1 : 1
-    })
-  }, [accountMap])
+  const sortedAccounts = sortAccounts(accounts)
 
-  const loading = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
+  const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
 
-  const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
+  const rows = sortedAccounts.map(a => <Row account={a} key={a.accountID} />)
 
   return (
     <Kb.ScrollView style={styles.scroll}>

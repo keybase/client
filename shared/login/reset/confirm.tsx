@@ -1,23 +1,24 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useState as useRecoverState} from '@/constants/recover-password'
 
-const ConfirmReset = () => {
-  const hasWallet = AutoReset.useAutoResetState(s => s.hasWallet)
+type Props = {route: {params: {hasWallet: boolean}}}
+
+const ConfirmReset = ({route}: Props) => {
+  const {hasWallet} = route.params
   const error = AutoReset.useAutoResetState(s => s.error)
-  const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
-  const onContinue = React.useCallback(() => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
-  }, [submitResetPassword])
-  const onCancelReset = React.useCallback(() => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.cancelReset)
-  }, [submitResetPassword])
-  const onClose = React.useCallback(() => {
-    submitResetPassword?.(T.RPCGen.ResetPromptResponse.nothing)
-  }, [submitResetPassword])
+  const submitResetPrompt = AutoReset.useAutoResetState(s => s.dispatch.dynamic.submitResetPrompt)
+  const onContinue = () => {
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.confirmReset)
+  }
+  const onCancelReset = () => {
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.cancelReset)
+  }
+  const onClose = () => {
+    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.nothing)
+  }
 
   const [checks, setChecks] = React.useState({
     checkData: false,
@@ -33,33 +34,12 @@ const ConfirmReset = () => {
   }
 
   return (
-    <Kb.Modal
-      header={Kb.Styles.isMobile ? {title: 'Account reset'} : undefined}
-      fullscreen={true}
-      footer={{
-        content: (
-          <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              disabled={disabled}
-              label="Yes, reset account"
-              onClick={onContinue}
-              type="Danger"
-              fullWidth={true}
-              waitingKey={C.waitingKeyAutoresetActuallyReset}
-            />
-            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
-          </Kb.ButtonBar>
-        ),
-        style: styles.footer,
-      }}
-      banners={
-        error ? (
-          <Kb.Banner color="red" key="errors">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null
-      }
-    >
+    <>
+      {error ? (
+        <Kb.Banner color="red" key="errors">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -116,7 +96,20 @@ const ConfirmReset = () => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
+        <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton
+            disabled={disabled}
+            label="Yes, reset account"
+            onClick={onContinue}
+            type="Danger"
+            fullWidth={true}
+            waitingKey={C.waitingKeyAutoresetActuallyReset}
+          />
+          <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -136,6 +129,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: Kb.Styles.platformStyles({
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+    },
+  }),
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
     },
   }),
 }))

@@ -1,20 +1,15 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {ModalTitle} from '@/teams/common'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import {useTeamsState} from '@/stores/teams'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
 const CreateSubteams = () => {
-  const nav = useSafeNavigation()
-  const teamID = T.Teams.newTeamWizardTeamID
   const teamname = useTeamsState(s => s.newTeamWizard.name)
   const initialSubteams = useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 
-  const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
+  const [subteams, setSubteams] = React.useState([...initialSubteams])
 
   const setSubteam = (i: number, value: string) => {
     setSubteams(prev => prev.map((s, idx) => (idx === i ? value : s)))
@@ -30,7 +25,6 @@ const CreateSubteams = () => {
 
   const setTeamWizardSubteams = useTeamsState(s => s.dispatch.setTeamWizardSubteams)
   const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
-  const onBack = () => nav.safeNavigateUp()
 
   const numSubteams = subteams.filter(c => !!c.trim()).length
   const continueLabel = numSubteams
@@ -38,17 +32,9 @@ const CreateSubteams = () => {
     : 'Continue without subteams'
 
   return (
-    <Kb.Modal
-      header={{
-        leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamID={teamID} title="Create subteams" />,
-      }}
-      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />}}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.Icon type="icon-illustration-teams-subteams-460-96" />
+        <Kb.ImageIcon type="icon-illustration-teams-subteams-460-96" />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -61,9 +47,9 @@ const CreateSubteams = () => {
           hierarchy.
         </Kb.Text>
         {subteams.map((value, idx) => (
-          <Kb.NewInput
+          <Kb.Input3
             value={value}
-            onChangeText={text => setSubteam(idx, cleanSubteamName(text))}
+            onChangeText={(text: string) => setSubteam(idx, cleanSubteamName(text))}
             decoration={<Kb.Icon type="iconfont-remove" onClick={() => onClear(idx)} />}
             placeholder="subteam"
             prefix={`${teamname}.`}
@@ -72,9 +58,12 @@ const CreateSubteams = () => {
             key={idx}
           />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
+        <Kb.IconButton mode="Secondary" icon="iconfont-new" onClick={onAdd} style={styles.addButton} />
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Button fullWidth={true} label={continueLabel} onClick={onContinue} />
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -88,7 +77,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
@@ -97,6 +85,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
 }))
 
 export default CreateSubteams

@@ -1,38 +1,31 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as Chat from '@/stores/chat'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useGitState} from '@/constants/git'
 import UserNotice from '../user-notice'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navigateAppend} from '@/constants/router'
 
 type OwnProps = {message: T.Chat.MessageSystemGitPush}
 
-const GitContainer = React.memo(function GitContainer(p: OwnProps) {
+function GitContainer(p: OwnProps) {
   const {message} = p
-  const onClickCommit = React.useCallback(
-    (commitHash: string) => {
-      const path = T.FS.stringToPath(
-        '/keybase/team/' +
-          message.team +
-          '/.kbfs_autogit/' +
-          message.repo +
-          '/.kbfs_autogit_commit_' +
-          commitHash
-      )
-      FS.makeActionForOpenPathInFilesTab(path)
-    },
-    [message]
-  )
+  const onClickCommit = (commitHash: string) => {
+    const path = T.FS.stringToPath(
+      '/keybase/team/' +
+        message.team +
+        '/.kbfs_autogit/' +
+        message.repo +
+        '/.kbfs_autogit_commit_' +
+        commitHash
+    )
+    FS.navToPath(path)
+  }
   const you = useCurrentUserState(s => s.username)
-  const navigateToTeamRepo = useGitState(s => s.dispatch.navigateToTeamRepo)
-  const onViewGitRepo = React.useCallback(
-    (repoID: string, teamname: string) => {
-      navigateToTeamRepo(teamname, repoID)
-    },
-    [navigateToTeamRepo]
-  )
+  const onViewGitRepo = (repoID: string, teamname: string) => {
+    navigateAppend({name: 'gitRoot', params: {expandedRepoID: repoID, expandedTeamname: teamname}})
+  }
 
   const {repo, repoID, refs, pushType, pusher, team} = message
   const gitType = T.RPCGen.GitPushType[pushType]
@@ -78,7 +71,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     default:
       return null
   }
-})
+}
 
 type CreateProps = {
   pusher: string

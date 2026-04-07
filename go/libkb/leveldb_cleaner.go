@@ -153,7 +153,7 @@ func (c *levelDbCleaner) monitorAppState(stopCh chan struct{}) {
 	}
 }
 
-func (c *levelDbCleaner) log(format string, args ...interface{}) {
+func (c *levelDbCleaner) log(format string, args ...any) {
 	c.M().Debug(fmt.Sprintf("levelDbCleaner(%s): %s", c.dbName, format), args...)
 }
 
@@ -239,7 +239,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	}
 
 	var totalNumPurged, numPurged int
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		select {
 		case <-cancelCh:
 			c.log("aborting clean, %d runs, canceled", i)

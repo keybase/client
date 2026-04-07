@@ -1,23 +1,22 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 
-const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedContainer(p: OwnProps) {
+function SystemInviteAcceptedContainer(p: OwnProps) {
   const {message} = p
   const {role} = message
   const teamID = Chat.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onViewTeam = React.useCallback(() => {
-    navigateAppend({props: {teamID}, selected: 'team'})
-  }, [navigateAppend, teamID])
+  const navigateAppend = C.Router2.navigateAppend
+  const onViewTeam = () => {
+    navigateAppend({name: 'team', params: {teamID}})
+  }
 
   if (you === message.invitee) {
     return <YouInviteAddedToTeamNotice onViewTeam={onViewTeam} />
@@ -46,7 +45,7 @@ const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedCo
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 const YouInviteAddedToTeamNotice = (props: {onViewTeam: () => void}) => {
   const {onViewTeam} = props

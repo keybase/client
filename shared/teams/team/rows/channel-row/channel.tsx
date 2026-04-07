@@ -1,11 +1,10 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
+import * as Teams from '@/stores/teams'
+import {useTeamsState} from '@/stores/teams'
 
 type ChannelRowProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -31,42 +30,42 @@ const ChannelRow = (props: ChannelRowProps) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
-  const onEditChannel = React.useCallback(() => {
+  const onEditChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamEditChannel',
+      params: {
         channelname: channel.channelname,
         conversationIDKey: channel.conversationIDKey,
         description: channel.description,
         teamID,
       },
-      selected: 'teamEditChannel',
     })
-  }, [nav, channel, teamID])
-  const onNavToChannel = React.useCallback(() => {
+  }
+  const onNavToChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamChannel',
+      params: {
         conversationIDKey: channel.conversationIDKey,
         teamID,
       },
-      selected: 'teamChannel',
     })
-  }, [nav, channel, teamID])
-  const onNavToSettings = React.useCallback(() => {
+  }
+  const onNavToSettings = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamChannel',
+      params: {
         ...props,
         conversationIDKey: channel.conversationIDKey,
         selectedTab: 'settings' as const,
       },
-      selected: 'teamChannel',
     })
-  }, [channel, props, nav])
+  }
 
   const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
-  const onDeleteChannel = React.useCallback(() => {
+  const onDeleteChannel = () => {
     deleteChannelConfirmed(teamID, channel.conversationIDKey)
-  }, [deleteChannelConfirmed, channel, teamID])
+  }
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}
@@ -95,8 +94,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
+  const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const menuItems: Array<Kb.MenuItem> = [
         {onClick: onNavToSettings, title: 'Settings'},
@@ -111,9 +109,7 @@ const ChannelRow = (props: ChannelRowProps) => {
           visible={true}
         />
       )
-    },
-    [canDelete, onDeleteChannel, onNavToSettings]
-  )
+    }
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = canPerform.deleteChannel ? (
@@ -124,7 +120,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       alignSelf="flex-start"
     >
       {popup}
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-edit"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -132,7 +128,7 @@ const ChannelRow = (props: ChannelRowProps) => {
         small={true}
         tooltip="Edit channel"
       />
-      <Kb.Button
+      <Kb.IconButton
         icon="iconfont-ellipsis"
         iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
@@ -151,7 +147,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       }
     : {}
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
@@ -173,7 +169,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem is malfunctioning because the checkbox width is unusual
       row: {
         paddingTop: Kb.Styles.globalMargins.xtiny,
       },

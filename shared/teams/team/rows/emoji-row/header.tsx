@@ -38,7 +38,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginRight: Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny,
     width: 72 - Kb.Styles.globalMargins.small,
   },
-  text: {padding: Kb.Styles.globalMargins.xtiny},
   username: {
     marginRight: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.small, // width of icon button + gap + padding
     width: 210,

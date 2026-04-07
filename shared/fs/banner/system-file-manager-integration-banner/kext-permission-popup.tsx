@@ -2,16 +2,13 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const InstallSecurityPrefs = () => {
   const driverStatus = useFSState(s => s.sfmi.driverStatus)
-  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
-  const onCancel = C.useRouterState(s => s.dispatch.navigateUp)
-  const openSecurityPrefs = React.useCallback(
-    () => openSecurityPreferencesDesktop?.(),
-    [openSecurityPreferencesDesktop]
-  )
+  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.defer.openSecurityPreferencesDesktop)
+  const onCancel = C.Router2.navigateUp
+  const openSecurityPrefs = () => openSecurityPreferencesDesktop?.()
 
   const autoCancelledRef = React.useRef(false)
   React.useEffect(() => {
@@ -23,50 +20,48 @@ const InstallSecurityPrefs = () => {
   }, [driverStatus, onCancel])
 
   return (
-    <Kb.PopupWrapper onCancel={onCancel}>
-      <>
-        <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
-          <Kb.Text type="HeaderBig" style={styles.title}>
-            You need to change your system security preferences.
-          </Kb.Text>
-          <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
-          <Kb.Box2 direction="horizontal">
-            <Kb.Box style={styles.illustrationContainer}>
-              <Kb.Icon style={styles.image} type="illustration-security-preferences" />
-            </Kb.Box>
-            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
-              <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
-                <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
-                  •
-                </Kb.Text>
-                <Kb.Text type="BodySemibold" style={styles.listText}>
-                  {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
-                </Kb.Text>
-              </Kb.Box>
-            </Kb.Box2>
+    <>
+      <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
+        <Kb.Text type="HeaderBig" style={styles.title}>
+          You need to change your system security preferences.
+        </Kb.Text>
+        <Kb.Text type="Body">Open your macOS Security & Privacy Settings and follow these steps.</Kb.Text>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Box2 direction="vertical" relative={true}>
+            <Kb.ImageIcon style={styles.image} type="illustration-security-preferences" />
           </Kb.Box2>
-          <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
-            Open Security & Privacy Settings
-          </Kb.Text>
-        </Kb.Box2>
-        {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
-          <Kb.Box style={styles.enablingContainer}>
-            <Kb.Box2
-              direction="vertical"
-              gap="small"
-              fullWidth={true}
-              fullHeight={true}
-              centerChildren={true}
-            >
-              <Kb.ProgressIndicator type="Small" white={true} />
-              <Kb.Text type="BodySmall" negative={true}>
-                Checking ...
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.numberListContainer}>
+            <Kb.Box2 direction="horizontal">
+              <Kb.Text type="BodyBig" style={styles.numberList} negative={false}>
+                •
+              </Kb.Text>
+              <Kb.Text type="BodySemibold" style={styles.listText}>
+                {'Change "Allow applications downloaded from" to "App Store and identified developers"'}
               </Kb.Text>
             </Kb.Box2>
-          </Kb.Box>
-        )}
-      </>
-    </Kb.PopupWrapper>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Text type="BodySemiboldLink" onClick={openSecurityPrefs}>
+          Open Security & Privacy Settings
+        </Kb.Text>
+      </Kb.Box2>
+      {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.isEnabling && (
+        <Kb.Box2 direction="vertical" style={styles.enablingContainer}>
+          <Kb.Box2
+            direction="vertical"
+            gap="small"
+            fullWidth={true}
+            fullHeight={true}
+            centerChildren={true}
+          >
+            <Kb.ProgressIndicator type="Small" white={true} />
+            <Kb.Text type="BodySmall" negative={true}>
+              Checking ...
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+      )}
+    </>
   )
 }
 
@@ -89,17 +84,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
         top: 0,
-      },
-      highlight: {
-        backgroundColor: Kb.Styles.globalColors.black_05,
-        borderColor: Kb.Styles.globalColors.blue,
-        borderRadius: Kb.Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 2,
-        position: 'absolute',
-      },
-      illustrationContainer: {
-        position: 'relative',
       },
       image: {
         width: 408,

@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build linux
-// +build linux
 
 package keybase
 

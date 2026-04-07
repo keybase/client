@@ -4,16 +4,14 @@ apply plugin: "com.facebook.react"
 apply plugin: 'com.github.triplet.play'
 
 // KB: app version
-def VERSION_NAME = "6.6.2"
+def VERSION_NAME = "6.7.0"
 
 // KB: Number of commits, like ios
 Integer getVersionCode() {
-    def stdout = new ByteArrayOutputStream()
-    exec {
+    def result = providers.exec {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
-        standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10517785 // plus bump it so its above the old version code
+    return Integer.parseInt(result.standardOutput.asText.get().trim()) + 10517785 // plus bump it so its above the old version code
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
@@ -121,6 +119,9 @@ android {
 
     buildTypes {
         debug {
+            ndk {
+                abiFilters = (findProperty('reactNativeArchitectures') ?: 'arm64-v8a').split(',').collect { it.trim() }
+            }
         }
         release {
             signingConfig signingConfigs.release
@@ -136,12 +137,6 @@ android {
         }
     }
 
-    // applicationVariants are e.g. debug, release
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.versionCodeOverride = getVersionCode()
-        }
-    }
     bundle {
         language {
             enableSplit = true
@@ -170,16 +165,15 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.10.5'
+    implementation 'androidx.work:work-runtime:2.11.1'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:25.0.1"
     implementation "com.facebook.fresco:animated-gif:${expoLibs.versions.fresco.get()}"
     implementation 'org.msgpack:msgpack-core:0.9.10'
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
-    implementation "me.leolin:ShortcutBadger:1.1.22@aar"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.9.4"
-    implementation "androidx.lifecycle:lifecycle-process:2.9.4"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.10.0"
+    implementation "androidx.lifecycle:lifecycle-process:2.10.0"
 }
 
 // This requires a google-services.json file locally.  Drop it in

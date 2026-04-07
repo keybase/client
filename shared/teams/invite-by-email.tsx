@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from './role-picker'
@@ -20,8 +20,7 @@ const Container = (ownProps: OwnProps) => {
   const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onClose = navigateUp
+  const navigateUp = C.Router2.navigateUp
   const _onInvite = (invitees: string, role: T.Teams.TeamRoleType) => {
     inviteToTeamByEmail(invitees, role, teamID, teamname)
   }
@@ -36,11 +35,11 @@ const Container = (ownProps: OwnProps) => {
       if (_malformedEmails.size > 0) {
         setInvitees([..._malformedEmails].join('\n'))
       } else if (!errorMessage) {
-        onClose()
+        navigateUp()
       }
     }
     lastMalformedEmailsRef.current = _malformedEmails
-  }, [_malformedEmails, errorMessage, onClose])
+  }, [_malformedEmails, errorMessage, navigateUp])
 
   React.useEffect(() => {
     return () => {
@@ -58,104 +57,80 @@ const Container = (ownProps: OwnProps) => {
   const onInvite = () => _onInvite(invitees, role)
 
   return (
-    <Kb.PopupDialog onClose={onClose} styleCover={styles.cover} styleContainer={styles.container}>
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
-        <Kb.Box
-          style={{
-            ...Kb.Styles.globalStyles.flexBoxColumn,
-            alignItems: 'center',
-            margin: Kb.Styles.globalMargins.medium,
-          }}
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        fullWidth={true}
+        style={{margin: Kb.Styles.globalMargins.medium}}
+      >
+        <Kb.Text style={styles.header} type="Header">
+          Invite by email
+        </Kb.Text>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          style={{margin: Kb.Styles.globalMargins.tiny}}
         >
-          <Kb.Text style={styles.header} type="Header">
-            Invite by email
+          <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
+            Add these team members to {name} as:
           </Kb.Text>
-          <Kb.Box
-            style={{
-              ...Kb.Styles.globalStyles.flexBoxRow,
-              alignItems: 'center',
-              margin: Kb.Styles.globalMargins.tiny,
-            }}
+          <FloatingRolePicker
+            presetRole={role}
+
+            onConfirm={onConfirmRolePicker}
+            onCancel={onCancelRolePicker}
+            position="bottom center"
+            open={isRolePickerOpen}
+            disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           >
-            <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
-              Add these team members to {name} as:
-            </Kb.Text>
-            <FloatingRolePicker
-              presetRole={role}
-              floatingContainerStyle={styles.floatingRolePicker}
-              onConfirm={onConfirmRolePicker}
-              onCancel={onCancelRolePicker}
-              position="bottom center"
-              open={isRolePickerOpen}
-              disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-            >
-              <Kb.DropdownButton
-                toggleOpen={onOpenRolePicker}
-                selected={_makeDropdownItem(role)}
-                style={{width: 100}}
-              />
-            </FloatingRolePicker>
-          </Kb.Box>
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
-            <Kb.LabeledInput
-              autoFocus={true}
-              error={!!errorMessage}
-              multiline={true}
-              onChangeText={setInvitees}
-              placeholder="Enter multiple email addresses, separated by commas"
-              rowsMin={3}
-              rowsMax={8}
-              value={invitees}
+            <Kb.DropdownButton
+              toggleOpen={onOpenRolePicker}
+              selected={_makeDropdownItem(role)}
+              style={{width: 100}}
             />
-            {!!errorMessage && (
-              <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
-                {errorMessage}
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-          <Kb.ButtonBar>
-            <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
-          </Kb.ButtonBar>
-        </Kb.Box>
-      </Kb.Box>
-    </Kb.PopupDialog>
+          </FloatingRolePicker>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="flex-start">
+          <Kb.Input3
+            autoFocus={true}
+            error={!!errorMessage}
+            multiline={true}
+            onChangeText={setInvitees}
+            placeholder="Enter multiple email addresses, separated by commas"
+            rowsMin={3}
+            rowsMax={8}
+            value={invitees}
+          />
+          {!!errorMessage && (
+            <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+              {errorMessage}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        <Kb.ButtonBar>
+          <Kb.WaitingButton label="Invite" onClick={onInvite} waitingKey={waitingKey} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const _makeDropdownItem = (item: string) => (
-  <Kb.Box
+  <Kb.Box2
     key={item}
+    direction="horizontal"
+    alignItems="center"
     style={{
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
       paddingLeft: Kb.Styles.globalMargins.small,
       paddingRight: Kb.Styles.globalMargins.small,
     }}
   >
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignSelf: 'center',
-      backgroundColor: Kb.Styles.globalColors.white,
-      borderRadius: 5,
-    },
-    isElectron: {...Kb.Styles.desktopStyles.boxShadow},
-  }),
-  cover: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  floatingRolePicker: Kb.Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
   header: {padding: Kb.Styles.globalMargins.tiny},
 }))
 

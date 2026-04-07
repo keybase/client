@@ -55,7 +55,7 @@ func (h ConfigHandler) GetValue(ctx context.Context, path string) (ret keybase1.
 }
 
 func (h ConfigHandler) getValue(_ context.Context, path string, reader libkb.JSONReader) (ret keybase1.ConfigValue, err error) {
-	var i interface{}
+	var i any
 	i, err = reader.GetInterfaceAtPath(path)
 	if err != nil {
 		return ret, err

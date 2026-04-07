@@ -50,7 +50,7 @@ const Explain = (props: Props) => {
 const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.Icon
+      <Kb.IconAuto
         type={C.isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
@@ -71,7 +71,7 @@ const NoAccess = (props: Props) => (
 const NonExistent = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
-      <Kb.Icon
+      <Kb.IconAuto
         type={
           C.isMobile
             ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
@@ -100,7 +100,7 @@ const NonExistent = (props: Props) => (
 const Oops = (props: OwnProps) => {
   const nav = useSafeNavigation()
   const openParent = () =>
-    nav.safeNavigateAppend({props: {path: T.FS.getPathParent(props.path)}, selected: 'fsRoot'})
+    nav.safeNavigateAppend({name: 'fsRoot', params: {path: T.FS.getPathParent(props.path)}})
   switch (props.reason) {
     case T.FS.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />
@@ -128,11 +128,6 @@ const styles = Kb.Styles.styleSheetCreate(
       explainTextTeam: {
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginRight: Kb.Styles.globalMargins.xtiny,
-      },
-      footer: {paddingBottom: Kb.Styles.globalMargins.large},
-      header: {
-        backgroundColor: Kb.Styles.globalColors.red,
-        height: 40,
       },
       main: {...Kb.Styles.globalStyles.flexGrow},
       textYouDontHave: Kb.Styles.platformStyles({

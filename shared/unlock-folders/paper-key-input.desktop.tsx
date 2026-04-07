@@ -15,8 +15,8 @@ const PaperKeyInput = (props: Props) => {
   return (
     <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
       <Kb.BackButton onClick={props.onBack} style={styles.back} />
-      <Kb.Icon style={styles.icon} type="icon-paper-key-48" />
-      <Kb.LabeledInput
+      <Kb.ImageIcon style={styles.icon} type="icon-paper-key-48" />
+      <Kb.Input3
         multiline={true}
         rowsMax={3}
         onChangeText={setPaperkey}

@@ -1,0 +1,14 @@
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index ab0690c..115c70f 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -2627,6 +2627,9 @@ function updateItemPositions(ctx, dataChanged, { startIndex, scrollBottomBuffere
+       currentRowTop = prevPosition + prevSize;
+     }
+   }
++  if (dataChanged && idCache.length > 0) {
++    idCache.length = 0;
++  }
+   const needsIndexByKey = dataChanged || indexByKey.size === 0;
+   const canOverrideSpan = hasColumns && !!overrideItemLayout && !!layoutConfig;
+   let didBreakEarly = false;

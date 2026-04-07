@@ -1,10 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {alwaysShow?: boolean}
 
@@ -14,15 +14,12 @@ const SFMIContainer = (op: OwnProps) => {
       driverDisable: s.dispatch.driverDisable,
       driverEnable: s.dispatch.driverEnable,
       driverStatus: s.sfmi.driverStatus,
-      setSfmiBannerDismissedDesktop: s.dispatch.dynamic.setSfmiBannerDismissedDesktop,
+      setSfmiBannerDismissedDesktop: s.dispatch.defer.setSfmiBannerDismissedDesktop,
       settings: s.settings,
     }))
   )
-  const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
-  const onDismiss = React.useCallback(
-    () => setSfmiBannerDismissedDesktop?.(true),
-    [setSfmiBannerDismissedDesktop]
-  )
+  const onDisable = () => driverDisable()
+  const onDismiss = () => setSfmiBannerDismissedDesktop?.(true)
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
@@ -118,6 +115,21 @@ const backgroundToBackgroundColor = (background: Background) => {
   }
 }
 
+const buttonOnColorStyle = {backgroundColor: Kb.Styles.globalColors.white}
+
+const backgroundToButtonLabelStyle = (background: Background) => {
+  switch (background) {
+    case Background.Blue:
+      return {color: Kb.Styles.globalColors.blueDark}
+    case Background.Green:
+      return {color: Kb.Styles.globalColors.greenDark}
+    case Background.Yellow:
+      return {color: Kb.Styles.globalColors.brown_75OrYellow}
+    case Background.Black:
+      return {color: Kb.Styles.globalColors.black}
+  }
+}
+
 const Banner = (props: BannerProps) => (
   <Kb.Box2
     direction="horizontal"
@@ -125,21 +137,21 @@ const Banner = (props: BannerProps) => (
     centerChildren={true}
     style={{backgroundColor: backgroundToBackgroundColor(props.background)}}
   >
-    <Kb.Icon
+    <Kb.IconAuto
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />
-    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
+    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer} justifyContent="center">
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
         <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
         </Kb.Text>
         {props.body && (
-          <Kb.Box style={Kb.Styles.globalStyles.flexGrow}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow}>
             <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         )}
       </Kb.Box2>
       {props.bodyExtraComponent ?? false}
@@ -147,26 +159,28 @@ const Banner = (props: BannerProps) => (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           {!!props.button && (
             <Kb.Button
-              backgroundColor={props.background}
               disabled={props.button.disabled}
               label={props.button.buttonText}
               onClick={props.button.action}
               waiting={props.button.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
           {!!props.buttonSecondary && (
             <Kb.Button
-              backgroundColor={props.background}
               disabled={props.buttonSecondary.disabled}
               label={props.buttonSecondary.buttonText}
               onClick={props.buttonSecondary.action}
               waiting={props.buttonSecondary.inProgress}
+              style={buttonOnColorStyle}
+              labelStyle={backgroundToButtonLabelStyle(props.background)}
             />
           )}
         </Kb.Box2>
       )}
     </Kb.Box2>
-    <Kb.Box style={Kb.Styles.globalStyles.flexGrow} />
+    <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Icon
@@ -218,7 +232,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
     C.useShallow(s => ({
       displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
+      openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
     }))
   )
   const open = displayingMountDir
@@ -314,7 +328,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
-        justifyContent: 'center',
         maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
         padding: Kb.Styles.globalMargins.mediumLarge,
       },

@@ -1,0 +1,9 @@
+appId: keybase.ios
+---
+- tapOn:
+    text: ".*Crypto"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      text: "Encrypt,.*"
+    timeout: 10000

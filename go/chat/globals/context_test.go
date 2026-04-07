@@ -21,9 +21,9 @@ func TestConcurrentContext(t *testing.T) {
 	ctx := ChatCtx(context.TODO(), g, keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, nil)
 	convID := chat1.ConversationID([]byte("deadbeef"))
 	eg := errgroup.Group{}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		eg.Go(func() error {
-			for j := 0; j < 50; j++ {
+			for range 50 {
 				CtxAddMessageCacheSkips(ctx, convID, []chat1.MessageUnboxed{
 					// drop two empty msgs in
 					{},

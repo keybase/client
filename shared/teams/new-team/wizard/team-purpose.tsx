@@ -1,30 +1,13 @@
 import * as Kb from '@/common-adapters'
-import {ModalTitle} from '@/teams/common'
-import * as T from '@/constants/types'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/constants/teams'
+import type * as T from '@/constants/types'
+import {useTeamsState} from '@/stores/teams'
 
 const TeamPurpose = () => {
-  const nav = useSafeNavigation()
-  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamType = useTeamsState(s => s.dispatch.setTeamWizardTeamType)
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      onClose={onBack}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onBack}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        title: <ModalTitle teamID={T.Teams.noTeamID} title="New team" />,
-      }}
-      allowOverflow={true}
-      backgroundStyle={styles.bg}
-    >
+    <>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -60,29 +43,17 @@ const TeamPurpose = () => {
           title="Other/You're not sure"
         />
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bg: Kb.Styles.platformStyles({
-    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
-    isElectron: {borderRadius: 4},
-  }),
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
-  }),
-  container: {
-    padding: Kb.Styles.globalMargins.small,
-  },
-  wordBreak: Kb.Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
   }),
 }))
 

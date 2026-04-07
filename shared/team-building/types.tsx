@@ -33,33 +33,3 @@ export type SearchRecSection = {
   shortcut: boolean
   data: Array<ResultData>
 }
-
-export type Props = {
-  error?: string
-  filterServices?: Array<T.TB.ServiceIdWithContact>
-  focusInputCounter: number
-  goButtonLabel?: T.TB.GoButtonLabel
-  highlightedIndex: number
-  namespace: T.TB.AllowedNamespace
-  onAdd: (userId: string) => void
-  onChangeService: (newService: T.TB.ServiceIdWithContact) => void
-  onChangeText: (newText: string) => void
-  onClear: () => void
-  onClose: () => void
-  onDownArrowKeyDown: () => void
-  onEnterKeyDown: () => void
-  onFinishTeamBuilding: () => void
-  onRemove: (userId: string) => void
-  onSearchForMore: (len: number) => void
-  onUpArrowKeyDown: () => void
-  recommendations?: Array<SearchRecSection>
-  search: (query: string, service: T.TB.ServiceIdWithContact) => void
-  searchResults: Array<SearchResult> | undefined
-  searchString: string
-  selectedService: T.TB.ServiceIdWithContact
-  serviceResultCount: {[K in T.TB.ServiceIdWithContact]?: number | undefined}
-  showServiceResultCount: boolean
-  teamBuildingSearchResults: T.TB.SearchResults
-  teamID: T.Teams.TeamID | undefined
-  teamSoFar: Array<T.TB.SelectedUser>
-}

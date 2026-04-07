@@ -1252,10 +1252,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 		return nil
 	}
 
-	numWorkers := len(rmdses)
-	if numWorkers > maxMDsAtATime {
-		numWorkers = maxMDsAtATime
-	}
+	numWorkers := min(len(rmdses), maxMDsAtATime)
 	for i := 0; i < numWorkers; i++ {
 		eg.Go(worker)
 	}

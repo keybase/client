@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import * as FS from '@/stores/fs'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
@@ -18,7 +18,7 @@ type PopupProps = Props & {
 }
 
 const useOpenInFilesTab = (path: T.FS.Path) => {
-  return React.useCallback(() => FS.makeActionForOpenPathInFilesTab(path), [path])
+  return () => FS.navToPath(path)
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
@@ -87,14 +87,15 @@ const KbfsPath = (props: Props) => {
       {popup}
     </>
   ) : (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={styles.textContainer}
       onMouseOver={() => setShowing(true)}
       onMouseLeave={() => setShowing(false)}
     >
       {text}
       {popup}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

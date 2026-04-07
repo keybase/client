@@ -9,7 +9,7 @@ import (
 )
 
 // PrettyJSON marshals a value to human-readable JSON.
-func PrettyJSON(value interface{}) ([]byte, error) {
+func PrettyJSON(value any) ([]byte, error) {
 	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/stellar1/ui.avdl
 
 package stellar1
@@ -52,11 +52,11 @@ func UiProtocol(i UiInterface) rpc.Protocol {
 		Name: "stellar.1.ui",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"paymentReviewed": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PaymentReviewedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PaymentReviewedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PaymentReviewedArg)(nil), args)
@@ -75,6 +75,6 @@ type UiClient struct {
 }
 
 func (c UiClient) PaymentReviewed(ctx context.Context, __arg PaymentReviewedArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.ui.paymentReviewed", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "stellar.1.ui.paymentReviewed", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

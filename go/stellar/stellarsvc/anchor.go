@@ -231,13 +231,13 @@ func (a *anchorInteractor) checkURL(mctx libkb.MetaContext, action string) (*url
 }
 
 type okDepositResponse struct {
-	How        string      `json:"how"`
-	ETA        int         `json:"int"`
-	MinAmount  float64     `json:"min_amount"`
-	MaxAmount  float64     `json:"max_amount"`
-	FeeFixed   float64     `json:"fee_fixed"`
-	FeePercent float64     `json:"fee_percent"`
-	ExtraInfo  interface{} `json:"extra_info"`
+	How        string  `json:"how"`
+	ETA        int     `json:"int"`
+	MinAmount  float64 `json:"min_amount"`
+	MaxAmount  float64 `json:"max_amount"`
+	FeeFixed   float64 `json:"fee_fixed"`
+	FeePercent float64 `json:"fee_percent"`
+	ExtraInfo  any     `json:"extra_info"`
 }
 
 // this will never happen, but:

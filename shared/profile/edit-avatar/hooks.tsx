@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
+import {fixCrop} from '@/util/crop'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -56,12 +56,12 @@ export default (ownProps: Props): Ret => {
   React.useEffect(() => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
   }, [dispatchClearWaiting])
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     navigateUp()
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()
@@ -77,11 +77,11 @@ export default (ownProps: Props): Ret => {
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
-  const uploadAvatar = useProfileState(s => s.dispatch.uploadAvatar)
+  const uploadAvatar = C.useRPC(T.RPCGen.userUploadUserAvatarRpcPromise)
 
   const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Kb.Styles.unnormalizePath(_filename)
-    uploadAvatar(filename, crop)
+    uploadAvatar([{crop: fixCrop(crop), filename}, C.waitingKeyProfileUploadAvatar], () => navigateUp(), () => {})
   }
   const setTeamWizardAvatar = Teams.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {

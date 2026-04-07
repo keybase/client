@@ -1,10 +1,9 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {settingsFeedbackTab} from '@/constants/settings'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -27,16 +26,16 @@ const ManageContacts = () => {
     loadContactImportEnabled()
   }
 
-  const onToggle = React.useCallback(() => {
+  const onToggle = () => {
     if (status !== 'granted') {
       requestPermissions(true, true)
     } else {
       editContactImportEnabled(!contactsImported, true)
     }
-  }, [editContactImportEnabled, requestPermissions, contactsImported, status])
+  }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
       <Kb.BoxGrow>
         <ManageContactsBanner />
         <SettingsSection>
@@ -72,24 +71,18 @@ const ManageContactsBanner = () => {
       status: s.permissionStatus,
     }))
   )
-  const onOpenAppSettings = useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const {appendNewChatBuilder, navigateAppend, switchTab} = C.useRouterState(
-    C.useShallow(s => ({
-      appendNewChatBuilder: s.appendNewChatBuilder,
-      navigateAppend: s.dispatch.navigateAppend,
-      switchTab: s.dispatch.switchTab,
-    }))
-  )
-  const onStartChat = React.useCallback(() => {
+  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
+  const {appendNewChatBuilder, navigateAppend, switchTab} = C.Router2
+  const onStartChat = () => {
     switchTab(C.Tabs.chatTab)
     appendNewChatBuilder()
-  }, [appendNewChatBuilder, switchTab])
-  const onSendFeedback = React.useCallback(() => {
+  }
+  const onSendFeedback = () => {
     navigateAppend({
-      props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: settingsFeedbackTab,
+      name: settingsFeedbackTab,
+      params: {feedback: `Contact import failed\n${error}\n\n`},
     })
-  }, [navigateAppend, error])
+  }
 
   return (
     <>
@@ -134,7 +127,6 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: undefined,
         width: undefined,
       },
-      positionRelative: {position: 'relative'},
     }) as const
 )
 

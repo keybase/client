@@ -6,8 +6,8 @@ import io.keybase.ossifrage.BuildConfig
 
 class StorybookConstants(reactContext: ReactApplicationContext?) : ReactContextBaseJavaModule(reactContext) {
     override fun getConstants(): Map<String, Any>? {
-        val isStoryBook = BuildConfig.BUILD_TYPE === "storyBook"
-        val constants: MutableMap<String, Any> = HashMap()
+        val isStoryBook = BuildConfig.BUILD_TYPE == "storyBook"
+        val constants: MutableMap<String, Any> = mutableMapOf()
         constants["isStorybook"] = isStoryBook
         return constants
     }

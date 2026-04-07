@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -9,7 +8,7 @@ type Props = {
 
 export const ContactRestricted = (props: Props) => {
   const nav = useSafeNavigation()
-  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
+  const onBack = () => nav.safeNavigateUp()
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []
@@ -41,24 +40,7 @@ export const ContactRestricted = (props: Props) => {
     default:
   }
   return (
-    <Kb.Modal
-      onClose={onBack}
-      header={
-        Kb.Styles.isMobile
-          ? {
-              leftButton: <Kb.BackButton onClick={onBack} />,
-            }
-          : undefined
-      }
-      footer={{
-        content: (
-          <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
-          </Kb.ButtonBar>
-        ),
-        hideBorder: true,
-      }}
-    >
+    <>
       <Kb.Box2
         alignItems="center"
         direction="vertical"
@@ -76,7 +58,7 @@ export const ContactRestricted = (props: Props) => {
         {disallowedUsers.length > 0 && (
           <>
             {disallowedUsers.map((username, idx) => (
-              <Kb.ListItem2
+              <Kb.ListItem
                 key={username}
                 type={Kb.Styles.isMobile ? 'Large' : 'Small'}
                 icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
@@ -94,7 +76,12 @@ export const ContactRestricted = (props: Props) => {
           {description}
         </Kb.Text>
       </Kb.Box2>
-    </Kb.Modal>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
 
@@ -113,10 +100,20 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       flex: 1,
     },
   }),
-  icon: {
-    marginBottom: Kb.Styles.globalMargins.medium,
-    marginTop: Kb.Styles.globalMargins.xlarge,
-  },
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   text: {
     margin: Kb.Styles.globalMargins.small,
   },

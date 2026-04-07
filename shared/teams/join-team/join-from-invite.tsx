@@ -1,97 +1,120 @@
 import * as C from '@/constants'
-import * as React from 'react'
-import {useTeamsState} from '@/constants/teams'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {Success} from './container'
+import {RPCError} from '@/util/errors'
+import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {Success} from './container'
 
-const JoinFromInvite = () => {
-  const {inviteID: id, inviteKey: key, inviteDetails: details} = useTeamsState(s => s.teamInviteDetails)
-  const error = useTeamsState(s => s.errorInTeamJoin)
+type Props = {
+  inviteDetails?: T.RPCGen.InviteLinkDetails
+  inviteID?: string
+  inviteKey?: string
+}
+
+const getInviteError = (error: unknown, missingKey: boolean) => {
+  if (error instanceof RPCError) {
+    return (
+      error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
+        ? missingKey
+          ? 'Sorry, that invite token is not valid.'
+          : 'Sorry, that team name or token is not valid.'
+        : error.code === T.RPCGen.StatusCode.scnotfound
+          ? 'This invitation is no longer valid, or has expired.'
+          : error.desc
+    )
+  }
+  return error instanceof Error ? error.message : 'Something went wrong.'
+}
+
+const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
+  const [details, setDetails] = React.useState(initialInviteDetails)
+  const [error, setError] = React.useState('')
   const loaded = details !== undefined || !!error
-
-  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
-  const requestInviteLinkDetails = useTeamsState(s => s.dispatch.requestInviteLinkDetails)
+  const canLoadDetails = details === undefined && !error && !!inviteID
+  const canJoin = !!inviteKey
+  const missingInviteKeyError = details !== undefined && !canJoin ? 'Sorry, that invite token is not valid.' : ''
+  const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
+  const requestInviteLinkDetails = C.useRPC(T.RPCGen.teamsGetInviteLinkDetailsRpcPromise)
+  const [clickedJoin, setClickedJoin] = React.useState(false)
+  const [showSuccess, setShowSuccess] = React.useState(false)
+  const rpcWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsJoinTeam)
+  const waiting = rpcWaiting && clickedJoin
 
   React.useEffect(() => {
-    if (loaded) {
+    setDetails(initialInviteDetails)
+    setError('')
+    setClickedJoin(false)
+    setShowSuccess(false)
+  }, [initialInviteDetails, inviteID, inviteKey])
+
+  React.useEffect(() => {
+    if (!canLoadDetails) {
       return
     }
-    if (key === '') {
-      // If we're missing the key, we want the user to paste the whole link again
-      requestInviteLinkDetails()
-      return
-    }
+    requestInviteLinkDetails(
+      [{inviteID}],
+      result => {
+        setDetails(result)
+        setError('')
+      },
+      rpcError => {
+        setError(getInviteError(rpcError, true))
+      }
+    )
+  }, [canLoadDetails, inviteID, requestInviteLinkDetails])
 
-    // Otherwise we're reusing the join flow, so that we don't look up the invite id twice
-    // (the invite id is derived from the key).
-    joinTeam(key, true)
-  }, [requestInviteLinkDetails, joinTeam, loaded, key, id])
-
-  const [clickedJoin, setClickedJoin] = React.useState(false)
   const nav = useSafeNavigation()
 
   const onNavUp = () => nav.safeNavigateUp()
-  const respondToInviteLink = useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)
   const onJoinTeam = () => {
+    if (!canJoin) {
+      return
+    }
     setClickedJoin(true)
-    respondToInviteLink?.(true)
+    setError('')
+    joinTeam(
+      [
+        {
+          customResponseIncomingCallMap: {
+            'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
+              setDetails(params.details)
+              response.result(true)
+            },
+          },
+          incomingCallMap: {},
+          params: {tokenOrName: inviteKey},
+          waitingKey: C.waitingKeyTeamsJoinTeam,
+        },
+      ],
+      () => {
+        setClickedJoin(false)
+        setShowSuccess(true)
+      },
+      rpcError => {
+        setClickedJoin(false)
+        setError(getInviteError(rpcError, false))
+      }
+    )
   }
-  const onClose = () => {
-    respondToInviteLink?.(true)
-    onNavUp()
-  }
-
-  const rpcWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsJoinTeam)
-  const waiting = rpcWaiting && clickedJoin
-  const wasWaitingRef = React.useRef(waiting)
-  React.useEffect(() => {
-    wasWaitingRef.current = waiting
-  }, [waiting])
-
-  const [showSuccess, setShowSuccess] = React.useState(false)
-
-  React.useEffect(() => {
-    setShowSuccess(wasWaitingRef.current && !waiting && !error)
-  }, [waiting, error])
+  const onClose = () => onNavUp()
 
   const teamname = (details?.teamName.parts || []).join('.')
 
   const body =
     details === undefined ? (
       loaded ? (
-        <Kb.Box2
-          direction="vertical"
-          style={styles.center}
-          fullWidth={true}
-          fullHeight={true}
-          gap="small"
-          centerChildren={true}
-        >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
           <Kb.Text type="BodySmallError">ERROR: {error}</Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Box2
-          direction="vertical"
-          style={styles.center}
-          fullWidth={true}
-          fullHeight={true}
-          gap="small"
-          centerChildren={true}
-        >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
           <Kb.ProgressIndicator type="Huge" />
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
         </Kb.Box2>
       )
     ) : showSuccess ? (
-      <Kb.Box2
-        direction="vertical"
-        style={styles.center}
-        fullWidth={true}
-        fullHeight={true}
-        gap="small"
-        centerChildren={true}
-      >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" centerChildren={true}>
         <Success teamname={teamname} />
         <Kb.Button type="Dim" label="Close" onClick={onNavUp} style={styles.button} waiting={waiting} />
       </Kb.Box2>
@@ -104,7 +127,7 @@ const JoinFromInvite = () => {
         gap="xtiny"
         style={styles.body}
       >
-        <Kb.Box style={styles.avatar}>
+        <Kb.Box2 direction="vertical" style={styles.avatar}>
           <Kb.Avatar
             size={96}
             teamname={teamname}
@@ -121,7 +144,7 @@ const JoinFromInvite = () => {
               <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Text type="Header">Join {teamname}</Kb.Text>
         <Kb.Text type="BodySmall">{details.teamNumMembers.toLocaleString()} members</Kb.Text>
         <Kb.Text type="Body" lineClamp={3} style={styles.description}>
@@ -139,18 +162,15 @@ const JoinFromInvite = () => {
             label="Join team"
             onClick={onJoinTeam}
             style={styles.button}
+            disabled={!canJoin}
             waiting={waiting}
           />
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
-        {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
+        {!!(error || missingInviteKeyError) && <Kb.Text type="BodySmallError">{error || missingInviteKeyError}</Kb.Text>}
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
-          <Kb.Avatar
-            size={16}
-            username={details.inviterUsername}
-            borderColor={Kb.Styles.isMobile ? Kb.Styles.globalColors.white : undefined}
-          />
+          <Kb.Avatar size={16} username={details.inviterUsername} />
           <Kb.ConnectedUsernames
             type="BodySmallBold"
             usernames={[details.inviterUsername]}
@@ -166,13 +186,7 @@ const JoinFromInvite = () => {
       </Kb.Box2>
     )
 
-  return Kb.Styles.isMobile ? (
-    <Kb.MobilePopup overlayStyle={styles.mobileOverlay}>{body}</Kb.MobilePopup>
-  ) : (
-    <Kb.Modal mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
-      {body}
-    </Kb.Modal>
-  )
+  return body
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -199,8 +213,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      buttonBar: {justifyContent: 'center', paddingTop: Kb.Styles.globalMargins.small},
-      center: {justifyContent: 'center'},
+      buttonBar: {paddingTop: Kb.Styles.globalMargins.small},
       description: Kb.Styles.platformStyles({
         isElectron: {width: 460},
         isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
@@ -214,9 +227,6 @@ const styles = Kb.Styles.styleSheetCreate(
       meta: {
         bottom: -7,
         position: 'absolute',
-      },
-      mobileOverlay: {
-        height: 392,
       },
     }) as const
 )

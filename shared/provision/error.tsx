@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/constants/autoreset'
+import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
-import {useProvisionState} from '@/constants/provision'
+import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
-    <Kb.Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+    <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
     </Kb.Text>
@@ -29,15 +29,23 @@ const rewriteErrorDesc = (s: string) => {
   }
 }
 
+type Props = {
+  route: {
+    params: {
+      error?: ProvisionRouteError
+    }
+  }
+}
+
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const RenderError = () => {
-  const _username = AutoReset.useAutoResetState(s => s.username)
-  const error = useProvisionState(s => s.finalError)
+const RenderError = ({route}: Props) => {
+  const error = route.params.error
+  const username = useProvisionState(s => s.username)
   const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     navigateUp()
   }
@@ -47,7 +55,7 @@ const RenderError = () => {
   const onPasswordReset = () => {
     openURL('https://keybase.io/#password-reset')
   }
-  const onAccountReset = () => _onAccountReset(_username)
+  const onAccountReset = () => _onAccountReset(username)
 
   if (!error) {
     return (
@@ -58,11 +66,11 @@ const RenderError = () => {
       </Wrapper>
     )
   }
-  const f = error.fields as Array<undefined | {key?: string; value?: string}> | undefined
+  const f = error.fields
   const fields =
     f?.reduce<{[key: string]: string}>((acc, f) => {
-      const k = f && typeof f.key === 'string' ? f.key : ''
-      acc[k] = f?.value || ''
+      const k = typeof f.key === 'string' ? f.key : ''
+      acc[k] = f.value || ''
       return acc
     }, {}) ?? {}
   switch (error.code) {

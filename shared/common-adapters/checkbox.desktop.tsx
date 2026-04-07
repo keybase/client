@@ -1,12 +1,13 @@
-import Box, {Box2} from './box'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Text from './text'
 import type {Props} from './checkbox'
 import * as Styles from '@/styles'
 
 const Kb = {
-  Box,
   Box2,
+  ClickableBox,
   Icon,
   Styles,
   Text,
@@ -17,7 +18,7 @@ const CHECKBOX_MARGIN = 8
 
 const Checkbox = (props: Props) => {
   return (
-    <Kb.Box
+    <Kb.ClickableBox
       style={Kb.Styles.collapseStyles([styles.container, !props.disabled && styles.clickable, props.style])}
       onClick={e =>
         // If something in labelComponent needs to catch a click without calling this, use
@@ -25,20 +26,21 @@ const Checkbox = (props: Props) => {
         props.disabled || e.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
       }
     >
-      <Kb.Icon
-        boxStyle={Kb.Styles.collapseStyles([
-          styles.checkbox,
-          props.checked && styles.checkboxChecked,
-          props.disabled && styles.checkboxInactive,
-          props.disabled && props.checked && styles.semiTransparent,
-          props.checkboxStyle,
-        ])}
-        type="iconfont-check"
-        style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
-        hoverColor={Kb.Styles.globalColors.white}
-        color={props.checkboxColor ?? Kb.Styles.globalColors.white}
-        fontSize={9}
-      />
+      <div style={Kb.Styles.castStyleDesktop(Kb.Styles.collapseStyles([
+        styles.checkbox,
+        props.checked && styles.checkboxChecked,
+        props.disabled && styles.checkboxInactive,
+        props.disabled && props.checked && styles.semiTransparent,
+        props.checkboxStyle,
+      ]))}>
+        <Kb.Icon
+          type="iconfont-check"
+          style={Kb.Styles.collapseStyles([styles.icon, !props.checked && styles.transparent])}
+          hoverColor={Kb.Styles.globalColors.white}
+          color={props.checkboxColor ?? Kb.Styles.globalColors.white}
+          fontSize={9}
+        />
+      </div>
       <Kb.Box2 direction="vertical">
         {props.labelComponent || (typeof props.label === 'string' ? (
           <Kb.Text type={props.labelType ?? 'Body'}>{props.label}</Kb.Text>
@@ -47,7 +49,7 @@ const Checkbox = (props: Props) => {
         ))}
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </Kb.Box2>
-    </Kb.Box>
+    </Kb.ClickableBox>
   )
 }
 
@@ -92,7 +94,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       alignSelf: 'center',
     },
   }),
-  opaque: {opacity: 1},
   semiTransparent: {opacity: 0.4},
   transparent: {opacity: 0},
 }))

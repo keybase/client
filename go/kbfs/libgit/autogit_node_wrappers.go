@@ -227,8 +227,8 @@ func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			subdir:    "",
 			branch:    branch,
 		}
-	} else if strings.HasPrefix(name, AutogitCommitPrefix) {
-		commit := strings.TrimPrefix(name, AutogitCommitPrefix)
+	} else if after, ok := strings.CutPrefix(name, AutogitCommitPrefix); ok {
+		commit := after
 		return &repoCommitNode{
 			Node:      child,
 			am:        rdn.am,

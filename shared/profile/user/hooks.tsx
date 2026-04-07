@@ -2,10 +2,10 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useTrackerState} from '@/stores/tracker'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {editAvatar} from '@/util/misc'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -126,7 +126,6 @@ const useUserData = (username: string) => {
     }
   })()
 
-  const editAvatar = useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
   //   dispatch(
@@ -146,14 +145,9 @@ const useUserData = (username: string) => {
       }
     }
   }
-  const {navigateAppend, navigateUp} = C.useRouterState(
-    C.useShallow(s => ({
-      navigateAppend: s.dispatch.navigateAppend,
-      navigateUp: s.dispatch.navigateUp,
-    }))
-  )
+  const {navigateAppend, navigateUp} = C.Router2
   const onAddIdentity = () => {
-    navigateAppend('profileProofsList')
+    navigateAppend({name: 'profileProofsList', params: {}})
   }
   const onBack = () => {
     navigateUp()

@@ -267,7 +267,7 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 
 	var aliceMessages []string
 	nn := nextNotification{1, 0, tlfID, nil}
-	for i := 0; i < maxEditsPerWriter; i++ {
+	for i := range maxEditsPerWriter {
 		event := nn.make(
 			strconv.Itoa(i), NotificationCreate, aliceUID, nil, time.Time{})
 		allExpected = append(allExpected, event)
@@ -307,7 +307,7 @@ func TestTlfHistoryTrimming(t *testing.T) {
 
 	var aliceMessages []string
 	nn := nextNotification{1, 0, tlfID, nil}
-	for i := 0; i < maxEditsPerWriter+2; i++ {
+	for i := range maxEditsPerWriter + 2 {
 		event := nn.make(strconv.Itoa(i), NotificationCreate, aliceUID, nil,
 			time.Time{})
 		allExpected = append(allExpected, event)

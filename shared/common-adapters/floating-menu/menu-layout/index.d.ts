@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
-import type {IconType, IconStyle} from '@/common-adapters/icon'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 export type MenuItem = {
   backgroundColor?: Styles.Color
@@ -9,7 +9,7 @@ export type MenuItem = {
   disabled?: boolean
   icon?: IconType
   iconIsVisible?: boolean
-  iconStyle?: IconStyle
+  iconStyle?: Styles.StylesCrossPlatform
   isBadged?: boolean
   isSelected?: boolean
   inProgress?: boolean
@@ -29,7 +29,7 @@ export type _InnerMenuItem = MenuItem | 'Divider' | undefined
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
-  isModal: boolean | 'bottomsheet'
+  isModal: false | 'modal' | 'bottomsheet'
   backgroundColor?: Styles.Color
   items: ReadonlyArray<_InnerMenuItem>
   header?: React.ReactNode

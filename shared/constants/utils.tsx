@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '@/router-v2/route-params'
 import logger from '@/logger'
@@ -10,32 +9,6 @@ export const ignorePromise = (f: Promise<void> | Promise<PromiseSettledResult<vo
     logger.error('ignorePromise error', e)
   })
 }
-
-export type PagesToParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : undefined
-      : undefined
-    : undefined
-}
-
-export type ViewPropsToPageProps<T> =
-  T extends React.LazyExoticComponent<infer C>
-    ? C extends React.ComponentType<infer P>
-      ? P extends undefined | never
-        ? {route: {params?: undefined}}
-        : {route: {params: P}}
-      : {route: {params?: undefined}}
-    : T extends (p: infer P) => any
-      ? P extends undefined | never
-        ? {route: {params?: undefined}}
-        : {route: {params: P}}
-      : {route: {params?: undefined}}
-export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
-  ? {route: {params: P | undefined}}
-  : never
 
 export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
@@ -67,13 +40,13 @@ export const useNav = () => {
 }
 
 export {wrapErrors} from '@/util/debug'
-export {default as shallowEqual} from 'shallowequal'
+export {default as shallowEqual} from '@/util/shallow-equal'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'
 export {default as useRPC} from '@/util/use-rpc'
 export {produce} from 'immer'
 export * from './immer'
 export {default as featureFlags} from '../util/feature-flags'
-export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent, useLogMount} from './react'
+export {useOnMountOnce, useOnUnMountOnce, useLogMount} from './react'
 export {debugWarning} from '@/util/debug-warning'
 export {isNetworkErr, RPCError} from '@/util/errors'

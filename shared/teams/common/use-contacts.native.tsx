@@ -2,9 +2,9 @@ import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import logger from '@/logger'
-import {getDefaultCountryCode} from 'react-native-kb'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {getE164} from '@/constants/settings-phone'
+import * as Localization from 'expo-localization'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {getE164} from '@/util/phone-numbers'
 
 // Contact info coming from the native contacts library.
 export type Contact = {
@@ -41,17 +41,14 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     logger.debug(`Got region from state: ${regionFromState}, no need to call NativeModules.`)
     region = regionFromState
   } else {
-    try {
-      let defaultCountryCode = await getDefaultCountryCode()
+    {
+      let defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
       if (__DEV__ && !defaultCountryCode) {
         // behavior of parsing can be unexpectedly different with no country code.
         // iOS sim + android emu don't supply country codes, so use this one.
         defaultCountryCode = 'us'
       }
       region = defaultCountryCode
-    } catch (error_) {
-      const error = error_ as {message: string}
-      logger.warn(`Error loading default country code: ${error.message}`)
     }
   }
 

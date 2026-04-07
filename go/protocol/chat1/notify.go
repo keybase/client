@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/notify.avdl
 
 package chat1
@@ -1136,11 +1136,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 		Name: "chat.1.NotifyChat",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"NewChatActivity": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewChatActivityArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewChatActivityArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewChatActivityArg)(nil), args)
@@ -1151,11 +1151,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatIdentifyUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatIdentifyUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatIdentifyUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatIdentifyUpdateArg)(nil), args)
@@ -1166,11 +1166,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatTLFFinalize": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatTLFFinalizeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatTLFFinalizeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatTLFFinalizeArg)(nil), args)
@@ -1181,11 +1181,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatTLFResolve": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatTLFResolveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatTLFResolveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatTLFResolveArg)(nil), args)
@@ -1196,11 +1196,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatInboxStale": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxStaleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxStaleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxStaleArg)(nil), args)
@@ -1211,11 +1211,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatThreadsStale": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatThreadsStaleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatThreadsStaleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatThreadsStaleArg)(nil), args)
@@ -1226,11 +1226,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatTypingUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatTypingUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatTypingUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatTypingUpdateArg)(nil), args)
@@ -1241,11 +1241,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatJoinedConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatJoinedConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatJoinedConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatJoinedConversationArg)(nil), args)
@@ -1256,11 +1256,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatLeftConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatLeftConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatLeftConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatLeftConversationArg)(nil), args)
@@ -1271,11 +1271,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatResetConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatResetConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatResetConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatResetConversationArg)(nil), args)
@@ -1286,11 +1286,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatInboxSyncStarted": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxSyncStartedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxSyncStartedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxSyncStartedArg)(nil), args)
@@ -1301,11 +1301,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatInboxSynced": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatInboxSyncedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatInboxSyncedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatInboxSyncedArg)(nil), args)
@@ -1316,11 +1316,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatSetConvRetention": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSetConvRetentionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSetConvRetentionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSetConvRetentionArg)(nil), args)
@@ -1331,11 +1331,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatSetTeamRetention": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSetTeamRetentionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSetTeamRetentionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSetTeamRetentionArg)(nil), args)
@@ -1346,11 +1346,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatSetConvSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSetConvSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSetConvSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSetConvSettingsArg)(nil), args)
@@ -1361,11 +1361,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatSubteamRename": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatSubteamRenameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatSubteamRenameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatSubteamRenameArg)(nil), args)
@@ -1376,11 +1376,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatKBFSToImpteamUpgrade": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatKBFSToImpteamUpgradeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatKBFSToImpteamUpgradeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatKBFSToImpteamUpgradeArg)(nil), args)
@@ -1391,11 +1391,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatAttachmentUploadStart": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatAttachmentUploadStartArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatAttachmentUploadStartArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatAttachmentUploadStartArg)(nil), args)
@@ -1406,11 +1406,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatAttachmentUploadProgress": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatAttachmentUploadProgressArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatAttachmentUploadProgressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatAttachmentUploadProgressArg)(nil), args)
@@ -1421,11 +1421,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatAttachmentDownloadProgress": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatAttachmentDownloadProgressArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatAttachmentDownloadProgressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadProgressArg)(nil), args)
@@ -1436,11 +1436,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatAttachmentDownloadComplete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatAttachmentDownloadCompleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatAttachmentDownloadCompleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatAttachmentDownloadCompleteArg)(nil), args)
@@ -1451,11 +1451,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatArchiveProgress": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatArchiveProgressArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatArchiveProgressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatArchiveProgressArg)(nil), args)
@@ -1466,11 +1466,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatArchiveComplete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatArchiveCompleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatArchiveCompleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatArchiveCompleteArg)(nil), args)
@@ -1481,11 +1481,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatPaymentInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatPaymentInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatPaymentInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatPaymentInfoArg)(nil), args)
@@ -1496,11 +1496,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatRequestInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatRequestInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatRequestInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatRequestInfoArg)(nil), args)
@@ -1511,11 +1511,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatPromptUnfurl": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatPromptUnfurlArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatPromptUnfurlArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatPromptUnfurlArg)(nil), args)
@@ -1526,11 +1526,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatConvUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatConvUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatConvUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatConvUpdateArg)(nil), args)
@@ -1541,11 +1541,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatWelcomeMessageLoaded": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatWelcomeMessageLoadedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatWelcomeMessageLoadedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatWelcomeMessageLoadedArg)(nil), args)
@@ -1556,11 +1556,11 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 			},
 			"ChatParticipantsInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChatParticipantsInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChatParticipantsInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChatParticipantsInfoArg)(nil), args)
@@ -1579,152 +1579,152 @@ type NotifyChatClient struct {
 }
 
 func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) (err error) {
 	__arg := ChatIdentifyUpdateArg{Update: update}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTLFFinalize(ctx context.Context, __arg ChatTLFFinalizeArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTLFResolve(ctx context.Context, __arg ChatTLFResolveArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFResolve", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFResolve", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxStale(ctx context.Context, uid keybase1.UID) (err error) {
 	__arg := ChatInboxStaleArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThreadsStaleArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []ConvTypingUpdate) (err error) {
 	__arg := ChatTypingUpdateArg{TypingUpdates: typingUpdates}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatJoinedConversation(ctx context.Context, __arg ChatJoinedConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatJoinedConversation", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatJoinedConversation", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLeftConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatResetConversation(ctx context.Context, __arg ChatResetConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatResetConversation", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatResetConversation", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxSyncStarted(ctx context.Context, uid keybase1.UID) (err error) {
 	__arg := ChatInboxSyncStartedArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxSynced(ctx context.Context, __arg ChatInboxSyncedArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetConvRetention(ctx context.Context, __arg ChatSetConvRetentionArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvRetention", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvRetention", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSetTeamRetentionArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetConvSettings(ctx context.Context, __arg ChatSetConvSettingsArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvSettings", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvSettings", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSubteamRename(ctx context.Context, __arg ChatSubteamRenameArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSubteamRename", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSubteamRename", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatKBFSToImpteamUpgrade(ctx context.Context, __arg ChatKBFSToImpteamUpgradeArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg ChatAttachmentUploadStartArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadStart", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadStart", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg ChatAttachmentDownloadProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadProgress", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadProgress", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentDownloadComplete(ctx context.Context, __arg ChatAttachmentDownloadCompleteArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadComplete", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentDownloadComplete", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatArchiveProgress(ctx context.Context, __arg ChatArchiveProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveProgress", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveProgress", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatArchiveComplete(ctx context.Context, jobID ArchiveJobID) (err error) {
 	__arg := ChatArchiveCompleteArg{JobID: jobID}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveComplete", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatArchiveComplete", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPaymentInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPromptUnfurlArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatConvUpdate(ctx context.Context, __arg ChatConvUpdateArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatConvUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatConvUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatWelcomeMessageLoaded(ctx context.Context, __arg ChatWelcomeMessageLoadedArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatWelcomeMessageLoaded", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatWelcomeMessageLoaded", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatParticipantsInfo(ctx context.Context, participants map[ConvIDStr][]UIParticipant) (err error) {
 	__arg := ChatParticipantsInfoArg{Participants: participants}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatParticipantsInfo", []any{__arg}, 0*time.Millisecond)
 	return
 }

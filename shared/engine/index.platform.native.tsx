@@ -1,53 +1,19 @@
-import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {encode} from '@msgpack/msgpack'
-import type {IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
+import {LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
+import type {IncomingRPCCallbackType, ConnectDisconnectCB, CreateClientType} from './index.platform'
+import type {RPCMessage} from './rpc-transport'
 import logger from '@/logger'
 import {engineReset, getNativeEmitter, notifyJSReady} from 'react-native-kb'
 
-class NativeTransport extends TransportShared {
-  constructor(
-    incomingRPCCallback: IncomingRPCCallbackType,
-    connectCallback?: ConnectDisconnectCB,
-    disconnectCallback?: ConnectDisconnectCB
-  ) {
-    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
-
-    // We're connected locally so we never get disconnected
-    this.needsConnect = false
-  }
-
-  // We're always connected, so call the callback
-  connect(cb: (err?: unknown) => void) {
-    cb()
-  }
-  is_connected() {
-    return true
-  }
-
-  // Override and disable some built in stuff in TransportShared
-  reset() {}
-  close() {}
-  get_generation() {
-    return 1
-  }
-
-  // A custom send override to write to the react native bridge
-  send(msg: unknown) {
-    const packed = encode(msg)
-    const len = encode(packed.length)
-    const buf = new Uint8Array(len.length + packed.length)
-    buf.set(len, 0)
-    buf.set(packed, len.length)
-    // Pass data over to the native side to be handled, with JSI!
+class NativeTransport extends LocalTransport {
+  protected writeMessage(message: RPCMessage) {
     try {
       if (!global.rpcOnGo) {
         logger.error('>>>> rpcOnGo send before rpcOnGo global?')
       }
-      global.rpcOnGo?.(buf.buffer)
+      global.rpcOnGo?.(message)
     } catch (e) {
       logger.error('>>>> rpcOnGo JS thrown!', e)
     }
-    return true
   }
 }
 
@@ -60,9 +26,16 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = (objs: unknown) => {
+  global.rpcOnJs = (objs: unknown, count: number) => {
     try {
-      client.transport._dispatch(objs)
+      if (count > 1) {
+        const arr = objs as Array<unknown>
+        for (const obj of arr) {
+          client.transport.dispatchDecodedMessage(obj)
+        }
+      } else {
+        client.transport.dispatchDecodedMessage(objs)
+      }
     } catch (e) {
       logger.error('>>>> rpcOnJs JS thrown!', e)
     }
@@ -79,18 +52,19 @@ function createClient(
       logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
-  
+
   // Signal that JS is ready to send/receive RPCs
   // This sets up native infrastructure and starts bidirectional communication
   logger.info('JS engine ready, notifying native side')
   notifyJSReady()
-  
+
   return client
 }
 
-function resetClient() {
+function resetClient(client: CreateClientType) {
   // Tell the RN bridge to reset itself
   engineReset()
+  return client
 }
 
 export {resetClient, createClient, rpcLog}

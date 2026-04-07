@@ -198,7 +198,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	}
 
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []interface{}{item}
+	payload["sigs"] = []any{item}
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
 	}

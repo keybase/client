@@ -34,7 +34,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 	log := logger.NewTestLogger(t)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		wg.Add(1)
 		go func() {
 			file := NewFile(filename, []byte("test data"), 0o644)
@@ -50,7 +50,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 
 	var wg2 sync.WaitGroup
 	file := NewFile(filename, []byte("test data"), 0o644)
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		wg2.Add(1)
 		go func() {
 			err := file.Save(log)

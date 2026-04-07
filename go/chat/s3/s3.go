@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -467,9 +468,7 @@ func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, 
 	b.addTokenHeader(headers)
 
 	// Override with custom headers
-	for key, value := range customHeaders {
-		headers[key] = value
-	}
+	maps.Copy(headers, customHeaders)
 
 	req := &request{
 		method:  "PUT",
@@ -887,7 +886,7 @@ func (req *request) url() (*url.URL, error) {
 // query prepares and runs the req request.
 // If resp is not nil, the XML data contained in the response
 // body will be unmarshalled on it.
-func (s3 *S3) query(ctx context.Context, req *request, resp interface{}) error {
+func (s3 *S3) query(ctx context.Context, req *request, resp any) error {
 	err := s3.prepare(req)
 	if err == nil {
 		var httpResponse *http.Response
@@ -911,12 +910,8 @@ func (s3 *S3) prepare(req *request) error {
 		// Copy so they can be mutated without affecting on retries.
 		params := make(url.Values)
 		headers := make(http.Header)
-		for k, v := range req.params {
-			params[k] = v
-		}
-		for k, v := range req.headers {
-			headers[k] = v
-		}
+		maps.Copy(params, req.params)
+		maps.Copy(headers, req.headers)
 		req.params = params
 		req.headers = headers
 		if !strings.HasPrefix(req.path, "/") {
@@ -955,7 +950,7 @@ func (s3 *S3) prepare(req *request) error {
 // run sends req and returns the http response from the server.
 // If resp is not nil, the XML data contained in the response
 // body will be unmarshalled on it.
-func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Response, error) {
+func (s3 *S3) run(ctx context.Context, req *request, resp any) (*http.Response, error) {
 	if debug {
 		log.Printf("Running S3 request: %#v", req)
 	}

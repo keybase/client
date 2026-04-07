@@ -254,12 +254,12 @@ func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
 func newHandleExtensionSuffix(
 	extensions []HandleExtension, isBackedByTeam bool,
 ) string {
-	var suffix string
+	var suffix strings.Builder
 	for _, extension := range extensions {
-		suffix += HandleExtensionSep
-		suffix += extension.string(isBackedByTeam)
+		suffix.WriteString(HandleExtensionSep)
+		suffix.WriteString(extension.string(isBackedByTeam))
 	}
-	return suffix
+	return suffix.String()
 }
 
 // HandleExtensionList allows us to sort extensions by type.

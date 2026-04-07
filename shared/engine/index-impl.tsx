@@ -2,30 +2,17 @@
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
-import {debugWarning} from '@/util/debug-warning'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionID, SessionIDKey, MethodKey} from './types'
+import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
-import type * as EngineGen from '../actions/engine-gen-gen'
-import type * as EngineConst from '@/constants/engine'
-
-// delay incoming to stop react from queueing too many setState calls and stopping rendering
-// only while debugging for now
-const DEFER_INCOMING_DURING_DEBUG = __DEV__ && (false as boolean)
-if (DEFER_INCOMING_DURING_DEBUG) {
-  debugWarning('DEFER_INCOMING_DURING_DEBUG is On')
-}
+import type * as EngineGen from '@/constants/rpc'
 
 type WaitingKey = string | ReadonlyArray<string>
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
 
 class Engine {
   _onConnectedCB: (c: boolean) => void
@@ -39,6 +26,10 @@ class Engine {
     'keybase.1.secretUi.getPassphrase': true,
     ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
   }
+  _backgroundSessionMethods: Partial<Record<MethodKey, true>> = {
+    'keybase.1.SimpleFS.simpleFSUserEditHistory': true,
+    'keybase.1.config.waitForClient': true,
+  }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -47,6 +38,7 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _emitWaiting: (changes: BatchParams) => void
+  _onEngineIncoming?: (action: EngineGen.Actions) => void
 
   _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
@@ -63,14 +55,10 @@ class Engine {
   constructor(
     emitWaiting: (changes: BatchParams) => void,
     onConnected: (c: boolean) => void,
-    allowIncomingCalls = true
+    onEngineIncoming?: (action: EngineGen.Actions) => void
   ) {
     this._onConnectedCB = onConnected
-    // the node engine doesn't do this and we don't want to pull in any reqs
-    if (allowIncomingCalls) {
-      const {useEngineState} = require('@/constants/engine') as typeof EngineConst
-      this._engineConstantsIncomingCall = useEngineState.getState().dispatch.onEngineIncoming
-    }
+    this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
@@ -78,6 +66,16 @@ class Engine {
       () => this._onDisconnect()
     )
     this._setupDebugging()
+  }
+
+  rebindCallbacks(
+    emitWaiting: (changes: BatchParams) => void,
+    onConnected: (c: boolean) => void,
+    onEngineIncoming?: (action: EngineGen.Actions) => void
+  ) {
+    this._emitWaiting = emitWaiting
+    this._onConnectedCB = onConnected
+    this._onEngineIncoming = onEngineIncoming
   }
 
   _setupDebugging() {
@@ -90,14 +88,28 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k]?.getDangling()).length) {
+        if (Object.values(this._sessionsMap).some(session => !session.getDangling())) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
     }
   }
 
+  _sessionSummary() {
+    return Object.entries(this._sessionsMap)
+      .filter(([, session]) => !session.getDangling())
+      .map(([id, session]) => ({
+        id,
+        method: session._startMethod || 'unknown',
+      }))
+  }
+
   _onDisconnect() {
+    logger.warn('Engine disconnected', {
+      hasConnected: this._hasConnected,
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
     // tell renderer we're disconnected
     this._onConnectedCB(false)
   }
@@ -105,6 +117,10 @@ class Engine {
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
     this._listenersAreReady = true
+    logger.info('Engine listenersAreReady', {
+      hasConnected: this._hasConnected,
+      sessions: this._sessionSummary(),
+    })
     if (this._hasConnected) {
       this._onConnectedCB(true)
     }
@@ -114,6 +130,10 @@ class Engine {
   // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
     this._hasConnected = true
+    logger.info('Engine connected', {
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
     this._onConnectedCB(true)
   }
 
@@ -169,20 +189,17 @@ class Engine {
           // Not a custom response so we auto handle it
           response?.result?.()
         }
-        const type = method
-          .replace(/'/g, '')
-          .split('.')
-          .map((p, idx) => (idx ? capitalize(p) : p))
-          .join('')
-
-        const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
-        this._engineConstantsIncomingCall(act as EngineGen.Actions)
+        const act = {
+          payload: {params: param, ...extra},
+          type: method as EngineGen.ActionKey,
+        } as EngineGen.EngineActions
+        if (this._onEngineIncoming) {
+          setTimeout(() => {
+            this._onEngineIncoming?.(act)
+          }, 0)
+        }
       }
     }
-  }
-  _engineConstantsIncomingCall = (_a: EngineGen.Actions): void => {
-    logger.error('_engineConstantsIncomingCall not overriden')
-    throw Error('needs override')
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
@@ -199,6 +216,7 @@ class Engine {
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap,
+      dangling: !!this._backgroundSessionMethods[method as MethodKey],
       incomingCallMap,
       waitingKey,
     })
@@ -243,14 +261,6 @@ class Engine {
     return session
   }
 
-  // Cancel a session maybe deprecate, not used
-  cancelSession(sessionID: SessionID) {
-    const session = this._sessionsMap[String(sessionID)]
-    if (session) {
-      session.cancel()
-    }
-  }
-
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
     rpcLog({
@@ -269,7 +279,21 @@ class Engine {
     if (isMobile) {
       return
     }
-    resetClient(this._rpcClient)
+    logger.warn('Engine reset requested', {
+      hasConnected: this._hasConnected,
+      listenersAreReady: this._listenersAreReady,
+      sessions: this._sessionSummary(),
+    })
+    this._sessionsMap = {}
+    this._queuedChanges = []
+    this._hasConnected = false
+    this._listenersAreReady = false
+    this._rpcClient = resetClient(
+      this._rpcClient,
+      payload => this._rpcIncoming(payload),
+      () => this._onConnected(),
+      () => this._onDisconnect()
+    )
   }
 }
 
@@ -282,17 +306,19 @@ if (__DEV__) {
 const makeEngine = (
   emitWaiting: (b: BatchParams) => void,
   onConnected: (c: boolean) => void,
-  allowIncomingCalls = true
+  onEngineIncoming?: (action: EngineGen.Actions) => void
 ) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = new Engine(emitWaiting, onConnected, allowIncomingCalls)
-    initEngine(engine)
-    initEngineListener(engineListener)
+    engine = new Engine(emitWaiting, onConnected, onEngineIncoming)
+  } else {
+    engine.rebindCallbacks(emitWaiting, onConnected, onEngineIncoming)
   }
+  initEngine(engine)
+  initEngineListener(engineListener)
   return engine
 }
 

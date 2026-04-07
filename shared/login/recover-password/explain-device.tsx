@@ -3,13 +3,12 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import {useState as useRecoverState} from '@/stores/recover-password'
 
-const ConnectedExplainDevice = () => {
-  const ed = useRecoverState(s => s.explainedDevice)
-  const deviceName = ed ? ed.name : ''
-  const deviceType = ed ? ed.type : undefined
-  const username = useRecoverState(s => s.username)
+type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
+
+const ConnectedExplainDevice = ({route}: Props) => {
+  const {deviceName, deviceType, username} = route.params
   const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onBack = () => {
     startRecoverPassword({
@@ -17,7 +16,7 @@ const ConnectedExplainDevice = () => {
       username,
     })
   }
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const onComplete = () => {
     navigateUp()
   }
@@ -38,7 +37,7 @@ const ConnectedExplainDevice = () => {
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
-        <Kb.Icon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.ImageIcon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{deviceName}</Kb.Text>, go to

@@ -75,8 +75,8 @@ func appStateForLog() string {
 
 // log writes to kbCtx.Log if available, otherwise falls back to stderr.
 // Stderr is captured in crash logs and the Xcode console, making early Init
-// messages (before kbCtx.Log is set up by Configure) visible in diagnostics.
-func log(format string, args ...interface{}) {
+// messages visible before kbCtx.Log is configured.
+func log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	if kbCtx != nil && kbCtx.Log != nil {
 		kbCtx.Log.Info(msg)
@@ -462,7 +462,7 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
-// WriteArr sends raw bytes encoded msgpack rpc payload, ios only
+// WriteArr sends raw bytes encoded msgpack rpc payload from the native layer (iOS and Android)
 func WriteArr(b []byte) (err error) {
 	bytes := make([]byte, len(b))
 	copy(bytes, b)
@@ -556,8 +556,6 @@ func ensureConnection() error {
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
-		// The listener was closed (isClosed=true, returns syscall.EINVAL). Recreate it and
-		// start a new ListenLoop goroutine, then retry the dial once.
 		log("ensureConnection: Dial failed (%v), restarting loopback server", err)
 		l, rerr := kbCtx.MakeLoopbackServer()
 		if rerr != nil {
@@ -601,7 +599,7 @@ func Reset() error {
 
 // NotifyJSReady signals that the JavaScript side is ready to send/receive RPCs.
 // This unblocks the ReadArr loop and allows bidirectional communication.
-// jsReadyCh is closed once and stays closed — repeated calls from engine resets are no-ops.
+// jsReadyCh is closed once and stays closed, so repeated engine resets are no-ops.
 func NotifyJSReady() {
 	jsReadyOnce.Do(func() {
 		log("Go: JS signaled ready, unblocking RPC communication appState=%s conn=%s",

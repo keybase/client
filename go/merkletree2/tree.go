@@ -99,9 +99,9 @@ type ChildIndex int
 // be of the same type returned by ValueConstructor in the TreeConfig, otherwise
 // the behavior is undefined.
 type KeyValuePair struct {
-	_struct struct{}    `codec:",toarray"` //nolint
-	Key     Key         `codec:"k"`
-	Value   interface{} `codec:"v"`
+	_struct struct{} `codec:",toarray"` //nolint
+	Key     Key      `codec:"k"`
+	Value   any      `codec:"v"`
 }
 
 type EncodedValue []byte

@@ -84,7 +84,7 @@ var codes = map[string]CodePair{
 const keyEscape = 0x1b
 
 func colorByteSequence(code int) []byte {
-	b := []byte(fmt.Sprintf("%d", code))
+	b := fmt.Appendf(nil, "%d", code)
 	ret := []byte{keyEscape, '['}
 	ret = append(ret, b...)
 	ret = append(ret, 'm')
@@ -145,6 +145,6 @@ func ColorBytes(g *libkb.GlobalContext, which string, text []byte) []byte {
 	return text
 }
 
-func ColorString(g *libkb.GlobalContext, which, format string, args ...interface{}) string {
-	return string(ColorBytes(g, which, []byte(fmt.Sprintf(format, args...))))
+func ColorString(g *libkb.GlobalContext, which, format string, args ...any) string {
+	return string(ColorBytes(g, which, fmt.Appendf(nil, format, args...)))
 }

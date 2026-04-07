@@ -1,30 +1,24 @@
 import * as C from '@/constants'
-import * as Devices from '@/constants/devices'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import * as Provision from '@/constants/provision'
+import * as Provision from '@/stores/provision'
+import * as T from '@/constants/types'
 
 const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)
   const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const ponBack = useSafeSubmit(navigateUp, !!error)
   const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
-  const ponSubmit = React.useCallback(
-    (name: string) => {
-      !waiting && psetDeviceName?.(name)
-    },
-    [waiting, psetDeviceName]
-  )
-  const deviceNumbers = devices
-    .filter(d => d.type === (C.isMobile ? 'mobile' : 'desktop'))
-    .map(d => d.deviceNumberOfType)
-  const maxDeviceNumber = deviceNumbers.length > 0 ? Math.max(...deviceNumbers) : -1
-  const deviceIconNumber = ((maxDeviceNumber + 1) % Devices.numBackgrounds) + 1
+  const ponSubmit = (name: string) => {
+    !waiting && psetDeviceName?.(name)
+  }
+  const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
+  const deviceIconNumber = C.isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
@@ -37,9 +31,9 @@ const SetPublicName = () => {
     !Provision.goodDeviceRE.test(cleanDeviceName) ||
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
-  const onSubmit = React.useCallback(() => {
+  const onSubmit = () => {
     ponSubmit(Provision.cleanDeviceName(cleanDeviceName))
-  }, [cleanDeviceName, ponSubmit])
+  }
   const _setDeviceName = (deviceName: string) => {
     setReadyToShowError(false)
     setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))
@@ -60,6 +54,7 @@ const SetPublicName = () => {
 
   return (
     <SignupScreen
+      hideDesktopHeader={!Kb.Styles.isMobile}
       banners={errorBanner(error)}
       buttons={[
         {
@@ -74,9 +69,9 @@ const SetPublicName = () => {
       title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
+        <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
-          <Kb.NewInput
+          <Kb.Input3
             autoFocus={true}
             error={showDisabled}
             maxLength={64}
@@ -84,7 +79,7 @@ const SetPublicName = () => {
             onEnterKeyDown={onSubmit}
             onChangeText={_setDeviceName}
             value={cleanDeviceName}
-            style={styles.nameInput}
+            containerStyle={styles.nameInput}
           />
           {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
@@ -102,16 +97,6 @@ const SetPublicName = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  backButton: Kb.Styles.platformStyles({
-    isElectron: {
-      marginLeft: Kb.Styles.globalMargins.medium,
-      marginTop: Kb.Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginLeft: 0,
-      marginTop: 0,
-    },
-  }),
   contents: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isTablet: {width: undefined},

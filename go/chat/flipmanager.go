@@ -1447,7 +1447,7 @@ func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID ch
 }
 
 // CLogf implements the flip.DealersHelper interface
-func (m *FlipManager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
+func (m *FlipManager) CLogf(ctx context.Context, fmt string, args ...any) {
 	m.Debug(ctx, fmt, args...)
 }
 
@@ -1584,7 +1584,7 @@ func NewFlipVisualizer(width, height int) *FlipVisualizer {
 		height: height, // 40
 		width:  width,  // 64
 	}
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		v.commitmentColors[i] = color.RGBA{
 			R: uint8(i),                 //nolint:gosec // G115: Loop bounded by 256, safe for uint8
 			G: uint8((128 + i*5) % 128), //nolint:gosec // G115: Modulo by 128 ensures result fits in uint8
@@ -1622,7 +1622,7 @@ func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth
 ) {
 	b, _ := hex.DecodeString(source)
 	x := 0
-	for i := 0; i < len(b); i++ {
+	for i := range b {
 		v.fillCell(img, x, startY, cellHeight, cellWidth, b[i], palette)
 		x += cellWidth
 	}

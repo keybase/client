@@ -1,9 +1,10 @@
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
+import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import {Box2} from './box'
 import * as Styles from '@/styles'
-import Text, {type TextType} from './text'
+import Text from './text'
+import type {TextType} from './text.shared'
 import DelayedMounting from './delayed-mounting'
 import {TeamDetailsSubscriber} from '../teams/subscriber'
 import type TeamInfoType from '../profile/user/teams/teaminfo'
@@ -46,7 +47,7 @@ const TeamWithPopup = (props: Props) => {
       <TeamDetailsSubscriber teamID={props.teamID} />
       <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
         <TeamInfo
-          attachTo={popupRef}
+          attachTo={Styles.isMobile ? undefined : popupRef}
           description={description}
           inTeam={isMember}
           isOpen={isOpen}
@@ -113,17 +114,12 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     memberCount: meta.memberCount,
     teamID,
   }
-  const joinTeam = Teams.useTeamsState(s => s.dispatch.joinTeam)
-  const _onJoinTeam = joinTeam
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onViewTeam = React.useCallback(
-    (teamID: T.Teams.TeamID) => {
-      clearModals()
-      navigateAppend({props: {teamID}, selected: 'team'})
-    },
-    [clearModals, navigateAppend]
-  )
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
+  const _onViewTeam = (teamID: T.Teams.TeamID) => {
+    clearModals()
+    navigateAppend({name: 'team', params: {teamID}})
+  }
 
   const props = {
     description: stateProps.description,
@@ -131,7 +127,7 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     isMember: stateProps.isMember,
     isOpen: stateProps.isOpen,
     memberCount: stateProps.memberCount,
-    onJoinTeam: () => _onJoinTeam(ownProps.teamName),
+    onJoinTeam: () => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: ownProps.teamName}}),
     onViewTeam: () => _onViewTeam(stateProps.teamID),
     prefix: ownProps.prefix,
     shouldLoadTeam: ownProps.shouldLoadTeam,

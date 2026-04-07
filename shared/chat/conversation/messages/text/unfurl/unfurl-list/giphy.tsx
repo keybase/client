@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
-import * as React from 'react'
 import UnfurlImage from './image'
 import * as T from '@/constants/types'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {getUnfurlInfo, useActions} from './use-state'
 
-const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
+function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
   const ordinal = useOrdinal()
 
@@ -48,15 +47,14 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
       {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
-        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">
-            {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
-            <Kb.Text type="BodySmall" style={styles.fastStyle}>
+            {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+            <Kb.Text type="BodySmall">
               Giphy
             </Kb.Text>
             <Kb.Icon
-              boxStyle={styles.collapseBox}
-              style={styles.collapse}
+              style={Kb.Styles.collapseStyles([styles.collapseBox, styles.collapse])}
               onClick={onToggleCollapse}
               sizeType="Tiny"
               type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
@@ -65,11 +63,11 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
           {onClose ? (
             <Kb.Icon
               type="iconfont-close"
-              boxStyle={styles.fastStyle}
               onClick={onClose}
               className="unfurl-closebox"
               padding="xtiny"
               fontSize={12}
+              color={Kb.Styles.globalColors.black_20}
             />
           ) : null}
         </Kb.Box2>
@@ -79,7 +77,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
       </Kb.Box2>
     </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -96,32 +94,24 @@ const styles = Kb.Styles.styleSheetCreate(
       collapseBox: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
       },
       container: Kb.Styles.platformStyles({
         common: {alignSelf: 'flex-start'},
         isElectron: {maxWidth: 500},
         isTablet: {maxWidth: 500},
       }),
-      fastStyle: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+
       favicon: {
         borderRadius: Kb.Styles.borderRadius,
         height: 16,
         width: 16,
       },
-      imageContainer: Kb.Styles.platformStyles({
-        isMobile: {
-          alignSelf: 'flex-start',
-          padding: Kb.Styles.globalMargins.xxtiny,
-        },
-      }),
       innerContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           minWidth: 150,
         },
         isMobile: {
-          backgroundColor: Kb.Styles.globalColors.fastBlank,
           borderColor: Kb.Styles.globalColors.grey,
           borderRadius: Kb.Styles.borderRadius,
           borderWidth: 1,
@@ -136,7 +126,6 @@ const styles = Kb.Styles.styleSheetCreate(
       siteNameContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          justifyContent: 'space-between',
         },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.xxtiny,

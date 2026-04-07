@@ -1,15 +1,14 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
+import * as Chat from '@/stores/chat'
+import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
-const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
+function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
   const {showInfoPanel, teamID, teamname} = Chat.useChatContext(
     C.useShallow(s => {
@@ -22,14 +21,14 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onViewTeam = React.useCallback(() => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onViewTeam = () => {
     if (teamID) {
-      navigateAppend({props: {teamID}, selected: 'team'})
+      navigateAppend({name: 'team', params: {teamID}})
     } else {
       showInfoPanel(true, 'settings')
     }
-  }, [showInfoPanel, navigateAppend, teamID])
+  }
 
   return (
     <UserNotice>
@@ -40,7 +39,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
       <AddInvite isAdmin={isAdmin} teamID={teamID} />
     </UserNotice>
   )
-})
+}
 
 const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
   const {isAdmin, onViewTeam} = props

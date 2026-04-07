@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/constants/fs'
-import * as FS from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
+import * as FS from '@/stores/fs'
 
 type PathInfoProps = {
   containerStyle?: Kb.Styles.StylesCrossPlatform

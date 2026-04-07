@@ -2,8 +2,8 @@ import * as Kb from '@/common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>
-    <Kb.Icon type="icon-folder-success-48" />
-    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+    <Kb.ImageIcon type="icon-folder-success-48" />
+    <Kb.Box2 direction="vertical">
       <Kb.Text center={true} type="BodySemibold">
         Success!
       </Kb.Text>
@@ -11,7 +11,7 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
     <Kb.ButtonBar>
       <Kb.Button label="Okay" onClick={onClose} />
     </Kb.ButtonBar>

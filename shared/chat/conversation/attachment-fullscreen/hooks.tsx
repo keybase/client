@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
-import {useFSState} from '@/constants/fs'
+import {useFSState} from '@/stores/fs'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
@@ -16,30 +16,27 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   })
 
   const loadNextAttachment = Chat.useChatContext(s => s.dispatch.loadNextAttachment)
-  const onSwitchAttachment = React.useCallback(
-    (backInTime: boolean) => {
-      const f = async () => {
-        if (conversationIDKey !== blankMessage.conversationIDKey) {
-          const o = await loadNextAttachment(ordinal, backInTime)
-          setOrdinal(o)
-        }
+  const onSwitchAttachment = (backInTime: boolean) => {
+    const f = async () => {
+      if (conversationIDKey !== blankMessage.conversationIDKey) {
+        const o = await loadNextAttachment(ordinal, backInTime)
+        setOrdinal(o)
       }
-      C.ignorePromise(f())
-    },
-    [conversationIDKey, loadNextAttachment, ordinal]
-  )
+    }
+    C.ignorePromise(f())
+  }
 
-  const onNextAttachment = React.useCallback(() => {
+  const onNextAttachment = () => {
     onSwitchAttachment(false)
-  }, [onSwitchAttachment])
-  const onPreviousAttachment = React.useCallback(() => {
+  }
+  const onPreviousAttachment = () => {
     onSwitchAttachment(true)
-  }, [onSwitchAttachment])
+  }
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
   const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
