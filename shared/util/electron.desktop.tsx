@@ -23,7 +23,8 @@ export type SaveDialogOptions = {
   message?: string
 }
 
-export type EngineRPCMessage = [number, ...Array<unknown>]
+import type {RPCMessage as EngineRPCMessage} from '@/engine/rpc-transport'
+export type {EngineRPCMessage}
 
 export type KB2 = {
   constants: {
