@@ -120,7 +120,6 @@
     "menubar": "9.5.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-error-boundary": "5.0.0",
     "react-native": "0.83.4",
     "react-native-gesture-handler": "3.0.0-beta.2",
     "react-native-kb": "file:../rnmodules/react-native-kb",
