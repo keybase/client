@@ -48,16 +48,22 @@ function FileContainer(p: OwnProps) {
 
   const switchTab = C.Router2.switchTab
   const navigateAppend = C.Router2.navigateAppend
-  const onSaltpackFileOpen = (path: string, name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab) => {
+  const onSaltpackFileOpen = (
+    path: string,
+    name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab
+  ) => {
     switchTab(C.Tabs.cryptoTab)
-    navigateAppend({
-      name,
-      params: {
-        entryNonce: makeUUID(),
-        seedInputPath: path,
-        seedInputType: 'file',
+    navigateAppend(
+      {
+        name,
+        params: {
+          entryNonce: makeUUID(),
+          seedInputPath: path,
+          seedInputType: 'file',
+        },
       },
-    }, true)
+      true
+    )
   }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
@@ -242,11 +248,11 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       linkStyle: {color: Kb.Styles.globalColors.black_50},
-      progressOverlay: {bottom: 0, left: 0, position: 'absolute', right: 0},
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
       },
+      progressOverlay: {bottom: 0, left: 0, position: 'absolute', right: 0},
       retry: {
         color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
