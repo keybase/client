@@ -133,7 +133,6 @@
     "react-native-worklets": "0.8.1",
     "react-native-zoom-toolkit": "5.0.1",
     "use-debounce": "10.1.1",
-    "util": "0.12.5",
     "zustand": "5.0.12"
   },
   "devDependencies": {
