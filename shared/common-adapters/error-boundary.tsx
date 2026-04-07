@@ -6,6 +6,52 @@ import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
 
+type BareFallbackRenderProps = {
+  error: Error
+  resetErrorBoundary: () => void
+}
+
+type BareProps = {
+  children: React.ReactNode
+  fallback?: React.ReactNode
+  fallbackRender?: (props: BareFallbackRenderProps) => React.ReactNode
+  onError?: (error: Error, info: React.ErrorInfo) => void
+}
+
+type BareState = {
+  error?: Error
+}
+
+export class BareErrorBoundary extends React.Component<BareProps, BareState> {
+  state: BareState = {}
+
+  static getDerivedStateFromError(error: Error): BareState {
+    return {error}
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    this.props.onError?.(error, info)
+  }
+
+  resetErrorBoundary = () => {
+    this.setState({error: undefined})
+  }
+
+  render(): React.ReactNode {
+    const {children, fallback, fallbackRender} = this.props
+    const {error} = this.state
+
+    if (error) {
+      if (fallbackRender) {
+        return fallbackRender({error, resetErrorBoundary: this.resetErrorBoundary})
+      }
+      return fallback ?? null
+    }
+
+    return children
+  }
+}
+
 type AllErrorInfo = {
   name: string
   message: string
@@ -86,8 +132,6 @@ type Props = {
   fallbackStyle?: Styles.StylesCrossPlatform
 }
 
-import {ErrorBoundary} from 'react-error-boundary'
-
 const EB = (p: Props) => {
   const {children, fallbackStyle, closeOnClick} = p
   const [componentStack, setComponentStack] = React.useState('')
@@ -108,9 +152,9 @@ const EB = (p: Props) => {
   }
 
   return (
-    <ErrorBoundary fallbackRender={fallbackRender} onError={onError}>
+    <BareErrorBoundary fallbackRender={fallbackRender} onError={onError}>
       {children}
-    </ErrorBoundary>
+    </BareErrorBoundary>
   )
 }
 

@@ -1,6 +1,7 @@
 import * as Styles from '@/styles'
 import type * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
+import {BareErrorBoundary} from '@/common-adapters/error-boundary'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
@@ -14,7 +15,6 @@ import {
 } from './react'
 import type * as T from '@/constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
-import {ErrorBoundary} from 'react-error-boundary'
 
 const SimpleMarkdown = SM.default
 
@@ -541,7 +541,7 @@ function SimpleMarkdownComponent(p: Props) {
 
   // Mobile doesn't use a wrapper
   return (
-    <ErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
+    <BareErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
       {Styles.isMobile ? (
         inner
       ) : (
@@ -555,7 +555,7 @@ function SimpleMarkdownComponent(p: Props) {
           {inner}
         </Text>
       )}
-    </ErrorBoundary>
+    </BareErrorBoundary>
   )
 }
 
