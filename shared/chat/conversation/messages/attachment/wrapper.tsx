@@ -5,8 +5,8 @@ import type VideoAttachmentType from './video'
 import {WrapperMessageView, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
 
 export function WrapperAttachmentAudio(p: Props) {
-  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
-  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  const {ordinal, isCenteredHighlight = false} = p
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {default: AudioAttachment} = require('./audio') as {default: typeof AudioAttachmentType}
   return (
@@ -16,8 +16,8 @@ export function WrapperAttachmentAudio(p: Props) {
   )
 }
 export function WrapperAttachmentFile(p: Props) {
-  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
-  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  const {ordinal, isCenteredHighlight = false} = p
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {showPopup} = common
 
@@ -30,8 +30,8 @@ export function WrapperAttachmentFile(p: Props) {
   )
 }
 export function WrapperAttachmentVideo(p: Props) {
-  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
-  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  const {ordinal, isCenteredHighlight = false} = p
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {showPopup} = common
   const {default: VideoAttachment} = require('./video') as {default: typeof VideoAttachmentType}
@@ -43,8 +43,8 @@ export function WrapperAttachmentVideo(p: Props) {
   )
 }
 export function WrapperAttachmentImage(p: Props) {
-  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
-  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  const {ordinal, isCenteredHighlight = false} = p
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {showPopup} = common
   const {default: ImageAttachment} = require('./image') as {default: typeof ImageAttachmentType}

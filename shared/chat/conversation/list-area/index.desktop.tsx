@@ -374,7 +374,6 @@ const useItems = (p: {
 }) => {
   const {messageTypeMap, messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
-  const lastOrdinal = messageOrdinals.at(-1)
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
     const type = messageTypeMap?.get(ordinal) ?? 'text'
     const Clazz = getMessageRender(type)
@@ -401,7 +400,6 @@ const useItems = (p: {
         <Separator trailingItem={ordinal} />
         <Clazz
           isCenteredHighlight={centeredHighlightOrdinal === ordinal}
-          isLastMessage={lastOrdinal === ordinal}
           ordinal={ordinal}
         />
       </div>

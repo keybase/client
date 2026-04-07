@@ -114,7 +114,6 @@ const ConversationList = function ConversationList() {
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
 
   const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
-  const lastOrdinal = messageOrdinals.at(-1)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -135,7 +134,6 @@ const ConversationList = function ConversationList() {
       <PerfProfiler id={`Msg-${type}`}>
         <Clazz
           isCenteredHighlight={centeredHighlightOrdinal === ordinal}
-          isLastMessage={lastOrdinal === ordinal}
           ordinal={ordinal}
         />
       </PerfProfiler>

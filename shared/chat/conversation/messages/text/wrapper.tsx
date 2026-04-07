@@ -46,8 +46,8 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 }
 
 function WrapperText(p: Props) {
-  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
-  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  const {ordinal, isCenteredHighlight = false} = p
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
   const common = useCommonWithData(ordinal, messageData)
   const {type, showCenteredHighlight} = common
   const {isEditing, hasReactions} = messageData
