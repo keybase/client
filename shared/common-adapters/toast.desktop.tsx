@@ -12,7 +12,7 @@ const Toast = (props: Props) => {
   const lastVisibleRef = React.useRef(props.visible)
 
   React.useEffect(() => {
-    if (!props.visible || (props.visible && !lastVisibleRef.current)) {
+    if (!props.visible || !lastVisibleRef.current) {
       setDismissedOnBlur(false)
     }
     lastVisibleRef.current = props.visible
