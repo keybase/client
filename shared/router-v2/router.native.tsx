@@ -57,7 +57,7 @@ const tabStackOptions = ({
   navigation: {canGoBack: () => boolean}
 }): NativeStackNavigationOptions => ({
   ...Common.defaultNavigationOptions,
-  ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.transparent}} : {}),
+  ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.whiteOrBlack}} : {}),
   // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
   // omit headerLeft entirely on root screens so no empty glass circle appears.
   headerBackVisible: navigation.canGoBack(),
