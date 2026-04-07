@@ -237,6 +237,7 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
         "KeybaseInit FAILED: %@ (code=%ld domain=%@)", err.localizedDescription, err.code,
         err.domain)
       self.writeStartupTimingLog("KeybaseInit \(initResult)")
+      fatalError("KeybaseInit failed: \(initResult)")
     } else {
       KbSetInitResult("succeeded")
       self.writeStartupTimingLog("KeybaseInit succeeded")
