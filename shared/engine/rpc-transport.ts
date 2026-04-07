@@ -77,6 +77,7 @@ type PendingItem =
   | {type: 'message'; message: RPCMessage}
 
 const queueMax = 1000
+const maxFrameSize = 64 * 1024 * 1024 // 64 MB; rejects oversized frames before buffering payload bytes
 
 const makeTransportError = (name: ErrorName): ErrorType => ({
   code: errors[name],
@@ -234,6 +235,9 @@ export abstract class RPCTransport {
         const payloadLen = decode(header)
         if (typeof payloadLen !== 'number' || payloadLen < 0) {
           throw new Error('Bad frame length received')
+        }
+        if (payloadLen > maxFrameSize) {
+          throw new Error(`Frame too large: ${payloadLen} bytes`)
         }
         if (this._bufferedBytes < headerLen + payloadLen) {
           return
