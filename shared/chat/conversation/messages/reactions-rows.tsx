@@ -13,7 +13,14 @@ const emptyEmojis: ReadonlyArray<string> = []
 
 function ReactionsRowContainer() {
   const ordinal = useOrdinal()
-  const emojis = Chat.useChatContext(C.useShallow(s => s.reactionOrderMap.get(ordinal) ?? emptyEmojis))
+  const emojis = Chat.useChatContext(
+    C.useShallow(s => {
+      const fromMap = s.reactionOrderMap.get(ordinal)
+      if (fromMap?.length) return fromMap
+      const reactions = s.messageMap.get(ordinal)?.reactions
+      return reactions?.size ? [...reactions.keys()] : emptyEmojis
+    })
+  )
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>

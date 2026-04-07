@@ -57,42 +57,42 @@ const getTextSize = (size: AvatarSize) => (size >= 48 ? 'BodySmallBold' : 'BodyT
 const getSizeStyle = (size: AvatarSize) => ({
   horizontal: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
-      marginRight: -size / 3,
+      marginRight: -Math.round(size / 3),
     },
     container: {
       marginLeft: 2,
-      marginRight: size / 3 + 2,
+      marginRight: Math.round(size / 3) + 2,
     },
     overflowBox: {
       backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomRightRadius: size,
       borderTopRightRadius: size,
       height: size,
-      paddingLeft: size / 2,
+      paddingLeft: Math.round(size / 2),
     },
     text: {
       color: Kb.Styles.globalColors.black_50,
-      paddingRight: size / 5,
+      paddingRight: Math.round(size / 5),
     },
   })),
   vertical: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
-      marginBottom: -size / 3,
+      marginBottom: -Math.round(size / 3),
     },
     container: {
-      marginBottom: size / 3 + 2,
+      marginBottom: Math.round(size / 3) + 2,
       marginTop: 2,
     },
     overflowBox: {
       backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomLeftRadius: size,
       borderBottomRightRadius: size,
-      paddingTop: size / 2,
+      paddingTop: Math.round(size / 2),
       width: size,
     },
     text: {
       color: Kb.Styles.globalColors.black_50,
-      paddingBottom: size / 5,
+      paddingBottom: Math.round(size / 5),
     },
   })),
 })

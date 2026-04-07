@@ -14,8 +14,14 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsState} from '@/stores/teams'
+import {useTrackerState} from '@/stores/tracker'
+import {navToProfile} from '@/constants/router'
+import {formatTimeForChat} from '@/util/timestamp'
 
 export type Props = {
+  isCenteredHighlight?: boolean
+  isLastMessage?: boolean
   ordinal: T.Chat.Ordinal
 }
 
@@ -45,10 +51,141 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = Chat.makeMessageDeleted({})
 
+type AuthorProps = {
+  author: string
+  botAlias: string
+  isAdhocBot: boolean
+  teamID: T.Teams.TeamID
+  teamType: T.Chat.TeamType
+  teamname: string
+  timestamp: number
+  showUsername: string
+}
+
+function AuthorSection(p: AuthorProps) {
+  const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
+
+  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
+  const showUser = useTrackerState(s => s.dispatch.showUser)
+
+  const onAuthorClick = () => {
+    if (C.isMobile) {
+      navToProfile(showUsername)
+    } else {
+      showUser(showUsername, true)
+    }
+  }
+
+  const authorIsOwner = authorRoleInTeam === 'owner'
+  const authorIsAdmin = authorRoleInTeam === 'admin'
+  const authorIsBot = teamname
+    ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+    : isAdhocBot
+  const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
+
+  const usernameNode = (
+    <Kb.ConnectedUsernames
+      colorBroken={true}
+      colorFollowing={true}
+      colorYou={true}
+      onUsernameClicked={onAuthorClick}
+      type="BodySmallBold"
+      usernames={showUsername}
+      virtualText={true}
+      className="separator-text"
+    />
+  )
+
+  const ownerAdminTooltipIcon = allowCrown ? (
+    <Kb.Box2 direction="vertical" tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+      <Kb.Icon
+        color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
+        fontSize={10}
+        type="iconfont-crown-owner"
+      />
+    </Kb.Box2>
+  ) : null
+
+  const botIcon = authorIsBot ? (
+    <Kb.Box2 direction="vertical" tooltip="Bot">
+      <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
+    </Kb.Box2>
+  ) : null
+
+  const botAliasOrUsername = botAlias ? (
+    <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1} className="separator-text">
+      {botAlias} {' [' + showUsername + ']'}
+    </Kb.Text>
+  ) : (
+    usernameNode
+  )
+
+  return (
+    <>
+      <Kb.Avatar size={32} username={showUsername} onClick={onAuthorClick} style={styles.avatar} />
+      <Kb.Box2
+        pointerEvents="box-none"
+        key="author"
+        direction="horizontal"
+        style={styles.authorContainer}
+        gap="tiny"
+      >
+        <Kb.Box2
+          pointerEvents="box-none"
+          direction="horizontal"
+          gap="xtiny"
+          fullWidth={true}
+          style={styles.usernameCrown}
+        >
+          {botAliasOrUsername}
+          {ownerAdminTooltipIcon}
+          {botIcon}
+          <Kb.Text type="BodyTiny" virtualText={true} className="separator-text">
+            {formatTimeForChat(timestamp)}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </>
+  )
+}
+
+const useAuthorData = (ordinal: T.Chat.Ordinal) =>
+  Chat.useChatContext(
+    C.useShallow(s => {
+      const showUsername = s.showUsernameMap.get(ordinal) ?? ''
+      if (!showUsername) {
+        return {
+          author: '',
+          botAlias: '',
+          isAdhocBot: false,
+          showUsername,
+          teamID: '' as T.Teams.TeamID,
+          teamType: 'adhoc' as T.Chat.TeamType,
+          teamname: '',
+          timestamp: 0,
+        }
+      }
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const {author, timestamp} = m
+      const {teamID, botAliases, teamType, teamname} = s.meta
+      const participantInfoNames = s.participants.name
+      const isAdhocBot =
+        teamType === 'adhoc' && participantInfoNames.length > 0
+          ? !participantInfoNames.includes(author)
+          : false
+      return {author, botAlias: botAliases[author] ?? '', isAdhocBot, showUsername, teamID, teamType, teamname, timestamp}
+    })
+  )
+
+function AuthorHeader({ordinal}: {ordinal: T.Chat.Ordinal}) {
+  const data = useAuthorData(ordinal)
+  if (!data.showUsername) return null
+  return <AuthorSection {...data} />
+}
+
 // Pure helper functions - moved outside hooks to avoid recreating them per message
 const getReactionsPopupPosition = (
-  ordinal: T.Chat.Ordinal,
-  ordinals: ReadonlyArray<T.Chat.Ordinal>,
+  isLastMessage: boolean,
   hasReactions: boolean,
   message: T.Chat.Message
 ) => {
@@ -56,7 +193,7 @@ const getReactionsPopupPosition = (
   if (hasReactions) return 'none' as const
   const validMessage = Chat.isMessageWithReactions(message)
   if (!validMessage) return 'none' as const
-  return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
+  return isLastMessage ? ('last' as const) : ('middle' as const)
 }
 
 const getEcrType = (message: T.Chat.Message, you: string) => {
@@ -81,7 +218,11 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
 }
 
 // Combined selector hook that fetches all message data in a single subscription
-export const useMessageData = (ordinal: T.Chat.Ordinal) => {
+export const useMessageData = (
+  ordinal: T.Chat.Ordinal,
+  isLastMessage = false,
+  isCenteredHighlight = false
+) => {
   const you = useCurrentUserState(s => s.username)
 
   return Chat.useChatContext(
@@ -89,7 +230,6 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const accountsInfoMap = s.accountsInfoMap
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const isEditing = s.editing === ordinal
-      const ordinals = s.messageOrdinals
       const {exploded, submitState, author, id, botUsername} = m
       const type = m.type
       const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
@@ -105,13 +245,9 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
       const botname = botUsername === author ? '' : (botUsername ?? '')
-      const reactionsPopupPosition = getReactionsPopupPosition(ordinal, ordinals ?? [], hasReactions, m)
+      const reactionsPopupPosition = getReactionsPopupPosition(isLastMessage, hasReactions, m)
       const ecrType = getEcrType(m, you)
       const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, m)
-      // Inline highlight mode check to avoid separate selector
-      const centeredOrdinalType = s.messageCenterOrdinal
-      const showCenteredHighlight =
-        centeredOrdinalType?.ordinal === ordinal && centeredOrdinalType.highlightMode !== 'none'
       // Fields lifted from child components to consolidate subscriptions
       const hasBeenEdited = m.hasBeenEdited ?? false
       const hasCoinFlip = m.type === 'text' && !!m.flipGameID
@@ -134,7 +270,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal) => {
         isEditing,
         reactionsPopupPosition,
         shouldShowPopup,
-        showCenteredHighlight,
+        showCenteredHighlight: isCenteredHighlight,
         showCoinsIcon,
         showExplodingCountdown,
         showReplyTo,
@@ -526,13 +662,15 @@ function RightSide(p: RProps) {
 }
 
 export function WrapperMessage(p: WMProps) {
-  const {ordinal, bottomChildren, children, messageData: mdataProp} = p
+  const {ordinal, isCenteredHighlight = false, isLastMessage = false} = p
+  const messageData = useMessageData(ordinal, isLastMessage, isCenteredHighlight)
+  return <WrapperMessageView {...p} messageData={messageData} />
+}
+
+export function WrapperMessageView(p: WMProps & {messageData: ReturnType<typeof useMessageData>}) {
+  const {ordinal, bottomChildren, children, messageData: mdata} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
-
-  // Use provided messageData if available, otherwise fetch it
-  const mdataFetched = useMessageData(ordinal)
-  const mdata = mdataProp ?? mdataFetched
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
@@ -569,7 +707,10 @@ export function WrapperMessage(p: WMProps) {
 
   return (
     <MessageContext value={messageContext}>
-      <TextAndSiblings {...tsprops} />
+      <Kb.Box2 direction="vertical" relative={true} fullWidth={true}>
+        <AuthorHeader ordinal={ordinal} />
+        <TextAndSiblings {...tsprops} />
+      </Kb.Box2>
       {popup}
     </MessageContext>
   )
@@ -578,10 +719,39 @@ export function WrapperMessage(p: WMProps) {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      authorContainer: Kb.Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          alignSelf: 'flex-start',
+          marginLeft: Kb.Styles.isMobile ? 48 : 56,
+        },
+        isElectron: {
+          marginBottom: 0,
+          marginTop: 0,
+        },
+        isMobile: {marginTop: 8},
+      }),
+      avatar: Kb.Styles.platformStyles({
+        common: {position: 'absolute', top: 4},
+        isElectron: {
+          left: Kb.Styles.globalMargins.small,
+          top: 4,
+          zIndex: 2,
+        },
+        isMobile: {left: Kb.Styles.globalMargins.tiny},
+      }),
       background: {
         alignSelf: 'stretch',
         flexShrink: 1,
       },
+      botAlias: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black},
+        isElectron: {
+          maxWidth: 240,
+          wordBreak: 'break-all',
+        },
+        isMobile: {maxWidth: 120},
+      }),
       ellipsis: Kb.Styles.platformStyles({
         isElectron: {paddingTop: 2},
         isMobile: {paddingTop: 4},
@@ -641,6 +811,15 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {minHeight: 14},
+      }),
+      usernameCrown: Kb.Styles.platformStyles({
+        isElectron: {
+          alignItems: 'baseline',
+          marginRight: 48,
+          position: 'relative',
+          top: -2,
+        },
+        isMobile: {alignItems: 'center'},
       }),
     }) as const
 )
