@@ -21,6 +21,14 @@ const errorCodes: Record<ErrorName, ErrorCode> = {
 }
 
 export const errors = {
+  EOF: errorCodes.EOF,
+  OK: errorCodes.OK,
+  UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
+  code: {
+    EOF: errorCodes.EOF,
+    OK: errorCodes.OK,
+    UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
+  },
   msg: {
     0: errorMessages.OK,
     100: errorMessages.UNKNOWN_METHOD,
@@ -37,14 +45,6 @@ export const errors = {
     OK: 'OK',
     UNKNOWN_METHOD: 'UNKNOWN_METHOD',
   },
-  code: {
-    EOF: errorCodes.EOF,
-    OK: errorCodes.OK,
-    UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
-  },
-  EOF: errorCodes.EOF,
-  OK: errorCodes.OK,
-  UNKNOWN_METHOD: errorCodes.UNKNOWN_METHOD,
 } as const
 
 export type ErrorType = {

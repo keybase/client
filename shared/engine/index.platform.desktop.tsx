@@ -174,7 +174,7 @@ function resetClient(
     return client
   }
 
-  client.transport.close?.()
+  client.transport.close()
   return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 }
 
