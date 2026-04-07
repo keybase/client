@@ -37,7 +37,7 @@ export class BareErrorBoundary extends React.Component<BareProps, BareState> {
     this.setState({error: undefined})
   }
 
-  render() {
+  render(): React.ReactNode {
     const {children, fallback, fallbackRender} = this.props
     const {error} = this.state
 
