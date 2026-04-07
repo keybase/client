@@ -12,15 +12,14 @@ const Toast = (props: Props) => {
   const lastVisibleRef = React.useRef(props.visible)
 
   React.useEffect(() => {
-    if (props.visible && !lastVisibleRef.current) {
-      setDismissedOnBlur(false)
-    } else if (!props.visible) {
+    if (!props.visible || (props.visible && !lastVisibleRef.current)) {
       setDismissedOnBlur(false)
     }
     lastVisibleRef.current = props.visible
   }, [props.visible])
 
   C.Router2.useSafeFocusEffect(() => {
+    setDismissedOnBlur(false)
     return () => {
       setDismissedOnBlur(true)
     }
