@@ -41,7 +41,7 @@ export const useNav = () => {
 
 export {wrapErrors} from '@/util/debug'
 export {default as shallowEqual} from '@/util/shallow-equal'
-export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
+export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from '@/util/use-debounce'
 export {useShallow, useDeep} from '@/util/zustand'
 export {default as useRPC} from '@/util/use-rpc'
 export {produce} from 'immer'
