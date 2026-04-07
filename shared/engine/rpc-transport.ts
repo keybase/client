@@ -104,13 +104,6 @@ const frameHeaderLength = (leadByte: number) => {
 
 const toUint8Array = (data: Uint8Array) => new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
 
-const concatUint8Arrays = (left: Uint8Array, right: Uint8Array) => {
-  const combined = new Uint8Array(left.length + right.length)
-  combined.set(left, 0)
-  combined.set(right, left.length)
-  return combined
-}
-
 const encodeFrame = (message: RPCMessage) => {
   const payload = encode(message)
   const frame = new Uint8Array(5 + payload.length)
@@ -128,7 +121,9 @@ const isRPCMessage = (message: unknown): message is RPCMessage =>
 
 export abstract class RPCTransport {
   needsConnect = false
-  private _buffer = new Uint8Array(0)
+  private _bufferedBytes = 0
+  private _chunks = new Array<Uint8Array>()
+  private _chunkOffset = 0
   private _explicitClose = false
   private _incomingRPCCallback?: IncomingRPCCallbackType
   private _connectCallback?: ConnectDisconnectCB
@@ -215,28 +210,42 @@ export abstract class RPCTransport {
 
   packetizeData(data: Uint8Array) {
     try {
-      this._buffer = concatUint8Arrays(this._buffer, toUint8Array(data))
+      this.appendChunk(data)
 
-      while (this._buffer.length > 0) {
-        const headerLen = frameHeaderLength(this._buffer[0] ?? 0)
+      while (this._bufferedBytes > 0) {
+        const firstByte = this.peekByte()
+        if (firstByte === undefined) {
+          return
+        }
+
+        const headerLen = frameHeaderLength(firstByte)
         if (!headerLen) {
           throw new Error('Bad frame header received')
         }
-        if (this._buffer.length < headerLen) {
+        if (this._bufferedBytes < headerLen) {
           return
         }
 
-        const payloadLen = decode(this._buffer.slice(0, headerLen))
+        const header = this.copyBufferedBytes(headerLen)
+        if (!header) {
+          return
+        }
+
+        const payloadLen = decode(header)
         if (typeof payloadLen !== 'number' || payloadLen < 0) {
           throw new Error('Bad frame length received')
         }
-        const totalLen = headerLen + payloadLen
-        if (this._buffer.length < totalLen) {
+        if (this._bufferedBytes < headerLen + payloadLen) {
           return
         }
 
-        const payload = decode(this._buffer.slice(headerLen, totalLen))
-        this._buffer = this._buffer.slice(totalLen)
+        this.consumeBufferedBytes(headerLen)
+        const payloadBytes = this.copyBufferedBytes(payloadLen)
+        if (!payloadBytes) {
+          return
+        }
+        const payload = decode(payloadBytes)
+        this.consumeBufferedBytes(payloadLen)
         this.dispatchDecodedMessage(payload)
       }
     } catch (err) {
@@ -391,7 +400,87 @@ export abstract class RPCTransport {
   }
 
   private resetPacketizer() {
-    this._buffer = new Uint8Array(0)
+    this._bufferedBytes = 0
+    this._chunks = []
+    this._chunkOffset = 0
+  }
+
+  private appendChunk(data: Uint8Array) {
+    const chunk = toUint8Array(data)
+    if (!chunk.length) {
+      return
+    }
+    this._chunks.push(chunk)
+    this._bufferedBytes += chunk.length
+  }
+
+  private peekByte() {
+    const firstChunk = this._chunks[0]
+    if (!firstChunk) {
+      return undefined
+    }
+    return firstChunk[this._chunkOffset]
+  }
+
+  private copyBufferedBytes(length: number) {
+    if (length > this._bufferedBytes) {
+      return undefined
+    }
+
+    const firstChunk = this._chunks[0]
+    if (firstChunk) {
+      const available = firstChunk.length - this._chunkOffset
+      if (available >= length) {
+        return firstChunk.slice(this._chunkOffset, this._chunkOffset + length)
+      }
+    }
+
+    const out = new Uint8Array(length)
+    let outOffset = 0
+    let remaining = length
+    let chunkIndex = 0
+    let chunkOffset = this._chunkOffset
+
+    while (remaining > 0) {
+      const chunk = this._chunks[chunkIndex]
+      if (!chunk) {
+        return undefined
+      }
+
+      const available = chunk.length - chunkOffset
+      const toCopy = Math.min(remaining, available)
+      out.set(chunk.subarray(chunkOffset, chunkOffset + toCopy), outOffset)
+      outOffset += toCopy
+      remaining -= toCopy
+      chunkIndex += 1
+      chunkOffset = 0
+    }
+
+    return out
+  }
+
+  private consumeBufferedBytes(length: number) {
+    let remaining = length
+    while (remaining > 0) {
+      const chunk = this._chunks[0]
+      if (!chunk) {
+        this._chunkOffset = 0
+        this._bufferedBytes = 0
+        return
+      }
+
+      const available = chunk.length - this._chunkOffset
+      if (remaining < available) {
+        this._chunkOffset += remaining
+        this._bufferedBytes -= length
+        return
+      }
+
+      remaining -= available
+      this._chunks.shift()
+      this._chunkOffset = 0
+    }
+    this._bufferedBytes -= length
   }
 }
 

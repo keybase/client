@@ -45,17 +45,19 @@ abstract class TransportShared extends RPCTransport {
     super({
       connectCallback,
       disconnectCallback,
-      incomingRPCCallback: payload => {
-        const {method} = payload
-        if (printRPC) {
-          const {param} = payload
-          const extra = param[0]
-          rpcLog({extra, method, reason: '[incoming]', type: 'serverToEngine'})
-        }
+      incomingRPCCallback: incomingRPCCallback
+        ? payload => {
+            const {method} = payload
+            if (printRPC) {
+              const {param} = payload
+              const extra = param[0]
+              rpcLog({extra, method, reason: '[incoming]', type: 'serverToEngine'})
+            }
 
-        this.injectInstrumentedResponse(payload)
-        incomingRPCCallback?.(payload)
-      },
+            this.injectInstrumentedResponse(payload)
+            incomingRPCCallback(payload)
+          }
+        : undefined,
     })
   }
 

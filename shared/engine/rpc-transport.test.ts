@@ -53,6 +53,19 @@ test('packetizeData handles split frames and dispatches responses', () => {
   expect(cb).toHaveBeenCalledWith(null, {ok: true})
 })
 
+test('packetizeData handles byte-at-a-time reads without losing framing state', () => {
+  const transport = new TestTransport()
+  const cb = jest.fn()
+  transport.invoke('keybase.1.test.hello', [{}], cb)
+
+  const response = encodeFrame([1, 1, null, {ok: 'tiny-chunks'}])
+  for (const byte of response) {
+    transport.packetizeData(Uint8Array.of(byte))
+  }
+
+  expect(cb).toHaveBeenCalledWith(null, {ok: 'tiny-chunks'})
+})
+
 test('invoke queues while disconnected and flushes on connect', () => {
   const transport = new TestTransport({connected: false})
   const cb = jest.fn()

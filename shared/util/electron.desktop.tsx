@@ -23,6 +23,8 @@ export type SaveDialogOptions = {
   message?: string
 }
 
+export type EngineRPCMessage = [number, ...Array<unknown>]
+
 export type KB2 = {
   constants: {
     assetRoot: string
@@ -63,7 +65,7 @@ export type KB2 = {
     windowsBinPath: string
   }
   functions: {
-    engineSend?: (message: unknown) => void
+    engineSend?: (message: EngineRPCMessage) => void
     appStartedUp?: () => Promise<void>
     isDirectory?: (path: string) => Promise<boolean>
     getPathForFile?: (file: File) => string
