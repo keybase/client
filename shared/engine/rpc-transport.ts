@@ -79,12 +79,13 @@ type PendingItem =
 const queueMax = 1000
 const maxFrameSize = 64 * 1024 * 1024 // 64 MB; rejects oversized frames before buffering payload bytes
 const TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX = true
+const tempRPCDebugProcessType = typeof process !== 'undefined' ? process.type || 'unknown' : 'unknown'
 
 const tempRPCDebugLog = (event: string, details: object) => {
   if (!TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX || !__DEV__) {
     return
   }
-  console.warn(`[TEMP requestInboxUnbox rpc debug] ${event}`, details)
+  console.warn(`[TEMP requestInboxUnbox rpc debug][${tempRPCDebugProcessType}] ${event}`, details)
 }
 
 const makeTransportError = (name: ErrorName): ErrorType => ({
