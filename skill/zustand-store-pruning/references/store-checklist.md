@@ -12,7 +12,7 @@ Status:
 - [ ] `teams`
 - [ ] `push`
   Files: `shared/stores/push.desktop.tsx`, `shared/stores/push.native.tsx`, `shared/stores/push.d.ts`
-- [ ] `settings-contacts`
+- [x] `settings-contacts`
   Files: `shared/stores/settings-contacts.desktop.tsx`, `shared/stores/settings-contacts.native.tsx`, `shared/stores/settings-contacts.d.ts`
 
 ## Notes

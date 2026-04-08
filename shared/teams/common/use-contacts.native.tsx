@@ -2,9 +2,9 @@ import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import logger from '@/logger'
-import * as Localization from 'expo-localization'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {getE164} from '@/util/phone-numbers'
+import {getDefaultCountryCode} from '@/util/contacts.native'
 
 // Contact info coming from the native contacts library.
 export type Contact = {
@@ -35,22 +35,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
       Contacts.Fields.Image,
     ],
   })
-
-  let region = ''
-  if (regionFromState) {
-    logger.debug(`Got region from state: ${regionFromState}, no need to call NativeModules.`)
-    region = regionFromState
-  } else {
-    {
-      let defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
-      if (__DEV__ && !defaultCountryCode) {
-        // behavior of parsing can be unexpectedly different with no country code.
-        // iOS sim + android emu don't supply country codes, so use this one.
-        defaultCountryCode = 'us'
-      }
-      region = defaultCountryCode
-    }
-  }
+  const region = regionFromState || getDefaultCountryCode()
 
   const mapped = contacts.data.reduce<Array<Contact>>((ret, contact) => {
     const {name = '', phoneNumbers = [], emails = []} = contact
@@ -112,7 +97,7 @@ const useContacts = () => {
       setNoAccessPermanent(true)
       setLoading(false)
     }
-  }, [setErrorMessage, setContacts, permStatus, savedRegion])
+  }, [permStatus, savedRegion])
 
   const requestPermissions = useSettingsContactsState(s => s.dispatch.requestPermissions)
   React.useEffect(() => {
@@ -121,7 +106,7 @@ const useContacts = () => {
     // dispatch more than once.
     if (permStatus === 'unknown' || permStatus === 'undetermined') {
       setNoAccessPermanent(false)
-      requestPermissions(false)
+      requestPermissions().catch(() => {})
     }
   }, [requestPermissions, permStatus])
 
