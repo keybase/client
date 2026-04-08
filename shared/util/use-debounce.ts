@@ -162,9 +162,11 @@ export const useThrottledCallback = <T extends AnyFunction>(
     }
 
     const schedule = (time: number) => {
+      if (timerID !== undefined) {
+        return
+      }
       const delay =
         lastInvokeTime === undefined ? waitMs : Math.max(0, waitMs - (time - lastInvokeTime))
-      clearTimer()
       timerID = setTimeout(() => {
         timerID = undefined
         if (trailing && lastArgs) {

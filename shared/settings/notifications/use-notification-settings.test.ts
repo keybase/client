@@ -1,5 +1,12 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
+// useRPC is exported as a re-export getter (non-configurable), so we mock the
+// module to make it a plain configurable property that jest.spyOn can wrap.
+jest.mock('@/constants', () => ({
+  ...(jest.requireActual('@/constants') as object),
+  useRPC: jest.fn(),
+}))
+
 import {afterEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
 import * as C from '@/constants'
@@ -258,7 +265,7 @@ test('useNotificationSettings refreshes and saves notification settings through 
           settings: expect.objectContaining({
             [`${T.RPCChat.GlobalAppNotificationSetting.convertheic}`]: false,
             [`${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`]: false,
-            [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: true,
+            [`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`]: false,
             [`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`]: false,
             [`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`]: false,
           }),
