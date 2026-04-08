@@ -1048,7 +1048,7 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          setRowRenderDerivedMetadata(s, targetOrdinal, m, true)
+          setRowRenderDerivedMetadata(s, targetOrdinal, m)
         }
       })
     }
@@ -2416,7 +2416,7 @@ const createSlice =
             m.reactions = new Map()
             m.unfurls = new Map()
             if (ordinal) {
-              setRowRenderDerivedMetadata(s, ordinal, m, true)
+              setRowRenderDerivedMetadata(s, ordinal, m)
             }
             if (m.type === 'text') {
               m.flipGameID = ''
