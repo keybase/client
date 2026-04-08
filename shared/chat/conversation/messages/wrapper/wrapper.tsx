@@ -72,6 +72,28 @@ type EditCancelRetryData = {
   outboxID?: T.Chat.OutboxID
 }
 
+type FlatAuthorData = {
+  author: string
+  botAlias: string
+  isAdhocBot: boolean
+  showUsername: string
+  teamID: T.Teams.TeamID
+  teamType: T.Chat.TeamType
+  teamname: string
+  timestamp: number
+}
+
+const emptyAuthorData: FlatAuthorData = {
+  author: '',
+  botAlias: '',
+  isAdhocBot: false,
+  showUsername: '',
+  teamID: '' as T.Teams.TeamID,
+  teamType: 'adhoc',
+  teamname: '',
+  timestamp: 0,
+}
+
 const getRowActions = (dispatch: ConvoState['dispatch']): RowActions => {
   const {messageDelete, messageRetry, replyJump, setEditing, setReplyTo, toggleMessageReaction} = dispatch
   return {messageDelete, messageRetry, replyJump, setEditing, setReplyTo, toggleMessageReaction}
@@ -169,9 +191,9 @@ const getAuthorData = (
   meta: ConvoState['meta'],
   participants: ConvoState['participants'],
   showUsername: string
-): AuthorProps | null => {
+): FlatAuthorData => {
   if (!showUsername) {
-    return null
+    return emptyAuthorData
   }
   const {author, timestamp} = message
   const {teamID, botAliases, teamType, teamname} = meta
@@ -190,9 +212,9 @@ const getAuthorData = (
   }
 }
 
-function AuthorHeader({authorData}: {authorData: AuthorProps | null}) {
-  if (!authorData) return null
-  return <AuthorSection {...authorData} />
+function AuthorHeader(p: FlatAuthorData) {
+  if (!p.showUsername) return null
+  return <AuthorSection {...p} />
 }
 
 const getEcrType = (message: T.Chat.Message, you: string) => {
@@ -352,7 +374,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch),
-        authorData: getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
       }
     })
   )
@@ -379,7 +401,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch),
-        authorData: getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
         message,
       }
     })
@@ -872,6 +894,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
   const {failureDescription, messageDelete, messageRetry, outboxID} = mdata
   const {setEditing, setReplyTo, toggleMessageReaction} = mdata
+  const {author, botAlias, isAdhocBot, showUsername, teamID, teamType, teamname, timestamp} = mdata
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {
@@ -922,7 +945,16 @@ export function WrapperMessage(p: WrapperMessageProps) {
   return (
     <MessageContext value={messageContext}>
       <Kb.Box2 direction="vertical" relative={true} fullWidth={true}>
-        <AuthorHeader authorData={mdata.authorData} />
+        <AuthorHeader
+          author={author}
+          botAlias={botAlias}
+          isAdhocBot={isAdhocBot}
+          showUsername={showUsername}
+          teamID={teamID}
+          teamType={teamType}
+          teamname={teamname}
+          timestamp={timestamp}
+        />
         <TextAndSiblings {...tsprops} />
       </Kb.Box2>
       {popup}
