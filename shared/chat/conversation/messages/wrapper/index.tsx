@@ -1,3 +1,8 @@
+import * as Chat from '@/stores/chat'
+import * as React from 'react'
+import {chatDebugEnabled} from '@/constants/chat/debug'
+import logger from '@/logger'
+import {PerfProfiler} from '@/perf/react-profiler'
 import Text from '../text/wrapper'
 import {
   WrapperAttachmentAudio,
@@ -60,4 +65,21 @@ const typeMap = {
 
 export const getMessageRender = (type: T.Chat.RenderMessageType) => {
   return type === 'deleted' ? undefined : typeMap[type]
+}
+
+export const MessageRow = function MessageRow(p: Props) {
+  const {ordinal} = p
+  const type = Chat.useChatContext(s => s.messageTypeMap.get(ordinal) ?? 'text')
+  const Clazz = getMessageRender(type)
+  if (!Clazz) {
+    if (chatDebugEnabled) {
+      logger.error('[CHATDEBUG] no rendertype', {ordinal, type})
+    }
+    return null
+  }
+  return (
+    <PerfProfiler id={`Msg-${type}`}>
+      <Clazz {...p} />
+    </PerfProfiler>
+  )
 }

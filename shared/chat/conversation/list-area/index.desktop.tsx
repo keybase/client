@@ -10,11 +10,9 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
 import {findLast} from '@/util/arrays'
-import {getMessageRender} from '../messages/wrapper'
+import {MessageRow} from '../messages/wrapper'
 import {globalMargins} from '@/styles/shared'
 import {FocusContext, ScrollContext} from '../normal/context'
-import {chatDebugEnabled} from '@/constants/chat/debug'
-import logger from '@/logger'
 import shallowEqual from '@/util/shallow-equal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
@@ -370,20 +368,10 @@ const useItems = (p: {
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
-  messageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
-  const {messageTypeMap, messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
+  const {messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
-    const type = messageTypeMap?.get(ordinal) ?? 'text'
-    const Clazz = getMessageRender(type)
-    if (!Clazz) {
-      if (chatDebugEnabled) {
-        logger.error('[CHATDEBUG] no rendertype', {Clazz, ordinal, type})
-      }
-      return null
-    }
-
     return (
       <div
         key={String(ordinal)}
@@ -398,7 +386,7 @@ const useItems = (p: {
         )}
       >
         <Separator trailingItem={ordinal} />
-        <Clazz
+        <MessageRow
           isCenteredHighlight={centeredHighlightOrdinal === ordinal}
           ordinal={ordinal}
         />
@@ -489,7 +477,7 @@ const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
   const data = Chat.useChatContext(
     C.useShallow(s => {
-      const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
+      const {editing: editingOrdinal, id: conversationIDKey} = s
       const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
       const centeredHighlightOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
       const centeredOrdinal = mco?.ordinal
@@ -502,12 +490,11 @@ const ThreadWrapper = function ThreadWrapper() {
         editingOrdinal,
         loaded,
         messageOrdinals,
-        messageTypeMap,
       }
     })
   )
   const {conversationIDKey, editingOrdinal, centeredHighlightOrdinal, centeredOrdinal} = data
-  const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
+  const {containsLatestMessage, messageOrdinals, loaded} = data
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {
@@ -572,7 +559,6 @@ const ThreadWrapper = function ThreadWrapper() {
     centeredOrdinal,
     editingOrdinal,
     messageOrdinals,
-    messageTypeMap,
   })
   const setListContents = useHandleListResize({
     centeredOrdinal,
