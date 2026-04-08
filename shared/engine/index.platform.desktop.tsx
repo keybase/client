@@ -189,6 +189,7 @@ class NativeTransport extends TransportShared {
   private _socket?: Socket
   private _reconnectTimer?: ReturnType<typeof setTimeout>
   private _connecting = false
+  private _pendingFramedBytes = new Array<Uint8Array>()
   private _debugBufferedBytes = 0
   private _debugChunks = new Array<Uint8Array>()
   private _debugChunkOffset = 0
@@ -226,6 +227,48 @@ class NativeTransport extends TransportShared {
       }
     }
     const framed = this.encodeMessage(message)
+    this.writeFramedBytes(framed)
+  }
+
+  sendFramedBytes(data: Uint8Array) {
+    const chunk = cloneChunkForIPC(data)
+    const [type, seqid] = (() => {
+      try {
+        const payload = decode(chunk.slice(5)) as RPCMessage
+        return [payload[0], payload[1]]
+      } catch {
+        return [undefined, undefined]
+      }
+    })()
+    if (__DEV__ && TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+      if (type === 1) {
+        console.warn('[TEMP requestInboxUnbox bridge debug] main received response', {seqid})
+      } else if (type === 0) {
+        const payload = (() => {
+          try {
+            return decode(chunk.slice(5)) as RPCMessage
+          } catch {
+            return undefined
+          }
+        })()
+        if (payload?.[2] === 'chat.1.local.requestInboxUnbox') {
+          console.warn('[TEMP requestInboxUnbox bridge debug] main received invoke', {seqid})
+        }
+      }
+    }
+    if (this._socket) {
+      this.writeFramedBytes(chunk)
+      return true
+    }
+    if (this.isExplicitClose()) {
+      console.warn('send framed bytes after explicit close')
+      return false
+    }
+    this._pendingFramedBytes.push(chunk)
+    return true
+  }
+
+  private writeFramedBytes(framed: Uint8Array) {
     if (printRPCBytes) {
       logger.debug('[RPC] Writing', framed.length)
     }
@@ -308,6 +351,7 @@ class NativeTransport extends TransportShared {
       })
 
       this.onConnected()
+      this.flushPendingFramedBytes()
       cb?.()
     }
 
@@ -327,6 +371,15 @@ class NativeTransport extends TransportShared {
       }
       this.connectOnce()
     }, 1000)
+  }
+
+  private flushPendingFramedBytes() {
+    if (!this._socket || !this._pendingFramedBytes.length) {
+      return
+    }
+    const pending = this._pendingFramedBytes
+    this._pendingFramedBytes = []
+    pending.forEach(frame => this.writeFramedBytes(frame))
   }
 
   private debugPacketizeData(data: Uint8Array) {
@@ -490,7 +543,7 @@ class ProxyNativeTransport extends LocalTransport {
     } else if (type === 0 && methodOrError === 'chat.1.local.requestInboxUnbox') {
       tempRPCBridgeLog('renderer write invoke', {message, seqid})
     }
-    engineSend?.(message)
+    engineSend?.(this.encodeMessage(message))
   }
 }
 

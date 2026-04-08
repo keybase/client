@@ -1,7 +1,6 @@
 import * as Electron from 'electron'
 import type {Actions} from '@/constants/remote-actions'
 import {
-  type EngineRPCMessage,
   injectPreload,
   type KB2,
   type OpenDialogOptions,
@@ -73,7 +72,7 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: EngineRPCMessage) => {
+        engineSend: (buf: Uint8Array) => {
           ignorePromise(invoke({payload: {buf}, type: 'engineSend'}))
         },
         exitApp: (code: number) => {
