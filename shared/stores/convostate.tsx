@@ -136,7 +136,6 @@ type ConvoStore = T.Immutable<{
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   replyTo: T.Chat.Ordinal
   rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
@@ -180,7 +179,6 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
-  reactionOrderMap: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
   rowRecycleTypeMap: new Map(),
   separatorMap: new Map(),
@@ -655,7 +653,6 @@ const createSlice =
           s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
-          s.reactionOrderMap.delete(ordinal)
           continue
         }
 
@@ -665,7 +662,6 @@ const createSlice =
           s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
-          s.reactionOrderMap.delete(ordinal)
           continue
         }
 
@@ -695,22 +691,13 @@ const createSlice =
     const setRowRenderDerivedMetadata = (
       s: Z.WritableDraft<ConvoState>,
       ordinal: T.Chat.Ordinal,
-      message: T.Chat.Message,
-      preserveEmptyReactionOrder = false
+      message: T.Chat.Message
     ) => {
       const rowRecycleType = getRowRecycleType(message)
       if (rowRecycleType) {
         s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
       } else {
         s.rowRecycleTypeMap.delete(ordinal)
-      }
-
-      if (message.reactions?.size) {
-        s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
-      } else if (preserveEmptyReactionOrder) {
-        s.reactionOrderMap.set(ordinal, [])
-      } else {
-        s.reactionOrderMap.delete(ordinal)
       }
     }
 
@@ -2411,7 +2398,6 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
-          s.reactionOrderMap.clear()
           s.rowRecycleTypeMap.clear()
           s.separatorMap.clear()
           s.showUsernameMap.clear()
@@ -3593,7 +3579,7 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              setRowRenderDerivedMetadata(s, targetOrdinal, m, true)
+              setRowRenderDerivedMetadata(s, targetOrdinal, m)
             }
           })
         }

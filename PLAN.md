@@ -39,7 +39,7 @@ Primary files:
 - [x] Stop rebuilding whole-thread derived maps on every `messagesAdd`.
 - [x] Update separator, username-grouping, and reaction-order metadata only for changed ordinals and any affected neighbors.
 - [x] Avoid rebuilding and resorting `messageOrdinals` unless thread membership actually changed.
-- [ ] Re-evaluate whether some derived metadata should live in store state at all.
+- [x] Re-evaluate whether some derived metadata should live in store state at all.
 
 Primary files:
 

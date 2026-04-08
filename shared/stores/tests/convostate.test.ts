@@ -206,7 +206,6 @@ const seedStore = (
     messageTypeMap,
     meta: makeMeta(),
     pendingOutboxToOrdinal,
-    reactionOrderMap: new Map(),
     separatorMap: new Map(),
     showUsernameMap: new Map(),
     ...extra,
@@ -224,7 +223,6 @@ const seedStoreWithAnchoredMessage = () => {
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, ordinal]]),
-    reactionOrderMap: new Map(),
     separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[ordinal, 'alice']]),
   }
@@ -307,7 +305,7 @@ test('reaction updates preserve outbox-anchored row identity', () => {
   const store = seedStoreWithAnchoredMessage()
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
-  expect(store.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
+  expect(Message.getReactionOrder(store.getState().messageMap.get(ordinal)?.reactions ?? new Map())[0]).toBe(':+1:')
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
 })
 
@@ -329,10 +327,10 @@ test('reaction updates keep existing emoji order and sort new emojis by first ti
 
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
 
-  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([':+1:', ':eyes:', ':fire:', ':wave:'])
   const message = store.getState().messageMap.get(ordinal)
   expect(Message.isMessageWithReactions(message!)).toBe(true)
   if (message && Message.isMessageWithReactions(message)) {
+    expect(Message.getReactionOrder(message.reactions ?? new Map())).toEqual([':+1:', ':eyes:', ':fire:', ':wave:'])
     expect([...(message.reactions?.keys() ?? [])]).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
   }
 })
@@ -342,7 +340,6 @@ test('reaction updates clear message reactions when the server sends none', () =
   store.getState().dispatch.updateReactions([{targetMsgID: msgID}])
   const message = store.getState().messageMap.get(ordinal)
   expect(message && Message.isMessageWithReactions(message) ? message.reactions : undefined).toBeUndefined()
-  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([])
 })
 
 test('reaction updates ignore deleted and placeholder rows', () => {
@@ -368,7 +365,6 @@ test('reaction updates ignore deleted and placeholder rows', () => {
     {reactions, targetMsgID: placeholderMsgID},
   ])
 
-  expect(store.getState().reactionOrderMap.size).toBe(0)
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(401))?.type).toBe('deleted')
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.type).toBe('placeholder')
 })
@@ -458,14 +454,12 @@ test('explode-now clears text content and transient metadata in place', () => {
   expect(message?.type === 'text' ? [...(message.mentionsAt ?? [])] : undefined).toEqual([])
   expect(message?.reactions?.size ?? 0).toBe(0)
   expect(message?.unfurls?.size ?? 0).toBe(0)
-  expect(state.reactionOrderMap.get(ordinal)).toEqual([])
 })
 
 test('messagesClear resets all message indexes and maps', () => {
   const store = seedStoreWithAnchoredMessage()
   applyState(store, {
     loaded: true,
-    reactionOrderMap: new Map([[ordinal, [':+1:']]]),
     separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[ordinal, 'alice']]),
     validatedOrdinalRange: {from: ordinal, to: ordinal},
@@ -477,7 +471,6 @@ test('messagesClear resets all message indexes and maps', () => {
   expect(store.getState().messageTypeMap.size).toBe(0)
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
-  expect(store.getState().reactionOrderMap.size).toBe(0)
   expect(store.getState().separatorMap.size).toBe(0)
   expect(store.getState().showUsernameMap.size).toBe(0)
   expect(store.getState().validatedOrdinalRange).toBeUndefined()
@@ -495,7 +488,6 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, pendingOrdinal]]),
-    reactionOrderMap: new Map(),
     separatorMap: new Map([[pendingOrdinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[pendingOrdinal, 'alice']]),
   }
@@ -516,7 +508,9 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: serverMsgID}])
 
-  expect(store.getState().reactionOrderMap.get(pendingOrdinal)?.[0]).toBe(':+1:')
+  expect(Message.getReactionOrder(store.getState().messageMap.get(pendingOrdinal)?.reactions ?? new Map())[0]).toBe(
+    ':+1:'
+  )
 
   store.getState().dispatch.messagesWereDeleted({messageIDs: [serverMsgID]})
 
