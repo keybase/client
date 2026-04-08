@@ -95,7 +95,7 @@ function FileContainer(p: OwnProps) {
     !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
 
   const errorMsg = transferErrMsg || ''
-  const fileName = _fileName ?? ''
+  const fileName = _fileName
   const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup

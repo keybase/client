@@ -16,11 +16,14 @@ function UnfurlMap(p: {
   const {author, conversationIDKey, unfurlInfo, youAreAuthor} = p
   const navigateAppend = C.Router2.navigateAppend
   const {unfurl} = unfurlInfo
-  if (unfurl.unfurlType !== T.RPCChat.UnfurlType.generic || !unfurl.generic.mapInfo) {
+  if (unfurl.unfurlType !== T.RPCChat.UnfurlType.generic) {
     return null
   }
   const {generic} = unfurl
   const {mapInfo, media, url} = generic
+  if (!mapInfo) {
+    return null
+  }
   const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo
   const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
   const onViewMap = () => {

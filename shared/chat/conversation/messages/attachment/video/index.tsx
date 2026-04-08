@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import VideoImpl from './videoimpl'
 import {
   Title,

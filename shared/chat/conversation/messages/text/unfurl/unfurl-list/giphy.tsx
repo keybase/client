@@ -12,17 +12,17 @@ function UnfurlGiphy(p: {
 }) {
   const {ordinal, unfurlInfo, youAreAuthor} = p
   const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
+  const {onClose, onToggleCollapse} = useActions(
+    youAreAuthor,
+    T.Chat.numberToMessageID(unfurlMessageID),
+    ordinal
+  )
   if (unfurl.unfurlType !== T.RPCChat.UnfurlType.giphy) {
     return null
   }
   const {giphy} = unfurl
   const {favicon, image, video} = giphy
   const {height, isVideo, url, width} = video || image || {height: 0, isVideo: false, url: '', width: 0}
-  const {onClose, onToggleCollapse} = useActions(
-    youAreAuthor,
-    T.Chat.numberToMessageID(unfurlMessageID),
-    ordinal
-  )
 
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">

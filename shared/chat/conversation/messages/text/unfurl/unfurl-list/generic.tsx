@@ -13,21 +13,21 @@ function UnfurlGeneric(p: {
 }) {
   const {ordinal, unfurlInfo, youAreAuthor} = p
   const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
-  if (unfurl.unfurlType !== T.RPCChat.UnfurlType.generic || unfurl.generic.mapInfo) {
-    return null
-  }
-  const {generic} = unfurl
-  const {description, publishTime, favicon, media, siteName, title, url} = generic
-  const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
-  const showImageOnSide =
-    !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
-  const imageLocation = isCollapsed ? 'collapsed' : showImageOnSide ? 'side' : width > 0 && height > 0 ? 'bottom' : 'none'
   const {onClose, onToggleCollapse} = useActions(
     youAreAuthor,
     T.Chat.numberToMessageID(unfurlMessageID),
     ordinal
   )
-  const titleUrlProps = Kb.useClickURL(url)
+  const generic = unfurl.unfurlType === T.RPCChat.UnfurlType.generic ? unfurl.generic : undefined
+  const titleUrlProps = Kb.useClickURL(generic?.mapInfo ? '' : (generic?.url ?? ''))
+  if (!generic || generic.mapInfo) {
+    return null
+  }
+  const {description, publishTime, favicon, media, siteName, title, url} = generic
+  const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
+  const showImageOnSide =
+    !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
+  const imageLocation = isCollapsed ? 'collapsed' : showImageOnSide ? 'side' : width > 0 && height > 0 ? 'bottom' : 'none'
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
