@@ -173,7 +173,16 @@ const useAuthorData = (ordinal: T.Chat.Ordinal) =>
         teamType === 'adhoc' && participantInfoNames.length > 0
           ? !participantInfoNames.includes(author)
           : false
-      return {author, botAlias: botAliases[author] ?? '', isAdhocBot, showUsername, teamID, teamType, teamname, timestamp}
+      return {
+        author,
+        botAlias: botAliases[author] ?? '',
+        isAdhocBot,
+        showUsername,
+        teamID,
+        teamType,
+        teamname,
+        timestamp,
+      }
     })
   )
 
@@ -249,7 +258,11 @@ const getCommonMessageData = ({
   const hasCoinFlip = message.type === 'text' && !!message.flipGameID
   const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
   const hasUnfurlPrompts = !!id && !!unfurlPrompt.get(id)?.size
-  const textType: 'error' | 'sent' | 'pending' = message.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
+  const textType: 'error' | 'sent' | 'pending' = message.errorReason
+    ? 'error'
+    : !submitState
+      ? 'sent'
+      : 'pending'
   const replyTo = message.type === 'text' ? message.replyTo : undefined
   const reactions = message.reactions
   const reactionOrder = reactionOrderMap.get(ordinal)
@@ -271,9 +284,9 @@ const getCommonMessageData = ({
     decorate,
     ecrType,
     exploded,
-    exploding,
     explodedBy: isExplodingMessage ? message.explodedBy : undefined,
     explodesAt: isExplodingMessage ? message.explodingTime : 0,
+    exploding,
     forceExplodingRetainer: isExplodingMessage ? !!message.explodingUnreadable : false,
     hasBeenEdited,
     hasCoinFlip,
@@ -290,7 +303,6 @@ const getCommonMessageData = ({
     sendIndicatorID: message.timestamp,
     sendIndicatorSent:
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded,
-    submitState,
     shouldShowPopup,
     showCenteredHighlight,
     showCoinsIcon,
@@ -298,6 +310,7 @@ const getCommonMessageData = ({
     showReplyTo,
     showRevoked,
     showSendIndicator,
+    submitState,
     text,
     textType,
     type,
@@ -458,7 +471,16 @@ const NormalWrapper = ({
 }
 
 function TextAndSiblings(p: TSProps) {
-  const {botname, bottomChildren, canShowReactionsPopup, children, decorate, hasBeenEdited, hasUnfurlList, isHighlighted} = p
+  const {
+    botname,
+    bottomChildren,
+    canShowReactionsPopup,
+    children,
+    decorate,
+    hasBeenEdited,
+    hasUnfurlList,
+    isHighlighted,
+  } = p
   const {showingPopup, ecrType, exploding, exploded, explodedBy, explodesAt, forceExplodingRetainer} = p
   const {hasReactions, popupAnchor, reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID} = p
   const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
@@ -495,7 +517,13 @@ function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" flex={1} relative={true} style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
+      <Kb.Box2
+        direction="vertical"
+        flex={1}
+        relative={true}
+        style={styles.middle}
+        fullWidth={!Kb.Styles.isMobile}
+      >
         <NormalWrapper style={styles.background}>
           {content}
           <BottomSide
@@ -547,27 +575,28 @@ enum EditCancelRetryType {
 function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = useOrdinal()
-  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal)
-      const outboxID = m?.outboxID
-      const reason = m?.errorReason ?? ''
-      const exploding = m?.exploding ?? false
-      const failureDescription =
-        ecrType === EditCancelRetryType.NOACTION
-          ? reason
-          : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-      const {messageDelete, messageRetry, setEditing} = s.dispatch
-      return {
-        exploding,
-        failureDescription,
-        messageDelete,
-        messageRetry,
-        outboxID,
-        setEditing,
-      }
-    })
-  )
+  const {failureDescription, outboxID, exploding, messageDelete, messageRetry, setEditing} =
+    Chat.useChatContext(
+      C.useShallow(s => {
+        const m = s.messageMap.get(ordinal)
+        const outboxID = m?.outboxID
+        const reason = m?.errorReason ?? ''
+        const exploding = m?.exploding ?? false
+        const failureDescription =
+          ecrType === EditCancelRetryType.NOACTION
+            ? reason
+            : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+        const {messageDelete, messageRetry, setEditing} = s.dispatch
+        return {
+          exploding,
+          failureDescription,
+          messageDelete,
+          messageRetry,
+          outboxID,
+          setEditing,
+        }
+      })
+    )
   const onCancel = () => {
     messageDelete(ordinal)
   }
@@ -802,7 +831,8 @@ export function WrapperMessage(p: WrapperMessageProps) {
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {canShowReactionsPopup, ecrType, exploded, explodesAt, forceExplodingRetainer, messageKey} = mdata
-  const {reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID, sendIndicatorSent, submitState} = mdata
+  const {reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID, sendIndicatorSent, submitState} =
+    mdata
   const {showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
 
@@ -815,9 +845,9 @@ export function WrapperMessage(p: WrapperMessageProps) {
     decorate,
     ecrType,
     exploded,
-    exploding,
     explodedBy: mdata.explodedBy,
     explodesAt,
+    exploding,
     forceExplodingRetainer,
     hasBeenEdited,
     hasReactions,
