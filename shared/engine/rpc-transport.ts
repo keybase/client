@@ -75,22 +75,9 @@ export type RPCMessage = [number, ...Array<unknown>]
 type PendingItem =
   | {type: 'invoke'; method: string; args: [object]; cb: InvocationCallback}
   | {type: 'message'; message: RPCMessage}
-type InvocationMeta = {
-  method: string
-  sessionID?: number
-}
 
 const queueMax = 1000
 const maxFrameSize = 64 * 1024 * 1024 // 64 MB; rejects oversized frames before buffering payload bytes
-const TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX = true
-const tempRPCDebugProcessType = typeof process !== 'undefined' ? process.type || 'unknown' : 'unknown'
-
-const tempRPCDebugLog = (event: string, details: object) => {
-  if (!TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX || !__DEV__) {
-    return
-  }
-  console.warn(`[TEMP requestInboxUnbox rpc debug][${tempRPCDebugProcessType}] ${event}`, details)
-}
 
 const makeTransportError = (name: ErrorName): ErrorType => ({
   code: errors[name],
@@ -143,7 +130,6 @@ export abstract class RPCTransport {
   private _connectCallback?: ConnectDisconnectCB
   private _disconnectCallback?: ConnectDisconnectCB
   private _invocations = new Map<number, InvocationCallback>()
-  private _invocationMeta = new Map<number, InvocationMeta>()
   private _pending = new Array<PendingItem>()
   private _seqid = 1
 
@@ -219,14 +205,7 @@ export abstract class RPCTransport {
 
   protected failOutstanding(err: unknown, data: unknown) {
     const invocations = this._invocations
-    const invocationMeta = this._invocationMeta
     this._invocations = new Map()
-    this._invocationMeta = new Map()
-    invocationMeta.forEach(({method, sessionID}, seqid) => {
-      if (method === 'chat.1.local.requestInboxUnbox') {
-        tempRPCDebugLog('failOutstanding', {data, err, seqid, sessionID})
-      }
-    })
     invocations.forEach(cb => cb(err, data))
   }
 
@@ -293,14 +272,6 @@ export abstract class RPCTransport {
           console.warn('Invalid invoke packet received')
           return
         }
-        if (method === 'chat.1.chatUi.chatInboxConversation') {
-          const firstParam = param[0] as {sessionID?: number} | undefined
-          tempRPCDebugLog('incoming invoke chatInboxConversation', {
-            param0: param[0],
-            sessionID: firstParam?.sessionID,
-            seqid,
-          })
-        }
         const payload = {
           method,
           param: param as Array<{sessionID?: number}>,
@@ -331,22 +302,11 @@ export abstract class RPCTransport {
           console.warn('Invalid response packet received')
           return
         }
-        const meta = this._invocationMeta.get(seqid)
         const cb = this._invocations.get(seqid)
         if (!cb) {
-          tempRPCDebugLog('response with no invocation', {error, meta, result, seqid})
           return
         }
         this._invocations.delete(seqid)
-        this._invocationMeta.delete(seqid)
-        if (meta?.method === 'chat.1.local.requestInboxUnbox') {
-          tempRPCDebugLog('response matched invocation', {
-            error,
-            result,
-            seqid,
-            sessionID: meta.sessionID,
-          })
-        }
         cb(this.unwrapIncomingError(error), result)
         return
       }
@@ -355,10 +315,6 @@ export abstract class RPCTransport {
         if (typeof seqid !== 'number') {
           console.warn('Invalid cancel packet received')
           return
-        }
-        const meta = this._invocationMeta.get(seqid)
-        if (meta?.method === 'chat.1.local.requestInboxUnbox') {
-          tempRPCDebugLog('incoming cancel', {seqid, sessionID: meta.sessionID})
         }
         this._incomingRPCCallback?.({
           method: '',
@@ -431,11 +387,6 @@ export abstract class RPCTransport {
     const seqid = this._seqid
     this._seqid += 1
     this._invocations.set(seqid, cb)
-    const firstArg = args[0] as {sessionID?: number} | undefined
-    this._invocationMeta.set(seqid, {method, sessionID: firstArg?.sessionID})
-    if (method === 'chat.1.local.requestInboxUnbox') {
-      tempRPCDebugLog('invokeNow', {args: args[0], seqid, sessionID: firstArg?.sessionID})
-    }
     this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
   }
 
@@ -443,12 +394,10 @@ export abstract class RPCTransport {
     return {
       cancelled: false,
       error: err => {
-        tempRPCDebugLog('send response error', {err, seqid})
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, err ?? null, null])
+        this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
       },
       result: result => {
-        tempRPCDebugLog('send response result', {result, seqid})
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result === undefined ? null : result])
+        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
       },
       seqid,
     }

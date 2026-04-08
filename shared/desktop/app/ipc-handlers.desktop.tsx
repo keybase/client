@@ -190,11 +190,7 @@ export const setupIPCHandlers = (deps: {
     switch (action.type) {
       case 'engineSend': {
         const {buf} = action.payload
-        ;(
-          deps.nodeEngine._rpcClient.transport as {
-            sendFramedBytes?: (data: Uint8Array) => boolean
-          }
-        ).sendFramedBytes?.(buf)
+        deps.nodeEngine._rpcClient.transport.send(buf)
         return
       }
       case 'uninstallDokan': {

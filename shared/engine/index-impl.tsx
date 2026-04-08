@@ -13,14 +13,6 @@ import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
 
 type WaitingKey = string | ReadonlyArray<string>
-const TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX = true
-
-const tempInboxUnboxSessionLog = (event: string, details: object) => {
-  if (!TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX || !__DEV__) {
-    return
-  }
-  console.warn(`[TEMP requestInboxUnbox session debug] ${event}`, details)
-}
 
 class Engine {
   _onConnectedCB: (c: boolean) => void
@@ -228,12 +220,6 @@ class Engine {
       incomingCallMap,
       waitingKey,
     })
-    if (method === 'chat.1.local.requestInboxUnbox') {
-      tempInboxUnboxSessionLog('session start', {
-        params,
-        sessionID: session.getId(),
-      })
-    }
     session.start(method, params, callback)
     return session.getId()
   }
@@ -277,11 +263,6 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded(session: Session) {
-    if (session._startMethod === 'chat.1.local.requestInboxUnbox') {
-      tempInboxUnboxSessionLog('session end', {
-        sessionID: session.getId(),
-      })
-    }
     rpcLog({
       extra: {
         sessionID: session.getId(),
