@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import * as React from 'react'
 
 type AnyFunction = (...args: Array<any>) => any
