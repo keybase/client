@@ -430,9 +430,11 @@ export abstract class RPCTransport {
     return {
       cancelled: false,
       error: err => {
+        tempRPCDebugLog('send response error', {err, seqid})
         this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
       },
       result: result => {
+        tempRPCDebugLog('send response result', {result, seqid})
         this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
       },
       seqid,
