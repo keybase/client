@@ -1,15 +1,16 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useState} from './use-state'
 import {ShowToastAfterSaving} from '../shared'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'
 import type {Props} from './videoimpl'
+import {getAttachmentPreviewSize} from '../shared'
 
 const VideoImpl = (p: Props) => {
-  const {allowPlay, showPopup} = p
-  const {previewURL, height, width, url, transferState, videoDuration} = useState()
+  const {allowPlay, message, showPopup} = p
+  const {fileURL: url, transferState, videoDuration} = message
+  const {previewURL, height, width} = getAttachmentPreviewSize(message)
   const sourceUri = `${url}&contentforce=true`
 
   const player = useVideoPlayer(sourceUri, pl => {

@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
-import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 
@@ -46,13 +46,21 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 
 function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
-  const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
-  const {isEditing, replyTo} = messageData
+  const {isEditing, message, replyTo} = messageData
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
     messageData
-  const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
+  const bottomChildren = useBottom({
+    author: message.author,
+    conversationIDKey: message.conversationIDKey,
+    hasCoinFlip,
+    hasUnfurlList,
+    hasUnfurlPrompts,
+    messageID: message.id,
+    unfurls: message.type === 'text' ? message.unfurls : undefined,
+  })
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0

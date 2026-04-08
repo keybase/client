@@ -1,8 +1,9 @@
 import * as Kb from '@/common-adapters'
-import {useState} from './use-state'
+import type * as T from '@/constants/types'
+import {getAttachmentPreviewSize} from '../shared'
 
-const ImageImpl = () => {
-  const {previewURL, height, width} = useState()
+const ImageImpl = ({message}: {message: T.Chat.MessageAttachment}) => {
+  const {previewURL, height, width} = getAttachmentPreviewSize(message, true)
   return <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([styles.image, {height, width}])} />
 }
 

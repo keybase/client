@@ -1,47 +1,28 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import UnfurlImage from './image'
 import * as T from '@/constants/types'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
-import {getUnfurlInfo, useActions} from './use-state'
+import {useActions} from './use-state'
 
-function UnfurlGiphy(p: {idx: number}) {
-  const {idx} = p
-  const ordinal = useOrdinal()
-
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
-      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.giphy) {
-        return null
-      }
-      const {giphy} = unfurl
-      const {favicon, image, video} = giphy
-      const {height, isVideo, url, width} = video || image || {height: 0, isVideo: false, url: '', width: 0}
-
-      return {
-        favicon: favicon?.url,
-        height,
-        isCollapsed,
-        isVideo,
-        unfurlMessageID,
-        url,
-        width,
-        youAreAuthor,
-      }
-    })
-  )
-
+function UnfurlGiphy(p: {
+  author: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
+  unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
+  youAreAuthor: boolean
+}) {
+  const {ordinal, unfurlInfo, youAreAuthor} = p
+  const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
+  if (unfurl.unfurlType !== T.RPCChat.UnfurlType.giphy) {
+    return null
+  }
+  const {giphy} = unfurl
+  const {favicon, image, video} = giphy
+  const {height, isVideo, url, width} = video || image || {height: 0, isVideo: false, url: '', width: 0}
   const {onClose, onToggleCollapse} = useActions(
-    data?.youAreAuthor ?? false,
-    T.Chat.numberToMessageID(data?.unfurlMessageID ?? 0),
+    youAreAuthor,
+    T.Chat.numberToMessageID(unfurlMessageID),
     ordinal
   )
-
-  if (data === null) return null
-
-  const {favicon, isCollapsed, isVideo, url, width, height} = data
 
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
@@ -49,7 +30,7 @@ function UnfurlGiphy(p: {idx: number}) {
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">
-            {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+            {favicon?.url ? <Kb.Image src={favicon.url} style={styles.favicon} /> : null}
             <Kb.Text type="BodySmall">
               Giphy
             </Kb.Text>

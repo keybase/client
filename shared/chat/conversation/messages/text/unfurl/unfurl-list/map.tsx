@@ -1,64 +1,34 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {formatDurationForLocation} from '@/util/timestamp'
-import {getUnfurlInfo} from './use-state'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
-function UnfurlMap(p: {idx: number}) {
-  const {idx} = p
-  const ordinal = useOrdinal()
+function UnfurlMap(p: {
+  author: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
+  unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
+  youAreAuthor: boolean
+}) {
+  const {author, conversationIDKey, unfurlInfo, youAreAuthor} = p
   const navigateAppend = C.Router2.navigateAppend
-
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
-      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
-        return null
-      }
-      const {generic} = unfurl
-      const {mapInfo, media, url} = generic
-      const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
-        coord: {accuracy: 0, lat: 0, lon: 0},
-        isLiveLocationDone: false,
-        liveLocationEndTime: 0,
-        time: 0,
-      }
-      const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
-      const {id} = s
-
-      return {
-        author,
-        coord,
-        height,
-        id,
-        imageURL,
-        isLiveLocationDone,
-        liveLocationEndTime,
-        time,
-        url,
-        width,
-        youAreAuthor,
-      }
-    })
-  )
-
-  if (!data) {
+  const {unfurl} = unfurlInfo
+  if (unfurl.unfurlType !== T.RPCChat.UnfurlType.generic || !unfurl.generic.mapInfo) {
     return null
   }
-
-  const {author, url, coord, isLiveLocationDone, liveLocationEndTime} = data
-  const {height, width, imageURL, youAreAuthor, time, id} = data
+  const {generic} = unfurl
+  const {mapInfo, media, url} = generic
+  const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo
+  const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
   const onViewMap = () => {
     navigateAppend({
       name: 'chatUnfurlMapPopup',
       params: {
         author,
-        conversationIDKey: id,
+        conversationIDKey,
         coord,
         isAuthor: youAreAuthor,
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,

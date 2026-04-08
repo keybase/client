@@ -51,7 +51,7 @@ Primary files:
 
 - [ ] Move toward one main convo-store subscription per mounted row.
 - [x] Push row data down as props instead of reopening store subscriptions in reply, reactions, emoji, send-indicator, exploding-meta, and similar children.
-- [ ] Audit attachment and unfurl helpers for repeated `messageMap.get(ordinal)` selectors.
+- [x] Audit attachment and unfurl helpers for repeated `messageMap.get(ordinal)` selectors.
 - [ ] Keep selectors narrow and stable when a child still needs to subscribe directly.
 
 Primary files:

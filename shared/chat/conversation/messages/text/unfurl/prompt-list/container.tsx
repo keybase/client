@@ -1,21 +1,15 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Prompt from './prompt'
 
-const noMessageID = T.Chat.numberToMessageID(0)
-
-function UnfurlPromptListContainer() {
-  const ordinal = useOrdinal()
-  const {unfurlResolvePrompt, messageID, promptDomains} = Chat.useChatContext(
+function UnfurlPromptListContainer({messageID}: {messageID: T.Chat.MessageID}) {
+  const {unfurlResolvePrompt, promptDomains} = Chat.useChatContext(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      const messageID = message?.type === 'text' ? message.id : noMessageID
       const unfurlResolvePrompt = s.dispatch.unfurlResolvePrompt
       const promptDomains = s.unfurlPrompt.get(messageID)
-      return {messageID, promptDomains, unfurlResolvePrompt}
+      return {promptDomains, unfurlResolvePrompt}
     })
   )
   const _setPolicy = (domain: string, result: T.RPCChat.UnfurlPromptResult) => {

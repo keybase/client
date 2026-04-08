@@ -1,11 +1,8 @@
 import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
 import {useFSState} from '@/stores/fs'
-
-const missingMessage = Chat.makeMessageAttachment()
 
 const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
   return (
@@ -14,14 +11,7 @@ const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
     message.transferState !== 'mobileSaving'
   )
 }
-const AudioAttachment = () => {
-  const ordinal = useOrdinal()
-
-  // TODO not message
-  const message = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : missingMessage
-  })
+const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
   const openLocalPathInSystemFileManagerDesktop = useFSState(
