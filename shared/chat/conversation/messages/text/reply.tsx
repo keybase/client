@@ -118,7 +118,7 @@ function ReplyStructure(p: RS) {
 }
 
 function Reply({replyTo, onClick}: {onClick?: () => void; replyTo: T.Chat.MessageReplyTo}) {
-  if (!replyTo?.id) return null
+  if (!replyTo.id) return null
 
   const showEdited = !!replyTo.hasBeenEdited
   const isDeleted = replyTo.exploded || replyTo.type === 'deleted'

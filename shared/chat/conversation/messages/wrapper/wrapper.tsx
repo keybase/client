@@ -227,8 +227,9 @@ const getCommonMessageData = ({
   unfurlPrompt: ConvoState['unfurlPrompt']
   you: string
 }) => {
-  const {exploded, submitState, author, id, botUsername} = message
+  const {submitState, author, id, botUsername} = message
   const type = message.type
+  const exploded = !!message.exploded
   const idMatchesOrdinal = T.Chat.ordinalToNumber(message.ordinal) === T.Chat.messageIDToNumber(id)
   const exploding = !!message.exploding
   const decorate = !exploded && !message.errorReason
@@ -269,8 +270,8 @@ const getCommonMessageData = ({
     canShowReactionsPopup,
     decorate,
     ecrType,
-    exploding,
     exploded,
+    exploding,
     explodedBy: isExplodingMessage ? message.explodedBy : undefined,
     explodesAt: isExplodingMessage ? message.explodingTime : 0,
     forceExplodingRetainer: isExplodingMessage ? !!message.explodingUnreadable : false,
@@ -284,12 +285,12 @@ const getCommonMessageData = ({
     reactionOrder,
     reactions,
     replyTo,
-    submitState,
     sendIndicatorFailed:
       (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed',
     sendIndicatorID: message.timestamp,
     sendIndicatorSent:
       (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded,
+    submitState,
     shouldShowPopup,
     showCenteredHighlight,
     showCoinsIcon,
@@ -813,8 +814,8 @@ export function WrapperMessage(p: WrapperMessageProps) {
     children,
     decorate,
     ecrType,
-    exploding,
     exploded,
+    exploding,
     explodedBy: mdata.explodedBy,
     explodesAt,
     forceExplodingRetainer,

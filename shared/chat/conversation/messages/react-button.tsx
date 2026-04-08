@@ -30,12 +30,12 @@ function ReactButtonContainer(p: OwnProps) {
         return {active: false, count: 0, decorated: ''}
       }
       const message = s.messageMap.get(ordinal)
-      const reaction = message?.reactions?.get(emoji || '')
-      const active = (reaction?.users ?? []).some(r => r.username === me)
+      const reactionDesc = message?.reactions?.get(emoji || '')
+      const active = (reactionDesc?.users ?? []).some(r => r.username === me)
       return {
         active,
-        count: reaction?.users.length ?? 0,
-        decorated: reaction?.decorated ?? '',
+        count: reactionDesc?.users.length ?? 0,
+        decorated: reactionDesc?.decorated ?? '',
       }
     })
   )
