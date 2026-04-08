@@ -61,6 +61,23 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
+    if (__DEV__ && TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+      try {
+        const decoded = this.decodeMessageForDebug(m)
+        const [type, seqid] = decoded
+        if (type === 1) {
+          console.warn('[TEMP requestInboxUnbox daemon debug] node received response from daemon', {
+            decoded,
+            seqid,
+          })
+        } else if (type === 0) {
+          console.warn('[TEMP requestInboxUnbox daemon debug] node received invoke from daemon', {
+            decoded,
+            seqid,
+          })
+        }
+      } catch {}
+    }
     mainWindowDispatchEngineIncoming(m)
   }
 
@@ -138,6 +155,16 @@ class NativeTransport extends TransportShared {
       }
       this.connectOnce()
     }, 1000)
+  }
+
+  private decodeMessageForDebug(data: Uint8Array): RPCMessage {
+    const packet = this.copyForDebug(data)
+    const payload = require('@msgpack/msgpack').decode(packet.slice(5))
+    return payload as RPCMessage
+  }
+
+  private copyForDebug(data: Uint8Array) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
   }
 }
 
