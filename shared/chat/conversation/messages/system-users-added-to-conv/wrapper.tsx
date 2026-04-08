@@ -1,11 +1,10 @@
-import * as Chat from '@/stores/chat'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SystemUsersAddedToConvType from './container'
 
 function SystemUsersAddedToConv(p: Props) {
   const {ordinal, isCenteredHighlight} = p
-  const common = useCommon(ordinal, isCenteredHighlight)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
   if (message?.type !== 'systemUsersAddedToConversation') return null
 
@@ -13,7 +12,7 @@ function SystemUsersAddedToConv(p: Props) {
     default: typeof SystemUsersAddedToConvType
   }
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       <SystemUsersAddedToConv message={message} />
     </WrapperMessage>
   )

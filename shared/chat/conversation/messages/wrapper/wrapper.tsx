@@ -203,82 +203,136 @@ const getEcrType = (message: T.Chat.Message, you: string) => {
   return EditCancelRetryType.RETRY_CANCEL
 }
 
-// Combined selector hook that fetches all message data in a single subscription
-export const useMessageData = (
-  ordinal: T.Chat.Ordinal,
+const getCommonMessageData = ({
+  accountsInfoMap,
+  editing,
+  isCenteredHighlight,
+  message,
+  messageCenterOrdinal,
+  ordinal,
+  paymentStatusMap,
+  unfurlPrompt,
+  you,
+}: {
+  accountsInfoMap: Chat.State['accountsInfoMap']
+  editing: Chat.State['editing']
   isCenteredHighlight?: boolean
-) => {
+  message: T.Chat.Message
+  messageCenterOrdinal: Chat.State['messageCenterOrdinal']
+  ordinal: T.Chat.Ordinal
+  paymentStatusMap: Chat.State['paymentStatusMap']
+  unfurlPrompt: Chat.State['unfurlPrompt']
+  you: string
+}) => {
+  const {exploded, submitState, author, id, botUsername} = message
+  const type = message.type
+  const idMatchesOrdinal = T.Chat.ordinalToNumber(message.ordinal) === T.Chat.messageIDToNumber(id)
+  const exploding = !!message.exploding
+  const decorate = !exploded && !message.errorReason
+  const isShowingUploadProgressBar =
+    you === author && message.type === 'attachment' && message.inlineVideoPlayable
+  const showSendIndicator =
+    !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
+  const showRevoked = !!message.deviceRevokedAt
+  const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+  const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, message)
+  const hasReactions = (message.reactions?.size ?? 0) > 0
+  const botname = botUsername === author ? '' : (botUsername ?? '')
+  const canShowReactionsPopup = Chat.isMessageWithReactions(message)
+  const ecrType = getEcrType(message, you)
+  const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, message)
+  const hasBeenEdited = message.hasBeenEdited ?? false
+  const hasCoinFlip = message.type === 'text' && !!message.flipGameID
+  const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
+  const hasUnfurlPrompts = !!id && !!unfurlPrompt.get(id)?.size
+  const textType: 'error' | 'sent' | 'pending' = message.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
+  const showReplyTo = message.type === 'text' ? !!message.replyTo : false
+  const text =
+    message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
+  const showCenteredHighlight =
+    isCenteredHighlight ??
+    !!(
+      messageCenterOrdinal &&
+      messageCenterOrdinal.highlightMode !== 'none' &&
+      messageCenterOrdinal.ordinal === ordinal
+    )
+
+  return {
+    botname,
+    canShowReactionsPopup,
+    decorate,
+    ecrType,
+    exploding,
+    hasBeenEdited,
+    hasCoinFlip,
+    hasReactions,
+    hasUnfurlList,
+    hasUnfurlPrompts,
+    isEditing: editing === ordinal,
+    shouldShowPopup,
+    showCenteredHighlight,
+    showCoinsIcon,
+    showExplodingCountdown,
+    showReplyTo,
+    showRevoked,
+    showSendIndicator,
+    text,
+    textType,
+    type,
+  }
+}
+
+// Combined selector hook that fetches all common wrapper data in a single subscription.
+export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
 
   return Chat.useChatContext(
     C.useShallow(s => {
-      const accountsInfoMap = s.accountsInfoMap
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const isEditing = s.editing === ordinal
-      const {exploded, submitState, author, id, botUsername} = m
-      const type = m.type
-      const idMatchesOrdinal = T.Chat.ordinalToNumber(m.ordinal) === T.Chat.messageIDToNumber(id)
-      const exploding = !!m.exploding
-      const decorate = !exploded && !m.errorReason
-      const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
-      const showSendIndicator =
-        !!submitState && !exploded && you === author && !idMatchesOrdinal && !isShowingUploadProgressBar
-      const showRevoked = !!m.deviceRevokedAt
-      const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-      const paymentStatusMap = Chat.useChatState.getState().paymentStatusMap
-      const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
-      const hasReactions = (m.reactions?.size ?? 0) > 0
-      const botname = botUsername === author ? '' : (botUsername ?? '')
-      const canShowReactionsPopup = Chat.isMessageWithReactions(m)
-      const ecrType = getEcrType(m, you)
-      const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, m)
-      // Fields lifted from child components to consolidate subscriptions
-      const hasBeenEdited = m.hasBeenEdited ?? false
-      const hasCoinFlip = m.type === 'text' && !!m.flipGameID
-      const hasUnfurlList = (m.unfurls?.size ?? 0) > 0
-      const hasUnfurlPrompts = !!id && !!s.unfurlPrompt.get(id)?.size
-      const textType: 'error' | 'sent' | 'pending' = m.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
-      const showReplyTo = m.type === 'text' ? !!m.replyTo : false
-      const text = m.type === 'text' ? (m.decoratedText?.stringValue() ?? m.text.stringValue()) : ''
-      const {messageCenterOrdinal} = s
-      const showCenteredHighlight =
-        isCenteredHighlight ??
-        !!(
-          messageCenterOrdinal &&
-          messageCenterOrdinal.highlightMode !== 'none' &&
-          messageCenterOrdinal.ordinal === ordinal
-        )
+      const message = s.messageMap.get(ordinal) ?? missingMessage
+      return getCommonMessageData({
+        accountsInfoMap: s.accountsInfoMap,
+        editing: s.editing,
+        isCenteredHighlight,
+        message,
+        messageCenterOrdinal: s.messageCenterOrdinal,
+        ordinal,
+        paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        unfurlPrompt: s.unfurlPrompt,
+        you,
+      })
+    })
+  )
+}
 
+const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
+  const you = useCurrentUserState(s => s.username)
+
+  return Chat.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal) ?? missingMessage
       return {
-        botname,
-        canShowReactionsPopup,
-        decorate,
-        ecrType,
-        exploding,
-        hasBeenEdited,
-        hasCoinFlip,
-        hasReactions,
-        hasUnfurlList,
-        hasUnfurlPrompts,
-        isEditing,
-        shouldShowPopup,
-        showCenteredHighlight,
-        showCoinsIcon,
-        showExplodingCountdown,
-        showReplyTo,
-        showRevoked,
-        showSendIndicator,
-        text,
-        textType,
-        type,
+        ...getCommonMessageData({
+          accountsInfoMap: s.accountsInfoMap,
+          editing: s.editing,
+          isCenteredHighlight,
+          message,
+          messageCenterOrdinal: s.messageCenterOrdinal,
+          ordinal,
+          paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+          unfurlPrompt: s.unfurlPrompt,
+          you,
+        }),
+        message,
       }
     })
   )
 }
 
-// Version that accepts pre-fetched data to avoid duplicate selector calls
-export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<typeof useMessageData>) => {
-  const {type, shouldShowPopup, showCenteredHighlight} = data
+const useWrapperPopup = (
+  ordinal: T.Chat.Ordinal,
+  data: Pick<ReturnType<typeof useMessageData>, 'shouldShowPopup' | 'type'>
+) => {
+  const {type, shouldShowPopup} = data
 
   const shouldShow = () => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -288,38 +342,28 @@ export const useCommonWithData = (ordinal: T.Chat.Ordinal, data: ReturnType<type
     shouldShow,
     style: styles.messagePopupContainer,
   })
-  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
+  return {popup, popupAnchor, showPopup, showingPopup}
 }
 
-// Legacy version for backward compatibility with other wrappers
-export const useCommon = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
-  const data = useMessageData(ordinal, isCenteredHighlight)
-  const {type, shouldShowPopup, showCenteredHighlight} = data
+export const useWrapperMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
+  const messageData = useMessageData(ordinal, isCenteredHighlight)
+  return {...useWrapperPopup(ordinal, messageData), messageData}
+}
 
-  const shouldShow = () => {
-    return messageShowsPopup(type) && shouldShowPopup
-  }
-  const {showPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
-    ordinal,
-    shouldShow,
-    style: styles.messagePopupContainer,
-  })
-  return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
+export const useWrapperMessageWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
+  const messageData = useMessageDataWithMessage(ordinal, isCenteredHighlight)
+  return {...useWrapperPopup(ordinal, messageData), messageData}
 }
 
 type WrapperMessageProps = {
   children: React.ReactNode
   bottomChildren?: React.ReactNode
-  showCenteredHighlight: boolean
   showPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
-} & Props
-
-type WrapperMessageViewProps = WrapperMessageProps & {
   messageData: ReturnType<typeof useMessageData>
-}
+} & Props
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
@@ -651,19 +695,13 @@ function RightSide(p: RProps) {
 }
 
 export function WrapperMessage(p: WrapperMessageProps) {
-  const {ordinal, isCenteredHighlight} = p
-  const messageData = useMessageData(ordinal, isCenteredHighlight)
-  return <WrapperMessageView {...p} messageData={messageData} showCenteredHighlight={messageData.showCenteredHighlight} />
-}
-
-export function WrapperMessageView(p: WrapperMessageViewProps) {
   const {ordinal, bottomChildren, children, messageData: mdata} = p
-  const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
+  const {showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
   const {canShowReactionsPopup, ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList} = mdata
+  const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
 
   const isHighlighted = showCenteredHighlight || isEditing
   const tsprops = {

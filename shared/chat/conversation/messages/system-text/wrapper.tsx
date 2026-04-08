@@ -1,17 +1,16 @@
-import * as Chat from '@/stores/chat'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SystemTextType from './container'
 
 function SystemText(p: Props) {
   const {ordinal, isCenteredHighlight} = p
-  const common = useCommon(ordinal, isCenteredHighlight)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
   if (message?.type !== 'systemText') return null
 
   const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       <SystemText text={message.text.stringValue()} />
     </WrapperMessage>
   )
