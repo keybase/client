@@ -22,9 +22,18 @@ module.exports = {
   setupFiles: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'node',
   testMatch: [
-    '<rootDir>/stores/**/*.test.ts',
-    '<rootDir>/common-adapters/**/*.test.ts',
-    '<rootDir>/common-adapters/**/*.test.tsx',
+    '<rootDir>/**/*.test.ts',
+    '<rootDir>/**/*.test.tsx',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/desktop/dist/',
+    '<rootDir>/desktop/release/',
+    '<rootDir>/ios/',
+    '<rootDir>/android/',
+    '<rootDir>/images/',
+    '<rootDir>/perf/',
+    '<rootDir>/.tsOuts/',
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
