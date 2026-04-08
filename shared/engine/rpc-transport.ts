@@ -444,11 +444,11 @@ export abstract class RPCTransport {
       cancelled: false,
       error: err => {
         tempRPCDebugLog('send response error', {err, seqid})
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, err, null])
+        this.send([MESSAGE_TYPE_RESPONSE, seqid, err ?? null, null])
       },
       result: result => {
         tempRPCDebugLog('send response result', {result, seqid})
-        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result])
+        this.send([MESSAGE_TYPE_RESPONSE, seqid, null, result === undefined ? null : result])
       },
       seqid,
     }
