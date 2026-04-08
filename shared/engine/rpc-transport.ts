@@ -289,8 +289,10 @@ export abstract class RPCTransport {
           return
         }
         if (method === 'chat.1.chatUi.chatInboxConversation') {
+          const firstParam = param[0] as {sessionID?: number} | undefined
           tempRPCDebugLog('incoming invoke chatInboxConversation', {
             param0: param[0],
+            sessionID: firstParam?.sessionID,
             seqid,
           })
         }

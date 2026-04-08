@@ -9,6 +9,14 @@ import KB2 from '@/util/electron.desktop'
 
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
 const {isRenderer} = KB2.constants
+const TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX = true
+
+const tempRPCBridgeLog = (event: string, details: object) => {
+  if (!TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX || !__DEV__) {
+    return
+  }
+  console.warn(`[TEMP requestInboxUnbox bridge debug] ${event}`, details)
+}
 
 // used by node
 class NativeTransport extends TransportShared {
@@ -135,6 +143,12 @@ class NativeTransport extends TransportShared {
 
 class ProxyNativeTransport extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
+    const [type, seqid, methodOrError] = message
+    if (type === 1) {
+      tempRPCBridgeLog('renderer write response', {message, seqid})
+    } else if (type === 0 && methodOrError === 'chat.1.local.requestInboxUnbox') {
+      tempRPCBridgeLog('renderer write invoke', {message, seqid})
+    }
     engineSend?.(message)
   }
 }

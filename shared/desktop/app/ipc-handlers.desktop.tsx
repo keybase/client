@@ -190,6 +190,14 @@ export const setupIPCHandlers = (deps: {
     switch (action.type) {
       case 'engineSend': {
         const {buf} = action.payload
+        if (__DEV__) {
+          const [type, seqid, methodOrError] = buf
+          if (type === 1) {
+            console.warn('[TEMP requestInboxUnbox bridge debug] main received response', {buf, seqid})
+          } else if (type === 0 && methodOrError === 'chat.1.local.requestInboxUnbox') {
+            console.warn('[TEMP requestInboxUnbox bridge debug] main received invoke', {buf, seqid})
+          }
+        }
         deps.nodeEngine._rpcClient.transport.send(buf)
         return
       }
