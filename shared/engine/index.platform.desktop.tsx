@@ -38,6 +38,152 @@ const normalizeIncomingChunk = (data: unknown) => {
   return undefined
 }
 
+const createBridgeFrameLogger = (label: string) => {
+  let bufferedBytes = 0
+  let chunks = new Array<Uint8Array>()
+  let chunkOffset = 0
+
+  const reset = () => {
+    bufferedBytes = 0
+    chunks = []
+    chunkOffset = 0
+  }
+
+  const frameHeaderLength = (leadByte: number) => {
+    if (leadByte < 0x80) {
+      return 1
+    }
+    switch (leadByte) {
+      case 0xcc:
+        return 2
+      case 0xcd:
+        return 3
+      case 0xce:
+        return 5
+      default:
+        return 0
+    }
+  }
+
+  const appendChunk = (data: Uint8Array) => {
+    if (!data.length) {
+      return
+    }
+    chunks.push(data)
+    bufferedBytes += data.length
+  }
+
+  const peekByte = () => {
+    const firstChunk = chunks[0]
+    if (!firstChunk) {
+      return undefined
+    }
+    return firstChunk[chunkOffset]
+  }
+
+  const copyBufferedBytes = (length: number) => {
+    if (length > bufferedBytes) {
+      return undefined
+    }
+
+    const firstChunk = chunks[0]
+    if (firstChunk) {
+      const available = firstChunk.length - chunkOffset
+      if (available >= length) {
+        return firstChunk.slice(chunkOffset, chunkOffset + length)
+      }
+    }
+
+    const out = new Uint8Array(length)
+    let outOffset = 0
+    let remaining = length
+    let localChunkIndex = 0
+    let localChunkOffset = chunkOffset
+
+    while (remaining > 0) {
+      const chunk = chunks[localChunkIndex]
+      if (!chunk) {
+        return undefined
+      }
+      const available = chunk.length - localChunkOffset
+      const toCopy = Math.min(remaining, available)
+      out.set(chunk.subarray(localChunkOffset, localChunkOffset + toCopy), outOffset)
+      outOffset += toCopy
+      remaining -= toCopy
+      localChunkIndex += 1
+      localChunkOffset = 0
+    }
+
+    return out
+  }
+
+  const consumeBufferedBytes = (length: number) => {
+    let remaining = length
+    while (remaining > 0) {
+      const chunk = chunks[0]
+      if (!chunk) {
+        chunkOffset = 0
+        bufferedBytes = 0
+        return
+      }
+      const available = chunk.length - chunkOffset
+      if (remaining < available) {
+        chunkOffset += remaining
+        bufferedBytes -= length
+        return
+      }
+      remaining -= available
+      chunks.shift()
+      chunkOffset = 0
+    }
+    bufferedBytes -= length
+  }
+
+  return (data: Uint8Array) => {
+    if (!__DEV__ || !TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+      return
+    }
+    try {
+      appendChunk(data)
+      while (bufferedBytes > 0) {
+        const firstByte = peekByte()
+        if (firstByte === undefined) {
+          return
+        }
+        const headerLen = frameHeaderLength(firstByte)
+        if (!headerLen || bufferedBytes < headerLen) {
+          return
+        }
+        const header = copyBufferedBytes(headerLen)
+        if (!header) {
+          return
+        }
+        const payloadLen = decode(header)
+        if (typeof payloadLen !== 'number' || payloadLen < 0) {
+          reset()
+          return
+        }
+        if (bufferedBytes < headerLen + payloadLen) {
+          return
+        }
+        consumeBufferedBytes(headerLen)
+        const payloadBytes = copyBufferedBytes(payloadLen)
+        if (!payloadBytes) {
+          return
+        }
+        const payload = decode(payloadBytes) as RPCMessage
+        consumeBufferedBytes(payloadLen)
+        const [type, seqid] = payload
+        if (type === 1) {
+          tempRPCBridgeLog(label, {payload, seqid})
+        }
+      }
+    } catch {
+      reset()
+    }
+  }
+}
+
 // used by node
 class NativeTransport extends TransportShared {
   private _socket?: Socket
@@ -46,6 +192,7 @@ class NativeTransport extends TransportShared {
   private _debugBufferedBytes = 0
   private _debugChunks = new Array<Uint8Array>()
   private _debugChunkOffset = 0
+  private _bridgeToRendererLogger = createBridgeFrameLogger('node sent response chunk to renderer')
 
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
@@ -102,6 +249,7 @@ class NativeTransport extends TransportShared {
     // Electron IPC so the renderer packetizer always sees an exact standalone byte range.
     const chunk = cloneChunkForIPC(m)
     this.debugPacketizeData(chunk)
+    this._bridgeToRendererLogger(chunk)
     mainWindowDispatchEngineIncoming(chunk)
   }
 
@@ -357,6 +505,7 @@ function createClient(
     const client = sharedCreateClient(
       new ProxyNativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
     )
+    const bridgeFromNodeLogger = createBridgeFrameLogger('renderer received response chunk from node')
 
     // plumb back data from the node side
     ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
@@ -369,6 +518,7 @@ function createClient(
           })
           return
         }
+        bridgeFromNodeLogger(chunk)
         client.transport.packetizeData(chunk)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
