@@ -1,4 +1,5 @@
 import type {Socket} from 'net'
+import {decode} from '@msgpack/msgpack'
 import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '@/constants/platform.desktop'
@@ -23,6 +24,9 @@ class NativeTransport extends TransportShared {
   private _socket?: Socket
   private _reconnectTimer?: ReturnType<typeof setTimeout>
   private _connecting = false
+  private _debugBufferedBytes = 0
+  private _debugChunks = new Array<Uint8Array>()
+  private _debugChunkOffset = 0
 
   constructor(
     incomingRPCCallback: IncomingRPCCallbackType,
@@ -61,23 +65,7 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
-    if (__DEV__ && TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
-      try {
-        const decoded = this.decodeMessageForDebug(m)
-        const [type, seqid] = decoded
-        if (type === 1) {
-          console.warn('[TEMP requestInboxUnbox daemon debug] node received response from daemon', {
-            decoded,
-            seqid,
-          })
-        } else if (type === 0) {
-          console.warn('[TEMP requestInboxUnbox daemon debug] node received invoke from daemon', {
-            decoded,
-            seqid,
-          })
-        }
-      } catch {}
-    }
+    this.debugPacketizeData(m)
     mainWindowDispatchEngineIncoming(m)
   }
 
@@ -157,10 +145,156 @@ class NativeTransport extends TransportShared {
     }, 1000)
   }
 
-  private decodeMessageForDebug(data: Uint8Array): RPCMessage {
-    const packet = this.copyForDebug(data)
-    const payload = require('@msgpack/msgpack').decode(packet.slice(5))
-    return payload as RPCMessage
+  private debugPacketizeData(data: Uint8Array) {
+    if (!__DEV__ || !TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+      return
+    }
+    try {
+      this.appendDebugChunk(data)
+      while (this._debugBufferedBytes > 0) {
+        const firstByte = this.peekDebugByte()
+        if (firstByte === undefined) {
+          return
+        }
+        const headerLen = this.frameHeaderLength(firstByte)
+        if (!headerLen || this._debugBufferedBytes < headerLen) {
+          return
+        }
+        const header = this.copyDebugBufferedBytes(headerLen)
+        if (!header) {
+          return
+        }
+        const payloadLen = decode(header)
+        if (typeof payloadLen !== 'number' || payloadLen < 0) {
+          this.resetDebugPacketizer()
+          return
+        }
+        if (this._debugBufferedBytes < headerLen + payloadLen) {
+          return
+        }
+        this.consumeDebugBufferedBytes(headerLen)
+        const payloadBytes = this.copyDebugBufferedBytes(payloadLen)
+        if (!payloadBytes) {
+          return
+        }
+        const payload = decode(payloadBytes) as RPCMessage
+        this.consumeDebugBufferedBytes(payloadLen)
+        const [type, seqid] = payload
+        if (type === 1) {
+          console.warn('[TEMP requestInboxUnbox daemon debug] node received response from daemon', {
+            payload,
+            seqid,
+          })
+        } else if (type === 0) {
+          console.warn('[TEMP requestInboxUnbox daemon debug] node received invoke from daemon', {
+            payload,
+            seqid,
+          })
+        }
+      }
+    } catch {
+      this.resetDebugPacketizer()
+    }
+  }
+
+  private frameHeaderLength(leadByte: number) {
+    if (leadByte < 0x80) {
+      return 1
+    }
+    switch (leadByte) {
+      case 0xcc:
+        return 2
+      case 0xcd:
+        return 3
+      case 0xce:
+        return 5
+      default:
+        return 0
+    }
+  }
+
+  private resetDebugPacketizer() {
+    this._debugBufferedBytes = 0
+    this._debugChunks = []
+    this._debugChunkOffset = 0
+  }
+
+  private appendDebugChunk(data: Uint8Array) {
+    const chunk = new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+    if (!chunk.length) {
+      return
+    }
+    this._debugChunks.push(chunk)
+    this._debugBufferedBytes += chunk.length
+  }
+
+  private peekDebugByte() {
+    const firstChunk = this._debugChunks[0]
+    if (!firstChunk) {
+      return undefined
+    }
+    return firstChunk[this._debugChunkOffset]
+  }
+
+  private copyDebugBufferedBytes(length: number) {
+    if (length > this._debugBufferedBytes) {
+      return undefined
+    }
+
+    const firstChunk = this._debugChunks[0]
+    if (firstChunk) {
+      const available = firstChunk.length - this._debugChunkOffset
+      if (available >= length) {
+        return firstChunk.slice(this._debugChunkOffset, this._debugChunkOffset + length)
+      }
+    }
+
+    const out = new Uint8Array(length)
+    let outOffset = 0
+    let remaining = length
+    let chunkIndex = 0
+    let chunkOffset = this._debugChunkOffset
+
+    while (remaining > 0) {
+      const chunk = this._debugChunks[chunkIndex]
+      if (!chunk) {
+        return undefined
+      }
+
+      const available = chunk.length - chunkOffset
+      const toCopy = Math.min(remaining, available)
+      out.set(chunk.subarray(chunkOffset, chunkOffset + toCopy), outOffset)
+      outOffset += toCopy
+      remaining -= toCopy
+      chunkIndex += 1
+      chunkOffset = 0
+    }
+
+    return out
+  }
+
+  private consumeDebugBufferedBytes(length: number) {
+    let remaining = length
+    while (remaining > 0) {
+      const chunk = this._debugChunks[0]
+      if (!chunk) {
+        this._debugChunkOffset = 0
+        this._debugBufferedBytes = 0
+        return
+      }
+
+      const available = chunk.length - this._debugChunkOffset
+      if (remaining < available) {
+        this._debugChunkOffset += remaining
+        this._debugBufferedBytes -= length
+        return
+      }
+
+      remaining -= available
+      this._debugChunks.shift()
+      this._debugChunkOffset = 0
+    }
+    this._debugBufferedBytes -= length
   }
 
   private copyForDebug(data: Uint8Array) {
