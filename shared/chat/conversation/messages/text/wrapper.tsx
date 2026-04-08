@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
@@ -61,10 +60,9 @@ function WrapperText(p: Props) {
     messageID: message.id,
     unfurls: message.type === 'text' ? message.unfurls : undefined,
   })
-  const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0
-    id && replyJump(id)
+    id && messageData.replyJump(id)
   }
   const reply = useReply(replyTo, onReplyClick)
 

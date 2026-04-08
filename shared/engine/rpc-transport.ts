@@ -78,6 +78,14 @@ type PendingItem =
 
 const queueMax = 1000
 const maxFrameSize = 64 * 1024 * 1024 // 64 MB; rejects oversized frames before buffering payload bytes
+const TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX = true
+
+const tempRPCDebugLog = (event: string, details: object) => {
+  if (!TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX || !__DEV__) {
+    return
+  }
+  console.warn(`[TEMP requestInboxUnbox rpc debug] ${event}`, details)
+}
 
 const makeTransportError = (name: ErrorName): ErrorType => ({
   code: errors[name],
@@ -130,6 +138,7 @@ export abstract class RPCTransport {
   private _connectCallback?: ConnectDisconnectCB
   private _disconnectCallback?: ConnectDisconnectCB
   private _invocations = new Map<number, InvocationCallback>()
+  private _invocationMethods = new Map<number, string>()
   private _pending = new Array<PendingItem>()
   private _seqid = 1
 
@@ -205,7 +214,14 @@ export abstract class RPCTransport {
 
   protected failOutstanding(err: unknown, data: unknown) {
     const invocations = this._invocations
+    const invocationMethods = this._invocationMethods
     this._invocations = new Map()
+    this._invocationMethods = new Map()
+    invocationMethods.forEach((method, seqid) => {
+      if (method === 'chat.1.local.requestInboxUnbox') {
+        tempRPCDebugLog('failOutstanding', {data, err, seqid})
+      }
+    })
     invocations.forEach(cb => cb(err, data))
   }
 
@@ -272,6 +288,12 @@ export abstract class RPCTransport {
           console.warn('Invalid invoke packet received')
           return
         }
+        if (method === 'chat.1.chatUi.chatInboxConversation') {
+          tempRPCDebugLog('incoming invoke chatInboxConversation', {
+            param0: param[0],
+            seqid,
+          })
+        }
         const payload = {
           method,
           param: param as Array<{sessionID?: number}>,
@@ -302,11 +324,17 @@ export abstract class RPCTransport {
           console.warn('Invalid response packet received')
           return
         }
+        const method = this._invocationMethods.get(seqid)
         const cb = this._invocations.get(seqid)
         if (!cb) {
+          tempRPCDebugLog('response with no invocation', {error, method, result, seqid})
           return
         }
         this._invocations.delete(seqid)
+        this._invocationMethods.delete(seqid)
+        if (method === 'chat.1.local.requestInboxUnbox') {
+          tempRPCDebugLog('response matched invocation', {error, result, seqid})
+        }
         cb(this.unwrapIncomingError(error), result)
         return
       }
@@ -315,6 +343,10 @@ export abstract class RPCTransport {
         if (typeof seqid !== 'number') {
           console.warn('Invalid cancel packet received')
           return
+        }
+        const method = this._invocationMethods.get(seqid)
+        if (method === 'chat.1.local.requestInboxUnbox') {
+          tempRPCDebugLog('incoming cancel', {seqid})
         }
         this._incomingRPCCallback?.({
           method: '',
@@ -387,6 +419,10 @@ export abstract class RPCTransport {
     const seqid = this._seqid
     this._seqid += 1
     this._invocations.set(seqid, cb)
+    this._invocationMethods.set(seqid, method)
+    if (method === 'chat.1.local.requestInboxUnbox') {
+      tempRPCDebugLog('invokeNow', {args: args[0], seqid})
+    }
     this.writeMessage([MESSAGE_TYPE_INVOKE, seqid, method, args])
   }
 

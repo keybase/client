@@ -213,15 +213,46 @@ function Inbox(props: InboxProps) {
   const didInitialUnboxRef = React.useRef(false)
   React.useEffect(() => {
     if (didInitialUnboxRef.current || rows.length === 0) return
-    didInitialUnboxRef.current = true
-    const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-      if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
-        arr.push(r.conversationIDKey)
-      }
-      return arr
-    }, [])
-    if (toUnbox.length > 0) {
-      onUntrustedInboxVisible(toUnbox)
+    let cancelled = false
+    let frame = 0
+    let attempts = 0
+
+    const queueInitialUnbox = () => {
+      frame = requestAnimationFrame(() => {
+        if (cancelled || didInitialUnboxRef.current) {
+          return
+        }
+
+        const state = listRef.current?.getState()
+        const start = Math.max(0, state?.start ?? -1)
+        const end = Math.min(rows.length - 1, state?.end ?? -1)
+
+        if (end < start) {
+          attempts++
+          if (attempts < 10) {
+            queueInitialUnbox()
+          }
+          return
+        }
+
+        didInitialUnboxRef.current = true
+        const toUnbox = rows.slice(start, end + 1).reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
+          if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
+            arr.push(r.conversationIDKey)
+          }
+          return arr
+        }, [])
+        if (toUnbox.length > 0) {
+          onUntrustedInboxVisible(toUnbox)
+        }
+      })
+    }
+
+    queueInitialUnbox()
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
     }
   }, [rows, onUntrustedInboxVisible])
 
