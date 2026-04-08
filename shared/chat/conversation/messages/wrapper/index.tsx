@@ -1,8 +1,8 @@
 import * as Chat from '@/stores/chat'
-import * as React from 'react'
 import {chatDebugEnabled} from '@/constants/chat/debug'
 import logger from '@/logger'
 import {PerfProfiler} from '@/perf/react-profiler'
+import type * as React from 'react'
 import Text from '../text/wrapper'
 import {
   WrapperAttachmentAudio,
@@ -32,46 +32,72 @@ import SetChannelname from '../set-channelname/wrapper'
 import {type Props} from './wrapper'
 import type * as T from '@/constants/types'
 
-const typeMap = {
-  'attachment:audio': WrapperAttachmentAudio,
-  'attachment:file': WrapperAttachmentFile,
-  'attachment:image': WrapperAttachmentImage,
-  'attachment:video': WrapperAttachmentVideo,
-  journeycard: JourneyCard,
-  pin: Pin,
-  placeholder: Placeholder,
-  requestPayment: Payment,
-  sendPayment: Payment,
-  setChannelname: SetChannelname,
-  setDescription: SetDescription,
-  systemAddedToTeam: SystemAddedToTeam,
-  systemChangeAvatar: SystemChangeAvatar,
-  systemChangeRetention: SystemChangeRetention,
-  systemCreateTeam: SystemCreateTeam,
-  systemGitPush: SystemGitPush,
-  systemInviteAccepted: SystemInviteAccepted,
-  systemJoined: SystemJoined,
-  systemLeft: SystemLeft,
-  systemNewChannel: SystemNewChannel,
-  systemSBSResolved: SystemSBSResolved,
-  systemSimpleToComplex: SystemSimpleToComplex,
-  systemText: SystemText,
-  systemUsersAddedToConversation: SystemUsersAddedToConv,
-  text: Text,
-} satisfies Partial<Record<T.Chat.RenderMessageType, React.ComponentType<Props>>> as unknown as Record<
-  T.Chat.RenderMessageType,
-  React.ComponentType<Props> | undefined
->
-
-export const getMessageRender = (type: T.Chat.RenderMessageType) => {
-  return type === 'deleted' ? undefined : typeMap[type]
+const renderMessageRow = (type: T.Chat.RenderMessageType, p: Props): React.ReactNode => {
+  switch (type) {
+    case 'attachment:audio':
+      return <WrapperAttachmentAudio {...p} />
+    case 'attachment:file':
+      return <WrapperAttachmentFile {...p} />
+    case 'attachment:image':
+      return <WrapperAttachmentImage {...p} />
+    case 'attachment:video':
+      return <WrapperAttachmentVideo {...p} />
+    case 'journeycard':
+      return <JourneyCard {...p} />
+    case 'pin':
+      return <Pin {...p} />
+    case 'placeholder':
+      return <Placeholder {...p} />
+    case 'requestPayment':
+    case 'sendPayment':
+      return <Payment {...p} />
+    case 'setChannelname':
+      return <SetChannelname {...p} />
+    case 'setDescription':
+      return <SetDescription {...p} />
+    case 'systemAddedToTeam':
+      return <SystemAddedToTeam {...p} />
+    case 'systemChangeAvatar':
+      return <SystemChangeAvatar {...p} />
+    case 'systemChangeRetention':
+      return <SystemChangeRetention {...p} />
+    case 'systemCreateTeam':
+      return <SystemCreateTeam {...p} />
+    case 'systemGitPush':
+      return <SystemGitPush {...p} />
+    case 'systemInviteAccepted':
+      return <SystemInviteAccepted {...p} />
+    case 'systemJoined':
+      return <SystemJoined {...p} />
+    case 'systemLeft':
+      return <SystemLeft {...p} />
+    case 'systemNewChannel':
+      return <SystemNewChannel {...p} />
+    case 'systemSBSResolved':
+      return <SystemSBSResolved {...p} />
+    case 'systemSimpleToComplex':
+      return <SystemSimpleToComplex {...p} />
+    case 'systemText':
+      return <SystemText {...p} />
+    case 'systemUsersAddedToConversation':
+      return <SystemUsersAddedToConv {...p} />
+    case 'text':
+      return <Text {...p} />
+    case 'deleted':
+      return null
+    default:
+      return null
+  }
 }
 
 export const MessageRow = function MessageRow(p: Props) {
   const {ordinal} = p
   const type = Chat.useChatContext(s => s.messageTypeMap.get(ordinal) ?? 'text')
-  const Clazz = getMessageRender(type)
-  if (!Clazz) {
+  const content = renderMessageRow(type, p)
+  if (!content) {
+    if (type === 'deleted') {
+      return null
+    }
     if (chatDebugEnabled) {
       logger.error('[CHATDEBUG] no rendertype', {ordinal, type})
     }
@@ -79,7 +105,7 @@ export const MessageRow = function MessageRow(p: Props) {
   }
   return (
     <PerfProfiler id={`Msg-${type}`}>
-      <Clazz {...p} />
+      {content}
     </PerfProfiler>
   )
 }

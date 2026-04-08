@@ -6,7 +6,7 @@ function SystemText(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemText') return null
+  if (message.type !== 'systemText') return null
 
   const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
   return (

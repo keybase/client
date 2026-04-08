@@ -6,7 +6,7 @@ function SystemGitPush(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemGitPush') return null
+  if (message.type !== 'systemGitPush') return null
 
   const {default: SystemGitPush} = require('./container') as {default: typeof SystemGitPushType}
   return (

@@ -6,7 +6,7 @@ function SystemLeft(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemLeft') return null
+  if (message.type !== 'systemLeft') return null
 
   const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (

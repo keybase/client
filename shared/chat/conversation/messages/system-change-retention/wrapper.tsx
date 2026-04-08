@@ -6,7 +6,7 @@ function SystemChangeRetention(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemChangeRetention') return null
+  if (message.type !== 'systemChangeRetention') return null
 
   const {default: SystemChangeRetention} = require('./container') as {
     default: typeof SystemChangeRetentionType

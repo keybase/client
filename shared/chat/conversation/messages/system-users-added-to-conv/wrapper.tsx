@@ -6,7 +6,7 @@ function SystemUsersAddedToConv(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemUsersAddedToConversation') return null
+  if (message.type !== 'systemUsersAddedToConversation') return null
 
   const {default: SystemUsersAddedToConv} = require('./container') as {
     default: typeof SystemUsersAddedToConvType

@@ -6,7 +6,7 @@ function WrapperPin(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'pin') return null
+  if (message.type !== 'pin') return null
 
   const {default: PinComponent} = require('.') as {default: typeof PinType}
   return (

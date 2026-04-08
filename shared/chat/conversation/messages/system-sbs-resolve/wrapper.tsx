@@ -9,7 +9,7 @@ function WrapperSystemInvite(p: Props) {
   const {message} = wrapper.messageData
   const you = useCurrentUserState(s => s.username)
 
-  if (message?.type !== 'systemSBSResolved') return null
+  if (message.type !== 'systemSBSResolved') return null
 
   const youAreAuthor = you === message.author
   const {default: SystemSBSResolved} = require('./container') as {default: typeof SystemSBSResolvedType}

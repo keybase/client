@@ -6,7 +6,7 @@ function SystemAddedToTeam(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemAddedToTeam') return null
+  if (message.type !== 'systemAddedToTeam') return null
 
   const {default: SystemAddedToTeam} = require('./container') as {default: typeof SystemAddedToTeamType}
   return (

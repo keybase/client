@@ -6,7 +6,7 @@ function SystemCreateTeam(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemCreateTeam') return null
+  if (message.type !== 'systemCreateTeam') return null
 
   const {default: SystemCreateTeam} = require('./container') as {default: typeof SystemCreateTeamType}
   return (

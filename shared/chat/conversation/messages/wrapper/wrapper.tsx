@@ -18,6 +18,7 @@ import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
+import type {ConvoState} from '@/stores/convostate'
 
 export type Props = {
   isCenteredHighlight?: boolean
@@ -214,14 +215,14 @@ const getCommonMessageData = ({
   unfurlPrompt,
   you,
 }: {
-  accountsInfoMap: Chat.State['accountsInfoMap']
-  editing: Chat.State['editing']
+  accountsInfoMap: ConvoState['accountsInfoMap']
+  editing: ConvoState['editing']
   isCenteredHighlight?: boolean
   message: T.Chat.Message
-  messageCenterOrdinal: Chat.State['messageCenterOrdinal']
+  messageCenterOrdinal: ConvoState['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
-  paymentStatusMap: Chat.State['paymentStatusMap']
-  unfurlPrompt: Chat.State['unfurlPrompt']
+  paymentStatusMap: ReturnType<typeof Chat.useChatState.getState>['paymentStatusMap']
+  unfurlPrompt: ConvoState['unfurlPrompt']
   you: string
 }) => {
   const {exploded, submitState, author, id, botUsername} = message

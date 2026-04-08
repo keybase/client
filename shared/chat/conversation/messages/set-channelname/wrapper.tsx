@@ -6,7 +6,7 @@ function WrapperSetChannelname(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'setChannelname') return null
+  if (message.type !== 'setChannelname') return null
   if (message.newChannelname === 'general') return null
 
   const {default: SetChannelnameComponent} = require('./container') as {default: typeof SetChannelnameType}

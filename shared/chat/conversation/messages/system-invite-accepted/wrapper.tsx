@@ -6,7 +6,7 @@ function WrapperSystemInvite(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemInviteAccepted') return null
+  if (message.type !== 'systemInviteAccepted') return null
 
   const {default: SystemInviteAccepted} = require('./container') as {default: typeof SystemInviteAcceptedType}
   return (

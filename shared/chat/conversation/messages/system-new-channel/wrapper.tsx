@@ -6,7 +6,7 @@ function SystemNewChannel(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemNewChannel') return null
+  if (message.type !== 'systemNewChannel') return null
 
   const {default: SystemNewChannel} = require('./container') as {default: typeof SystemNewChannelType}
   return (

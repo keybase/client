@@ -6,7 +6,7 @@ function WrapperSetDescription(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'setDescription') return null
+  if (message.type !== 'setDescription') return null
 
   const {default: SetDescriptionComponent} = require('./container') as {default: typeof SetDescriptionType}
   return (

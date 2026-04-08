@@ -6,7 +6,7 @@ function SystemJoined(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemJoined') return null
+  if (message.type !== 'systemJoined') return null
 
   const {default: SystemJoined} = require('./container') as {default: typeof SystemJoinedType}
   return (

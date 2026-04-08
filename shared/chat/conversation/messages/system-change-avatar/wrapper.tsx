@@ -6,7 +6,7 @@ function SystemChangeAvatar(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemChangeAvatar') return null
+  if (message.type !== 'systemChangeAvatar') return null
 
   const {default: SystemChangeAvatar} = require('.') as {default: typeof SystemChangeAvatarType}
   return (

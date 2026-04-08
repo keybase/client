@@ -6,7 +6,7 @@ function WrapperSystemSimpleToComplex(p: Props) {
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemSimpleToComplex') return null
+  if (message.type !== 'systemSimpleToComplex') return null
 
   const {default: SystemSimpleToComplex} = require('./container') as {
     default: typeof SystemSimpleToComplexType
