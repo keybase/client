@@ -45,6 +45,20 @@ class NativeTransport extends TransportShared {
     if (!this._socket) {
       throw new Error('write attempt with no active stream')
     }
+    const [type, seqid, methodOrError] = message
+    if (__DEV__ && TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+      if (type === 0 && methodOrError === 'chat.1.local.requestInboxUnbox') {
+        console.warn('[TEMP requestInboxUnbox daemon debug] node wrote invoke to daemon', {
+          message,
+          seqid,
+        })
+      } else if (type === 1) {
+        console.warn('[TEMP requestInboxUnbox daemon debug] node wrote response to daemon', {
+          message,
+          seqid,
+        })
+      }
+    }
     const framed = this.encodeMessage(message)
     if (printRPCBytes) {
       logger.debug('[RPC] Writing', framed.length)
