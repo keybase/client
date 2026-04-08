@@ -4,7 +4,6 @@ import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
-import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
@@ -50,10 +49,9 @@ function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
   const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
-  const {isEditing, hasReactions, replyTo} = messageData
+  const {isEditing, replyTo} = messageData
 
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, showReplyTo, type} =
-    messageData
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} = messageData
   const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onReplyClick = () => {
@@ -61,21 +59,6 @@ function WrapperText(p: Props) {
     id && replyJump(id)
   }
   const reply = useReply(replyTo, onReplyClick)
-
-  const setRecycleType = React.useContext(SetRecycleTypeContext)
-
-  React.useEffect(() => {
-    let subType = ''
-    if (showReplyTo) {
-      subType += ':reply'
-    }
-    if (hasReactions) {
-      subType += ':reactions'
-    }
-    if (subType.length) {
-      setRecycleType(ordinal, 'text' + subType)
-    }
-  }, [ordinal, showReplyTo, hasReactions, setRecycleType])
 
   const style = getStyle(textType, isEditing, showCenteredHighlight)
 

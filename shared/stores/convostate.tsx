@@ -138,6 +138,7 @@ type ConvoStore = T.Immutable<{
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   replyTo: T.Chat.Ordinal
+  rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
@@ -181,6 +182,7 @@ const initialConvoStore: ConvoStore = {
   pendingOutboxToOrdinal: new Map(),
   reactionOrderMap: new Map(),
   replyTo: T.Chat.numberToOrdinal(0),
+  rowRecycleTypeMap: new Map(),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
@@ -650,6 +652,7 @@ const createSlice =
       for (const ordinal of ordinalsToRefresh) {
         const idx = findOrdinalIndex(messageOrdinals, ordinal)
         if (messageOrdinals[idx] !== ordinal) {
+          s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
           s.reactionOrderMap.delete(ordinal)
@@ -659,6 +662,7 @@ const createSlice =
         const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
         const message = s.messageMap.get(ordinal)
         if (!message) {
+          s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
           s.reactionOrderMap.delete(ordinal)
@@ -668,11 +672,42 @@ const createSlice =
         s.separatorMap.set(ordinal, previousOrdinal)
         const previousMessage = idx > 0 ? s.messageMap.get(previousOrdinal) : undefined
         s.showUsernameMap.set(ordinal, getUsernameToShow(message, previousMessage, you))
-        if (message.reactions?.size) {
-          s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
-        } else {
-          s.reactionOrderMap.delete(ordinal)
-        }
+        setRowRenderDerivedMetadata(s, ordinal, message)
+      }
+    }
+
+    const getRowRecycleType = (message: T.Chat.Message): string | undefined => {
+      if (message.type !== 'text') {
+        return undefined
+      }
+
+      let rowRecycleType = 'text'
+      if (message.replyTo) {
+        rowRecycleType += ':reply'
+      }
+      if (message.reactions?.size) {
+        rowRecycleType += ':reactions'
+      }
+
+      return rowRecycleType === 'text' ? undefined : rowRecycleType
+    }
+
+    const setRowRenderDerivedMetadata = (
+      s: Z.WritableDraft<ConvoState>,
+      ordinal: T.Chat.Ordinal,
+      message: T.Chat.Message
+    ) => {
+      const rowRecycleType = getRowRecycleType(message)
+      if (rowRecycleType) {
+        s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
+      } else {
+        s.rowRecycleTypeMap.delete(ordinal)
+      }
+
+      if (message.reactions?.size) {
+        s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
+      } else {
+        s.reactionOrderMap.delete(ordinal)
       }
     }
 
@@ -1023,7 +1058,7 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          s.reactionOrderMap.set(targetOrdinal, Message.getReactionOrder(m.reactions))
+          setRowRenderDerivedMetadata(s, targetOrdinal, m)
         }
       })
     }
@@ -2374,6 +2409,7 @@ const createSlice =
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
           s.reactionOrderMap.clear()
+          s.rowRecycleTypeMap.clear()
           s.separatorMap.clear()
           s.showUsernameMap.clear()
           s.validatedOrdinalRange = undefined
@@ -2390,7 +2426,9 @@ const createSlice =
             m.explodedBy = explodedBy || ''
             m.reactions = new Map()
             m.unfurls = new Map()
-            if (ordinal) s.reactionOrderMap.set(ordinal, [])
+            if (ordinal) {
+              setRowRenderDerivedMetadata(s, ordinal, m)
+            }
             if (m.type === 'text') {
               m.flipGameID = ''
               m.mentionsAt = new Set()
@@ -3552,7 +3590,7 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              s.reactionOrderMap.set(targetOrdinal, m.reactions ? Message.getReactionOrder(m.reactions) : [])
+              setRowRenderDerivedMetadata(s, targetOrdinal, m)
             }
           })
         }

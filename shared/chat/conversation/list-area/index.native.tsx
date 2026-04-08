@@ -11,7 +11,6 @@ import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {MessageRow} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {SetRecycleTypeContext} from '../recycle-type-context'
 // import {useChatDebugDump} from '@/constants/chat/debug'
 import {usingFlashList} from './flashlist-config'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -107,6 +106,7 @@ const ConversationList = function ConversationList() {
   const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
+  const rowRecycleTypeMap = Chat.useChatContext(s => s.rowRecycleTypeMap)
 
   const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
 
@@ -130,19 +130,13 @@ const ConversationList = function ConversationList() {
     )
   }
 
-  const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
-    recycleTypeRef.current.set(ordinal, type)
-  }
-
   const numOrdinals = messageOrdinals.length
 
   const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }
-    // Check recycleType first (set by messages after render — includes subtypes like 'text:reply')
-    const recycled = recycleTypeRef.current.get(ordinal)
+    const recycled = rowRecycleTypeMap.get(ordinal)
     if (recycled) return recycled
     const baseType = messageTypeMap.get(ordinal) ?? 'text'
     // Last item is most-recently sent; isolate it to avoid recycling with settled messages
@@ -256,38 +250,36 @@ const ConversationList = function ConversationList() {
 
   return (
     <Kb.ErrorBoundary>
-      <SetRecycleTypeContext value={setRecycleType}>
-        <PerfProfiler id="MessageList">
-          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-            <List
-              testID="messageList"
-              onScrollToIndexFailed={noop}
-              // @ts-ignore LegendList/FlashList prop; ignored by FlatList
-              estimatedItemSize={72}
-              ListHeaderComponent={SpecialBottomMessage}
-              ListFooterComponent={SpecialTopMessage}
-              ItemSeparatorComponent={Separator}
-              overScrollMode="never"
-              contentContainerStyle={styles.contentContainer}
-              data={messageOrdinals}
-              getItemType={getItemType}
-              inverted={true}
-              renderItem={renderItem}
-              onViewableItemsChanged={onViewableItemsChanged.current}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              keyExtractor={keyExtractor}
-              ref={listRef}
-              maintainVisibleContentPosition={
-                // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-                numOrdinals ? maintainVisibleContentPosition : undefined
-              }
-            />
-            {jumpToRecent}
-            {debugWhichList}
-          </Kb.Box2>
-        </PerfProfiler>
-      </SetRecycleTypeContext>
+      <PerfProfiler id="MessageList">
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
+          <List
+            testID="messageList"
+            onScrollToIndexFailed={noop}
+            // @ts-ignore LegendList/FlashList prop; ignored by FlatList
+            estimatedItemSize={72}
+            ListHeaderComponent={SpecialBottomMessage}
+            ListFooterComponent={SpecialTopMessage}
+            ItemSeparatorComponent={Separator}
+            overScrollMode="never"
+            contentContainerStyle={styles.contentContainer}
+            data={messageOrdinals}
+            getItemType={getItemType}
+            inverted={true}
+            renderItem={renderItem}
+            onViewableItemsChanged={onViewableItemsChanged.current}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={keyExtractor}
+            ref={listRef}
+            maintainVisibleContentPosition={
+              // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
+              numOrdinals ? maintainVisibleContentPosition : undefined
+            }
+          />
+          {jumpToRecent}
+          {debugWhichList}
+        </Kb.Box2>
+      </PerfProfiler>
     </Kb.ErrorBoundary>
   )
 }
