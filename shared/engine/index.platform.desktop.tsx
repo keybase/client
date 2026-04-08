@@ -19,6 +19,25 @@ const tempRPCBridgeLog = (event: string, details: object) => {
   console.warn(`[TEMP requestInboxUnbox bridge debug] ${event}`, details)
 }
 
+const cloneChunkForIPC = (data: Uint8Array) => Uint8Array.from(data)
+
+const normalizeIncomingChunk = (data: unknown) => {
+  if (data instanceof Uint8Array) {
+    return cloneChunkForIPC(data)
+  }
+  if (ArrayBuffer.isView(data)) {
+    const view = data as ArrayBufferView
+    return new Uint8Array(view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength))
+  }
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data.slice(0))
+  }
+  if (Array.isArray(data)) {
+    return Uint8Array.from(data)
+  }
+  return undefined
+}
+
 // used by node
 class NativeTransport extends TransportShared {
   private _socket?: Socket
@@ -79,8 +98,11 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
-    this.debugPacketizeData(m)
-    mainWindowDispatchEngineIncoming(m)
+    // Socket reads can arrive as Buffer-backed subarray views. Normalize them before crossing
+    // Electron IPC so the renderer packetizer always sees an exact standalone byte range.
+    const chunk = cloneChunkForIPC(m)
+    this.debugPacketizeData(chunk)
+    mainWindowDispatchEngineIncoming(chunk)
   }
 
   close() {
@@ -310,10 +332,6 @@ class NativeTransport extends TransportShared {
     }
     this._debugBufferedBytes -= length
   }
-
-  private copyForDebug(data: Uint8Array) {
-    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
-  }
 }
 
 class ProxyNativeTransport extends LocalTransport {
@@ -343,7 +361,15 @@ function createClient(
     // plumb back data from the node side
     ipcRendererOn?.('engineIncoming', (_e: unknown, data: unknown) => {
       try {
-        client.transport.packetizeData(data as Uint8Array)
+        const chunk = normalizeIncomingChunk(data)
+        if (!chunk) {
+          logger.error('>>>> rpcOnJs invalid engineIncoming chunk', {
+            constructorName: data && typeof data === 'object' ? data.constructor?.name : undefined,
+            type: typeof data,
+          })
+          return
+        }
+        client.transport.packetizeData(chunk)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
       }
