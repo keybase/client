@@ -695,7 +695,8 @@ const createSlice =
     const setRowRenderDerivedMetadata = (
       s: Z.WritableDraft<ConvoState>,
       ordinal: T.Chat.Ordinal,
-      message: T.Chat.Message
+      message: T.Chat.Message,
+      preserveEmptyReactionOrder = false
     ) => {
       const rowRecycleType = getRowRecycleType(message)
       if (rowRecycleType) {
@@ -706,6 +707,8 @@ const createSlice =
 
       if (message.reactions?.size) {
         s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
+      } else if (preserveEmptyReactionOrder) {
+        s.reactionOrderMap.set(ordinal, [])
       } else {
         s.reactionOrderMap.delete(ordinal)
       }
@@ -1058,7 +1061,7 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          setRowRenderDerivedMetadata(s, targetOrdinal, m)
+          setRowRenderDerivedMetadata(s, targetOrdinal, m, true)
         }
       })
     }
@@ -2427,7 +2430,7 @@ const createSlice =
             m.reactions = new Map()
             m.unfurls = new Map()
             if (ordinal) {
-              setRowRenderDerivedMetadata(s, ordinal, m)
+              setRowRenderDerivedMetadata(s, ordinal, m, true)
             }
             if (m.type === 'text') {
               m.flipGameID = ''
@@ -3590,7 +3593,7 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              setRowRenderDerivedMetadata(s, targetOrdinal, m)
+              setRowRenderDerivedMetadata(s, targetOrdinal, m, true)
             }
           })
         }
