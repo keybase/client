@@ -571,6 +571,26 @@ function createClient(
           })
           return
         }
+        if (__DEV__ && TEMP_RPC_DEBUG_REQUEST_INBOX_UNBOX) {
+          try {
+            const framed = decode(chunk.slice(5)) as RPCMessage
+            const [type, seqid] = framed
+            if (type === 1 && typeof seqid === 'number') {
+              const meta = (
+                client.transport as unknown as {
+                  _invocationMeta?: Map<number, {method: string; sessionID?: number}>
+                }
+              )._invocationMeta?.get(seqid)
+              if (meta?.method === 'chat.1.local.requestInboxUnbox') {
+                tempRPCBridgeLog('renderer received response chunk from node', {
+                  method: meta.method,
+                  seqid,
+                  sessionID: meta.sessionID,
+                })
+              }
+            }
+          } catch {}
+        }
         bridgeFromNodeLogger(chunk)
         client.transport.packetizeData(chunk)
       } catch (e) {
