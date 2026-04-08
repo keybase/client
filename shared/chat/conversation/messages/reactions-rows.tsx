@@ -1,6 +1,4 @@
-import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
@@ -12,39 +10,38 @@ import {Keyboard} from 'react-native'
 
 const emptyEmojis: ReadonlyArray<string> = []
 
-function ReactionsRowContainer() {
-  const ordinal = useOrdinal()
-  const emojis = Chat.useChatContext(
-    C.useShallow(s => {
-      const fromMap = s.reactionOrderMap.get(ordinal)
-      if (fromMap?.length) return fromMap
-      const reactions = s.messageMap.get(ordinal)?.reactions
-      return reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis
-    })
-  )
+type OwnProps = {
+  hasUnfurls: boolean
+  messageType: T.Chat.MessageType
+  onReact: (emoji: string) => void
+  onReply: () => void
+  reactionOrder?: ReadonlyArray<string>
+  reactions?: T.Chat.Reactions
+}
+
+function ReactionsRowContainer(p: OwnProps) {
+  const {hasUnfurls, messageType, onReact, onReply, reactionOrder, reactions} = p
+  const emojis = reactionOrder?.length ? reactionOrder : reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
       {emojis.map((emoji, idx) => (
-        <RowItem key={String(idx)} emoji={emoji} />
+        <RowItem key={emoji || String(idx)} emoji={emoji} onReact={onReact} reaction={reactions?.get(emoji)} />
       ))}
       {Kb.Styles.isMobile ? (
         <ReactButton showBorder={true} style={styles.button} />
       ) : (
-        <EmojiRow className={Kb.Styles.classNames([btnClassName, newBtnClassName])} style={styles.emojiRow} />
+        <EmojiRow
+          className={Kb.Styles.classNames([btnClassName, newBtnClassName])}
+          hasUnfurls={hasUnfurls}
+          messageType={messageType}
+          onReact={onReact}
+          onReply={onReply}
+          style={styles.emojiRow}
+        />
       )}
     </Kb.Box2>
   )
-}
-
-export type Props = {
-  activeEmoji: string
-  emojis: Array<string>
-  ordinal: T.Chat.Ordinal
-  setActiveEmoji: (s: string) => void
-  setHideMobileTooltip: () => void
-  setShowMobileTooltip: () => void
-  showMobileTooltip: boolean
 }
 
 const btnClassName = 'WrapperMessage-emojiButton'
@@ -52,10 +49,12 @@ const newBtnClassName = 'WrapperMessage-newEmojiButton'
 
 type IProps = {
   emoji: string
+  onReact: (emoji: string) => void
+  reaction?: T.Chat.ReactionDesc
 }
 function RowItem(p: IProps) {
   const ordinal = useOrdinal()
-  const {emoji} = p
+  const {emoji, onReact, reaction} = p
 
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
@@ -84,7 +83,9 @@ function RowItem(p: IProps) {
         className={btnClassName}
         emoji={emoji}
         onLongPress={Kb.Styles.isMobile ? showPopup : undefined}
+        reaction={reaction}
         style={styles.button}
+        toggleReaction={onReact}
       />
       {popup}
     </Kb.Box2>

@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
-import ExplodingHeightRetainer from './exploding-height-retainer/container'
+import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta'
 import LongPressable from './long-pressable'
 import {useMessagePopup} from '../message-popup'
@@ -212,6 +212,7 @@ const getCommonMessageData = ({
   messageCenterOrdinal,
   ordinal,
   paymentStatusMap,
+  reactionOrderMap,
   unfurlPrompt,
   you,
 }: {
@@ -222,6 +223,7 @@ const getCommonMessageData = ({
   messageCenterOrdinal: ConvoState['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
   paymentStatusMap: ReturnType<typeof Chat.useChatState.getState>['paymentStatusMap']
+  reactionOrderMap: ConvoState['reactionOrderMap']
   unfurlPrompt: ConvoState['unfurlPrompt']
   you: string
 }) => {
@@ -247,7 +249,11 @@ const getCommonMessageData = ({
   const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
   const hasUnfurlPrompts = !!id && !!unfurlPrompt.get(id)?.size
   const textType: 'error' | 'sent' | 'pending' = message.errorReason ? 'error' : !submitState ? 'sent' : 'pending'
-  const showReplyTo = message.type === 'text' ? !!message.replyTo : false
+  const replyTo = message.type === 'text' ? message.replyTo : undefined
+  const reactions = message.reactions
+  const reactionOrder = reactionOrderMap.get(ordinal)
+  const isExplodingMessage = message.type === 'text' || message.type === 'attachment'
+  const showReplyTo = !!replyTo
   const text =
     message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
   const showCenteredHighlight =
@@ -264,12 +270,26 @@ const getCommonMessageData = ({
     decorate,
     ecrType,
     exploding,
+    exploded,
+    explodedBy: isExplodingMessage ? message.explodedBy : undefined,
+    explodesAt: isExplodingMessage ? message.explodingTime : 0,
+    forceExplodingRetainer: isExplodingMessage ? !!message.explodingUnreadable : false,
     hasBeenEdited,
     hasCoinFlip,
     hasReactions,
     hasUnfurlList,
     hasUnfurlPrompts,
     isEditing: editing === ordinal,
+    messageKey: isExplodingMessage ? Chat.getMessageKey(message) : '',
+    reactionOrder,
+    reactions,
+    replyTo,
+    submitState,
+    sendIndicatorFailed:
+      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed',
+    sendIndicatorID: message.timestamp,
+    sendIndicatorSent:
+      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded,
     shouldShowPopup,
     showCenteredHighlight,
     showCoinsIcon,
@@ -298,6 +318,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        reactionOrderMap: s.reactionOrderMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -320,6 +341,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
           messageCenterOrdinal: s.messageCenterOrdinal,
           ordinal,
           paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+          reactionOrderMap: s.reactionOrderMap,
           unfurlPrompt: s.unfurlPrompt,
           you,
         }),
@@ -391,11 +413,22 @@ type TSProps = {
   decorate: boolean
   ecrType: EditCancelRetryType
   exploding: boolean
+  exploded: boolean
+  explodedBy?: string
+  explodesAt: number
+  forceExplodingRetainer: boolean
   hasBeenEdited: boolean
   hasReactions: boolean
   hasUnfurlList: boolean
   isHighlighted: boolean
+  messageKey: string
+  ordinal: T.Chat.Ordinal
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
+  reactionOrder?: ReadonlyArray<string>
+  reactions?: T.Chat.Reactions
+  sendIndicatorFailed: boolean
+  sendIndicatorID: number
+  sendIndicatorSent: boolean
   setShowingPicker: (s: boolean) => void
   shouldShowPopup: boolean
   showCoinsIcon: boolean
@@ -405,6 +438,7 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   showPopup: () => void
+  submitState?: T.Chat.Message['submitState']
   type: T.Chat.MessageType
 }
 
@@ -424,9 +458,10 @@ const NormalWrapper = ({
 
 function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, canShowReactionsPopup, children, decorate, hasBeenEdited, hasUnfurlList, isHighlighted} = p
-  const {showingPopup, ecrType, exploding, hasReactions, popupAnchor} = p
-  const {type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
-  const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
+  const {showingPopup, ecrType, exploding, exploded, explodedBy, explodesAt, forceExplodingRetainer} = p
+  const {hasReactions, popupAnchor, reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID} = p
+  const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
+  const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
         onLongPress: decorate ? showPopup : undefined,
@@ -444,7 +479,14 @@ function TextAndSiblings(p: TSProps) {
 
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer>{children as React.ReactElement}</ExplodingHeightRetainer>
+      <ExplodingHeightRetainer
+        explodedBy={explodedBy}
+        exploding={exploding}
+        messageKey={p.messageKey}
+        retainHeight={forceExplodingRetainer || exploded}
+      >
+        {children as React.ReactElement}
+      </ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
     children
@@ -461,8 +503,11 @@ function TextAndSiblings(p: TSProps) {
             hasUnfurlList={hasUnfurlList}
             messageType={type}
             hasReactions={hasReactions}
+            ordinal={p.ordinal}
             bottomChildren={bottomChildren}
             canShowReactionsPopup={canShowReactionsPopup}
+            reactionOrder={reactionOrder}
+            reactions={reactions}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
           />
@@ -471,12 +516,20 @@ function TextAndSiblings(p: TSProps) {
       <RightSide
         shouldShowPopup={shouldShowPopup}
         botname={botname}
+        explodesAt={explodesAt}
+        exploded={exploded}
+        exploding={exploding}
+        messageKey={p.messageKey}
+        sendIndicatorFailed={sendIndicatorFailed}
+        sendIndicatorID={sendIndicatorID}
+        sendIndicatorSent={sendIndicatorSent}
         showSendIndicator={showSendIndicator}
         showExplodingCountdown={showExplodingCountdown}
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
         showPopup={showPopup}
         popupAnchor={popupAnchor}
+        submitState={submitState}
       />
     </LongPressable>
   )
@@ -576,14 +629,34 @@ type BProps = {
   hasReactions: boolean
   hasUnfurlList: boolean
   messageType: T.Chat.MessageType
+  ordinal: T.Chat.Ordinal
+  reactionOrder?: ReadonlyArray<string>
+  reactions?: T.Chat.Reactions
   ecrType: EditCancelRetryType
 }
 // reactions
 function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
-  const {hasReactions, hasUnfurlList, messageType} = p
+  const {hasReactions, hasUnfurlList, messageType, ordinal, reactionOrder, reactions} = p
+  const {setReplyTo, toggleMessageReaction} = Chat.useChatContext(s => s.dispatch)
 
-  const reactionsRow = hasReactions ? <ReactionsRow /> : null
+  const onReact = (emoji: string) => {
+    toggleMessageReaction(ordinal, emoji)
+  }
+  const onReply = () => {
+    setReplyTo(ordinal)
+  }
+
+  const reactionsRow = hasReactions ? (
+    <ReactionsRow
+      hasUnfurls={hasUnfurlList}
+      messageType={messageType}
+      onReact={onReact}
+      onReply={onReply}
+      reactionOrder={reactionOrder}
+      reactions={reactions}
+    />
+  ) : null
 
   const canShowDesktopReactionsPopup = !C.isMobile && !hasReactions && canShowReactionsPopup
   const desktopReactionsPopup =
@@ -592,6 +665,8 @@ function BottomSide(p: BProps) {
         className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         hasUnfurls={hasUnfurlList}
         messageType={messageType}
+        onReact={onReact}
+        onReply={onReply}
         onShowingEmojiPicker={setShowingPicker}
         style={styles.emojiRow}
       />
@@ -618,15 +693,39 @@ type RProps = {
   showRevoked: boolean
   showCoinsIcon: boolean
   botname: string
+  exploded: boolean
+  exploding: boolean
+  explodesAt: number
+  messageKey: string
   shouldShowPopup: boolean
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
+  sendIndicatorFailed: boolean
+  sendIndicatorID: number
+  sendIndicatorSent: boolean
+  submitState?: T.Chat.Message['submitState']
 }
 function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p
   const {showExplodingCountdown, showRevoked, botname, shouldShowPopup} = p
-  const sendIndicator = showSendIndicator ? <SendIndicator /> : null
+  const sendIndicator = showSendIndicator ? (
+    <SendIndicator
+      failed={p.sendIndicatorFailed}
+      id={p.sendIndicatorID}
+      isExploding={p.exploding}
+      sent={p.sendIndicatorSent}
+    />
+  ) : null
 
-  const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={showPopup} /> : null
+  const explodingCountdown = showExplodingCountdown ? (
+    <ExplodingMeta
+      exploded={p.exploded}
+      exploding={p.exploding}
+      explodesAt={p.explodesAt}
+      messageKey={p.messageKey}
+      onClick={showPopup}
+      submitState={p.submitState}
+    />
+  ) : null
 
   const revokedIcon = showRevoked ? (
     <Kb.Box2 direction="vertical" tooltip="Revoked device" className="tooltip-bottom-left">
@@ -701,7 +800,9 @@ export function WrapperMessage(p: WrapperMessageProps) {
   const [showingPicker, setShowingPicker] = React.useState(false)
 
   const {decorate, type, hasReactions, isEditing, shouldShowPopup} = mdata
-  const {canShowReactionsPopup, ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
+  const {canShowReactionsPopup, ecrType, exploded, explodesAt, forceExplodingRetainer, messageKey} = mdata
+  const {reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID, sendIndicatorSent, submitState} = mdata
+  const {showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {showCoinsIcon, botname, hasBeenEdited, hasUnfurlList, showCenteredHighlight} = mdata
 
   const isHighlighted = showCenteredHighlight || isEditing
@@ -713,11 +814,22 @@ export function WrapperMessage(p: WrapperMessageProps) {
     decorate,
     ecrType,
     exploding,
+    exploded,
+    explodedBy: mdata.explodedBy,
+    explodesAt,
+    forceExplodingRetainer,
     hasBeenEdited,
     hasReactions,
     hasUnfurlList,
     isHighlighted,
+    messageKey,
+    ordinal,
     popupAnchor,
+    reactionOrder,
+    reactions,
+    sendIndicatorFailed,
+    sendIndicatorID,
+    sendIndicatorSent,
     setShowingPicker,
     shouldShowPopup,
     showCoinsIcon,
@@ -727,6 +839,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
     showSendIndicator,
     showingPicker,
     showingPopup,
+    submitState,
     type,
   }
 

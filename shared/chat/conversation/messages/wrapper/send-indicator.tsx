@@ -1,6 +1,3 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import {useOrdinal} from '../ids-context'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useColorScheme} from 'react-native'
@@ -48,24 +45,15 @@ const statusToIconDarkExploding = {
 
 const shownEncryptingSet = new Set()
 
-function SendIndicatorContainer() {
-  const ordinal = useOrdinal()
+type OwnProps = {
+  failed: boolean
+  id: number
+  isExploding: boolean
+  sent: boolean
+}
 
-  const {isExploding, sent, failed, id} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      return {
-        failed:
-          (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed',
-        id: message?.timestamp,
-        isExploding: !!message?.exploding,
-        sent:
-          (message?.type !== 'text' && message?.type !== 'attachment') ||
-          !message.submitState ||
-          message.exploded,
-      }
-    })
-  )
+function SendIndicatorContainer(p: OwnProps) {
+  const {failed, id, isExploding, sent} = p
 
   const [status, setStatus] = React.useState<AnimationStatus>(
     sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'

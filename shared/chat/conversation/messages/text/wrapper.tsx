@@ -1,3 +1,4 @@
+import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useReply} from './reply'
@@ -49,12 +50,17 @@ function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
   const wrapper = useWrapperMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
-  const {isEditing, hasReactions} = messageData
+  const {isEditing, hasReactions, replyTo} = messageData
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, showReplyTo, type} =
     messageData
   const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
-  const reply = useReply(showReplyTo)
+  const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
+  const onReplyClick = () => {
+    const id = replyTo?.id ?? 0
+    id && replyJump(id)
+  }
+  const reply = useReply(replyTo, onReplyClick)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
 

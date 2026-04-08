@@ -50,7 +50,7 @@ Primary files:
 ### 3. Row Subscription Consolidation
 
 - [ ] Move toward one main convo-store subscription per mounted row.
-- [ ] Push row data down as props instead of reopening store subscriptions in reply, reactions, emoji, send-indicator, exploding-meta, and similar children.
+- [x] Push row data down as props instead of reopening store subscriptions in reply, reactions, emoji, send-indicator, exploding-meta, and similar children.
 - [ ] Audit attachment and unfurl helpers for repeated `messageMap.get(ordinal)` selectors.
 - [ ] Keep selectors narrow and stable when a child still needs to subscribe directly.
 

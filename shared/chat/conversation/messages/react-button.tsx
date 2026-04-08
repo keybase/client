@@ -7,22 +7,28 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
+import type * as T from '@/constants/types'
 
 export type OwnProps = {
   className?: string
   emoji?: string
   onLongPress?: () => void
+  reaction?: T.Chat.ReactionDesc
   showBorder?: boolean
   style?: StylesCrossPlatform
+  toggleReaction?: (emoji: string) => void
 }
 
 function ReactButtonContainer(p: OwnProps) {
   const ordinal = useOrdinal()
-  const {onLongPress, style, emoji, className} = p
+  const {onLongPress, style, emoji, className, reaction} = p
   const me = useCurrentUserState(s => s.username)
   const isDarkMode = useColorScheme() === 'dark'
-  const {active, count, decorated} = Chat.useChatContext(
+  const {active: subscriptionActive, count: subscriptionCount, decorated: subscriptionDecorated} = Chat.useChatContext(
     C.useShallow(s => {
+      if (reaction || !emoji) {
+        return {active: false, count: 0, decorated: ''}
+      }
       const message = s.messageMap.get(ordinal)
       const reaction = message?.reactions?.get(emoji || '')
       const active = (reaction?.users ?? []).some(r => r.username === me)
@@ -35,8 +41,16 @@ function ReactButtonContainer(p: OwnProps) {
   )
 
   const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const active = reaction ? reaction.users.some(r => r.username === me) : subscriptionActive
+  const count = reaction?.users.length ?? subscriptionCount
+  const decorated = reaction?.decorated ?? subscriptionDecorated
   const onClick = () => {
-    toggleMessageReaction(ordinal, emoji || '')
+    if (!emoji) return
+    if (p.toggleReaction) {
+      p.toggleReaction(emoji)
+      return
+    }
+    toggleMessageReaction(ordinal, emoji)
   }
   const navigateAppend = Chat.useChatNavigateAppend()
   const onOpenEmojiPicker = () => {
