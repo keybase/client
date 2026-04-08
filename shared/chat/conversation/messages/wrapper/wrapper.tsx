@@ -307,7 +307,7 @@ export const useCommon = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean
   return {popup, popupAnchor, showCenteredHighlight, showPopup, showingPopup, type}
 }
 
-type WMProps = {
+type WrapperMessageProps = {
   children: React.ReactNode
   bottomChildren?: React.ReactNode
   showCenteredHighlight: boolean
@@ -315,9 +315,11 @@ type WMProps = {
   showingPopup: boolean
   popup: React.ReactNode
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
-  // Optional: if provided, avoids calling useMessageData again
-  messageData?: ReturnType<typeof useMessageData>
 } & Props
+
+type WrapperMessageViewProps = WrapperMessageProps & {
+  messageData: ReturnType<typeof useMessageData>
+}
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
@@ -648,13 +650,13 @@ function RightSide(p: RProps) {
   )
 }
 
-export function WrapperMessage(p: WMProps) {
+export function WrapperMessage(p: WrapperMessageProps) {
   const {ordinal, isCenteredHighlight} = p
   const messageData = useMessageData(ordinal, isCenteredHighlight)
   return <WrapperMessageView {...p} messageData={messageData} showCenteredHighlight={messageData.showCenteredHighlight} />
 }
 
-export function WrapperMessageView(p: WMProps & {messageData: ReturnType<typeof useMessageData>}) {
+export function WrapperMessageView(p: WrapperMessageViewProps) {
   const {ordinal, bottomChildren, children, messageData: mdata} = p
   const {showCenteredHighlight, showPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
