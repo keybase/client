@@ -59,8 +59,11 @@ echo ""
 
 cd "$build_dest"
 
-echo "Copying kbfuse.bundle..."
-ditto ../../Fuse/kbfuse.bundle $app_name.app/Contents/Resources/kbfuse.bundle
+echo "Building FSKit module scaffold..."
+"$dir/../FSKit/build.sh"
+
+echo "Copying FSKit module..."
+ditto ../../FSKit/keybase.fs $app_name.app/Contents/Resources/keybase.fs
 
 echo "
 
