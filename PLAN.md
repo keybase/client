@@ -16,15 +16,16 @@ Reduce chat conversation mount cost, cut per-row Zustand subscription fan-out, a
 - Do not mix store-shape changes and row rendering changes in the same patch unless one directly unblocks the other.
 - Keep desktop and native paths aligned unless there is a platform-specific reason not to.
 - Treat each workstream as independently landable where possible.
+- When a checklist item is implemented, update this plan in the same change and mark that item done.
 
 ## Workstreams
 
 ### 1. Row Renderer Boundary
 
-- [ ] Introduce a single row entry point that takes `ordinal` and resolves render type inside the row.
-- [ ] Remove list-level render dispatch from `messageTypeMap` where possible.
-- [ ] Delete the native `extraData` / `forceListRedraw` placeholder escape hatch if the new row boundary makes it unnecessary.
-- [ ] Keep placeholder-to-real-message transitions stable on both native and desktop.
+- [x] Introduce a single row entry point that takes `ordinal` and resolves render type inside the row.
+- [x] Remove list-level render dispatch from `messageTypeMap` where possible.
+- [x] Delete the native `extraData` / `forceListRedraw` placeholder escape hatch if the new row boundary makes it unnecessary.
+- [x] Keep placeholder-to-real-message transitions stable on both native and desktop.
 
 Primary files:
 
@@ -35,9 +36,9 @@ Primary files:
 
 ### 2. Incremental Derived Message Metadata
 
-- [ ] Stop rebuilding whole-thread derived maps on every `messagesAdd`.
-- [ ] Update separator, username-grouping, and reaction-order metadata only for changed ordinals and any affected neighbors.
-- [ ] Avoid rebuilding and resorting `messageOrdinals` unless thread membership actually changed.
+- [x] Stop rebuilding whole-thread derived maps on every `messagesAdd`.
+- [x] Update separator, username-grouping, and reaction-order metadata only for changed ordinals and any affected neighbors.
+- [x] Avoid rebuilding and resorting `messageOrdinals` unless thread membership actually changed.
 - [ ] Re-evaluate whether some derived metadata should live in store state at all.
 
 Primary files:

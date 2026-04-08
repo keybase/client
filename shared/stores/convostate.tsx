@@ -612,25 +612,68 @@ const createSlice =
     ) =>
       messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
 
-    const syncSeparatorMap = (s: Z.WritableDraft<ConvoState>) => {
-      const you = useCurrentUserState.getState().username
-      const mo = s.messageOrdinals ?? []
-      const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-      const um = new Map<T.Chat.Ordinal, string>()
-      const rm = new Map<T.Chat.Ordinal, Array<string>>()
-      let p = T.Chat.numberToOrdinal(0)
-      let pMessage: T.Chat.Message | undefined = undefined
-      for (const o of mo) {
-        sm.set(o, p)
-        const m = s.messageMap.get(o)
-        if (m) um.set(o, getUsernameToShow(m, pMessage, you))
-        if (m?.reactions?.size) rm.set(o, Message.getReactionOrder(m.reactions))
-        pMessage = m as T.Chat.Message | undefined
-        p = o
+    const findOrdinalIndex = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) => {
+      let low = 0
+      let high = ordinals.length
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2)
+        if (ordinals[mid]! < ordinal) {
+          low = mid + 1
+        } else {
+          high = mid
+        }
       }
-      s.separatorMap = sm
-      s.showUsernameMap = um
-      s.reactionOrderMap = rm
+      return low
+    }
+
+    const refreshDerivedMetadata = (
+      s: Z.WritableDraft<ConvoState>,
+      changedOrdinals: ReadonlySet<T.Chat.Ordinal>
+    ) => {
+      if (changedOrdinals.size === 0) {
+        return
+      }
+
+      const messageOrdinals = s.messageOrdinals ?? []
+      const you = useCurrentUserState.getState().username
+      const ordinalsToRefresh = new Set(changedOrdinals)
+
+      for (const ordinal of changedOrdinals) {
+        const idx = findOrdinalIndex(messageOrdinals, ordinal)
+        const maybeCurrent = messageOrdinals[idx]
+        const nextOrdinal = maybeCurrent === ordinal ? messageOrdinals[idx + 1] : maybeCurrent
+        if (nextOrdinal !== undefined) {
+          ordinalsToRefresh.add(nextOrdinal)
+        }
+      }
+
+      for (const ordinal of ordinalsToRefresh) {
+        const idx = findOrdinalIndex(messageOrdinals, ordinal)
+        if (messageOrdinals[idx] !== ordinal) {
+          s.separatorMap.delete(ordinal)
+          s.showUsernameMap.delete(ordinal)
+          s.reactionOrderMap.delete(ordinal)
+          continue
+        }
+
+        const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
+        const message = s.messageMap.get(ordinal)
+        if (!message) {
+          s.separatorMap.delete(ordinal)
+          s.showUsernameMap.delete(ordinal)
+          s.reactionOrderMap.delete(ordinal)
+          continue
+        }
+
+        s.separatorMap.set(ordinal, previousOrdinal)
+        const previousMessage = idx > 0 ? s.messageMap.get(previousOrdinal) : undefined
+        s.showUsernameMap.set(ordinal, getUsernameToShow(message, previousMessage, you))
+        if (message.reactions?.size) {
+          s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
+        } else {
+          s.reactionOrderMap.delete(ordinal)
+        }
+      }
     }
 
     const mergeMessage = (
@@ -720,6 +763,7 @@ const createSlice =
       set(s => {
         // Build set of incoming regular ordinals for ordinal management
         const incomingOrdinals = new Set<T.Chat.Ordinal>()
+        const touchedOrdinals = new Set<T.Chat.Ordinal>()
         for (const m of messages) {
           if (m.conversationMessage !== false && m.type !== 'deleted') {
             incomingOrdinals.add(m.ordinal)
@@ -731,6 +775,7 @@ const createSlice =
           const regularMessage = m.conversationMessage !== false
 
           if (regularMessage && m.type === 'deleted') {
+            touchedOrdinals.add(m.ordinal)
             clearMessageIDIndexForOrdinal(s, m.ordinal)
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
@@ -760,6 +805,10 @@ const createSlice =
                 incomingOrdinals.add(mapOrdinal)
               }
               m.ordinal = mapOrdinal
+            }
+
+            if (regularMessage) {
+              touchedOrdinals.add(mapOrdinal)
             }
 
             const existingMsg = s.messageMap.get(mapOrdinal)
@@ -818,6 +867,7 @@ const createSlice =
         if (validatedRange) {
           for (const o of existing) {
             if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
+              touchedOrdinals.add(o)
               clearMessageIDIndexForOrdinal(s, o)
               existing.delete(o)
               s.messageMap.delete(o)
@@ -840,7 +890,7 @@ const createSlice =
           s.messageOrdinals = [...existing].sort((a, b) => a - b)
         }
 
-        syncSeparatorMap(s)
+        refreshDerivedMetadata(s, touchedOrdinals)
       })
 
       if (markAsRead) {
@@ -1188,7 +1238,7 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
           }
-          syncSeparatorMap(s)
+          refreshDerivedMetadata(s, new Set([toDelOrdinal]))
         })
       }
 
@@ -2323,8 +2373,10 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
+          s.reactionOrderMap.clear()
+          s.separatorMap.clear()
+          s.showUsernameMap.clear()
           s.validatedOrdinalRange = undefined
-          syncSeparatorMap(s)
         })
       },
       messagesExploded: (messageIDs, explodedBy) => {
@@ -2385,7 +2437,7 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
           }
-          syncSeparatorMap(s)
+          refreshDerivedMetadata(s, allOrdinals)
         })
       },
       mute: m => {

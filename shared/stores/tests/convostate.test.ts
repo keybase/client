@@ -272,6 +272,37 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
   expect(store.getState().messageTypeMap.size).toBe(0)
 })
 
+test('message updates refresh derived metadata for the following row', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(301)
+  const secondOrdinal = T.Chat.numberToOrdinal(302)
+  const firstMsgID = T.Chat.numberToMessageID(301)
+  const store = seedStore([
+    makeTextMessage({
+      author: 'bob',
+      id: firstMsgID,
+      ordinal: firstOrdinal,
+      outboxID: T.Chat.stringToOutboxID('first'),
+      timestamp: 100,
+    }),
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(302),
+      ordinal: secondOrdinal,
+      outboxID: T.Chat.stringToOutboxID('second'),
+      timestamp: 101,
+    }),
+  ])
+
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makeValidTextUIMessage(firstMsgID, 'edited first', {author: 'alice', timestamp: 100})],
+  })
+
+  expect(store.getState().showUsernameMap.get(firstOrdinal)).toBe('alice')
+  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
+  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(firstOrdinal)
+})
+
 test('reaction updates preserve outbox-anchored row identity', () => {
   const store = seedStoreWithAnchoredMessage()
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
@@ -348,6 +379,34 @@ test('message deletion removes the row but preserves the outbox anchor', () => {
   expect(store.getState().messageMap.has(ordinal)).toBe(false)
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
   expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
+})
+
+test('message deletion refreshes derived metadata for the next row', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(401)
+  const secondOrdinal = T.Chat.numberToOrdinal(402)
+  const store = seedStore([
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(401),
+      ordinal: firstOrdinal,
+      outboxID: T.Chat.stringToOutboxID('first-delete'),
+      timestamp: 100,
+    }),
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(402),
+      ordinal: secondOrdinal,
+      outboxID: T.Chat.stringToOutboxID('second-delete'),
+      timestamp: 101,
+    }),
+  ])
+
+  store.getState().dispatch.messagesWereDeleted({ordinals: [firstOrdinal]})
+
+  expect(store.getState().messageOrdinals).toEqual([secondOrdinal])
+  expect(store.getState().separatorMap.has(firstOrdinal)).toBe(false)
+  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
+  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(T.Chat.numberToOrdinal(0))
 })
 
 test('message deletion up to a message ID honors deletable message types', () => {
