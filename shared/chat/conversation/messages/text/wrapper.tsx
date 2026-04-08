@@ -1,6 +1,5 @@
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
@@ -51,7 +50,8 @@ function WrapperText(p: Props) {
   const {messageData} = wrapper
   const {isEditing, replyTo} = messageData
 
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} = messageData
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
+    messageData
   const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
   const replyJump = Chat.useChatContext(s => s.dispatch.replyJump)
   const onReplyClick = () => {
