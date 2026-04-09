@@ -517,10 +517,13 @@ const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RP
 )
 
 const createSlice =
-  (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.ImmerStateCreator<ConvoState> =>
+  (
+    id: T.Chat.ConversationIDKey = noConversationIDKey,
+    getLinkedUIState: () => ConvoUIState = () => getConvoUIState(id)
+  ): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
     const defer = convoDeferImpl ?? stubDefer
-    const getUI = () => getConvoUIState(id)
+    const getUI = getLinkedUIState
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
       const s = useCurrentUserState.getState()
@@ -3449,7 +3452,10 @@ type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 type MadeUIStore = UseBoundStore<StoreApi<ConvoUIState>>
 
 const createConvoUISlice =
-  (id: T.Chat.ConversationIDKey): Z.ImmerStateCreator<ConvoUIState> =>
+  (
+    id: T.Chat.ConversationIDKey,
+    getLinkedConvoState: () => ConvoState = () => getConvoState(id)
+  ): Z.ImmerStateCreator<ConvoUIState> =>
   (set, get) => ({
     ...initialConvoUIStore,
     dispatch: {
@@ -3473,11 +3479,11 @@ const createConvoUISlice =
           return
         }
 
-        const messageMap = getConvoState(id).messageMap
+        const messageMap = getLinkedConvoState().messageMap
         let ordinal = T.Chat.numberToOrdinal(0)
         if (e === 'last') {
           const editLastUser = useCurrentUserState.getState().username
-          const ordinals = getConvoState(id).messageOrdinals
+          const ordinals = getLinkedConvoState().messageOrdinals
           const found =
             !!ordinals &&
             findLast(ordinals, o => {
@@ -3533,7 +3539,7 @@ export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
   : new Map()
 
 export const convoUIStores: Map<T.Chat.ConversationIDKey, MadeUIStore> = __DEV__
-  ? ((globalThis.__hmr_convoUIStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeUIStore>)
+  ? (((globalThis as any).__hmr_convoUIStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeUIStore>)
   : new Map()
 
 export const clearChatStores = () => {
@@ -3562,7 +3568,19 @@ const createConvoUIStore = (id: T.Chat.ConversationIDKey) => {
 }
 
 export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
-  return Z.createZustand<ConvoState>(createSlice(id))
+  return createConvoStoresForTesting(id).convoStore
+}
+
+export const createConvoStoresForTesting = (id: T.Chat.ConversationIDKey) => {
+  let convoStore!: UseBoundStore<StoreApi<ConvoState>>
+  let uiStore!: UseBoundStore<StoreApi<ConvoUIState>>
+  convoStore = Z.createZustand<ConvoState>(createSlice(id, () => uiStore.getState()))
+  uiStore = Z.createZustand<ConvoUIState>(createConvoUISlice(id, () => convoStore.getState()))
+  return {convoStore, uiStore}
+}
+
+export const createConvoUIStoreForTesting = (id: T.Chat.ConversationIDKey) => {
+  return createConvoStoresForTesting(id).uiStore
 }
 
 // debug only

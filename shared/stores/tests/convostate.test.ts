@@ -4,7 +4,12 @@ import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
 import {useCurrentUserState} from '../current-user'
-import {createConvoStoreForTesting, type ConvoState} from '../convostate'
+import {
+  createConvoStoreForTesting,
+  createConvoStoresForTesting,
+  type ConvoState,
+  type ConvoUIState,
+} from '../convostate'
 
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
@@ -166,6 +171,18 @@ const applyState = (
     getConvID: current.getConvID,
     isCaughtUp: current.isCaughtUp,
     isMetaGood: current.isMetaGood,
+  })
+}
+
+const applyUIState = (
+  store: {getState: () => any; setState: (state: any) => void},
+  partial: Partial<ConvoUIState>
+) => {
+  const current = store.getState()
+  store.setState({
+    ...current,
+    ...partial,
+    dispatch: current.dispatch,
   })
 }
 
@@ -577,7 +594,8 @@ test('onMessageErrored marks the pending message as failed and leaves unknown ou
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
   const attachmentOrdinal = T.Chat.numberToOrdinal(703)
-  const store = seedStore([
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
+  applyState(store, seedStore([
     makeTextMessage({
       author: 'bob',
       id: T.Chat.numberToMessageID(701),
@@ -597,42 +615,42 @@ test('setEditing last picks the latest editable local message and injects its co
       outboxID: T.Chat.stringToOutboxID('editable-attachment'),
       title: 'picked attachment title',
     }),
-  ])
+  ]).getState())
 
-  store.getState().dispatch.setEditing('last')
+  uiStore.getState().dispatch.setEditing('last')
 
-  expect(store.getState().editing).toBe(attachmentOrdinal)
-  expect(store.getState().unsentText).toBe('picked attachment title')
+  expect(uiStore.getState().editing).toBe(attachmentOrdinal)
+  expect(uiStore.getState().unsentText).toBe('picked attachment title')
 })
 
 test('setEditing clear resets editing state and clears unsent text', () => {
-  const store = createStore()
-  applyState(store, {
+  const {uiStore} = createConvoStoresForTesting(convID)
+  applyUIState(uiStore, {
     editing: ordinal,
     unsentText: 'draft text',
   })
 
-  store.getState().dispatch.setEditing('clear')
+  uiStore.getState().dispatch.setEditing('clear')
 
-  expect(store.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(store.getState().unsentText).toBe('')
+  expect(uiStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(uiStore.getState().unsentText).toBe('')
 })
 
 test('setMeta adopts the server draft once when the meta becomes good', () => {
-  const store = createStore()
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
 
   store.getState().dispatch.setMeta(makeMeta({draft: 'server draft'}))
   expect(store.getState().isMetaGood()).toBe(true)
-  expect(store.getState().unsentText).toBe('server draft')
+  expect(uiStore.getState().unsentText).toBe('server draft')
 
-  store.getState().dispatch.injectIntoInput('local draft')
+  uiStore.getState().dispatch.injectIntoInput('local draft')
   store.getState().dispatch.setMeta(makeMeta({draft: 'new server draft'}))
 
-  expect(store.getState().unsentText).toBe('local draft')
+  expect(uiStore.getState().unsentText).toBe('local draft')
 })
 
 test('local setters update participants, reply target, and badge', () => {
-  const store = createStore()
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
   const participants: ConvoState['participants'] = {
     all: ['alice', 'bob'],
     contactName: new Map([['bob', 'Bobby']]),
@@ -640,11 +658,11 @@ test('local setters update participants, reply target, and badge', () => {
   }
 
   store.getState().dispatch.setParticipants(participants)
-  store.getState().dispatch.setReplyTo(ordinal)
+  uiStore.getState().dispatch.setReplyTo(ordinal)
   store.getState().dispatch.badgesUpdated(3)
 
   expect(store.getState().participants).toEqual(participants)
-  expect(store.getState().replyTo).toBe(ordinal)
+  expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
 })
 

@@ -97,7 +97,7 @@ const emptyAuthorData: FlatAuthorData = {
 
 const getRowActions = (
   dispatch: ConvoState['dispatch'],
-  uiDispatch: ConvoUIState['dispatch']
+  uiDispatch: Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
 ): RowActions => {
   const {messageDelete, messageRetry, replyJump, toggleMessageReaction} = dispatch
   const {setEditing, setReplyTo} = uiDispatch

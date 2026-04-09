@@ -168,7 +168,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  getConvoUIState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
