@@ -716,8 +716,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		resultPagination = rthread.Pagination
 		t.applyPagerModeOutgoing(ctx, convID, rthread.Pagination, pagination, pgmode)
 		t.Debug(ctx, "LoadNonblock[%s]: full send begin convID: %s", reqID, convID)
-		if fullErr = chatUI.ChatThreadFull(ctx, string(jsonUIRes)); err != nil {
-			t.Debug(ctx, "LoadNonblock: failed to send full result to UI: %s", err)
+		if fullErr = chatUI.ChatThreadFull(ctx, string(jsonUIRes)); fullErr != nil {
+			t.Debug(ctx, "LoadNonblock: failed to send full result to UI: %s", fullErr)
 			return
 		}
 		fullSent = true
