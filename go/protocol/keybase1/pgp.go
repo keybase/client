@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/pgp.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type SignMode int
@@ -360,11 +359,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 		Name: "keybase.1.pgp",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"pgpSign": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPSignArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPSignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPSignArg)(nil), args)
@@ -375,11 +374,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpPull": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPPullArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPPullArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPPullArg)(nil), args)
@@ -390,11 +389,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpEncrypt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPEncryptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPEncryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPEncryptArg)(nil), args)
@@ -405,11 +404,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpDecrypt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPDecryptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPDecryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPDecryptArg)(nil), args)
@@ -420,11 +419,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpVerify": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPVerifyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPVerifyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPVerifyArg)(nil), args)
@@ -435,11 +434,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpImport": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPImportArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPImportArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPImportArg)(nil), args)
@@ -450,11 +449,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpExport": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPExportArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPExportArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPExportArg)(nil), args)
@@ -465,11 +464,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpExportByFingerprint": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPExportByFingerprintArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPExportByFingerprintArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPExportByFingerprintArg)(nil), args)
@@ -480,11 +479,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpExportByKID": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPExportByKIDArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPExportByKIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPExportByKIDArg)(nil), args)
@@ -495,11 +494,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpKeyGen": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPKeyGenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPKeyGenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPKeyGenArg)(nil), args)
@@ -510,11 +509,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpKeyGenDefault": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPKeyGenDefaultArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPKeyGenDefaultArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPKeyGenDefaultArg)(nil), args)
@@ -525,11 +524,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpDeletePrimary": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPDeletePrimaryArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPDeletePrimaryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPDeletePrimaryArg)(nil), args)
@@ -540,11 +539,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpSelect": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPSelectArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPSelectArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPSelectArg)(nil), args)
@@ -555,11 +554,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPUpdateArg)(nil), args)
@@ -570,11 +569,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpPurge": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPPurgeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPPurgeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPPurgeArg)(nil), args)
@@ -585,11 +584,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpStorageDismiss": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPStorageDismissArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPStorageDismissArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPStorageDismissArg)(nil), args)
@@ -600,11 +599,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpPushPrivate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPPushPrivateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPPushPrivateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPPushPrivateArg)(nil), args)
@@ -615,11 +614,11 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 			},
 			"pgpPullPrivate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PGPPullPrivateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PGPPullPrivateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PGPPullPrivateArg)(nil), args)
@@ -638,103 +637,103 @@ type PGPClient struct {
 }
 
 func (c PGPClient) PGPSign(ctx context.Context, __arg PGPSignArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSign", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSign", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Download PGP keys for tracked users and update the local GPG keyring.
 // If usernames is nonempty, update only those users.
 func (c PGPClient) PGPPull(ctx context.Context, __arg PGPPullArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPull", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPull", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPEncrypt(ctx context.Context, __arg PGPEncryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpEncrypt", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPDecrypt(ctx context.Context, __arg PGPDecryptArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDecrypt", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPVerify(ctx context.Context, __arg PGPVerifyArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpVerify", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPImport(ctx context.Context, __arg PGPImportArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpImport", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpImport", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Exports active PGP keys. Only allows armored export.
 func (c PGPClient) PGPExport(ctx context.Context, __arg PGPExportArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExport", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExport", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPExportByFingerprint(ctx context.Context, __arg PGPExportByFingerprintArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByFingerprint", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPExportByKID(ctx context.Context, __arg PGPExportByKIDArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByKID", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPKeyGen(ctx context.Context, __arg PGPKeyGenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGen", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPKeyGenDefault(ctx context.Context, __arg PGPKeyGenDefaultArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGenDefault", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPDeletePrimary(ctx context.Context, sessionID int) (err error) {
 	__arg := PGPDeletePrimaryArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDeletePrimary", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Select an existing key and add to Keybase.
 func (c PGPClient) PGPSelect(ctx context.Context, __arg PGPSelectArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSelect", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Push updated key(s) to the server.
 func (c PGPClient) PGPUpdate(ctx context.Context, __arg PGPUpdateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpUpdate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPClient) PGPPurge(ctx context.Context, __arg PGPPurgeArg) (res PGPPurgeRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPurge", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPurge", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Dismiss the PGP unlock via secret_store_file notification.
 func (c PGPClient) PGPStorageDismiss(ctx context.Context, sessionID int) (err error) {
 	__arg := PGPStorageDismissArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpStorageDismiss", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpStorageDismiss", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then
 // push all matching PGP keys in the user's sigchain.
 func (c PGPClient) PGPPushPrivate(ctx context.Context, __arg PGPPushPrivateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPushPrivate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPushPrivate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then
 // attempt to pull all matching PGP keys in the user's sigchain.
 func (c PGPClient) PGPPullPrivate(ctx context.Context, __arg PGPPullPrivateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPullPrivate", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPullPrivate", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

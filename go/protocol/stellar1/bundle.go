@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/stellar1/bundle.avdl
 
 package stellar1
@@ -6,7 +6,6 @@ package stellar1
 import (
 	"errors"
 	"fmt"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -480,7 +479,8 @@ func (o BundleSecretEntryV2) DeepCopy() BundleSecretEntryV2 {
 	}
 }
 
-type BundleSecretUnsupported struct{}
+type BundleSecretUnsupported struct {
+}
 
 func (o BundleSecretUnsupported) DeepCopy() BundleSecretUnsupported {
 	return BundleSecretUnsupported{}
@@ -895,7 +895,8 @@ func (o AccountBundleSecretV1) DeepCopy() AccountBundleSecretV1 {
 	}
 }
 
-type AccountBundleSecretUnsupported struct{}
+type AccountBundleSecretUnsupported struct {
+}
 
 func (o AccountBundleSecretUnsupported) DeepCopy() AccountBundleSecretUnsupported {
 	return AccountBundleSecretUnsupported{}
@@ -986,7 +987,8 @@ func (o AccountBundle) DeepCopy() AccountBundle {
 	}
 }
 
-type BundleInterface interface{}
+type BundleInterface interface {
+}
 
 func BundleProtocol(i BundleInterface) rpc.Protocol {
 	return rpc.Protocol{

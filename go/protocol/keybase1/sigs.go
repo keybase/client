@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/sigs.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type Sig struct {
@@ -100,11 +99,11 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 		Name: "keybase.1.sigs",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"sigList": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SigListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SigListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SigListArg)(nil), args)
@@ -115,11 +114,11 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 				},
 			},
 			"sigListJSON": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SigListJSONArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SigListJSONArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SigListJSONArg)(nil), args)
@@ -138,11 +137,11 @@ type SigsClient struct {
 }
 
 func (c SigsClient) SigList(ctx context.Context, __arg SigListArg) (res []Sig, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.sigs.sigList", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.sigs.sigList", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SigsClient) SigListJSON(ctx context.Context, __arg SigListJSONArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.sigs.sigListJSON", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

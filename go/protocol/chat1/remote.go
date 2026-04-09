@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/remote.avdl
 
 package chat1
@@ -7,11 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type MessageBoxed struct {
@@ -1195,7 +1194,8 @@ func (o AdvertiseBotCommandsRes) DeepCopy() AdvertiseBotCommandsRes {
 	}
 }
 
-type RemoteClearBotCommandsFilterPublic struct{}
+type RemoteClearBotCommandsFilterPublic struct {
+}
 
 func (o RemoteClearBotCommandsFilterPublic) DeepCopy() RemoteClearBotCommandsFilterPublic {
 	return RemoteClearBotCommandsFilterPublic{}
@@ -1800,7 +1800,8 @@ type SetGlobalAppNotificationSettingsArg struct {
 	Settings GlobalAppNotificationSettings `codec:"settings" json:"settings"`
 }
 
-type GetGlobalAppNotificationSettingsArg struct{}
+type GetGlobalAppNotificationSettingsArg struct {
+}
 
 type RemoteNotificationSuccessfulArg struct {
 	AuthToken        gregor1.SessionToken `codec:"authToken" json:"authToken"`
@@ -1854,7 +1855,8 @@ type TeamIDOfConvArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type ServerNowArg struct{}
+type ServerNowArg struct {
+}
 
 type GetExternalAPIKeysArg struct {
 	Typs []ExternalAPIKeyTyp `codec:"typs" json:"typs"`
@@ -1897,7 +1899,8 @@ type GetLastActiveAtArg struct {
 	Uid    gregor1.UID     `codec:"uid" json:"uid"`
 }
 
-type GetResetConversationsArg struct{}
+type GetResetConversationsArg struct {
+}
 
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
@@ -1958,11 +1961,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 		Name: "chat.1.remote",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getInboxRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInboxRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetInboxRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetInboxRemoteArg)(nil), args)
@@ -1973,11 +1976,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getThreadRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetThreadRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetThreadRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetThreadRemoteArg)(nil), args)
@@ -1988,11 +1991,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getUnreadlineRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUnreadlineRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUnreadlineRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUnreadlineRemoteArg)(nil), args)
@@ -2003,11 +2006,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getPublicConversations": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPublicConversationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPublicConversationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPublicConversationsArg)(nil), args)
@@ -2018,11 +2021,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"postRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PostRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PostRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PostRemoteArg)(nil), args)
@@ -2033,11 +2036,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"newConversationRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewConversationRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewConversationRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewConversationRemoteArg)(nil), args)
@@ -2048,11 +2051,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"newConversationRemote2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewConversationRemote2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewConversationRemote2Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewConversationRemote2Arg)(nil), args)
@@ -2063,11 +2066,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getMessagesRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMessagesRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMessagesRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMessagesRemoteArg)(nil), args)
@@ -2078,11 +2081,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"markAsRead": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MarkAsReadArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MarkAsReadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MarkAsReadArg)(nil), args)
@@ -2093,11 +2096,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"SetConversationStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetConversationStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetConversationStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetConversationStatusArg)(nil), args)
@@ -2108,11 +2111,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"GetUnreadUpdateFull": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUnreadUpdateFullArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUnreadUpdateFullArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUnreadUpdateFullArg)(nil), args)
@@ -2123,11 +2126,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getS3Params": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetS3ParamsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetS3ParamsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetS3ParamsArg)(nil), args)
@@ -2138,11 +2141,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"s3Sign": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]S3SignArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]S3SignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]S3SignArg)(nil), args)
@@ -2153,11 +2156,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getInboxVersion": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInboxVersionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetInboxVersionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetInboxVersionArg)(nil), args)
@@ -2168,11 +2171,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"syncInbox": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SyncInboxArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SyncInboxArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SyncInboxArg)(nil), args)
@@ -2183,11 +2186,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"syncChat": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SyncChatArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SyncChatArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SyncChatArg)(nil), args)
@@ -2198,11 +2201,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"syncAll": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SyncAllArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SyncAllArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SyncAllArg)(nil), args)
@@ -2213,11 +2216,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"tlfFinalize": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TlfFinalizeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TlfFinalizeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TlfFinalizeArg)(nil), args)
@@ -2228,11 +2231,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"tlfResolve": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TlfResolveArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TlfResolveArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TlfResolveArg)(nil), args)
@@ -2243,11 +2246,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"updateTypingRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateTypingRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateTypingRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateTypingRemoteArg)(nil), args)
@@ -2258,11 +2261,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"joinConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]JoinConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]JoinConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]JoinConversationArg)(nil), args)
@@ -2273,11 +2276,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"leaveConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LeaveConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LeaveConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LeaveConversationArg)(nil), args)
@@ -2288,11 +2291,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"previewConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PreviewConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PreviewConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PreviewConversationArg)(nil), args)
@@ -2303,11 +2306,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"deleteConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteConversationArg)(nil), args)
@@ -2318,11 +2321,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"removeFromConversation": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RemoveFromConversationArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RemoveFromConversationArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RemoveFromConversationArg)(nil), args)
@@ -2333,11 +2336,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getMessageBefore": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetMessageBeforeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetMessageBeforeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetMessageBeforeArg)(nil), args)
@@ -2348,11 +2351,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getTLFConversations": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTLFConversationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTLFConversationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTLFConversationsArg)(nil), args)
@@ -2363,11 +2366,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setAppNotificationSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetAppNotificationSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetAppNotificationSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetAppNotificationSettingsArg)(nil), args)
@@ -2378,11 +2381,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setGlobalAppNotificationSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetGlobalAppNotificationSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetGlobalAppNotificationSettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetGlobalAppNotificationSettingsArg)(nil), args)
@@ -2393,21 +2396,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getGlobalAppNotificationSettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetGlobalAppNotificationSettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetGlobalAppNotificationSettings(ctx)
 					return
 				},
 			},
 			"remoteNotificationSuccessful": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RemoteNotificationSuccessfulArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RemoteNotificationSuccessfulArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RemoteNotificationSuccessfulArg)(nil), args)
@@ -2418,11 +2421,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setConvRetention": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetConvRetentionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetConvRetentionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetConvRetentionArg)(nil), args)
@@ -2433,11 +2436,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setTeamRetention": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetTeamRetentionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetTeamRetentionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetTeamRetentionArg)(nil), args)
@@ -2448,11 +2451,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setConvMinWriterRole": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetConvMinWriterRoleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetConvMinWriterRoleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetConvMinWriterRoleArg)(nil), args)
@@ -2463,11 +2466,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"retentionSweepConv": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RetentionSweepConvArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RetentionSweepConvArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RetentionSweepConvArg)(nil), args)
@@ -2478,11 +2481,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"upgradeKBFSToImpteam": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpgradeKBFSToImpteamArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpgradeKBFSToImpteamArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpgradeKBFSToImpteamArg)(nil), args)
@@ -2493,11 +2496,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"registerSharePost": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RegisterSharePostArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RegisterSharePostArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RegisterSharePostArg)(nil), args)
@@ -2508,11 +2511,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"failSharePost": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FailSharePostArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FailSharePostArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FailSharePostArg)(nil), args)
@@ -2523,11 +2526,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"broadcastGregorMessageToConv": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BroadcastGregorMessageToConvArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BroadcastGregorMessageToConvArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BroadcastGregorMessageToConvArg)(nil), args)
@@ -2538,11 +2541,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"teamIDOfConv": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamIDOfConvArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamIDOfConvArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamIDOfConvArg)(nil), args)
@@ -2553,21 +2556,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"serverNow": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ServerNowArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.ServerNow(ctx)
 					return
 				},
 			},
 			"getExternalAPIKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetExternalAPIKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetExternalAPIKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetExternalAPIKeysArg)(nil), args)
@@ -2578,11 +2581,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"advertiseBotCommands": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AdvertiseBotCommandsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AdvertiseBotCommandsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AdvertiseBotCommandsArg)(nil), args)
@@ -2593,11 +2596,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"clearBotCommands": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ClearBotCommandsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ClearBotCommandsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ClearBotCommandsArg)(nil), args)
@@ -2608,11 +2611,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getBotInfo": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetBotInfoArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetBotInfoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetBotInfoArg)(nil), args)
@@ -2623,11 +2626,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getDefaultTeamChannels": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetDefaultTeamChannelsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetDefaultTeamChannelsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsArg)(nil), args)
@@ -2638,11 +2641,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"setDefaultTeamChannels": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetDefaultTeamChannelsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetDefaultTeamChannelsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetDefaultTeamChannelsArg)(nil), args)
@@ -2653,11 +2656,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getRecentJoins": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetRecentJoinsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetRecentJoinsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetRecentJoinsArg)(nil), args)
@@ -2668,11 +2671,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"refreshParticipantsRemote": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RefreshParticipantsRemoteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RefreshParticipantsRemoteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RefreshParticipantsRemoteArg)(nil), args)
@@ -2683,11 +2686,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getLastActiveAt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetLastActiveAtArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetLastActiveAtArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetLastActiveAtArg)(nil), args)
@@ -2698,11 +2701,11 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 			},
 			"getResetConversations": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetResetConversationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetResetConversations(ctx)
 					return
 				},
@@ -2716,272 +2719,272 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 1200000*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []any{__arg}, &res, rpc.CompressionGzip, 1200000*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getThreadRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetUnreadlineRemote(ctx context.Context, __arg GetUnreadlineRemoteArg) (res GetUnreadlineRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getPublicConversations", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res PostRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.postRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res NewConversationRemoteRes, err error) {
 	__arg := NewConversationRemoteArg{IdTriple: idTriple}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res NewConversationRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote2", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res GetMessagesRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessagesRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessagesRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsRead", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.SetConversationStatus", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
 	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.GetUnreadUpdateFull", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetS3Params(ctx context.Context, __arg GetS3ParamsArg) (res S3Params, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getS3Params", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.s3Sign", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
 	__arg := GetInboxVersionArg{Uid: uid}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxVersion", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes, err error) {
 	__arg := SyncInboxArg{Vers: vers}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncInbox", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncChat(ctx context.Context, __arg SyncChatArg) (res SyncChatRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res, rpc.CompressionMsgpackzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncAll", []any{__arg}, &res, rpc.CompressionMsgpackzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TlfFinalize(ctx context.Context, __arg TlfFinalizeArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfFinalize", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TlfResolve(ctx context.Context, __arg TlfResolveArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfResolve", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfResolve", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTypingRemoteArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.updateTypingRemote", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := JoinConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.joinConversation", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := LeaveConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.leaveConversation", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PreviewConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := PreviewConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.previewConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.previewConversation", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) DeleteConversation(ctx context.Context, convID ConversationID) (res DeleteConversationRemoteRes, err error) {
 	__arg := DeleteConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.deleteConversation", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RemoveFromConversation(ctx context.Context, __arg RemoveFromConversationArg) (res RemoveFromConversationRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.removeFromConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.removeFromConversation", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetMessageBefore(ctx context.Context, __arg GetMessageBeforeArg) (res GetMessageBeforeRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessageBefore", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessageBefore", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getTLFConversations", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setAppNotificationSettings", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetGlobalAppNotificationSettings(ctx context.Context, settings GlobalAppNotificationSettings) (err error) {
 	__arg := SetGlobalAppNotificationSettingsArg{Settings: settings}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetGlobalAppNotificationSettings(ctx context.Context) (res GlobalAppNotificationSettings, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getGlobalAppNotificationSettings", []interface{}{GetGlobalAppNotificationSettingsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getGlobalAppNotificationSettings", []any{GetGlobalAppNotificationSettingsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RemoteNotificationSuccessful(ctx context.Context, __arg RemoteNotificationSuccessfulArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetentionArg) (res SetRetentionRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvRetention", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvRetention", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setTeamRetention", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConvMinWriterRole(ctx context.Context, __arg SetConvMinWriterRoleArg) (res SetConvMinWriterRoleRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvMinWriterRole", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvMinWriterRole", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID ConversationID) (res SweepRes, err error) {
 	__arg := RetentionSweepConvArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.retentionSweepConv", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.retentionSweepConv", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, __arg UpgradeKBFSToImpteamArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.upgradeKBFSToImpteam", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RegisterSharePost(ctx context.Context, __arg RegisterSharePostArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.registerSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.registerSharePost", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FailSharePost(ctx context.Context, __arg FailSharePostArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.failSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.failSharePost", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg BroadcastGregorMessageToConvArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []any{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TeamIDOfConv(ctx context.Context, convID ConversationID) (res *keybase1.TeamID, err error) {
 	__arg := TeamIDOfConvArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []interface{}{ServerNowArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []any{ServerNowArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetExternalAPIKeys(ctx context.Context, typs []ExternalAPIKeyTyp) (res []ExternalAPIKey, err error) {
 	__arg := GetExternalAPIKeysArg{Typs: typs}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AdvertiseBotCommands(ctx context.Context, ads []RemoteBotCommandsAdvertisement) (res AdvertiseBotCommandsRes, err error) {
 	__arg := AdvertiseBotCommandsArg{Ads: ads}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.advertiseBotCommands", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.advertiseBotCommands", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ClearBotCommands(ctx context.Context, filter *RemoteClearBotCommandsFilter) (res ClearBotCommandsRes, err error) {
 	__arg := ClearBotCommandsArg{Filter: filter}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.clearBotCommands", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.clearBotCommands", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetBotInfo(ctx context.Context, __arg GetBotInfoArg) (res GetBotInfoRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetDefaultTeamChannels(ctx context.Context, teamID keybase1.TeamID) (res GetDefaultTeamChannelsRes, err error) {
 	__arg := GetDefaultTeamChannelsArg{TeamID: teamID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getDefaultTeamChannels", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetDefaultTeamChannels(ctx context.Context, __arg SetDefaultTeamChannelsArg) (res SetDefaultTeamChannelsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setDefaultTeamChannels", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetRecentJoins(ctx context.Context, convID ConversationID) (res GetRecentJoinsRes, err error) {
 	__arg := GetRecentJoinsArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getRecentJoins", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getRecentJoins", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RefreshParticipantsRemote(ctx context.Context, __arg RefreshParticipantsRemoteArg) (res RefreshParticipantsRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.refreshParticipantsRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.refreshParticipantsRemote", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetLastActiveAt(ctx context.Context, __arg GetLastActiveAtArg) (res GetLastActiveAtRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getLastActiveAt", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getLastActiveAt", []any{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetResetConversations(ctx context.Context) (res GetResetConversationsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getResetConversations", []interface{}{GetResetConversationsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getResetConversations", []any{GetResetConversationsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

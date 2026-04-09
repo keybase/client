@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/upk.avdl
 
 package keybase1
@@ -6,7 +6,6 @@ package keybase1
 import (
 	"errors"
 	"fmt"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -627,7 +626,8 @@ func (o UPKLiteV1AllIncarnations) DeepCopy() UPKLiteV1AllIncarnations {
 	}
 }
 
-type UPKInterface interface{}
+type UPKInterface interface {
+}
 
 func UPKProtocol(i UPKInterface) rpc.Protocol {
 	return rpc.Protocol{
