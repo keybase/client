@@ -126,7 +126,6 @@ type ConvoStore = T.Immutable<{
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
   rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
@@ -184,7 +183,6 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
-  reactionOrderMap: new Map(),
   rowRecycleTypeMap: new Map(),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
@@ -663,7 +661,6 @@ const createSlice =
       for (const ordinal of ordinalsToRefresh) {
         const idx = findOrdinalIndex(messageOrdinals, ordinal)
         if (messageOrdinals[idx] !== ordinal) {
-          s.reactionOrderMap.delete(ordinal)
           s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
@@ -673,7 +670,6 @@ const createSlice =
         const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
         const message = s.messageMap.get(ordinal)
         if (!message) {
-          s.reactionOrderMap.delete(ordinal)
           s.rowRecycleTypeMap.delete(ordinal)
           s.separatorMap.delete(ordinal)
           s.showUsernameMap.delete(ordinal)
@@ -720,11 +716,6 @@ const createSlice =
       message: T.Chat.Message
     ) => {
       const renderType = s.messageTypeMap.get(ordinal) ?? Message.getMessageRenderType(message)
-      if (message.reactions?.size) {
-        s.reactionOrderMap.set(ordinal, Message.getReactionOrder(message.reactions))
-      } else {
-        s.reactionOrderMap.delete(ordinal)
-      }
       const rowRecycleType = getRowRecycleType(message, renderType)
       if (rowRecycleType) {
         s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
@@ -2421,7 +2412,6 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
-          s.reactionOrderMap.clear()
           s.rowRecycleTypeMap.clear()
           s.separatorMap.clear()
           s.showUsernameMap.clear()
