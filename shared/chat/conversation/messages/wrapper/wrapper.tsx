@@ -295,7 +295,8 @@ const getCommonMessageData = ({
   const reactions = message.reactions
   const isExplodingMessage = message.type === 'text' || message.type === 'attachment'
   const showReplyTo = !!replyTo
-  const text = message.type === 'text' ? message.decoratedText.stringValue() : ''
+  const text =
+    message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
   const showCenteredHighlight =
     isCenteredHighlight ??
     !!(

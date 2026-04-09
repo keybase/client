@@ -221,27 +221,20 @@ export const makeMessageDeleted = (
   ...m,
 })
 
-export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageTypes.MessageText => {
-  const text = m?.text ?? noString
-  // Canonical display body for text rows. Keep raw text separately for edit/retry/quote flows.
-  const decoratedText = m?.decoratedText ?? text
-  return {
-    ...makeMessageCommon,
-    ...makeMessageExplodable,
-    inlinePaymentSuccessful: false,
-    isDeleteable: true,
-    isEditable: true,
-    mentionsAt: undefined,
-    mentionsChannel: 'none',
-    reactions: undefined,
-    text,
-    type: 'text',
-    unfurls: undefined,
-    ...m,
-    decoratedText,
-    text,
-  }
-}
+export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageTypes.MessageText => ({
+  ...makeMessageCommon,
+  ...makeMessageExplodable,
+  inlinePaymentSuccessful: false,
+  isDeleteable: true,
+  isEditable: true,
+  mentionsAt: undefined,
+  mentionsChannel: 'none',
+  reactions: undefined,
+  text: noString,
+  type: 'text',
+  unfurls: undefined,
+  ...m,
+})
 
 export const makeMessageAttachment = (
   m?: Partial<MessageTypes.MessageAttachment>
