@@ -29,18 +29,8 @@ let markedInitiallyLoaded = false
 export const DEBUGDump = () => {}
 
 const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
-  const cacheRef = React.useRef<{
-    inverted: ReadonlyArray<T.Chat.Ordinal>
-    source: ReadonlyArray<T.Chat.Ordinal>
-  }>({inverted: noOrdinals, source: noOrdinals})
   const source = messageOrdinals ?? noOrdinals
-  if (cacheRef.current.source !== source) {
-    cacheRef.current = {
-      inverted: source.length > 1 ? [...source].reverse() : source,
-      source,
-    }
-  }
-  return cacheRef.current.inverted
+  return React.useMemo(() => (source.length > 1 ? [...source].reverse() : source), [source])
 }
 
 const useScrolling = (p: {
