@@ -127,7 +127,7 @@ function SwipeConvActions(p: Props) {
 
   const inner = onPress ? (
     <RectButton onPress={onPress} style={styles.touchable} testID="inboxRow">
-      <View accessibilityRole="button" style={styles.touchable}>
+      <View accessible={false} style={styles.touchable}>
         {children}
       </View>
     </RectButton>

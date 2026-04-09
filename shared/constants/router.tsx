@@ -12,7 +12,6 @@ import {
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {
-  AllOptionalParamRouteKeys,
   NoParamRouteKeys,
   ParamRouteKeys,
   RouteKeys,
@@ -255,10 +254,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(
-  path: RouteName,
-  replace?: boolean
-): void
+export function navigateAppend<RouteName extends NoParamRouteKeys>(path: RouteName, replace?: boolean): void
 export function navigateAppend<RouteName extends ParamRouteKeys>(
   path: {name: RouteName; params: KBRootParamList[RouteName]},
   replace?: boolean

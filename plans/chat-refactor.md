@@ -41,6 +41,7 @@ Primary files:
 - [x] Update separator, username-grouping, and reaction-order metadata only for changed ordinals and any affected neighbors.
 - [x] Avoid rebuilding and resorting `messageOrdinals` unless thread membership actually changed.
 - [x] Re-evaluate whether some derived metadata should live in store state at all.
+- [ ] Audit per-message render-time computation and decide whether values that are only consumed by one caller should be stored in derived message state instead of recomputed during render.
 
 Primary files:
 

@@ -1,4 +1,4 @@
-import type {RootRouteProps} from '@/router-v2/route-params'
+import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/native'
 
 export type ThreadSearchRoute = {
@@ -11,5 +11,5 @@ export type ThreadSearchRouteProps = {
 
 export const useThreadSearchRoute = () => {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
-  return route.params.threadSearch
+  return getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)?.threadSearch
 }
