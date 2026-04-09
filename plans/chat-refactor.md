@@ -104,7 +104,7 @@ Primary files:
 - [x] Remove avoidable array cloning / reversing in the hottest list path.
 - [x] Replace effect-driven recycle subtype reporting with data available before or during row render.
 - [x] Re-check list item type stability after workstreams 1 and 3 land.
-- [ ] Keep scroll position and centered-message behavior unchanged.
+- [x] Keep scroll position and centered-message behavior unchanged.
 
 Primary files:
 
@@ -114,15 +114,35 @@ Primary files:
 
 ### 6. Measurement And Regression Guardrails
 
-- [ ] Add or improve lightweight profiling hooks where they help compare before/after behavior.
-- [ ] Define a manual verification checklist for initial thread mount, new incoming message, placeholder resolution, reactions, edits, and centered jumps.
-- [ ] Capture follow-up profiling notes after each landed workstream.
+- [x] Add or improve lightweight profiling hooks where they help compare before/after behavior.
+- [x] Define a manual verification checklist for initial thread mount, new incoming message, placeholder resolution, reactions, edits, and centered jumps.
+- [x] Capture follow-up profiling notes after each landed workstream.
 
 Primary files:
 
 - `shared/chat/conversation/list-area/index.native.tsx`
 - `shared/chat/conversation/list-area/index.desktop.tsx`
 - `shared/perf/*`
+
+Decision note:
+
+- Keep `MessageList` and `Msg-{type}` as the main thread-level React Profiler comparators.
+- Add a desktop `MessageWaypoint` profiler so chunked waypoint rendering shows up separately from full-list commits during scroll and centered-jump regressions.
+
+Manual verification checklist:
+
+1. Initial thread mount: open an already-active conversation and confirm the list lands at the bottom when there is no centered target, without a slow drift after messages finish loading.
+2. Older-message pagination: scroll upward far enough to load history and confirm the visible message stays anchored instead of jumping when older rows are inserted above it.
+3. New incoming message while pinned: with the list at the bottom, receive or send a new message and confirm the list stays pinned to the latest message on both desktop and native.
+4. Placeholder resolution: send a message that first appears as a placeholder/pending row and confirm it resolves in place without row reuse glitches or scroll jumps.
+5. Reactions and edits: add/remove a reaction and edit a message, then confirm only the affected row updates and desktop still scrolls to the editing message when edit mode opens.
+6. Centered jumps: use thread search or another centered-message entry point and confirm the requested message is centered/highlighted without breaking later scroll anchoring.
+
+Profiling notes:
+
+- Workstream 5: compare native `MessageList` plus hot `Msg-{type}` buckets with `yarn maestro-test-perf-thread`, and compare desktop thread runs with `yarn desktop-perf-thread` while spot-checking edit-jump and centered-jump flows.
+- Workstream 6: use the new desktop `MessageWaypoint` profiler to separate waypoint chunk commits from whole-list commits when evaluating scroll or search-jump changes.
+- This machine does not have `node_modules`, so profiling and manual validation need to happen in another environment with the repo toolchain installed.
 
 ## Recommended Order
 

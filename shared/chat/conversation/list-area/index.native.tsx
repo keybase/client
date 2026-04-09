@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -101,22 +102,32 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const listData = Chat.useChatContext(
+    C.useShallow(s => {
+      const {id: conversationIDKey, loaded, messageCenterOrdinal} = s
+      const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
+      const centeredHighlightOrdinal =
+        messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
+          ? messageCenterOrdinal.ordinal
+          : T.Chat.numberToOrdinal(-1)
+      return {
+        centeredHighlightOrdinal,
+        centeredOrdinal,
+        conversationIDKey,
+        loaded,
+        messageOrdinals: s.messageOrdinals ?? noOrdinals,
+      }
+    })
+  )
+  const {centeredHighlightOrdinal, centeredOrdinal, conversationIDKey, loaded} = listData
 
-  const loaded = Chat.useChatContext(s => s.loaded)
-  const messageCenterOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)
-  const centeredHighlightOrdinal =
-    messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
-      ? messageCenterOrdinal.ordinal
-      : T.Chat.numberToOrdinal(-1)
-  const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
-  const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
-  const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
-  const rowRecycleTypeMap = Chat.useChatContext(s => s.rowRecycleTypeMap)
-
-  const messageOrdinals = useInvertedMessageOrdinals(_messageOrdinals)
+  const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
+  const conversationIDKeyRef = React.useRef(conversationIDKey)
+  React.useEffect(() => {
+    conversationIDKeyRef.current = conversationIDKey
+  }, [conversationIDKey])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -137,14 +148,15 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = (ordinal: T.Chat.Ordinal) => {
-    if (!ordinal) {
-      return 'null'
+  const [getItemType] = React.useState(
+    () => (ordinal: T.Chat.Ordinal) => {
+      if (!ordinal) {
+        return 'null'
+      }
+      const convoState = Chat.getConvoState(conversationIDKeyRef.current)
+      return convoState.rowRecycleTypeMap.get(ordinal) ?? convoState.messageTypeMap.get(ordinal) ?? 'text'
     }
-    const recycled = rowRecycleTypeMap.get(ordinal)
-    if (recycled) return recycled
-    return messageTypeMap.get(ordinal) ?? 'text'
-  }
+  )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,

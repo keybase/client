@@ -341,7 +341,7 @@ const useScrolling = (p: {
   const editingOrdinal = Chat.useChatUIContext(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
   React.useEffect(() => {
-    if (lastEditingOrdinalRef.current !== editingOrdinal) return
+    if (lastEditingOrdinalRef.current === editingOrdinal) return
     lastEditingOrdinalRef.current = editingOrdinal
     if (!editingOrdinal) return
     const idx = messageOrdinals.indexOf(editingOrdinal)
@@ -698,9 +698,11 @@ function Content(p: ContentType) {
   const {id, ordinals, rowRenderer, ref} = p
   // Apply data-key to the dom node so we can search for editing messages
   return (
-    <div data-key={id} ref={ref}>
-      {ordinals.map((o): React.ReactNode => rowRenderer(o))}
-    </div>
+    <PerfProfiler id="MessageWaypoint">
+      <div data-key={id} ref={ref}>
+        {ordinals.map((o): React.ReactNode => rowRenderer(o))}
+      </div>
+    </PerfProfiler>
   )
 }
 
