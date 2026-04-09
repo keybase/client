@@ -11,7 +11,7 @@ Status:
 
 - [ ] `teams`
 - [x] `chat`
-  Notes: moved inbox search state/RPC orchestration into `shared/chat/inbox/search-state.tsx`; moved location preview coordinate state out of `shared/stores/chat.tsx`; pending create-conversation error flow intentionally kept for now.
+  Notes: moved inbox search state/RPC orchestration into `shared/chat/inbox/search-state.tsx`; moved location preview coordinate state out of `shared/stores/chat.tsx`; pending create-conversation error flow now lives in chat route params instead of the chat store.
 - [ ] `push`
   Files: `shared/stores/push.desktop.tsx`, `shared/stores/push.native.tsx`, `shared/stores/push.d.ts`
 - [ ] `settings-contacts`

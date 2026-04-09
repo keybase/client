@@ -254,7 +254,6 @@ export interface ConvoState extends ConvoStore {
       chatPreviewConversation: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
-      chatResetConversationErrored: () => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
@@ -303,7 +302,8 @@ export interface ConvoState extends ConvoStore {
       reason: NavReason,
       highlightMessageID?: T.Chat.MessageID,
       pushBody?: string,
-      threadSearchQuery?: string
+      threadSearchQuery?: string,
+      createConversationError?: T.Chat.CreateConversationError
     ) => void
     openFolder: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
@@ -437,9 +437,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatPreviewConversation: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatResetConversationErrored: () => {
     throw new Error('convostate defer not initialized')
   },
   chatUnboxRows: () => {
@@ -2491,7 +2488,13 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      navigateToThread: (_reason, highlightMessageID, _pushBody, threadSearchQuery) => {
+      navigateToThread: (
+        _reason,
+        highlightMessageID,
+        _pushBody,
+        threadSearchQuery,
+        createConversationError
+      ) => {
         set(s => {
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
@@ -2518,11 +2521,12 @@ const createSlice =
 
           // we select the chat tab and change the params
           const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
+          const navParams = {createConversationError, threadSearch}
           if (Common.isSplit) {
-            navToThread(conversationIDKey, {threadSearch})
+            navToThread(conversationIDKey, navParams)
             // immediately switch stack to an inbox | thread stack
           } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey, {threadSearch})
+            navToThread(conversationIDKey, navParams)
             return
           } else {
             // replace if looking at the pending / waiting screen
@@ -2535,7 +2539,10 @@ const createSlice =
               clearModals()
             }
 
-            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, replace)
+            navigateAppend(
+              {name: Common.threadRouteName, params: {conversationIDKey, createConversationError, threadSearch}},
+              replace
+            )
           }
         }
         updateNav()
@@ -2874,7 +2881,6 @@ const createSlice =
           s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
         })
         fetchConversationBio()
-        get().dispatch.defer.chatResetConversationErrored()
         // Handle pending jump (e.g. from notification deep link)
         const pendingJump = get().pendingJumpMessageID
         if (pendingJump) {

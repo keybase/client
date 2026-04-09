@@ -184,7 +184,6 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
-  createConversationError?: T.Chat.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   smallTeamsExpanded: boolean // if we're showing all small teams,
@@ -207,7 +206,6 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  createConversationError: undefined,
   flipStatusMap: new Map(),
   inboxAllowShowFloatingButton: false,
   inboxHasLoaded: false,
@@ -253,12 +251,6 @@ export type State = Store & {
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
-    conversationErrored: (
-      allowedUsers: ReadonlyArray<string>,
-      disallowedUsers: ReadonlyArray<string>,
-      code: number,
-      message: string
-    ) => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
@@ -288,7 +280,6 @@ export type State = Store & {
     }) => void
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
-    resetConversationErrored: () => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
@@ -447,16 +438,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         cs.getState().dispatch.setMeta()
       }
     },
-    conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
-      set(s => {
-        s.createConversationError = T.castDraft({
-          allowedUsers,
-          code,
-          disallowedUsers,
-          message,
-        })
-      })
-    },
     createConversation: (participants, highlightMessageID) => {
       // TODO This will break if you try to make 2 new conversations at the same time because there is
       // only one pending conversation state.
@@ -513,10 +494,14 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               disallowedUsers = value.split(',')
             }
             const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-            get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
             storeRegistry
               .getConvoState(T.Chat.pendingErrorConversationIDKey)
-              .dispatch.navigateToThread('justCreated', highlightMessageID)
+              .dispatch.navigateToThread('justCreated', highlightMessageID, undefined, undefined, {
+                allowedUsers,
+                code: error.code,
+                disallowedUsers,
+                message: error.desc,
+              })
           }
         }
       }
@@ -1404,11 +1389,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       } else {
         logger.info('skipping meta queue run, queue unchanged')
       }
-    },
-    resetConversationErrored: () => {
-      set(s => {
-        s.createConversationError = undefined
-      })
     },
     resetState: () => {
       set(s => ({
