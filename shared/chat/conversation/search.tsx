@@ -45,13 +45,26 @@ const useCommon = (ownProps: OwnProps) => {
 
   const searchOrdinalRef = React.useRef(0)
   const hitsRef = React.useRef(messageHits)
+  const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
+  const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
   React.useEffect(() => {
     hitsRef.current = messageHits
   }, [messageHits])
 
+  const clearPendingFlush = React.useEffectEvent(() => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current)
+      flushTimeoutRef.current = undefined
+    }
+    pendingHitsRef.current = []
+    pendingReplaceHitsRef.current = undefined
+  })
+
   const runThreadSearch = React.useEffectEvent((query: string) => {
     const requestOrdinal = searchOrdinalRef.current + 1
     searchOrdinalRef.current = requestOrdinal
+    clearPendingFlush()
     setSearchState({hits: [], status: query ? 'inprogress' : 'done'})
     if (!query) {
       return
@@ -66,8 +79,45 @@ const useCommon = (ownProps: OwnProps) => {
       }
       setSearchState(state => (searchOrdinalRef.current === requestOrdinal ? updater(state) : state))
     }
+    const flushPendingHits = (statusOverride?: SearchState['status']) => {
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current)
+        flushTimeoutRef.current = undefined
+      }
+      const pendingReplaceHits = pendingReplaceHitsRef.current
+      const pendingHits = pendingHitsRef.current
+      pendingReplaceHitsRef.current = undefined
+      pendingHitsRef.current = []
+      if (!pendingReplaceHits && !pendingHits.length && statusOverride === undefined) {
+        return
+      }
+      updateIfCurrent(state => {
+        let nextHits = state.hits
+        if (pendingReplaceHits) {
+          nextHits = pendingReplaceHits
+        } else if (pendingHits.length) {
+          const seen = new Set(nextHits.map(hit => hit.id))
+          nextHits = [...nextHits]
+          pendingHits.forEach(hit => {
+            if (!seen.has(hit.id)) {
+              seen.add(hit.id)
+              nextHits.push(hit)
+            }
+          })
+        }
+        return {hits: nextHits, status: statusOverride ?? state.status}
+      })
+    }
+    const scheduleFlush = () => {
+      if (flushTimeoutRef.current) {
+        return
+      }
+      flushTimeoutRef.current = setTimeout(() => {
+        flushPendingHits()
+      }, 16)
+    }
     const onDone = () => {
-      updateIfCurrent(state => ({...state, status: 'done'}))
+      flushPendingHits('done')
     }
 
     const f = async () => {
@@ -86,11 +136,8 @@ const useCommon = (ownProps: OwnProps) => {
               if (!message) {
                 return
               }
-              updateIfCurrent(state =>
-                state.hits.find(existing => existing.id === message.id)
-                  ? state
-                  : {...state, hits: [...state.hits, message]}
-              )
+              pendingHitsRef.current.push(message)
+              scheduleFlush()
             },
             'chat.1.chatUi.chatSearchInboxDone': onDone,
             'chat.1.chatUi.chatSearchInboxHit': resp => {
@@ -107,7 +154,9 @@ const useCommon = (ownProps: OwnProps) => {
                 }
                 return result
               }, [])
-              updateIfCurrent(state => ({...state, hits: messages}))
+              pendingHitsRef.current = []
+              pendingReplaceHitsRef.current = messages
+              scheduleFlush()
             },
             'chat.1.chatUi.chatSearchInboxStart': () => {
               updateIfCurrent(state => ({...state, status: 'inprogress'}))
@@ -201,6 +250,7 @@ const useCommon = (ownProps: OwnProps) => {
 
   React.useEffect(() => {
     searchOrdinalRef.current += 1
+    clearPendingFlush()
     setSearchState({hits: [], status: 'initial'})
     setLastSearch('')
     setSelectedIndex(0)
@@ -220,6 +270,7 @@ const useCommon = (ownProps: OwnProps) => {
   React.useEffect(() => {
     return () => {
       searchOrdinalRef.current += 1
+      clearPendingFlush()
       C.ignorePromise(
         T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {})
       )
