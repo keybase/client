@@ -57,7 +57,7 @@ const useCommon = (ownProps: OwnProps) => {
       return
     }
 
-    const {devicename, username} = useCurrentUserState.getState()
+    const {deviceName, username} = useCurrentUserState.getState()
     const getLastOrdinal = () =>
       Chat.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
@@ -81,7 +81,7 @@ const useCommon = (ownProps: OwnProps) => {
                 hit.searchHit.hitMessage,
                 username,
                 getLastOrdinal,
-                devicename
+                deviceName
               )
               if (!message) {
                 return
@@ -100,7 +100,7 @@ const useCommon = (ownProps: OwnProps) => {
                   hit.hitMessage,
                   username,
                   getLastOrdinal,
-                  devicename
+                  deviceName
                 )
                 if (message) {
                   result.push(message)
