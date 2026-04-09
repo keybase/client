@@ -1,7 +1,6 @@
 import {default as fs, promises as fsp} from 'fs'
 import path from 'path'
 import type {EmojiData} from 'emoji-datasource-apple'
-import escapeRegExp from 'lodash/escapeRegExp'
 import prettier from 'prettier'
 import {fileURLToPath} from 'node:url'
 
@@ -44,6 +43,10 @@ function UTF162JSON(text: string) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
   }
   return r.join('')
+}
+
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 const readEmojiData = async () => {
