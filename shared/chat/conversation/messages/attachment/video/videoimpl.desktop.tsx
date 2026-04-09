@@ -1,13 +1,13 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl'
-import {useState} from './use-state'
-import {maxWidth, maxHeight} from '../shared'
+import {getAttachmentPreviewSize, maxWidth, maxHeight} from '../shared'
 
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
-  const {openFullscreen, allowPlay} = p
-  const {previewURL, height, width, url, videoDuration} = useState()
+  const {allowPlay, message, openFullscreen} = p
+  const {fileURL: url, videoDuration} = message
+  const {previewURL, height, width} = getAttachmentPreviewSize(message)
   const [showPoster, setShowPoster] = React.useState(true)
   const [lastUrl, setLastUrl] = React.useState(url)
 

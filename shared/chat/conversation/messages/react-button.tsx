@@ -7,47 +7,37 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
+import type * as T from '@/constants/types'
 
 export type OwnProps = {
   className?: string
-  emoji?: string
+  emoji: string
   onLongPress?: () => void
-  showBorder?: boolean
+  reaction: T.Chat.ReactionDesc
   style?: StylesCrossPlatform
+  toggleReaction?: (emoji: string) => void
 }
 
-function ReactButtonContainer(p: OwnProps) {
-  const ordinal = useOrdinal()
-  const {onLongPress, style, emoji, className} = p
-  const me = useCurrentUserState(s => s.username)
-  const isDarkMode = useColorScheme() === 'dark'
-  const {active, count, decorated} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      const reaction = message?.reactions?.get(emoji || '')
-      const active = (reaction?.users ?? []).some(r => r.username === me)
-      return {
-        active,
-        count: reaction?.users.length ?? 0,
-        decorated: reaction?.decorated ?? '',
-      }
-    })
-  )
-
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const onClick = () => {
-    toggleMessageReaction(ordinal, emoji || '')
-  }
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onOpenEmojiPicker = () => {
-    navigateAppend(conversationIDKey => ({
-      name: 'chatChooseEmoji',
-      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-    }))
-  }
-
-  const text = decorated.length ? decorated : emoji
-  return emoji ? (
+function ReactionButton({
+  active,
+  className,
+  count,
+  isDarkMode,
+  onClick,
+  onLongPress,
+  style,
+  text,
+}: {
+  active: boolean
+  className?: string
+  count: number
+  isDarkMode: boolean
+  onClick: () => void
+  onLongPress?: () => void
+  style?: StylesCrossPlatform
+  text: string
+}) {
+  return (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
@@ -82,7 +72,50 @@ function ReactButtonContainer(p: OwnProps) {
         </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox2>
-  ) : (
+  )
+}
+
+function ReactButtonContainer(p: OwnProps) {
+  const {emoji, reaction} = p
+  const me = useCurrentUserState(s => s.username)
+  const isDarkMode = useColorScheme() === 'dark'
+  const onClick = () => {
+    p.toggleReaction?.(emoji)
+  }
+  const active = reaction.users.some(r => r.username === me)
+  const count = reaction.users.length
+  const text = reaction.decorated || emoji
+
+  return (
+    <ReactionButton
+      active={active}
+      className={p.className}
+      count={count}
+      isDarkMode={isDarkMode}
+      onClick={onClick}
+      onLongPress={p.onLongPress}
+      style={p.style}
+      text={text}
+    />
+  )
+}
+
+type NewReactionButtonProps = {
+  style?: StylesCrossPlatform
+}
+
+export function NewReactionButton(p: NewReactionButtonProps) {
+  const ordinal = useOrdinal()
+  const isDarkMode = useColorScheme() === 'dark'
+  const navigateAppend = Chat.useChatNavigateAppend()
+  const onOpenEmojiPicker = () => {
+    navigateAppend(conversationIDKey => ({
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+    }))
+  }
+
+  return (
     <Kb.ClickableBox2
       onClick={onOpenEmojiPicker}
       style={Kb.Styles.collapseStyles([
@@ -90,7 +123,7 @@ function ReactButtonContainer(p: OwnProps) {
         {borderColor: isDarkMode ? darkColors.black_10 : colors.black_10},
         styles.newReactionButtonBox,
         styles.buttonBox,
-        style,
+        p.style,
       ])}
     >
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">

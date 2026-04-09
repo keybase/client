@@ -1,27 +1,37 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as Chat from '@/stores/chat'
+import type * as T from '@/constants/types'
 import VideoImpl from './videoimpl'
 import {
   Title,
-  useAttachmentState,
   Collapsed,
   useCollapseIcon,
   Transferring,
   TransferIcon,
   ShowToastAfterSaving,
+  getAttachmentDisplayFileName,
 } from '../shared'
+import {Keyboard} from 'react-native'
 
 type Props = {
+  message: T.Chat.MessageAttachment
+  ordinal: T.Chat.Ordinal
   showPopup: () => void
 }
 
 function Video(p: Props) {
-  const {showPopup} = p
-  const r = useAttachmentState()
-  const {transferState, transferProgress, submitState} = r
-  const {fileName, isCollapsed, showTitle, openFullscreen} = r
+  const {message, ordinal, showPopup} = p
+  const {isCollapsed, submitState, title, transferProgress, transferState} = message
+  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const fileName = getAttachmentDisplayFileName(message)
+  const showTitle = !!title
+  const openFullscreen = () => {
+    Keyboard.dismiss()
+    attachmentPreviewSelect(ordinal)
+  }
   const containerStyle = styles.container
-  const collapseIcon = useCollapseIcon(false)
+  const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename = Kb.Styles.isMobile || !fileName ? null : (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
@@ -52,21 +62,22 @@ function Video(p: Props) {
         >
           <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
           <VideoImpl
+            message={message}
             openFullscreen={openFullscreen}
             showPopup={showPopup}
             allowPlay={transferState !== 'uploading' && submitState !== 'pending'}
           />
-          {showTitle ? <Title /> : null}
+          {showTitle ? <Title message={message} /> : null}
           <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
-        <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
+        <TransferIcon message={message} ordinal={ordinal} style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
       </Kb.Box2>
     </>
   )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={containerStyle} alignItems="flex-start">
-      {isCollapsed ? <Collapsed /> : content}
+      {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )
 }

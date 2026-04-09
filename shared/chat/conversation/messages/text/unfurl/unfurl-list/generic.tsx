@@ -1,75 +1,42 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import UnfurlImage from './image'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {formatTimeForMessages} from '@/util/timestamp'
-import {getUnfurlInfo, useActions} from './use-state'
+import {useActions} from './use-state'
 
-function UnfurlGeneric(p: {idx: number}) {
-  const {idx} = p
-  const ordinal = useOrdinal()
-
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
-      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
-        return null
-      }
-      const {generic} = unfurl
-      const {description, publishTime, favicon, media, siteName, title, url} = generic
-      const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
-      const showImageOnSide =
-        !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
-      const imageLocation = isCollapsed
-        ? 'collapsed'
-        : showImageOnSide
-          ? 'side'
-          : width > 0 && height > 0
-            ? 'bottom'
-            : 'none'
-
-      return {
-        description: description || undefined,
-        favicon: favicon?.url,
-        height,
-        imageLocation,
-        isCollapsed,
-        isVideo,
-        mediaUrl,
-        publishTime: publishTime ? publishTime * 1000 : 0,
-        siteName,
-        title,
-        unfurlMessageID,
-        url,
-        width,
-        youAreAuthor,
-      }
-    })
-  )
-
+function UnfurlGeneric(p: {
+  author: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
+  unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
+  youAreAuthor: boolean
+}) {
+  const {ordinal, unfurlInfo, youAreAuthor} = p
+  const {isCollapsed, unfurl, unfurlMessageID} = unfurlInfo
   const {onClose, onToggleCollapse} = useActions(
-    data?.youAreAuthor ?? false,
-    T.Chat.numberToMessageID(data?.unfurlMessageID ?? 0),
+    youAreAuthor,
+    T.Chat.numberToMessageID(unfurlMessageID),
     ordinal
   )
-
-  const titleUrlProps = Kb.useClickURL(data?.url ?? '')
-
-  if (!data) return null
-
-  const {description, favicon, height, isCollapsed, isVideo, publishTime} = data
-  const {siteName, title, url, width, imageLocation, mediaUrl} = data
+  const generic = unfurl.unfurlType === T.RPCChat.UnfurlType.generic ? unfurl.generic : undefined
+  const titleUrlProps = Kb.useClickURL(generic?.mapInfo ? '' : (generic?.url ?? ''))
+  if (!generic || generic.mapInfo) {
+    return null
+  }
+  const {description, publishTime, favicon, media, siteName, title, url} = generic
+  const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
+  const showImageOnSide =
+    !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
+  const imageLocation = isCollapsed ? 'collapsed' : showImageOnSide ? 'side' : width > 0 && height > 0 ? 'bottom' : 'none'
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+      {favicon?.url ? <Kb.Image src={favicon.url} style={styles.favicon} /> : null}
       <Kb.BoxGrow>
         <Kb.Text type="BodySmall" lineClamp={1}>
           {siteName}
           {publishTime ? (
-            <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
+            <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime * 1000)}</Kb.Text>
           ) : null}
         </Kb.Text>
       </Kb.BoxGrow>
@@ -108,13 +75,13 @@ function UnfurlGeneric(p: {idx: number}) {
     imageLocation === 'bottom' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <UnfurlImage
-          url={mediaUrl || ''}
+          url={mediaUrl}
           linkURL={url}
-          height={height || 0}
-          width={width || 0}
+          height={height}
+          width={width}
           widthPadding={Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : undefined}
           style={styles.bottomImage}
-          isVideo={isVideo || false}
+          isVideo={isVideo}
           autoplayVideo={false}
         />
       </Kb.Box2>

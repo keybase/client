@@ -54,12 +54,6 @@ import type {useChatState, RefreshReason} from '@/stores/chat'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
-const makeThreadSearchInfo = (): T.Chat.ThreadSearchInfo => ({
-  hits: [],
-  status: 'initial',
-  visible: false,
-})
-
 const noParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
@@ -116,12 +110,8 @@ type ConvoStore = T.Immutable<{
   botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
   commandMarkdown?: T.RPCChat.UICommandMarkdown
-  commandStatus?: T.Chat.CommandStatusInfo
   dismissedInviteBanners: boolean
-  editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
-  giphyResult?: T.RPCChat.GiphySearchResults
-  giphyWindow: boolean
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -136,19 +126,37 @@ type ConvoStore = T.Immutable<{
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  reactionOrderMap: Map<T.Chat.Ordinal, ReadonlyArray<string>>
-  replyTo: T.Chat.Ordinal
+  rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
-  threadSearchInfo: T.Chat.ThreadSearchInfo
-  threadSearchQuery: string
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
-  unsentText?: string
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }>
+
+export type ConvoUIStore = T.Immutable<{
+  commandStatus?: T.Chat.CommandStatusInfo
+  editing: T.Chat.Ordinal
+  giphyResult?: T.RPCChat.GiphySearchResults
+  giphyWindow: boolean
+  replyTo: T.Chat.Ordinal
+  unsentText?: string
+}>
+
+export interface ConvoUIState extends ConvoUIStore {
+  dispatch: {
+    injectIntoInput: (text?: string) => void
+    resetState: () => void
+    setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
+    setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
+    setGiphyResult: (result?: T.RPCChat.GiphySearchResults) => void
+    setGiphyWindow: (show: boolean) => void
+    setReplyTo: (ordinal: T.Chat.Ordinal) => void
+    toggleGiphyPrefill: () => void
+  }
+}
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
@@ -158,12 +166,8 @@ const initialConvoStore: ConvoStore = {
   botSettings: new Map(),
   botTeamRoleMap: new Map(),
   commandMarkdown: undefined,
-  commandStatus: undefined,
   dismissedInviteBanners: false,
-  editing: T.Chat.numberToOrdinal(0),
   explodingMode: 0,
-  giphyResult: undefined,
-  giphyWindow: false,
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
@@ -179,18 +183,23 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
-  reactionOrderMap: new Map(),
-  replyTo: T.Chat.numberToOrdinal(0),
+  rowRecycleTypeMap: new Map(),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
-  threadSearchInfo: makeThreadSearchInfo(),
-  threadSearchQuery: '',
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
-  unsentText: undefined,
   validatedOrdinalRange: undefined,
+}
+
+const initialConvoUIStore: ConvoUIStore = {
+  commandStatus: undefined,
+  editing: T.Chat.numberToOrdinal(0),
+  giphyResult: undefined,
+  giphyWindow: false,
+  replyTo: T.Chat.numberToOrdinal(0),
+  unsentText: undefined,
 }
 
 type LoadMoreMessagesParams = {
@@ -261,7 +270,6 @@ export interface ConvoState extends ConvoStore {
     ) => void
     giphySend: (result: T.RPCChat.GiphySearchResult) => void
     hideConversation: (hide: boolean) => void
-    injectIntoInput: (text?: string) => void
     joinConversation: () => void
     jumpToRecent: () => void
     leaveConversation: (navToInbox?: boolean) => void
@@ -291,7 +299,12 @@ export interface ConvoState extends ConvoStore {
       ordinals?: ReadonlyArray<T.Chat.Ordinal>
     }) => void
     mute: (m: boolean) => void
-    navigateToThread: (reason: NavReason, highlightMessageID?: T.Chat.MessageID, pushBody?: string) => void
+    navigateToThread: (
+      reason: NavReason,
+      highlightMessageID?: T.Chat.MessageID,
+      pushBody?: string,
+      threadSearchQuery?: string
+    ) => void
     openFolder: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: T.RPCChat.IncomingMessage) => void
@@ -312,24 +325,18 @@ export interface ConvoState extends ConvoStore {
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
     sendMessage: (text: string) => void
-    setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
-    setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setParticipants: (p: ConvoState['participants']) => void
-    setReplyTo: (o: T.Chat.Ordinal) => void
-    setThreadSearchQuery: (query: string) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
-    threadSearch: (query: string) => void
-    toggleGiphyPrefill: () => void
     toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
     toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
-    toggleThreadSearch: (hide?: boolean) => void
+    toggleThreadSearch: (hide?: boolean, query?: string) => void
     unfurlResolvePrompt: (
       messageID: T.Chat.MessageID,
       domain: string,
@@ -510,9 +517,13 @@ const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RP
 )
 
 const createSlice =
-  (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.ImmerStateCreator<ConvoState> =>
+  (
+    id: T.Chat.ConversationIDKey = noConversationIDKey,
+    getLinkedUIState: () => ConvoUIState = () => getConvoUIState(id)
+  ): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
     const defer = convoDeferImpl ?? stubDefer
+    const getUI = getLinkedUIState
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
       const s = useCurrentUserState.getState()
@@ -585,17 +596,6 @@ const createSlice =
       return clientPrev || T.Chat.numberToMessageID(0)
     }
 
-    const getReactionOrder = (reactions: ReadonlyMap<string, T.Chat.ReactionDesc>): Array<string> => {
-      const keys = [...reactions.keys()]
-      const scoreMap = new Map(
-        keys.map(emoji => [
-          emoji,
-          reactions.get(emoji)!.users.reduce((min, r) => Math.min(min, r.timestamp), Infinity),
-        ])
-      )
-      return keys.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
-    }
-
     const clearMessageIDIndexForOrdinal = (
       state: Z.WritableDraft<ConvoState>,
       ordinal: T.Chat.Ordinal,
@@ -623,25 +623,93 @@ const createSlice =
     ) =>
       messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
 
-    const syncSeparatorMap = (s: Z.WritableDraft<ConvoState>) => {
-      const you = useCurrentUserState.getState().username
-      const mo = s.messageOrdinals ?? []
-      const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
-      const um = new Map<T.Chat.Ordinal, string>()
-      const rm = new Map<T.Chat.Ordinal, Array<string>>()
-      let p = T.Chat.numberToOrdinal(0)
-      let pMessage: T.Chat.Message | undefined = undefined
-      for (const o of mo) {
-        sm.set(o, p)
-        const m = s.messageMap.get(o)
-        if (m) um.set(o, getUsernameToShow(m, pMessage, you))
-        if (m?.reactions?.size) rm.set(o, getReactionOrder(m.reactions))
-        pMessage = m as T.Chat.Message | undefined
-        p = o
+    const findOrdinalIndex = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) => {
+      let low = 0
+      let high = ordinals.length
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2)
+        if (ordinals[mid]! < ordinal) {
+          low = mid + 1
+        } else {
+          high = mid
+        }
       }
-      s.separatorMap = sm
-      s.showUsernameMap = um
-      s.reactionOrderMap = rm
+      return low
+    }
+
+    const refreshDerivedMetadata = (
+      s: Z.WritableDraft<ConvoState>,
+      changedOrdinals: ReadonlySet<T.Chat.Ordinal>
+    ) => {
+      if (changedOrdinals.size === 0) {
+        return
+      }
+
+      const messageOrdinals = s.messageOrdinals ?? []
+      const you = useCurrentUserState.getState().username
+      const ordinalsToRefresh = new Set(changedOrdinals)
+
+      for (const ordinal of changedOrdinals) {
+        const idx = findOrdinalIndex(messageOrdinals, ordinal)
+        const maybeCurrent = messageOrdinals[idx]
+        const nextOrdinal = maybeCurrent === ordinal ? messageOrdinals[idx + 1] : maybeCurrent
+        if (nextOrdinal !== undefined) {
+          ordinalsToRefresh.add(nextOrdinal)
+        }
+      }
+
+      for (const ordinal of ordinalsToRefresh) {
+        const idx = findOrdinalIndex(messageOrdinals, ordinal)
+        if (messageOrdinals[idx] !== ordinal) {
+          s.rowRecycleTypeMap.delete(ordinal)
+          s.separatorMap.delete(ordinal)
+          s.showUsernameMap.delete(ordinal)
+          continue
+        }
+
+        const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
+        const message = s.messageMap.get(ordinal)
+        if (!message) {
+          s.rowRecycleTypeMap.delete(ordinal)
+          s.separatorMap.delete(ordinal)
+          s.showUsernameMap.delete(ordinal)
+          continue
+        }
+
+        s.separatorMap.set(ordinal, previousOrdinal)
+        const previousMessage = idx > 0 ? s.messageMap.get(previousOrdinal) : undefined
+        s.showUsernameMap.set(ordinal, getUsernameToShow(message, previousMessage, you))
+        setRowRenderDerivedMetadata(s, ordinal, message)
+      }
+    }
+
+    const getRowRecycleType = (message: T.Chat.Message): string | undefined => {
+      if (message.type !== 'text') {
+        return undefined
+      }
+
+      let rowRecycleType = 'text'
+      if (message.replyTo) {
+        rowRecycleType += ':reply'
+      }
+      if (message.reactions?.size) {
+        rowRecycleType += ':reactions'
+      }
+
+      return rowRecycleType === 'text' ? undefined : rowRecycleType
+    }
+
+    const setRowRenderDerivedMetadata = (
+      s: Z.WritableDraft<ConvoState>,
+      ordinal: T.Chat.Ordinal,
+      message: T.Chat.Message
+    ) => {
+      const rowRecycleType = getRowRecycleType(message)
+      if (rowRecycleType) {
+        s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
+      } else {
+        s.rowRecycleTypeMap.delete(ordinal)
+      }
     }
 
     const mergeMessage = (
@@ -731,6 +799,7 @@ const createSlice =
       set(s => {
         // Build set of incoming regular ordinals for ordinal management
         const incomingOrdinals = new Set<T.Chat.Ordinal>()
+        const touchedOrdinals = new Set<T.Chat.Ordinal>()
         for (const m of messages) {
           if (m.conversationMessage !== false && m.type !== 'deleted') {
             incomingOrdinals.add(m.ordinal)
@@ -742,6 +811,7 @@ const createSlice =
           const regularMessage = m.conversationMessage !== false
 
           if (regularMessage && m.type === 'deleted') {
+            touchedOrdinals.add(m.ordinal)
             clearMessageIDIndexForOrdinal(s, m.ordinal)
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
@@ -771,6 +841,10 @@ const createSlice =
                 incomingOrdinals.add(mapOrdinal)
               }
               m.ordinal = mapOrdinal
+            }
+
+            if (regularMessage) {
+              touchedOrdinals.add(mapOrdinal)
             }
 
             const existingMsg = s.messageMap.get(mapOrdinal)
@@ -829,6 +903,7 @@ const createSlice =
         if (validatedRange) {
           for (const o of existing) {
             if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
+              touchedOrdinals.add(o)
               clearMessageIDIndexForOrdinal(s, o)
               existing.delete(o)
               s.messageMap.delete(o)
@@ -851,7 +926,7 @@ const createSlice =
           s.messageOrdinals = [...existing].sort((a, b) => a - b)
         }
 
-        syncSeparatorMap(s)
+        refreshDerivedMetadata(s, touchedOrdinals)
       })
 
       if (markAsRead) {
@@ -925,11 +1000,9 @@ const createSlice =
     ) => {
       const {show, clearInput} = action.payload.params
       if (clearInput) {
-        get().dispatch.injectIntoInput('')
+        getUI().dispatch.injectIntoInput('')
       }
-      set(s => {
-        s.giphyWindow = show
-      })
+      getUI().dispatch.setGiphyWindow(show)
     }
 
     const refreshMutualTeamsInConv = () => {
@@ -984,7 +1057,7 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          s.reactionOrderMap.set(targetOrdinal, getReactionOrder(m.reactions))
+          setRowRenderDerivedMetadata(s, targetOrdinal, m)
         }
       })
     }
@@ -1199,7 +1272,7 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
           }
-          syncSeparatorMap(s)
+          refreshDerivedMetadata(s, new Set([toDelOrdinal]))
         })
       }
 
@@ -1260,7 +1333,7 @@ const createSlice =
     }
 
     const _messageEdit = (ordinal: T.Chat.Ordinal, text: string) => {
-      get().dispatch.injectIntoInput('')
+      getUI().dispatch.injectIntoInput('')
       const m = get().messageMap.get(ordinal)
       if (!m || !(m.type === 'text' || m.type === 'attachment')) {
         logger.warn("Can't find message to edit", ordinal)
@@ -1268,10 +1341,10 @@ const createSlice =
       }
       // Skip if the content is the same
       if (m.type === 'text' && m.text.stringValue() === text) {
-        get().dispatch.setEditing('clear')
+        getUI().dispatch.setEditing('clear')
         return
       } else if (m.type === 'attachment' && m.title === text) {
-        get().dispatch.setEditing('clear')
+        getUI().dispatch.setEditing('clear')
         return
       }
       set(s => {
@@ -1280,7 +1353,7 @@ const createSlice =
           m1.submitState = 'editing'
         }
       })
-      get().dispatch.setEditing('clear')
+      getUI().dispatch.setEditing('clear')
 
       const f = async () => {
         await T.RPCChat.localPostEditNonblockRpcPromise({
@@ -1301,12 +1374,12 @@ const createSlice =
     }
 
     const _messageSend = (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => {
-      get().dispatch.injectIntoInput('')
-      get().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
+      getUI().dispatch.injectIntoInput('')
+      getUI().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
       set(s => {
         s.commandMarkdown = undefined
-        s.giphyWindow = false
       })
+      getUI().dispatch.setGiphyWindow(false)
       const f = async () => {
         const meta = get().meta
         const tlfName = meta.tlfname
@@ -1329,7 +1402,7 @@ const createSlice =
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
                 if (canceled) {
-                  get().dispatch.injectIntoInput(text)
+                  getUI().dispatch.injectIntoInput(text)
                 }
               },
               'chat.1.chatUi.chatStellarShowConfirm': () => {},
@@ -1638,14 +1711,12 @@ const createSlice =
         ignorePromise(f())
       },
       giphySend: result => {
-        set(s => {
-          s.giphyWindow = false
-        })
+        getUI().dispatch.setGiphyWindow(false)
         const f = async () => {
           try {
             await T.RPCChat.localTrackGiphySelectRpcPromise({result})
           } catch {}
-          const replyTo = get().messageMap.get(get().replyTo)?.id
+          const replyTo = get().messageMap.get(getUI().replyTo)?.id
           _messageSend(result.targetUrl, replyTo)
         }
         ignorePromise(f())
@@ -1675,11 +1746,6 @@ const createSlice =
           })
         }
         ignorePromise(f())
-      },
-      injectIntoInput: text => {
-        set(s => {
-          s.unsentText = text
-        })
       },
       joinConversation: () => {
         const f = async () => {
@@ -2304,7 +2370,7 @@ const createSlice =
           }
 
           const text = formatTextForQuoting(message.text.stringValue())
-          getConvoState(newThreadCID).dispatch.injectIntoInput(text)
+          getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
           get().dispatch.defer.chatMetasReceived([meta])
           getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
         }
@@ -2334,8 +2400,10 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
+          s.rowRecycleTypeMap.clear()
+          s.separatorMap.clear()
+          s.showUsernameMap.clear()
           s.validatedOrdinalRange = undefined
-          syncSeparatorMap(s)
         })
       },
       messagesExploded: (messageIDs, explodedBy) => {
@@ -2349,7 +2417,9 @@ const createSlice =
             m.explodedBy = explodedBy || ''
             m.reactions = new Map()
             m.unfurls = new Map()
-            if (ordinal) s.reactionOrderMap.set(ordinal, [])
+            if (ordinal) {
+              setRowRenderDerivedMetadata(s, ordinal, m)
+            }
             if (m.type === 'text') {
               m.flipGameID = ''
               m.mentionsAt = new Set()
@@ -2396,7 +2466,7 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
           }
-          syncSeparatorMap(s)
+          refreshDerivedMetadata(s, allOrdinals)
         })
       },
       mute: m => {
@@ -2409,9 +2479,8 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      navigateToThread: (_reason, highlightMessageID, _pushBody) => {
+      navigateToThread: (_reason, highlightMessageID, _pushBody, threadSearchQuery) => {
         set(s => {
-          s.threadSearchInfo.visible = false
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
             s.loaded = true
@@ -2436,11 +2505,12 @@ const createSlice =
           }
 
           // we select the chat tab and change the params
+          const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
           if (Common.isSplit) {
-            navToThread(conversationIDKey)
+            navToThread(conversationIDKey, {threadSearch})
             // immediately switch stack to an inbox | thread stack
           } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey)
+            navToThread(conversationIDKey, {threadSearch})
             return
           } else {
             // replace if looking at the pending / waiting screen
@@ -2453,7 +2523,7 @@ const createSlice =
               clearModals()
             }
 
-            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey}}, replace)
+            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, replace)
           }
         }
         updateNav()
@@ -2472,7 +2542,7 @@ const createSlice =
           }
           case 'chat.1.chatUi.chatCommandStatus': {
             const {displayText, typ, actions} = action.payload.params
-            get().dispatch.setCommandStatusInfo({
+            getUI().dispatch.setCommandStatusInfo({
               actions: T.castDraft(actions) || [],
               displayText,
               displayType: typ,
@@ -2492,9 +2562,7 @@ const createSlice =
             break
           }
           case 'chat.1.chatUi.chatGiphySearchResults':
-            set(s => {
-              s.giphyResult = T.castDraft(action.payload.params.results)
-            })
+            getUI().dispatch.setGiphyResult(action.payload.params.results)
             break
           case 'chat.1.NotifyChat.ChatRequestInfo':
             {
@@ -2841,18 +2909,13 @@ const createSlice =
         }
       },
       sendMessage: text => {
-        const editOrdinal = get().editing
+        const editOrdinal = getUI().editing
         if (editOrdinal) {
           _messageEdit(editOrdinal, text)
         } else {
-          const replyTo = get().messageMap.get(get().replyTo)?.id
+          const replyTo = get().messageMap.get(getUI().replyTo)?.id
           _messageSend(text, replyTo)
         }
-      },
-      setCommandStatusInfo: info => {
-        set(s => {
-          s.commandStatus = info
-        })
       },
       setConvRetentionPolicy: _policy => {
         const f = async () => {
@@ -2870,56 +2933,6 @@ const createSlice =
           }
         }
         ignorePromise(f())
-      },
-      setEditing: e => {
-        // clearing
-        if (e === 'clear') {
-          set(s => {
-            s.editing = T.Chat.numberToOrdinal(0)
-          })
-          get().dispatch.injectIntoInput('')
-          return
-        }
-
-        const messageMap = get().messageMap
-
-        let ordinal = T.Chat.numberToOrdinal(0)
-        // Editing last message
-        if (e === 'last') {
-          const editLastUser = useCurrentUserState.getState().username
-          // Editing your last message
-          const ordinals = get().messageOrdinals
-          const found =
-            !!ordinals &&
-            findLast(ordinals, o => {
-              const message = messageMap.get(o)
-              return !!(
-                (message?.type === 'text' || message?.type === 'attachment') &&
-                message.author === editLastUser &&
-                !message.exploded &&
-                message.isEditable
-              )
-            })
-          if (!found) return
-          ordinal = found
-        } else {
-          ordinal = e
-        }
-
-        if (!ordinal) {
-          return
-        }
-        const message = messageMap.get(ordinal)
-        if (message?.type === 'text' || message?.type === 'attachment') {
-          set(s => {
-            s.editing = ordinal
-          })
-          if (message.type === 'text') {
-            get().dispatch.injectIntoInput(message.text.stringValue())
-          } else {
-            get().dispatch.injectIntoInput(message.title)
-          }
-        }
       },
       setExplodingMode: (seconds, incoming) => {
         set(s => {
@@ -3089,11 +3102,10 @@ const createSlice =
         const isGood = get().isMetaGood()
         if (!wasGood && isGood) {
           // got a good meta, adopt the draft once
-          set(s => {
-            // bail on if there is something
-            if (s.unsentText !== undefined) return
-            s.unsentText = s.meta.draft.length ? s.meta.draft : undefined
-          })
+          const ui = getUI()
+          if (ui.unsentText === undefined) {
+            ui.dispatch.injectIntoInput(get().meta.draft.length ? get().meta.draft : undefined)
+          }
         }
       },
       setMinWriterRole: role => {
@@ -3119,16 +3131,6 @@ const createSlice =
           }
         })
         queueInboxRowUpdate(get().id)
-      },
-      setReplyTo: o => {
-        set(s => {
-          s.replyTo = o
-        })
-      },
-      setThreadSearchQuery: query => {
-        set(s => {
-          s.threadSearchQuery = query
-        })
       },
       setTyping: throttle((t: Set<string>) => {
         set(s => {
@@ -3161,109 +3163,6 @@ const createSlice =
       tabSelected: () => {
         get().dispatch.loadMoreMessages({reason: 'tab selected'})
         get().dispatch.markThreadAsRead()
-      },
-      threadSearch: query => {
-        set(s => {
-          s.threadSearchInfo.hits = []
-        })
-        const f = async () => {
-          const conversationIDKey = get().id
-          const {username, devicename} = getCurrentUser()
-          const onDone = () => {
-            set(s => {
-              s.threadSearchInfo.status = 'done'
-            })
-          }
-          try {
-            await T.RPCChat.localSearchInboxRpcListener({
-              incomingCallMap: {
-                'chat.1.chatUi.chatSearchDone': onDone,
-                'chat.1.chatUi.chatSearchHit': hit => {
-                  const message = Message.uiMessageToMessage(
-                    conversationIDKey,
-                    hit.searchHit.hitMessage,
-                    username,
-                    getLastOrdinal,
-                    devicename
-                  )
-
-                  if (message) {
-                    set(s => {
-                      // Only add if not already present (idempotent - safe for out-of-order callbacks)
-                      if (!s.threadSearchInfo.hits.find(h => h.id === message.id)) {
-                        s.threadSearchInfo.hits.push(T.castDraft(message))
-                      }
-                    })
-                  }
-                },
-                'chat.1.chatUi.chatSearchInboxDone': onDone,
-                'chat.1.chatUi.chatSearchInboxHit': resp => {
-                  const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((l, h) => {
-                    const uiMsg = Message.uiMessageToMessage(
-                      conversationIDKey,
-                      h.hitMessage,
-                      username,
-                      getLastOrdinal,
-                      devicename
-                    )
-                    if (uiMsg) {
-                      l.push(uiMsg)
-                    }
-                    return l
-                  }, [])
-                  set(s => {
-                    if (messages.length > 0) {
-                      // entirely replace
-                      s.threadSearchInfo.hits = T.castDraft(messages)
-                    }
-                  })
-                },
-                'chat.1.chatUi.chatSearchInboxStart': () => {
-                  set(s => {
-                    s.threadSearchInfo.status = 'inprogress'
-                  })
-                },
-              },
-              params: {
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                namesOnly: false,
-                opts: {
-                  afterContext: 0,
-                  beforeContext: 0,
-                  convID: get().getConvID(),
-                  isRegex: false,
-                  matchMentions: false,
-                  maxBots: 0,
-                  maxConvsHit: 0,
-                  maxConvsSearched: 0,
-                  maxHits: 1000,
-                  maxMessages: -1,
-                  maxNameConvs: 0,
-                  maxTeams: 0,
-                  reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-                  sentAfter: 0,
-                  sentBefore: 0,
-                  sentBy: '',
-                  sentTo: '',
-                  skipBotCache: false,
-                },
-                query,
-              },
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.error('search failed: ' + error.message)
-              set(s => {
-                s.threadSearchInfo.status = 'done'
-              })
-            }
-          }
-        }
-        ignorePromise(f())
-      },
-      toggleGiphyPrefill: () => {
-        // if the window is up, just blow it away
-        get().dispatch.injectIntoInput(get().giphyWindow ? '' : '/giphy ')
       },
       toggleMessageCollapse: (messageID, ordinal) => {
         const f = async () => {
@@ -3324,26 +3223,30 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      toggleThreadSearch: hide => {
+      toggleThreadSearch: (hide, query) => {
+        const conversationIDKey = get().id
+        const visible = getVisibleScreen()
+        const params = visible?.params as
+          | {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
+          | undefined
+        const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
         set(s => {
-          const {threadSearchInfo} = s
-          threadSearchInfo.hits = []
-          threadSearchInfo.status = 'initial'
-          if (hide !== undefined) {
-            threadSearchInfo.visible = !hide
-          } else {
-            threadSearchInfo.visible = !threadSearchInfo.visible
-          }
-
-          if (!threadSearchInfo.visible) {
+          if (!nextVisible) {
             s.messageCenterOrdinal = undefined
           } else if (s.messageCenterOrdinal) {
             s.messageCenterOrdinal.highlightMode = 'none'
           }
         })
 
+        const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
+        if (Common.isSplit) {
+          setChatRootParams({conversationIDKey, threadSearch})
+        } else {
+          navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
+        }
+
         const f = async () => {
-          if (!get().threadSearchInfo.visible) {
+          if (!nextVisible) {
             await T.RPCChat.localCancelActiveSearchRpcPromise()
           }
         }
@@ -3511,7 +3414,7 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              s.reactionOrderMap.set(targetOrdinal, m.reactions ? getReactionOrder(m.reactions) : [])
+              setRowRenderDerivedMetadata(s, targetOrdinal, m)
             }
           })
         }
@@ -3546,13 +3449,102 @@ const createSlice =
   }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
+type MadeUIStore = UseBoundStore<StoreApi<ConvoUIState>>
+
+const createConvoUISlice =
+  (
+    id: T.Chat.ConversationIDKey,
+    getLinkedConvoState: () => ConvoState = () => getConvoState(id)
+  ): Z.ImmerStateCreator<ConvoUIState> =>
+  (set, get) => ({
+    ...initialConvoUIStore,
+    dispatch: {
+      injectIntoInput: text => {
+        set(s => {
+          s.unsentText = text
+        })
+      },
+      resetState: Z.defaultReset,
+      setCommandStatusInfo: info => {
+        set(s => {
+          s.commandStatus = info ? T.castDraft(info) : undefined
+        })
+      },
+      setEditing: e => {
+        if (e === 'clear') {
+          set(s => {
+            s.editing = T.Chat.numberToOrdinal(0)
+            s.unsentText = ''
+          })
+          return
+        }
+
+        const messageMap = getLinkedConvoState().messageMap
+        let ordinal = T.Chat.numberToOrdinal(0)
+        if (e === 'last') {
+          const editLastUser = useCurrentUserState.getState().username
+          const ordinals = getLinkedConvoState().messageOrdinals
+          const found =
+            !!ordinals &&
+            findLast(ordinals, o => {
+              const message = messageMap.get(o)
+              return !!(
+                (message?.type === 'text' || message?.type === 'attachment') &&
+                message.author === editLastUser &&
+                !message.exploded &&
+                message.isEditable
+              )
+            })
+          if (!found) return
+          ordinal = found
+        } else {
+          ordinal = e
+        }
+
+        if (!ordinal) return
+        const message = messageMap.get(ordinal)
+        if (message?.type === 'text' || message?.type === 'attachment') {
+          set(s => {
+            s.editing = ordinal
+            s.unsentText = message.type === 'text' ? message.text.stringValue() : message.title
+          })
+        }
+      },
+      setGiphyResult: result => {
+        set(s => {
+          s.giphyResult = result ? T.castDraft(result) : undefined
+        })
+      },
+      setGiphyWindow: show => {
+        set(s => {
+          s.giphyWindow = show
+        })
+      },
+      setReplyTo: ordinal => {
+        set(s => {
+          s.replyTo = ordinal
+        })
+      },
+      toggleGiphyPrefill: () => {
+        const shouldClear = get().giphyWindow
+        set(s => {
+          s.unsentText = shouldClear ? '' : '/giphy '
+        })
+      },
+    },
+  })
 
 export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
   ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
   : new Map()
 
+export const convoUIStores: Map<T.Chat.ConversationIDKey, MadeUIStore> = __DEV__
+  ? (((globalThis as any).__hmr_convoUIStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeUIStore>)
+  : new Map()
+
 export const clearChatStores = () => {
   chatStores.clear()
+  convoUIStores.clear()
 }
 
 registerDebugClear(() => {
@@ -3567,8 +3559,32 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   return next
 }
 
+const createConvoUIStore = (id: T.Chat.ConversationIDKey) => {
+  const existing = convoUIStores.get(id)
+  if (existing) return existing
+  const next = Z.createZustand<ConvoUIState>(createConvoUISlice(id))
+  convoUIStores.set(id, next)
+  return next
+}
+
 export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
-  return Z.createZustand<ConvoState>(createSlice(id))
+  return createConvoStoresForTesting(id).convoStore
+}
+
+export const createConvoStoresForTesting = (id: T.Chat.ConversationIDKey) => {
+  const pair = {} as {
+    convoStore: UseBoundStore<StoreApi<ConvoState>>
+    uiStore: UseBoundStore<StoreApi<ConvoUIState>>
+  }
+  const convoStore = Z.createZustand<ConvoState>(createSlice(id, () => pair.uiStore.getState()))
+  const uiStore = Z.createZustand<ConvoUIState>(createConvoUISlice(id, () => pair.convoStore.getState()))
+  pair.convoStore = convoStore
+  pair.uiStore = uiStore
+  return {convoStore, uiStore}
+}
+
+export const createConvoUIStoreForTesting = (id: T.Chat.ConversationIDKey) => {
+  return createConvoStoresForTesting(id).uiStore
 }
 
 // debug only
@@ -3579,6 +3595,11 @@ export function hasConvoState(id: T.Chat.ConversationIDKey) {
 // non reactive call, used in actions/dispatches
 export function getConvoState(id: T.Chat.ConversationIDKey) {
   const store = createConvoStore(id)
+  return store.getState()
+}
+
+export function getConvoUIState(id: T.Chat.ConversationIDKey) {
+  const store = createConvoUIStore(id)
   return store.getState()
 }
 
@@ -3613,9 +3634,19 @@ export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   return useStore(store, selector)
 }
 
+export function useChatUIContext<T>(selector: (state: ConvoUIState) => T): T {
+  const id = useChatContext(s => s.id)
+  return useConvoUIState(id, selector)
+}
+
 // unusual, usually you useContext, but maybe in teams
 export function useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
+  return useStore(store, selector)
+}
+
+export function useConvoUIState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoUIState) => T): T {
+  const store = createConvoUIStore(id)
   return useStore(store, selector)
 }
 

@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
-import {Pressable, View} from 'react-native'
+import {View} from 'react-native'
 import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {useOpenedRowState} from '../../opened-row-state'
@@ -126,11 +126,15 @@ function SwipeConvActions(p: Props) {
   }
 
   const inner = onPress ? (
-    <Pressable onPress={onPress} style={styles.touchable}>
-      {children}
-    </Pressable>
+    <RectButton onPress={onPress} style={styles.touchable} testID="inboxRow">
+      <View accessible={false} style={styles.touchable}>
+        {children}
+      </View>
+    </RectButton>
   ) : (
-    children
+    <View style={styles.touchable} testID="inboxRow">
+      {children}
+    </View>
   )
 
   return (
@@ -175,6 +179,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       touchable: {
         height: RowSizes.smallRowHeight,
+        width: '100%',
       },
     }) as const
 )

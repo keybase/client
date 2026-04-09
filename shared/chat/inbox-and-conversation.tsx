@@ -8,8 +8,9 @@ import Conversation from './conversation/container'
 import Inbox from './inbox'
 import InboxSearch from './inbox-search'
 import InfoPanel, {type Panel} from './conversation/info-panel'
+import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 
-type Props = {
+type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
   infoPanel?: {tab?: Panel}
 }

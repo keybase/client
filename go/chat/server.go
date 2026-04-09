@@ -171,8 +171,13 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	ctx = globals.CtxAddLocalizerCancelable(ctx)
+	reqID := libkb.RandStringB64(3)
 	defer h.Trace(ctx, &err, "RequestInboxUnbox")()
 	defer h.PerfTrace(ctx, &err, "RequestInboxUnbox")()
+	h.Debug(ctx, "RequestInboxUnbox[%s]: begin convs: %d", reqID, len(convIDs))
+	defer func() {
+		h.Debug(ctx, "RequestInboxUnbox[%s]: return err: %v", reqID, err)
+	}()
 	for _, convID := range convIDs {
 		h.GetPerfLog().CDebugf(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
 		h.Debug(ctx, "RequestInboxUnbox: queuing unbox for: %s", convID)
@@ -398,14 +403,26 @@ func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) 
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	reqID := libkb.RandStringB64(3)
 	defer h.Trace(ctx, &err,
 		"GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason)()
 	defer h.PerfTrace(ctx, &err,
 		"GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		h.Debug(ctx, "GetThreadNonblock[%s]: return convID: %s err: %v", reqID, arg.ConversationID, err)
+	}()
 	defer h.suspendBgConvLoads(ctx)()
-	defer h.suspendInboxSource(ctx)()
+	h.Debug(ctx, "GetThreadNonblock[%s]: suspend inbox source begin convID: %s", reqID, arg.ConversationID)
+	resumeInboxSource := h.suspendInboxSource(ctx)
+	h.Debug(ctx, "GetThreadNonblock[%s]: suspend inbox source done convID: %s", reqID, arg.ConversationID)
+	defer func() {
+		h.Debug(ctx, "GetThreadNonblock[%s]: resume inbox source begin convID: %s", reqID, arg.ConversationID)
+		resumeInboxSource()
+		h.Debug(ctx, "GetThreadNonblock[%s]: resume inbox source done convID: %s", reqID, arg.ConversationID)
+	}()
+	h.Debug(ctx, "GetThreadNonblock[%s]: begin convID: %s sessionID: %d", reqID, arg.ConversationID, arg.SessionID)
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return chat1.NonblockFetchRes{}, err

@@ -1,5 +1,3 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import UnfurlGeneric from './generic'
@@ -7,30 +5,14 @@ import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
 import * as Kb from '@/common-adapters'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
+import {useCurrentUserState} from '@/stores/current-user'
 
-export type UnfurlListItem = {
-  unfurl: T.RPCChat.UnfurlDisplay
-  url: string
-  isCollapsed: boolean
-  onClose?: () => void
-  onCollapse: () => void
-}
-
-export type ListProps = {
-  isAuthor: boolean
-  author?: string
-  toggleMessagePopup: () => void
-  unfurls: Array<UnfurlListItem>
-}
-
-export type UnfurlProps = {
-  isAuthor: boolean
-  author?: string
-  isCollapsed: boolean
-  onClose?: () => void
-  onCollapse: () => void
-  toggleMessagePopup: () => void
-  unfurl: T.RPCChat.UnfurlDisplay
+type UnfurlItemProps = {
+  author: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
+  unfurlInfo: T.RPCChat.UIMessageUnfurlInfo
+  youAreAuthor: boolean
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -49,34 +31,51 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type UnfurlRenderType = 'generic' | 'map' | 'giphy'
 
-const renderTypeToClass = new Map<UnfurlRenderType, React.ComponentType<{idx: number}>>([
+const renderTypeToClass = new Map<UnfurlRenderType, React.ComponentType<UnfurlItemProps>>([
   ['generic', UnfurlGeneric],
   ['map', UnfurlMap],
   ['giphy', UnfurlGiphy],
 ])
 
-function UnfurlListContainer() {
+function UnfurlListContainer({
+  author,
+  conversationIDKey,
+  unfurls,
+}: {
+  author: string
+  conversationIDKey: T.Chat.ConversationIDKey
+  unfurls?: T.Chat.UnfurlMap
+}) {
   const ordinal = useOrdinal()
-  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Chat.useChatContext(
-    C.useShallow(s =>
-      [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
-        const ut = u.unfurl.unfurlType
-        switch (ut) {
-          case T.RPCChat.UnfurlType.giphy:
-            return 'giphy'
-          case T.RPCChat.UnfurlType.generic:
-            return u.unfurl.generic.mapInfo ? 'map' : 'generic'
-          default:
-            return 'none'
-        }
-      })
-    )
-  )
+  const you = useCurrentUserState(s => s.username)
+  const youAreAuthor = author === you
+  const items = [...(unfurls?.values() ?? [])]
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      {unfurlTypes.map((ut, idx) => {
-        const Clazz = ut === 'none' ? null : renderTypeToClass.get(ut)
-        return Clazz ? <Clazz key={String(idx)} idx={idx} /> : null
+      {items.map((unfurlInfo, idx) => {
+        const ut = unfurlInfo.unfurl.unfurlType
+        let renderType: UnfurlRenderType | 'none'
+        switch (ut) {
+          case T.RPCChat.UnfurlType.giphy:
+            renderType = 'giphy'
+            break
+          case T.RPCChat.UnfurlType.generic:
+            renderType = unfurlInfo.unfurl.generic.mapInfo ? 'map' : 'generic'
+            break
+          default:
+            renderType = 'none'
+        }
+        const Clazz = renderType === 'none' ? null : renderTypeToClass.get(renderType)
+        return Clazz ? (
+          <Clazz
+            author={author}
+            conversationIDKey={conversationIDKey}
+            key={String(idx)}
+            ordinal={ordinal}
+            unfurlInfo={unfurlInfo}
+            youAreAuthor={youAreAuthor}
+          />
+        ) : null
       })}
     </Kb.Box2>
   )

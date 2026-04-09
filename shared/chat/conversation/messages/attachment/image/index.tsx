@@ -1,26 +1,37 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as Chat from '@/stores/chat'
+import type * as T from '@/constants/types'
 import ImageImpl from './imageimpl'
 import {
+  getAttachmentDisplayFileName,
   ShowToastAfterSaving,
   Title,
-  useAttachmentState,
   useCollapseIcon,
   Collapsed,
   Transferring,
   TransferIcon,
 } from '../shared'
+import {Keyboard} from 'react-native'
 
 type Props = {
+  message: T.Chat.MessageAttachment
+  ordinal: T.Chat.Ordinal
   showPopup: () => void
 }
 
 function Image(p: Props) {
-  const {showPopup} = p
-  const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
-    useAttachmentState()
+  const {message, ordinal, showPopup} = p
+  const {isCollapsed, title, transferProgress, transferState} = message
+  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const fileName = getAttachmentDisplayFileName(message)
+  const showTitle = !!title
+  const openFullscreen = () => {
+    Keyboard.dismiss()
+    attachmentPreviewSelect(ordinal)
+  }
   const containerStyle = styles.container
-  const collapseIcon = useCollapseIcon(false)
+  const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename = Kb.Styles.isMobile || !fileName ? null : (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
@@ -55,19 +66,19 @@ function Image(p: Props) {
             style={styles.imageContainer}
             ref={toastTargetRef}
           >
-            <ImageImpl />
+            <ImageImpl message={message} />
           </Kb.ClickableBox>
-          {showTitle ? <Title /> : null}
+          {showTitle ? <Title message={message} /> : null}
           <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
-        <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
+        <TransferIcon message={message} ordinal={ordinal} style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
       </Kb.Box2>
     </>
   )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
-      {isCollapsed ? <Collapsed /> : content}
+      {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )
 }

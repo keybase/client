@@ -69,10 +69,11 @@ const useHintText = (p: {
 }
 
 const Input = function Input() {
-  const showGiphySearch = Chat.useChatContext(s => s.giphyWindow)
+  const showGiphySearch = Chat.useChatUIContext(s => s.giphyWindow)
   const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
-  const showCommandStatus = Chat.useChatContext(s => !!s.commandStatus)
-  const showReplyTo = Chat.useChatContext(s => !!s.messageMap.get(s.replyTo)?.id)
+  const showCommandStatus = Chat.useChatUIContext(s => !!s.commandStatus)
+  const replyTo = Chat.useChatUIContext(s => s.replyTo)
+  const showReplyTo = Chat.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -112,15 +113,20 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
   const infoPanelShowing =
     route.name === 'chatRoot' && 'infoPanel' in route.params ? !!route.params.infoPanel : false
+  const uiData = Chat.useChatUIContext(
+    C.useShallow(s => ({
+      editOrdinal: s.editing,
+      replyTo: s.replyTo,
+      unsentText: s.unsentText,
+    }))
+  )
   const data = Chat.useChatContext(
     C.useShallow(s => {
-      const {meta, id: conversationIDKey, editing: editOrdinal, messageMap, unsentText} = s
-      const {sendMessage, setEditing, jumpToRecent, setExplodingMode} = s.dispatch
-      const {injectIntoInput: updateUnsentText} = s.dispatch
+      const {meta, id: conversationIDKey, messageMap} = s
+      const {sendMessage, jumpToRecent, setExplodingMode} = s.dispatch
       const {cannotWrite, minWriterRole, tlfname} = meta
-      const showReplyPreview = !!messageMap.get(s.replyTo)?.id
+      const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
       const suggestBotCommandsUpdateStatus = s.botCommandsUpdateStatus
-      const isEditing = !!editOrdinal
       const convoID = s.getConvID()
       const metaGood = s.isMetaGood()
       const storeDraft = metaGood ? meta.draft : undefined
@@ -132,16 +138,19 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
           : explodingMode
       // prettier-ignore
       return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        isEditing, jumpToRecent, minWriterRole, sendMessage, setEditing, setExplodingMode,
-        showReplyPreview, storeDraft, suggestBotCommandsUpdateStatus, tlfname, unsentText,
-        updateUnsentText}
+        jumpToRecent, minWriterRole, sendMessage, setExplodingMode, showReplyPreview,
+        storeDraft, suggestBotCommandsUpdateStatus, tlfname}
     })
   )
 
   const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
-  const {isEditing, jumpToRecent, minWriterRole, sendMessage} = data
-  const {explodingModeSeconds: explodingModeSecondsRaw, setEditing, convoID, tlfname, storeDraft} = data
-  const {suggestBotCommandsUpdateStatus, unsentText, showReplyPreview, updateUnsentText} = data
+  const {jumpToRecent, minWriterRole, sendMessage} = data
+  const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
+  const {suggestBotCommandsUpdateStatus, showReplyPreview} = data
+  const {editOrdinal, unsentText} = uiData
+  const isEditing = !!editOrdinal
+  const setEditing = Chat.useChatUIContext(s => s.dispatch.setEditing)
+  const updateUnsentText = Chat.useChatUIContext(s => s.dispatch.injectIntoInput)
 
   const [explodingModeSeconds, setExplodingModeSeconds] = React.useState(explodingModeSecondsRaw)
   const isExploding = explodingModeSeconds !== 0

@@ -9,10 +9,8 @@ import SpecialTopMessage from '../messages/special-top-message'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
-import {getMessageRender} from '../messages/wrapper'
+import {MessageRow} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {SetRecycleTypeContext} from '../recycle-type-context'
-import {ForceListRedrawContext} from '../force-list-redraw-context'
 // import {useChatDebugDump} from '@/constants/chat/debug'
 import {usingFlashList} from './flashlist-config'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -99,15 +97,16 @@ const ConversationList = function ConversationList() {
 
   const conversationIDKey = Chat.useChatContext(s => s.id)
 
-  // used to force a rerender when a type changes, aka placeholder resolves
-  const [extraData, setExtraData] = React.useState(0)
-  const [lastED, setLastED] = React.useState(extraData)
-
   const loaded = Chat.useChatContext(s => s.loaded)
-  const centeredOrdinal =
-    Chat.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? T.Chat.numberToOrdinal(-1)
+  const messageCenterOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)
+  const centeredHighlightOrdinal =
+    messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
+      ? messageCenterOrdinal.ordinal
+      : T.Chat.numberToOrdinal(-1)
+  const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
   const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
   const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
+  const rowRecycleTypeMap = Chat.useChatContext(s => s.rowRecycleTypeMap)
 
   const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
 
@@ -123,21 +122,12 @@ const ConversationList = function ConversationList() {
     if (!ordinal) {
       return null
     }
-    const type = messageTypeMap.get(ordinal) ?? 'text'
-    const Clazz = getMessageRender(type)
-    if (!Clazz) return null
-    return <PerfProfiler id={`Msg-${type}`}><Clazz ordinal={ordinal} /></PerfProfiler>
-  }
-
-  const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
-  React.useEffect(() => {
-    if (lastED !== extraData) {
-      recycleTypeRef.current = new Map()
-      setLastED(extraData)
-    }
-  }, [extraData, lastED])
-  const setRecycleType = (ordinal: T.Chat.Ordinal, type: string) => {
-    recycleTypeRef.current.set(ordinal, type)
+    return (
+      <MessageRow
+        isCenteredHighlight={centeredHighlightOrdinal === ordinal}
+        ordinal={ordinal}
+      />
+    )
   }
 
   const numOrdinals = messageOrdinals.length
@@ -146,8 +136,7 @@ const ConversationList = function ConversationList() {
     if (!ordinal) {
       return 'null'
     }
-    // Check recycleType first (set by messages after render — includes subtypes like 'text:reply')
-    const recycled = recycleTypeRef.current.get(ordinal)
+    const recycled = rowRecycleTypeMap.get(ordinal)
     if (recycled) return recycled
     const baseType = messageTypeMap.get(ordinal) ?? 'text'
     // Last item is most-recently sent; isolate it to avoid recycling with settled messages
@@ -210,28 +199,15 @@ const ConversationList = function ConversationList() {
     }
   }, [loaded, centeredOrdinal, scrollToBottom, scrollToCentered, numOrdinals])
 
-  // We use context to inject a way for items to force the list to rerender when they notice something about their
-  // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this
-  // and call you can get effectively memoized. In order to allow the item to re-render if they're still in this state
-  // we make this callback mutate, so they have a chance to rerender and recall it
-  // A repro is a placeholder resolving as a placeholder multiple times before resolving for real
-  const forceListRedraw = () => {
-    extraData // just to silence eslint
-    // wrap in timeout so we don't get max update depths sometimes
-    setTimeout(() => {
-      setExtraData(d => d + 1)
-    }, 100)
-  }
-
   // useChatDebugDump(
   //   'listArea',
   //   C.useEvent(() => {
   //     if (!listRef.current) return ''
   //     const {props, state} = listRef.current as {
-  //       props: {extraData?: {}; data?: [number]}
+  //       props: {data?: [number]}
   //       state?: object
   //     }
-  //     const {extraData, data} = props
+  //     const {data} = props
   //
   //     // const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as unknown)) as {
   //     //   _layouts?: [unknown]
@@ -263,7 +239,6 @@ const ConversationList = function ConversationList() {
   //       _totalHeight,
   //       _totalWidth,
   //       data,
-  //       extraData,
   //       items,
   //     }
   //     return JSON.stringify(details)
@@ -275,41 +250,36 @@ const ConversationList = function ConversationList() {
 
   return (
     <Kb.ErrorBoundary>
-      <SetRecycleTypeContext value={setRecycleType}>
-        <ForceListRedrawContext value={forceListRedraw}>
-          <PerfProfiler id="MessageList">
-          <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-            <List
-              testID="messageList"
-              onScrollToIndexFailed={noop}
-              extraData={extraData}
-              // @ts-ignore LegendList/FlashList prop; ignored by FlatList
-              estimatedItemSize={72}
-              ListHeaderComponent={SpecialBottomMessage}
-              ListFooterComponent={SpecialTopMessage}
-              ItemSeparatorComponent={Separator}
-              overScrollMode="never"
-              contentContainerStyle={styles.contentContainer}
-              data={messageOrdinals}
-              getItemType={getItemType}
-              inverted={true}
-              renderItem={renderItem}
-              onViewableItemsChanged={onViewableItemsChanged.current}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              keyExtractor={keyExtractor}
-              ref={listRef}
-              maintainVisibleContentPosition={
-                // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-                numOrdinals ? maintainVisibleContentPosition : undefined
-              }
-            />
-            {jumpToRecent}
-            {debugWhichList}
-          </Kb.Box2>
-          </PerfProfiler>
-        </ForceListRedrawContext>
-      </SetRecycleTypeContext>
+      <PerfProfiler id="MessageList">
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
+          <List
+            testID="messageList"
+            onScrollToIndexFailed={noop}
+            // @ts-ignore LegendList/FlashList prop; ignored by FlatList
+            estimatedItemSize={72}
+            ListHeaderComponent={SpecialBottomMessage}
+            ListFooterComponent={SpecialTopMessage}
+            ItemSeparatorComponent={Separator}
+            overScrollMode="never"
+            contentContainerStyle={styles.contentContainer}
+            data={messageOrdinals}
+            getItemType={getItemType}
+            inverted={true}
+            renderItem={renderItem}
+            onViewableItemsChanged={onViewableItemsChanged.current}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={keyExtractor}
+            ref={listRef}
+            maintainVisibleContentPosition={
+              // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
+              numOrdinals ? maintainVisibleContentPosition : undefined
+            }
+          />
+          {jumpToRecent}
+          {debugWhichList}
+        </Kb.Box2>
+      </PerfProfiler>
     </Kb.ErrorBoundary>
   )
 }

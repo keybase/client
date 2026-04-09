@@ -8,37 +8,31 @@ import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 
 type OwnProps = {
   className?: string
-  hasUnfurls?: boolean
-  messageType?: T.Chat.MessageType
+  hasUnfurls: boolean
+  messageType: T.Chat.MessageType
+  onReact?: (emoji: string) => void
+  onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Kb.Styles.StylesCrossPlatform
 }
 
+const useTopReacjis = () =>
+  Chat.useChatState(
+    C.useShallow(s => [
+      s.userReacjis.topReacjis[0],
+      s.userReacjis.topReacjis[1],
+      s.userReacjis.topReacjis[2],
+      s.userReacjis.topReacjis[3],
+      s.userReacjis.topReacjis[4],
+    ])
+  ).filter((reacji): reacji is T.RPCGen.UserReacji => !!reacji)
+
 function EmojiRowContainer(p: OwnProps) {
-  const {className, onShowingEmojiPicker, style} = p
+  const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-
-  const {setReplyTo, toggleMessageReaction, type: subscriptionType, hasUnfurls: subscriptionHasUnfurls} =
-    Chat.useChatContext(
-      C.useShallow(s => {
-        const {toggleMessageReaction, setReplyTo} = s.dispatch
-        // When both are provided as props, skip message map lookup (constant return = no re-renders)
-        if (p.messageType !== undefined && p.hasUnfurls !== undefined) {
-          return {hasUnfurls: false as boolean, setReplyTo, toggleMessageReaction, type: null as T.Chat.MessageType | null}
-        }
-        const m = s.messageMap.get(ordinal)
-        return {
-          hasUnfurls: p.hasUnfurls !== undefined ? false : (m?.unfurls?.size ?? 0) > 0,
-          setReplyTo,
-          toggleMessageReaction,
-          type: p.messageType !== undefined ? null : (m?.type ?? null),
-        }
-      })
-    )
-  const type = p.messageType ?? subscriptionType ?? undefined
-  const hasUnfurls = p.hasUnfurls ?? subscriptionHasUnfurls
-
-  const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
+  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const emojis = useTopReacjis()
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({
@@ -47,14 +41,19 @@ function EmojiRowContainer(p: OwnProps) {
     }))
   }
   const onReact = (emoji: string) => {
+    if (onReactProp) {
+      onReactProp(emoji)
+      return
+    }
     toggleMessageReaction(ordinal, emoji)
   }
   const _onReply = () => {
     setReplyTo(ordinal)
   }
 
-  const onForward = hasUnfurls || type === 'attachment' ? _onForward : undefined
-  const onReply = type === 'text' || type === 'attachment' ? _onReply : undefined
+  const onForward = hasUnfurls || messageType === 'attachment' ? _onForward : undefined
+  const onReply =
+    messageType === 'text' || messageType === 'attachment' ? (onReplyProp ?? _onReply) : undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)

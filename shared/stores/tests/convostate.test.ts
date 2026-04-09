@@ -4,7 +4,12 @@ import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
 import {useCurrentUserState} from '../current-user'
-import {createConvoStoreForTesting, type ConvoState} from '../convostate'
+import {
+  createConvoStoreForTesting,
+  createConvoStoresForTesting,
+  type ConvoState,
+  type ConvoUIState,
+} from '../convostate'
 
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
@@ -134,6 +139,26 @@ const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
   ...override,
 })
 
+test('getReactionOrder sorts emojis by earliest reaction timestamp', () => {
+  const reactions = new Map([
+    [':fire:', makeReaction('carol', 70)],
+    [
+      ':+1:',
+      {
+        decorated: ':+1:',
+        users: [
+          {timestamp: 50, username: 'alice'},
+          {timestamp: 30, username: 'bob'},
+        ],
+      },
+    ],
+    [':wave:', makeReaction('bob', 60)],
+    [':eyes:', makeReaction('dave', 40)],
+  ])
+
+  expect(Message.getReactionOrder(reactions)).toEqual([':+1:', ':eyes:', ':wave:', ':fire:'])
+})
+
 const applyState = (
   store: {getState: () => any; setState: (state: any) => void},
   partial: Partial<ConvoState> & {messageIDToOrdinal?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>}
@@ -146,6 +171,18 @@ const applyState = (
     getConvID: current.getConvID,
     isCaughtUp: current.isCaughtUp,
     isMetaGood: current.isMetaGood,
+  })
+}
+
+const applyUIState = (
+  store: {getState: () => any; setState: (state: any) => void},
+  partial: Partial<ConvoUIState>
+) => {
+  const current = store.getState()
+  store.setState({
+    ...current,
+    ...partial,
+    dispatch: current.dispatch,
   })
 }
 
@@ -186,7 +223,6 @@ const seedStore = (
     messageTypeMap,
     meta: makeMeta(),
     pendingOutboxToOrdinal,
-    reactionOrderMap: new Map(),
     separatorMap: new Map(),
     showUsernameMap: new Map(),
     ...extra,
@@ -204,7 +240,6 @@ const seedStoreWithAnchoredMessage = () => {
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, ordinal]]),
-    reactionOrderMap: new Map(),
     separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[ordinal, 'alice']]),
   }
@@ -252,11 +287,42 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
   expect(store.getState().messageTypeMap.size).toBe(0)
 })
 
+test('message updates refresh derived metadata for the following row', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(301)
+  const secondOrdinal = T.Chat.numberToOrdinal(302)
+  const firstMsgID = T.Chat.numberToMessageID(301)
+  const store = seedStore([
+    makeTextMessage({
+      author: 'bob',
+      id: firstMsgID,
+      ordinal: firstOrdinal,
+      outboxID: T.Chat.stringToOutboxID('first'),
+      timestamp: 100,
+    }),
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(302),
+      ordinal: secondOrdinal,
+      outboxID: T.Chat.stringToOutboxID('second'),
+      timestamp: 101,
+    }),
+  ])
+
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makeValidTextUIMessage(firstMsgID, 'edited first', {author: 'alice', timestamp: 100})],
+  })
+
+  expect(store.getState().showUsernameMap.get(firstOrdinal)).toBe('alice')
+  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
+  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(firstOrdinal)
+})
+
 test('reaction updates preserve outbox-anchored row identity', () => {
   const store = seedStoreWithAnchoredMessage()
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
-  expect(store.getState().reactionOrderMap.get(ordinal)?.[0]).toBe(':+1:')
+  expect(Message.getReactionOrder(store.getState().messageMap.get(ordinal)?.reactions ?? new Map())[0]).toBe(':+1:')
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
 })
 
@@ -278,10 +344,10 @@ test('reaction updates keep existing emoji order and sort new emojis by first ti
 
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: msgID}])
 
-  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([':+1:', ':eyes:', ':fire:', ':wave:'])
   const message = store.getState().messageMap.get(ordinal)
   expect(Message.isMessageWithReactions(message!)).toBe(true)
   if (message && Message.isMessageWithReactions(message)) {
+    expect(Message.getReactionOrder(message.reactions ?? new Map())).toEqual([':+1:', ':eyes:', ':fire:', ':wave:'])
     expect([...(message.reactions?.keys() ?? [])]).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
   }
 })
@@ -291,7 +357,6 @@ test('reaction updates clear message reactions when the server sends none', () =
   store.getState().dispatch.updateReactions([{targetMsgID: msgID}])
   const message = store.getState().messageMap.get(ordinal)
   expect(message && Message.isMessageWithReactions(message) ? message.reactions : undefined).toBeUndefined()
-  expect(store.getState().reactionOrderMap.get(ordinal)).toEqual([])
 })
 
 test('reaction updates ignore deleted and placeholder rows', () => {
@@ -317,7 +382,6 @@ test('reaction updates ignore deleted and placeholder rows', () => {
     {reactions, targetMsgID: placeholderMsgID},
   ])
 
-  expect(store.getState().reactionOrderMap.size).toBe(0)
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(401))?.type).toBe('deleted')
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.type).toBe('placeholder')
 })
@@ -328,6 +392,34 @@ test('message deletion removes the row but preserves the outbox anchor', () => {
   expect(store.getState().messageMap.has(ordinal)).toBe(false)
   expect(store.getState().pendingOutboxToOrdinal.get(outboxID)).toBe(ordinal)
   expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
+})
+
+test('message deletion refreshes derived metadata for the next row', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(401)
+  const secondOrdinal = T.Chat.numberToOrdinal(402)
+  const store = seedStore([
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(401),
+      ordinal: firstOrdinal,
+      outboxID: T.Chat.stringToOutboxID('first-delete'),
+      timestamp: 100,
+    }),
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(402),
+      ordinal: secondOrdinal,
+      outboxID: T.Chat.stringToOutboxID('second-delete'),
+      timestamp: 101,
+    }),
+  ])
+
+  store.getState().dispatch.messagesWereDeleted({ordinals: [firstOrdinal]})
+
+  expect(store.getState().messageOrdinals).toEqual([secondOrdinal])
+  expect(store.getState().separatorMap.has(firstOrdinal)).toBe(false)
+  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
+  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(T.Chat.numberToOrdinal(0))
 })
 
 test('message deletion up to a message ID honors deletable message types', () => {
@@ -379,14 +471,12 @@ test('explode-now clears text content and transient metadata in place', () => {
   expect(message?.type === 'text' ? [...(message.mentionsAt ?? [])] : undefined).toEqual([])
   expect(message?.reactions?.size ?? 0).toBe(0)
   expect(message?.unfurls?.size ?? 0).toBe(0)
-  expect(state.reactionOrderMap.get(ordinal)).toEqual([])
 })
 
 test('messagesClear resets all message indexes and maps', () => {
   const store = seedStoreWithAnchoredMessage()
   applyState(store, {
     loaded: true,
-    reactionOrderMap: new Map([[ordinal, [':+1:']]]),
     separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[ordinal, 'alice']]),
     validatedOrdinalRange: {from: ordinal, to: ordinal},
@@ -398,7 +488,6 @@ test('messagesClear resets all message indexes and maps', () => {
   expect(store.getState().messageTypeMap.size).toBe(0)
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
-  expect(store.getState().reactionOrderMap.size).toBe(0)
   expect(store.getState().separatorMap.size).toBe(0)
   expect(store.getState().showUsernameMap.size).toBe(0)
   expect(store.getState().validatedOrdinalRange).toBeUndefined()
@@ -416,7 +505,6 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, pendingOrdinal]]),
-    reactionOrderMap: new Map(),
     separatorMap: new Map([[pendingOrdinal, T.Chat.numberToOrdinal(0)]]),
     showUsernameMap: new Map([[pendingOrdinal, 'alice']]),
   }
@@ -437,7 +525,9 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
   const reactions = new Map([[':+1:', makeReaction('bob', 5)]])
   store.getState().dispatch.updateReactions([{reactions, targetMsgID: serverMsgID}])
 
-  expect(store.getState().reactionOrderMap.get(pendingOrdinal)?.[0]).toBe(':+1:')
+  expect(Message.getReactionOrder(store.getState().messageMap.get(pendingOrdinal)?.reactions ?? new Map())[0]).toBe(
+    ':+1:'
+  )
 
   store.getState().dispatch.messagesWereDeleted({messageIDs: [serverMsgID]})
 
@@ -504,7 +594,8 @@ test('onMessageErrored marks the pending message as failed and leaves unknown ou
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
   const attachmentOrdinal = T.Chat.numberToOrdinal(703)
-  const store = seedStore([
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
+  applyState(store, seedStore([
     makeTextMessage({
       author: 'bob',
       id: T.Chat.numberToMessageID(701),
@@ -524,42 +615,42 @@ test('setEditing last picks the latest editable local message and injects its co
       outboxID: T.Chat.stringToOutboxID('editable-attachment'),
       title: 'picked attachment title',
     }),
-  ])
+  ]).getState())
 
-  store.getState().dispatch.setEditing('last')
+  uiStore.getState().dispatch.setEditing('last')
 
-  expect(store.getState().editing).toBe(attachmentOrdinal)
-  expect(store.getState().unsentText).toBe('picked attachment title')
+  expect(uiStore.getState().editing).toBe(attachmentOrdinal)
+  expect(uiStore.getState().unsentText).toBe('picked attachment title')
 })
 
 test('setEditing clear resets editing state and clears unsent text', () => {
-  const store = createStore()
-  applyState(store, {
+  const {uiStore} = createConvoStoresForTesting(convID)
+  applyUIState(uiStore, {
     editing: ordinal,
     unsentText: 'draft text',
   })
 
-  store.getState().dispatch.setEditing('clear')
+  uiStore.getState().dispatch.setEditing('clear')
 
-  expect(store.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(store.getState().unsentText).toBe('')
+  expect(uiStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(uiStore.getState().unsentText).toBe('')
 })
 
 test('setMeta adopts the server draft once when the meta becomes good', () => {
-  const store = createStore()
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
 
   store.getState().dispatch.setMeta(makeMeta({draft: 'server draft'}))
   expect(store.getState().isMetaGood()).toBe(true)
-  expect(store.getState().unsentText).toBe('server draft')
+  expect(uiStore.getState().unsentText).toBe('server draft')
 
-  store.getState().dispatch.injectIntoInput('local draft')
+  uiStore.getState().dispatch.injectIntoInput('local draft')
   store.getState().dispatch.setMeta(makeMeta({draft: 'new server draft'}))
 
-  expect(store.getState().unsentText).toBe('local draft')
+  expect(uiStore.getState().unsentText).toBe('local draft')
 })
 
-test('local setters update participants, reply target, search query, and badge', () => {
-  const store = createStore()
+test('local setters update participants, reply target, and badge', () => {
+  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
   const participants: ConvoState['participants'] = {
     all: ['alice', 'bob'],
     contactName: new Map([['bob', 'Bobby']]),
@@ -567,31 +658,21 @@ test('local setters update participants, reply target, search query, and badge',
   }
 
   store.getState().dispatch.setParticipants(participants)
-  store.getState().dispatch.setReplyTo(ordinal)
-  store.getState().dispatch.setThreadSearchQuery('hello world')
+  uiStore.getState().dispatch.setReplyTo(ordinal)
   store.getState().dispatch.badgesUpdated(3)
 
   expect(store.getState().participants).toEqual(participants)
-  expect(store.getState().replyTo).toBe(ordinal)
-  expect(store.getState().threadSearchQuery).toBe('hello world')
+  expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
 })
 
-test('toggleThreadSearch resets hits and removes center highlight when opening search', () => {
+test('toggleThreadSearch removes center highlight when opening search', () => {
   const store = createStore()
   applyState(store, {
     messageCenterOrdinal: {highlightMode: 'always', ordinal},
-    threadSearchInfo: {
-      hits: [makeTextMessage()],
-      status: 'done',
-      visible: false,
-    },
   })
 
   store.getState().dispatch.toggleThreadSearch()
 
-  expect(store.getState().threadSearchInfo.visible).toBe(true)
-  expect(store.getState().threadSearchInfo.hits).toEqual([])
-  expect(store.getState().threadSearchInfo.status).toBe('initial')
   expect(store.getState().messageCenterOrdinal?.highlightMode).toBe('none')
 })

@@ -1,10 +1,12 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {useOrdinal} from '../../ids-context'
-import Swipeable, {type SwipeableMethods, SwipeDirection} from 'react-native-gesture-handler/ReanimatedSwipeable'
+import Swipeable, {
+  type SwipeableMethods,
+  SwipeDirection,
+} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {Pressable, Keyboard} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
 import * as Reanimated from 'react-native-reanimated'
@@ -27,22 +29,18 @@ function LongPressable(props: Props) {
   const onPress = () => Keyboard.dismiss()
 
   const inner = (
-    <Pressable
-      style={[styles.pressable, style]}
-      onLongPress={onLongPress}
-      onPress={onPress}
-    >
+    <Pressable style={[styles.pressable, style]} onLongPress={onLongPress} onPress={onPress}>
       {children}
     </Pressable>
   )
 
-  const makeAction = (_progress: Reanimated.SharedValue<number>, translation: Reanimated.SharedValue<number>) => (
-    <ReplyIcon progress={translation} />
-  )
+  const makeAction = (
+    _progress: Reanimated.SharedValue<number>,
+    translation: Reanimated.SharedValue<number>
+  ) => <ReplyIcon progress={translation} />
 
-  const {toggleThreadSearch, setReplyTo} = Chat.useChatContext(
-    C.useShallow(s => ({setReplyTo: s.dispatch.setReplyTo, toggleThreadSearch: s.dispatch.toggleThreadSearch}))
-  )
+  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = () => {

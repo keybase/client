@@ -890,13 +890,15 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         query = selected?.query
       }
 
-      storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
       if (query) {
-        const cs = storeRegistry.getConvoState(conversationIDKey)
-        cs.dispatch.setThreadSearchQuery(query)
-        cs.dispatch.toggleThreadSearch(false)
-        cs.dispatch.threadSearch(query)
+        storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread(
+          'inboxSearch',
+          undefined,
+          undefined,
+          query
+        )
       } else {
+        storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
         get().dispatch.toggleInboxSearch(false)
       }
     },

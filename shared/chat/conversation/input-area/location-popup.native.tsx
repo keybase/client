@@ -28,7 +28,7 @@ const LocationButton = (props: {disabled: boolean; label: string; onClick: () =>
 
 const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const updateLastCoord = Chat.useChatState(s => s.dispatch.updateLastCoord)
-  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = Chat.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
   React.useEffect(() => {
     let unsub = () => {}
     logger.info('[location] perms check due to map')
@@ -70,7 +70,7 @@ const LocationPopup = () => {
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const location = Chat.useChatState(s => s.lastCoord)
-  const locationDenied = Chat.useChatContext(
+  const locationDenied = Chat.useChatUIContext(
     s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)

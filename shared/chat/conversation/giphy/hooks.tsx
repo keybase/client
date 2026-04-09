@@ -1,7 +1,7 @@
 import * as Chat from '@/stores/chat'
 
 export const useHooks = () => {
-  const giphy = Chat.useChatContext(s => s.giphyResult)
+  const giphy = Chat.useChatUIContext(s => s.giphyResult)
   const onClick = Chat.useChatContext(s => s.dispatch.giphySend)
   return {
     galleryURL: giphy?.galleryUrl ?? '',

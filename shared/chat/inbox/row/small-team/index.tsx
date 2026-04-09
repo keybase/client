@@ -45,61 +45,65 @@ const SmallTeam = (p: Props) => {
 
   const participantOne = teamDisplayName ? '' : participants[0] ?? ''
   const participantTwo = teamDisplayName ? '' : participants[1] ?? ''
+  const className = Kb.Styles.classNames('small-row', {selected: isSelected})
+  const containerStyle = Kb.Styles.isTablet
+    ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
+    : styles.container
+  const rowContents = (
+    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.rowContainer}>
+      {teamDisplayName ? (
+        <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
+      ) : (
+        <Avatars
+          backgroundColor={backgroundColor}
+          isMuted={isMuted}
+          isLocked={isLocked}
+          isSelected={isSelected}
+          participantOne={participantOne}
+          participantTwo={participantTwo}
+        />
+      )}
+      <Kb.Box2 direction="vertical" style={styles.conversationRow}>
+        <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
+          <TopLine
+            conversationIDKey={conversationIDKey}
+            participants={participants}
+            teamDisplayName={teamDisplayName}
+            timestamp={timestamp}
+            hasBadge={hasBadge}
+            hasUnread={hasUnread}
+            isSelected={isSelected}
+            backgroundColor={backgroundColor}
+          />
+        </Kb.Box2>
+        <BottomLineDisplay
+          snippet={displaySnippet}
+          snippetDecoration={snippetDecoration}
+          backgroundColor={backgroundColor}
+          isSelected={isSelected}
+          hasUnread={hasUnread}
+          draft={draft}
+          hasResetUsers={hasResetUsers}
+          youNeedToRekey={youNeedToRekey}
+          youAreReset={youAreReset}
+          participantNeedToRekey={participantNeedToRekey}
+          isDecryptingSnippet={isDecryptingSnippet}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 
   return (
     <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
-      <Kb.ClickableBox2
-        onClick={onSelectConversation}
-        className={Kb.Styles.classNames('small-row', {selected: isSelected})}
-        testID="inboxRow"
-        style={
-          Kb.Styles.isTablet
-            ? Kb.Styles.collapseStyles([styles.container, {backgroundColor}])
-            : styles.container
-        }
-      >
-        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.rowContainer}>
-          {teamDisplayName ? (
-            <TeamAvatar teamname={teamDisplayName} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
-          ) : (
-            <Avatars
-              backgroundColor={backgroundColor}
-              isMuted={isMuted}
-              isLocked={isLocked}
-              isSelected={isSelected}
-              participantOne={participantOne}
-              participantTwo={participantTwo}
-            />
-          )}
-          <Kb.Box2 direction="vertical" style={styles.conversationRow}>
-            <Kb.Box2 direction="vertical" justifyContent="flex-end" style={styles.withBottomLine} fullWidth={true}>
-              <TopLine
-                conversationIDKey={conversationIDKey}
-                participants={participants}
-                teamDisplayName={teamDisplayName}
-                timestamp={timestamp}
-                hasBadge={hasBadge}
-                hasUnread={hasUnread}
-                isSelected={isSelected}
-                backgroundColor={backgroundColor}
-              />
-            </Kb.Box2>
-            <BottomLineDisplay
-              snippet={displaySnippet}
-              snippetDecoration={snippetDecoration}
-              backgroundColor={backgroundColor}
-              isSelected={isSelected}
-              hasUnread={hasUnread}
-              draft={draft}
-              hasResetUsers={hasResetUsers}
-              youNeedToRekey={youNeedToRekey}
-              youAreReset={youAreReset}
-              participantNeedToRekey={participantNeedToRekey}
-              isDecryptingSnippet={isDecryptingSnippet}
-            />
-          </Kb.Box2>
+      {Kb.Styles.isMobile ? (
+        <Kb.Box2 direction="vertical" style={containerStyle}>
+          {rowContents}
         </Kb.Box2>
-      </Kb.ClickableBox2>
+      ) : (
+        <Kb.ClickableBox2 onClick={onSelectConversation} className={className} testID="inboxRow" style={containerStyle}>
+          {rowContents}
+        </Kb.ClickableBox2>
+      )}
     </SwipeConvActions>
   )
 }

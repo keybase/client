@@ -36,7 +36,7 @@ export const MobileSendToChat = (props: Props) => {
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     const {dispatch} = Chat.getConvoState(conversationIDKey)
-    text && dispatch.injectIntoInput(text)
+    text && Chat.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
         name: 'chatAttachmentGetTitles',

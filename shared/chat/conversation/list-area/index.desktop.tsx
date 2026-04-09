@@ -10,11 +10,9 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
 import {findLast} from '@/util/arrays'
-import {getMessageRender} from '../messages/wrapper'
+import {MessageRow} from '../messages/wrapper'
 import {globalMargins} from '@/styles/shared'
 import {FocusContext, ScrollContext} from '../normal/context'
-import {chatDebugEnabled} from '@/constants/chat/debug'
-import logger from '@/logger'
 import shallowEqual from '@/util/shallow-equal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
@@ -340,7 +338,7 @@ const useScrolling = (p: {
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
-  const editingOrdinal = Chat.useChatContext(s => s.editing)
+  const editingOrdinal = Chat.useChatUIContext(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
   React.useEffect(() => {
     if (lastEditingOrdinalRef.current !== editingOrdinal) return
@@ -366,23 +364,14 @@ const useScrolling = (p: {
 }
 
 const useItems = (p: {
+  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
   messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
-  messageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
-  const {messageTypeMap, messageOrdinals, centeredOrdinal, editingOrdinal} = p
+  const {messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
-    const type = messageTypeMap?.get(ordinal) ?? 'text'
-    const Clazz = getMessageRender(type)
-    if (!Clazz) {
-      if (chatDebugEnabled) {
-        logger.error('[CHATDEBUG] no rendertype', {Clazz, ordinal, type})
-      }
-      return null
-    }
-
     return (
       <div
         key={String(ordinal)}
@@ -393,11 +382,14 @@ const useItems = (p: {
           'WrapperMessage-hoverBox',
           'WrapperMessage-decorated',
           'WrapperMessage-hoverColor',
-          {highlighted: centeredOrdinal === ordinal || editingOrdinal === ordinal}
+          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
         )}
       >
         <Separator trailingItem={ordinal} />
-        <Clazz ordinal={ordinal} />
+        <MessageRow
+          isCenteredHighlight={centeredHighlightOrdinal === ordinal}
+          ordinal={ordinal}
+        />
       </div>
     )
   }
@@ -483,25 +475,26 @@ const useItems = (p: {
 
 const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
+  const editingOrdinal = Chat.useChatUIContext(s => s.editing)
   const data = Chat.useChatContext(
     C.useShallow(s => {
-      const {messageTypeMap, editing: editingOrdinal, id: conversationIDKey} = s
+      const {id: conversationIDKey} = s
       const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
-      const centeredOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
+      const centeredHighlightOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
+      const centeredOrdinal = mco?.ordinal
       const containsLatestMessage = s.isCaughtUp()
       return {
+        centeredHighlightOrdinal,
         centeredOrdinal,
         containsLatestMessage,
         conversationIDKey,
-        editingOrdinal,
         loaded,
         messageOrdinals,
-        messageTypeMap,
       }
     })
   )
-  const {conversationIDKey, editingOrdinal, centeredOrdinal} = data
-  const {containsLatestMessage, messageOrdinals, loaded, messageTypeMap} = data
+  const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal} = data
+  const {containsLatestMessage, messageOrdinals, loaded} = data
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {
@@ -561,7 +554,12 @@ const ThreadWrapper = function ThreadWrapper() {
     }
   }
 
-  const items = useItems({centeredOrdinal, editingOrdinal, messageOrdinals, messageTypeMap})
+  const items = useItems({
+    centeredHighlightOrdinal,
+    centeredOrdinal,
+    editingOrdinal,
+    messageOrdinals,
+  })
   const setListContents = useHandleListResize({
     centeredOrdinal,
     isLockedToBottom,

@@ -364,7 +364,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }
-  const setCommandStatusInfo = Chat.useChatContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = Chat.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = () => {
     const checkPerms = async () => {

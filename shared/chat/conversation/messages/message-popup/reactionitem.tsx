@@ -1,5 +1,7 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
 type Props = {
   onHidden: () => void
@@ -7,8 +9,19 @@ type Props = {
   showPicker: () => void
 }
 
+const useTopReacjis = () =>
+  Chat.useChatState(
+    C.useShallow(s => [
+      s.userReacjis.topReacjis[0],
+      s.userReacjis.topReacjis[1],
+      s.userReacjis.topReacjis[2],
+      s.userReacjis.topReacjis[3],
+      s.userReacjis.topReacjis[4],
+    ])
+  ).filter((reacji): reacji is T.RPCGen.UserReacji => !!reacji)
+
 const ReactionItem = (props: Props) => {
-  const _topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
+  const topReacjis = useTopReacjis()
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()
@@ -20,7 +33,6 @@ const ReactionItem = (props: Props) => {
       props.showPicker()
     }, 100)
   }
-  const topReacjis = _topReacjis.slice(0, 5)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (

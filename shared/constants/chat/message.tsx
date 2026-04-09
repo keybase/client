@@ -63,6 +63,18 @@ export const isMessageWithReactions = (message: T.Chat.Message) => {
     !message.errorReason
   )
 }
+
+export const getReactionOrder = (reactions: ReadonlyMap<string, T.Chat.ReactionDesc>): Array<string> => {
+  const keys = [...reactions.keys()]
+  const scoreMap = new Map(
+    keys.map(emoji => [
+      emoji,
+      reactions.get(emoji)!.users.reduce((min, r) => Math.min(min, r.timestamp), Infinity),
+    ])
+  )
+  return keys.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
+}
+
 export const getMessageID = (m: T.RPCChat.UIMessage) => {
   switch (m.state) {
     case T.RPCChat.MessageUnboxedState.valid:

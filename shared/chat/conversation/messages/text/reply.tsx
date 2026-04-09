@@ -1,12 +1,11 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useOrdinal, useIsHighlighted} from '../ids-context'
+import * as Chat from '@/stores/chat'
+import {useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
-export const useReply = (showReplyTo: boolean) => {
-  return showReplyTo ? <Reply /> : null
+export const useReply = (replyTo?: T.Chat.MessageReplyTo, onClick?: () => void) => {
+  return replyTo ? <Reply replyTo={replyTo} onClick={onClick} /> : null
 }
 
 const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(null!)
@@ -75,7 +74,7 @@ type RS = {
   showImage: boolean
   showEdited: boolean
   isDeleted: boolean
-  onClick: () => void
+  onClick?: () => void
 }
 
 function ReplyStructure(p: RS) {
@@ -118,20 +117,8 @@ function ReplyStructure(p: RS) {
   )
 }
 
-function Reply() {
-  const ordinal = useOrdinal()
-  const {replyTo, replyJump} = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal)
-      return {replyJump: s.dispatch.replyJump, replyTo: m?.type === 'text' ? m.replyTo : undefined}
-    })
-  )
-  const onClick = () => {
-    const id = replyTo?.id ?? 0
-    id && replyJump(id)
-  }
-
-  if (!replyTo?.id) return null
+function Reply({replyTo, onClick}: {onClick?: () => void; replyTo: T.Chat.MessageReplyTo}) {
+  if (!replyTo.id) return null
 
   const showEdited = !!replyTo.hasBeenEdited
   const isDeleted = replyTo.exploded || replyTo.type === 'deleted'

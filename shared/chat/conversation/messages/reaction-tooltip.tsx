@@ -19,26 +19,25 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyStateProps = {
-  _reactions: new Map<string, T.Chat.ReactionDesc>(),
-  _usersInfo: new Map<string, T.Users.UserInfo>(),
+const emptyReactions = new Map<string, T.Chat.ReactionDesc>()
+const emptyUsersInfo = new Map<string, T.Users.UserInfo>()
+
+type Section = {
+  data: Array<ListItem>
+  ordinal: T.Chat.Ordinal
+  reaction: T.Chat.ReactionDesc
+  title: string
 }
 
 const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const infoMap = useUsersState(s => s.infoMap)
-  const {_reactions, good} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      if (message && Chat.isMessageWithReactions(message)) {
-        const _reactions = message.reactions
-        return {_reactions, good: true}
-      }
-      return {...emptyStateProps, good: false}
-    })
-  )
-  const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
+  const reactions = Chat.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
+    return message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
+  })
+  const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
 
   const navigateAppend = Chat.useChatNavigateAppend()
   const onAddReaction = () => {
@@ -49,23 +48,26 @@ const ReactionTooltip = (p: OwnProps) => {
     }))
   }
 
-  let reactions = [...(_reactions?.keys() ?? [])]
+  let reactionsToShow = [...(reactions?.keys() ?? emptyReactions.keys())]
     .map(emoji => {
-      const reactionUsers = _reactions?.get(emoji)?.users ?? []
+      const reaction = reactions?.get(emoji)
+      const reactionUsers = reactions?.get(emoji)?.users ?? []
       const sortedUsers = [...reactionUsers].sort((a, b) => a.timestamp - b.timestamp)
       return {
         earliestTimestamp: sortedUsers[0]?.timestamp ?? 0,
         emoji,
+        reaction,
         users: sortedUsers.map(r => ({
-          fullName: (_usersInfo.get(r.username) || {fullname: ''}).fullname || '',
+          fullName: (usersInfo.get(r.username) || {fullname: ''}).fullname || '',
           username: r.username,
         })),
       }
     })
+    .filter((r): r is {earliestTimestamp: number; emoji: string; reaction: T.Chat.ReactionDesc; users: Array<ListItem>} => !!r.reaction)
     .sort((a, b) => a.earliestTimestamp - b.earliestTimestamp)
-    .map(({emoji, users}) => ({emoji, users}))
+    .map(({emoji, reaction, users}) => ({emoji, reaction, users}))
   if (!C.isMobile && emoji) {
-    reactions = reactions.filter(r => r.emoji === emoji)
+    reactionsToShow = reactionsToShow.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
   const conversationIDKey = Chat.useChatContext(s => s.id)
@@ -74,12 +76,33 @@ const ReactionTooltip = (p: OwnProps) => {
     return null
   }
 
-  const sections = reactions.map(r => ({
+  const sections = reactionsToShow.map(r => ({
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
     ordinal: ordinal,
+    reaction: r.reaction,
     title: r.emoji,
   }))
+  const renderSectionHeader = ({section}: {section: Section}) => (
+    <Kb.Box2
+      key={section.title}
+      direction="horizontal"
+      gap="tiny"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      style={styles.buttonContainer}
+    >
+      <ReactButton
+        emoji={section.title}
+        reaction={section.reaction}
+        toggleReaction={emoji => toggleMessageReaction(section.ordinal, emoji)}
+      />
+      <Kb.Text type="Terminal" lineClamp={1} style={styles.emojiText}>
+        {section.title}
+      </Kb.Text>
+    </Kb.Box2>
+  )
 
   return (
     <Kb.Popup
@@ -153,31 +176,6 @@ const renderItem = ({item}: {item: ListItem}) => {
     />
   )
 }
-
-const renderSectionHeader = ({
-  section,
-}: {
-  section: {
-    data: Array<ListItem>
-    ordinal: T.Chat.Ordinal
-    title: string
-  }
-}) => (
-  <Kb.Box2
-    key={section.title}
-    direction="horizontal"
-    gap="tiny"
-    gapStart={true}
-    gapEnd={true}
-    fullWidth={true}
-    style={styles.buttonContainer}
-  >
-    <ReactButton emoji={section.title} />
-    <Kb.Text type="Terminal" lineClamp={1} style={styles.emojiText}>
-      {section.title}
-    </Kb.Text>
-  </Kb.Box2>
-)
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -12,9 +12,7 @@ import {
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {
-  AllOptionalParamRouteKeys,
-  NoParamRouteKeys,
-  ParamRouteKeys,
+  NavigateAppendType,
   RouteKeys,
   RootParamList as KBRootParamList,
 } from '@/router-v2/route-params'
@@ -255,18 +253,7 @@ export const navUpToScreen = (name: RouteKeys) => {
   n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
 }
 
-export function navigateAppend<RouteName extends NoParamRouteKeys | AllOptionalParamRouteKeys>(
-  path: RouteName,
-  replace?: boolean
-): void
-export function navigateAppend<RouteName extends ParamRouteKeys>(
-  path: {name: RouteName; params: KBRootParamList[RouteName]},
-  replace?: boolean
-): void
-export function navigateAppend(
-  path: RouteKeys | {name: RouteKeys; params: object | undefined},
-  replace?: boolean
-) {
+export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
   DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
   const n = _getNavigator()
   if (!n) {
@@ -389,19 +376,27 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
-export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
+type ThreadSearchNavParams = {
+  threadSearch?: {query?: string}
+}
+
+export const navToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  navParams?: ThreadSearchNavParams
+) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
   if (!n) return
   const rs = getRootState()
   if (!rs?.key) return
+  const params = {conversationIDKey, threadSearch: navParams?.threadSearch}
 
   if (isSplit) {
     // Desktop/tablet: reset the tab navigator state to switch to chatTab with chatRoot params.
     // All tab stacks share the same screen config, so navigate('chatRoot') would target the
     // current tab. Separate switchTab + navigateAppend has a race (stale state between dispatches).
     // A single reset on the tab navigator atomically switches tabs and sets params.
-    setChatRootParams({conversationIDKey})
+    setChatRootParams(params)
   } else {
     // Phone: switch to the chat tab, then push the conversation above the tabs.
     const nextState = {
@@ -413,7 +408,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
             routes: [{name: Tabs.chatTab, state: {index: 0, routes: [{name: 'chatRoot', params: {}}]}}],
           },
         },
-        {name: 'chatConversation', params: {conversationIDKey}},
+        {name: 'chatConversation', params},
       ],
     }
     n.dispatch({

@@ -1,43 +1,24 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import {useIsHighlighted, useOrdinal} from '../ids-context'
+import {useIsHighlighted} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
 import SharedTimer from './shared-timers'
 import {animationDuration} from './exploding-height-retainer'
+import type * as T from '@/constants/types'
 
-export type OwnProps = {onClick?: () => void}
+export type OwnProps = {
+  exploded: boolean
+  exploding: boolean
+  explodesAt: number
+  messageKey: string
+  onClick?: () => void
+  submitState?: T.Chat.Message['submitState']
+}
 
 function ExplodingMetaContainer(p: OwnProps) {
-  const {onClick} = p
-  const ordinal = useOrdinal()
+  const {exploded, exploding, explodesAt, messageKey, onClick, submitState} = p
   const [now, setNow] = React.useState(() => Date.now())
-
-  const {exploding, exploded, submitState, explodesAt, messageKey} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
-        return {
-          exploded: false,
-          explodesAt: 0,
-          exploding: false,
-          messageKey: '',
-          submitState: '',
-        }
-      }
-      const messageKey = Chat.getMessageKey(message)
-      const {exploding, exploded, submitState, explodingTime: explodesAt} = message
-      return {
-        exploded,
-        explodesAt,
-        exploding,
-        messageKey,
-        submitState,
-      }
-    })
-  )
   const pending = submitState === 'pending' || submitState === 'failed'
 
   const lastMessageKeyRef = React.useRef(messageKey)

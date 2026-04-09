@@ -106,7 +106,7 @@ type UseDataSourceProps = {
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const staticConfig = Chat.useChatState(s => s.staticConfig)
-  const showGiphySearch = Chat.useChatContext(s => s.giphyWindow)
+  const showGiphySearch = Chat.useChatUIContext(s => s.giphyWindow)
   const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
   return Chat.useChatContext(
     C.useShallow(s => {

@@ -1,69 +1,220 @@
 import * as C from '@/constants'
+import * as Message from '@/constants/chat/message'
 import * as Chat from '@/stores/chat'
 import type * as Styles from '@/styles'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
 
+type SearchState = {
+  hits: Array<T.Chat.Message>
+  status: T.Chat.ThreadSearchInfo['status']
+}
+
 const useCommon = (ownProps: OwnProps) => {
   const {style} = ownProps
-
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const {id: conversationIDKey, threadSearchInfo, threadSearchQuery: initialText, dispatch} = s
-      const {hits: _hits, status} = threadSearchInfo
-      const {loadMessagesCentered, setThreadSearchQuery, toggleThreadSearch, threadSearch} = dispatch
-      return {
-        _hits,
-        conversationIDKey,
-        initialText,
-        loadMessagesCentered,
-        setThreadSearchQuery,
-        status,
-        threadSearch,
-        toggleThreadSearch,
-      }
-    })
+  const initialQuery = useThreadSearchRoute()?.query ?? ''
+  const {conversationIDKey, loadMessagesCentered, toggleThreadSearch} = Chat.useChatContext(
+    C.useShallow(s => ({
+      conversationIDKey: s.id,
+      loadMessagesCentered: s.dispatch.loadMessagesCentered,
+      toggleThreadSearch: s.dispatch.toggleThreadSearch,
+    }))
   )
-
-  const {conversationIDKey, _hits, status, initialText} = data
-  const {loadMessagesCentered, setThreadSearchQuery, toggleThreadSearch, threadSearch} = data
   const onToggleThreadSearch = () => {
     toggleThreadSearch()
   }
 
-  const numHits = _hits.length
-  const hits = _hits.map(h => ({
+  const [searchState, setSearchState] = React.useState<SearchState>({hits: [], status: 'initial'})
+  const {hits: messageHits, status} = searchState
+  const numHits = messageHits.length
+  const hits = messageHits.map(h => ({
     author: h.author,
     summary: h.bodySummary.stringValue(),
     timestamp: h.timestamp,
   }))
-
   const [selectedIndex, setSelectedIndex] = React.useState(0)
   const [text, setText] = React.useState('')
   const [lastSearch, setLastSearch] = React.useState('')
 
+  const searchOrdinalRef = React.useRef(0)
+  const hitsRef = React.useRef(messageHits)
+  const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
+  const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
+  React.useEffect(() => {
+    hitsRef.current = messageHits
+  }, [messageHits])
+
+  const clearPendingFlush = React.useEffectEvent(() => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current)
+      flushTimeoutRef.current = undefined
+    }
+    pendingHitsRef.current = []
+    pendingReplaceHitsRef.current = undefined
+  })
+
+  const runThreadSearch = React.useEffectEvent((query: string) => {
+    const requestOrdinal = searchOrdinalRef.current + 1
+    searchOrdinalRef.current = requestOrdinal
+    clearPendingFlush()
+    setSearchState({hits: [], status: query ? 'inprogress' : 'done'})
+    if (!query) {
+      return
+    }
+
+    const {deviceName, username} = useCurrentUserState.getState()
+    const getLastOrdinal = () =>
+      Chat.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+    const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
+      if (searchOrdinalRef.current !== requestOrdinal) {
+        return
+      }
+      setSearchState(state => (searchOrdinalRef.current === requestOrdinal ? updater(state) : state))
+    }
+    const flushPendingHits = (statusOverride?: SearchState['status']) => {
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current)
+        flushTimeoutRef.current = undefined
+      }
+      const pendingReplaceHits = pendingReplaceHitsRef.current
+      const pendingHits = pendingHitsRef.current
+      pendingReplaceHitsRef.current = undefined
+      pendingHitsRef.current = []
+      if (!pendingReplaceHits && !pendingHits.length && statusOverride === undefined) {
+        return
+      }
+      updateIfCurrent(state => {
+        let nextHits = state.hits
+        if (pendingReplaceHits) {
+          nextHits = pendingReplaceHits
+        } else if (pendingHits.length) {
+          const seen = new Set(nextHits.map(hit => hit.id))
+          nextHits = [...nextHits]
+          pendingHits.forEach(hit => {
+            if (!seen.has(hit.id)) {
+              seen.add(hit.id)
+              nextHits.push(hit)
+            }
+          })
+        }
+        return {hits: nextHits, status: statusOverride ?? state.status}
+      })
+    }
+    const scheduleFlush = () => {
+      if (flushTimeoutRef.current) {
+        return
+      }
+      flushTimeoutRef.current = setTimeout(() => {
+        flushPendingHits()
+      }, 16)
+    }
+    const onDone = () => {
+      flushPendingHits('done')
+    }
+
+    const f = async () => {
+      try {
+        await T.RPCChat.localSearchInboxRpcListener({
+          incomingCallMap: {
+            'chat.1.chatUi.chatSearchDone': onDone,
+            'chat.1.chatUi.chatSearchHit': hit => {
+              const message = Message.uiMessageToMessage(
+                conversationIDKey,
+                hit.searchHit.hitMessage,
+                username,
+                getLastOrdinal,
+                deviceName
+              )
+              if (!message) {
+                return
+              }
+              pendingHitsRef.current.push(message)
+              scheduleFlush()
+            },
+            'chat.1.chatUi.chatSearchInboxDone': onDone,
+            'chat.1.chatUi.chatSearchInboxHit': resp => {
+              const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((result, hit) => {
+                const message = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  hit.hitMessage,
+                  username,
+                  getLastOrdinal,
+                  deviceName
+                )
+                if (message) {
+                  result.push(message)
+                }
+                return result
+              }, [])
+              pendingHitsRef.current = []
+              pendingReplaceHitsRef.current = messages
+              scheduleFlush()
+            },
+            'chat.1.chatUi.chatSearchInboxStart': () => {
+              updateIfCurrent(state => ({...state, status: 'inprogress'}))
+            },
+          },
+          params: {
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            namesOnly: false,
+            opts: {
+              afterContext: 0,
+              beforeContext: 0,
+              convID: Chat.getConvoState(conversationIDKey).getConvID(),
+              isRegex: false,
+              matchMentions: false,
+              maxBots: 0,
+              maxConvsHit: 0,
+              maxConvsSearched: 0,
+              maxHits: 1000,
+              maxMessages: -1,
+              maxNameConvs: 0,
+              maxTeams: 0,
+              reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
+              sentAfter: 0,
+              sentBefore: 0,
+              sentBy: '',
+              sentTo: '',
+              skipBotCache: false,
+            },
+            query,
+          },
+        })
+      } catch (error) {
+        if (error instanceof RPCError) {
+          updateIfCurrent(state => ({...state, status: 'done'}))
+        }
+      }
+    }
+    C.ignorePromise(f())
+  })
+
   const submitSearch = () => {
     setLastSearch(text)
     setSelectedIndex(0)
-    threadSearch(text)
+    runThreadSearch(text)
   }
 
-  const hitsRef = React.useRef(_hits)
-  React.useEffect(() => {
-    hitsRef.current = _hits
-  }, [_hits])
   const [selectResult] = React.useState(() => (index: number) => {
-    const message = hitsRef.current[index] || Chat.makeMessageText()
-    if (message.id > 0) {
+    const message = hitsRef.current[index]
+    if (message?.id) {
       loadMessagesCentered(message.id, 'always')
     }
     setSelectedIndex(index)
   })
 
   const onUp = () => {
+    if (!numHits) {
+      return
+    }
     if (selectedIndex >= numHits - 1) {
       selectResult(0)
       return
@@ -80,6 +231,9 @@ const useCommon = (ownProps: OwnProps) => {
   }
 
   const onDown = () => {
+    if (!numHits) {
+      return
+    }
     if (selectedIndex <= 0) {
       selectResult(numHits - 1)
       return
@@ -95,11 +249,33 @@ const useCommon = (ownProps: OwnProps) => {
   const hasResults = status === 'done' || numHits > 0
 
   React.useEffect(() => {
-    if (initialText) {
-      setThreadSearchQuery('')
-      setText(initialText)
+    searchOrdinalRef.current += 1
+    clearPendingFlush()
+    setSearchState({hits: [], status: 'initial'})
+    setLastSearch('')
+    setSelectedIndex(0)
+    setText('')
+  }, [conversationIDKey])
+
+  React.useEffect(() => {
+    if (!initialQuery) {
+      return
     }
-  }, [initialText, setThreadSearchQuery])
+    setText(initialQuery)
+    setLastSearch(initialQuery)
+    setSelectedIndex(0)
+    runThreadSearch(initialQuery)
+  }, [conversationIDKey, initialQuery])
+
+  React.useEffect(() => {
+    return () => {
+      searchOrdinalRef.current += 1
+      clearPendingFlush()
+      C.ignorePromise(
+        T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {})
+      )
+    }
+  }, [])
 
   const hasHits = numHits > 0
   const hadHitsRef = React.useRef(false)

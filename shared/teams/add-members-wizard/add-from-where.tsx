@@ -14,7 +14,7 @@ const AddFromWhere = () => {
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
   const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
-  const onContinueEmail = () => nav.safeNavigateAppend('teamAddToTeamEmail')
+  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
 
   return (
     <>

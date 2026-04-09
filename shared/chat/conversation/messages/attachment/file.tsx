@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as CryptoRoutes from '@/constants/crypto'
 import * as Chat from '@/stores/chat'
+import type * as T from '@/constants/types'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -10,54 +10,50 @@ import {getEditStyle, ShowToastAfterSaving} from './shared'
 import {useFSState} from '@/stores/fs'
 import {makeUUID} from '@/util/uuid'
 
-type OwnProps = {showPopup: () => void}
-
-const missingMessage = Chat.makeMessageAttachment({})
+type OwnProps = {
+  isEditing: boolean
+  message: T.Chat.MessageAttachment
+  ordinal: T.Chat.Ordinal
+  showPopup: () => void
+}
 
 function FileContainer(p: OwnProps) {
-  const ordinal = useOrdinal()
-  const data = Chat.useChatContext(
-    C.useShallow(s => {
-      const m = s.messageMap.get(ordinal) ?? missingMessage
-      const isEditing = !!s.editing
-      const conversationIDKey = s.id
-      const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
-      const title = m.decoratedText?.stringValue() || m.title || m.fileName
-      const progress = m.type === 'attachment' ? m.transferProgress : 0
-
-      const {dispatch} = s
-      const {attachmentDownload, messageAttachmentNativeShare} = dispatch
-      return {
-        attachmentDownload,
-        conversationIDKey,
-        downloadPath,
-        fileName,
-        fileType,
-        isEditing,
-        messageAttachmentNativeShare,
-        progress,
-        title,
-        transferErrMsg,
-        transferState,
-      }
-    })
+  const {isEditing, message, ordinal} = p
+  const {attachmentDownload, messageAttachmentNativeShare} = Chat.useChatContext(
+    C.useShallow(s => ({
+      attachmentDownload: s.dispatch.attachmentDownload,
+      messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,
+    }))
   )
-
-  const {conversationIDKey, fileType, downloadPath, isEditing, progress, messageAttachmentNativeShare} = data
-  const {attachmentDownload, title, transferState, transferErrMsg, fileName: _fileName} = data
+  const {
+    conversationIDKey,
+    downloadPath,
+    fileName: _fileName,
+    fileType,
+    transferErrMsg,
+    transferProgress: progress,
+    transferState,
+  } = message
+  const title = message.decoratedText?.stringValue() || message.title || message.fileName
 
   const switchTab = C.Router2.switchTab
   const navigateAppend = C.Router2.navigateAppend
-  const onSaltpackFileOpen = (path: string, name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab) => {
+  const onSaltpackFileOpen = (
+    path: string,
+    name: typeof CryptoRoutes.decryptTab | typeof CryptoRoutes.verifyTab
+  ) => {
     switchTab(C.Tabs.cryptoTab)
-    navigateAppend({
-      name,
-      params: {
-        entryNonce: makeUUID(),
-        seedInputPath: path,
-        seedInputType: 'file',
+    navigateAppend(
+      {
+        name,
+        params: {
+          entryNonce: makeUUID(),
+          seedInputPath: path,
+          seedInputType: 'file',
+        },
       },
-    }, true)
+      true
+    )
   }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
@@ -99,7 +95,7 @@ function FileContainer(p: OwnProps) {
     !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
 
   const errorMsg = transferErrMsg || ''
-  const fileName = _fileName ?? ''
+  const fileName = _fileName
   const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = p.showPopup
@@ -123,6 +119,7 @@ function FileContainer(p: OwnProps) {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
+        relative={true}
         style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing), styles.filename])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
@@ -182,7 +179,7 @@ function FileContainer(p: OwnProps) {
           </Kb.Box2>
         )}
         {!!progressLabel && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.progressOverlay}>
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
               {progressLabel}
             </Kb.Text>
@@ -244,6 +241,14 @@ const styles = Kb.Styles.styleSheetCreate(
       progressLabelStyle: {
         color: Kb.Styles.globalColors.black_50,
         marginRight: Kb.Styles.globalMargins.tiny,
+      },
+      progressOverlay: {
+        backgroundColor: Kb.Styles.globalColors.greyLight,
+        bottom: 0,
+        left: 0,
+        opacity: 0.9,
+        position: 'absolute',
+        width: 'auto',
       },
       retry: {
         color: Kb.Styles.globalColors.redDark,

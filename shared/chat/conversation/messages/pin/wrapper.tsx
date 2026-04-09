@@ -1,17 +1,16 @@
-import * as Chat from '@/stores/chat'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type PinType from '.'
 
 function WrapperPin(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const {ordinal, isCenteredHighlight} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
-  if (message?.type !== 'pin') return null
+  if (message.type !== 'pin') return null
 
   const {default: PinComponent} = require('.') as {default: typeof PinType}
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       <PinComponent messageID={message.pinnedMessageID} />
     </WrapperMessage>
   )

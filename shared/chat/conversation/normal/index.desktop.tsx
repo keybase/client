@@ -10,6 +10,7 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
+import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
 import {indefiniteArticle} from '@/util/string'
@@ -39,7 +40,7 @@ const Conversation = function Conversation() {
       params: {conversationIDKey, pathAndOutboxIDs},
     }))
   }
-  const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
+  const showThreadSearch = !!useThreadSearchRoute()
   const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
   const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
   const dragAndDropRejectReason = Chat.useChatContext(s => {

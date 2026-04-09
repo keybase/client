@@ -1,10 +1,8 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
-import {SetRecycleTypeContext} from '../../recycle-type-context'
-import {WrapperMessage, useCommonWithData, useMessageData, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 
@@ -46,30 +44,27 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
 }
 
 function WrapperText(p: Props) {
-  const {ordinal} = p
-  const messageData = useMessageData(ordinal)
-  const common = useCommonWithData(ordinal, messageData)
-  const {type, showCenteredHighlight} = common
-  const {isEditing, hasReactions} = messageData
+  const {ordinal, isCenteredHighlight = false} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {messageData} = wrapper
+  const {isEditing, message, replyTo} = messageData
 
-  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, textType, showReplyTo, text} = messageData
-  const bottomChildren = useBottom({hasCoinFlip, hasUnfurlList, hasUnfurlPrompts})
-  const reply = useReply(showReplyTo)
-
-  const setRecycleType = React.useContext(SetRecycleTypeContext)
-
-  React.useEffect(() => {
-    let subType = ''
-    if (showReplyTo) {
-      subType += ':reply'
-    }
-    if (hasReactions) {
-      subType += ':reactions'
-    }
-    if (subType.length) {
-      setRecycleType(ordinal, 'text' + subType)
-    }
-  }, [ordinal, showReplyTo, hasReactions, setRecycleType])
+  const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
+    messageData
+  const bottomChildren = useBottom({
+    author: message.author,
+    conversationIDKey: message.conversationIDKey,
+    hasCoinFlip,
+    hasUnfurlList,
+    hasUnfurlPrompts,
+    messageID: message.id,
+    unfurls: message.type === 'text' ? message.unfurls : undefined,
+  })
+  const onReplyClick = () => {
+    const id = replyTo?.id ?? 0
+    id && messageData.replyJump(id)
+  }
+  const reply = useReply(replyTo, onReplyClick)
 
   const style = getStyle(textType, isEditing, showCenteredHighlight)
 
@@ -87,7 +82,7 @@ function WrapperText(p: Props) {
   }
 
   return (
-    <WrapperMessage {...p} {...common} bottomChildren={bottomChildren} messageData={messageData}>
+    <WrapperMessage {...p} {...wrapper} bottomChildren={bottomChildren}>
       {children}
     </WrapperMessage>
   )

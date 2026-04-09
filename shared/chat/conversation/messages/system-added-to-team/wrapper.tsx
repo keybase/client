@@ -1,17 +1,16 @@
-import * as Chat from '@/stores/chat'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SystemAddedToTeamType from './container'
 
 function SystemAddedToTeam(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const {ordinal, isCenteredHighlight} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemAddedToTeam') return null
+  if (message.type !== 'systemAddedToTeam') return null
 
   const {default: SystemAddedToTeam} = require('./container') as {default: typeof SystemAddedToTeamType}
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       <SystemAddedToTeam message={message} />
     </WrapperMessage>
   )

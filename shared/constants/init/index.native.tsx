@@ -35,7 +35,7 @@ import {initPushListener, getStartupDetailsFromInitialPush} from './push-listene
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
-import {getConvoState} from '@/stores/convostate'
+import {getConvoState, getConvoUIState} from '@/stores/convostate'
 import {
   requestLocationPermission,
   saveAttachmentToCameraRoll,
@@ -168,7 +168,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+  getConvoUIState(conversationIDKey).dispatch.setCommandStatusInfo({
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,

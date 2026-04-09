@@ -184,7 +184,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
     const {dispatch} = Chat.getConvoState(selectedConversationIDKey)
-    text && dispatch.injectIntoInput(text)
+    text && Chat.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
     dispatch.navigateToThread('extension')
     if (sendPaths.length > 0) {
       const meta = Chat.getConvoState(selectedConversationIDKey).meta
