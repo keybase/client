@@ -2559,7 +2559,7 @@ const createSlice =
             break
           }
           case 'chat.1.chatUi.chatGiphySearchResults':
-            getUI().dispatch.setGiphyResult(action.payload.params.results ?? undefined)
+            getUI().dispatch.setGiphyResult(action.payload.params.results)
             break
           case 'chat.1.NotifyChat.ChatRequestInfo':
             {
