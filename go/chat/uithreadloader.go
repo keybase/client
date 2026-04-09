@@ -501,7 +501,14 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 ) (err error) {
 	var pagination, resultPagination *chat1.Pagination
 	var fullErr error
+	reqID := libkb.RandStringB64(3)
+	fullSent := false
 	defer t.Trace(ctx, &err, "LoadNonblock")()
+	t.Debug(ctx, "LoadNonblock[%s]: begin convID: %s reason: %v", reqID, convID, reason)
+	defer func() {
+		t.Debug(ctx, "LoadNonblock[%s]: return convID: %s err: %v fullErr: %v fullSent: %v",
+			reqID, convID, err, fullErr, fullSent)
+	}()
 	defer func() {
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
@@ -539,7 +546,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		return err
 	}
 	defer t.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
-	t.Debug(ctx, "LoadNonblock: conversation lock obtained")
+	t.Debug(ctx, "LoadNonblock[%s]: conversation lock obtained convID: %s", reqID, convID)
 
 	// Enable delete placeholders for supersede transform
 	if query == nil {
@@ -648,11 +655,11 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		} else {
 			t.Debug(ctx, "LoadNonblock: sending nil cached response")
 		}
-		start := time.Now()
+		t.Debug(ctx, "LoadNonblock[%s]: cached send begin convID: %s", reqID, convID)
 		if err := chatUI.ChatThreadCached(ctx, pthread); err != nil {
 			t.Debug(ctx, "LoadNonblock: failed to send cached thread: %s", err)
 		}
-		t.Debug(ctx, "LoadNonblock: cached response send time: %v", time.Since(start))
+		t.Debug(ctx, "LoadNonblock[%s]: cached send done convID: %s", reqID, convID)
 	}(localCtx)
 
 	startTime := t.clock.Now()
@@ -708,23 +715,25 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		resultPagination = rthread.Pagination
 		t.applyPagerModeOutgoing(ctx, convID, rthread.Pagination, pagination, pgmode)
-		start = time.Now()
+		t.Debug(ctx, "LoadNonblock[%s]: full send begin convID: %s", reqID, convID)
 		if fullErr = chatUI.ChatThreadFull(ctx, string(jsonUIRes)); err != nil {
 			t.Debug(ctx, "LoadNonblock: failed to send full result to UI: %s", err)
 			return
 		}
-		t.Debug(ctx, "LoadNonblock: full response send time: %v", time.Since(start))
+		fullSent = true
+		t.Debug(ctx, "LoadNonblock[%s]: full send done convID: %s", reqID, convID)
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()
 	}()
 	wg.Wait()
 
-	t.Debug(ctx, "LoadNonblock: thread payloads transferred, checking for resolve")
+	t.Debug(ctx, "LoadNonblock[%s]: payload transfer complete convID: %s fullSent: %v", reqID, convID, fullSent)
 	// Resolve any messages we didn't cache and get full information about
 	if fullErr == nil {
 		fullErr = func() error {
 			skips := globals.CtxMessageCacheSkips(ctx)
+			t.Debug(ctx, "LoadNonblock[%s]: post-send resolve begin convID: %s skips: %d", reqID, convID, len(skips))
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				getDelay())
 			defer func() {
@@ -797,13 +806,14 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
+			t.Debug(ctx, "LoadNonblock[%s]: post-send resolve done convID: %s", reqID, convID)
 			return nil
 		}()
 	}
 
 	// Clean up context and set final loading status
 	if getDisplayedStatus() {
-		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
+		t.Debug(ctx, "LoadNonblock[%s]: final status clear begin convID: %s", reqID, convID)
 		t.clock.Sleep(t.validatedDelay)
 		// use a background context here in case our context has been canceled, we don't want to not
 		// get this banner off the screen.
@@ -820,7 +830,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		}
-		t.Debug(ctx, "LoadNonblock: clear complete")
+		t.Debug(ctx, "LoadNonblock[%s]: final status clear done convID: %s", reqID, convID)
 	} else {
 		t.Debug(ctx, "LoadNonblock: no status displayed, not clearing")
 	}

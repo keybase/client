@@ -369,7 +369,10 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	if !s.started {
 		return false
 	}
+	prevSuspendCount := s.suspendCount
 	s.suspendCount++
+	s.Debug(ctx, "suspend: count %d -> %d waiters: %d cancelChs: %d queued: %d",
+		prevSuspendCount, s.suspendCount, len(s.suspendWaiters), len(s.cancelChs), len(s.jobQueue))
 	if len(s.cancelChs) == 0 {
 		return false
 	}
@@ -405,14 +408,24 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 		s.Debug(ctx, "resume: spurious resume call without suspend")
 		return false
 	}
+	prevSuspendCount := s.suspendCount
 	s.suspendCount--
+	s.Debug(ctx, "resume: count %d -> %d waiters: %d cancelChs: %d queued: %d",
+		prevSuspendCount, s.suspendCount, len(s.suspendWaiters), len(s.cancelChs), len(s.jobQueue))
 	if s.suspendCount == 0 {
+		s.Debug(ctx, "resume: releasing waiters: %d", len(s.suspendWaiters))
 		for _, cb := range s.suspendWaiters {
 			close(cb)
 		}
 		s.suspendWaiters = nil
 	}
 	return false
+}
+
+func (s *localizerPipeline) suspendStats() (suspendCount, waiters, cancelChs, queued int) {
+	s.Lock()
+	defer s.Unlock()
+	return s.suspendCount, len(s.suspendWaiters), len(s.cancelChs), len(s.jobQueue)
 }
 
 func (s *localizerPipeline) registerWaiter() chan struct{} {
@@ -430,13 +443,15 @@ func (s *localizerPipeline) registerWaiter() chan struct{} {
 func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh chan struct{}) {
 	id, cancelCh := s.registerJobPull(job.ctx)
 	defer s.finishJobPull(id)
-	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
-		job.numCompleted())
+	s.Debug(job.ctx, "localizeJobPulled[%s]: pulling job: pending: %d completed: %d", id,
+		job.numPending(), job.numCompleted())
 	waitCh := make(chan struct{})
 	if !globals.IsLocalizerCancelableCtx(job.ctx) {
 		close(waitCh)
 	} else {
-		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")
+		suspendCount, waiters, cancelChs, queued := s.suspendStats()
+		s.Debug(job.ctx, "localizeJobPulled[%s]: waiting for resume suspendCount: %d waiters: %d cancelChs: %d queued: %d",
+			id, suspendCount, waiters, cancelChs, queued)
 		go func() {
 			<-s.registerWaiter()
 			close(waitCh)
@@ -444,9 +459,11 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	}
 	select {
 	case <-waitCh:
-		s.Debug(job.ctx, "localizeJobPulled: resume, proceeding")
+		suspendCount, waiters, cancelChs, queued := s.suspendStats()
+		s.Debug(job.ctx, "localizeJobPulled[%s]: resume, proceeding suspendCount: %d waiters: %d cancelChs: %d queued: %d",
+			id, suspendCount, waiters, cancelChs, queued)
 	case <-stopCh:
-		s.Debug(job.ctx, "localizeJobPulled: shutting down")
+		s.Debug(job.ctx, "localizeJobPulled[%s]: shutting down", id)
 		return
 	}
 	s.jobPulled(job.ctx, job)
@@ -455,25 +472,25 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 		defer close(doneCh)
 		if err := s.localizeConversations(job); err == context.Canceled {
 			// just put this right back if we canceled it
-			s.Debug(job.ctx, "localizeJobPulled: re-enqueuing canceled job")
+			s.Debug(job.ctx, "localizeJobPulled[%s]: re-enqueuing canceled job", id)
 			s.jobQueue <- job.retry(s.G())
 		}
 		if job.closeIfDone() {
-			s.Debug(job.ctx, "localizeJobPulled: all job tasks complete")
+			s.Debug(job.ctx, "localizeJobPulled[%s]: all job tasks complete", id)
 		}
 	}()
 	select {
 	case <-doneCh:
 		job.cancelFn()
 	case <-cancelCh:
-		s.Debug(job.ctx, "localizeJobPulled: canceled a live job")
+		s.Debug(job.ctx, "localizeJobPulled[%s]: canceled a live job", id)
 		job.cancelFn()
 	case <-stopCh:
-		s.Debug(job.ctx, "localizeJobPulled: shutting down")
+		s.Debug(job.ctx, "localizeJobPulled[%s]: shutting down", id)
 		job.cancelFn()
 		return
 	}
-	s.Debug(job.ctx, "localizeJobPulled: job pass complete")
+	s.Debug(job.ctx, "localizeJobPulled[%s]: job pass complete", id)
 }
 
 func (s *localizerPipeline) localizeLoop(stopCh chan struct{}) {
