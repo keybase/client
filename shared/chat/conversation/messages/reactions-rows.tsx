@@ -2,7 +2,7 @@ import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
-import ReactButton from './react-button'
+import ReactButton, {NewReactionButton} from './react-button'
 import ReactionTooltip from './reaction-tooltip'
 import type * as T from '@/constants/types'
 import {useOrdinal} from './ids-context'
@@ -24,11 +24,14 @@ function ReactionsRowContainer(p: OwnProps) {
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
-      {emojis.map((emoji, idx) => (
-        <RowItem key={emoji || String(idx)} emoji={emoji} onReact={onReact} reaction={reactions?.get(emoji)} />
-      ))}
+      {emojis.map((emoji, idx) => {
+        const reaction = reactions?.get(emoji)
+        return reaction ? (
+          <RowItem key={emoji || String(idx)} emoji={emoji} onReact={onReact} reaction={reaction} />
+        ) : null
+      })}
       {Kb.Styles.isMobile ? (
-        <ReactButton showBorder={true} style={styles.button} />
+        <NewReactionButton style={styles.button} />
       ) : (
         <EmojiRow
           className={Kb.Styles.classNames([btnClassName, newBtnClassName])}
@@ -49,7 +52,7 @@ const newBtnClassName = 'WrapperMessage-newEmojiButton'
 type IProps = {
   emoji: string
   onReact: (emoji: string) => void
-  reaction?: T.Chat.ReactionDesc
+  reaction: T.Chat.ReactionDesc
 }
 function RowItem(p: IProps) {
   const ordinal = useOrdinal()

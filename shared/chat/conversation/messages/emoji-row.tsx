@@ -16,12 +16,27 @@ type OwnProps = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
+const useTopReacjis = () =>
+  Chat.useChatState(
+    C.useShallow(s => [
+      s.userReacjis.topReacjis[0],
+      s.userReacjis.topReacjis[1],
+      s.userReacjis.topReacjis[2],
+      s.userReacjis.topReacjis[3],
+      s.userReacjis.topReacjis[4],
+    ])
+  ).filter((reacji): reacji is T.RPCGen.UserReacji => !!reacji)
+
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-  const setReplyTo = Chat.useChatContext(s => s.dispatch.setReplyTo)
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const emojis = Chat.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
+  const {setReplyTo, toggleMessageReaction} = Chat.useChatContext(
+    C.useShallow(s => ({
+      setReplyTo: s.dispatch.setReplyTo,
+      toggleMessageReaction: s.dispatch.toggleMessageReaction,
+    }))
+  )
+  const emojis = useTopReacjis()
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({

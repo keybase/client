@@ -11,57 +11,33 @@ import type * as T from '@/constants/types'
 
 export type OwnProps = {
   className?: string
-  emoji?: string
+  emoji: string
   onLongPress?: () => void
-  reaction?: T.Chat.ReactionDesc
-  showBorder?: boolean
+  reaction: T.Chat.ReactionDesc
   style?: StylesCrossPlatform
   toggleReaction?: (emoji: string) => void
 }
 
-function ReactButtonContainer(p: OwnProps) {
-  const ordinal = useOrdinal()
-  const {onLongPress, style, emoji, className, reaction} = p
-  const me = useCurrentUserState(s => s.username)
-  const isDarkMode = useColorScheme() === 'dark'
-  const {active: subscriptionActive, count: subscriptionCount, decorated: subscriptionDecorated} = Chat.useChatContext(
-    C.useShallow(s => {
-      if (reaction || !emoji) {
-        return {active: false, count: 0, decorated: ''}
-      }
-      const message = s.messageMap.get(ordinal)
-      const reactionDesc = message?.reactions?.get(emoji || '')
-      const active = (reactionDesc?.users ?? []).some(r => r.username === me)
-      return {
-        active,
-        count: reactionDesc?.users.length ?? 0,
-        decorated: reactionDesc?.decorated ?? '',
-      }
-    })
-  )
-
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const active = reaction ? reaction.users.some(r => r.username === me) : subscriptionActive
-  const count = reaction?.users.length ?? subscriptionCount
-  const decorated = reaction?.decorated ?? subscriptionDecorated
-  const onClick = () => {
-    if (!emoji) return
-    if (p.toggleReaction) {
-      p.toggleReaction(emoji)
-      return
-    }
-    toggleMessageReaction(ordinal, emoji)
-  }
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onOpenEmojiPicker = () => {
-    navigateAppend(conversationIDKey => ({
-      name: 'chatChooseEmoji',
-      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-    }))
-  }
-
-  const text = decorated.length ? decorated : emoji
-  return emoji ? (
+function ReactionButton({
+  active,
+  className,
+  count,
+  isDarkMode,
+  onClick,
+  onLongPress,
+  style,
+  text,
+}: {
+  active: boolean
+  className?: string
+  count: number
+  isDarkMode: boolean
+  onClick: () => void
+  onLongPress?: () => void
+  style?: StylesCrossPlatform
+  text: string
+}) {
+  return (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
@@ -96,7 +72,50 @@ function ReactButtonContainer(p: OwnProps) {
         </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox2>
-  ) : (
+  )
+}
+
+function ReactButtonContainer(p: OwnProps) {
+  const {emoji, reaction} = p
+  const me = useCurrentUserState(s => s.username)
+  const isDarkMode = useColorScheme() === 'dark'
+  const onClick = () => {
+    p.toggleReaction?.(emoji)
+  }
+  const active = reaction.users.some(r => r.username === me)
+  const count = reaction.users.length
+  const text = reaction.decorated || emoji
+
+  return (
+    <ReactionButton
+      active={active}
+      className={p.className}
+      count={count}
+      isDarkMode={isDarkMode}
+      onClick={onClick}
+      onLongPress={p.onLongPress}
+      style={p.style}
+      text={text}
+    />
+  )
+}
+
+type NewReactionButtonProps = {
+  style?: StylesCrossPlatform
+}
+
+export function NewReactionButton(p: NewReactionButtonProps) {
+  const ordinal = useOrdinal()
+  const isDarkMode = useColorScheme() === 'dark'
+  const navigateAppend = Chat.useChatNavigateAppend()
+  const onOpenEmojiPicker = () => {
+    navigateAppend(conversationIDKey => ({
+      name: 'chatChooseEmoji',
+      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+    }))
+  }
+
+  return (
     <Kb.ClickableBox2
       onClick={onOpenEmojiPicker}
       style={Kb.Styles.collapseStyles([
@@ -104,7 +123,7 @@ function ReactButtonContainer(p: OwnProps) {
         {borderColor: isDarkMode ? darkColors.black_10 : colors.black_10},
         styles.newReactionButtonBox,
         styles.buttonBox,
-        style,
+        p.style,
       ])}
     >
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
