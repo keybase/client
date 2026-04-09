@@ -4,10 +4,11 @@ import {PerfProfiler} from '@/perf/react-profiler'
 import Normal from './normal'
 import Preview from './preview'
 import ThreadSearch from '../search'
+import {useThreadSearchRoute} from '../thread-search-route'
 
 const InputAreaContainer = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
-  const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
+  const showThreadSearch = !!useThreadSearchRoute()
   const {membershipType, resetParticipants, wasFinalizedBy} = Chat.useChatContext(
     C.useShallow(s => {
       const {membershipType, resetParticipants, wasFinalizedBy} = s.meta

@@ -631,7 +631,7 @@ test('setMeta adopts the server draft once when the meta becomes good', () => {
   expect(store.getState().unsentText).toBe('local draft')
 })
 
-test('local setters update participants, reply target, search query, and badge', () => {
+test('local setters update participants, reply target, and badge', () => {
   const store = createStore()
   const participants: ConvoState['participants'] = {
     all: ['alice', 'bob'],
@@ -641,30 +641,20 @@ test('local setters update participants, reply target, search query, and badge',
 
   store.getState().dispatch.setParticipants(participants)
   store.getState().dispatch.setReplyTo(ordinal)
-  store.getState().dispatch.setThreadSearchQuery('hello world')
   store.getState().dispatch.badgesUpdated(3)
 
   expect(store.getState().participants).toEqual(participants)
   expect(store.getState().replyTo).toBe(ordinal)
-  expect(store.getState().threadSearchQuery).toBe('hello world')
   expect(store.getState().badge).toBe(3)
 })
 
-test('toggleThreadSearch resets hits and removes center highlight when opening search', () => {
+test('toggleThreadSearch removes center highlight when opening search', () => {
   const store = createStore()
   applyState(store, {
     messageCenterOrdinal: {highlightMode: 'always', ordinal},
-    threadSearchInfo: {
-      hits: [makeTextMessage()],
-      status: 'done',
-      visible: false,
-    },
   })
 
   store.getState().dispatch.toggleThreadSearch()
 
-  expect(store.getState().threadSearchInfo.visible).toBe(true)
-  expect(store.getState().threadSearchInfo.hits).toEqual([])
-  expect(store.getState().threadSearchInfo.status).toBe('initial')
   expect(store.getState().messageCenterOrdinal?.highlightMode).toBe('none')
 })

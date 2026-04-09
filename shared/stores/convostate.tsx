@@ -54,12 +54,6 @@ import type {useChatState, RefreshReason} from '@/stores/chat'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
-const makeThreadSearchInfo = (): T.Chat.ThreadSearchInfo => ({
-  hits: [],
-  status: 'initial',
-  visible: false,
-})
-
 const noParticipantInfo: T.Chat.ParticipantInfo = {
   all: [],
   contactName: new Map(),
@@ -141,8 +135,6 @@ type ConvoStore = T.Immutable<{
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
-  threadSearchInfo: T.Chat.ThreadSearchInfo
-  threadSearchQuery: string
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
@@ -184,8 +176,6 @@ const initialConvoStore: ConvoStore = {
   separatorMap: new Map(),
   showUsernameMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
-  threadSearchInfo: makeThreadSearchInfo(),
-  threadSearchQuery: '',
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
@@ -291,7 +281,12 @@ export interface ConvoState extends ConvoStore {
       ordinals?: ReadonlyArray<T.Chat.Ordinal>
     }) => void
     mute: (m: boolean) => void
-    navigateToThread: (reason: NavReason, highlightMessageID?: T.Chat.MessageID, pushBody?: string) => void
+    navigateToThread: (
+      reason: NavReason,
+      highlightMessageID?: T.Chat.MessageID,
+      pushBody?: string,
+      threadSearchQuery?: string
+    ) => void
     openFolder: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: T.RPCChat.IncomingMessage) => void
@@ -321,15 +316,13 @@ export interface ConvoState extends ConvoStore {
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setParticipants: (p: ConvoState['participants']) => void
     setReplyTo: (o: T.Chat.Ordinal) => void
-    setThreadSearchQuery: (query: string) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
-    threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
     toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
-    toggleThreadSearch: (hide?: boolean) => void
+    toggleThreadSearch: (hide?: boolean, query?: string) => void
     unfurlResolvePrompt: (
       messageID: T.Chat.MessageID,
       domain: string,
@@ -2477,9 +2470,8 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      navigateToThread: (_reason, highlightMessageID, _pushBody) => {
+      navigateToThread: (_reason, highlightMessageID, _pushBody, threadSearchQuery) => {
         set(s => {
-          s.threadSearchInfo.visible = false
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
             s.loaded = true
@@ -2504,11 +2496,12 @@ const createSlice =
           }
 
           // we select the chat tab and change the params
+          const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
           if (Common.isSplit) {
-            navToThread(conversationIDKey)
+            navToThread(conversationIDKey, {threadSearch})
             // immediately switch stack to an inbox | thread stack
           } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey)
+            navToThread(conversationIDKey, {threadSearch})
             return
           } else {
             // replace if looking at the pending / waiting screen
@@ -2521,7 +2514,7 @@ const createSlice =
               clearModals()
             }
 
-            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey}}, replace)
+            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, replace)
           }
         }
         updateNav()
@@ -3193,11 +3186,6 @@ const createSlice =
           s.replyTo = o
         })
       },
-      setThreadSearchQuery: query => {
-        set(s => {
-          s.threadSearchQuery = query
-        })
-      },
       setTyping: throttle((t: Set<string>) => {
         set(s => {
           if (!isEqual(s.typing, t)) {
@@ -3229,105 +3217,6 @@ const createSlice =
       tabSelected: () => {
         get().dispatch.loadMoreMessages({reason: 'tab selected'})
         get().dispatch.markThreadAsRead()
-      },
-      threadSearch: query => {
-        set(s => {
-          s.threadSearchInfo.hits = []
-        })
-        const f = async () => {
-          const conversationIDKey = get().id
-          const {username, devicename} = getCurrentUser()
-          const onDone = () => {
-            set(s => {
-              s.threadSearchInfo.status = 'done'
-            })
-          }
-          try {
-            await T.RPCChat.localSearchInboxRpcListener({
-              incomingCallMap: {
-                'chat.1.chatUi.chatSearchDone': onDone,
-                'chat.1.chatUi.chatSearchHit': hit => {
-                  const message = Message.uiMessageToMessage(
-                    conversationIDKey,
-                    hit.searchHit.hitMessage,
-                    username,
-                    getLastOrdinal,
-                    devicename
-                  )
-
-                  if (message) {
-                    set(s => {
-                      // Only add if not already present (idempotent - safe for out-of-order callbacks)
-                      if (!s.threadSearchInfo.hits.find(h => h.id === message.id)) {
-                        s.threadSearchInfo.hits.push(T.castDraft(message))
-                      }
-                    })
-                  }
-                },
-                'chat.1.chatUi.chatSearchInboxDone': onDone,
-                'chat.1.chatUi.chatSearchInboxHit': resp => {
-                  const messages = (resp.searchHit.hits || []).reduce<Array<T.Chat.Message>>((l, h) => {
-                    const uiMsg = Message.uiMessageToMessage(
-                      conversationIDKey,
-                      h.hitMessage,
-                      username,
-                      getLastOrdinal,
-                      devicename
-                    )
-                    if (uiMsg) {
-                      l.push(uiMsg)
-                    }
-                    return l
-                  }, [])
-                  set(s => {
-                    if (messages.length > 0) {
-                      // entirely replace
-                      s.threadSearchInfo.hits = T.castDraft(messages)
-                    }
-                  })
-                },
-                'chat.1.chatUi.chatSearchInboxStart': () => {
-                  set(s => {
-                    s.threadSearchInfo.status = 'inprogress'
-                  })
-                },
-              },
-              params: {
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                namesOnly: false,
-                opts: {
-                  afterContext: 0,
-                  beforeContext: 0,
-                  convID: get().getConvID(),
-                  isRegex: false,
-                  matchMentions: false,
-                  maxBots: 0,
-                  maxConvsHit: 0,
-                  maxConvsSearched: 0,
-                  maxHits: 1000,
-                  maxMessages: -1,
-                  maxNameConvs: 0,
-                  maxTeams: 0,
-                  reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-                  sentAfter: 0,
-                  sentBefore: 0,
-                  sentBy: '',
-                  sentTo: '',
-                  skipBotCache: false,
-                },
-                query,
-              },
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.error('search failed: ' + error.message)
-              set(s => {
-                s.threadSearchInfo.status = 'done'
-              })
-            }
-          }
-        }
-        ignorePromise(f())
       },
       toggleGiphyPrefill: () => {
         // if the window is up, just blow it away
@@ -3392,26 +3281,30 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      toggleThreadSearch: hide => {
+      toggleThreadSearch: (hide, query) => {
+        const conversationIDKey = get().id
+        const visible = getVisibleScreen()
+        const params = visible?.params as
+          | {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
+          | undefined
+        const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
         set(s => {
-          const {threadSearchInfo} = s
-          threadSearchInfo.hits = []
-          threadSearchInfo.status = 'initial'
-          if (hide !== undefined) {
-            threadSearchInfo.visible = !hide
-          } else {
-            threadSearchInfo.visible = !threadSearchInfo.visible
-          }
-
-          if (!threadSearchInfo.visible) {
+          if (!nextVisible) {
             s.messageCenterOrdinal = undefined
           } else if (s.messageCenterOrdinal) {
             s.messageCenterOrdinal.highlightMode = 'none'
           }
         })
 
+        const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
+        if (Common.isSplit) {
+          setChatRootParams({conversationIDKey, threadSearch})
+        } else {
+          navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, true)
+        }
+
         const f = async () => {
-          if (!get().threadSearchInfo.visible) {
+          if (!nextVisible) {
             await T.RPCChat.localCancelActiveSearchRpcPromise()
           }
         }

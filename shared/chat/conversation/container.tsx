@@ -5,8 +5,9 @@ import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
+import type {ThreadSearchRouteProps} from './thread-search-route'
 
-const Conversation = function Conversation() {
+const Conversation = function Conversation(_: ThreadSearchRouteProps) {
   const type = Chat.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {

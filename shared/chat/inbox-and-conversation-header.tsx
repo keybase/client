@@ -8,8 +8,9 @@ import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
+import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 
-type ChatRootParams = {
+type ChatRootParams = ThreadSearchRouteProps & {
   conversationIDKey?: string
   infoPanel?: object
 }

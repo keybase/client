@@ -72,6 +72,7 @@ Primary files:
 ### 4. Split Volatile UI State From Message Data
 
 - [ ] Inventory convo-store fields that are transient UI state rather than message graph state.
+- [x] Move thread-search visibility and search request/results state out of `convostate` into route params plus screen-local UI state.
 - [ ] Move route-local or composer-local state out of the main convo message store.
 - [ ] Keep dispatch call sites readable and avoid direct component store mutation.
 - [ ] Minimize unrelated selector recalculation when typing/search/composer state changes.
