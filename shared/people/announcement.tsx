@@ -50,7 +50,7 @@ const Container = (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.git:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.gitTab)
         if (C.isMobile) {
-          navigateAppend(Settings.settingsGitTab)
+          navigateAppend({name: Settings.settingsGitTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.devices:

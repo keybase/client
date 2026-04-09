@@ -87,7 +87,7 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.gitTab),
           icon: 'iconfont-nav-2-git',
           onClick: () => {
-            navigateAppend(Settings.settingsGitTab)
+            navigateAppend({name: Settings.settingsGitTab, params: {}})
           },
           text: 'Git',
         },
@@ -136,7 +136,7 @@ function SettingsNav() {
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsFeedbackTab)
+            navigateAppend({name: Settings.settingsFeedbackTab, params: {}})
           },
           text: 'Feedback',
         },
