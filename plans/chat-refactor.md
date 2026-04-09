@@ -86,9 +86,9 @@ Primary files:
 
 ### 5. List Data Stability And Recycling
 
-- [ ] Remove avoidable array cloning / reversing in the hottest list path.
+- [x] Remove avoidable array cloning / reversing in the hottest list path.
 - [x] Replace effect-driven recycle subtype reporting with data available before or during row render.
-- [ ] Re-check list item type stability after workstreams 1 and 3 land.
+- [x] Re-check list item type stability after workstreams 1 and 3 land.
 - [ ] Keep scroll position and centered-message behavior unchanged.
 
 Primary files:
