@@ -1,4 +1,3 @@
-import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
@@ -15,12 +14,13 @@ type OwnProps = {
   messageType: T.Chat.MessageType
   onReact: (emoji: string) => void
   onReply: () => void
+  reactionOrder: ReadonlyArray<string>
   reactions?: T.Chat.Reactions
 }
 
 function ReactionsRowContainer(p: OwnProps) {
-  const {hasUnfurls, messageType, onReact, onReply, reactions} = p
-  const emojis = reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis
+  const {hasUnfurls, messageType, onReact, onReply, reactionOrder, reactions} = p
+  const emojis = reactionOrder.length ? reactionOrder : emptyEmojis
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>

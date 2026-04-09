@@ -153,6 +153,7 @@ export interface MessageText extends _MessageCommon {
   readonly mentionsChannel: MentionsChannel
   // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
   readonly replyTo?: MessageReplyTo
+  readonly decoratedText: HiddenString
   readonly text: HiddenString
   readonly paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
   readonly unfurls: undefined | UnfurlMap

@@ -50,6 +50,7 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
 
 // If there is no matching message treat it like a deleted
 const missingMessage = Chat.makeMessageDeleted({})
+const noReactionOrder: ReadonlyArray<string> = []
 
 type AuthorProps = {
   author: string
@@ -251,6 +252,7 @@ const getCommonMessageData = ({
   messageCenterOrdinal,
   ordinal,
   paymentStatusMap,
+  reactionOrderMap,
   unfurlPrompt,
   you,
 }: {
@@ -261,6 +263,7 @@ const getCommonMessageData = ({
   messageCenterOrdinal: ConvoState['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
   paymentStatusMap: ReturnType<typeof Chat.useChatState.getState>['paymentStatusMap']
+  reactionOrderMap: ConvoState['reactionOrderMap']
   unfurlPrompt: ConvoState['unfurlPrompt']
   you: string
 }) => {
@@ -293,10 +296,10 @@ const getCommonMessageData = ({
       : 'pending'
   const replyTo = message.type === 'text' ? message.replyTo : undefined
   const reactions = message.reactions
+  const reactionOrder = hasReactions ? reactionOrderMap.get(ordinal) ?? noReactionOrder : noReactionOrder
   const isExplodingMessage = message.type === 'text' || message.type === 'attachment'
   const showReplyTo = !!replyTo
-  const text =
-    message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
+  const text = message.type === 'text' ? message.decoratedText.stringValue() : ''
   const showCenteredHighlight =
     isCenteredHighlight ??
     !!(
@@ -323,6 +326,7 @@ const getCommonMessageData = ({
     isEditing: editing === ordinal,
     messageKey: isExplodingMessage ? Chat.getMessageKey(message) : '',
     reactions,
+    reactionOrder,
     replyTo,
     sendIndicatorFailed:
       (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed',
@@ -376,6 +380,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        reactionOrderMap: s.reactionOrderMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -407,6 +412,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        reactionOrderMap: s.reactionOrderMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -497,6 +503,7 @@ type TSProps = {
   ordinal: T.Chat.Ordinal
   outboxID?: T.Chat.OutboxID
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
+  reactionOrder: ReadonlyArray<string>
   reactions?: T.Chat.Reactions
   sendIndicatorFailed: boolean
   sendIndicatorID: number
@@ -544,7 +551,7 @@ function TextAndSiblings(p: TSProps) {
     isHighlighted,
   } = p
   const {showingPopup, ecrType, exploding, exploded, explodedBy, explodesAt, forceExplodingRetainer} = p
-  const {hasReactions, popupAnchor, reactions, sendIndicatorFailed, sendIndicatorID} = p
+  const {hasReactions, popupAnchor, reactionOrder, reactions, sendIndicatorFailed, sendIndicatorID} = p
   const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   const pressableProps = Kb.Styles.isMobile
@@ -602,6 +609,7 @@ function TextAndSiblings(p: TSProps) {
             messageType={type}
             ordinal={p.ordinal}
             outboxID={p.outboxID}
+            reactionOrder={reactionOrder}
             reactions={reactions}
             setEditing={p.setEditing}
             setReplyTo={p.setReplyTo}
@@ -720,6 +728,7 @@ type BProps = {
   messageRetry: RowActions['messageRetry']
   ordinal: T.Chat.Ordinal
   outboxID?: T.Chat.OutboxID
+  reactionOrder: ReadonlyArray<string>
   reactions?: T.Chat.Reactions
   setEditing: RowActions['setEditing']
   setReplyTo: RowActions['setReplyTo']
@@ -729,7 +738,7 @@ type BProps = {
 // reactions
 function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, canShowReactionsPopup, ecrType, hasBeenEdited} = p
-  const {exploding, failureDescription, hasReactions, hasUnfurlList, messageType, ordinal, reactions} = p
+  const {exploding, failureDescription, hasReactions, hasUnfurlList, messageType, ordinal, reactionOrder, reactions} = p
   const {messageDelete, messageRetry, outboxID, setEditing, setReplyTo, toggleMessageReaction} = p
 
   const onReact = (emoji: string) => {
@@ -745,6 +754,7 @@ function BottomSide(p: BProps) {
       messageType={messageType}
       onReact={onReact}
       onReply={onReply}
+      reactionOrder={reactionOrder}
       reactions={reactions}
     />
   ) : null
@@ -933,6 +943,7 @@ export function WrapperMessage(p: WrapperMessageProps) {
     ordinal,
     outboxID,
     popupAnchor,
+    reactionOrder: mdata.reactionOrder,
     reactions,
     sendIndicatorFailed,
     sendIndicatorID,

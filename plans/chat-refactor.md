@@ -41,7 +41,22 @@ Primary files:
 - [x] Update separator, username-grouping, and reaction-order metadata only for changed ordinals and any affected neighbors.
 - [x] Avoid rebuilding and resorting `messageOrdinals` unless thread membership actually changed.
 - [x] Re-evaluate whether some derived metadata should live in store state at all.
-- [ ] Audit per-message render-time computation and decide whether values that are only consumed by one caller should be stored in derived message state instead of recomputed during render.
+- [x] Audit per-message render-time computation and decide whether values that are only consumed by one caller should be stored in derived message state instead of recomputed during render.
+
+Decision note:
+
+- Cache per-row reaction order in convo-store derived metadata so reaction chips do not resort on every render.
+- Keep separator orange-line timing/render decisions local for now because they still depend on live orange-line context and platform-specific presentation.
+
+Audit outcome:
+
+- If a field is message-local, deterministic, and the raw form has no semantic consumers, normalize it once when we build or merge the stored message instead of repeatedly massaging it during render.
+- Do not add separate UI-derived duplicates to the stored message when the result depends on current user, convo meta, team permissions, platform, orange-line state, or other non-message context.
+- Good row-derived metadata still belongs adjacent to the message, not inside the raw payload, when it depends on list position or neighboring messages. Today that includes render type, recycle type, separator linkage, username grouping, and reaction order.
+- Current row-wrapper computations such as `showSendIndicator`, `showExplodingCountdown`, `hasUnfurlList`, `hasCoinFlip`, `textType`, `messageKey`, and popup eligibility should stay out of the stored message because they are not pure payload normalization.
+- Popup-only work should stay local. Message popup item assembly, reaction tooltip user sorting, popup header formatting, git-push popup text generation, and journey-card action construction are transient and do not affect steady-state row mount cost.
+- Presentation-dependent work should stay local. Timestamp formatting, orange-line time labels, image sizing, reply preview display text, and platform/team-role specific label decisions depend on UI context.
+- The next normalization pass should focus on message fields that are effectively always consumed through one canonical display form, rather than widening the message shape with additional derived UI booleans.
 
 Primary files:
 

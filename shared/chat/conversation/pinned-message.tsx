@@ -25,8 +25,7 @@ const PinnedMessage = function PinnedMessage() {
   const attachment: T.Chat.MessageAttachment | undefined =
     message?.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
   const {previewHeight: imageHeight, previewURL: imageURL, previewWidth: imageWidth} = attachment ?? {}
-  const text =
-    type === 'text' ? (message?.decoratedText?.stringValue() ?? '') : message?.title || message?.fileName
+  const text = type === 'text' ? message.decoratedText.stringValue() : message?.title || message?.fileName
 
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
