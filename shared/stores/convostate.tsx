@@ -3572,10 +3572,14 @@ export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
 }
 
 export const createConvoStoresForTesting = (id: T.Chat.ConversationIDKey) => {
-  let convoStore!: UseBoundStore<StoreApi<ConvoState>>
-  let uiStore!: UseBoundStore<StoreApi<ConvoUIState>>
-  convoStore = Z.createZustand<ConvoState>(createSlice(id, () => uiStore.getState()))
-  uiStore = Z.createZustand<ConvoUIState>(createConvoUISlice(id, () => convoStore.getState()))
+  const pair = {} as {
+    convoStore: UseBoundStore<StoreApi<ConvoState>>
+    uiStore: UseBoundStore<StoreApi<ConvoUIState>>
+  }
+  const convoStore = Z.createZustand<ConvoState>(createSlice(id, () => pair.uiStore.getState()))
+  const uiStore = Z.createZustand<ConvoUIState>(createConvoUISlice(id, () => pair.convoStore.getState()))
+  pair.convoStore = convoStore
+  pair.uiStore = uiStore
   return {convoStore, uiStore}
 }
 

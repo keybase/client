@@ -35,7 +35,7 @@ import {initPushListener, getStartupDetailsFromInitialPush} from './push-listene
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
-import {getConvoState} from '@/stores/convostate'
+import {getConvoState, getConvoUIState} from '@/stores/convostate'
 import {
   requestLocationPermission,
   saveAttachmentToCameraRoll,
