@@ -40,9 +40,8 @@ function LongPressable(props: Props) {
     <ReplyIcon progress={translation} />
   )
 
-  const {toggleThreadSearch, setReplyTo} = Chat.useChatContext(
-    C.useShallow(s => ({setReplyTo: s.dispatch.setReplyTo, toggleThreadSearch: s.dispatch.toggleThreadSearch}))
-  )
+  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = () => {

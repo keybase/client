@@ -110,12 +110,8 @@ type ConvoStore = T.Immutable<{
   botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
   commandMarkdown?: T.RPCChat.UICommandMarkdown
-  commandStatus?: T.Chat.CommandStatusInfo
   dismissedInviteBanners: boolean
-  editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
-  giphyResult?: T.RPCChat.GiphySearchResults
-  giphyWindow: boolean
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -130,7 +126,6 @@ type ConvoStore = T.Immutable<{
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  replyTo: T.Chat.Ordinal
   rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
   showUsernameMap: Map<T.Chat.Ordinal, string>
@@ -138,9 +133,30 @@ type ConvoStore = T.Immutable<{
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
-  unsentText?: string
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }>
+
+export type ConvoUIStore = T.Immutable<{
+  commandStatus?: T.Chat.CommandStatusInfo
+  editing: T.Chat.Ordinal
+  giphyResult?: T.RPCChat.GiphySearchResults
+  giphyWindow: boolean
+  replyTo: T.Chat.Ordinal
+  unsentText?: string
+}>
+
+export interface ConvoUIState extends ConvoUIStore {
+  dispatch: {
+    injectIntoInput: (text?: string) => void
+    resetState: () => void
+    setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
+    setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
+    setGiphyResult: (result?: T.RPCChat.GiphySearchResults) => void
+    setGiphyWindow: (show: boolean) => void
+    setReplyTo: (ordinal: T.Chat.Ordinal) => void
+    toggleGiphyPrefill: () => void
+  }
+}
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
@@ -150,12 +166,8 @@ const initialConvoStore: ConvoStore = {
   botSettings: new Map(),
   botTeamRoleMap: new Map(),
   commandMarkdown: undefined,
-  commandStatus: undefined,
   dismissedInviteBanners: false,
-  editing: T.Chat.numberToOrdinal(0),
   explodingMode: 0,
-  giphyResult: undefined,
-  giphyWindow: false,
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
@@ -171,7 +183,6 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
-  replyTo: T.Chat.numberToOrdinal(0),
   rowRecycleTypeMap: new Map(),
   separatorMap: new Map(),
   showUsernameMap: new Map(),
@@ -179,8 +190,16 @@ const initialConvoStore: ConvoStore = {
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
-  unsentText: undefined,
   validatedOrdinalRange: undefined,
+}
+
+const initialConvoUIStore: ConvoUIStore = {
+  commandStatus: undefined,
+  editing: T.Chat.numberToOrdinal(0),
+  giphyResult: undefined,
+  giphyWindow: false,
+  replyTo: T.Chat.numberToOrdinal(0),
+  unsentText: undefined,
 }
 
 type LoadMoreMessagesParams = {
@@ -251,7 +270,6 @@ export interface ConvoState extends ConvoStore {
     ) => void
     giphySend: (result: T.RPCChat.GiphySearchResult) => void
     hideConversation: (hide: boolean) => void
-    injectIntoInput: (text?: string) => void
     joinConversation: () => void
     jumpToRecent: () => void
     leaveConversation: (navToInbox?: boolean) => void
@@ -307,19 +325,15 @@ export interface ConvoState extends ConvoStore {
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
     sendMessage: (text: string) => void
-    setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
-    setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setParticipants: (p: ConvoState['participants']) => void
-    setReplyTo: (o: T.Chat.Ordinal) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
-    toggleGiphyPrefill: () => void
     toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
     toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean, query?: string) => void
@@ -506,6 +520,7 @@ const createSlice =
   (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
     const defer = convoDeferImpl ?? stubDefer
+    const getUI = () => getConvoUIState(id)
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
       const s = useCurrentUserState.getState()
@@ -982,11 +997,9 @@ const createSlice =
     ) => {
       const {show, clearInput} = action.payload.params
       if (clearInput) {
-        get().dispatch.injectIntoInput('')
+        getUI().dispatch.injectIntoInput('')
       }
-      set(s => {
-        s.giphyWindow = show
-      })
+      getUI().dispatch.setGiphyWindow(show)
     }
 
     const refreshMutualTeamsInConv = () => {
@@ -1317,7 +1330,7 @@ const createSlice =
     }
 
     const _messageEdit = (ordinal: T.Chat.Ordinal, text: string) => {
-      get().dispatch.injectIntoInput('')
+      getUI().dispatch.injectIntoInput('')
       const m = get().messageMap.get(ordinal)
       if (!m || !(m.type === 'text' || m.type === 'attachment')) {
         logger.warn("Can't find message to edit", ordinal)
@@ -1325,10 +1338,10 @@ const createSlice =
       }
       // Skip if the content is the same
       if (m.type === 'text' && m.text.stringValue() === text) {
-        get().dispatch.setEditing('clear')
+        getUI().dispatch.setEditing('clear')
         return
       } else if (m.type === 'attachment' && m.title === text) {
-        get().dispatch.setEditing('clear')
+        getUI().dispatch.setEditing('clear')
         return
       }
       set(s => {
@@ -1337,7 +1350,7 @@ const createSlice =
           m1.submitState = 'editing'
         }
       })
-      get().dispatch.setEditing('clear')
+      getUI().dispatch.setEditing('clear')
 
       const f = async () => {
         await T.RPCChat.localPostEditNonblockRpcPromise({
@@ -1358,12 +1371,12 @@ const createSlice =
     }
 
     const _messageSend = (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => {
-      get().dispatch.injectIntoInput('')
-      get().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
+      getUI().dispatch.injectIntoInput('')
+      getUI().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
       set(s => {
         s.commandMarkdown = undefined
-        s.giphyWindow = false
       })
+      getUI().dispatch.setGiphyWindow(false)
       const f = async () => {
         const meta = get().meta
         const tlfName = meta.tlfname
@@ -1386,7 +1399,7 @@ const createSlice =
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
                 if (canceled) {
-                  get().dispatch.injectIntoInput(text)
+                  getUI().dispatch.injectIntoInput(text)
                 }
               },
               'chat.1.chatUi.chatStellarShowConfirm': () => {},
@@ -1695,14 +1708,12 @@ const createSlice =
         ignorePromise(f())
       },
       giphySend: result => {
-        set(s => {
-          s.giphyWindow = false
-        })
+        getUI().dispatch.setGiphyWindow(false)
         const f = async () => {
           try {
             await T.RPCChat.localTrackGiphySelectRpcPromise({result})
           } catch {}
-          const replyTo = get().messageMap.get(get().replyTo)?.id
+          const replyTo = get().messageMap.get(getUI().replyTo)?.id
           _messageSend(result.targetUrl, replyTo)
         }
         ignorePromise(f())
@@ -1732,11 +1743,6 @@ const createSlice =
           })
         }
         ignorePromise(f())
-      },
-      injectIntoInput: text => {
-        set(s => {
-          s.unsentText = text
-        })
       },
       joinConversation: () => {
         const f = async () => {
@@ -2361,7 +2367,7 @@ const createSlice =
           }
 
           const text = formatTextForQuoting(message.text.stringValue())
-          getConvoState(newThreadCID).dispatch.injectIntoInput(text)
+          getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
           get().dispatch.defer.chatMetasReceived([meta])
           getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
         }
@@ -2533,7 +2539,7 @@ const createSlice =
           }
           case 'chat.1.chatUi.chatCommandStatus': {
             const {displayText, typ, actions} = action.payload.params
-            get().dispatch.setCommandStatusInfo({
+            getUI().dispatch.setCommandStatusInfo({
               actions: T.castDraft(actions) || [],
               displayText,
               displayType: typ,
@@ -2553,9 +2559,7 @@ const createSlice =
             break
           }
           case 'chat.1.chatUi.chatGiphySearchResults':
-            set(s => {
-              s.giphyResult = T.castDraft(action.payload.params.results)
-            })
+            getUI().dispatch.setGiphyResult(action.payload.params.results ?? undefined)
             break
           case 'chat.1.NotifyChat.ChatRequestInfo':
             {
@@ -2902,18 +2906,13 @@ const createSlice =
         }
       },
       sendMessage: text => {
-        const editOrdinal = get().editing
+        const editOrdinal = getUI().editing
         if (editOrdinal) {
           _messageEdit(editOrdinal, text)
         } else {
-          const replyTo = get().messageMap.get(get().replyTo)?.id
+          const replyTo = get().messageMap.get(getUI().replyTo)?.id
           _messageSend(text, replyTo)
         }
-      },
-      setCommandStatusInfo: info => {
-        set(s => {
-          s.commandStatus = info
-        })
       },
       setConvRetentionPolicy: _policy => {
         const f = async () => {
@@ -2931,56 +2930,6 @@ const createSlice =
           }
         }
         ignorePromise(f())
-      },
-      setEditing: e => {
-        // clearing
-        if (e === 'clear') {
-          set(s => {
-            s.editing = T.Chat.numberToOrdinal(0)
-          })
-          get().dispatch.injectIntoInput('')
-          return
-        }
-
-        const messageMap = get().messageMap
-
-        let ordinal = T.Chat.numberToOrdinal(0)
-        // Editing last message
-        if (e === 'last') {
-          const editLastUser = useCurrentUserState.getState().username
-          // Editing your last message
-          const ordinals = get().messageOrdinals
-          const found =
-            !!ordinals &&
-            findLast(ordinals, o => {
-              const message = messageMap.get(o)
-              return !!(
-                (message?.type === 'text' || message?.type === 'attachment') &&
-                message.author === editLastUser &&
-                !message.exploded &&
-                message.isEditable
-              )
-            })
-          if (!found) return
-          ordinal = found
-        } else {
-          ordinal = e
-        }
-
-        if (!ordinal) {
-          return
-        }
-        const message = messageMap.get(ordinal)
-        if (message?.type === 'text' || message?.type === 'attachment') {
-          set(s => {
-            s.editing = ordinal
-          })
-          if (message.type === 'text') {
-            get().dispatch.injectIntoInput(message.text.stringValue())
-          } else {
-            get().dispatch.injectIntoInput(message.title)
-          }
-        }
       },
       setExplodingMode: (seconds, incoming) => {
         set(s => {
@@ -3150,11 +3099,10 @@ const createSlice =
         const isGood = get().isMetaGood()
         if (!wasGood && isGood) {
           // got a good meta, adopt the draft once
-          set(s => {
-            // bail on if there is something
-            if (s.unsentText !== undefined) return
-            s.unsentText = s.meta.draft.length ? s.meta.draft : undefined
-          })
+          const ui = getUI()
+          if (ui.unsentText === undefined) {
+            ui.dispatch.injectIntoInput(get().meta.draft.length ? get().meta.draft : undefined)
+          }
         }
       },
       setMinWriterRole: role => {
@@ -3180,11 +3128,6 @@ const createSlice =
           }
         })
         queueInboxRowUpdate(get().id)
-      },
-      setReplyTo: o => {
-        set(s => {
-          s.replyTo = o
-        })
       },
       setTyping: throttle((t: Set<string>) => {
         set(s => {
@@ -3217,10 +3160,6 @@ const createSlice =
       tabSelected: () => {
         get().dispatch.loadMoreMessages({reason: 'tab selected'})
         get().dispatch.markThreadAsRead()
-      },
-      toggleGiphyPrefill: () => {
-        // if the window is up, just blow it away
-        get().dispatch.injectIntoInput(get().giphyWindow ? '' : '/giphy ')
       },
       toggleMessageCollapse: (messageID, ordinal) => {
         const f = async () => {
@@ -3507,13 +3446,99 @@ const createSlice =
   }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
+type MadeUIStore = UseBoundStore<StoreApi<ConvoUIState>>
+
+const createConvoUISlice =
+  (id: T.Chat.ConversationIDKey): Z.ImmerStateCreator<ConvoUIState> =>
+  (set, get) => ({
+    ...initialConvoUIStore,
+    dispatch: {
+      injectIntoInput: text => {
+        set(s => {
+          s.unsentText = text
+        })
+      },
+      resetState: Z.defaultReset,
+      setCommandStatusInfo: info => {
+        set(s => {
+          s.commandStatus = info ? T.castDraft(info) : undefined
+        })
+      },
+      setEditing: e => {
+        if (e === 'clear') {
+          set(s => {
+            s.editing = T.Chat.numberToOrdinal(0)
+            s.unsentText = ''
+          })
+          return
+        }
+
+        const messageMap = getConvoState(id).messageMap
+        let ordinal = T.Chat.numberToOrdinal(0)
+        if (e === 'last') {
+          const editLastUser = useCurrentUserState.getState().username
+          const ordinals = getConvoState(id).messageOrdinals
+          const found =
+            !!ordinals &&
+            findLast(ordinals, o => {
+              const message = messageMap.get(o)
+              return !!(
+                (message?.type === 'text' || message?.type === 'attachment') &&
+                message.author === editLastUser &&
+                !message.exploded &&
+                message.isEditable
+              )
+            })
+          if (!found) return
+          ordinal = found
+        } else {
+          ordinal = e
+        }
+
+        if (!ordinal) return
+        const message = messageMap.get(ordinal)
+        if (message?.type === 'text' || message?.type === 'attachment') {
+          set(s => {
+            s.editing = ordinal
+            s.unsentText = message.type === 'text' ? message.text.stringValue() : message.title
+          })
+        }
+      },
+      setGiphyResult: result => {
+        set(s => {
+          s.giphyResult = result ? T.castDraft(result) : undefined
+        })
+      },
+      setGiphyWindow: show => {
+        set(s => {
+          s.giphyWindow = show
+        })
+      },
+      setReplyTo: ordinal => {
+        set(s => {
+          s.replyTo = ordinal
+        })
+      },
+      toggleGiphyPrefill: () => {
+        const shouldClear = get().giphyWindow
+        set(s => {
+          s.unsentText = shouldClear ? '' : '/giphy '
+        })
+      },
+    },
+  })
 
 export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
   ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
   : new Map()
 
+export const convoUIStores: Map<T.Chat.ConversationIDKey, MadeUIStore> = __DEV__
+  ? ((globalThis.__hmr_convoUIStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeUIStore>)
+  : new Map()
+
 export const clearChatStores = () => {
   chatStores.clear()
+  convoUIStores.clear()
 }
 
 registerDebugClear(() => {
@@ -3525,6 +3550,14 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   if (existing) return existing
   const next = Z.createZustand<ConvoState>(createSlice(id))
   chatStores.set(id, next)
+  return next
+}
+
+const createConvoUIStore = (id: T.Chat.ConversationIDKey) => {
+  const existing = convoUIStores.get(id)
+  if (existing) return existing
+  const next = Z.createZustand<ConvoUIState>(createConvoUISlice(id))
+  convoUIStores.set(id, next)
   return next
 }
 
@@ -3540,6 +3573,11 @@ export function hasConvoState(id: T.Chat.ConversationIDKey) {
 // non reactive call, used in actions/dispatches
 export function getConvoState(id: T.Chat.ConversationIDKey) {
   const store = createConvoStore(id)
+  return store.getState()
+}
+
+export function getConvoUIState(id: T.Chat.ConversationIDKey) {
+  const store = createConvoUIStore(id)
   return store.getState()
 }
 
@@ -3574,9 +3612,19 @@ export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   return useStore(store, selector)
 }
 
+export function useChatUIContext<T>(selector: (state: ConvoUIState) => T): T {
+  const id = useChatContext(s => s.id)
+  return useConvoUIState(id, selector)
+}
+
 // unusual, usually you useContext, but maybe in teams
 export function useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
+  return useStore(store, selector)
+}
+
+export function useConvoUIState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoUIState) => T): T {
+  const store = createConvoUIStore(id)
   return useStore(store, selector)
 }
 

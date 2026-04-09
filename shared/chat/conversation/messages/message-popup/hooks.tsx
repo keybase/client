@@ -108,11 +108,14 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
 
-  const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = Chat.useChatContext(
+  const {messageDelete, pinMessage, setMarkAsUnread} = Chat.useChatContext(
     C.useShallow(s => {
-      const {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo} = s.dispatch
-      return {messageDelete, pinMessage, setEditing, setMarkAsUnread, setReplyTo}
+      const {messageDelete, pinMessage, setMarkAsUnread} = s.dispatch
+      return {messageDelete, pinMessage, setMarkAsUnread}
     })
+  )
+  const {setEditing, setReplyTo} = Chat.useChatUIContext(
+    C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
   const onReply = () => {

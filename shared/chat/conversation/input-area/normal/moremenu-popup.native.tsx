@@ -8,7 +8,7 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
-  const injectIntoInput = Chat.useChatContext(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = Chat.useChatUIContext(s => s.dispatch.injectIntoInput)
   const navigateAppend = Chat.useChatNavigateAppend()
   const onLocationShare = () => {
     navigateAppend(conversationIDKey => ({name: 'chatLocationPreview', params: {conversationIDKey}}))

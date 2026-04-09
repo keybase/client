@@ -338,7 +338,7 @@ const useScrolling = (p: {
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
-  const editingOrdinal = Chat.useChatContext(s => s.editing)
+  const editingOrdinal = Chat.useChatUIContext(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
   React.useEffect(() => {
     if (lastEditingOrdinalRef.current !== editingOrdinal) return
@@ -475,9 +475,10 @@ const useItems = (p: {
 
 const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
+  const editingOrdinal = Chat.useChatUIContext(s => s.editing)
   const data = Chat.useChatContext(
     C.useShallow(s => {
-      const {editing: editingOrdinal, id: conversationIDKey} = s
+      const {id: conversationIDKey} = s
       const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
       const centeredHighlightOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
       const centeredOrdinal = mco?.ordinal
@@ -487,13 +488,12 @@ const ThreadWrapper = function ThreadWrapper() {
         centeredOrdinal,
         containsLatestMessage,
         conversationIDKey,
-        editingOrdinal,
         loaded,
         messageOrdinals,
       }
     })
   )
-  const {conversationIDKey, editingOrdinal, centeredHighlightOrdinal, centeredOrdinal} = data
+  const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)

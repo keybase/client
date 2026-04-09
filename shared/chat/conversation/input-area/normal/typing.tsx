@@ -44,12 +44,12 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
+  const showGiphySearch = Chat.useChatUIContext(s => s.giphyWindow)
   const names = Chat.useChatContext(
     C.useShallow(s => {
       const names = s.typing
       if (!C.isMobile) return names
       const showCommandMarkdown = !!s.commandMarkdown
-      const showGiphySearch = s.giphyWindow
       const showTypingStatus = !showGiphySearch && !showCommandMarkdown
       return showTypingStatus ? names : emptySet
     })

@@ -30,12 +30,8 @@ const useTopReacjis = () =>
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-  const {setReplyTo, toggleMessageReaction} = Chat.useChatContext(
-    C.useShallow(s => ({
-      setReplyTo: s.dispatch.setReplyTo,
-      toggleMessageReaction: s.dispatch.toggleMessageReaction,
-    }))
-  )
+  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
+  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
   const emojis = useTopReacjis()
   const navigateAppend = Chat.useChatNavigateAppend()
   const _onForward = () => {
