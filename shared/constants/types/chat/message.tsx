@@ -140,7 +140,6 @@ export interface MessageReplyTo extends _MessageCommon {
 
 export interface MessageText extends _MessageCommon {
   readonly botUsername?: string
-  readonly decoratedText?: HiddenString
   readonly exploded: boolean
   readonly explodedBy: string // only if 'explode now' happened,
   readonly exploding: boolean
