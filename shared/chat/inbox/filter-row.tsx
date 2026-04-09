@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useInboxSearchState} from './search-state'
 
 type OwnProps = {
   onEnsureSelection: () => void
@@ -18,15 +18,16 @@ function ConversationFilterInput(ownProps: OwnProps) {
   const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
-  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
+  const isSearching = useInboxSearchState(s => s.enabled)
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
-  const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
+  const startSearch = useInboxSearchState(s => s.dispatch.startSearch)
+  const cancelSearch = useInboxSearchState(s => s.dispatch.cancelSearch)
   const onStartSearch = () => {
-    toggleInboxSearch(true)
+    startSearch()
   }
   const onStopSearch = () => {
-    toggleInboxSearch(false)
+    cancelSearch()
   }
 
   const inputRef = React.useRef<Kb.SearchFilterRef>(null)

@@ -11,6 +11,7 @@ import type * as T from '@/constants/types'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
+import {inboxSearchMaxTextMessages, useInboxSearchState} from '../inbox/search-state'
 
 type OwnProps = {header?: React.ReactElement | null}
 
@@ -42,19 +43,13 @@ type OpenTeamResult = {
 
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
-const emptySearch = Chat.makeInboxSearchInfo()
-
 export default function InboxSearchContainer(ownProps: OwnProps) {
-  const {_inboxSearch, toggleInboxSearch, inboxSearchSelect} = Chat.useChatState(
+  const {_inboxSearch, inboxSearchSelect} = useInboxSearchState(
     C.useShallow(s => ({
-      _inboxSearch: s.inboxSearch ?? emptySearch,
-      inboxSearchSelect: s.dispatch.inboxSearchSelect,
-      toggleInboxSearch: s.dispatch.toggleInboxSearch,
+      _inboxSearch: s.searchInfo,
+      inboxSearchSelect: s.dispatch.select,
     }))
   )
-  const onCancel = () => {
-    toggleInboxSearch(false)
-  }
   const navigateAppend = C.Router2.navigateAppend
   const onInstallBot = (username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
@@ -229,7 +224,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={Chat.inboxSearchMaxTextMessages}
+          maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </Chat.ChatProvider>
@@ -239,7 +234,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={Chat.inboxSearchMaxTextMessages}
+          maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </Chat.ChatProvider>
@@ -249,7 +244,6 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const selectName = (item: Item, index: number) => {
     if (item.type !== 'name') return
     onSelectConversation(item.conversationIDKey, index, '')
-    onCancel()
   }
 
   const nameResults: Array<NameResult> = nameCollapsed

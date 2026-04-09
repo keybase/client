@@ -4,11 +4,13 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
+import {useInboxSearchState} from './search-state'
 
 export function useInboxState(conversationIDKey?: string) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
   const username = useCurrentUserState(s => s.username)
+  const isSearching = useInboxSearchState(s => s.enabled)
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
@@ -17,7 +19,6 @@ export function useInboxState(conversationIDKey?: string) {
       inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
       inboxRefresh: s.dispatch.inboxRefresh,
       inboxRows: s.inboxRows,
-      isSearching: !!s.inboxSearch,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
       smallTeamsExpanded: s.inboxSmallTeamsExpanded,
@@ -25,7 +26,7 @@ export function useInboxState(conversationIDKey?: string) {
     }))
   )
   const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
-  const {isSearching, queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
+  const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey

@@ -454,12 +454,6 @@ export const initSharedSubscriptions = () => {
         }
       }
 
-      if (s.mobileAppState !== old.mobileAppState) {
-        if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
-          storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
-        }
-      }
-
       if (s.revokedTrigger !== old.revokedTrigger) {
         storeRegistry
           .getState('daemon')

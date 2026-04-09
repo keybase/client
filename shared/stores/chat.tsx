@@ -50,63 +50,6 @@ export const DEBUG_CHAT_DUMP = true
 
 const blockButtonsGregorPrefix = 'blockButtons.'
 
-export const inboxSearchMaxTextMessages = 25
-export const inboxSearchMaxTextResults = 50
-export const inboxSearchMaxNameResults = 7
-export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
-
-export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
-  botsResults: [],
-  botsResultsSuggested: false,
-  botsStatus: 'initial',
-  indexPercent: 0,
-  nameResults: [],
-  nameResultsUnread: false,
-  nameStatus: 'initial',
-  openTeamsResults: [],
-  openTeamsResultsSuggested: false,
-  openTeamsStatus: 'initial',
-  query: '',
-  selectedIndex: 0,
-  textResults: [],
-  textStatus: 'initial',
-})
-
-const getInboxSearchSelected = (
-  inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>
-):
-  | undefined
-  | {
-      conversationIDKey: T.Chat.ConversationIDKey
-      query?: string
-    } => {
-  const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
-  const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
-  const firstOpenTeamResultIdx = nameResults.length
-
-  if (selectedIndex < firstOpenTeamResultIdx) {
-    const maybeNameResults = nameResults[selectedIndex]
-    const conversationIDKey = maybeNameResults === undefined ? undefined : maybeNameResults.conversationIDKey
-    if (conversationIDKey) {
-      return {
-        conversationIDKey,
-        query: undefined,
-      }
-    }
-  } else if (selectedIndex < firstTextResultIdx) {
-    return
-  } else if (selectedIndex >= firstTextResultIdx) {
-    const result = textResults[selectedIndex - firstTextResultIdx]
-    if (result) {
-      return {
-        conversationIDKey: result.conversationIDKey,
-        query: result.query,
-      }
-    }
-  }
-  return
-}
-
 export const getMessageKey = (message: T.Chat.Message) =>
   `${message.conversationIDKey}:${T.Chat.ordinalToNumber(message.ordinal)}`
 
@@ -245,7 +188,6 @@ type Store = T.Immutable<{
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   smallTeamsExpanded: boolean // if we're showing all small teams,
-  lastCoord?: T.Chat.Coordinate
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
@@ -256,7 +198,6 @@ type Store = T.Immutable<{
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
   inboxAllowShowFloatingButton: boolean
   inboxRows: Array<ChatInboxRowItem>
-  inboxSearch?: T.Chat.InboxSearchInfo
   inboxSmallTeamsExpanded: boolean
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -274,9 +215,7 @@ const initialStore: Store = {
   inboxNumSmallRows: 5,
   inboxRetriedOnCurrentEmpty: false,
   inboxRows: [],
-  inboxSearch: undefined,
   inboxSmallTeamsExpanded: false,
-  lastCoord: undefined,
   maybeMentionMap: new Map(),
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
@@ -323,13 +262,6 @@ export type State = Store & {
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
-    inboxSearch: (query: string) => void
-    inboxSearchMoveSelectedIndex: (increment: boolean) => void
-    inboxSearchSelect: (
-      conversationIDKey?: T.Chat.ConversationIDKey,
-      query?: string,
-      selectedIndex?: number
-    ) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
     metasReceived: (
@@ -361,12 +293,10 @@ export type State = Store & {
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
-    toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
     unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
     updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
-    updateLastCoord: (coord: T.Chat.Coordinate) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     updatedGregor: (
       items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
@@ -654,253 +584,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    inboxSearch: query => {
-      set(s => {
-        const {inboxSearch} = s
-        if (inboxSearch) {
-          inboxSearch.query = query
-        }
-      })
-      const f = async () => {
-        const teamType = (t: T.RPCChat.TeamType) => (t === T.RPCChat.TeamType.complex ? 'big' : 'small')
-
-        const onConvHits = (resp: T.RPCChat.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
-          const results = (resp.hits.hits || []).reduce<Array<T.Chat.InboxSearchConvHit>>((arr, h) => {
-            arr.push({
-              conversationIDKey: T.Chat.stringToConversationIDKey(h.convID),
-              name: h.name,
-              teamType: teamType(h.teamType),
-            })
-            return arr
-          }, [])
-
-          set(s => {
-            const unread = resp.hits.unreadMatches
-            const {inboxSearch} = s
-            if (inboxSearch?.nameStatus === 'inprogress') {
-              inboxSearch.nameResults = results
-              inboxSearch.nameResultsUnread = unread
-              inboxSearch.nameStatus = 'success'
-            }
-          })
-
-          const missingMetas = results.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if (!storeRegistry.getConvoState(r.conversationIDKey).isMetaGood()) {
-              arr.push(r.conversationIDKey)
-            }
-            return arr
-          }, [])
-          if (missingMetas.length > 0) {
-            get().dispatch.unboxRows(missingMetas, true)
-          }
-        }
-
-        const onOpenTeamHits = (
-          resp: T.RPCChat.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']
-        ) => {
-          const results = (resp.hits.hits || []).reduce<Array<T.Chat.InboxSearchOpenTeamHit>>((arr, h) => {
-            const {description, name, memberCount, inTeam} = h
-            arr.push({
-              description: description ?? '',
-              inTeam,
-              memberCount,
-              name,
-              publicAdmins: [],
-            })
-            return arr
-          }, [])
-          const suggested = resp.hits.suggestedMatches
-          set(s => {
-            const {inboxSearch} = s
-            if (inboxSearch?.openTeamsStatus === 'inprogress') {
-              inboxSearch.openTeamsResultsSuggested = suggested
-              inboxSearch.openTeamsResults = T.castDraft(results)
-              inboxSearch.openTeamsStatus = 'success'
-            }
-          })
-        }
-
-        const onBotsHits = (resp: T.RPCChat.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) => {
-          const results = resp.hits.hits || []
-          const suggested = resp.hits.suggestedMatches
-          set(s => {
-            const {inboxSearch} = s
-            if (inboxSearch?.botsStatus === 'inprogress') {
-              inboxSearch.botsResultsSuggested = suggested
-              inboxSearch.botsResults = T.castDraft(results)
-              inboxSearch.botsStatus = 'success'
-            }
-          })
-        }
-
-        const onTextHit = (resp: T.RPCChat.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
-          const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
-
-          const result = {
-            conversationIDKey: T.Chat.conversationIDToKey(convID),
-            name: convName,
-            numHits: hits?.length ?? 0,
-            query,
-            teamType: teamType(tt),
-            time,
-          } as const
-          set(s => {
-            const {inboxSearch} = s
-            if (inboxSearch?.textStatus === 'inprogress') {
-              const {conversationIDKey} = result
-              const textResults = inboxSearch.textResults.filter(
-                r => r.conversationIDKey !== conversationIDKey
-              )
-              textResults.push(result)
-              inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
-            }
-          })
-
-          if (
-            storeRegistry.getConvoState(result.conversationIDKey).meta.conversationIDKey ===
-            T.Chat.noConversationIDKey
-          ) {
-            get().dispatch.unboxRows([result.conversationIDKey], true)
-          }
-        }
-        const onStart = () => {
-          set(s => {
-            const {inboxSearch} = s
-            if (inboxSearch) {
-              inboxSearch.nameStatus = 'inprogress'
-              inboxSearch.selectedIndex = 0
-              inboxSearch.textResults = []
-              inboxSearch.textStatus = 'inprogress'
-              inboxSearch.openTeamsStatus = 'inprogress'
-              inboxSearch.botsStatus = 'inprogress'
-            }
-          })
-        }
-        const onDone = () => {
-          set(s => {
-            const status = 'success'
-            const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
-            s.inboxSearch = T.castDraft(inboxSearch)
-            inboxSearch.textStatus = status
-          })
-        }
-
-        const onIndexStatus = (
-          resp: T.RPCChat.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']
-        ) => {
-          const percent = resp.status.percentIndexed
-          set(s => {
-            const {inboxSearch} = s
-            if (inboxSearch?.textStatus === 'inprogress') {
-              inboxSearch.indexPercent = percent
-            }
-          })
-        }
-
-        try {
-          await T.RPCChat.localSearchInboxRpcListener({
-            incomingCallMap: {
-              'chat.1.chatUi.chatSearchBotHits': onBotsHits,
-              'chat.1.chatUi.chatSearchConvHits': onConvHits,
-              'chat.1.chatUi.chatSearchInboxDone': onDone,
-              'chat.1.chatUi.chatSearchInboxHit': onTextHit,
-              'chat.1.chatUi.chatSearchInboxStart': onStart,
-              'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
-              'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
-            },
-            params: {
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              namesOnly: false,
-              opts: {
-                afterContext: 0,
-                beforeContext: 0,
-                isRegex: false,
-                matchMentions: false,
-                maxBots: 10,
-                maxConvsHit: inboxSearchMaxTextResults,
-                maxConvsSearched: 0,
-                maxHits: inboxSearchMaxTextMessages,
-                maxMessages: -1,
-                maxNameConvs: query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
-                maxTeams: 10,
-                reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-                sentAfter: 0,
-                sentBefore: 0,
-                sentBy: '',
-                sentTo: '',
-                skipBotCache: false,
-              },
-              query,
-            },
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            if (!(error.code === T.RPCGen.StatusCode.sccanceled)) {
-              logger.error('search failed: ' + error.message)
-              set(s => {
-                const status = 'error'
-                const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
-                s.inboxSearch = T.castDraft(inboxSearch)
-                inboxSearch.textStatus = status
-              })
-            }
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    inboxSearchMoveSelectedIndex: increment => {
-      set(s => {
-        const {inboxSearch} = s
-        if (inboxSearch) {
-          const {selectedIndex} = inboxSearch
-          const totalResults = inboxSearch.nameResults.length + inboxSearch.textResults.length
-          if (increment && selectedIndex < totalResults - 1) {
-            inboxSearch.selectedIndex = selectedIndex + 1
-          } else if (!increment && selectedIndex > 0) {
-            inboxSearch.selectedIndex = selectedIndex - 1
-          }
-        }
-      })
-    },
-    inboxSearchSelect: (_conversationIDKey, q, selectedIndex) => {
-      let conversationIDKey = _conversationIDKey
-      let query = q
-      set(s => {
-        const {inboxSearch} = s
-        if (inboxSearch && selectedIndex !== undefined) {
-          inboxSearch.selectedIndex = selectedIndex
-        }
-      })
-
-      const {inboxSearch} = get()
-      if (!inboxSearch) {
-        return
-      }
-      const selected = getInboxSearchSelected(inboxSearch)
-      if (!conversationIDKey) {
-        conversationIDKey = selected?.conversationIDKey
-      }
-
-      if (!conversationIDKey) {
-        return
-      }
-      if (!query) {
-        query = selected?.query
-      }
-
-      if (query) {
-        storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread(
-          'inboxSearch',
-          undefined,
-          undefined,
-          query
-        )
-      } else {
-        storeRegistry.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
-        get().dispatch.toggleInboxSearch(false)
-      }
     },
     loadStaticConfig: () => {
       if (get().staticConfig) {
@@ -1772,27 +1455,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         s.trustedInboxHasLoaded = true
       })
     },
-    toggleInboxSearch: enabled => {
-      set(s => {
-        const {inboxSearch} = s
-        if (enabled && !inboxSearch) {
-          s.inboxSearch = T.castDraft(makeInboxSearchInfo())
-        } else if (!enabled && inboxSearch) {
-          s.inboxSearch = undefined
-        }
-      })
-      const f = async () => {
-        const {inboxSearch} = get()
-        if (!inboxSearch) {
-          await T.RPCChat.localCancelActiveInboxSearchRpcPromise()
-          return
-        }
-        if (inboxSearch.nameStatus === 'initial') {
-          get().dispatch.inboxSearch('')
-        }
-      }
-      ignorePromise(f())
-    },
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
@@ -1894,16 +1556,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
       })
-    },
-    updateLastCoord: coord => {
-      set(s => {
-        s.lastCoord = coord
-      })
-      const f = async () => {
-        const {accuracy, lat, lon} = coord
-        await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
-      }
-      ignorePromise(f())
     },
     updateUserReacjis: userReacjis => {
       set(s => {

@@ -9,15 +9,16 @@ import Inbox from './inbox'
 import InboxSearch from './inbox-search'
 import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
+import {InboxSearchProvider, useInboxSearchState} from './inbox/search-state'
 
 type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
   infoPanel?: {tab?: Panel}
 }
 
-function InboxAndConversation(props: Props) {
+function InboxAndConversationBody(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
-  const inboxSearch = Chat.useChatState(s => s.inboxSearch)
+  const isSearching = useInboxSearchState(s => s.enabled)
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
@@ -43,7 +44,7 @@ function InboxAndConversation(props: Props) {
     <Chat.ChatProvider id={conversationIDKey} canBeNull={true}>
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-          {!C.isTablet && inboxSearch ? (
+          {!C.isTablet && isSearching ? (
             <InboxSearch />
           ) : (
             <Inbox conversationIDKey={conversationIDKey} />
@@ -59,6 +60,14 @@ function InboxAndConversation(props: Props) {
         </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
     </Chat.ChatProvider>
+  )
+}
+
+function InboxAndConversation(props: Props) {
+  return (
+    <InboxSearchProvider>
+      <InboxAndConversationBody {...props} />
+    </InboxSearchProvider>
   )
 }
 
