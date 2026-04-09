@@ -1,6 +1,6 @@
 import {default as fs, promises as fsp} from 'fs'
 import path from 'path'
-import emojiData from 'emoji-datasource-apple'
+import type {EmojiData} from 'emoji-datasource-apple'
 import escapeRegExp from 'lodash/escapeRegExp'
 import prettier from 'prettier'
 import {fileURLToPath} from 'node:url'
@@ -46,7 +46,12 @@ function UTF162JSON(text: string) {
   return r.join('')
 }
 
-function genEmojiData() {
+const readEmojiData = async () => {
+  const emojiDataPath = path.join(__dirname, '../../node_modules/emoji-datasource-apple/emoji.json')
+  return JSON.parse(await fsp.readFile(emojiDataPath, 'utf8')) as Array<EmojiData>
+}
+
+function genEmojiData(emojiData: Array<EmojiData>) {
   const emojiIndexByChar: {[key: string]: string} = {}
   const emojiIndexByName: {[key: string]: string} = {}
   const emojiLiterals: Array<string> = []
@@ -118,7 +123,8 @@ async function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
 
   const {swidth, sheight} = await getSpriteSheetSize()
-  const {emojiIndexByName, emojiIndexByChar} = genEmojiData()
+  const emojiData = await readEmojiData()
+  const {emojiIndexByName, emojiIndexByChar} = genEmojiData(emojiData)
   const regIndex = Object.keys(emojiIndexByName)
     .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
     .join('|')
