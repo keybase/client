@@ -17,6 +17,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// blockingGetMsgsChatHelper wraps MockChatHelper and blocks GetMessages until
+// released, so tests can observe locking behavior in store.Add.
+type blockingGetMsgsChatHelper struct {
+	*kbtest.MockChatHelper
+	calledCh  chan struct{}
+	releaseCh chan struct{}
+}
+
+func (h *blockingGetMsgsChatHelper) GetMessages(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgIDs []chat1.MessageID,
+	resolveSupersedes bool, reason *chat1.GetThreadReason,
+) ([]chat1.MessageUnboxed, error) {
+	select {
+	case h.calledCh <- struct{}{}:
+	default:
+	}
+	select {
+	case <-h.releaseCh:
+	case <-ctx.Done():
+	}
+	return nil, nil
+}
+
 func TestChatSearchConvRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -243,7 +266,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// drain the cbs, 8 hits and 4 dones
 		timeout := 20 * time.Second
-		for i := 0; i < 8+4; i++ {
+		for range 8 + 4 {
 			select {
 			case <-chatUI.SearchHitCb:
 			case <-chatUI.SearchDoneCb:
@@ -316,7 +339,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		query = "hi"
 		matches := []chat1.ChatSearchMatch{}
 		startIndex := 0
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			matches = append(matches, chat1.ChatSearchMatch{
 				StartIndex: startIndex,
 				EndIndex:   startIndex + 2,
@@ -958,7 +981,7 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer1.SetSyncLoopCh(syncLoopCh)
 		indexer1.StartSyncLoop()
 		waitForFail := func() bool {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				indexer1.CancelSync(ctx)
 				select {
 				case <-time.After(2 * time.Second):
@@ -1028,4 +1051,112 @@ func TestChatSearchInbox(t *testing.T) {
 		require.NoError(t, err)
 		require.Zero(t, pi)
 	})
+}
+
+// TestSearchIndexerNoDeadlockOnClearDuringAdd verifies that Indexer.Clear and
+// Indexer.Suspend do not deadlock when store.Add is simultaneously blocked in
+// ChatHelper.GetMessages while processing an EDIT message.
+//
+// Before the fix, store.Add held s.Lock() during the ChatHelper.GetMessages
+// call, which blocked store.ClearMemory. Indexer.Clear also held idx.Lock()
+// during the entire Clear operation, which blocked Indexer.Suspend.
+func TestSearchIndexerNoDeadlockOnClearDuringAdd(t *testing.T) {
+	ctx := context.TODO()
+	ctc := makeChatTestContext(t, "SearchIndexerDeadlock", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+	u1 := users[0]
+	g1 := ctc.world.Tcs[u1.Username].Context()
+	uid1 := gregor1.UID(u1.User.GetUID().ToBytes())
+
+	calledCh := make(chan struct{}, 1)
+	releaseCh := make(chan struct{})
+	g1.ExternalG().ChatHelper = &blockingGetMsgsChatHelper{
+		MockChatHelper: kbtest.NewMockChatHelper(),
+		calledCh:       calledCh,
+		releaseCh:      releaseCh,
+	}
+
+	indexer := search.NewIndexer(g1)
+	indexer.SetUID(uid1)
+	consumeCh := make(chan chat1.ConversationID, 1)
+	indexer.SetConsumeCh(consumeCh)
+	select {
+	case <-g1.Indexer.Stop(ctx):
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "original indexer did not stop")
+	}
+	g1.Indexer = indexer
+	indexer.StartStorageLoop()
+
+	convID := chat1.ConversationID([]byte{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+	})
+	editMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+		ClientHeader: chat1.MessageClientHeaderVerified{
+			MessageType: chat1.MessageType_EDIT,
+			Conv: chat1.ConversationIDTriple{
+				TopicType: chat1.TopicType_CHAT,
+			},
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: 1,
+			Body:      "hello world",
+		}),
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: 2,
+		},
+	})
+
+	// Dispatch the EDIT message. storageLoop will call store.Add, which now
+	// pre-fetches superseded messages outside s.Lock() before acquiring it.
+	require.NoError(t, indexer.Add(ctx, convID, []chat1.MessageUnboxed{editMsg}))
+
+	// Wait for store.Add to reach the ChatHelper.GetMessages call.
+	select {
+	case <-calledCh:
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "GetMessages was never called")
+	}
+
+	// With store.Add blocked in GetMessages (outside s.Lock()), Clear must be
+	// able to acquire s.Lock() and complete. Before the fix it would deadlock.
+	clearDone := make(chan struct{})
+	go func() {
+		defer close(clearDone)
+		require.NoError(t, indexer.Clear(ctx, uid1, convID))
+	}()
+	select {
+	case <-clearDone:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "Indexer.Clear deadlocked while store.Add was blocked in GetMessages")
+	}
+
+	// Suspend must also complete; before the fix, Indexer.Clear held idx.Lock()
+	// during the entire store.Clear, blocking Suspend indefinitely.
+	suspendDone := make(chan struct{})
+	go func() {
+		defer close(suspendDone)
+		indexer.Suspend(ctx)
+	}()
+	select {
+	case <-suspendDone:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "Indexer.Suspend deadlocked while store.Add was blocked in GetMessages")
+	}
+	indexer.Resume(ctx)
+
+	// Release the blocked GetMessages so store.Add can finish and the indexer
+	// can shut down cleanly.
+	close(releaseCh)
+	select {
+	case <-consumeCh:
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "store.Add never completed after GetMessages was released")
+	}
+	select {
+	case <-indexer.Stop(ctx):
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "indexer did not stop")
+	}
 }
