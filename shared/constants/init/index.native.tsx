@@ -161,7 +161,11 @@ const ensureBackgroundTask = () => {
       lon: pos?.coords.longitude ?? 0,
     }
 
-    await T.RPCChat.localLocationUpdateRpcPromise({coord})
+    try {
+      await T.RPCChat.localLocationUpdateRpcPromise({coord})
+    } catch (error) {
+      logger.info('background location update failed: ' + String(error))
+    }
     return Promise.resolve()
   })
 }
