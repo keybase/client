@@ -18,17 +18,38 @@ import (
 )
 
 // blockingGetMsgsChatHelper wraps MockChatHelper and blocks GetMessages until
-// released, so tests can observe locking behavior in store.Add.
+// released for one specific call, so tests can observe locking behavior in
+// store.Add without catching unrelated background GetMessages traffic.
 type blockingGetMsgsChatHelper struct {
 	*kbtest.MockChatHelper
-	calledCh  chan struct{}
-	releaseCh chan struct{}
+	calledCh     chan struct{}
+	releaseCh    chan struct{}
+	targetConvID chat1.ConversationID
+	targetMsgIDs []chat1.MessageID
+}
+
+func (h *blockingGetMsgsChatHelper) shouldBlock(convID chat1.ConversationID, msgIDs []chat1.MessageID) bool {
+	if !h.targetConvID.Eq(convID) {
+		return false
+	}
+	if len(h.targetMsgIDs) != len(msgIDs) {
+		return false
+	}
+	for i, msgID := range h.targetMsgIDs {
+		if msgIDs[i] != msgID {
+			return false
+		}
+	}
+	return true
 }
 
 func (h *blockingGetMsgsChatHelper) GetMessages(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgIDs []chat1.MessageID,
 	resolveSupersedes bool, reason *chat1.GetThreadReason,
 ) ([]chat1.MessageUnboxed, error) {
+	if !h.shouldBlock(convID, msgIDs) {
+		return h.MockChatHelper.GetMessages(ctx, uid, convID, msgIDs, resolveSupersedes, reason)
+	}
 	select {
 	case h.calledCh <- struct{}{}:
 	default:
@@ -1068,6 +1089,9 @@ func TestSearchIndexerNoDeadlockOnClearDuringAdd(t *testing.T) {
 	u1 := users[0]
 	g1 := ctc.world.Tcs[u1.Username].Context()
 	uid1 := gregor1.UID(u1.User.GetUID().ToBytes())
+	convID := chat1.ConversationID([]byte{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+	})
 
 	calledCh := make(chan struct{}, 1)
 	releaseCh := make(chan struct{})
@@ -1075,6 +1099,8 @@ func TestSearchIndexerNoDeadlockOnClearDuringAdd(t *testing.T) {
 		MockChatHelper: kbtest.NewMockChatHelper(),
 		calledCh:       calledCh,
 		releaseCh:      releaseCh,
+		targetConvID:   convID,
+		targetMsgIDs:   []chat1.MessageID{1},
 	}
 
 	indexer := search.NewIndexer(g1)
@@ -1089,9 +1115,6 @@ func TestSearchIndexerNoDeadlockOnClearDuringAdd(t *testing.T) {
 	g1.Indexer = indexer
 	indexer.StartStorageLoop()
 
-	convID := chat1.ConversationID([]byte{
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-	})
 	editMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_EDIT,
