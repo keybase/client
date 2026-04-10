@@ -9,7 +9,9 @@ import Inbox from './inbox'
 import InboxSearch from './inbox-search'
 import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
-import {InboxSearchProvider, useInboxSearchState} from './inbox/search-state'
+import SearchRow from './inbox/search-row'
+import {inboxWidth} from './inbox/row/sizes'
+import {useInboxSearch} from './inbox/use-inbox-search'
 
 type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -18,7 +20,8 @@ type Props = ThreadSearchRouteProps & {
 
 function InboxAndConversationBody(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
-  const isSearching = useInboxSearchState(s => s.enabled)
+  const search = useInboxSearch()
+  const isSearching = search.isSearching
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
@@ -44,8 +47,26 @@ function InboxAndConversationBody(props: Props) {
     <Chat.ChatProvider id={conversationIDKey} canBeNull={true}>
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-          {!C.isTablet && isSearching ? (
-            <InboxSearch />
+          {!C.isTablet ? (
+            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.inboxPane}>
+              <SearchRow
+                cancelSearch={search.cancelSearch}
+                headerContext="chat-header"
+                isSearching={search.isSearching}
+                moveSelectedIndex={search.moveSelectedIndex}
+                query={search.query}
+                select={search.select}
+                setQuery={search.setQuery}
+                startSearch={search.startSearch}
+              />
+              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inboxBody}>
+                {isSearching ? (
+                  <InboxSearch searchInfo={search.searchInfo} select={search.select} />
+                ) : (
+                  <Inbox conversationIDKey={conversationIDKey} />
+                )}
+              </Kb.Box2>
+            </Kb.Box2>
           ) : (
             <Inbox conversationIDKey={conversationIDKey} />
           )}
@@ -63,17 +84,18 @@ function InboxAndConversationBody(props: Props) {
   )
 }
 
-function InboxAndConversation(props: Props) {
-  return (
-    <InboxSearchProvider>
-      <InboxAndConversationBody {...props} />
-    </InboxSearchProvider>
-  )
-}
-
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      inboxBody: {
+        flex: 1,
+        minHeight: 0,
+      },
+      inboxPane: {
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        maxWidth: inboxWidth,
+        minWidth: inboxWidth,
+      },
       infoPanel: {
         backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
@@ -85,4 +107,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default InboxAndConversation
+export default InboxAndConversationBody

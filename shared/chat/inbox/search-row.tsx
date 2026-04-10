@@ -2,13 +2,26 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import ChatFilterRow from './filter-row'
 import StartNewChat from './row/start-new-chat'
-import {useInboxSearchState} from './search-state'
+import type * as T from '@/constants/types'
 
-type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
+type OwnProps = {
+  cancelSearch: () => void
+  headerContext: 'chat-header' | 'inbox-header'
+  isSearching: boolean
+  moveSelectedIndex: (increment: boolean) => void
+  query: string
+  select: (
+    conversationIDKey?: T.Chat.ConversationIDKey,
+    query?: string,
+    selectedIndex?: number
+  ) => void
+  setQuery: (query: string) => void
+  startSearch: () => void
+}
 
 export default function InboxSearchRow(ownProps: OwnProps) {
-  const {headerContext} = ownProps
-  const isSearching = useInboxSearchState(s => s.enabled)
+  const {cancelSearch, headerContext, isSearching, moveSelectedIndex, query, select, setQuery, startSearch} =
+    ownProps
   const chatState = Chat.useChatState(
     C.useShallow(s => {
       const hasLoadedEmptyInbox =
@@ -22,14 +35,6 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     })
   )
   const {showEmptyInbox} = chatState
-  const {query, moveSelectedIndex, select, setQuery} = useInboxSearchState(
-    C.useShallow(s => ({
-      moveSelectedIndex: s.dispatch.moveSelectedIndex,
-      query: s.searchInfo.query,
-      select: s.dispatch.select,
-      setQuery: s.dispatch.setQuery,
-    }))
-  )
   const showStartNewChat = !C.isMobile && !isSearching && showEmptyInbox
   const showFilter = isSearching || !showEmptyInbox
 
@@ -40,7 +45,6 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     setQuery(q)
   }
 
-  const showNewChat = headerContext === 'chat-header'
   const showSearch = headerContext === 'chat-header' ? !C.isTablet : C.isMobile
 
   return (
@@ -50,13 +54,15 @@ export default function InboxSearchRow(ownProps: OwnProps) {
       )}
       {!!showFilter && (
         <ChatFilterRow
+          isSearching={isSearching}
+          onCancelSearch={cancelSearch}
           onSelectUp={() => moveSelectedIndex(false)}
           onSelectDown={() => moveSelectedIndex(true)}
           onEnsureSelection={select}
           onQueryChanged={onQueryChanged}
           query={query}
-          showNewChat={showNewChat}
           showSearch={showSearch}
+          startSearch={startSearch}
         />
       )}
     </>

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Inbox from '.'
 import {useIsFocused} from '@react-navigation/core'
-import {InboxSearchProvider} from './search-state'
 
 // keep track of this even on unmount, else if you background / foreground you'll lose it
 let _everFocused = false
@@ -25,10 +24,5 @@ export default function Deferred() {
       clearTimeout(id)
     }
   }, [isFocused, visible])
-
-  return visible ? (
-    <InboxSearchProvider>
-      <Inbox />
-    </InboxSearchProvider>
-  ) : null
+  return visible ? <Inbox /> : null
 }

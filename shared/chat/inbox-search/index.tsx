@@ -11,9 +11,17 @@ import type * as T from '@/constants/types'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
-import {inboxSearchMaxTextMessages, useInboxSearchState} from '../inbox/search-state'
+import {inboxSearchMaxTextMessages} from '../inbox/use-inbox-search'
 
-type OwnProps = {header?: React.ReactElement | null}
+type OwnProps = {
+  header?: React.ReactElement | null
+  searchInfo: T.Chat.InboxSearchInfo
+  select: (
+    conversationIDKey?: T.Chat.ConversationIDKey,
+    query?: string,
+    selectedIndex?: number
+  ) => void
+}
 
 type NameResult = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -44,12 +52,7 @@ type OpenTeamResult = {
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
 export default function InboxSearchContainer(ownProps: OwnProps) {
-  const {_inboxSearch, inboxSearchSelect} = useInboxSearchState(
-    C.useShallow(s => ({
-      _inboxSearch: s.searchInfo,
-      inboxSearchSelect: s.dispatch.select,
-    }))
-  )
+  const {searchInfo: _inboxSearch, select: inboxSearchSelect} = ownProps
   const navigateAppend = C.Router2.navigateAppend
   const onInstallBot = (username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})

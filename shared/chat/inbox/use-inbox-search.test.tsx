@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import {makeInboxSearchInfo, nextInboxSearchSelectedIndex} from './search-state'
+import {makeInboxSearchInfo, nextInboxSearchSelectedIndex} from './use-inbox-search'
 
 test('inbox search helpers derive stable defaults', () => {
   const info = makeInboxSearchInfo()

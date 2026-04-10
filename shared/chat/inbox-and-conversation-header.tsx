@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
@@ -151,13 +150,7 @@ const Header2 = () => {
 
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
-      {Kb.Styles.isMobile ? null : (
-        <Kb.BoxGrow2>
-          <Kb.Box2 direction="vertical" style={{height: '100%', width: '100%'}}>
-            <SearchRow headerContext="chat-header" />
-          </Kb.Box2>
-        </Kb.BoxGrow2>
-      )}
+      {!Kb.Styles.isMobile && <Kb.BoxGrow2 />}
       <NewChatButton />
     </Kb.Box2>
   )
