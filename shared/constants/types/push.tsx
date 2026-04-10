@@ -29,6 +29,21 @@ export type PushNotification =
       username: string
     }
   | {
+      forUid?: string
+      type: 'device.revoked'
+      userInteraction: boolean
+    }
+  | {
+      forUid?: string
+      type: 'device.new'
+      userInteraction: boolean
+    }
+  | {
+      forUid?: string
+      type: 'autoreset'
+      userInteraction: boolean
+    }
+  | {
       conversationIDKey: ChatTypes.ConversationIDKey
       forUid?: string
       type: 'chat.extension'

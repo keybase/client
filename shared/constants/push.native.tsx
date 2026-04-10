@@ -177,6 +177,19 @@ export const usePushState = Z.createZustand<State>((set, get) => {
                 logger.info('[Push] account has no stored secret, cannot switch')
                 return
               }
+              // Guard against re-triggering a switch that is already in progress.
+              // After a logout, Z.resetAllStores() resets userSwitching to false but
+              // preserves pendingPushNotification. If applicationDidBecomeActive
+              // re-emits the same notification before the bootstrap sets currentUid,
+              // we would call login() a second time — clobbering the first switch's
+              // navigation. Skip if the pending notification is already queued for
+              // the same account.
+              const existingPending = get().pendingPushNotification
+              const existingForUid = existingPending ? (existingPending as {forUid?: string}).forUid : undefined
+              if (existingForUid === forUid) {
+                logger.info('[Push] switch already in progress for this account, skipping duplicate')
+                return
+              }
               // Store the notification and trigger an account switch. We do NOT
               // process the notification here — execution continues once the uid
               // changes, picked up by the subscriber in
@@ -205,9 +218,20 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             case 'follow':
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
-                const {username} = notification
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                storeRegistry.getState('profile').dispatch.showUserProfile(notification.username)
               }
+              break
+            case 'device.revoked':
+            case 'device.new':
+              if (notification.userInteraction && storeRegistry.getState('config').loggedIn) {
+                switchTab(Tabs.settingsTab)
+                navUpToScreen('devicesRoot')
+              }
+              break
+            case 'autoreset':
+              // The ResetModal is always mounted and self-shows when autoreset.active
+              // is true (driven by Gregor/badge state sync). The account switch above
+              // is sufficient; no explicit navigation needed.
               break
             case 'chat.extension':
               {

@@ -41,7 +41,26 @@ type DataChatExtension = DataCommon & {
   type: 'chat.extension'
   convID?: string
 }
-type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
+type DataDeviceRevoked = DataCommon & {
+  type: 'device.revoked'
+  device_id?: string
+}
+type DataDeviceNew = DataCommon & {
+  type: 'device.new'
+  device_id?: string
+}
+type DataAutoreset = DataCommon & {
+  type: 'autoreset'
+}
+type Data =
+  | DataReadMessage
+  | DataNewMessage
+  | DataNewMessageSilent2
+  | DataFollow
+  | DataChatExtension
+  | DataDeviceRevoked
+  | DataDeviceNew
+  | DataAutoreset
 
 type PushN = Data & {
   message?: string
@@ -113,6 +132,30 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
               type: 'follow',
               userInteraction,
               username: data.username,
+            }
+          : undefined
+      case 'device.revoked':
+        return forUid
+          ? {
+              forUid,
+              type: 'device.revoked',
+              userInteraction,
+            }
+          : undefined
+      case 'device.new':
+        return forUid
+          ? {
+              forUid,
+              type: 'device.new',
+              userInteraction,
+            }
+          : undefined
+      case 'autoreset':
+        return forUid
+          ? {
+              forUid,
+              type: 'autoreset',
+              userInteraction,
             }
           : undefined
       case 'chat.extension':
