@@ -22,10 +22,10 @@ const ChatRootScreen = React.lazy(async () => {
     default: (p: StaticScreenProps<ChatRootRouteParams>) => <mod.default {...p.route.params} />,
   }
 })
-const ChatRootDeferredScreen = React.lazy(async () => {
-  const mod = await import('./inbox/defer-loading')
+const ChatRootInboxScreen = React.lazy(async () => {
+  const mod = await import('./inbox/root')
   return {
-    default: (p: StaticScreenProps<ChatRootRouteParams>) => <mod.default {...p.route.params} />,
+    default: (_p: StaticScreenProps<ChatRootRouteParams>) => <mod.default />,
   }
 })
 
@@ -172,7 +172,7 @@ export const newRoutes = defineRouteMap({
     : {
         getOptions: inboxGetOptions,
         initialParams: emptyChatRootRouteParams,
-        screen: ChatRootDeferredScreen,
+        screen: ChatRootInboxScreen,
       },
 })
 

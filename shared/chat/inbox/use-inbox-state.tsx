@@ -43,7 +43,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     if (!C.isMobile) {
       Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
-    if (!inboxHasLoaded) {
+    if (!C.isPhone && !inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
     }
   })
