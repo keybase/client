@@ -344,6 +344,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
       <Rover />
       <Kb.SectionList
         ListHeaderComponent={header}
+        contentInsetAdjustmentBehavior={Kb.Styles.isMobile ? 'automatic' : undefined}
         stickySectionHeadersEnabled={true}
         renderSectionHeader={({section}: {section: Section}) => section.renderHeader(section)}
         keyboardShouldPersistTaps="handled"
