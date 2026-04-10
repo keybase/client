@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/teambot.avdl
 
 package keybase1
@@ -55,7 +55,8 @@ func (o TeambotKey) DeepCopy() TeambotKey {
 	}
 }
 
-type TeambotInterface interface{}
+type TeambotInterface interface {
+}
 
 func TeambotProtocol(i TeambotInterface) rpc.Protocol {
 	return rpc.Protocol{

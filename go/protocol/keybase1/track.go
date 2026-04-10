@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/track.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type TrackArg struct {
@@ -62,11 +61,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 		Name: "keybase.1.track",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"track": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TrackArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TrackArg)(nil), args)
@@ -77,11 +76,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 			},
 			"trackWithToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TrackWithTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TrackWithTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TrackWithTokenArg)(nil), args)
@@ -92,11 +91,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 			},
 			"dismissWithToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissWithTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissWithTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissWithTokenArg)(nil), args)
@@ -107,11 +106,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 			},
 			"untrack": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UntrackArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UntrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UntrackArg)(nil), args)
@@ -122,11 +121,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 			},
 			"checkTracking": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckTrackingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckTrackingArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckTrackingArg)(nil), args)
@@ -137,11 +136,11 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 			},
 			"fakeTrackingChanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FakeTrackingChangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FakeTrackingChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FakeTrackingChangedArg)(nil), args)
@@ -163,34 +162,34 @@ type TrackClient struct {
 // If forceRemoteCheck is true, we force all remote proofs to be checked
 // (otherwise a cache is used).
 func (c TrackClient) Track(ctx context.Context, __arg TrackArg) (res ConfirmResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.track", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.track", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Track with token returned from identify.
 func (c TrackClient) TrackWithToken(ctx context.Context, __arg TrackWithTokenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.trackWithToken", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.trackWithToken", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items.
 func (c TrackClient) DismissWithToken(ctx context.Context, __arg DismissWithTokenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.dismissWithToken", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.dismissWithToken", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TrackClient) Untrack(ctx context.Context, __arg UntrackArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.untrack", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.untrack", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TrackClient) CheckTracking(ctx context.Context, sessionID int) (err error) {
 	__arg := CheckTrackingArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.track.checkTracking", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.checkTracking", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TrackClient) FakeTrackingChanged(ctx context.Context, __arg FakeTrackingChangedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.track.fakeTrackingChanged", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.track.fakeTrackingChanged", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

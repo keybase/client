@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/provision_ui.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ProvisionMethod int
@@ -228,11 +227,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 		Name: "keybase.1.provisionUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"chooseProvisioningMethod": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChooseProvisioningMethodArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChooseProvisioningMethodArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChooseProvisioningMethodArg)(nil), args)
@@ -243,11 +242,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"chooseGPGMethod": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChooseGPGMethodArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChooseGPGMethodArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChooseGPGMethodArg)(nil), args)
@@ -258,11 +257,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"switchToGPGSignOK": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SwitchToGPGSignOKArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SwitchToGPGSignOKArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SwitchToGPGSignOKArg)(nil), args)
@@ -273,11 +272,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"chooseDevice": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChooseDeviceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChooseDeviceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChooseDeviceArg)(nil), args)
@@ -288,11 +287,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"chooseDeviceType": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ChooseDeviceTypeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ChooseDeviceTypeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ChooseDeviceTypeArg)(nil), args)
@@ -303,11 +302,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"DisplayAndPromptSecret": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplayAndPromptSecretArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplayAndPromptSecretArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplayAndPromptSecretArg)(nil), args)
@@ -318,11 +317,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"DisplaySecretExchanged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DisplaySecretExchangedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DisplaySecretExchangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DisplaySecretExchangedArg)(nil), args)
@@ -333,11 +332,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"PromptNewDeviceName": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PromptNewDeviceNameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PromptNewDeviceNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PromptNewDeviceNameArg)(nil), args)
@@ -348,11 +347,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"ProvisioneeSuccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProvisioneeSuccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProvisioneeSuccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProvisioneeSuccessArg)(nil), args)
@@ -363,11 +362,11 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 			},
 			"ProvisionerSuccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProvisionerSuccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProvisionerSuccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProvisionerSuccessArg)(nil), args)
@@ -390,7 +389,7 @@ type ProvisionUiClient struct {
 // method for provisioning.  gpgOption will be true if GPG
 // should be offered as an option.
 func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg ChooseProvisioningMethodArg) (res ProvisionMethod, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -406,7 +405,7 @@ func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg C
 // After this, gpg_ui.selectKey will be called (if there are
 // multiple keys available).
 func (c ProvisionUiClient) ChooseGPGMethod(ctx context.Context, __arg ChooseGPGMethodArg) (res GPGMethod, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseGPGMethod", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseGPGMethod", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -415,12 +414,12 @@ func (c ProvisionUiClient) ChooseGPGMethod(ctx context.Context, __arg ChooseGPGM
 // with this key.  Return true to switch to GPG signing,
 // false to abort provisioning.
 func (c ProvisionUiClient) SwitchToGPGSignOK(ctx context.Context, __arg SwitchToGPGSignOKArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.switchToGPGSignOK", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.switchToGPGSignOK", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProvisionUiClient) ChooseDevice(ctx context.Context, __arg ChooseDeviceArg) (res DeviceID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDevice", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDevice", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -428,7 +427,7 @@ func (c ProvisionUiClient) ChooseDevice(ctx context.Context, __arg ChooseDeviceA
 // If selecting the existing device type, set kind to EXISTING_DEVICE_0.
 // If selecting the new device type, set kind to NEW_DEVICE_1.
 func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDeviceTypeArg) (res DeviceType, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -437,7 +436,7 @@ func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDev
 // If it does not return a secret, it will be canceled when this device receives the secret via kex2.
 // If there is an error in the phrase, then previousErr will be set when this is called again.
 func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res SecretResponse, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -445,7 +444,7 @@ func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg Dis
 // devices.
 func (c ProvisionUiClient) DisplaySecretExchanged(ctx context.Context, sessionID int) (err error) {
 	__arg := DisplaySecretExchangedArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplaySecretExchanged", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplaySecretExchanged", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -454,18 +453,18 @@ func (c ProvisionUiClient) DisplaySecretExchanged(ctx context.Context, sessionID
 // names for the user.  If the device name returned to the service is invalid or already
 // taken, it will call this again with an error message in errorMessage.
 func (c ProvisionUiClient) PromptNewDeviceName(ctx context.Context, __arg PromptNewDeviceNameArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.PromptNewDeviceName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.PromptNewDeviceName", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // ProvisioneeSuccess is called on provisionee when it is successfully provisioned.
 func (c ProvisionUiClient) ProvisioneeSuccess(ctx context.Context, __arg ProvisioneeSuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisioneeSuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisioneeSuccess", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // ProvisionerSuccess is called on provisioner when it successfully provisions another device.
 func (c ProvisionUiClient) ProvisionerSuccess(ctx context.Context, __arg ProvisionerSuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionerSuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionerSuccess", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

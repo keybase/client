@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/quota.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type VerifySessionRes struct {
@@ -39,11 +38,11 @@ func QuotaProtocol(i QuotaInterface) rpc.Protocol {
 		Name: "keybase.1.quota",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"verifySession": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]VerifySessionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]VerifySessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]VerifySessionArg)(nil), args)
@@ -63,6 +62,6 @@ type QuotaClient struct {
 
 func (c QuotaClient) VerifySession(ctx context.Context, session string) (res VerifySessionRes, err error) {
 	__arg := VerifySessionArg{Session: session}
-	err = c.Cli.Call(ctx, "keybase.1.quota.verifySession", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.quota.verifySession", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

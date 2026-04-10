@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/invite_friends.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type InviteCounts struct {
@@ -67,9 +66,11 @@ type InvitePeopleArg struct {
 	Phones []PhoneNumber `codec:"phones" json:"phones"`
 }
 
-type GetInviteCountsArg struct{}
+type GetInviteCountsArg struct {
+}
 
-type RequestInviteCountsArg struct{}
+type RequestInviteCountsArg struct {
+}
 
 type InviteFriendsInterface interface {
 	InvitePeople(context.Context, InvitePeopleArg) (int, error)
@@ -82,11 +83,11 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 		Name: "keybase.1.inviteFriends",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"invitePeople": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InvitePeopleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]InvitePeopleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]InvitePeopleArg)(nil), args)
@@ -97,21 +98,21 @@ func InviteFriendsProtocol(i InviteFriendsInterface) rpc.Protocol {
 				},
 			},
 			"getInviteCounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInviteCountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetInviteCounts(ctx)
 					return
 				},
 			},
 			"requestInviteCounts": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RequestInviteCountsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.RequestInviteCounts(ctx)
 					return
 				},
@@ -125,16 +126,16 @@ type InviteFriendsClient struct {
 }
 
 func (c InviteFriendsClient) InvitePeople(ctx context.Context, __arg InvitePeopleArg) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.invitePeople", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InviteFriendsClient) GetInviteCounts(ctx context.Context) (res InviteCounts, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []interface{}{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.getInviteCounts", []any{GetInviteCountsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InviteFriendsClient) RequestInviteCounts(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.requestInviteCounts", []interface{}{RequestInviteCountsArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.inviteFriends.requestInviteCounts", []any{RequestInviteCountsArg{}}, nil, 0*time.Millisecond)
 	return
 }

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_runtimestats.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type StatsSeverityLevel int
@@ -227,11 +226,11 @@ func NotifyRuntimeStatsProtocol(i NotifyRuntimeStatsInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyRuntimeStats",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"runtimeStatsUpdate": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RuntimeStatsUpdateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RuntimeStatsUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RuntimeStatsUpdateArg)(nil), args)
@@ -251,6 +250,6 @@ type NotifyRuntimeStatsClient struct {
 
 func (c NotifyRuntimeStatsClient) RuntimeStatsUpdate(ctx context.Context, stats *RuntimeStats) (err error) {
 	__arg := RuntimeStatsUpdateArg{Stats: stats}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyRuntimeStats.runtimeStatsUpdate", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyRuntimeStats.runtimeStatsUpdate", []any{__arg}, 0*time.Millisecond)
 	return
 }
