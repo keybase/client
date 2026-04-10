@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/teams_ui.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ConfirmRootTeamDeleteArg struct {
@@ -36,11 +35,11 @@ func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
 		Name: "keybase.1.teamsUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"confirmRootTeamDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmRootTeamDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmRootTeamDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmRootTeamDeleteArg)(nil), args)
@@ -51,11 +50,11 @@ func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
 				},
 			},
 			"confirmSubteamDelete": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmSubteamDeleteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmSubteamDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmSubteamDeleteArg)(nil), args)
@@ -66,11 +65,11 @@ func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
 				},
 			},
 			"confirmInviteLinkAccept": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ConfirmInviteLinkAcceptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ConfirmInviteLinkAcceptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ConfirmInviteLinkAcceptArg)(nil), args)
@@ -89,16 +88,16 @@ type TeamsUiClient struct {
 }
 
 func (c TeamsUiClient) ConfirmRootTeamDelete(ctx context.Context, __arg ConfirmRootTeamDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmRootTeamDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmRootTeamDelete", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsUiClient) ConfirmSubteamDelete(ctx context.Context, __arg ConfirmSubteamDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsUiClient) ConfirmInviteLinkAccept(ctx context.Context, __arg ConfirmInviteLinkAcceptArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmInviteLinkAccept", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmInviteLinkAccept", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/teamsearch.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type TeamSearchItem struct {
@@ -107,11 +106,11 @@ func TeamSearchProtocol(i TeamSearchInterface) rpc.Protocol {
 		Name: "keybase.1.teamSearch",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"teamSearch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeamSearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeamSearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeamSearchArg)(nil), args)
@@ -130,6 +129,6 @@ type TeamSearchClient struct {
 }
 
 func (c TeamSearchClient) TeamSearch(ctx context.Context, __arg TeamSearchArg) (res TeamSearchRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamSearch.teamSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.teamSearch.teamSearch", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

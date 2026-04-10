@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/revoke.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type RevokeKeyArg struct {
@@ -38,11 +37,11 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 		Name: "keybase.1.revoke",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"revokeKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RevokeKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RevokeKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RevokeKeyArg)(nil), args)
@@ -53,11 +52,11 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 				},
 			},
 			"revokeDevice": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RevokeDeviceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RevokeDeviceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RevokeDeviceArg)(nil), args)
@@ -68,11 +67,11 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 				},
 			},
 			"revokeSigs": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]RevokeSigsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]RevokeSigsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]RevokeSigsArg)(nil), args)
@@ -91,16 +90,16 @@ type RevokeClient struct {
 }
 
 func (c RevokeClient) RevokeKey(ctx context.Context, __arg RevokeKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeKey", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeKey", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RevokeClient) RevokeDevice(ctx context.Context, __arg RevokeDeviceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeDevice", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeSigs", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
