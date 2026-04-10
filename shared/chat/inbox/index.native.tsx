@@ -57,7 +57,8 @@ function Inbox(p: InboxProps) {
   const inbox = useInboxState(p.conversationIDKey)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
-  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows, smallTeamsHiddenBadgeCount} =
+    inbox
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
@@ -87,6 +88,7 @@ function Inbox(p: InboxProps) {
     if (row.type === 'divider') {
       element = (
         <TeamsDivider
+          badgeCount={smallTeamsHiddenBadgeCount}
           showButton={row.showButton}
           hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}

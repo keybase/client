@@ -49,6 +49,7 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 const dragKey = 'application/keybase_inbox'
 
 const DragLine = (p: {
+  badgeCount: number
   scrollDiv: React.RefObject<HTMLDivElement | null>
   inboxNumSmallRows: number
   showButton: boolean
@@ -57,7 +58,7 @@ const DragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
 }) => {
-  const {inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
+  const {badgeCount, inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
   const [dividerVisualTop, setDividerVisualTop] = React.useState(0)
@@ -181,6 +182,7 @@ const DragLine = (p: {
         </>
       )}
       <TeamsDivider
+        badgeCount={badgeCount}
         hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
         key="divider"
         toggle={toggleSmallTeamsExpanded}
@@ -199,7 +201,7 @@ function Inbox(props: InboxProps) {
   const inbox = useInboxState(props.conversationIDKey)
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
   const {toggleSmallTeamsExpanded, selectedConversationIDKey, onUntrustedInboxVisible} = inbox
-  const {setInboxNumSmallRows, allowShowFloatingButton} = inbox
+  const {setInboxNumSmallRows, allowShowFloatingButton, smallTeamsHiddenBadgeCount} = inbox
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -259,6 +261,7 @@ function Inbox(props: InboxProps) {
     if (item.type === 'divider') {
       return (
         <DragLine
+          badgeCount={smallTeamsHiddenBadgeCount}
           scrollDiv={scrollDiv}
           inboxNumSmallRows={inboxNumSmallRows}
           showButton={item.showButton}

@@ -4,6 +4,7 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
+import {buildInboxRows} from './rows'
 import {useInboxSearchState} from './search-state'
 
 export function useInboxState(conversationIDKey?: string) {
@@ -14,19 +15,23 @@ export function useInboxState(conversationIDKey?: string) {
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
-      allowShowFloatingButton: s.inboxAllowShowFloatingButton,
       inboxHasLoaded: s.inboxHasLoaded,
+      inboxLayout: s.inboxLayout,
       inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
       inboxRefresh: s.dispatch.inboxRefresh,
-      inboxRows: s.inboxRows,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
-      smallTeamsExpanded: s.inboxSmallTeamsExpanded,
+      smallTeamsExpanded: s.smallTeamsExpanded,
       toggleSmallTeamsExpanded: s.dispatch.toggleSmallTeamsExpanded,
     }))
   )
-  const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
+  const {inboxHasLoaded, inboxLayout, inboxNumSmallRows, inboxRefresh} = chatState
   const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
+
+  const {allowShowFloatingButton, rows: inboxRows, smallTeamsExpanded: showAllSmallTeams} = React.useMemo(
+    () => buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded),
+    [inboxLayout, inboxNumSmallRows, smallTeamsExpanded]
+  )
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
@@ -69,11 +74,28 @@ export function useInboxState(conversationIDKey?: string) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
+  const visibleSmallConvIDs = React.useMemo(() => {
+    return inboxRows.reduce<Array<string>>((acc, row) => {
+      if (row.type === 'small') {
+        acc.push(row.conversationIDKey)
+      }
+      return acc
+    }, [])
+  }, [inboxRows])
+
   const unreadIndices = Chat.useChatState(
     C.useShallow(s => {
       return s.getUnreadIndicies(bigConvIds)
     })
   )
+
+  const hiddenSmallBadgeCount = Chat.useChatState(s => {
+    let visibleBadges = 0
+    for (const conversationIDKey of visibleSmallConvIDs) {
+      visibleBadges += Chat.getConvoState(conversationIDKey).badge
+    }
+    return Math.max(0, s.smallTeamBadgeCount - visibleBadges)
+  })
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
@@ -106,7 +128,8 @@ export function useInboxState(conversationIDKey?: string) {
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,
-    smallTeamsExpanded,
+    smallTeamsExpanded: showAllSmallTeams,
+    smallTeamsHiddenBadgeCount: hiddenSmallBadgeCount,
     toggleSmallTeamsExpanded,
     unreadIndices: filteredIndices,
     unreadTotal: filteredTotal,
