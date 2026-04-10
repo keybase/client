@@ -11,16 +11,11 @@ import type * as T from '@/constants/types'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
-import {inboxSearchMaxTextMessages} from '../inbox/use-inbox-search'
+import {inboxSearchMaxTextMessages, type InboxSearchController} from '../inbox/use-inbox-search'
 
 type OwnProps = {
   header?: React.ReactElement | null
-  searchInfo: T.Chat.InboxSearchInfo
-  select: (
-    conversationIDKey?: T.Chat.ConversationIDKey,
-    query?: string,
-    selectedIndex?: number
-  ) => void
+  search: Pick<InboxSearchController, 'searchInfo' | 'selectResult'>
 }
 
 type NameResult = {
@@ -52,7 +47,9 @@ type OpenTeamResult = {
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
 export default function InboxSearchContainer(ownProps: OwnProps) {
-  const {searchInfo: _inboxSearch, select: inboxSearchSelect} = ownProps
+  const {
+    search: {searchInfo: _inboxSearch, selectResult},
+  } = ownProps
   const navigateAppend = C.Router2.navigateAppend
   const onInstallBot = (username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
@@ -62,7 +59,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     selectedIndex: number,
     query: string
   ) => {
-    inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
+    selectResult(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
   }
   const {header} = ownProps
   const {indexPercent, nameResults: _nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch

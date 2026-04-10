@@ -15,7 +15,7 @@ import {Alert} from 'react-native'
 import type {LegendListRef} from '@/common-adapters'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
-import {useInboxSearch} from './use-inbox-search'
+import type {InboxSearchController} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 
@@ -50,26 +50,18 @@ const NoChats = (props: {onNewChat: () => void}) => (
   </>
 )
 
-type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+type InboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  search: InboxSearchController
+}
 
 function Inbox(p: InboxProps) {
-  const search = useInboxSearch()
+  const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
-  const headComponent = (
-    <SearchRow
-      cancelSearch={search.cancelSearch}
-      headerContext="inbox-header"
-      isSearching={search.isSearching}
-      moveSelectedIndex={search.moveSelectedIndex}
-      query={search.query}
-      select={search.select}
-      setQuery={search.setQuery}
-      startSearch={search.startSearch}
-    />
-  )
+  const headComponent = <SearchRow search={search} showSearch={C.isMobile} />
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
@@ -162,7 +154,7 @@ function Inbox(p: InboxProps) {
         <LoadingLine />
         {isSearching ? (
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <InboxSearch header={headComponent} searchInfo={search.searchInfo} select={search.select} />
+            <InboxSearch header={headComponent} search={search} />
           </Kb.Box2>
         ) : (
           <Kb.List

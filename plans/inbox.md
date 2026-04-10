@@ -7,6 +7,11 @@ The current inbox search setup uses `shared/chat/inbox/search-state.tsx` as a te
 1. Move desktop search out of the navigator header and into the inbox pane so desktop search can be owned by ordinary React state in one tree.
 2. Follow with a broader cleanup that unifies native and desktop inbox search ownership and reduces remaining platform divergence where practical.
 
+## Progress
+
+- [x] Part 1 completed.
+- [x] Part 2 completed: desktop and native inbox screens now consume the same route-owned inbox-search controller contract, and inbox-search state is no longer owned by `shared/stores/chat.tsx`.
+
 ## Part 1: Move Desktop Search Out Of The Header
 
 Goal:

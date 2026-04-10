@@ -81,7 +81,24 @@ export const nextInboxSearchSelectedIndex = (
 
 type SearchInfoUpdater = (prev: T.Chat.InboxSearchInfo) => T.Chat.InboxSearchInfo
 
-export function useInboxSearch() {
+export type InboxSearchSelect = (
+  conversationIDKey?: T.Chat.ConversationIDKey,
+  query?: string,
+  selectedIndex?: number
+) => void
+
+export type InboxSearchController = {
+  cancelSearch: () => void
+  isSearching: boolean
+  moveSelectedIndex: (increment: boolean) => void
+  query: string
+  searchInfo: T.Chat.InboxSearchInfo
+  selectResult: InboxSearchSelect
+  setQuery: (query: string) => void
+  startSearch: () => void
+}
+
+export function useInboxSearch(): InboxSearchController {
   const mobileAppState = useConfigState(s => s.mobileAppState)
   const [isSearching, setIsSearching] = React.useState(false)
   const [searchInfo, setSearchInfo] = React.useState(makeInboxSearchInfo)
@@ -321,7 +338,7 @@ export function useInboxSearch() {
     }))
   }, [updateSearchInfo])
 
-  const select = React.useCallback(
+  const selectResult = React.useCallback<InboxSearchSelect>(
     (_conversationIDKey?: T.Chat.ConversationIDKey, q?: string, selectedIndex?: number) => {
       let conversationIDKey = _conversationIDKey
       let query = q
@@ -404,7 +421,7 @@ export function useInboxSearch() {
     moveSelectedIndex,
     query: searchInfo.query,
     searchInfo,
-    select,
+    selectResult,
     setQuery,
     startSearch,
   }

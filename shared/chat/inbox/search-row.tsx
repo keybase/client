@@ -2,26 +2,19 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import ChatFilterRow from './filter-row'
 import StartNewChat from './row/start-new-chat'
-import type * as T from '@/constants/types'
+import type {InboxSearchController} from './use-inbox-search'
 
 type OwnProps = {
-  cancelSearch: () => void
-  headerContext: 'chat-header' | 'inbox-header'
-  isSearching: boolean
-  moveSelectedIndex: (increment: boolean) => void
-  query: string
-  select: (
-    conversationIDKey?: T.Chat.ConversationIDKey,
-    query?: string,
-    selectedIndex?: number
-  ) => void
-  setQuery: (query: string) => void
-  startSearch: () => void
+  search: Pick<
+    InboxSearchController,
+    'cancelSearch' | 'isSearching' | 'moveSelectedIndex' | 'query' | 'selectResult' | 'setQuery' | 'startSearch'
+  >
+  showSearch: boolean
 }
 
 export default function InboxSearchRow(ownProps: OwnProps) {
-  const {cancelSearch, headerContext, isSearching, moveSelectedIndex, query, select, setQuery, startSearch} =
-    ownProps
+  const {search, showSearch} = ownProps
+  const {cancelSearch, isSearching, moveSelectedIndex, query, selectResult, setQuery, startSearch} = search
   const chatState = Chat.useChatState(
     C.useShallow(s => {
       const hasLoadedEmptyInbox =
@@ -45,8 +38,6 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     setQuery(q)
   }
 
-  const showSearch = headerContext === 'chat-header' ? !C.isTablet : C.isMobile
-
   return (
     <>
       {!!showStartNewChat && (
@@ -58,7 +49,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
           onCancelSearch={cancelSearch}
           onSelectUp={() => moveSelectedIndex(false)}
           onSelectDown={() => moveSelectedIndex(true)}
-          onEnsureSelection={select}
+          onEnsureSelection={selectResult}
           onQueryChanged={onQueryChanged}
           query={query}
           showSearch={showSearch}
