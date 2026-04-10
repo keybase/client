@@ -9,6 +9,7 @@ import LocationMap from '@/chat/location-map'
 import {useCurrentUserState} from '@/stores/current-user'
 import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
+import {ignorePromise} from '@/constants/utils'
 
 const LocationButton = (props: {disabled: boolean; label: string; onClick: () => void; subLabel?: string; primary?: boolean}) => (
   <Kb.Button
@@ -26,8 +27,18 @@ const LocationButton = (props: {disabled: boolean; label: string; onClick: () =>
   </Kb.Button>
 )
 
-const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const updateLastCoord = Chat.useChatState(s => s.dispatch.updateLastCoord)
+const updateLocation = (coord: T.Chat.Coordinate) => {
+  const f = async () => {
+    const {accuracy, lat, lon} = coord
+    await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
+  }
+  ignorePromise(f())
+}
+
+const useWatchPosition = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  setLocation: React.Dispatch<React.SetStateAction<T.Chat.Coordinate | undefined>>
+) => {
   const setCommandStatusInfo = Chat.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
   React.useEffect(() => {
     let unsub = () => {}
@@ -43,7 +54,8 @@ const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
               lat: location.coords.latitude,
               lon: location.coords.longitude,
             }
-            updateLastCoord(coord)
+            setLocation(coord)
+            updateLocation(coord)
           }
         )
         unsub = () => sub.remove()
@@ -62,14 +74,14 @@ const useWatchPosition = (conversationIDKey: T.Chat.ConversationIDKey) => {
     return () => {
       unsub()
     }
-  }, [conversationIDKey, updateLastCoord, setCommandStatusInfo])
+  }, [conversationIDKey, setCommandStatusInfo, setLocation])
 }
 
 const LocationPopup = () => {
   const conversationIDKey = Chat.useChatContext(s => s.id)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
-  const location = Chat.useChatState(s => s.lastCoord)
+  const [location, setLocation] = React.useState<T.Chat.Coordinate>()
   const locationDenied = Chat.useChatUIContext(
     s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
   )
@@ -85,7 +97,7 @@ const LocationPopup = () => {
     sendMessage(duration ? `/location live ${duration}` : '/location')
   }
 
-  useWatchPosition(conversationIDKey)
+  useWatchPosition(conversationIDKey, setLocation)
 
   const width = Math.ceil(Kb.Styles.dimensionWidth)
   const height = Math.ceil(Kb.Styles.dimensionHeight - 320)

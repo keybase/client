@@ -37,7 +37,7 @@ import {getSelectedConversation} from '@/constants/chat/common'
 import * as CryptoRoutes from '@/constants/crypto'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
-import {isMobile, serverConfigFileName} from '../platform'
+import {isMobile, isPhone, serverConfigFileName} from '../platform'
 import {storeRegistry} from '@/stores/store-registry'
 import {useAutoResetState} from '@/stores/autoreset'
 import {useAvatarState} from '@/common-adapters/avatar/store'
@@ -397,8 +397,9 @@ export const initSharedSubscriptions = () => {
           }
 
           const updateChat = async () => {
-            // On login lets load the untrusted inbox. This helps make some flows easier
-            if (useCurrentUserState.getState().username) {
+            // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
+            // mounts behind a pushed conversation do not pay inbox startup cost.
+            if (!isPhone && useCurrentUserState.getState().username) {
               const {inboxRefresh} = useChatState.getState().dispatch
               inboxRefresh('bootstrap')
             }
@@ -451,12 +452,6 @@ export const initSharedSubscriptions = () => {
           )
         if (!s.loggedInCausedbyStartup) {
           ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
-        }
-      }
-
-      if (s.mobileAppState !== old.mobileAppState) {
-        if (s.mobileAppState === 'background' && storeRegistry.getState('chat').inboxSearch) {
-          storeRegistry.getState('chat').dispatch.toggleInboxSearch(false)
         }
       }
 

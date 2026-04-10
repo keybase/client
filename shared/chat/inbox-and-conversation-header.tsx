@@ -2,19 +2,15 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import SearchRow from './inbox/search-row'
 import NewChatButton from './inbox/new-chat-button'
+import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from './inbox/header-portal-state'
+import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
-import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 
-type ChatRootParams = ThreadSearchRouteProps & {
-  conversationIDKey?: string
-  infoPanel?: object
-}
-type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams}, 'chatRoot'>
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 
 const Header = () => {
   const {params} = useRoute<ChatRootRoute>()
@@ -74,6 +70,7 @@ const Header2 = () => {
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
+  const headerPortalContent = useInboxHeaderPortalContent()
 
   const onToggleThreadSearch = () => {
     toggleThreadSearch()
@@ -151,14 +148,17 @@ const Header2 = () => {
 
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
-      {Kb.Styles.isMobile ? null : (
+      {C.isTablet ? (
+        <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
+      ) : !Kb.Styles.isMobile ? (
         <Kb.BoxGrow2>
-          <Kb.Box2 direction="vertical" style={{height: '100%', width: '100%'}}>
-            <SearchRow headerContext="chat-header" />
-          </Kb.Box2>
+          <div
+            style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
+            ref={node => setInboxHeaderPortalNode(node)}
+          />
         </Kb.BoxGrow2>
-      )}
-      <NewChatButton />
+      ) : null}
+      {!C.isElectron && !C.isTablet && <NewChatButton />}
     </Kb.Box2>
   )
 
@@ -358,6 +358,10 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {paddingLeft: Kb.Styles.globalMargins.tiny},
       }),
+      searchPortal: {
+        height: '100%',
+        width: '100%',
+      },
       shhIconStyle: {marginLeft: Kb.Styles.globalMargins.xtiny},
     }) as const
 )
