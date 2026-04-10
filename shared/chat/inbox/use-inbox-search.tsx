@@ -156,9 +156,7 @@ export function useInboxSearch(): InboxSearchController {
   const activeSearchIDRef = React.useRef(0)
   const isSearchingRef = React.useRef(isSearching)
   const searchInfoRef = React.useRef(searchInfo)
-  const visibleResultCountsRef = React.useRef<InboxSearchVisibleResultCounts>(
-    getDefaultVisibleResultCounts(searchInfo)
-  )
+  const visibleResultCountsRef = React.useRef(getDefaultVisibleResultCounts(searchInfo))
 
   React.useEffect(() => {
     isSearchingRef.current = isSearching

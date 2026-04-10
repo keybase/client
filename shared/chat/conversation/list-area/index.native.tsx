@@ -124,8 +124,6 @@ const ConversationList = function ConversationList() {
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
-  const conversationIDKeyRef = React.useRef(conversationIDKey)
-  conversationIDKeyRef.current = conversationIDKey
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
@@ -146,14 +144,15 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const [getItemType] = React.useState(
-    () => (ordinal: T.Chat.Ordinal) => {
+  const getItemType = React.useCallback(
+    (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
-      const convoState = Chat.getConvoState(conversationIDKeyRef.current)
+      const convoState = Chat.getConvoState(conversationIDKey)
       return convoState.rowRecycleTypeMap.get(ordinal) ?? convoState.messageTypeMap.get(ordinal) ?? 'text'
-    }
+    },
+    [conversationIDKey]
   )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
