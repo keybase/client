@@ -13,9 +13,9 @@ import {
 } from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
+import ChatFilterRow from './filter-row'
 import InboxSearch from '../inbox-search'
 import NewChatButton from './new-chat-button'
-import SearchRow from './search-row'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
@@ -287,17 +287,30 @@ function Inbox(props: InboxProps) {
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
+  const searchBar = (
+    <ChatFilterRow
+      isSearching={search.isSearching}
+      onCancelSearch={search.cancelSearch}
+      onSelectUp={() => search.moveSelectedIndex(false)}
+      onSelectDown={() => search.moveSelectedIndex(true)}
+      onEnsureSelection={search.selectResult}
+      onQueryChanged={search.setQuery}
+      query={search.query}
+      showSearch={true}
+      startSearch={search.startSearch}
+    />
+  )
 
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.topBar}>
+        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.topBar}>
           <Kb.BoxGrow2>
-            <SearchRow search={search} showSearch={true} />
+            {searchBar}
           </Kb.BoxGrow2>
           <NewChatButton />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.body}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
           {search.isSearching ? (
             <InboxSearch search={search} />
           ) : (
@@ -336,6 +349,7 @@ const styles = Kb.Styles.styleSheetCreate(
       body: {
         flex: 1,
         minHeight: 0,
+        width: '100%',
       },
       container: Kb.Styles.platformStyles({
         isElectron: {
@@ -430,6 +444,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flex: 1,
         height: '100%',
         position: 'relative' as const,
+        width: '100%',
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -443,7 +458,9 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexShrink: 0,
         minHeight: 40,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.tiny,
+        width: '100%',
       },
     }) as const
 )

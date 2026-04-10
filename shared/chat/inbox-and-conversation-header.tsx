@@ -147,7 +147,7 @@ const Header2 = () => {
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
       {!Kb.Styles.isMobile && <Kb.BoxGrow2 />}
-      <NewChatButton />
+      {!C.isElectron && <NewChatButton />}
     </Kb.Box2>
   )
 
