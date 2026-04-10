@@ -71,7 +71,8 @@ function InboxBody(p: ControlledInboxProps) {
   const inbox = useInboxState(p.conversationIDKey, search.isSearching)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
-  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows, smallTeamsHiddenBadgeCount} =
+    inbox
   const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -102,6 +103,7 @@ function InboxBody(p: ControlledInboxProps) {
     if (row.type === 'divider') {
       element = (
         <TeamsDivider
+          badgeCount={smallTeamsHiddenBadgeCount}
           showButton={row.showButton}
           hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}

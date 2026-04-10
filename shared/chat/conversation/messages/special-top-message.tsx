@@ -9,12 +9,13 @@ import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
+import {useChatThreadRouteParams} from '../thread-search-route'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
-  const createConversationError = Chat.useChatState(s => s.createConversationError)
+  const createConversationError = useChatThreadRouteParams()?.createConversationError
   const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
