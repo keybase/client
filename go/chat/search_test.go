@@ -1160,3 +1160,15 @@ func TestSearchIndexerNoDeadlockOnClearDuringAdd(t *testing.T) {
 		require.Fail(t, "indexer did not stop")
 	}
 }
+
+func TestSearchIndexerClearWithoutStoreIsSafe(t *testing.T) {
+	ctx := context.TODO()
+	ctc := makeChatTestContext(t, "SearchIndexerClearWithoutStore", 1)
+	defer ctc.cleanup()
+	g := ctc.world.Tcs[ctc.users()[0].Username].Context()
+
+	indexer := search.NewIndexer(g)
+	require.NotPanics(t, func() {
+		require.NoError(t, indexer.Clear(ctx, gregor1.UID(nil), chat1.ConversationID(nil)))
+	})
+}

@@ -41,7 +41,7 @@ const getDefaultVisibleResultCounts = (
   inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>
 ): InboxSearchVisibleResultCounts => ({
   bots: Math.min(inboxSearch.botsResults.length, inboxSearchPreviewSectionSize),
-  names: inboxSearch.nameResults.length,
+  names: inboxSearch.nameResults.length || (inboxSearch.nameResultsUnread ? 1 : 0),
   openTeams: Math.min(inboxSearch.openTeamsResults.length, inboxSearchPreviewSectionSize),
   text: inboxSearch.nameResultsUnread ? 0 : inboxSearch.textResults.length,
 })

@@ -302,17 +302,16 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const visibleResultCounts = React.useMemo<InboxSearchVisibleResultCounts>(
     () => ({
       bots: botsResults.length,
-      names: nameCollapsed ? 0 : _nameResults.length,
+      names: nameResults.length,
       openTeams: openTeamsResults.length,
       text: textCollapsed || nameResultsUnread ? 0 : _textResults.length,
     }),
     [
       botsResults.length,
-      nameCollapsed,
+      nameResults.length,
       nameResultsUnread,
       openTeamsResults.length,
       textCollapsed,
-      _nameResults.length,
       _textResults.length,
     ]
   )
