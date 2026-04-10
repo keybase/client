@@ -186,13 +186,12 @@ export const setupIPCHandlers = (deps: {
     deps.getMainWindow()?.webContents.send('KBdispatchAction', action)
   })
 
+  Electron.ipcMain.on('engineSend', (_event, buf) => {
+    deps.nodeEngine._rpcClient.transport.send(buf)
+  })
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
-      case 'engineSend': {
-        const {buf} = action.payload
-        deps.nodeEngine._rpcClient.transport.send(buf)
-        return
-      }
       case 'uninstallDokan': {
         return new Promise<void>(resolve => {
           try {

@@ -194,9 +194,7 @@ class Engine {
           type: method as EngineGen.ActionKey,
         } as EngineGen.EngineActions
         if (this._onEngineIncoming) {
-          setTimeout(() => {
-            this._onEngineIncoming?.(act)
-          }, 0)
+          this._onEngineIncoming(act)
         }
       }
     }

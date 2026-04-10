@@ -74,7 +74,7 @@ if (isRenderer) {
           })
         },
         engineSend: (buf: EngineRPCMessage) => {
-          ignorePromise(invoke({payload: {buf}, type: 'engineSend'}))
+          Electron.ipcRenderer.send('engineSend', buf)
         },
         exitApp: (code: number) => {
           ignorePromise(invoke({payload: {code}, type: 'exitApp'}))
@@ -110,9 +110,6 @@ if (isRenderer) {
         },
         mainWindowDispatch: (action: Actions) => {
           ignorePromise(Electron.ipcRenderer.invoke('KBdispatchAction', action))
-        },
-        mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
-          ignorePromise(Electron.ipcRenderer.invoke('engineIncoming', data))
         },
         makeRenderer: (options: {
           windowComponent: string
