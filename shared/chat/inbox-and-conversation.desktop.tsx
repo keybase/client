@@ -53,7 +53,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       topBar: {
         alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
         height: '100%',
         paddingRight: Kb.Styles.globalMargins.tiny,
         width: '100%',
