@@ -111,10 +111,7 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
-  const infoPanelShowing =
-    route.name === 'chatRoot' && !!route.params && 'infoPanel' in route.params
-      ? !!route.params.infoPanel
-      : false
+  const infoPanelShowing = route.name === 'chatRoot' ? !!route.params.infoPanel : false
   const uiData = Chat.useChatUIContext(
     C.useShallow(s => ({
       editOrdinal: s.editing,

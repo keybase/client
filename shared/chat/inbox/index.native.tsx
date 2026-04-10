@@ -197,7 +197,7 @@ function InboxBody(p: ControlledInboxProps) {
   )
 }
 
-export default function Inbox(props: InboxProps) {
+function Inbox(props: InboxProps) {
   return props.search ? (
     <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
   ) : (
