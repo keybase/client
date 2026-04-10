@@ -28,3 +28,24 @@ test('inbox search selection movement stays within available results', () => {
   selectedIndex = nextInboxSearchSelectedIndex({...inboxSearch, selectedIndex}, false)
   expect(selectedIndex).toBe(0)
 })
+
+test('inbox search selection movement respects visible result counts', () => {
+  const inboxSearch = makeInboxSearchInfo()
+  inboxSearch.nameResults = [{conversationIDKey: '1'} as any]
+  inboxSearch.openTeamsResults = new Array(5).fill({name: 'team'}) as any
+  inboxSearch.botsResults = new Array(5).fill({botUsername: 'bot'}) as any
+  inboxSearch.textResults = [{conversationIDKey: '2', query: 'needle', time: 1} as any]
+
+  const selectedIndex = nextInboxSearchSelectedIndex(
+    {...inboxSearch, selectedIndex: 7},
+    true,
+    {
+      bots: 5,
+      names: 1,
+      openTeams: 5,
+      text: 1,
+    }
+  )
+
+  expect(selectedIndex).toBe(8)
+})

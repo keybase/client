@@ -13,6 +13,13 @@ export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 export const inboxSearchPreviewSectionSize = 3
 
+export type InboxSearchVisibleResultCounts = {
+  bots: number
+  names: number
+  openTeams: number
+  text: number
+}
+
 export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   botsResults: [],
   botsResultsSuggested: false,
@@ -30,8 +37,44 @@ export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   textStatus: 'initial',
 })
 
-const getInboxSearchSelected = (
+const getDefaultVisibleResultCounts = (
   inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>
+): InboxSearchVisibleResultCounts => ({
+  bots: Math.min(inboxSearch.botsResults.length, inboxSearchPreviewSectionSize),
+  names: inboxSearch.nameResults.length,
+  openTeams: Math.min(inboxSearch.openTeamsResults.length, inboxSearchPreviewSectionSize),
+  text: inboxSearch.nameResultsUnread ? 0 : inboxSearch.textResults.length,
+})
+
+const areVisibleResultCountsEqual = (
+  left: InboxSearchVisibleResultCounts,
+  right: InboxSearchVisibleResultCounts
+) =>
+  left.bots === right.bots &&
+  left.names === right.names &&
+  left.openTeams === right.openTeams &&
+  left.text === right.text
+
+const getTotalVisibleResultCount = (visibleResultCounts: InboxSearchVisibleResultCounts) =>
+  visibleResultCounts.names +
+  visibleResultCounts.openTeams +
+  visibleResultCounts.bots +
+  visibleResultCounts.text
+
+const clampSelectedIndex = (
+  selectedIndex: number,
+  visibleResultCounts: InboxSearchVisibleResultCounts
+) => {
+  const totalResults = getTotalVisibleResultCount(visibleResultCounts)
+  if (totalResults <= 0) {
+    return 0
+  }
+  return Math.min(selectedIndex, totalResults - 1)
+}
+
+const getInboxSearchSelected = (
+  inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>,
+  visibleResultCounts = getDefaultVisibleResultCounts(inboxSearch)
 ):
   | undefined
   | {
@@ -40,12 +83,10 @@ const getInboxSearchSelected = (
       openTeamName?: string
       query?: string
     } => {
-  const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
-  const visibleBotsResults = botsResults.slice(0, inboxSearchPreviewSectionSize)
-  const visibleOpenTeamResults = openTeamsResults.slice(0, inboxSearchPreviewSectionSize)
-  const firstBotResultIdx = nameResults.length + visibleOpenTeamResults.length
-  const firstTextResultIdx = firstBotResultIdx + visibleBotsResults.length
-  const firstOpenTeamResultIdx = nameResults.length
+  const {selectedIndex, nameResults, textResults} = inboxSearch
+  const firstOpenTeamResultIdx = visibleResultCounts.names
+  const firstBotResultIdx = firstOpenTeamResultIdx + visibleResultCounts.openTeams
+  const firstTextResultIdx = firstBotResultIdx + visibleResultCounts.bots
 
   if (selectedIndex < firstOpenTeamResultIdx) {
     const maybeNameResults = nameResults[selectedIndex]
@@ -74,14 +115,11 @@ const getInboxSearchSelected = (
 
 export const nextInboxSearchSelectedIndex = (
   inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>,
-  increment: boolean
+  increment: boolean,
+  visibleResultCounts = getDefaultVisibleResultCounts(inboxSearch)
 ) => {
   const {selectedIndex} = inboxSearch
-  const totalResults =
-    inboxSearch.nameResults.length +
-    Math.min(inboxSearch.openTeamsResults.length, inboxSearchPreviewSectionSize) +
-    Math.min(inboxSearch.botsResults.length, inboxSearchPreviewSectionSize) +
-    inboxSearch.textResults.length
+  const totalResults = getTotalVisibleResultCount(visibleResultCounts)
   if (increment && selectedIndex < totalResults - 1) {
     return selectedIndex + 1
   }
@@ -107,6 +145,7 @@ export type InboxSearchController = {
   searchInfo: T.Chat.InboxSearchInfo
   selectResult: InboxSearchSelect
   setQuery: (query: string) => void
+  setVisibleResultCounts: (visibleResultCounts: InboxSearchVisibleResultCounts) => void
   startSearch: () => void
 }
 
@@ -117,6 +156,9 @@ export function useInboxSearch(): InboxSearchController {
   const activeSearchIDRef = React.useRef(0)
   const isSearchingRef = React.useRef(isSearching)
   const searchInfoRef = React.useRef(searchInfo)
+  const visibleResultCountsRef = React.useRef<InboxSearchVisibleResultCounts>(
+    getDefaultVisibleResultCounts(searchInfo)
+  )
 
   React.useEffect(() => {
     isSearchingRef.current = isSearching
@@ -148,6 +190,7 @@ export function useInboxSearch(): InboxSearchController {
     isSearchingRef.current = false
     const next = makeInboxSearchInfo()
     searchInfoRef.current = next
+    visibleResultCountsRef.current = getDefaultVisibleResultCounts(next)
     setIsSearching(false)
     setSearchInfo(next)
     cancelActiveSearch()
@@ -343,10 +386,29 @@ export function useInboxSearch(): InboxSearchController {
     clearSearch()
   }, [clearSearch])
 
+  const setVisibleResultCounts = React.useCallback(
+    (visibleResultCounts: InboxSearchVisibleResultCounts) => {
+      if (areVisibleResultCountsEqual(visibleResultCountsRef.current, visibleResultCounts)) {
+        return
+      }
+      visibleResultCountsRef.current = visibleResultCounts
+      setSearchInfo(prev => {
+        const selectedIndex = clampSelectedIndex(prev.selectedIndex, visibleResultCounts)
+        if (selectedIndex === prev.selectedIndex) {
+          return prev
+        }
+        const next = {...prev, selectedIndex}
+        searchInfoRef.current = next
+        return next
+      })
+    },
+    []
+  )
+
   const moveSelectedIndex = React.useCallback((increment: boolean) => {
     updateSearchInfo(prev => ({
       ...prev,
-      selectedIndex: nextInboxSearchSelectedIndex(prev, increment),
+      selectedIndex: nextInboxSearchSelectedIndex(prev, increment, visibleResultCountsRef.current),
     }))
   }, [updateSearchInfo])
 
@@ -366,7 +428,7 @@ export function useInboxSearch(): InboxSearchController {
         return
       }
 
-      const selected = getInboxSearchSelected(latestSearchInfo)
+      const selected = getInboxSearchSelected(latestSearchInfo, visibleResultCountsRef.current)
       if (!conversationIDKey) {
         conversationIDKey = selected?.conversationIDKey
       }
@@ -409,6 +471,7 @@ export function useInboxSearch(): InboxSearchController {
     isSearchingRef.current = true
     const next = makeInboxSearchInfo()
     searchInfoRef.current = next
+    visibleResultCountsRef.current = getDefaultVisibleResultCounts(next)
     setIsSearching(true)
     setSearchInfo(next)
     runSearch('')
@@ -427,14 +490,27 @@ export function useInboxSearch(): InboxSearchController {
     }
   }, [clearSearch, mobileAppState])
 
-  return {
-    cancelSearch,
-    isSearching,
-    moveSelectedIndex,
-    query: searchInfo.query,
-    searchInfo,
-    selectResult,
-    setQuery,
-    startSearch,
-  }
+  return React.useMemo(
+    () => ({
+      cancelSearch,
+      isSearching,
+      moveSelectedIndex,
+      query: searchInfo.query,
+      searchInfo,
+      selectResult,
+      setQuery,
+      setVisibleResultCounts,
+      startSearch,
+    }),
+    [
+      cancelSearch,
+      isSearching,
+      moveSelectedIndex,
+      searchInfo,
+      selectResult,
+      setQuery,
+      setVisibleResultCounts,
+      startSearch,
+    ]
+  )
 }

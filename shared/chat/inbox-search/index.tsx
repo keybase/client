@@ -15,11 +15,12 @@ import {
   inboxSearchMaxTextMessages,
   inboxSearchPreviewSectionSize,
   type InboxSearchController,
+  type InboxSearchVisibleResultCounts,
 } from '../inbox/use-inbox-search'
 
 type OwnProps = {
   header?: React.ReactElement | null
-  search: Pick<InboxSearchController, 'searchInfo' | 'selectResult'>
+  search: Pick<InboxSearchController, 'searchInfo' | 'selectResult' | 'setVisibleResultCounts'>
 }
 
 type NameResult = {
@@ -52,7 +53,7 @@ type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
 export default function InboxSearchContainer(ownProps: OwnProps) {
   const {
-    search: {searchInfo: _inboxSearch, selectResult},
+    search: {searchInfo: _inboxSearch, selectResult, setVisibleResultCounts},
   } = ownProps
   const navigateAppend = C.Router2.navigateAppend
   const onInstallBot = (username: string) => {
@@ -297,6 +298,28 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const botsResults =
     botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, inboxSearchPreviewSectionSize)
   const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
+
+  const visibleResultCounts = React.useMemo<InboxSearchVisibleResultCounts>(
+    () => ({
+      bots: botsResults.length,
+      names: nameCollapsed ? 0 : _nameResults.length,
+      openTeams: openTeamsResults.length,
+      text: textCollapsed || nameResultsUnread ? 0 : _textResults.length,
+    }),
+    [
+      botsResults.length,
+      nameCollapsed,
+      nameResultsUnread,
+      openTeamsResults.length,
+      textCollapsed,
+      _nameResults.length,
+      _textResults.length,
+    ]
+  )
+
+  React.useLayoutEffect(() => {
+    setVisibleResultCounts(visibleResultCounts)
+  }, [setVisibleResultCounts, visibleResultCounts])
 
   const nameSection: Section = {
     data: nameResults,

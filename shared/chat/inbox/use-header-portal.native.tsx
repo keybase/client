@@ -5,17 +5,26 @@ import {setInboxHeaderPortalContent} from './header-portal-state'
 import type {InboxSearchController} from './use-inbox-search'
 
 export default function useInboxHeaderPortal(search: InboxSearchController) {
+  const content = React.useMemo(
+    () => <SearchRow forceShowFilter={true} search={search} showNewChatButton={true} showSearch={true} />,
+    [search]
+  )
+
   React.useEffect(() => {
     if (!C.isTablet) {
       return
     }
-    setInboxHeaderPortalContent(
-      <SearchRow forceShowFilter={true} search={search} showNewChatButton={true} showSearch={true} />
-    )
+    setInboxHeaderPortalContent(content)
+  }, [content])
+
+  React.useEffect(() => {
+    if (!C.isTablet) {
+      return
+    }
     return () => {
       setInboxHeaderPortalContent(null)
     }
-  }, [search])
+  }, [])
 
   return null
 }

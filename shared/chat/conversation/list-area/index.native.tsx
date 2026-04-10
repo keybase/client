@@ -125,9 +125,7 @@ const ConversationList = function ConversationList() {
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const conversationIDKeyRef = React.useRef(conversationIDKey)
-  React.useEffect(() => {
-    conversationIDKeyRef.current = conversationIDKey
-  }, [conversationIDKey])
+  conversationIDKeyRef.current = conversationIDKey
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
