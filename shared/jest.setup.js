@@ -55,6 +55,5 @@ global._fromPreload = {
   },
   functions: {
     mainWindowDispatch: () => {},
-    mainWindowDispatchEngineIncoming: () => {},
   },
 }
