@@ -9,21 +9,24 @@ import {headerNavigationOptions} from './conversation/header-area'
 import {useConfigState} from '@/stores/config'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
+import type {StaticScreenProps} from '@react-navigation/core'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
-import {defineRouteMap, withRouteParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
-const InboxAndConversation = React.lazy(async () => {
+const ChatRootScreen = React.lazy(async () => {
   const mod = await import('./inbox-and-conversation')
-  const Screen = (props: ChatRootRouteParams) => <mod.default {...props} />
-  return {default: Screen}
+  return {
+    default: (p: StaticScreenProps<ChatRootRouteParams>) => <mod.default {...(p.route.params ?? {})} />,
+  }
 })
-const InboxDeferLoading = React.lazy(async () => {
+const ChatRootDeferredScreen = React.lazy(async () => {
   const mod = await import('./inbox/defer-loading')
-  const Screen = (props: ChatRootRouteParams) => <mod.default {...props} />
-  return {default: Screen}
+  return {
+    default: (p: StaticScreenProps<ChatRootRouteParams>) => <mod.default {...(p.route.params ?? {})} />,
+  }
 })
 
 type ChatBlockingRouteParams = {
@@ -135,21 +138,13 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        ...withRouteParams<ChatRootRouteParams>(
-          Chat.makeChatScreen(InboxAndConversation, {
-            getOptions: inboxAndConvoGetOptions,
-            skipProvider: true,
-          })
-        ),
+        getOptions: inboxAndConvoGetOptions,
+        screen: ChatRootScreen,
         initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...withRouteParams<ChatRootRouteParams>(
-          Chat.makeChatScreen(InboxDeferLoading, {
-            getOptions: inboxGetOptions,
-            skipProvider: true,
-          })
-        ),
+        getOptions: inboxGetOptions,
+        screen: ChatRootDeferredScreen,
         initialParams: emptyChatRootRouteParams,
       },
 })
