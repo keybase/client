@@ -15,7 +15,7 @@ import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
-import type {RootRouteProps} from '@/router-v2/route-params'
+import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -111,7 +111,8 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
-  const infoPanelShowing = route.name === 'chatRoot' ? !!route.params.infoPanel : false
+  const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
+  const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
   const uiData = Chat.useChatUIContext(
     C.useShallow(s => ({
       editOrdinal: s.editing,
