@@ -220,6 +220,21 @@ export const initPushListener = () => {
     pushState.dispatch.handlePush(pending)
   })
 
+  // If a tapped notification arrives before configuredAccounts has loaded, keep
+  // it pending and retry once the account list is available.
+  storeRegistry.getStore('config').subscribe((s, old) => {
+    if (s.configuredAccounts === old.configuredAccounts || s.userSwitching) return
+    const pushState = storeRegistry.getState('push')
+    const pending = pushState.pendingPushNotification
+    if (!pending) return
+    const forUid = (pending as {forUid?: string}).forUid
+    if (!forUid || forUid === storeRegistry.getState('current-user').uid) return
+    const account = s.configuredAccounts.find(acc => acc.uid === forUid)
+    if (!account?.hasStoredSecret) return
+    pushState.dispatch.clearPendingPushNotification()
+    pushState.dispatch.handlePush(pending)
+  })
+
   // Clear pending push on logout, but not during an account switch — the switch
   // flow sets userSwitching=true before triggering logout, and the pending
   // notification must survive until the new account finishes bootstrapping.

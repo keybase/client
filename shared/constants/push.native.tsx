@@ -152,10 +152,25 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           if (forUid) {
             const currentUid = storeRegistry.getState('current-user').uid
             if (forUid !== currentUid) {
+              // Only switch accounts if the user explicitly tapped the notification.
+              // Background/silent deliveries (userInteraction=false) must not trigger
+              // a switch — that's what was causing spurious account switches when
+              // foregrounding the app or receiving background pushes.
+              const userInteraction =
+                'userInteraction' in notification
+                  ? (notification as {userInteraction?: boolean}).userInteraction
+                  : false
+              if (!userInteraction) {
+                logger.info('[Push] notification for different account but no userInteraction, skipping')
+                return
+              }
               const {configuredAccounts, dispatch: configDispatch} = storeRegistry.getState('config')
               const account = configuredAccounts.find(acc => acc.uid === forUid)
               if (!account) {
-                logger.info('[Push] notification forUid not in configured accounts, skipping')
+                logger.info('[Push] notification forUid not in configured accounts yet, waiting to retry')
+                set(s => {
+                  s.pendingPushNotification = notification
+                })
                 return
               }
               if (!account.hasStoredSecret) {
@@ -295,6 +310,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     resetState: 'default',
+    setPendingPushNotification: (notification: T.Push.PushNotification) => {
+      set(s => {
+        s.pendingPushNotification = notification
+      })
+    },
     setPushToken: (token: string) => {
       set(s => {
         s.token = token

@@ -17,8 +17,8 @@ import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import keybase.ChatNotification
-import me.leolin.shortcutbadger.ShortcutBadger
 import com.reactnativekb.KbModule
+import me.leolin.shortcutbadger.ShortcutBadger
 import org.json.JSONArray
 import org.json.JSONObject
 import android.util.Log
@@ -30,6 +30,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
     // Avoid ever showing doubles
     private val seenChatNotifications = HashSet<String>()
+    private fun isOtherAccountPushError(ex: Exception): Boolean {
+        return ex.message?.contains("different account") == true
+    }
+
     private fun buildStyle(convID: String, person: Person): NotificationCompat.Style {
         val style = NotificationCompat.MessagingStyle(person)
         val buf = msgCache[convID]
@@ -67,10 +71,10 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
             if (!bundle.containsKey("color")) {
                 bundle.putString("color", data.optString("color", ""))
             }
-            val badge = data.optInt("badge", -1)
-            if (badge >= 0) {
-                ShortcutBadger.applyCount(this, badge)
-            }
+            // Do not apply badge here: the data.badge value comes from the server
+            // for an unspecified account and may not match the currently active user.
+            // Badge updates are applied in displayChatNotification2 (after Go validates
+            // the target UID) or via the Gregor badge-state RPC path.
         }
         try {
             val type = bundle.getString("type")
@@ -106,6 +110,15 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                     notifier.setMsgCache(msgCache[n.convID])
 
+                    // Both push types include a target UID so Go can reject the notification
+                    // early when the push is addressed to a different logged-in account:
+                    //   chat.newmessage       → "uid" field
+                    //   chat.newmessageSilent_2 → "i" field (added server-side)
+                    val targetUID = when (type) {
+                        "chat.newmessage" -> bundle.getString("uid", "")
+                        else -> bundle.getString("i", "")
+                    }
+
                     var goProcessingSucceeded = false
                     try {
                         val withBackgroundActive: WithBackgroundActive = object : WithBackgroundActive {
@@ -113,21 +126,37 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                                 try {
                                     Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                                             n.membersType.toLong(), n.displayPlaintext, n.messageId.toLong(), n.pushId,
-                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true)
+                                            n.badgeCount.toLong(), n.unixTime, n.soundName, if (dontNotify) null else notifier, true,
+                                            targetUID)
                                     goProcessingSucceeded = true
                                     if (!dontNotify) {
                                         seenChatNotifications.add(n.convID + n.messageId)
                                     }
                                 } catch (ex: Exception) {
-                                    NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                    if (isOtherAccountPushError(ex)) {
+                                        NativeLogger.info("Go skipped notification for a different active account: " + ex.message)
+                                    } else {
+                                        NativeLogger.error("Go Couldn't handle background notification2: " + ex.message)
+                                    }
                                     throw ex
                                 }
                             }
                         }
                         withBackgroundActive.whileActive(applicationContext)
                     } catch (ex: Exception) {
-                        NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                        if (isOtherAccountPushError(ex)) {
+                            NativeLogger.info("Skipping active-account processing for different-account push")
+                        } else {
+                            NativeLogger.error("Failed to process notification (app may not be running): " + ex.message)
+                        }
                         goProcessingSucceeded = false
+                    }
+
+                    // For silent pushes the notifier is null so DisplayChatNotification is
+                    // never called and KBPushNotifier cannot apply the badge. Apply it here
+                    // after Go has validated the target UID, mirroring Pusher.swift on iOS.
+                    if (goProcessingSucceeded && dontNotify && n.badgeCount >= 0) {
+                        ShortcutBadger.applyCount(applicationContext, n.badgeCount)
                     }
 
                     val isReactNativeRunning = try {
@@ -170,10 +199,12 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                             chatNotif.message = message
                             chatNotif.isPlaintext = n.displayPlaintext
+                            chatNotif.badgeCount = -1
                             chatNotif.soundName = n.soundName ?: "default"
                             chatNotif.conversationName = ""
                             chatNotif.isGroupConversation = false
                             chatNotif.tlfName = ""
+                            chatNotif.title = bundle.getString("title", "")
 
                             notifier.displayChatNotification(chatNotif)
                             seenChatNotifications.add(n.convID + n.messageId)
