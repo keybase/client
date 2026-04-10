@@ -2,23 +2,18 @@ import * as Z from '@/util/zustand'
 import type {Store, State} from './settings-contacts'
 
 const initialStore: Store = {
-  alreadyOnKeybase: [],
-  importError: '',
-  importPromptDismissed: false,
-  importedCount: undefined,
   permissionStatus: 'unknown',
+  syncGeneration: 0,
   userCountryCode: undefined,
-  waitingToShowJoinedModal: false,
 }
 
 export const useSettingsContactsState = Z.createZustand<State>('settings-contacts', () => {
   const dispatch: State['dispatch'] = {
-    editContactImportEnabled: () => {},
-    importContactsLater: () => {},
-    loadContactImportEnabled: () => {},
-    loadContactPermissions: () => {},
-    manageContactsCache: () => {},
-    requestPermissions: () => {},
+    editContactImportEnabled: async () => {},
+    loadContactImportEnabled: async () => {},
+    loadContactPermissions: async () => 'unknown',
+    notifySyncSucceeded: () => {},
+    requestPermissions: async () => 'unknown',
     resetState: Z.defaultReset,
   }
   return {
