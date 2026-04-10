@@ -15,6 +15,8 @@ import {Alert} from 'react-native'
 import type {LegendListRef} from '@/common-adapters'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
+import type {InboxSearchController} from './use-inbox-search'
+import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 
@@ -49,16 +51,29 @@ const NoChats = (props: {onNewChat: () => void}) => (
   </>
 )
 
-const HeadComponent = <SearchRow headerContext="inbox-header" />
+type InboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  search?: InboxSearchController
+}
 
-type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+type ControlledInboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  search: InboxSearchController
+}
 
-function Inbox(p: InboxProps) {
-  const inbox = useInboxState(p.conversationIDKey)
+function InboxWithSearch(props: {conversationIDKey?: T.Chat.ConversationIDKey}) {
+  const search = useInboxSearch()
+  return <InboxBody conversationIDKey={props.conversationIDKey} search={search} />
+}
+
+function InboxBody(p: ControlledInboxProps) {
+  const {search} = p
+  const inbox = useInboxState(p.conversationIDKey, search.isSearching)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows, smallTeamsHiddenBadgeCount} =
     inbox
+  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
@@ -152,12 +167,12 @@ function Inbox(p: InboxProps) {
         <LoadingLine />
         {isSearching ? (
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <InboxSearch header={HeadComponent} />
+            <InboxSearch header={headComponent} search={search} />
           </Kb.Box2>
         ) : (
           <Kb.List
             testID="inboxList"
-            ListHeaderComponent={HeadComponent}
+            ListHeaderComponent={headComponent}
             items={rows}
             itemHeight={itemHeight}
             estimatedItemHeight={64}
@@ -181,6 +196,14 @@ function Inbox(p: InboxProps) {
       </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>
+  )
+}
+
+function Inbox(props: InboxProps) {
+  return props.search ? (
+    <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
+  ) : (
+    <InboxWithSearch conversationIDKey={props.conversationIDKey} />
   )
 }
 

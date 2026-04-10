@@ -20,7 +20,7 @@ import {flushInboxRowUpdates} from '@/stores/inbox-rows'
 import {buildInboxRows} from '@/chat/inbox/rows'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import {isMobile, isPhone} from '@/constants/platform'
+import {isPhone} from '@/constants/platform'
 import {
   navigateAppend,
   navUpToScreen,
@@ -1541,17 +1541,19 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
 // See constants/router.tsx IsExactlyRecord for explanation
 type IsExactlyRecord<T> = string extends keyof T ? true : false
 
-type NavigatorParamsFromProps<P> = P extends Record<string, unknown>
-  ? IsExactlyRecord<P> extends true
-    ? undefined
-    : keyof P extends never
+type NavigatorParamsFromProps<P> =
+  P extends Record<string, unknown>
+    ? IsExactlyRecord<P> extends true
       ? undefined
-      : P
-  : undefined
+      : keyof P extends never
+        ? undefined
+        : P
+    : undefined
 
-type AddConversationIDKey<P> = P extends Record<string, unknown>
-  ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
-  : {conversationIDKey?: T.Chat.ConversationIDKey}
+type AddConversationIDKey<P> =
+  P extends Record<string, unknown>
+    ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
+    : {conversationIDKey?: T.Chat.ConversationIDKey}
 
 type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
   COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
@@ -1568,31 +1570,30 @@ type ChatScreenComponent<COM extends React.LazyExoticComponent<any>> = (
 export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   Component: COM,
   options?: {
-    getOptions?:
-      | GetOptionsRet
-      | ((props: ChatScreenProps<COM>) => GetOptionsRet)
+    getOptions?: GetOptionsRet | ((props: ChatScreenProps<COM>) => GetOptionsRet)
     skipProvider?: boolean
     canBeNullConvoID?: boolean
   }
 ): RouteDef<ChatScreenComponent<COM>, ChatScreenParams<COM>> {
   const getOptionsOption = options?.getOptions
-  const getOptions = typeof getOptionsOption === 'function'
-    ? (p: ChatScreenProps<COM>) =>
-        // getOptions can run before params are materialized on the route object.
-        getOptionsOption({
-          ...p,
-          route: {
-            ...p.route,
-            params: (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>),
-          },
-        })
-    : getOptionsOption
+  const getOptions =
+    typeof getOptionsOption === 'function'
+      ? (p: ChatScreenProps<COM>) =>
+          // getOptions can run before params are materialized on the route object.
+          getOptionsOption({
+            ...p,
+            route: {
+              ...p.route,
+              params: ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>,
+            },
+          })
+      : getOptionsOption
   return {
     ...options,
     getOptions,
     screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
-      const params = (((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>)
+      const params = ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>
       return options?.skipProvider ? (
         <Comp {...params} />
       ) : (

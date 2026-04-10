@@ -13,6 +13,7 @@ import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
+import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 type ChatBlockingRouteParams = {
@@ -36,14 +37,12 @@ type ChatShowNewTeamDialogRouteParams = {
 const emptyChatBlockingRouteParams: ChatBlockingRouteParams = {}
 const emptyChatSearchBotsRouteParams: ChatSearchBotsRouteParams = {}
 const emptyChatShowNewTeamDialogRouteParams: ChatShowNewTeamDialogRouteParams = {}
+const emptyChatRootRouteParams: ChatRootRouteParams = {}
 
 const PDFShareButton = ({url}: {url?: string}) => {
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   return (
-    <Kb.Icon
-      type="iconfont-share"
-      onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')}
-    />
+    <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')} />
   )
 }
 
@@ -64,16 +63,38 @@ const BotInstallHeaderTitle = () => {
 
 const BotInstallHeaderLeft = () => {
   const {subScreen, inTeam, readOnly, onAction} = useModalHeaderState(
-    C.useShallow(s => ({inTeam: s.botInTeam, onAction: s.onAction, readOnly: s.botReadOnly, subScreen: s.botSubScreen}))
+    C.useShallow(s => ({
+      inTeam: s.botInTeam,
+      onAction: s.onAction,
+      readOnly: s.botReadOnly,
+      subScreen: s.botSubScreen,
+    }))
   )
   if (subScreen === 'channels') {
-    return <Kb.Text type="BodyBigLink" onClick={onAction}>Back</Kb.Text>
+    return (
+      <Kb.Text type="BodyBigLink" onClick={onAction}>
+        Back
+      </Kb.Text>
+    )
   }
   if (Kb.Styles.isMobile || subScreen === 'install') {
-    const label = subScreen === 'install'
-      ? (Kb.Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />)
-      : inTeam || readOnly ? 'Close' : 'Cancel'
-    return <Kb.Text type="BodyBigLink" onClick={onAction}>{label}</Kb.Text>
+    const label =
+      subScreen === 'install' ? (
+        Kb.Styles.isMobile ? (
+          'Back'
+        ) : (
+          <Kb.Icon type="iconfont-arrow-left" />
+        )
+      ) : inTeam || readOnly ? (
+        'Close'
+      ) : (
+        'Cancel'
+      )
+    return (
+      <Kb.Text type="BodyBigLink" onClick={onAction}>
+        {label}
+      </Kb.Text>
+    )
   }
   return null
 }
@@ -105,9 +126,17 @@ const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
   if (canBack) {
-    return <Kb.Text type="BodyBigLink" onClick={navigateUp}>Back</Kb.Text>
+    return (
+      <Kb.Text type="BodyBigLink" onClick={navigateUp}>
+        Back
+      </Kb.Text>
+    )
   }
-  return <Kb.Text type="BodyBigLink" onClick={clearModals}>Cancel</Kb.Text>
+  return (
+    <Kb.Text type="BodyBigLink" onClick={clearModals}>
+      Cancel
+    </Kb.Text>
+  )
 }
 
 export const newRoutes = defineRouteMap({
@@ -127,14 +156,14 @@ export const newRoutes = defineRouteMap({
           getOptions: inboxAndConvoGetOptions,
           skipProvider: true,
         }),
-        initialParams: {},
+        initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox/defer-loading')), {
+        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox')), {
           getOptions: inboxGetOptions,
           skipProvider: true,
         }),
-        initialParams: {},
+        initialParams: emptyChatRootRouteParams,
       },
 })
 
@@ -155,7 +184,13 @@ export const newModalRoutes = defineRouteMap({
         ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
         headerShown: false,
         modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
-        overlayStyle: {alignSelf: 'stretch', paddingBottom: 16, paddingLeft: 40, paddingRight: 40, paddingTop: 40},
+        overlayStyle: {
+          alignSelf: 'stretch',
+          paddingBottom: 16,
+          paddingLeft: 40,
+          paddingRight: 40,
+          paddingTop: 40,
+        },
         safeAreaStyle: {backgroundColor: 'black'}, // true black
       },
     }
@@ -165,29 +200,43 @@ export const newModalRoutes = defineRouteMap({
     {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
   ),
   chatBlockingModal: {
-    ...Chat.makeChatScreen(React.lazy(async () => import('./blocking/block-modal')), {
-      getOptions: {
-        headerTitle: () => <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />,
-      },
-    }),
+    ...Chat.makeChatScreen(
+      React.lazy(async () => import('./blocking/block-modal')),
+      {
+        getOptions: {
+          headerTitle: () => (
+            <Kb.Icon type="iconfont-user-block" sizeType="Big" color={Kb.Styles.globalColors.red} />
+          ),
+        },
+      }
+    ),
     initialParams: emptyChatBlockingRouteParams,
   },
-  chatChooseEmoji: Chat.makeChatScreen(React.lazy(async () => import('./emoji-picker/container')), {
-    getOptions: {headerShown: false},
-  }),
+  chatChooseEmoji: Chat.makeChatScreen(
+    React.lazy(async () => import('./emoji-picker/container')),
+    {
+      getOptions: {headerShown: false},
+    }
+  ),
   chatConfirmNavigateExternal: Chat.makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
     {skipProvider: true}
   ),
-  chatConfirmRemoveBot: Chat.makeChatScreen(React.lazy(async () => import('./conversation/bot/confirm')), {canBeNullConvoID: true}),
+  chatConfirmRemoveBot: Chat.makeChatScreen(
+    React.lazy(async () => import('./conversation/bot/confirm')),
+    {canBeNullConvoID: true}
+  ),
   chatCreateChannel: Chat.makeChatScreen(
     React.lazy(async () => import('./create-channel')),
     {skipProvider: true}
   ),
   chatDeleteHistoryWarning: Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
-  chatForwardMsgPick: Chat.makeChatScreen(React.lazy(async () => import('./conversation/fwd-msg')), {
-    getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
-  }),
+  chatForwardMsgPick: Chat.makeChatScreen(
+    React.lazy(async () => import('./conversation/fwd-msg')),
+    {
+      getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
+    }
+  ),
   chatInfoPanel: Chat.makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel')),
     {getOptions: C.isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
@@ -218,19 +267,25 @@ export const newModalRoutes = defineRouteMap({
     })
   ),
   chatNewChat,
-  chatPDF: Chat.makeChatScreen(React.lazy(async () => import('./pdf')), {
-    getOptions: p => ({
-      headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-      headerTitle: () => <PDFHeaderTitle />,
-      modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
-      overlayStyle: {alignSelf: 'stretch'},
-    }),
-  }),
+  chatPDF: Chat.makeChatScreen(
+    React.lazy(async () => import('./pdf')),
+    {
+      getOptions: p => ({
+        headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+        headerTitle: () => <PDFHeaderTitle />,
+        modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
+        overlayStyle: {alignSelf: 'stretch'},
+      }),
+    }
+  ),
   chatSearchBots: {
-    ...Chat.makeChatScreen(React.lazy(async () => import('./conversation/bot/search')), {
-      canBeNullConvoID: true,
-      getOptions: {title: 'Add a bot'},
-    }),
+    ...Chat.makeChatScreen(
+      React.lazy(async () => import('./conversation/bot/search')),
+      {
+        canBeNullConvoID: true,
+        getOptions: {title: 'Add a bot'},
+      }
+    ),
     initialParams: emptyChatSearchBotsRouteParams,
   },
   chatSendToChat: Chat.makeChatScreen(

@@ -1,14 +1,24 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as Kb from '@/common-adapters'
 import ChatFilterRow from './filter-row'
+import NewChatButton from './new-chat-button'
 import StartNewChat from './row/start-new-chat'
-import {useInboxSearchState} from './search-state'
+import type {InboxSearchController} from './use-inbox-search'
 
-type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
+type OwnProps = {
+  search: Pick<
+    InboxSearchController,
+    'cancelSearch' | 'isSearching' | 'moveSelectedIndex' | 'query' | 'selectResult' | 'setQuery' | 'startSearch'
+  >
+  forceShowFilter?: boolean
+  showSearch: boolean
+  showNewChatButton?: boolean
+}
 
 export default function InboxSearchRow(ownProps: OwnProps) {
-  const {headerContext} = ownProps
-  const isSearching = useInboxSearchState(s => s.enabled)
+  const {forceShowFilter, search, showNewChatButton, showSearch} = ownProps
+  const {cancelSearch, isSearching, moveSelectedIndex, query, selectResult, setQuery, startSearch} = search
   const chatState = Chat.useChatState(
     C.useShallow(s => {
       const hasLoadedEmptyInbox =
@@ -22,43 +32,51 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     })
   )
   const {showEmptyInbox} = chatState
-  const {query, moveSelectedIndex, select, setQuery} = useInboxSearchState(
-    C.useShallow(s => ({
-      moveSelectedIndex: s.dispatch.moveSelectedIndex,
-      query: s.searchInfo.query,
-      select: s.dispatch.select,
-      setQuery: s.dispatch.setQuery,
-    }))
-  )
-  const showStartNewChat = !C.isMobile && !isSearching && showEmptyInbox
-  const showFilter = isSearching || !showEmptyInbox
+  const showStartNewChat = !showNewChatButton && !C.isMobile && !isSearching && showEmptyInbox
+  const showFilter = !!forceShowFilter || isSearching || !showEmptyInbox
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const navigateUp = C.Router2.navigateUp
 
-  const onQueryChanged = (q: string) => {
-    setQuery(q)
-  }
+  const filter = showFilter ? (
+    <ChatFilterRow
+      isSearching={isSearching}
+      onCancelSearch={cancelSearch}
+      onSelectUp={() => moveSelectedIndex(false)}
+      onSelectDown={() => moveSelectedIndex(true)}
+      onEnsureSelection={selectResult}
+      onQueryChanged={setQuery}
+      query={query}
+      showSearch={showSearch}
+      startSearch={startSearch}
+    />
+  ) : null
 
-  const showNewChat = headerContext === 'chat-header'
-  const showSearch = headerContext === 'chat-header' ? !C.isTablet : C.isMobile
+  if (showNewChatButton) {
+    return (
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.row}>
+        <Kb.BoxGrow2>{filter}</Kb.BoxGrow2>
+        <NewChatButton />
+      </Kb.Box2>
+    )
+  }
 
   return (
     <>
-      {!!showStartNewChat && (
-        <StartNewChat onBack={navigateUp} onNewChat={appendNewChatBuilder} />
-      )}
-      {!!showFilter && (
-        <ChatFilterRow
-          onSelectUp={() => moveSelectedIndex(false)}
-          onSelectDown={() => moveSelectedIndex(true)}
-          onEnsureSelection={select}
-          onQueryChanged={onQueryChanged}
-          query={query}
-          showNewChat={showNewChat}
-          showSearch={showSearch}
-        />
-      )}
+      {!!showStartNewChat && <StartNewChat onBack={navigateUp} onNewChat={appendNewChatBuilder} />}
+      {filter}
     </>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      row: {
+        alignItems: 'center',
+        height: '100%',
+        paddingRight: Kb.Styles.globalMargins.tiny,
+        width: '100%',
+      },
+    }) as const
+)

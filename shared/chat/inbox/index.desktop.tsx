@@ -13,6 +13,7 @@ import {
 } from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
+import InboxSearch from '../inbox-search'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
@@ -20,6 +21,8 @@ import type {LegendListRef} from '@/common-adapters'
 import {createPortal} from 'react-dom'
 import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
+import type {InboxSearchController} from './use-inbox-search'
+import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import './inbox.css'
 
@@ -195,10 +198,24 @@ const DragLine = (p: {
   )
 }
 
-type InboxProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+type InboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  search?: InboxSearchController
+}
 
-function Inbox(props: InboxProps) {
-  const inbox = useInboxState(props.conversationIDKey)
+type ControlledInboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  search: InboxSearchController
+}
+
+function InboxWithSearch(props: {conversationIDKey?: T.Chat.ConversationIDKey}) {
+  const search = useInboxSearch()
+  return <InboxBody conversationIDKey={props.conversationIDKey} search={search} />
+}
+
+function InboxBody(props: ControlledInboxProps) {
+  const {conversationIDKey, search} = props
+  const inbox = useInboxState(conversationIDKey, search.isSearching)
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
   const {toggleSmallTeamsExpanded, selectedConversationIDKey, onUntrustedInboxVisible} = inbox
   const {setInboxNumSmallRows, allowShowFloatingButton, smallTeamsHiddenBadgeCount} = inbox
@@ -279,41 +296,62 @@ function Inbox(props: InboxProps) {
     return <>{makeRow(item, isSelected)}</>
   }
 
-  const floatingDivider = showFloating && allowShowFloatingButton && (
+  const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
 
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
-          {rows.length ? (
-            <Kb.List
-              items={rows}
-              itemHeight={itemHeight}
-              estimatedItemHeight={56}
-              getItemType={getItemType}
-              recycleItems={true}
-              keyExtractor={keyExtractor}
-              onViewableItemsChanged={onViewChanged}
-              viewabilityConfig={viewabilityConfig}
-              ref={listRef}
-              renderItem={renderItem}
-              drawDistance={250}
-              extraData={selectedConversationIDKey}
-            />
-          ) : null}
-        </div>
-        {floatingDivider || (rows.length === 0 && <BuildTeam />)}
-        {showUnread && !showFloating && <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
+          {search.isSearching ? (
+            <InboxSearch search={search} />
+          ) : (
+            <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
+              {rows.length ? (
+                <Kb.List
+                  items={rows}
+                  itemHeight={itemHeight}
+                  estimatedItemHeight={56}
+                  getItemType={getItemType}
+                  recycleItems={true}
+                  keyExtractor={keyExtractor}
+                  onViewableItemsChanged={onViewChanged}
+                  viewabilityConfig={viewabilityConfig}
+                  ref={listRef}
+                  renderItem={renderItem}
+                  drawDistance={250}
+                  extraData={selectedConversationIDKey}
+                />
+              ) : null}
+            </div>
+          )}
+        </Kb.Box2>
+        {!search.isSearching && (floatingDivider || (rows.length === 0 && <BuildTeam />))}
+        {!search.isSearching && showUnread && !showFloating && (
+          <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
+        )}
       </Kb.Box2>
     </Kb.ErrorBoundary>
+  )
+}
+
+function Inbox(props: InboxProps) {
+  return props.search ? (
+    <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
+  ) : (
+    <InboxWithSearch conversationIDKey={props.conversationIDKey} />
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      body: {
+        flex: 1,
+        minHeight: 0,
+        width: '100%',
+      },
       container: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,
@@ -407,6 +445,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flex: 1,
         height: '100%',
         position: 'relative' as const,
+        width: '100%',
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,

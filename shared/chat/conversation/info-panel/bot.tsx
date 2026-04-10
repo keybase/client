@@ -66,6 +66,7 @@ type BotProps = T.RPCGen.FeaturedBot & {
   description?: string
   firstItem?: boolean
   hideHover?: boolean
+  isSelected?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -74,9 +75,11 @@ type BotProps = T.RPCGen.FeaturedBot & {
 export const Bot = (props: BotProps) => {
   const {botAlias, description, botUsername} = props
   const {ownerTeam, ownerUser} = props
-  const {onClick, firstItem} = props
+  const {onClick, firstItem, isSelected} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
+  const primaryColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
+  const secondaryColor = isSelected ? Kb.Styles.globalColors.white : undefined
   React.useEffect(() => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
@@ -87,7 +90,7 @@ export const Bot = (props: BotProps) => {
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={secondaryColor ? {color: secondaryColor} : undefined} onClick={() => onClick(botUsername)}>
           {description}
         </Kb.Text>
       )}
@@ -97,12 +100,16 @@ export const Bot = (props: BotProps) => {
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text type="BodySmall" lineClamp={1}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Kb.Styles.globalColors.black}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: primaryColor}}>
           {botAlias || botUsername}
         </Kb.Text>
-        <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
+        <Kb.Text type="BodySmall" style={secondaryColor ? {color: secondaryColor} : undefined}>
+          &nbsp;• by&nbsp;
+        </Kb.Text>
         {ownerTeam ? (
-          <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
+          <Kb.Text type="BodySmall" style={secondaryColor ? {color: secondaryColor} : undefined}>
+            {`${ownerTeam}`}
+          </Kb.Text>
         ) : (
           <Kb.ConnectedUsernames
             inline={true}
@@ -123,7 +130,7 @@ export const Bot = (props: BotProps) => {
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
-      style={{backgroundColor: Kb.Styles.globalColors.white}}
+      style={{backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}}
       action={
         showTeamAdd ? (
           <Kb.IconButton type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />

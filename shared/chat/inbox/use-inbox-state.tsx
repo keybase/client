@@ -5,13 +5,11 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
-import {useInboxSearchState} from './search-state'
 
-export function useInboxState(conversationIDKey?: string) {
+export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
   const username = useCurrentUserState(s => s.username)
-  const isSearching = useInboxSearchState(s => s.enabled)
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
@@ -50,7 +48,7 @@ export function useInboxState(conversationIDKey?: string) {
     if (!C.isMobile) {
       Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
-    if (!inboxHasLoaded) {
+    if (!C.isPhone && !inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
     }
   })

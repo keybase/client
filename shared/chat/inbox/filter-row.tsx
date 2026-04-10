@@ -1,40 +1,31 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useInboxSearchState} from './search-state'
 
 type OwnProps = {
+  isSearching: boolean
+  onCancelSearch: () => void
   onEnsureSelection: () => void
   onSelectDown: () => void
   onSelectUp: () => void
   onQueryChanged: (arg0: string) => void
   query: string
-  showNewChat: boolean
   showSearch: boolean
+  startSearch: () => void
 }
 
-
 function ConversationFilterInput(ownProps: OwnProps) {
-  const {onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
+  const {isSearching, onCancelSearch, onEnsureSelection, onSelectDown, onSelectUp, showSearch} = ownProps
   const {onQueryChanged: onSetFilter, query: filter} = ownProps
 
-  const isSearching = useInboxSearchState(s => s.enabled)
-
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
-  const startSearch = useInboxSearchState(s => s.dispatch.startSearch)
-  const cancelSearch = useInboxSearchState(s => s.dispatch.cancelSearch)
-  const onStartSearch = () => {
-    startSearch()
-  }
-  const onStopSearch = () => {
-    cancelSearch()
-  }
+  const {startSearch} = ownProps
 
   const inputRef = React.useRef<Kb.SearchFilterRef>(null)
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      onStopSearch()
+      onCancelSearch()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
       e.stopPropagation()
@@ -67,7 +58,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     appendNewChatBuilder()
   }
   Kb.useHotKey('mod+n', onHotKeys)
-  Kb.useHotKey('mod+k', onStartSearch)
+  Kb.useHotKey('mod+k', startSearch)
 
   React.useEffect(() => {
     if (isSearching) {
@@ -87,14 +78,19 @@ function ConversationFilterInput(ownProps: OwnProps) {
       valueControlled={true}
       focusOnMount={Kb.Styles.isMobile}
       onChange={onChange}
-      onCancel={onStopSearch}
+      onCancel={onCancelSearch}
       onKeyDown={onKeyDown}
       onEnterKeyDown={onEnterKeyDown}
     />
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
-      <Kb.ClickableBox2 onClick={onStartSearch} style={styles.searchPlaceholder}>
-        <Kb.Icon type="iconfont-search" sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'} color={Kb.Styles.globalColors.black_50} style={styles.searchPlaceholderIcon} />
+      <Kb.ClickableBox2 onClick={startSearch} style={styles.searchPlaceholder}>
+        <Kb.Icon
+          type="iconfont-search"
+          sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'}
+          color={Kb.Styles.globalColors.black_50}
+          style={styles.searchPlaceholderIcon}
+        />
         <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
           {Kb.Styles.isMobile ? 'Search' : 'Search (\u2318K)'}
         </Kb.Text>
@@ -108,8 +104,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
       gap={Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
-        Kb.Styles.isPhone ? null : Kb.Styles.isTablet && showSearch ? null : styles.whiteBg,
-        !Kb.Styles.isMobile && styles.whiteBg,
+        !Kb.Styles.isPhone && styles.whiteBg,
       ])}
       gapStart={showSearch}
       gapEnd={showSearch}

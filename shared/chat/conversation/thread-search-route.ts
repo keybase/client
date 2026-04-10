@@ -16,6 +16,7 @@ export const useChatThreadRouteParams = () => {
   return getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
 }
 
-export const useThreadSearchRoute = () => {
-  return useChatThreadRouteParams()?.threadSearch
+export const useThreadSearchRoute = (): ThreadSearchRoute | undefined => {
+  const params = useChatThreadRouteParams()
+  return params && typeof params === 'object' && 'threadSearch' in params ? params.threadSearch : undefined
 }
