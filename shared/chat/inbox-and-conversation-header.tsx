@@ -155,7 +155,7 @@ const Header2 = () => {
           />
         </Kb.BoxGrow2>
       )}
-      {!C.isElectron && <NewChatButton />}
+      {!C.isElectron && !C.isTablet && <NewChatButton />}
     </Kb.Box2>
   )
 
