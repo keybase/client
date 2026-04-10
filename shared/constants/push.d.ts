@@ -13,6 +13,7 @@ export type State = Store & {
   dispatch: {
     checkPermissions: () => Promise<boolean>
     clearPendingPushNotification: () => void
+    setPendingPushNotification: (notification: T.Push.PushNotification) => void
     deleteToken: (version: number) => void
     handlePush: (notification: T.Push.PushNotification) => void
     initialPermissionsCheck: () => void

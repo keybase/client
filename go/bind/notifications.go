@@ -31,15 +31,25 @@ var (
 	multipleAccountsCached *bool
 )
 
-// accountCacheLogoutHook implements libkb.LogoutHook. It clears the cached
-// result of hasMultipleLoggedInAccounts so that the next background
-// notification recomputes it against the post-logout account list.
-type accountCacheLogoutHook struct{}
+var errAndroidNotificationForOtherAccount = errors.New("android notification for different account")
 
-func (accountCacheLogoutHook) OnLogout(_ libkb.MetaContext) error {
+func clearMultipleAccountsCache() {
 	multipleAccountsMtx.Lock()
 	multipleAccountsCached = nil
 	multipleAccountsMtx.Unlock()
+}
+
+// accountCacheHook clears the cached result of hasMultipleLoggedInAccounts
+// whenever login/logout changes the available stored-secret accounts.
+type accountCacheHook struct{}
+
+func (accountCacheHook) OnLogin(_ libkb.MetaContext) error {
+	clearMultipleAccountsCache()
+	return nil
+}
+
+func (accountCacheHook) OnLogout(_ libkb.MetaContext) error {
+	clearMultipleAccountsCache()
 	return nil
 }
 
@@ -129,7 +139,7 @@ var spoileRegexp = regexp.MustCompile(`!>(.*?)<!`)
 
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
-	pusher PushNotifier, showIfStale bool,
+	pusher PushNotifier, showIfStale bool, targetUID string,
 ) (err error) {
 	if err := waitForInit(10 * time.Second); err != nil {
 		return err
@@ -145,6 +155,22 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	// Unbox
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return libkb.LoginRequiredError{}
+	}
+	// If the push includes a target UID, verify it matches the currently active account
+	// before doing any work or updating any state (including badge count).
+	if targetUID != "" {
+		activeUID := string(kbCtx.Env.GetUID())
+		if activeUID != targetUID {
+			kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: push targetUID %s != active uid %s, ignoring", targetUID, activeUID)
+			// On Android, return an error so the caller can suppress badge updates for
+			// silent pushes and fall back to a visible notification for loud pushes.
+			// On iOS the system-delivered alert remains available, so returning nil
+			// avoids noisy background-processing failures.
+			if runtime.GOOS == "android" {
+				return errAndroidNotificationForOtherAccount
+			}
+			return nil
+		}
 	}
 	mp := chat.NewMobilePush(gc)
 	// Dedupe by convID||msgID

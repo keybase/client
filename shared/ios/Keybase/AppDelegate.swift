@@ -361,12 +361,13 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
         let displayPlaintext = (notification["n"] as? NSNumber)?.boolValue ?? false
         let membersType = (notification["t"] as? NSNumber)?.intValue ?? 0
         let sender = notification["u"] as? String
+        let targetUID = notification["i"] as? String ?? ""
         let pusher = PushNotifier()
 
         var err: NSError?
         Keybasego.KeybaseHandleBackgroundNotification(
           convID, body, "", sender, membersType, displayPlaintext, messageID, pushID, badgeCount,
-          unixTime, soundName, pusher, false, &err)
+          unixTime, soundName, pusher, false, targetUID, &err)
         if let err { NSLog("Failed to handle in engine: \(err)") }
         completionHandler(.newData)
         NSLog("Remote notification handle finished...")
