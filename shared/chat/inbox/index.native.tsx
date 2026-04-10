@@ -6,8 +6,6 @@ import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
-import ChatFilterRow from './filter-row'
-import NewChatButton from './new-chat-button'
 import SearchRow from './search-row'
 import InboxSearch from '../inbox-search'
 import TeamsDivider from './row/teams-divider'
@@ -60,39 +58,10 @@ type InboxProps = {
 function Inbox(p: InboxProps) {
   const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching)
-  const showEmptyInbox = Chat.useChatState(
-    s =>
-      s.inboxHasLoaded &&
-      !!s.inboxLayout &&
-      (s.inboxLayout.smallTeams || []).length === 0 &&
-      (s.inboxLayout.bigTeams || []).length === 0
-  )
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
-  const showTabletHeader = isSearching || !showEmptyInbox
-  const headComponent = C.isTablet ? (
-    showTabletHeader ? (
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.tabletHeader}>
-        <Kb.BoxGrow2>
-          <ChatFilterRow
-            isSearching={isSearching}
-            onCancelSearch={search.cancelSearch}
-            onSelectUp={() => search.moveSelectedIndex(false)}
-            onSelectDown={() => search.moveSelectedIndex(true)}
-            onEnsureSelection={search.selectResult}
-            onQueryChanged={search.setQuery}
-            query={search.query}
-            showSearch={true}
-            startSearch={search.startSearch}
-          />
-        </Kb.BoxGrow2>
-        <NewChatButton />
-      </Kb.Box2>
-    ) : null
-  ) : (
-    <SearchRow search={search} showSearch={C.isMobile} />
-  )
+  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
@@ -263,12 +232,6 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.large,
-      },
-      tabletHeader: {
-        alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
-        minHeight: 40,
-        paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

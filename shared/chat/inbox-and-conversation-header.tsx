@@ -3,7 +3,7 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from './inbox/new-chat-button'
-import {setDesktopInboxSearchPortalNode} from './inbox/desktop-search-portal'
+import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from './inbox/header-portal-state'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
@@ -70,6 +70,7 @@ const Header2 = () => {
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
+  const headerPortalContent = useInboxHeaderPortalContent()
 
   const onToggleThreadSearch = () => {
     toggleThreadSearch()
@@ -147,14 +148,16 @@ const Header2 = () => {
 
   const leftSide = (
     <Kb.Box2 direction="horizontal" style={styles.left}>
-      {!Kb.Styles.isMobile && (
+      {C.isTablet ? (
+        <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
+      ) : !Kb.Styles.isMobile ? (
         <Kb.BoxGrow2>
           <div
             style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
-            ref={node => setDesktopInboxSearchPortalNode(node)}
+            ref={node => setInboxHeaderPortalNode(node)}
           />
         </Kb.BoxGrow2>
-      )}
+      ) : null}
       {!C.isElectron && !C.isTablet && <NewChatButton />}
     </Kb.Box2>
   )
