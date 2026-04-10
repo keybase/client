@@ -5,17 +5,15 @@ import {setInboxHeaderPortalContent} from './header-portal-state'
 import type {InboxSearchController} from './use-inbox-search'
 
 export default function useInboxHeaderPortal(search: InboxSearchController) {
-  const content = C.isTablet ? <InboxHeaderControls search={search} /> : null
-
   React.useEffect(() => {
     if (!C.isTablet) {
       return
     }
-    setInboxHeaderPortalContent(content)
+    setInboxHeaderPortalContent(<InboxHeaderControls search={search} />)
     return () => {
       setInboxHeaderPortalContent(null)
     }
-  }, [content])
+  }, [search])
 
   return null
 }

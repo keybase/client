@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 let portalNode: HTMLElement | null = null
-let portalContent: React.ReactNode = null
+let portalContent: React.ReactElement | null = null
 const listeners = new Set<() => void>()
 
 const notify = () => {
@@ -16,10 +16,14 @@ const subscribe = (listener: () => void) => {
 }
 
 export const useInboxHeaderPortalNode = () =>
-  React.useSyncExternalStore(subscribe, () => portalNode, () => null)
+  React.useSyncExternalStore(subscribe, (): HTMLElement | null => portalNode, (): HTMLElement | null => null)
 
 export const useInboxHeaderPortalContent = () =>
-  React.useSyncExternalStore(subscribe, () => portalContent, () => null)
+  React.useSyncExternalStore(
+    subscribe,
+    (): React.ReactElement | null => portalContent,
+    (): React.ReactElement | null => null
+  )
 
 export const setInboxHeaderPortalNode = (node: HTMLElement | null) => {
   if (portalNode === node) {
@@ -29,7 +33,7 @@ export const setInboxHeaderPortalNode = (node: HTMLElement | null) => {
   notify()
 }
 
-export const setInboxHeaderPortalContent = (content: React.ReactNode) => {
+export const setInboxHeaderPortalContent = (content: React.ReactElement | null) => {
   if (portalContent === content) {
     return
   }
