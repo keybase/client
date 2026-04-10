@@ -11,6 +11,7 @@ export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
+export const inboxSearchPreviewSectionSize = 3
 
 export const makeInboxSearchInfo = (): T.Chat.InboxSearchInfo => ({
   botsResults: [],
@@ -34,11 +35,16 @@ const getInboxSearchSelected = (
 ):
   | undefined
   | {
+      botUsername?: string
       conversationIDKey: T.Chat.ConversationIDKey
+      openTeamName?: string
       query?: string
     } => {
   const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
-  const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
+  const visibleBotsResults = botsResults.slice(0, inboxSearchPreviewSectionSize)
+  const visibleOpenTeamResults = openTeamsResults.slice(0, inboxSearchPreviewSectionSize)
+  const firstBotResultIdx = nameResults.length + visibleOpenTeamResults.length
+  const firstTextResultIdx = firstBotResultIdx + visibleBotsResults.length
   const firstOpenTeamResultIdx = nameResults.length
 
   if (selectedIndex < firstOpenTeamResultIdx) {
@@ -50,6 +56,8 @@ const getInboxSearchSelected = (
         query: undefined,
       }
     }
+  } else if (selectedIndex < firstBotResultIdx) {
+    return
   } else if (selectedIndex < firstTextResultIdx) {
     return
   } else if (selectedIndex >= firstTextResultIdx) {
@@ -69,7 +77,11 @@ export const nextInboxSearchSelectedIndex = (
   increment: boolean
 ) => {
   const {selectedIndex} = inboxSearch
-  const totalResults = inboxSearch.nameResults.length + inboxSearch.textResults.length
+  const totalResults =
+    inboxSearch.nameResults.length +
+    Math.min(inboxSearch.openTeamsResults.length, inboxSearchPreviewSectionSize) +
+    Math.min(inboxSearch.botsResults.length, inboxSearchPreviewSectionSize) +
+    inboxSearch.textResults.length
   if (increment && selectedIndex < totalResults - 1) {
     return selectedIndex + 1
   }

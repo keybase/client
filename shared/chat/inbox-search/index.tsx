@@ -11,7 +11,11 @@ import type * as T from '@/constants/types'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
-import {inboxSearchMaxTextMessages, type InboxSearchController} from '../inbox/use-inbox-search'
+import {
+  inboxSearchMaxTextMessages,
+  inboxSearchPreviewSectionSize,
+  type InboxSearchController,
+} from '../inbox/use-inbox-search'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -80,10 +84,11 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const toggleCollapseBots = () => setBotsCollapsed(s => !s)
   const toggleBotsAll = () => setBotsAll(s => !s)
 
-  const renderOpenTeams = (h: {item: Item}) => {
-    const {item} = h
+  const renderOpenTeams = (h: {item: Item; index: number; section: Section}) => {
+    const {item, index, section} = h
     if (item.type !== 'openTeam') return null
     const {hit} = item
+    const realIndex = index + section.indexOffset
     return (
       <OpenTeamRow
         description={hit.description}
@@ -91,17 +96,24 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         memberCount={hit.memberCount}
         inTeam={hit.inTeam}
         publicAdmins={hit.publicAdmins}
-        isSelected={false}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
       />
     )
   }
 
-  const renderBots = (h: {item: Item; index: number}) => {
-    const {item, index} = h
+  const renderBots = (h: {item: Item; index: number; section: Section}) => {
+    const {item, index, section} = h
     if (item.type !== 'bot') return null
+    const realIndex = index + section.indexOffset
     return (
       <Chat.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
-        <Bot {...item.bot} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
+        <Bot
+          {...item.bot}
+          onClick={onInstallBot}
+          firstItem={index === 0}
+          hideHover={true}
+          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        />
       </Chat.ChatProvider>
     )
   }
@@ -280,9 +292,10 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     ? []
     : openTeamsAll
       ? _openTeamsResults
-      : _openTeamsResults.slice(0, 3)
+      : _openTeamsResults.slice(0, inboxSearchPreviewSectionSize)
 
-  const botsResults = botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, 3)
+  const botsResults =
+    botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, inboxSearchPreviewSectionSize)
   const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
 
   const nameSection: Section = {
