@@ -13,6 +13,8 @@ export type InboxAndConversationProps = ThreadSearchRouteProps & {
   infoPanel?: {tab?: Panel}
 }
 
+export type ChatRootRouteParams = InboxAndConversationProps
+
 type Props = InboxAndConversationProps & {
   leftPane: React.ReactNode
 }

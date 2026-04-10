@@ -3,18 +3,14 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from './inbox/new-chat-button'
+import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {setDesktopInboxSearchPortalNode} from './inbox/desktop-search-portal'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
-import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 
-type ChatRootParams = ThreadSearchRouteProps & {
-  conversationIDKey?: string
-  infoPanel?: object
-}
-type ChatRootRoute = RouteProp<{chatRoot: ChatRootParams}, 'chatRoot'>
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 
 const Header = () => {
   const {params} = useRoute<ChatRootRoute>()
@@ -153,9 +149,8 @@ const Header2 = () => {
     <Kb.Box2 direction="horizontal" style={styles.left}>
       {!Kb.Styles.isMobile && (
         <Kb.BoxGrow2>
-          <Kb.Box2
-            direction="vertical"
-            style={styles.searchPortal}
+          <div
+            style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
             ref={node => setDesktopInboxSearchPortalNode(node)}
           />
         </Kb.BoxGrow2>

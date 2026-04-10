@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-let portalNode: HTMLDivElement | null = null
+let portalNode: HTMLElement | null = null
 const listeners = new Set<() => void>()
 
 const notify = () => {
@@ -17,7 +17,7 @@ const subscribe = (listener: () => void) => {
 export const useDesktopInboxSearchPortalNode = () =>
   React.useSyncExternalStore(subscribe, () => portalNode, () => null)
 
-export const setDesktopInboxSearchPortalNode = (node: HTMLDivElement | null) => {
+export const setDesktopInboxSearchPortalNode = (node: HTMLElement | null) => {
   if (portalNode === node) {
     return
   }

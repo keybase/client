@@ -11,8 +11,9 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
-import {defineRouteMap} from '@/constants/types/router'
+import {defineRouteMap, withRouteParams} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
+import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 type ChatBlockingRouteParams = {
@@ -36,6 +37,7 @@ type ChatShowNewTeamDialogRouteParams = {
 const emptyChatBlockingRouteParams: ChatBlockingRouteParams = {}
 const emptyChatSearchBotsRouteParams: ChatSearchBotsRouteParams = {}
 const emptyChatShowNewTeamDialogRouteParams: ChatShowNewTeamDialogRouteParams = {}
+const emptyChatRootRouteParams: ChatRootRouteParams = {}
 
 const PDFShareButton = ({url}: {url?: string}) => {
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
@@ -123,18 +125,22 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
-          getOptions: inboxAndConvoGetOptions,
-          skipProvider: true,
-        }),
-        initialParams: {},
+        ...withRouteParams<ChatRootRouteParams>(
+          Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
+            getOptions: inboxAndConvoGetOptions,
+            skipProvider: true,
+          })
+        ),
+        initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox/defer-loading')), {
-          getOptions: inboxGetOptions,
-          skipProvider: true,
-        }),
-        initialParams: {},
+        ...withRouteParams<ChatRootRouteParams>(
+          Chat.makeChatScreen(React.lazy(async () => import('./inbox/defer-loading')), {
+            getOptions: inboxGetOptions,
+            skipProvider: true,
+          })
+        ),
+        initialParams: emptyChatRootRouteParams,
       },
 })
 

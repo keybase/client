@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import {createPortal} from 'react-dom'
 import Inbox from './inbox'
 import InboxSearch from './inbox-search'

@@ -11,5 +11,6 @@ export type ThreadSearchRouteProps = {
 
 export const useThreadSearchRoute = () => {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
-  return getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)?.threadSearch
+  const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
+  return params && 'threadSearch' in params ? params.threadSearch : undefined
 }
