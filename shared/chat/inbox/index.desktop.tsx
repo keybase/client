@@ -431,19 +431,19 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         position: 'relative' as const,
       },
-      topBar: {
-        alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexShrink: 0,
-        minHeight: 40,
-        paddingRight: Kb.Styles.globalMargins.tiny,
-      },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         bottom: 0,
         height: 8,
         position: 'absolute',
         width: '100%',
+      },
+      topBar: {
+        alignItems: 'center',
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flexShrink: 0,
+        minHeight: 40,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )
