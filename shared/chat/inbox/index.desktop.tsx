@@ -13,9 +13,7 @@ import {
 } from './list-helpers'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
-import ChatFilterRow from './filter-row'
 import InboxSearch from '../inbox-search'
-import NewChatButton from './new-chat-button'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
@@ -287,29 +285,10 @@ function Inbox(props: InboxProps) {
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (
     <BigTeamsDivider toggle={scrollToBigTeams} />
   )
-  const searchBar = (
-    <ChatFilterRow
-      isSearching={search.isSearching}
-      onCancelSearch={search.cancelSearch}
-      onSelectUp={() => search.moveSelectedIndex(false)}
-      onSelectDown={() => search.moveSelectedIndex(true)}
-      onEnsureSelection={search.selectResult}
-      onQueryChanged={search.setQuery}
-      query={search.query}
-      showSearch={true}
-      startSearch={search.startSearch}
-    />
-  )
 
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.topBar}>
-          <Kb.BoxGrow2>
-            {searchBar}
-          </Kb.BoxGrow2>
-          <NewChatButton />
-        </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
           {search.isSearching ? (
             <InboxSearch search={search} />
@@ -451,15 +430,6 @@ const styles = Kb.Styles.styleSheetCreate(
         bottom: 0,
         height: 8,
         position: 'absolute',
-        width: '100%',
-      },
-      topBar: {
-        alignItems: 'center',
-        backgroundColor: Kb.Styles.globalColors.blueGrey,
-        flexShrink: 0,
-        minHeight: 40,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-        paddingRight: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
     }) as const
