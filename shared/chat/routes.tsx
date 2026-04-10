@@ -15,6 +15,12 @@ import {defineRouteMap, withRouteParams} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
+const InboxAndConversation = React.lazy<React.ComponentType<ChatRootRouteParams>>(
+  async () => import('./inbox-and-conversation')
+)
+const InboxDeferLoading = React.lazy<React.ComponentType<ChatRootRouteParams>>(
+  async () => import('./inbox/defer-loading')
+)
 
 type ChatBlockingRouteParams = {
   blockUserByDefault?: boolean
@@ -126,7 +132,7 @@ export const newRoutes = defineRouteMap({
   chatRoot: Chat.isSplit
     ? {
         ...withRouteParams<ChatRootRouteParams>(
-          Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
+          Chat.makeChatScreen(InboxAndConversation, {
             getOptions: inboxAndConvoGetOptions,
             skipProvider: true,
           })
@@ -135,7 +141,7 @@ export const newRoutes = defineRouteMap({
       }
     : {
         ...withRouteParams<ChatRootRouteParams>(
-          Chat.makeChatScreen(React.lazy(async () => import('./inbox/defer-loading')), {
+          Chat.makeChatScreen(InboxDeferLoading, {
             getOptions: inboxGetOptions,
             skipProvider: true,
           })
