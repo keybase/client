@@ -104,8 +104,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
       gap={Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
-        Kb.Styles.isPhone ? null : Kb.Styles.isTablet && showSearch ? null : styles.whiteBg,
-        !Kb.Styles.isMobile && styles.whiteBg,
+        !Kb.Styles.isPhone && styles.whiteBg,
       ])}
       gapStart={showSearch}
       gapEnd={showSearch}
