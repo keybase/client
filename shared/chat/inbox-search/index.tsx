@@ -84,11 +84,11 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
   const toggleCollapseBots = () => setBotsCollapsed(s => !s)
   const toggleBotsAll = () => setBotsAll(s => !s)
 
-  const renderOpenTeams = (h: {item: Item; index: number; section: Section}) => {
-    const {item, index, section} = h
+  const renderOpenTeams: Section['renderItem'] = ({item, index, section}) => {
     if (item.type !== 'openTeam') return null
+    const fullSection = section as Section
     const {hit} = item
-    const realIndex = index + section.indexOffset
+    const realIndex = index + fullSection.indexOffset
     return (
       <OpenTeamRow
         description={hit.description}
@@ -101,10 +101,10 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderBots = (h: {item: Item; index: number; section: Section}) => {
-    const {item, index, section} = h
+  const renderBots: Section['renderItem'] = ({item, index, section}) => {
     if (item.type !== 'bot') return null
-    const realIndex = index + section.indexOffset
+    const fullSection = section as Section
+    const realIndex = index + fullSection.indexOffset
     return (
       <Chat.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
         <Bot
@@ -327,7 +327,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseBots,
     onSelect: selectBot,
     renderHeader: renderBotsHeader,
-    renderItem: renderBots as Section['renderItem'],
+    renderItem: renderBots,
     status: botsStatus,
     title: botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
   }
