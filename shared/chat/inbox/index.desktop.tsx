@@ -14,6 +14,7 @@ import {
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import InboxSearch from '../inbox-search'
+import NewChatButton from './new-chat-button'
 import SearchRow from './search-row'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
@@ -290,7 +291,12 @@ function Inbox(props: InboxProps) {
   return (
     <Kb.ErrorBoundary>
       <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <SearchRow search={search} showSearch={true} />
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.topBar}>
+          <Kb.BoxGrow2>
+            <SearchRow search={search} showSearch={true} />
+          </Kb.BoxGrow2>
+          <NewChatButton />
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.body}>
           {search.isSearching ? (
             <InboxSearch search={search} />
@@ -424,6 +430,13 @@ const styles = Kb.Styles.styleSheetCreate(
         flex: 1,
         height: '100%',
         position: 'relative' as const,
+      },
+      topBar: {
+        alignItems: 'center',
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        flexShrink: 0,
+        minHeight: 40,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       spacer: {
         backgroundColor: Kb.Styles.globalColors.blueGrey,
