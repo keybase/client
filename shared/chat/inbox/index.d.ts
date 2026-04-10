@@ -4,7 +4,7 @@ import type {InboxSearchController} from './use-inbox-search'
 
 type Props = {
   conversationIDKey?: ConversationIDKey
-  search: InboxSearchController
+  search?: InboxSearchController
 }
 
 declare const Inbox: (p: Props) => React.ReactNode

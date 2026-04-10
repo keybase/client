@@ -16,6 +16,7 @@ import type {LegendListRef} from '@/common-adapters'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import type {InboxSearchController} from './use-inbox-search'
+import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
 
@@ -52,10 +53,20 @@ const NoChats = (props: {onNewChat: () => void}) => (
 
 type InboxProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
+  search?: InboxSearchController
+}
+
+type ControlledInboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   search: InboxSearchController
 }
 
-function Inbox(p: InboxProps) {
+function InboxWithSearch(props: {conversationIDKey?: T.Chat.ConversationIDKey}) {
+  const search = useInboxSearch()
+  return <InboxBody conversationIDKey={props.conversationIDKey} search={search} />
+}
+
+function InboxBody(p: ControlledInboxProps) {
   const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
@@ -183,6 +194,14 @@ function Inbox(p: InboxProps) {
       </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>
+  )
+}
+
+export default function Inbox(props: InboxProps) {
+  return props.search ? (
+    <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
+  ) : (
+    <InboxWithSearch conversationIDKey={props.conversationIDKey} />
   )
 }
 

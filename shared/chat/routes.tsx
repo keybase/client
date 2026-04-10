@@ -9,25 +9,12 @@ import {headerNavigationOptions} from './conversation/header-area'
 import {useConfigState} from '@/stores/config'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
-import type {StaticScreenProps} from '@react-navigation/core'
 import inboxGetOptions from './inbox/get-options'
 import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
-const ChatRootScreen = React.lazy(async () => {
-  const mod = await import('./inbox-and-conversation')
-  return {
-    default: (p: StaticScreenProps<ChatRootRouteParams>) => <mod.default {...p.route.params} />,
-  }
-})
-const ChatRootInboxScreen = React.lazy(async () => {
-  const mod = await import('./inbox/root')
-  return {
-    default: (_p: StaticScreenProps<ChatRootRouteParams>) => <mod.default />,
-  }
-})
 
 type ChatBlockingRouteParams = {
   blockUserByDefault?: boolean
@@ -165,14 +152,18 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        getOptions: inboxAndConvoGetOptions,
+        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
+          getOptions: inboxAndConvoGetOptions,
+          skipProvider: true,
+        }),
         initialParams: emptyChatRootRouteParams,
-        screen: ChatRootScreen,
       }
     : {
-        getOptions: inboxGetOptions,
+        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox')), {
+          getOptions: inboxGetOptions,
+          skipProvider: true,
+        }),
         initialParams: emptyChatRootRouteParams,
-        screen: ChatRootInboxScreen,
       },
 })
 

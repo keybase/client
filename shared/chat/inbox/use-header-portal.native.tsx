@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import InboxHeaderControls from './header-controls'
+import SearchRow from './search-row'
 import {setInboxHeaderPortalContent} from './header-portal-state'
 import type {InboxSearchController} from './use-inbox-search'
 
@@ -9,7 +9,9 @@ export default function useInboxHeaderPortal(search: InboxSearchController) {
     if (!C.isTablet) {
       return
     }
-    setInboxHeaderPortalContent(<InboxHeaderControls search={search} />)
+    setInboxHeaderPortalContent(
+      <SearchRow forceShowFilter={true} search={search} showNewChatButton={true} showSearch={true} />
+    )
     return () => {
       setInboxHeaderPortalContent(null)
     }

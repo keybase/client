@@ -22,6 +22,7 @@ import {createPortal} from 'react-dom'
 import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
 import type {InboxSearchController} from './use-inbox-search'
+import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import './inbox.css'
 
@@ -197,10 +198,20 @@ const DragLine = (p: {
 
 type InboxProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
+  search?: InboxSearchController
+}
+
+type ControlledInboxProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   search: InboxSearchController
 }
 
-function Inbox(props: InboxProps) {
+function InboxWithSearch(props: {conversationIDKey?: T.Chat.ConversationIDKey}) {
+  const search = useInboxSearch()
+  return <InboxBody conversationIDKey={props.conversationIDKey} search={search} />
+}
+
+function InboxBody(props: ControlledInboxProps) {
   const {conversationIDKey, search} = props
   const inbox = useInboxState(conversationIDKey, search.isSearching)
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
@@ -319,6 +330,14 @@ function Inbox(props: InboxProps) {
         )}
       </Kb.Box2>
     </Kb.ErrorBoundary>
+  )
+}
+
+export default function Inbox(props: InboxProps) {
+  return props.search ? (
+    <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
+  ) : (
+    <InboxWithSearch conversationIDKey={props.conversationIDKey} />
   )
 }
 
