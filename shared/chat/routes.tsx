@@ -15,12 +15,16 @@ import {defineRouteMap, withRouteParams} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 const Convo = React.lazy(async () => import('./conversation/container'))
-const InboxAndConversation = React.lazy<React.ComponentType<ChatRootRouteParams>>(
-  async () => import('./inbox-and-conversation')
-)
-const InboxDeferLoading = React.lazy<React.ComponentType<ChatRootRouteParams>>(
-  async () => import('./inbox/defer-loading')
-)
+const InboxAndConversation = React.lazy(async () => {
+  const mod = await import('./inbox-and-conversation')
+  const Screen = (props: ChatRootRouteParams) => <mod.default {...props} />
+  return {default: Screen}
+})
+const InboxDeferLoading = React.lazy(async () => {
+  const mod = await import('./inbox/defer-loading')
+  const Screen = (props: ChatRootRouteParams) => <mod.default {...props} />
+  return {default: Screen}
+})
 
 type ChatBlockingRouteParams = {
   blockUserByDefault?: boolean
