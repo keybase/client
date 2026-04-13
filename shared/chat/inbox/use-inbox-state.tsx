@@ -5,7 +5,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
 
-export function useInboxState(conversationIDKey?: string) {
+export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
   const username = useCurrentUserState(s => s.username)
@@ -17,7 +17,6 @@ export function useInboxState(conversationIDKey?: string) {
       inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
       inboxRefresh: s.dispatch.inboxRefresh,
       inboxRows: s.inboxRows,
-      isSearching: !!s.inboxSearch,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
       smallTeamsExpanded: s.inboxSmallTeamsExpanded,
@@ -25,7 +24,7 @@ export function useInboxState(conversationIDKey?: string) {
     }))
   )
   const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
-  const {isSearching, queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
+  const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
@@ -44,7 +43,7 @@ export function useInboxState(conversationIDKey?: string) {
     if (!C.isMobile) {
       Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
-    if (!inboxHasLoaded) {
+    if (!C.isPhone && !inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')
     }
   })

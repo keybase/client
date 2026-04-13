@@ -683,20 +683,31 @@ const createSlice =
       }
     }
 
-    const getRowRecycleType = (message: T.Chat.Message): string | undefined => {
-      if (message.type !== 'text') {
-        return undefined
+    const getRowRecycleType = (
+      message: T.Chat.Message,
+      renderType: T.Chat.RenderMessageType
+    ): string | undefined => {
+      let rowRecycleType = renderType
+      let needsSpecificRecycleType = false
+
+      if (
+        (message.type === 'text' || message.type === 'attachment') &&
+        (message.submitState === 'pending' || message.submitState === 'failed')
+      ) {
+        rowRecycleType += ':pending'
+        needsSpecificRecycleType = true
       }
 
-      let rowRecycleType = 'text'
-      if (message.replyTo) {
+      if (message.type === 'text' && message.replyTo) {
         rowRecycleType += ':reply'
+        needsSpecificRecycleType = true
       }
       if (message.reactions?.size) {
         rowRecycleType += ':reactions'
+        needsSpecificRecycleType = true
       }
 
-      return rowRecycleType === 'text' ? undefined : rowRecycleType
+      return needsSpecificRecycleType ? rowRecycleType : undefined
     }
 
     const setRowRenderDerivedMetadata = (
@@ -704,7 +715,8 @@ const createSlice =
       ordinal: T.Chat.Ordinal,
       message: T.Chat.Message
     ) => {
-      const rowRecycleType = getRowRecycleType(message)
+      const renderType = s.messageTypeMap.get(ordinal) ?? Message.getMessageRenderType(message)
+      const rowRecycleType = getRowRecycleType(message, renderType)
       if (rowRecycleType) {
         s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
       } else {
@@ -2679,13 +2691,20 @@ const createSlice =
       },
       onMessagesUpdated: messagesUpdated => {
         if (!messagesUpdated.updates) return
+        const activelyLookingAtThread = Common.isUserActivelyLookingAtThisThread(get().id)
+        if (!get().loaded && !activelyLookingAtThread) {
+          return
+        }
         const {username, devicename} = getCurrentUser()
         const messages = messagesUpdated.updates.flatMap(uimsg => {
           if (!Message.getMessageID(uimsg)) return []
           const message = Message.uiMessageToMessage(get().id, uimsg, username, getLastOrdinal, devicename)
           return message ? [message] : []
         })
-        messagesAdd(messages, {why: 'messages updated'})
+        if (messages.length === 0) {
+          return
+        }
+        messagesAdd(messages, {markAsRead: activelyLookingAtThread, why: 'messages updated'})
       },
       openFolder: () => {
         const meta = get().meta

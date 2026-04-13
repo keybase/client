@@ -672,25 +672,44 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed,
 ) (err error) {
 	defer s.Trace(ctx, &err, "Add")()
+
+	// Pre-fetch superseded messages before acquiring the lock. EDIT and
+	// ATTACHMENTUPLOADED messages require a network/DB lookup to find the
+	// message they supersede, and that call can block indefinitely on the
+	// conv lock. Holding s.Lock() during that call would block ClearMemory
+	// (and transitively Indexer.Clear → idx.Lock()), freezing all thread
+	// loading. Fetch outside the lock; only the in-memory index mutations
+	// need serialization.
+	type supersededFetch struct {
+		msgs   []chat1.MessageUnboxed
+		tokens tokenMap // only set for EDIT
+	}
+	reason := chat1.GetThreadReason_INDEXED_SEARCH
+	superseded := make(map[chat1.MessageID]supersededFetch, len(msgs))
+	for _, msg := range msgs {
+		switch msg.GetMessageType() {
+		case chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_EDIT:
+			superIDs, err := utils.GetSupersedes(msg)
+			if err != nil {
+				s.Debug(ctx, "Add: unable to get supersedes: %v", err)
+				continue
+			}
+			supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
+				false /* resolveSupersedes */, &reason)
+			if err != nil {
+				s.Debug(ctx, "Add: unable to fetch superseded messages: %v", err)
+				continue
+			}
+			fetch := supersededFetch{msgs: supersededMsgs}
+			if msg.GetMessageType() == chat1.MessageType_EDIT {
+				fetch.tokens = tokensFromMsg(msg)
+			}
+			superseded[msg.GetMessageID()] = fetch
+		}
+	}
+
 	s.Lock()
 	defer s.Unlock()
-
-	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
-		superIDs, err := utils.GetSupersedes(msg)
-		if err != nil {
-			s.Debug(ctx, "unable to get supersedes: %v", err)
-			return nil
-		}
-		reason := chat1.GetThreadReason_INDEXED_SEARCH
-		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
-			false /* resolveSupersedes*/, &reason)
-		if err != nil {
-			// Log but ignore error
-			s.Debug(ctx, "unable to get fetch messages: %v", err)
-			return nil
-		}
-		return supersededMsgs
-	}
 
 	modified := false
 	md, err := s.GetMetadata(ctx, convID)
@@ -716,8 +735,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		// indexed.
 		switch msg.GetMessageType() {
 		case chat1.MessageType_ATTACHMENTUPLOADED:
-			supersededMsgs := fetchSupersededMsgs(msg)
-			for _, sm := range supersededMsgs {
+			for _, sm := range superseded[msg.GetMessageID()].msgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				err := s.addMsg(ctx, convID, sm)
 				if err != nil {
@@ -725,17 +743,16 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 				}
 			}
 		case chat1.MessageType_EDIT:
-			tokens := tokensFromMsg(msg)
-			supersededMsgs := fetchSupersededMsgs(msg)
+			fetch := superseded[msg.GetMessageID()]
 			// remove the original message text and replace it with the edited
 			// contents (using the original id in the index)
-			for _, sm := range supersededMsgs {
+			for _, sm := range fetch.msgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				err := s.removeMsg(ctx, convID, sm)
 				if err != nil {
 					return err
 				}
-				err = s.addTokens(ctx, convID, tokens, sm.GetMessageID())
+				err = s.addTokens(ctx, convID, fetch.tokens, sm.GetMessageID())
 				if err != nil {
 					return err
 				}

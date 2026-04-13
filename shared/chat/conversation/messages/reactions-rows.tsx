@@ -20,7 +20,10 @@ type OwnProps = {
 
 function ReactionsRowContainer(p: OwnProps) {
   const {hasUnfurls, messageType, onReact, onReply, reactions} = p
-  const emojis = reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis
+  const emojis = React.useMemo(
+    () => (reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis),
+    [reactions]
+  )
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>

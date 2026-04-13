@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -20,6 +21,7 @@ import noop from 'lodash/noop'
 
 // TODO if we bring flashlist back bring back the patch
 const List = /*usingFlashList ? FlashList :*/ FlatList
+const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -27,9 +29,14 @@ let markedInitiallyLoaded = false
 
 export const DEBUGDump = () => {}
 
+const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
+  const source = messageOrdinals ?? noOrdinals
+  return React.useMemo(() => (source.length > 1 ? [...source].reverse() : source), [source])
+}
+
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
-  messageOrdinals: Array<T.Chat.Ordinal>
+  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
 }) => {
@@ -95,20 +102,26 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const listData = Chat.useChatContext(
+    C.useShallow(s => {
+      const {id: conversationIDKey, loaded, messageCenterOrdinal} = s
+      const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
+      const centeredHighlightOrdinal =
+        messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
+          ? messageCenterOrdinal.ordinal
+          : T.Chat.numberToOrdinal(-1)
+      return {
+        centeredHighlightOrdinal,
+        centeredOrdinal,
+        conversationIDKey,
+        loaded,
+        messageOrdinals: s.messageOrdinals ?? noOrdinals,
+      }
+    })
+  )
+  const {centeredHighlightOrdinal, centeredOrdinal, conversationIDKey, loaded} = listData
 
-  const loaded = Chat.useChatContext(s => s.loaded)
-  const messageCenterOrdinal = Chat.useChatContext(s => s.messageCenterOrdinal)
-  const centeredHighlightOrdinal =
-    messageCenterOrdinal && messageCenterOrdinal.highlightMode !== 'none'
-      ? messageCenterOrdinal.ordinal
-      : T.Chat.numberToOrdinal(-1)
-  const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
-  const messageTypeMap = Chat.useChatContext(s => s.messageTypeMap)
-  const _messageOrdinals = Chat.useChatContext(s => s.messageOrdinals)
-  const rowRecycleTypeMap = Chat.useChatContext(s => s.rowRecycleTypeMap)
-
-  const messageOrdinals = [...(_messageOrdinals ?? [])].reverse()
+  const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
@@ -116,9 +129,8 @@ const ConversationList = function ConversationList() {
     return String(ordinal)
   }
 
-  const renderItem = (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
-    const index: number = info?.index ?? 0
-    const ordinal = messageOrdinals[index]
+  const renderItem = (info?: /*ListRenderItemInfo<ItemType>*/ {item?: ItemType}) => {
+    const ordinal = info?.item
     if (!ordinal) {
       return null
     }
@@ -132,19 +144,16 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = (ordinal: T.Chat.Ordinal, idx: number) => {
-    if (!ordinal) {
-      return 'null'
-    }
-    const recycled = rowRecycleTypeMap.get(ordinal)
-    if (recycled) return recycled
-    const baseType = messageTypeMap.get(ordinal) ?? 'text'
-    // Last item is most-recently sent; isolate it to avoid recycling with settled messages
-    if (numOrdinals - 1 === idx && (baseType === 'text' || baseType === 'attachment')) {
-      return `${baseType}:pending`
-    }
-    return baseType
-  }
+  const getItemType = React.useCallback(
+    (ordinal: T.Chat.Ordinal) => {
+      if (!ordinal) {
+        return 'null'
+      }
+      const convoState = Chat.getConvoState(conversationIDKey)
+      return convoState.rowRecycleTypeMap.get(ordinal) ?? convoState.messageTypeMap.get(ordinal) ?? 'text'
+    },
+    [conversationIDKey]
+  )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
@@ -253,6 +262,7 @@ const ConversationList = function ConversationList() {
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <List
+            key={conversationIDKey}
             testID="messageList"
             onScrollToIndexFailed={noop}
             // @ts-ignore LegendList/FlashList prop; ignored by FlatList

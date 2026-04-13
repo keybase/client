@@ -868,8 +868,12 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 func (idx *Indexer) Clear(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	defer idx.Trace(ctx, &err, "Indexer.Clear uid: %v convID: %v", uid, convID)()
 	idx.Lock()
-	defer idx.Unlock()
-	return idx.store.Clear(ctx, uid, convID)
+	store := idx.store
+	idx.Unlock()
+	if store == nil {
+		return nil
+	}
+	return store.Clear(ctx, uid, convID)
 }
 
 func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {

@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+import * as Common from '../../constants/chat/common'
 import * as Meta from '../../constants/chat/meta'
 import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
@@ -14,6 +15,10 @@ import {
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
 }))
+
+afterEach(() => {
+  jest.restoreAllMocks()
+})
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
@@ -263,6 +268,8 @@ test('testing store starts with initial state and helper selectors', () => {
 })
 
 test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+
   const store = createStore()
   const firstMsgID = T.Chat.numberToMessageID(301)
   const secondMsgID = T.Chat.numberToMessageID(302)
@@ -285,6 +292,33 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
   expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(301))).toBe('bob')
   expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(302))).toBe('')
   expect(store.getState().messageTypeMap.size).toBe(0)
+})
+
+test('onMessagesUpdated ignores unopened background conversations', () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(false)
+
+  const store = createStore()
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makeValidTextUIMessage(T.Chat.numberToMessageID(401), 'background update')],
+  })
+
+  expect(store.getState().messageOrdinals).toBeUndefined()
+  expect(store.getState().messageMap.size).toBe(0)
+})
+
+test('onMessagesUpdated still applies to unopened active conversations', () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+
+  const store = createStore()
+  const msgID = T.Chat.numberToMessageID(402)
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makeValidTextUIMessage(msgID, 'active update')],
+  })
+
+  expect(store.getState().messageOrdinals).toEqual([T.Chat.numberToOrdinal(402)])
+  expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.id).toBe(msgID)
 })
 
 test('message updates refresh derived metadata for the following row', () => {
