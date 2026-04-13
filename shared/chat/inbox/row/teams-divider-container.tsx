@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import type {ChatInboxRowItem} from '../rowitem'
@@ -9,17 +10,30 @@ type Props = Omit<React.ComponentProps<typeof TeamsDivider>, 'badgeCount'> & {
 
 const TeamsDividerContainer = React.memo(function TeamsDividerContainer(props: Props) {
   const {rows, ...rest} = props
-  const smallTeamBadgeCount = Chat.useChatState(s => s.smallTeamBadgeCount)
+  const {badgeStateVersion, smallTeamBadgeCount} = Chat.useChatState(
+    C.useShallow(s => ({
+      badgeStateVersion: s.badgeStateVersion,
+      smallTeamBadgeCount: s.smallTeamBadgeCount,
+    }))
+  )
+
+  const visibleSmallConvIDs = React.useMemo(() => {
+    const ids: Array<string> = []
+    for (const row of rows) {
+      if (row.type === 'small') {
+        ids.push(row.conversationIDKey)
+      }
+    }
+    return ids
+  }, [rows])
 
   const visibleBadges = React.useMemo(() => {
     let total = 0
-    for (const row of rows) {
-      if (row.type === 'small') {
-        total += Chat.getConvoState(row.conversationIDKey).badge
-      }
+    for (const conversationIDKey of visibleSmallConvIDs) {
+      total += Chat.getConvoState(conversationIDKey).badge
     }
     return total
-  }, [rows, smallTeamBadgeCount])
+  }, [badgeStateVersion, visibleSmallConvIDs])
 
   const hiddenSmallBadgeCount = Math.max(0, smallTeamBadgeCount - visibleBadges)
   return <TeamsDivider {...rest} badgeCount={hiddenSmallBadgeCount} />
