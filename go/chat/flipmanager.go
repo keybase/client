@@ -622,6 +622,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 		formatted := m.formatError(ctx, update.Err)
 		status = chat1.UICoinFlipStatus{
 			GameID:       gameID.FlipGameIDStr(),
+			ConvID:       convID.ConvIDStr(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
@@ -632,6 +633,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status = chat1.UICoinFlipStatus{
 		GameID: gameID.FlipGameIDStr(),
+		ConvID: convID.ConvIDStr(),
 		Phase:  chat1.UICoinFlipPhase_COMPLETE,
 	}
 	m.addResult(ctx, &status, update.Result, convID)
@@ -667,8 +669,10 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	} else {
 		status = chat1.UICoinFlipStatus{
 			GameID: gameID.FlipGameIDStr(),
+			ConvID: update.Metadata.ConversationID.ConvIDStr(),
 		}
 	}
+	status.ConvID = update.Metadata.ConversationID.ConvIDStr()
 
 	switch {
 	case update.Err != nil:

@@ -189,7 +189,6 @@ type Store = T.Immutable<{
   userReacjis: T.Chat.UserReacjis
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
-  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
 }>
@@ -197,7 +196,6 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  flipStatusMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: undefined,
   maybeMentionMap: new Map(),
@@ -265,7 +263,6 @@ export type State = Store & {
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
     unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
-    updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     updatedGregor: (
@@ -712,7 +709,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
         case 'chat.1.chatUi.chatCoinFlipStatus': {
           const {statuses} = action.payload.params
-          get().dispatch.updateCoinFlipStatus(statuses || [])
+          statuses?.forEach(status => {
+            storeRegistry
+              .getConvoState(T.Chat.stringToConversationIDKey(status.convID))
+              .dispatch.updateCoinFlipStatus(status)
+          })
           break
         }
         case 'chat.1.NotifyChat.ChatThreadsStale':
@@ -1307,14 +1308,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    updateCoinFlipStatus: statuses => {
-      set(s => {
-        const {flipStatusMap} = s
-        statuses.forEach(status => {
-          flipStatusMap.set(status.gameID, T.castDraft(status))
-        })
-      })
     },
     updateInboxLayout: str => {
       set(s => {

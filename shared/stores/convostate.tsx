@@ -112,6 +112,7 @@ type ConvoStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
+  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -169,6 +170,7 @@ const initialConvoStore: ConvoStore = {
   commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
+  flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
@@ -344,6 +346,7 @@ export interface ConvoState extends ConvoStore {
       result: T.RPCChat.UnfurlPromptResult
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
+    updateCoinFlipStatus: (status: T.RPCChat.UICoinFlipStatus) => void
     updateDraft: DebouncedFunc<(text: string) => void>
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => void
     updateFromUIInboxLayout: (l: {
@@ -3313,6 +3316,11 @@ const createSlice =
           s.unread = unread
         })
         queueInboxRowUpdate(get().id)
+      },
+      updateCoinFlipStatus: status => {
+        set(s => {
+          s.flipStatusMap.set(status.gameID, T.castDraft(status))
+        })
       },
       updateDraft: throttle(
         (text: string) => {

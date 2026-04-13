@@ -168,6 +168,22 @@ const makePaymentInfo = (override?: Partial<T.Chat.ChatPaymentInfo>): T.Chat.Cha
   ...override,
 })
 
+const makeCoinFlipStatus = (
+  override?: Partial<T.RPCChat.UICoinFlipStatus>
+): T.RPCChat.UICoinFlipStatus => ({
+  commitmentVisualization: '',
+  convID: T.Chat.keyToConversationID(convID),
+  errorInfo: null,
+  gameID: 'flip-game',
+  participants: [],
+  phase: T.RPCChat.UICoinFlipPhase.commitment,
+  progressText: 'Collecting commitments',
+  resultInfo: null,
+  resultText: '',
+  revealVisualization: '',
+  ...override,
+})
+
 const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
   ...Meta.makeConversationMeta(),
   conversationIDKey: convID,
@@ -308,6 +324,15 @@ test('paymentInfoReceived stores payment info by message ID and payment ID', () 
   const state = store.getState()
   expect(state.accountsInfoMap.get(msgID)).toEqual(paymentInfo)
   expect(state.paymentStatusMap.get(paymentInfo.paymentID)).toEqual(paymentInfo)
+})
+
+test('updateCoinFlipStatus stores coin flip status by game ID in the convo store', () => {
+  const store = createStore()
+  const status = makeCoinFlipStatus()
+
+  store.getState().dispatch.updateCoinFlipStatus(status)
+
+  expect(store.getState().flipStatusMap.get(status.gameID)).toEqual(status)
 })
 
 test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {
