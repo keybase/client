@@ -262,6 +262,7 @@ const ConversationList = function ConversationList() {
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <List
+            key={conversationIDKey}
             testID="messageList"
             onScrollToIndexFailed={noop}
             // @ts-ignore LegendList/FlashList prop; ignored by FlatList
