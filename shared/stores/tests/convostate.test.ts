@@ -172,7 +172,7 @@ const makeCoinFlipStatus = (
   override?: Partial<T.RPCChat.UICoinFlipStatus>
 ): T.RPCChat.UICoinFlipStatus => ({
   commitmentVisualization: '',
-  convID: T.Chat.keyToConversationID(convID),
+  convID,
   errorInfo: null,
   gameID: 'flip-game',
   participants: [],
