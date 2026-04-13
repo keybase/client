@@ -29,13 +29,3 @@ test('chat sizing helpers clamp and center oversized images', () => {
   expect(zoomed.margins.marginLeft).toBeCloseTo(0)
   expect(zoomed.margins.marginRight).toBeCloseTo(0)
 })
-
-test('setInboxNumSmallRows ignores non-positive values when updating local state', () => {
-  const {dispatch} = useChatState.getState()
-
-  dispatch.setInboxNumSmallRows(7, true)
-  expect(useChatState.getState().inboxNumSmallRows).toBe(7)
-
-  dispatch.setInboxNumSmallRows(0, true)
-  expect(useChatState.getState().inboxNumSmallRows).toBe(7)
-})

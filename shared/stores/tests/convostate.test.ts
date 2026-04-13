@@ -136,6 +136,38 @@ const makeAttachmentMessage = (override?: Partial<T.Chat.MessageAttachment>) =>
     ...override,
   })
 
+const makePaymentInfo = (override?: Partial<T.Chat.ChatPaymentInfo>): T.Chat.ChatPaymentInfo => ({
+  accountID: 'account-id',
+  amountDescription: '1 XLM',
+  delta: 'none',
+  fromUsername: 'alice',
+  issuerDescription: 'Lumens',
+  note: new HiddenString('payment note'),
+  paymentID: 'payment-1',
+  showCancel: false,
+  sourceAmount: '1',
+  sourceAsset: {
+    code: 'XLM',
+    depositButtonText: '',
+    infoUrl: '',
+    infoUrlText: '',
+    issuerAccountID: 'issuer-account-id',
+    issuerName: 'Lumens',
+    issuerVerifiedDomain: '',
+    showDepositButton: false,
+    showWithdrawButton: false,
+    withdrawButtonText: '',
+  },
+  status: 'completed',
+  statusDescription: 'Completed',
+  statusDetail: '',
+  toUsername: 'bob',
+  type: 'paymentInfo',
+  worth: '$1.00',
+  worthAtSendTime: '$1.00',
+  ...override,
+})
+
 const makeMeta = (override?: Partial<T.Chat.ConversationMeta>) => ({
   ...Meta.makeConversationMeta(),
   conversationIDKey: convID,
@@ -265,6 +297,17 @@ test('testing store starts with initial state and helper selectors', () => {
   expect(state.getConvID()).toEqual(T.Chat.keyToConversationID(convID))
   expect(state.isCaughtUp()).toBe(true)
   expect(state.isMetaGood()).toBe(false)
+})
+
+test('paymentInfoReceived stores payment info by message ID and payment ID', () => {
+  const store = createStore()
+  const paymentInfo = makePaymentInfo()
+
+  store.getState().dispatch.paymentInfoReceived(msgID, paymentInfo)
+
+  const state = store.getState()
+  expect(state.accountsInfoMap.get(msgID)).toEqual(paymentInfo)
+  expect(state.paymentStatusMap.get(paymentInfo.paymentID)).toEqual(paymentInfo)
 })
 
 test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {

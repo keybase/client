@@ -17,7 +17,6 @@ import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
 import {flushInboxRowUpdates} from '@/stores/inbox-rows'
-import {buildInboxRows} from '@/chat/inbox/rows'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
@@ -186,14 +185,9 @@ type PreviewReason =
 type Store = T.Immutable<{
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
-  smallTeamsExpanded: boolean // if we're showing all small teams,
-  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
-  trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   userReacjis: T.Chat.UserReacjis
-  inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
-  inboxRetriedOnCurrentEmpty: boolean
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
@@ -206,14 +200,9 @@ const initialStore: Store = {
   flipStatusMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: undefined,
-  inboxNumSmallRows: 5,
-  inboxRetriedOnCurrentEmpty: false,
   maybeMentionMap: new Map(),
-  paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
-  smallTeamsExpanded: false,
   staticConfig: undefined,
-  trustedInboxHasLoaded: false,
   userReacjis: defaultUserReacjis,
 }
 
@@ -263,7 +252,6 @@ export type State = Store & {
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
-    paymentInfoReceived: (paymentInfo: T.Chat.ChatPaymentInfo) => void
     previewConversation: (p: {
       participants?: ReadonlyArray<string>
       teamname?: string
@@ -276,9 +264,6 @@ export type State = Store & {
     queueMetaHandle: () => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
-    setTrustedInboxHasLoaded: () => void
-    setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
-    toggleSmallTeamsExpanded: () => void
     unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
     updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
@@ -601,16 +586,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
-          if (
-            buildInboxRows(get().inboxLayout, get().inboxNumSmallRows ?? 5, get().smallTeamsExpanded).rows
-              .length === 0 &&
-            !get().inboxRetriedOnCurrentEmpty
-          ) {
-            set(s => {
-              s.inboxRetriedOnCurrentEmpty = true
-            })
-            inboxRefresh('inboxSyncedCurrentButEmpty')
-          }
           break
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
@@ -1026,7 +1001,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         m && arr.push(m)
         return arr
       }, [])
-      get().dispatch.setTrustedInboxHasLoaded()
       // Check if some of our existing stored metas might no longer be valid
       get().dispatch.metasReceived(metas)
     },
@@ -1133,11 +1107,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       ignorePromise(f())
-    },
-    paymentInfoReceived: paymentInfo => {
-      set(s => {
-        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-      })
     },
     previewConversation: p => {
       // We always make adhoc convos and never preview it
@@ -1295,43 +1264,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       // also blow away convoState
       clearChatStores()
     },
-    setInboxNumSmallRows: (rows, ignoreWrite) => {
-      set(s => {
-        if (rows > 0) {
-          s.inboxNumSmallRows = rows
-        }
-      })
-      if (ignoreWrite) {
-        return
-      }
-      const {inboxNumSmallRows} = get()
-      if (inboxNumSmallRows === undefined || inboxNumSmallRows <= 0) {
-        return
-      }
-      const f = async () => {
-        try {
-          await T.RPCGen.configGuiSetValueRpcPromise({
-            path: 'ui.inboxSmallRows',
-            value: {i: inboxNumSmallRows, isNull: false},
-          })
-        } catch {}
-      }
-      ignorePromise(f())
-    },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
         maybeMentionMap.set(name, T.castDraft(info))
-      })
-    },
-    setTrustedInboxHasLoaded: () => {
-      set(s => {
-        s.trustedInboxHasLoaded = true
-      })
-    },
-    toggleSmallTeamsExpanded: () => {
-      set(s => {
-        s.smallTeamsExpanded = !s.smallTeamsExpanded
       })
     },
     unboxRows: (ids, force) => {

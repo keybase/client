@@ -123,6 +123,7 @@ type ConvoStore = T.Immutable<{
   moreToLoadBack: boolean
   moreToLoadForward: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
+  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -180,6 +181,7 @@ const initialConvoStore: ConvoStore = {
   moreToLoadBack: false,
   moreToLoadForward: false,
   mutualTeams: [],
+  paymentStatusMap: new Map(),
   participants: noParticipantInfo,
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
@@ -250,7 +252,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatNavigateToInbox: () => void
-      chatPaymentInfoReceived: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
       chatPreviewConversation: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
@@ -431,9 +432,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatNavigateToInbox: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatPaymentInfoReceived: () => {
     throw new Error('convostate defer not initialized')
   },
   chatPreviewConversation: () => {
@@ -1000,7 +998,6 @@ const createSlice =
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      get().dispatch.defer.chatPaymentInfoReceived(T.Chat.numberToMessageID(msgID), paymentInfo)
       getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
     }
 
@@ -2726,6 +2723,7 @@ const createSlice =
       paymentInfoReceived: (messageID, paymentInfo) => {
         set(s => {
           s.accountsInfoMap.set(messageID, paymentInfo)
+          s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
         })
       },
       pinMessage: msgID => {

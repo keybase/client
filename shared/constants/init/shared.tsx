@@ -354,8 +354,6 @@ export const initSharedSubscriptions = () => {
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
     chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
     chatNavigateToInbox: () => storeRegistry.getState('chat').dispatch.navigateToInbox(),
-    chatPaymentInfoReceived: (_messageID, paymentInfo) =>
-      storeRegistry.getState('chat').dispatch.paymentInfoReceived(paymentInfo),
     chatPreviewConversation: p => storeRegistry.getState('chat').dispatch.previewConversation(p),
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
     teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
@@ -395,27 +393,20 @@ export const initSharedSubscriptions = () => {
             useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
           }
 
-          const updateChat = async () => {
+          const updateChat = () => {
             // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
             // mounts behind a pushed conversation do not pay inbox startup cost.
             if (!isPhone && useCurrentUserState.getState().username) {
               const {inboxRefresh} = useChatState.getState().dispatch
               inboxRefresh('bootstrap')
             }
-            try {
-              const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-              const ri = rows.i ?? -1
-              if (ri > 0) {
-                useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
-              }
-            } catch {}
           }
 
           getFollowerInfo()
           ignorePromise(updateServerConfig())
           updateTeams()
           updateSettings()
-          ignorePromise(updateChat())
+          updateChat()
         }
       }
 
