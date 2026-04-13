@@ -190,14 +190,11 @@ helpers.rootLinuxNode(env, {
 
     stage("Test") {
       withKbweb() {
-        def focusedGoTestConfig = getFocusedGoTestConfig()
         parallel (
           failFast: true,
           test_linux: {
             def packagesToTest = [:]
-            if (focusedGoTestConfig) {
-              packagesToTest[focusedGoTestConfig.pkg] = 1
-            } else if (hasGoChanges || hasJenkinsfileChanges) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               // Clean the index first
               sh "git add -A"
               // Install gofumpt and generate protocols with GOPATH/bin in PATH
@@ -248,15 +245,11 @@ helpers.rootLinuxNode(env, {
                 "GPG=/usr/bin/gpg.distrib",
               ]) {
                 if (hasGoChanges || hasJenkinsfileChanges) {
-                  if (focusedGoTestConfig) {
-                    runFocusedGoTest(focusedGoTestConfig)
-                  } else {
-                    // install the updater test binary
-                    dir('go') {
-                      sh "go install github.com/keybase/client/go/updater/test"
-                    }
-                    testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
+                  // install the updater test binary
+                  dir('go') {
+                    sh "go install github.com/keybase/client/go/updater/test"
                   }
+                  testGo("test_linux_go_", packagesToTest, hasKBFSChanges)
                 }
               }},
               test_linux_js: { withEnv([
@@ -264,19 +257,17 @@ helpers.rootLinuxNode(env, {
                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                 "NODE_OPTIONS=--max-old-space-size=4096",
               ]) {
-                if (!focusedGoTestConfig) {
-                  dir("shared") {
-                    stage("JS Tests") {
-                      sh "git config --global user.name 'Keybase Jenkins'"
-                      sh "git config --global user.email 'jenkins@keyba.se'"
-                      sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                    }
+                dir("shared") {
+                  stage("JS Tests") {
+                    sh "git config --global user.name 'Keybase Jenkins'"
+                    sh "git config --global user.email 'jenkins@keyba.se'"
+                    sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                   }
                 }
               }},
               integrate: {
                 // Build the client docker first so we can immediately kick off KBFS
-                if (!focusedGoTestConfig && (((hasGoChanges && hasKBFSChanges) || hasJenkinsfileChanges))) {
+                if ((hasGoChanges && hasKBFSChanges) || hasJenkinsfileChanges) {
                   println "We have KBFS changes, so we are building kbfs-server."
                   dir('go') {
                     sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
@@ -316,7 +307,7 @@ helpers.rootLinuxNode(env, {
             )
           },
           test_windows: {
-            if (!focusedGoTestConfig && (hasGoChanges || hasJenkinsfileChanges)) {
+            if (hasGoChanges || hasJenkinsfileChanges) {
               helpers.nodeWithCleanup('windows-ssh', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
@@ -511,31 +502,6 @@ def getPackagesToTest(dependencyFiles, hasJenkinsfileChanges) {
     }
   }
   return packagesToTest
-}
-
-def getFocusedGoTestConfig() {
-  if (env.BRANCH_NAME == 'nojima/HOTPOT-backport-lock-issue') {
-    return [
-      pkg: 'github.com/keybase/client/go/chat/search',
-      dirPath: 'chat/search',
-      testBinary: 'search_deadlock.test',
-      testPattern: '^TestSearchDeadlockRegression$',
-      timeout: '30m',
-      flags: '',
-    ]
-  }
-  return null
-}
-
-def runFocusedGoTest(config) {
-  dir('go') {
-    def goversion = sh(returnStdout: true, script: "go version").trim()
-    println "Running focused Go test on commit ${env.COMMIT_HASH} with ${goversion}: ${config.pkg} ${config.testPattern}"
-    sh "go test -vet=off -c ${config.flags} -o ${config.dirPath}/${config.testBinary} ./${config.dirPath}"
-    dir(config.dirPath) {
-      sh "./${config.testBinary} -test.timeout ${config.timeout} -test.run '${config.testPattern}'"
-    }
-  }
 }
 
 def testGo(prefix, packagesToTest, hasKBFSChanges) {
