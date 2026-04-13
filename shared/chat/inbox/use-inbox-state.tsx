@@ -15,17 +15,28 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
+      inboxCurrentSyncVersion: s.inboxCurrentSyncVersion,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
+      inboxRetriedOnCurrentSyncVersion: s.inboxRetriedOnCurrentSyncVersion,
       inboxRefresh: s.dispatch.inboxRefresh,
+      markInboxRetriedOnCurrentSync: s.dispatch.markInboxRetriedOnCurrentSync,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
     }))
   )
-  const {inboxHasLoaded, inboxLayout, inboxRefresh, queueMetaToRequest} = chatState
+  const {
+    inboxCurrentSyncVersion,
+    inboxHasLoaded,
+    inboxLayout,
+    inboxRefresh,
+    inboxRetriedOnCurrentSyncVersion,
+    markInboxRetriedOnCurrentSync,
+    queueMetaToRequest,
+  } = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
 
-  const setInboxNumSmallRows = React.useCallback((rows: number, persist = true) => {
+  const setInboxNumSmallRows = (rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
@@ -42,10 +53,10 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       } catch {}
     }
     C.ignorePromise(f())
-  }, [])
-  const toggleSmallTeamsExpanded = React.useCallback(() => {
+  }
+  const toggleSmallTeamsExpanded = () => {
     setSmallTeamsExpanded(expanded => !expanded)
-  }, [])
+  }
 
   const {
     allowShowFloatingButton,
@@ -93,34 +104,40 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
 
   React.useEffect(() => {
-    let canceled = false
     loadInboxNumSmallRows(
       [{path: 'ui.inboxSmallRows'}],
       rows => {
-        if (canceled) {
-          return
-        }
         const count = rows.i ?? -1
         if (count > 0) {
-          setInboxNumSmallRows(count, false)
+          setInboxNumSmallRowsState(count)
         }
       },
       () => {}
     )
-    return () => {
-      canceled = true
-    }
-  }, [loadInboxNumSmallRows, setInboxNumSmallRows])
+  }, [loadInboxNumSmallRows])
 
-  const retriedEmptyInboxRef = React.useRef(false)
   React.useEffect(() => {
     const ready = loggedIn && !!username && (!C.isMobile || isFocused)
-    if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || retriedEmptyInboxRef.current) {
+    const shouldRetryCurrentSync =
+      inboxCurrentSyncVersion > 0 &&
+      inboxCurrentSyncVersion > inboxRetriedOnCurrentSyncVersion
+    if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || !shouldRetryCurrentSync) {
       return
     }
-    retriedEmptyInboxRef.current = true
+    markInboxRetriedOnCurrentSync(inboxCurrentSyncVersion)
     inboxRefresh('inboxSyncedCurrentButEmpty')
-  }, [inboxHasLoaded, inboxRefresh, inboxRows.length, isFocused, isSearching, loggedIn, username])
+  }, [
+    inboxCurrentSyncVersion,
+    inboxHasLoaded,
+    inboxRefresh,
+    inboxRetriedOnCurrentSyncVersion,
+    inboxRows.length,
+    isFocused,
+    isSearching,
+    loggedIn,
+    markInboxRetriedOnCurrentSync,
+    username,
+  ])
 
   // Compute unread big indices at render time from per-convo stores
   const bigConvIds = React.useMemo(() => {

@@ -186,6 +186,8 @@ type Store = T.Immutable<{
   badgeStateVersion: number
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
+  inboxCurrentSyncVersion: number
+  inboxRetriedOnCurrentSyncVersion: number
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   userReacjis: T.Chat.UserReacjis
   inboxHasLoaded: boolean // if we've ever loaded,
@@ -198,8 +200,10 @@ const initialStore: Store = {
   badgeStateVersion: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
+  inboxCurrentSyncVersion: 0,
   inboxHasLoaded: false,
   inboxLayout: undefined,
+  inboxRetriedOnCurrentSyncVersion: 0,
   maybeMentionMap: new Map(),
   smallTeamBadgeCount: 0,
   staticConfig: undefined,
@@ -237,6 +241,7 @@ export type State = Store & {
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
+    markInboxRetriedOnCurrentSync: (version: number) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
     metasReceived: (
@@ -446,6 +451,13 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
+    markInboxRetriedOnCurrentSync: version => {
+      set(s => {
+        if (version > s.inboxRetriedOnCurrentSyncVersion) {
+          s.inboxRetriedOnCurrentSyncVersion = version
+        }
+      })
+    },
     loadStaticConfig: () => {
       if (get().staticConfig) {
         return
@@ -586,6 +598,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
+          set(s => {
+            s.inboxCurrentSyncVersion++
+          })
           break
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
