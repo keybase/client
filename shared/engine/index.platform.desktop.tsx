@@ -63,9 +63,14 @@ class NativeTransport extends TransportShared {
     }
 
     this._incomingBatchTimer = setImmediate(() => {
+      const chunkCount = this._incomingBatch.length
+      const batchBytes = this._incomingBatchBytes
       this._incomingBatchTimer = undefined
       const batched = this.takeIncomingBatch()
       if (batched) {
+        if (printRPCBytes && chunkCount > 1) {
+          logger.debug('[RPC] Forwarding engineIncoming batch', {bytes: batchBytes, chunks: chunkCount})
+        }
         mainWindowDispatchEngineIncoming?.(batched)
       }
     })
