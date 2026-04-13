@@ -53,7 +53,7 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
-    mainWindowDispatchEngineIncoming(m)
+    mainWindowDispatchEngineIncoming?.(m)
   }
 
   close() {
