@@ -596,8 +596,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
     showTracker: username => {
       get().dispatch.load({
         assertion: username,
-        // with new nav we never show trackers from inside the app
-        forceDisplay: false,
+        forceDisplay: true,
         fromDaemon: false,
         guiID: generateGUIID(),
         ignoreCache: true,

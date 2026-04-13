@@ -14,6 +14,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
     const pathElems = T.FS.getPathElements(currPath)
     if (pathElems.length < 3) return
@@ -25,9 +26,9 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     letResetUserBackIn(id, username)
   }
 
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const onViewProfile = (username: string) => () => {
-    C.isMobile ? navToProfile(username) : showTracker(username)
+  const onOpenProfile = (username: string) => () => {
+    navToProfile(username)
+    loadProfile(username, false)
   }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(
@@ -100,7 +101,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
             <Kb.Button
               mode="Secondary"
               label={'View ' + p + "'s profile"}
-              onClick={onViewProfile(p)}
+              onClick={onOpenProfile(p)}
               style={Kb.Styles.collapseStyles([styles.button, styles.secondaryOnRed])}
               labelStyle={styles.secondaryOnRedLabel}
             />

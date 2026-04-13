@@ -81,7 +81,7 @@ test('showTracker delegates to load with a tracker load', () => {
   expect(load).toHaveBeenCalledWith(
     expect.objectContaining({
       assertion: 'alice',
-      forceDisplay: false,
+      forceDisplay: true,
       ignoreCache: true,
       inTracker: true,
       reason: '',
