@@ -7,6 +7,8 @@ import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} fro
 import type {RPCMessage} from './rpc-transport'
 import KB2 from '@/util/electron.desktop'
 
+const TEMPLOGGING = true
+
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
 const {isRenderer} = KB2.constants
 
@@ -58,15 +60,34 @@ class NativeTransport extends TransportShared {
     }
     this._incomingBatch.push(m)
     this._incomingBatchBytes += m.length
+    if (TEMPLOGGING) {
+      console.log('[TEMPLOGGING] packetizeData queued', {
+        bytes: this._incomingBatchBytes,
+        chunkLength: m.length,
+        chunks: this._incomingBatch.length,
+      })
+    }
     if (this._incomingBatchTimer) {
+      if (TEMPLOGGING) {
+        console.log('[TEMPLOGGING] packetizeData reusing existing flush timer')
+      }
       return
     }
 
     this._incomingBatchTimer = setImmediate(() => {
       const chunkCount = this._incomingBatch.length
       const batchBytes = this._incomingBatchBytes
+      if (TEMPLOGGING) {
+        console.log('[TEMPLOGGING] flush timer fired', {bytes: batchBytes, chunks: chunkCount})
+      }
       this._incomingBatchTimer = undefined
       const batched = this.takeIncomingBatch()
+      if (TEMPLOGGING) {
+        console.log('[TEMPLOGGING] flush timer after takeIncomingBatch', {
+          batchedBytes: batched?.length ?? 0,
+          hadBatch: !!batched,
+        })
+      }
       if (batched) {
         if (printRPCBytes && chunkCount > 1) {
           logger.debug('[RPC] Forwarding engineIncoming batch', {bytes: batchBytes, chunks: chunkCount})
@@ -78,6 +99,13 @@ class NativeTransport extends TransportShared {
 
   close() {
     this.markExplicitClose()
+    if (TEMPLOGGING) {
+      console.log('[TEMPLOGGING] close clearing incoming batch', {
+        bytes: this._incomingBatchBytes,
+        chunks: this._incomingBatch.length,
+        hadTimer: !!this._incomingBatchTimer,
+      })
+    }
     if (this._incomingBatchTimer) {
       clearImmediate(this._incomingBatchTimer)
       this._incomingBatchTimer = undefined
@@ -163,6 +191,10 @@ class NativeTransport extends TransportShared {
     this._incomingBatch = []
     const batchBytes = this._incomingBatchBytes
     this._incomingBatchBytes = 0
+
+    if (TEMPLOGGING) {
+      console.log('[TEMPLOGGING] takeIncomingBatch snapshot', {bytes: batchBytes, chunks: batch.length})
+    }
 
     if (!batch.length) {
       return undefined
