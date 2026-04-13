@@ -26,10 +26,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const {inboxHasLoaded, inboxLayout, inboxNumSmallRows, inboxRefresh} = chatState
   const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
 
-  const {allowShowFloatingButton, rows: inboxRows, smallTeamsExpanded: showAllSmallTeams} = React.useMemo(
-    () => buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded),
-    [inboxLayout, inboxNumSmallRows, smallTeamsExpanded]
-  )
+  const {
+    allowShowFloatingButton,
+    rows: inboxRows,
+    smallTeamsExpanded: showAllSmallTeams,
+  } = buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded)
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
