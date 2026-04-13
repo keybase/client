@@ -31,7 +31,8 @@ func (d *deadlockTestDiskStorage) PutTokenEntry(ctx context.Context, convID chat
 	return nil
 }
 
-func (d *deadlockTestDiskStorage) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID, token string) {}
+func (d *deadlockTestDiskStorage) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID, token string) {
+}
 
 func (d *deadlockTestDiskStorage) GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
 	return nil, nil
