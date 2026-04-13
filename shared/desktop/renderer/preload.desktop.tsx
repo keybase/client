@@ -111,6 +111,7 @@ if (isRenderer) {
         mainWindowDispatch: (action: Actions) => {
           ignorePromise(Electron.ipcRenderer.invoke('KBdispatchAction', action))
         },
+        mainWindowDispatchEngineIncoming: (_data: Uint8Array) => undefined,
         makeRenderer: (options: {
           windowComponent: string
           windowOpts: {
