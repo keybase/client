@@ -19,9 +19,10 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
+      smallTeamBadgeCount: s.smallTeamBadgeCount,
     }))
   )
-  const {inboxHasLoaded, inboxLayout, inboxRefresh, queueMetaToRequest} = chatState
+  const {inboxHasLoaded, inboxLayout, inboxRefresh, queueMetaToRequest, smallTeamBadgeCount} = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
 
@@ -47,10 +48,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     setSmallTeamsExpanded(expanded => !expanded)
   }, [])
 
-  const {allowShowFloatingButton, rows: inboxRows, smallTeamsExpanded: showAllSmallTeams} = React.useMemo(
-    () => buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded),
-    [inboxLayout, inboxNumSmallRows, smallTeamsExpanded]
-  )
+  const {
+    allowShowFloatingButton,
+    rows: inboxRows,
+    smallTeamsExpanded: showAllSmallTeams,
+  } = buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded)
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
@@ -138,13 +140,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     })
   )
 
-  const hiddenSmallBadgeCount = Chat.useChatState(s => {
-    let visibleBadges = 0
-    for (const conversationIDKey of visibleSmallConvIDs) {
-      visibleBadges += Chat.getConvoState(conversationIDKey).badge
-    }
-    return Math.max(0, s.smallTeamBadgeCount - visibleBadges)
-  })
+  let visibleBadges = 0
+  for (const conversationIDKey of visibleSmallConvIDs) {
+    visibleBadges += Chat.getConvoState(conversationIDKey).badge
+  }
+  const hiddenSmallBadgeCount = Math.max(0, smallTeamBadgeCount - visibleBadges)
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
