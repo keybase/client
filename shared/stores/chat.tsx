@@ -183,6 +183,7 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
+  badgeStateVersion: number
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
@@ -194,6 +195,7 @@ type Store = T.Immutable<{
 }>
 
 const initialStore: Store = {
+  badgeStateVersion: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
   inboxHasLoaded: false,
@@ -302,6 +304,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       })
       const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
+        s.badgeStateVersion += 1
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
       })

@@ -19,10 +19,9 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
-      smallTeamBadgeCount: s.smallTeamBadgeCount,
     }))
   )
-  const {inboxHasLoaded, inboxLayout, inboxRefresh, queueMetaToRequest, smallTeamBadgeCount} = chatState
+  const {inboxHasLoaded, inboxLayout, inboxRefresh, queueMetaToRequest} = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
 
@@ -52,7 +51,10 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     allowShowFloatingButton,
     rows: inboxRows,
     smallTeamsExpanded: showAllSmallTeams,
-  } = buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded)
+  } = React.useMemo(
+    () => buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded),
+    [inboxLayout, inboxNumSmallRows, smallTeamsExpanded]
+  )
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
@@ -125,26 +127,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const visibleSmallConvIDs = React.useMemo(() => {
-    return inboxRows.reduce<Array<string>>((acc, row) => {
-      if (row.type === 'small') {
-        acc.push(row.conversationIDKey)
-      }
-      return acc
-    }, [])
-  }, [inboxRows])
-
   const unreadIndices = Chat.useChatState(
     C.useShallow(s => {
       return s.getUnreadIndicies(bigConvIds)
     })
   )
-
-  let visibleBadges = 0
-  for (const conversationIDKey of visibleSmallConvIDs) {
-    visibleBadges += Chat.getConvoState(conversationIDKey).badge
-  }
-  const hiddenSmallBadgeCount = Math.max(0, smallTeamBadgeCount - visibleBadges)
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
@@ -178,7 +165,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     selectedConversationIDKey,
     setInboxNumSmallRows,
     smallTeamsExpanded: showAllSmallTeams,
-    smallTeamsHiddenBadgeCount: hiddenSmallBadgeCount,
     toggleSmallTeamsExpanded,
     unreadIndices: filteredIndices,
     unreadTotal: filteredTotal,
