@@ -1052,8 +1052,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // On login error, turn off the user switching flag so the login screen is not hidden,
       // and clear any pending push notification — the switch failed so there's nothing to replay.
-      get().dispatch.setUserSwitching(false)
-      storeRegistry.getState('push').dispatch.clearPendingPushNotification()
+      // Only do this when there is an actual error; login() calls setLoginError() with no
+      // argument at the start to clear a previous error, and those side effects must not fire
+      // then — they would clobber the userSwitching flag and pendingPushNotification that
+      // were set just before login() was called for a push-notification account switch.
+      if (error) {
+        get().dispatch.setUserSwitching(false)
+        storeRegistry.getState('push').dispatch.clearPendingPushNotification()
+      }
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return
