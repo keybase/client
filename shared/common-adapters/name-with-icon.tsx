@@ -426,9 +426,9 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       navigateAppend({name: 'team', params: {teamID}})
     }
   }
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const onOpenTracker = () => {
-    username && showUser(username, true)
+    username && showTracker(username)
   }
   const onOpenUserProfile = () => {
     username && navToProfile(username)

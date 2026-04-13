@@ -25,9 +25,9 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     letResetUserBackIn(id, username)
   }
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const onViewProfile = (username: string) => () => {
-    C.isMobile ? navToProfile(username) : showUser(username, true)
+    C.isMobile ? navToProfile(username) : showTracker(username)
   }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(

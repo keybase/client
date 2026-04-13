@@ -159,10 +159,10 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   React.useEffect(() => {
-    userDetailsState === 'unknown' && showUser(username, false, true)
-  }, [showUser, username, userDetailsState])
+    userDetailsState === 'unknown' && loadProfile(username)
+  }, [loadProfile, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
     onLayoutChange?.()

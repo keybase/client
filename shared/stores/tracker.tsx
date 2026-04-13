@@ -164,7 +164,6 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     defer: {
-      onShowUserProfile?: (username: string) => void
       onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
     changeFollow: (guiID: string, follow: boolean) => void
@@ -180,6 +179,7 @@ export type State = Store & {
       reason: string
       inTracker: boolean
     }) => void
+    loadProfile: (username: string, ignoreCache?: boolean) => void
     loadNonUserProfile: (assertion: string) => void
     notifyCard: (guiID: string, card: T.RPCGen.UserCard) => void
     notifyReset: (guiID: string) => void
@@ -189,7 +189,7 @@ export type State = Store & {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
     resetState: () => void
-    showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
+    showTracker: (username: string) => void
     updateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
   }
   getDetails: (username: string) => T.Tracker.Details
@@ -232,9 +232,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
       })
     },
     defer: {
-      onShowUserProfile: () => {
-        throw new Error('onShowUserProfile not implemented')
-      },
       onUsersUpdates: () => {
         throw new Error('onUsersUpdates not implemented')
       },
@@ -367,6 +364,17 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         }
       }
       ignorePromise(loadFollowing())
+    },
+    loadProfile: (username, ignoreCache = true) => {
+      get().dispatch.load({
+        assertion: username,
+        forceDisplay: false,
+        fromDaemon: false,
+        guiID: generateGUIID(),
+        ignoreCache,
+        inTracker: false,
+        reason: '',
+      })
     },
     loadNonUserProfile: assertion => {
       const f = async () => {
@@ -582,7 +590,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
       })
     },
     resetState: Z.defaultReset,
-    showUser: (username, asTracker, skipNav) => {
+    showTracker: username => {
       get().dispatch.load({
         assertion: username,
         // with new nav we never show trackers from inside the app
@@ -590,13 +598,9 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         fromDaemon: false,
         guiID: generateGUIID(),
         ignoreCache: true,
-        inTracker: asTracker,
+        inTracker: true,
         reason: '',
       })
-      if (!skipNav) {
-        // go to profile page
-        get().dispatch.defer.onShowUserProfile?.(username)
-      }
     },
     updateResult: (guiID, result, reason) => {
       set(s => {

@@ -19,13 +19,7 @@ const Container = () => {
   React.useEffect(() => {
     return () => {
       setTimeout(() => {
-        useTrackerState.getState().dispatch.load({
-          assertion: you,
-          guiID: C.generateGUIID(),
-          ignoreCache: true,
-          inTracker: false,
-          reason: '',
-        })
+        useTrackerState.getState().dispatch.loadProfile(you)
       }, 500)
     }
   }, [you])

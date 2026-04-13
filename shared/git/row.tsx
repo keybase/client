@@ -77,9 +77,9 @@ function ConnectedRow(ownProps: OwnProps) {
     )
   }
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const openUserTracker = (username: string) => {
-    showUser(username, true)
+    showTracker(username)
   }
 
   const onBrowseGitRepo = () =>

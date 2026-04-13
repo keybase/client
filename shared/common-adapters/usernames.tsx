@@ -94,7 +94,7 @@ function Username(p: UsernameProps) {
   if (onUsernameClicked === 'tracker') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
-      useTrackerState.getState().dispatch.showUser(username, true)
+      useTrackerState.getState().dispatch.showTracker(username)
     }
   } else if (onUsernameClicked === 'profile') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {
