@@ -41,7 +41,7 @@ const getDefaultVisibleResultCounts = (
   inboxSearch: T.Immutable<T.Chat.InboxSearchInfo>
 ): InboxSearchVisibleResultCounts => ({
   bots: Math.min(inboxSearch.botsResults.length, inboxSearchPreviewSectionSize),
-  names: inboxSearch.nameResults.length,
+  names: inboxSearch.nameResults.length || (inboxSearch.nameResultsUnread ? 1 : 0),
   openTeams: Math.min(inboxSearch.openTeamsResults.length, inboxSearchPreviewSectionSize),
   text: inboxSearch.nameResultsUnread ? 0 : inboxSearch.textResults.length,
 })
@@ -183,16 +183,25 @@ export function useInboxSearch(): InboxSearchController {
     ignorePromise(f())
   }, [])
 
-  const clearSearch = React.useCallback(() => {
-    activeSearchIDRef.current++
-    isSearchingRef.current = false
+  const resetSearchState = React.useCallback(() => {
     const next = makeInboxSearchInfo()
     searchInfoRef.current = next
     visibleResultCountsRef.current = getDefaultVisibleResultCounts(next)
     setIsSearching(false)
     setSearchInfo(next)
+  }, [])
+
+  const invalidateSearch = React.useCallback(() => {
+    activeSearchIDRef.current++
+    isSearchingRef.current = false
     cancelActiveSearch()
   }, [cancelActiveSearch])
+
+  const clearSearch = React.useCallback(() => {
+    invalidateSearch()
+    resetSearchState()
+  }, [invalidateSearch, resetSearchState])
+
 
   const isActiveSearch = React.useCallback(
     (searchID: number) => searchID === activeSearchIDRef.current && isSearchingRef.current,
@@ -476,11 +485,11 @@ export function useInboxSearch(): InboxSearchController {
   }, [runSearch])
 
   React.useEffect(() => {
-    clearSearch()
+    cancelActiveSearch()
     return () => {
-      clearSearch()
+      invalidateSearch()
     }
-  }, [clearSearch])
+  }, [cancelActiveSearch, invalidateSearch])
 
   React.useEffect(() => {
     if (mobileAppState === 'background' && isSearchingRef.current) {
