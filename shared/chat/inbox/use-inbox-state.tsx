@@ -15,23 +15,21 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
-      inboxCurrentSyncVersion: s.inboxCurrentSyncVersion,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
+      inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
       inboxRefresh: s.dispatch.inboxRefresh,
-      inboxRetriedOnCurrentSyncVersion: s.inboxRetriedOnCurrentSyncVersion,
-      markInboxRetriedOnCurrentSync: s.dispatch.markInboxRetriedOnCurrentSync,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
+      setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
     }))
   )
   const {
-    inboxCurrentSyncVersion,
     inboxHasLoaded,
     inboxLayout,
     inboxRefresh,
-    inboxRetriedOnCurrentSyncVersion,
-    markInboxRetriedOnCurrentSync,
+    inboxRetriedOnCurrentEmpty,
     queueMetaToRequest,
+    setInboxRetriedOnCurrentEmpty,
   } = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
@@ -118,23 +116,20 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   React.useEffect(() => {
     const ready = loggedIn && !!username && (!C.isMobile || isFocused)
-    const shouldRetryCurrentSync =
-      inboxCurrentSyncVersion > 0 && inboxCurrentSyncVersion > inboxRetriedOnCurrentSyncVersion
-    if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || !shouldRetryCurrentSync) {
+    if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || inboxRetriedOnCurrentEmpty) {
       return
     }
-    markInboxRetriedOnCurrentSync(inboxCurrentSyncVersion)
+    setInboxRetriedOnCurrentEmpty(true)
     inboxRefresh('inboxSyncedCurrentButEmpty')
   }, [
-    inboxCurrentSyncVersion,
     inboxHasLoaded,
     inboxRefresh,
-    inboxRetriedOnCurrentSyncVersion,
+    inboxRetriedOnCurrentEmpty,
     inboxRows.length,
     isFocused,
     isSearching,
     loggedIn,
-    markInboxRetriedOnCurrentSync,
+    setInboxRetriedOnCurrentEmpty,
     username,
   ])
 

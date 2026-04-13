@@ -347,6 +347,7 @@ export interface ConvoState extends ConvoStore {
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateCoinFlipStatus: (status: T.RPCChat.UICoinFlipStatus) => void
+    updateCoinFlipStatuses: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateDraft: DebouncedFunc<(text: string) => void>
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => void
     updateFromUIInboxLayout: (l: {
@@ -3320,6 +3321,13 @@ const createSlice =
       updateCoinFlipStatus: status => {
         set(s => {
           s.flipStatusMap.set(status.gameID, T.castDraft(status))
+        })
+      },
+      updateCoinFlipStatuses: statuses => {
+        set(s => {
+          statuses.forEach(status => {
+            s.flipStatusMap.set(status.gameID, T.castDraft(status))
+          })
         })
       },
       updateDraft: throttle(

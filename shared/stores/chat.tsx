@@ -186,8 +186,7 @@ type Store = T.Immutable<{
   badgeStateVersion: number
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
-  inboxCurrentSyncVersion: number
-  inboxRetriedOnCurrentSyncVersion: number
+  inboxRetriedOnCurrentEmpty: boolean
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   userReacjis: T.Chat.UserReacjis
   inboxHasLoaded: boolean // if we've ever loaded,
@@ -200,10 +199,9 @@ const initialStore: Store = {
   badgeStateVersion: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  inboxCurrentSyncVersion: 0,
   inboxHasLoaded: false,
   inboxLayout: undefined,
-  inboxRetriedOnCurrentSyncVersion: 0,
+  inboxRetriedOnCurrentEmpty: false,
   maybeMentionMap: new Map(),
   smallTeamBadgeCount: 0,
   staticConfig: undefined,
@@ -241,7 +239,7 @@ export type State = Store & {
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
-    markInboxRetriedOnCurrentSync: (version: number) => void
+    setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
     metasReceived: (
@@ -451,11 +449,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    markInboxRetriedOnCurrentSync: version => {
+    setInboxRetriedOnCurrentEmpty: retried => {
       set(s => {
-        if (version > s.inboxRetriedOnCurrentSyncVersion) {
-          s.inboxRetriedOnCurrentSyncVersion = version
-        }
+        s.inboxRetriedOnCurrentEmpty = retried
       })
     },
     loadStaticConfig: () => {
@@ -598,9 +594,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
-          set(s => {
-            s.inboxCurrentSyncVersion++
-          })
           break
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
@@ -727,10 +720,18 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
         case 'chat.1.chatUi.chatCoinFlipStatus': {
           const {statuses} = action.payload.params
+          const statusesByConvo = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
           statuses?.forEach(status => {
-            storeRegistry
-              .getConvoState(T.Chat.stringToConversationIDKey(status.convID))
-              .dispatch.updateCoinFlipStatus(status)
+            const conversationIDKey = T.Chat.stringToConversationIDKey(status.convID)
+            const convoStatuses = statusesByConvo.get(conversationIDKey)
+            if (convoStatuses) {
+              convoStatuses.push(status)
+            } else {
+              statusesByConvo.set(conversationIDKey, [status])
+            }
+          })
+          statusesByConvo.forEach((convoStatuses, conversationIDKey) => {
+            storeRegistry.getConvoState(conversationIDKey).dispatch.updateCoinFlipStatuses(convoStatuses)
           })
           break
         }
@@ -1337,12 +1338,19 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             return
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
+          const hasInboxRows =
+            (layout.smallTeams?.length ?? 0) > 0 ||
+            (layout.bigTeams?.length ?? 0) > 0 ||
+            layout.totalSmallTeams > 0
 
           const layoutChanged = !isEqual(s.inboxLayout, layout)
           if (layoutChanged) {
             s.inboxLayout = T.castDraft(layout)
           }
           s.inboxHasLoaded = !!layout
+          if (hasInboxRows) {
+            s.inboxRetriedOnCurrentEmpty = false
+          }
           if (!inboxHasLoaded) {
             // on first layout, initialize any drafts and muted status
             // After the first layout, any other updates will come in the form of meta updates.
