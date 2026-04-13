@@ -5,7 +5,7 @@
   "scripts": {
     "_helper": "node desktop/yarn-helper/index.mts",
     "help": "yarn run _helper help",
-    "test": "jest --runInBand",
+    "test": "napi-postinstall unrs-resolver 1.11.1 check; jest --runInBand",
     "lint": "yarn run lint-specific .",
     "lint-warn": "eslint .",
     "lint-specific": "eslint --cache --quiet ",
