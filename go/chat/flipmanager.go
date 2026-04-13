@@ -669,7 +669,6 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	} else {
 		status = chat1.UICoinFlipStatus{
 			GameID: gameID.FlipGameIDStr(),
-			ConvID: update.Metadata.ConversationID.ConvIDStr(),
 		}
 	}
 	status.ConvID = update.Metadata.ConversationID.ConvIDStr()
