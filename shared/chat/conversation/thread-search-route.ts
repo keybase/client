@@ -1,5 +1,5 @@
 import type * as T from '@/constants/types'
-import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
+import {getRouteParamsFromRoute, type RootParamList, type RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/native'
 
 export type ThreadSearchRoute = {
@@ -11,12 +11,16 @@ export type ThreadSearchRouteProps = {
   threadSearch?: ThreadSearchRoute
 }
 
-export const useChatThreadRouteParams = () => {
+const isThreadSearchRouteParams = (
+  params: RootParamList['chatConversation'] | RootParamList['chatRoot'] | undefined
+): params is ThreadSearchRouteProps => !!params && typeof params === 'object'
+
+export const useChatThreadRouteParams = (): ThreadSearchRouteProps | undefined => {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
-  return getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
+  const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
+  return isThreadSearchRouteParams(params) ? params : undefined
 }
 
 export const useThreadSearchRoute = (): ThreadSearchRoute | undefined => {
-  const params = useChatThreadRouteParams()
-  return params && typeof params === 'object' && 'threadSearch' in params ? params.threadSearch : undefined
+  return useChatThreadRouteParams()?.threadSearch
 }
