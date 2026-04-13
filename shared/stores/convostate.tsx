@@ -181,8 +181,8 @@ const initialConvoStore: ConvoStore = {
   moreToLoadBack: false,
   moreToLoadForward: false,
   mutualTeams: [],
-  paymentStatusMap: new Map(),
   participants: noParticipantInfo,
+  paymentStatusMap: new Map(),
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
   rowRecycleTypeMap: new Map(),
@@ -2537,7 +2537,10 @@ const createSlice =
             }
 
             navigateAppend(
-              {name: Common.threadRouteName, params: {conversationIDKey, createConversationError, threadSearch}},
+              {
+                name: Common.threadRouteName,
+                params: {conversationIDKey, createConversationError, threadSearch},
+              },
               replace
             )
           }
