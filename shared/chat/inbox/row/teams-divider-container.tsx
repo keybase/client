@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import type {ChatInboxRowItem} from '../rowitem'
