@@ -18,8 +18,8 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxCurrentSyncVersion: s.inboxCurrentSyncVersion,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
-      inboxRetriedOnCurrentSyncVersion: s.inboxRetriedOnCurrentSyncVersion,
       inboxRefresh: s.dispatch.inboxRefresh,
+      inboxRetriedOnCurrentSyncVersion: s.inboxRetriedOnCurrentSyncVersion,
       markInboxRetriedOnCurrentSync: s.dispatch.markInboxRetriedOnCurrentSync,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
     }))
@@ -119,8 +119,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   React.useEffect(() => {
     const ready = loggedIn && !!username && (!C.isMobile || isFocused)
     const shouldRetryCurrentSync =
-      inboxCurrentSyncVersion > 0 &&
-      inboxCurrentSyncVersion > inboxRetriedOnCurrentSyncVersion
+      inboxCurrentSyncVersion > 0 && inboxCurrentSyncVersion > inboxRetriedOnCurrentSyncVersion
     if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || !shouldRetryCurrentSync) {
       return
     }
