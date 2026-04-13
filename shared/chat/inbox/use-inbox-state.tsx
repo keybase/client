@@ -19,12 +19,19 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxRefresh: s.dispatch.inboxRefresh,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
+      smallTeamBadgeCount: s.smallTeamBadgeCount,
       smallTeamsExpanded: s.smallTeamsExpanded,
       toggleSmallTeamsExpanded: s.dispatch.toggleSmallTeamsExpanded,
     }))
   )
   const {inboxHasLoaded, inboxLayout, inboxNumSmallRows, inboxRefresh} = chatState
-  const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
+  const {
+    queueMetaToRequest,
+    setInboxNumSmallRows,
+    smallTeamBadgeCount,
+    smallTeamsExpanded,
+    toggleSmallTeamsExpanded,
+  } = chatState
 
   const {
     allowShowFloatingButton,
@@ -88,13 +95,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     })
   )
 
-  const hiddenSmallBadgeCount = Chat.useChatState(s => {
-    let visibleBadges = 0
-    for (const conversationIDKey of visibleSmallConvIDs) {
-      visibleBadges += Chat.getConvoState(conversationIDKey).badge
-    }
-    return Math.max(0, s.smallTeamBadgeCount - visibleBadges)
-  })
+  let visibleBadges = 0
+  for (const conversationIDKey of visibleSmallConvIDs) {
+    visibleBadges += Chat.getConvoState(conversationIDKey).badge
+  }
+  const hiddenSmallBadgeCount = Math.max(0, smallTeamBadgeCount - visibleBadges)
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
