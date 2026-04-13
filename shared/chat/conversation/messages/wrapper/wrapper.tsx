@@ -997,7 +997,10 @@ const styles = Kb.Styles.styleSheetCreate(
           top: 4,
           zIndex: 2,
         },
-        isMobile: {left: Kb.Styles.globalMargins.tiny},
+        isMobile: {
+          left: Kb.Styles.globalMargins.tiny,
+          zIndex: 2,
+        },
       }),
       background: {
         alignSelf: 'stretch',

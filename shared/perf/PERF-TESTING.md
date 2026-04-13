@@ -66,9 +66,10 @@ Components currently wrapped with `<PerfProfiler>`:
 |----|----------|---------------|
 | `Inbox` | `chat/inbox/index.native.tsx` | Full inbox container |
 | `InboxRow-{type}` | `chat/inbox/index.native.tsx` | Each inbox row (small, big, bigHeader, divider, teamBuilder) |
-| `Conversation` | `chat/conversation/normal/index.native.tsx` | Full conversation screen |
-| `MessageList` | `chat/conversation/list-area/index.native.tsx` | Message list FlatList container |
-| `Msg-{type}` | `chat/conversation/list-area/index.native.tsx` | Each message (text, attachment, system*, etc.) |
+| `Conversation` | `chat/conversation/normal/index.native.tsx`, `chat/conversation/normal/index.desktop.tsx` | Full conversation screen |
+| `MessageList` | `chat/conversation/list-area/index.native.tsx`, `chat/conversation/list-area/index.desktop.tsx` | Message list container |
+| `MessageWaypoint` | `chat/conversation/list-area/index.desktop.tsx` | Desktop waypoint chunk content rendered inside the scrolling thread |
+| `Msg-{type}` | `chat/conversation/messages/wrapper/index.tsx` | Each message row (text, attachment, system*, etc.) |
 | `ChatInput` | `chat/conversation/input-area/container.tsx` | Chat input area |
 | `TeamsList` | `teams/main/index.tsx` | Full teams list container |
 | `TeamRow` | `teams/main/index.tsx` | Each team row |
@@ -128,6 +129,17 @@ All output goes to `shared/perf/output/` (gitignored):
 | `react-profiler.json` | React Profiler aggregated data |
 | `maestro-fps.json` | FPS data from PerfFPSMonitor |
 | `maestro.log` | Maestro test console output |
+
+## Chat Thread Regression Checklist
+
+Use this alongside automated thread perf runs when changing `chat/conversation/list-area/*` or row rendering:
+
+1. Open an existing conversation with no centered target and confirm it lands at the latest message without drifting after load.
+2. Scroll upward until older messages paginate in and confirm the visible anchor does not jump.
+3. While pinned to bottom, send or receive a message and confirm the list remains pinned to the latest row.
+4. Let a pending/placeholder message resolve and confirm it swaps in place without reuse glitches.
+5. Add/remove a reaction and open edit mode on a message, then confirm the correct row updates and desktop scrolls to the editing message.
+6. Trigger a centered jump from thread search and confirm the target row is centered/highlighted without breaking later scrolling.
 
 ### Adding New Flows
 

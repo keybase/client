@@ -1,6 +1,5 @@
 // links all the stores together, stores never import this
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
-import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -162,7 +161,11 @@ const ensureBackgroundTask = () => {
       lon: pos?.coords.longitude ?? 0,
     }
 
-    useChatState.getState().dispatch.updateLastCoord(coord)
+    try {
+      await T.RPCChat.localLocationUpdateRpcPromise({coord})
+    } catch (error) {
+      logger.info('background location update failed: ' + String(error))
+    }
     return Promise.resolve()
   })
 }
