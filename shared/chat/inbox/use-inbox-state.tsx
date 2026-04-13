@@ -17,8 +17,8 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     C.useShallow(s => ({
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
-      inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
       inboxRefresh: s.dispatch.inboxRefresh,
+      inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
     }))

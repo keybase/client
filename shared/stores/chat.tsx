@@ -449,11 +449,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    setInboxRetriedOnCurrentEmpty: retried => {
-      set(s => {
-        s.inboxRetriedOnCurrentEmpty = retried
-      })
-    },
     loadStaticConfig: () => {
       if (get().staticConfig) {
         return
@@ -1283,6 +1278,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }))
       // also blow away convoState
       clearChatStores()
+    },
+    setInboxRetriedOnCurrentEmpty: retried => {
+      set(s => {
+        s.inboxRetriedOnCurrentEmpty = retried
+      })
     },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
