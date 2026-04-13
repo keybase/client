@@ -365,17 +365,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
       }
       ignorePromise(loadFollowing())
     },
-    loadProfile: (username, ignoreCache = true) => {
-      get().dispatch.load({
-        assertion: username,
-        forceDisplay: false,
-        fromDaemon: false,
-        guiID: generateGUIID(),
-        ignoreCache,
-        inTracker: false,
-        reason: '',
-      })
-    },
     loadNonUserProfile: assertion => {
       const f = async () => {
         try {
@@ -404,7 +393,10 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
               const fullName = res.contact?.contactName ?? ''
               set(s => {
                 const old = s.usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
-                s.usernameToNonUserDetails.set(assertion, T.castDraft({...old, ...common, formattedName, fullName}))
+                s.usernameToNonUserDetails.set(
+                  assertion,
+                  T.castDraft({...old, ...common, formattedName, fullName})
+                )
               })
             }
           }
@@ -415,6 +407,17 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         }
       }
       ignorePromise(f())
+    },
+    loadProfile: (username, ignoreCache = true) => {
+      get().dispatch.load({
+        assertion: username,
+        forceDisplay: false,
+        fromDaemon: false,
+        guiID: generateGUIID(),
+        ignoreCache,
+        inTracker: false,
+        reason: '',
+      })
     },
     notifyCard: (guiID, card) => {
       const username = guiIDToUsername(get(), guiID)

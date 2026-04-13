@@ -37,8 +37,8 @@ const useUserData = (username: string) => {
         _suggestionKeys,
         d: s.getDetails(username),
         getProofSuggestions: s.dispatch.getProofSuggestions,
-        loadProfile: s.dispatch.loadProfile,
         loadNonUserProfile: s.dispatch.loadNonUserProfile,
+        loadProfile: s.dispatch.loadProfile,
         nonUserDetails: s.getNonUserDetails(username),
       }
     })
