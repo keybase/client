@@ -1,5 +1,5 @@
 import type {ChatInboxRowItem} from './rowitem'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 
 export type InboxRowsResult = {
   allowShowFloatingButton: boolean
