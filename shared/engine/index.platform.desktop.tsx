@@ -7,16 +7,11 @@ import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} fro
 import type {RPCMessage} from './rpc-transport'
 import KB2 from '@/util/electron.desktop'
 
-const TEMPLOGGING = true
-
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
 const {isRenderer} = KB2.constants
 
 // used by node
 class NativeTransport extends TransportShared {
-  private _incomingBatch = new Array<Uint8Array>()
-  private _incomingBatchBytes = 0
-  private _incomingBatchTimer?: ReturnType<typeof setImmediate>
   private _socket?: Socket
   private _reconnectTimer?: ReturnType<typeof setTimeout>
   private _connecting = false
@@ -58,60 +53,11 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
-    this._incomingBatch.push(m)
-    this._incomingBatchBytes += m.length
-    if (TEMPLOGGING) {
-      console.log('[TEMPLOGGING] packetizeData queued', {
-        bytes: this._incomingBatchBytes,
-        chunkLength: m.length,
-        chunks: this._incomingBatch.length,
-      })
-    }
-    if (this._incomingBatchTimer) {
-      if (TEMPLOGGING) {
-        console.log('[TEMPLOGGING] packetizeData reusing existing flush timer')
-      }
-      return
-    }
-
-    this._incomingBatchTimer = setImmediate(() => {
-      const chunkCount = this._incomingBatch.length
-      const batchBytes = this._incomingBatchBytes
-      if (TEMPLOGGING) {
-        console.log('[TEMPLOGGING] flush timer fired', {bytes: batchBytes, chunks: chunkCount})
-      }
-      this._incomingBatchTimer = undefined
-      const batched = this.takeIncomingBatch()
-      if (TEMPLOGGING) {
-        console.log('[TEMPLOGGING] flush timer after takeIncomingBatch', {
-          batchedBytes: batched?.length ?? 0,
-          hadBatch: !!batched,
-        })
-      }
-      if (batched) {
-        if (printRPCBytes && chunkCount > 1) {
-          logger.debug('[RPC] Forwarding engineIncoming batch', {bytes: batchBytes, chunks: chunkCount})
-        }
-        mainWindowDispatchEngineIncoming?.(batched)
-      }
-    })
+    mainWindowDispatchEngineIncoming?.(m)
   }
 
   close() {
     this.markExplicitClose()
-    if (TEMPLOGGING) {
-      console.log('[TEMPLOGGING] close clearing incoming batch', {
-        bytes: this._incomingBatchBytes,
-        chunks: this._incomingBatch.length,
-        hadTimer: !!this._incomingBatchTimer,
-      })
-    }
-    if (this._incomingBatchTimer) {
-      clearImmediate(this._incomingBatchTimer)
-      this._incomingBatchTimer = undefined
-    }
-    this._incomingBatch = []
-    this._incomingBatchBytes = 0
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer)
       this._reconnectTimer = undefined
@@ -184,32 +130,6 @@ class NativeTransport extends TransportShared {
       }
       this.connectOnce()
     }, 1000)
-  }
-
-  private takeIncomingBatch() {
-    const batch = this._incomingBatch
-    this._incomingBatch = []
-    const batchBytes = this._incomingBatchBytes
-    this._incomingBatchBytes = 0
-
-    if (TEMPLOGGING) {
-      console.log('[TEMPLOGGING] takeIncomingBatch snapshot', {bytes: batchBytes, chunks: batch.length})
-    }
-
-    if (!batch.length) {
-      return undefined
-    }
-    if (batch.length === 1) {
-      return batch[0]
-    }
-
-    const merged = new Uint8Array(batchBytes)
-    let offset = 0
-    for (const chunk of batch) {
-      merged.set(chunk, offset)
-      offset += chunk.length
-    }
-    return merged
   }
 }
 
