@@ -13,7 +13,11 @@ export type ThreadSearchRouteProps = {
 
 const isThreadSearchRouteParams = (
   params: RootParamList['chatConversation'] | RootParamList['chatRoot'] | undefined
-): params is ThreadSearchRouteProps => !!params && typeof params === 'object'
+): params is ThreadSearchRouteProps =>
+  !!params &&
+  typeof params === 'object' &&
+  (Object.prototype.hasOwnProperty.call(params, 'threadSearch') ||
+    Object.prototype.hasOwnProperty.call(params, 'createConversationError'))
 
 export const useChatThreadRouteParams = (): ThreadSearchRouteProps | undefined => {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
