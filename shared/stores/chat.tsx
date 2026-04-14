@@ -17,7 +17,6 @@ import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {clearChatStores, chatStores} from '@/stores/convostate'
 import {flushInboxRowUpdates} from '@/stores/inbox-rows'
-import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
@@ -184,44 +183,28 @@ type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 type Store = T.Immutable<{
-  createConversationError?: T.Chat.CreateConversationError
+  badgeStateVersion: number
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
-  smallTeamsExpanded: boolean // if we're showing all small teams,
-  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
-  staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
-  trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
-  userReacjis: T.Chat.UserReacjis
-  inboxNumSmallRows?: number
-  inboxHasLoaded: boolean // if we've ever loaded,
   inboxRetriedOnCurrentEmpty: boolean
+  staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  userReacjis: T.Chat.UserReacjis
+  inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
-  inboxAllowShowFloatingButton: boolean
-  inboxRows: Array<ChatInboxRowItem>
-  inboxSmallTeamsExpanded: boolean
-  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
 }>
 
 const initialStore: Store = {
+  badgeStateVersion: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  createConversationError: undefined,
-  flipStatusMap: new Map(),
-  inboxAllowShowFloatingButton: false,
   inboxHasLoaded: false,
   inboxLayout: undefined,
-  inboxNumSmallRows: 5,
   inboxRetriedOnCurrentEmpty: false,
-  inboxRows: [],
-  inboxSmallTeamsExpanded: false,
   maybeMentionMap: new Map(),
-  paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
-  smallTeamsExpanded: false,
   staticConfig: undefined,
-  trustedInboxHasLoaded: false,
   userReacjis: defaultUserReacjis,
 }
 
@@ -253,15 +236,10 @@ export type State = Store & {
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
-    conversationErrored: (
-      allowedUsers: ReadonlyArray<string>,
-      disallowedUsers: ReadonlyArray<string>,
-      code: number,
-      message: string
-    ) => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
+    setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
     metasReceived: (
@@ -277,7 +255,6 @@ export type State = Store & {
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
-    paymentInfoReceived: (paymentInfo: T.Chat.ChatPaymentInfo) => void
     previewConversation: (p: {
       participants?: ReadonlyArray<string>
       teamname?: string
@@ -288,14 +265,9 @@ export type State = Store & {
     }) => void
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
-    resetConversationErrored: () => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
-    setTrustedInboxHasLoaded: () => void
-    setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
-    toggleSmallTeamsExpanded: () => void
     unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
-    updateCoinFlipStatus: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     updatedGregor: (
@@ -313,109 +285,6 @@ export type State = Store & {
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
-
-type InboxRowsResult = {
-  allowShowFloatingButton: boolean
-  rows: Array<ChatInboxRowItem>
-  smallTeamsExpanded: boolean
-}
-
-const emptyInboxRowsResult: InboxRowsResult = {
-  allowShowFloatingButton: false,
-  rows: [],
-  smallTeamsExpanded: false,
-}
-
-// Build structural inbox rows from layout. Display data (badge, unread, muted, etc.)
-// is read per-row via ChatProvider + useChatContext at render time.
-function buildInboxRows(
-  layout: T.RPCChat.UIInboxLayout | undefined,
-  inboxNumSmallRows: number,
-  smallTeamsExpanded: boolean
-): InboxRowsResult {
-  if (!layout) return emptyInboxRowsResult
-
-  const allSmallTeams = layout.smallTeams ?? []
-  const bigTeams = layout.bigTeams ?? []
-  const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
-  const visibleSmallTeams = showAllSmallRows ? allSmallTeams : allSmallTeams.slice(0, inboxNumSmallRows)
-
-  const rows: Array<ChatInboxRowItem> = []
-
-  for (const t of visibleSmallTeams) {
-    const convId = T.Chat.stringToConversationIDKey(t.convID)
-    rows.push({
-      conversationIDKey: convId,
-      type: 'small',
-    })
-  }
-
-  // Divider
-  const hasAllSmallTeamConvs = allSmallTeams.length === layout.totalSmallTeams
-  const smallTeamsBelowTheFold = !showAllSmallRows && allSmallTeams.length > inboxNumSmallRows
-  const showDivider = bigTeams.length > 0 || !hasAllSmallTeamConvs
-
-  const hasSmall = visibleSmallTeams.length > 0
-  const hasBig = bigTeams.length > 0
-
-  if (hasSmall && !hasBig && !showDivider) {
-    rows.push({type: 'teamBuilder'})
-  }
-
-  if (showDivider) {
-    const dividerHiddenCount = Math.max(0, layout.totalSmallTeams - visibleSmallTeams.length)
-    rows.push({
-      hiddenCount: dividerHiddenCount,
-      showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold,
-      type: 'divider',
-    })
-  }
-
-  if (hasSmall && !hasBig && showDivider) {
-    rows.push({type: 'teamBuilder'})
-  }
-
-  // Big team rows
-  for (const t of bigTeams) {
-    switch (t.state) {
-      case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
-        const convId = T.Chat.stringToConversationIDKey(t.channel.convID)
-        rows.push({
-          conversationIDKey: convId,
-          type: 'big',
-        })
-        break
-      }
-      case T.RPCChat.UIInboxBigTeamRowTyp.label:
-        rows.push({
-          teamID: t.label.id,
-          teamname: t.label.name,
-          type: 'bigHeader',
-        })
-        break
-    }
-  }
-
-  if (hasSmall && hasBig) {
-    rows.push({type: 'teamBuilder'})
-  }
-
-  const allowShowFloatingButton = allSmallTeams.length > inboxNumSmallRows && hasBig
-  return {allowShowFloatingButton, rows, smallTeamsExpanded: showAllSmallRows}
-}
-
-function applyInboxRowsResult(
-  draft: {
-    inboxRows: Array<ChatInboxRowItem>
-    inboxAllowShowFloatingButton: boolean
-    inboxSmallTeamsExpanded: boolean
-  },
-  result: InboxRowsResult
-) {
-  draft.inboxRows = T.castDraft(result.rows)
-  draft.inboxAllowShowFloatingButton = result.allowShowFloatingButton
-  draft.inboxSmallTeamsExpanded = result.smallTeamsExpanded
-}
 
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
@@ -438,6 +307,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       })
       const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
+        s.badgeStateVersion += 1
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
       })
@@ -446,16 +316,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       for (const [, cs] of chatStores) {
         cs.getState().dispatch.setMeta()
       }
-    },
-    conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
-      set(s => {
-        s.createConversationError = T.castDraft({
-          allowedUsers,
-          code,
-          disallowedUsers,
-          message,
-        })
-      })
     },
     createConversation: (participants, highlightMessageID) => {
       // TODO This will break if you try to make 2 new conversations at the same time because there is
@@ -513,10 +373,14 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               disallowedUsers = value.split(',')
             }
             const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-            get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
             storeRegistry
               .getConvoState(T.Chat.pendingErrorConversationIDKey)
-              .dispatch.navigateToThread('justCreated', highlightMessageID)
+              .dispatch.navigateToThread('justCreated', highlightMessageID, undefined, undefined, {
+                allowedUsers,
+                code: error.code,
+                disallowedUsers,
+                message: error.desc,
+              })
           }
         }
       }
@@ -725,12 +589,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
-          if (get().inboxRows.length === 0 && !get().inboxRetriedOnCurrentEmpty) {
-            set(s => {
-              s.inboxRetriedOnCurrentEmpty = true
-            })
-            inboxRefresh('inboxSyncedCurrentButEmpty')
-          }
           break
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
@@ -857,7 +715,19 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
         case 'chat.1.chatUi.chatCoinFlipStatus': {
           const {statuses} = action.payload.params
-          get().dispatch.updateCoinFlipStatus(statuses || [])
+          const statusesByConvo = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
+          statuses?.forEach(status => {
+            const conversationIDKey = T.Chat.stringToConversationIDKey(status.convID)
+            const convoStatuses = statusesByConvo.get(conversationIDKey)
+            if (convoStatuses) {
+              convoStatuses.push(status)
+            } else {
+              statusesByConvo.set(conversationIDKey, [status])
+            }
+          })
+          statusesByConvo.forEach((convoStatuses, conversationIDKey) => {
+            storeRegistry.getConvoState(conversationIDKey).dispatch.updateCoinFlipStatuses(convoStatuses)
+          })
           break
         }
         case 'chat.1.NotifyChat.ChatThreadsStale':
@@ -1146,7 +1016,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         m && arr.push(m)
         return arr
       }, [])
-      get().dispatch.setTrustedInboxHasLoaded()
       // Check if some of our existing stored metas might no longer be valid
       get().dispatch.metasReceived(metas)
     },
@@ -1253,11 +1122,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       ignorePromise(f())
-    },
-    paymentInfoReceived: paymentInfo => {
-      set(s => {
-        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-      })
     },
     previewConversation: p => {
       // We always make adhoc convos and never preview it
@@ -1405,11 +1269,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         logger.info('skipping meta queue run, queue unchanged')
       }
     },
-    resetConversationErrored: () => {
-      set(s => {
-        s.createConversationError = undefined
-      })
-    },
     resetState: () => {
       set(s => ({
         ...s,
@@ -1420,45 +1279,15 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       // also blow away convoState
       clearChatStores()
     },
-    setInboxNumSmallRows: (rows, ignoreWrite) => {
+    setInboxRetriedOnCurrentEmpty: retried => {
       set(s => {
-        if (rows > 0) {
-          s.inboxNumSmallRows = rows
-        }
-        applyInboxRowsResult(s, buildInboxRows(s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
+        s.inboxRetriedOnCurrentEmpty = retried
       })
-      if (ignoreWrite) {
-        return
-      }
-      const {inboxNumSmallRows} = get()
-      if (inboxNumSmallRows === undefined || inboxNumSmallRows <= 0) {
-        return
-      }
-      const f = async () => {
-        try {
-          await T.RPCGen.configGuiSetValueRpcPromise({
-            path: 'ui.inboxSmallRows',
-            value: {i: inboxNumSmallRows, isNull: false},
-          })
-        } catch {}
-      }
-      ignorePromise(f())
     },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
         maybeMentionMap.set(name, T.castDraft(info))
-      })
-    },
-    setTrustedInboxHasLoaded: () => {
-      set(s => {
-        s.trustedInboxHasLoaded = true
-      })
-    },
-    toggleSmallTeamsExpanded: () => {
-      set(s => {
-        s.smallTeamsExpanded = !s.smallTeamsExpanded
-        applyInboxRowsResult(s, buildInboxRows(s.inboxLayout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
       })
     },
     unboxRows: (ids, force) => {
@@ -1499,14 +1328,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    updateCoinFlipStatus: statuses => {
-      set(s => {
-        const {flipStatusMap} = s
-        statuses.forEach(status => {
-          flipStatusMap.set(status.gameID, T.castDraft(status))
-        })
-      })
-    },
     updateInboxLayout: str => {
       set(s => {
         try {
@@ -1517,12 +1338,19 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             return
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
+          const hasInboxRows =
+            (layout.smallTeams?.length ?? 0) > 0 ||
+            (layout.bigTeams?.length ?? 0) > 0 ||
+            layout.totalSmallTeams > 0
 
           const layoutChanged = !isEqual(s.inboxLayout, layout)
           if (layoutChanged) {
             s.inboxLayout = T.castDraft(layout)
           }
           s.inboxHasLoaded = !!layout
+          if (hasInboxRows) {
+            s.inboxRetriedOnCurrentEmpty = false
+          }
           if (!inboxHasLoaded) {
             // on first layout, initialize any drafts and muted status
             // After the first layout, any other updates will come in the form of meta updates.
@@ -1548,9 +1376,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             })
             // Flush inbox row updates synchronously to prevent flash of empty content
             flushInboxRowUpdates()
-          }
-          if (layoutChanged) {
-            applyInboxRowsResult(s, buildInboxRows(layout, s.inboxNumSmallRows ?? 5, s.smallTeamsExpanded))
           }
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)

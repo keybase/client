@@ -376,20 +376,25 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
-type ThreadSearchNavParams = {
+type ThreadNavParams = {
+  createConversationError?: T.Chat.CreateConversationError
   threadSearch?: {query?: string}
 }
 
 export const navToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  navParams?: ThreadSearchNavParams
+  navParams?: ThreadNavParams
 ) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
   if (!n) return
   const rs = getRootState()
   if (!rs?.key) return
-  const params = {conversationIDKey, threadSearch: navParams?.threadSearch}
+  const params = {
+    conversationIDKey,
+    createConversationError: navParams?.createConversationError,
+    threadSearch: navParams?.threadSearch,
+  }
 
   if (isSplit) {
     // Desktop/tablet: reset the tab navigator state to switch to chatTab with chatRoot params.

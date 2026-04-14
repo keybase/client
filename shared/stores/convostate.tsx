@@ -112,6 +112,7 @@ type ConvoStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
+  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -123,6 +124,7 @@ type ConvoStore = T.Immutable<{
   moreToLoadBack: boolean
   moreToLoadForward: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
+  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -168,6 +170,7 @@ const initialConvoStore: ConvoStore = {
   commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
+  flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
@@ -181,6 +184,7 @@ const initialConvoStore: ConvoStore = {
   moreToLoadForward: false,
   mutualTeams: [],
   participants: noParticipantInfo,
+  paymentStatusMap: new Map(),
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
   rowRecycleTypeMap: new Map(),
@@ -250,11 +254,9 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatNavigateToInbox: () => void
-      chatPaymentInfoReceived: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
       chatPreviewConversation: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
-      chatResetConversationErrored: () => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
@@ -303,7 +305,8 @@ export interface ConvoState extends ConvoStore {
       reason: NavReason,
       highlightMessageID?: T.Chat.MessageID,
       pushBody?: string,
-      threadSearchQuery?: string
+      threadSearchQuery?: string,
+      createConversationError?: T.Chat.CreateConversationError
     ) => void
     openFolder: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
@@ -343,6 +346,8 @@ export interface ConvoState extends ConvoStore {
       result: T.RPCChat.UnfurlPromptResult
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
+    updateCoinFlipStatus: (status: T.RPCChat.UICoinFlipStatus) => void
+    updateCoinFlipStatuses: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateDraft: DebouncedFunc<(text: string) => void>
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => void
     updateFromUIInboxLayout: (l: {
@@ -433,13 +438,7 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
   chatNavigateToInbox: () => {
     throw new Error('convostate defer not initialized')
   },
-  chatPaymentInfoReceived: () => {
-    throw new Error('convostate defer not initialized')
-  },
   chatPreviewConversation: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatResetConversationErrored: () => {
     throw new Error('convostate defer not initialized')
   },
   chatUnboxRows: () => {
@@ -1003,7 +1002,6 @@ const createSlice =
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      get().dispatch.defer.chatPaymentInfoReceived(T.Chat.numberToMessageID(msgID), paymentInfo)
       getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
     }
 
@@ -2491,7 +2489,13 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      navigateToThread: (_reason, highlightMessageID, _pushBody, threadSearchQuery) => {
+      navigateToThread: (
+        _reason,
+        highlightMessageID,
+        _pushBody,
+        threadSearchQuery,
+        createConversationError
+      ) => {
         set(s => {
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
@@ -2518,11 +2522,12 @@ const createSlice =
 
           // we select the chat tab and change the params
           const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
+          const navParams = {createConversationError, threadSearch}
           if (Common.isSplit) {
-            navToThread(conversationIDKey, {threadSearch})
+            navToThread(conversationIDKey, navParams)
             // immediately switch stack to an inbox | thread stack
           } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey, {threadSearch})
+            navToThread(conversationIDKey, navParams)
             return
           } else {
             // replace if looking at the pending / waiting screen
@@ -2535,7 +2540,13 @@ const createSlice =
               clearModals()
             }
 
-            navigateAppend({name: Common.threadRouteName, params: {conversationIDKey, threadSearch}}, replace)
+            navigateAppend(
+              {
+                name: Common.threadRouteName,
+                params: {conversationIDKey, createConversationError, threadSearch},
+              },
+              replace
+            )
           }
         }
         updateNav()
@@ -2719,6 +2730,7 @@ const createSlice =
       paymentInfoReceived: (messageID, paymentInfo) => {
         set(s => {
           s.accountsInfoMap.set(messageID, paymentInfo)
+          s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
         })
       },
       pinMessage: msgID => {
@@ -2881,7 +2893,6 @@ const createSlice =
           s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
         })
         fetchConversationBio()
-        get().dispatch.defer.chatResetConversationErrored()
         // Handle pending jump (e.g. from notification deep link)
         const pendingJump = get().pendingJumpMessageID
         if (pendingJump) {
@@ -3306,6 +3317,18 @@ const createSlice =
           s.unread = unread
         })
         queueInboxRowUpdate(get().id)
+      },
+      updateCoinFlipStatus: status => {
+        set(s => {
+          s.flipStatusMap.set(status.gameID, T.castDraft(status))
+        })
+      },
+      updateCoinFlipStatuses: statuses => {
+        set(s => {
+          statuses.forEach(status => {
+            s.flipStatusMap.set(status.gameID, T.castDraft(status))
+          })
+        })
       },
       updateDraft: throttle(
         (text: string) => {

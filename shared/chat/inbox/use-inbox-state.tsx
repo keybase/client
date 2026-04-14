@@ -1,30 +1,81 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
+import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
+import {buildInboxRows} from './rows'
 
 export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
   const username = useCurrentUserState(s => s.username)
+  const loadInboxNumSmallRows = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
-      allowShowFloatingButton: s.inboxAllowShowFloatingButton,
       inboxHasLoaded: s.inboxHasLoaded,
-      inboxNumSmallRows: s.inboxNumSmallRows ?? 5,
+      inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
-      inboxRows: s.inboxRows,
+      inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
       queueMetaToRequest: s.dispatch.queueMetaToRequest,
-      setInboxNumSmallRows: s.dispatch.setInboxNumSmallRows,
-      smallTeamsExpanded: s.inboxSmallTeamsExpanded,
-      toggleSmallTeamsExpanded: s.dispatch.toggleSmallTeamsExpanded,
+      setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
     }))
   )
-  const {allowShowFloatingButton, inboxHasLoaded, inboxNumSmallRows, inboxRefresh, inboxRows} = chatState
-  const {queueMetaToRequest, setInboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded} = chatState
+  const {
+    inboxHasLoaded,
+    inboxLayout,
+    inboxRefresh,
+    inboxRetriedOnCurrentEmpty,
+    queueMetaToRequest,
+    setInboxRetriedOnCurrentEmpty,
+  } = chatState
+  const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
+  const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
+  const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
+  const inboxNumSmallRowsLoadedRef = React.useRef(false)
+  const inboxNumSmallRowsUserChangedRef = React.useRef(false)
+
+  React.useEffect(() => {
+    setInboxNumSmallRowsState(5)
+    setSmallTeamsExpanded(false)
+    inboxNumSmallRowsLoadedRef.current = false
+    inboxNumSmallRowsUserChangedRef.current = false
+  }, [username])
+
+  const setInboxNumSmallRows = (rows: number, persist = true) => {
+    if (rows <= 0) {
+      return
+    }
+    inboxNumSmallRowsLoadedRef.current = true
+    inboxNumSmallRowsUserChangedRef.current = true
+    setInboxNumSmallRowsState(rows)
+    if (!persist) {
+      return
+    }
+    const f = async () => {
+      try {
+        await T.RPCGen.configGuiSetValueRpcPromise({
+          path: 'ui.inboxSmallRows',
+          value: {i: rows, isNull: false},
+        })
+      } catch {}
+    }
+    C.ignorePromise(f())
+  }
+  const toggleSmallTeamsExpanded = () => {
+    setSmallTeamsExpanded(expanded => !expanded)
+  }
+
+  const {
+    allowShowFloatingButton,
+    rows: inboxRows,
+    smallTeamsExpanded: showAllSmallTeams,
+  } = React.useMemo(
+    () => buildInboxRows(inboxLayout, inboxNumSmallRows, smallTeamsExpanded),
+    [inboxLayout, inboxNumSmallRows, smallTeamsExpanded]
+  )
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
@@ -61,6 +112,64 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxRefresh('componentNeverLoaded')
     }
   }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
+
+  React.useEffect(() => {
+    const ready = loggedIn && !!username
+    if (!ready) {
+      return
+    }
+    if (inboxNumSmallRowsLoadedRef.current) {
+      return
+    }
+    const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
+    inboxNumSmallRowsLoadVersionRef.current = loadVersion
+    loadInboxNumSmallRows(
+      [{path: 'ui.inboxSmallRows'}],
+      rows => {
+        if (
+          inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
+          inboxNumSmallRowsUserChangedRef.current
+        ) {
+          return
+        }
+        inboxNumSmallRowsLoadedRef.current = true
+        const count = rows.i ?? -1
+        if (count > 0) {
+          setInboxNumSmallRowsState(count)
+        }
+      },
+      () => {
+        if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
+          return
+        }
+        inboxNumSmallRowsLoadedRef.current = true
+      }
+    )
+    return () => {
+      if (inboxNumSmallRowsLoadVersionRef.current === loadVersion) {
+        inboxNumSmallRowsLoadVersionRef.current++
+      }
+    }
+  }, [loadInboxNumSmallRows, loggedIn, username])
+
+  React.useEffect(() => {
+    const ready = loggedIn && !!username && (!C.isMobile || isFocused)
+    if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || inboxRetriedOnCurrentEmpty) {
+      return
+    }
+    setInboxRetriedOnCurrentEmpty(true)
+    inboxRefresh('inboxSyncedCurrentButEmpty')
+  }, [
+    inboxHasLoaded,
+    inboxRefresh,
+    inboxRetriedOnCurrentEmpty,
+    inboxRows.length,
+    isFocused,
+    isSearching,
+    loggedIn,
+    setInboxRetriedOnCurrentEmpty,
+    username,
+  ])
 
   // Compute unread big indices at render time from per-convo stores
   const bigConvIds = React.useMemo(() => {
@@ -104,7 +213,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,
-    smallTeamsExpanded,
+    smallTeamsExpanded: showAllSmallTeams,
     toggleSmallTeamsExpanded,
     unreadIndices: filteredIndices,
     unreadTotal: filteredTotal,

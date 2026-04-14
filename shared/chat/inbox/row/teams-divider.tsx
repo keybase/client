@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Chat from '@/stores/chat'
 import * as RowSizes from './sizes'
 
 type Props = {
+  badgeCount?: number
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
   showButton: boolean
@@ -13,23 +13,12 @@ type Props = {
 }
 
 function TeamsDivider(props: Props) {
-  const {showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
+  const {badgeCount = 0, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   let {hiddenCount} = props
 
   if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
-
-  // Read badge count, subtracting visible small team badges so we only count hidden ones
-  const badgeCount = Chat.useChatState(s => {
-    let visibleBadges = 0
-    for (const row of s.inboxRows) {
-      if (row.type === 'small') {
-        visibleBadges += Chat.getConvoState(row.conversationIDKey).badge
-      }
-    }
-    return Math.max(0, s.smallTeamBadgeCount - visibleBadges)
-  })
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount

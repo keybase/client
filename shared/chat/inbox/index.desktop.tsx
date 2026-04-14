@@ -14,7 +14,7 @@ import {
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import InboxSearch from '../inbox-search'
-import TeamsDivider from './row/teams-divider'
+import ConnectedTeamsDivider from './row/teams-divider-container'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
 import type {LegendListRef} from '@/common-adapters'
@@ -52,6 +52,7 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 const dragKey = 'application/keybase_inbox'
 
 const DragLine = (p: {
+  rows: ReadonlyArray<RowItem>
   scrollDiv: React.RefObject<HTMLDivElement | null>
   inboxNumSmallRows: number
   showButton: boolean
@@ -60,7 +61,7 @@ const DragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
 }) => {
-  const {inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
+  const {rows, inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
   const [dividerVisualTop, setDividerVisualTop] = React.useState(0)
@@ -183,7 +184,8 @@ const DragLine = (p: {
           <Kb.Box2 direction="vertical" style={styles.spacer} />
         </>
       )}
-      <TeamsDivider
+      <ConnectedTeamsDivider
+        rows={rows}
         hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
         key="divider"
         toggle={toggleSmallTeamsExpanded}
@@ -276,6 +278,7 @@ function InboxBody(props: ControlledInboxProps) {
     if (item.type === 'divider') {
       return (
         <DragLine
+          rows={rows}
           scrollDiv={scrollDiv}
           inboxNumSmallRows={inboxNumSmallRows}
           showButton={item.showButton}

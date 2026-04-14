@@ -6,9 +6,9 @@ import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
+import ConnectedTeamsDivider from './row/teams-divider-container'
 import SearchRow from './search-row'
 import InboxSearch from '../inbox-search'
-import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import type * as T from '@/constants/types'
 import {Alert} from 'react-native'
@@ -101,7 +101,8 @@ function InboxBody(p: ControlledInboxProps) {
     let element: React.ReactElement | null
     if (row.type === 'divider') {
       element = (
-        <TeamsDivider
+        <ConnectedTeamsDivider
+          rows={rows}
           showButton={row.showButton}
           hiddenCount={row.hiddenCount}
           toggle={toggleSmallTeamsExpanded}

@@ -20,7 +20,7 @@ function CoinFlipContainer() {
       return {flipGameID, isSendError, message, sendMessage, text}
     })
   )
-  const status = Chat.useChatState(s => s.flipStatusMap.get(flipGameID))
+  const status = Chat.useChatContext(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = () => {
     text && sendMessage(text.stringValue())
   }

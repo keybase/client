@@ -309,9 +309,9 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     [
       botsResults.length,
       nameResults.length,
-      nameResultsUnread,
       openTeamsResults.length,
       textCollapsed,
+      nameResultsUnread,
       _textResults.length,
     ]
   )

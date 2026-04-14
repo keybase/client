@@ -202,6 +202,7 @@ export function useInboxSearch(): InboxSearchController {
     resetSearchState()
   }, [invalidateSearch, resetSearchState])
 
+
   const isActiveSearch = React.useCallback(
     (searchID: number) => searchID === activeSearchIDRef.current && isSearchingRef.current,
     []
