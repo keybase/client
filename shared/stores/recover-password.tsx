@@ -6,6 +6,7 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
+import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
 
 type Store = T.Immutable<{
@@ -20,7 +21,6 @@ export type State = Store & {
   dispatch: {
     defer: {
       onProvisionCancel?: (ignoreWarning?: boolean) => void
-      onStartAccountReset?: (skipPassword: boolean, username: string) => void
     }
     dynamic: {
       cancel?: () => void
@@ -40,9 +40,6 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
     defer: {
       onProvisionCancel: () => {
         throw new Error('onProvisionCancel not implemented')
-      },
-      onStartAccountReset: () => {
-        throw new Error('onStartAccountReset not implemented')
       },
     },
     dynamic: {
@@ -134,7 +131,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
                     })
                   })
                 } else {
-                  get().dispatch.defer.onStartAccountReset?.(true, p.username)
+                  startAccountReset(true, p.username)
                   response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },

@@ -4,7 +4,6 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 import {navToProfile} from '@/constants/router'
-import {startAccountReset} from '@/login/reset/account-reset'
 
 declare global {
   var __hmr_startupOnce: boolean | undefined
@@ -300,9 +299,6 @@ export const initRecoverPasswordCallbacks = () => {
         ...currentState.dispatch.defer,
         onProvisionCancel: (ignoreWarning?: boolean) => {
           useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
-        },
-        onStartAccountReset: (skipPassword: boolean, username: string) => {
-          startAccountReset(skipPassword, username)
         },
       },
     },
