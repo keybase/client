@@ -225,11 +225,13 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       userContainer: {
+        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
         paddingBottom: Kb.Styles.globalMargins.xtiny,
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.xtiny,
+        width: '100%',
       },
     }) as const
 )

@@ -260,7 +260,7 @@ const getCommonMessageData = ({
   message: T.Chat.Message
   messageCenterOrdinal: ConvoState['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
-  paymentStatusMap: ReturnType<typeof Chat.useChatState.getState>['paymentStatusMap']
+  paymentStatusMap: ConvoState['paymentStatusMap']
   unfurlPrompt: ConvoState['unfurlPrompt']
   you: string
 }) => {
@@ -375,7 +375,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         message,
         messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
-        paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -406,7 +406,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         message,
         messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
-        paymentStatusMap: Chat.useChatState.getState().paymentStatusMap,
+        paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
@@ -460,7 +460,7 @@ type WrapperMessageProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: Chat.State['paymentStatusMap'],
+  paymentStatusMap: ConvoState['paymentStatusMap'],
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {

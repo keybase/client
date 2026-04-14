@@ -112,6 +112,7 @@ type ConvoStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
+  flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
@@ -123,6 +124,7 @@ type ConvoStore = T.Immutable<{
   moreToLoadBack: boolean
   moreToLoadForward: boolean
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
+  paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -168,6 +170,7 @@ const initialConvoStore: ConvoStore = {
   commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
+  flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
   markedAsUnread: T.Chat.numberToOrdinal(0),
@@ -181,6 +184,7 @@ const initialConvoStore: ConvoStore = {
   moreToLoadForward: false,
   mutualTeams: [],
   participants: noParticipantInfo,
+  paymentStatusMap: new Map(),
   pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
   rowRecycleTypeMap: new Map(),
@@ -250,7 +254,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatNavigateToInbox: () => void
-      chatPaymentInfoReceived: (messageID: T.Chat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
       chatPreviewConversation: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
@@ -343,6 +346,8 @@ export interface ConvoState extends ConvoStore {
       result: T.RPCChat.UnfurlPromptResult
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
+    updateCoinFlipStatus: (status: T.RPCChat.UICoinFlipStatus) => void
+    updateCoinFlipStatuses: (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => void
     updateDraft: DebouncedFunc<(text: string) => void>
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => void
     updateFromUIInboxLayout: (l: {
@@ -431,9 +436,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatNavigateToInbox: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatPaymentInfoReceived: () => {
     throw new Error('convostate defer not initialized')
   },
   chatPreviewConversation: () => {
@@ -1000,7 +1002,6 @@ const createSlice =
         logger.error(errMsg)
         throw new Error(errMsg)
       }
-      get().dispatch.defer.chatPaymentInfoReceived(T.Chat.numberToMessageID(msgID), paymentInfo)
       getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
     }
 
@@ -2540,7 +2541,10 @@ const createSlice =
             }
 
             navigateAppend(
-              {name: Common.threadRouteName, params: {conversationIDKey, createConversationError, threadSearch}},
+              {
+                name: Common.threadRouteName,
+                params: {conversationIDKey, createConversationError, threadSearch},
+              },
               replace
             )
           }
@@ -2726,6 +2730,7 @@ const createSlice =
       paymentInfoReceived: (messageID, paymentInfo) => {
         set(s => {
           s.accountsInfoMap.set(messageID, paymentInfo)
+          s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
         })
       },
       pinMessage: msgID => {
@@ -3312,6 +3317,18 @@ const createSlice =
           s.unread = unread
         })
         queueInboxRowUpdate(get().id)
+      },
+      updateCoinFlipStatus: status => {
+        set(s => {
+          s.flipStatusMap.set(status.gameID, T.castDraft(status))
+        })
+      },
+      updateCoinFlipStatuses: statuses => {
+        set(s => {
+          statuses.forEach(status => {
+            s.flipStatusMap.set(status.gameID, T.castDraft(status))
+          })
+        })
       },
       updateDraft: throttle(
         (text: string) => {
