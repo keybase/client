@@ -49,11 +49,11 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       return
     }
     inboxNumSmallRowsLoadedRef.current = true
+    inboxNumSmallRowsUserChangedRef.current = true
     setInboxNumSmallRowsState(rows)
     if (!persist) {
       return
     }
-    inboxNumSmallRowsUserChangedRef.current = true
     const f = async () => {
       try {
         await T.RPCGen.configGuiSetValueRpcPromise({
