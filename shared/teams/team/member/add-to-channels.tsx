@@ -232,7 +232,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box style={styles.spinnerContainer}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
       ) : (
@@ -599,6 +599,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
+  spinnerContainer: {
+    ...Kb.Styles.globalStyles.flexOne,
+    ...Kb.Styles.globalStyles.flexBoxCenter,
+  },
 }))
 
 export default AddToChannels
