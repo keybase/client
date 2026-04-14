@@ -39,6 +39,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   React.useEffect(() => {
     setInboxNumSmallRowsState(5)
+    setSmallTeamsExpanded(false)
     inboxNumSmallRowsLoadedRef.current = false
     inboxNumSmallRowsUserChangedRef.current = false
   }, [username])
