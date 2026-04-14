@@ -1,8 +1,8 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import {useSafeSubmit} from '@/util/safe-submit'
 import SelectOtherDevice from './select-other-device'
 import {useProvisionState} from '@/stores/provision'
+import {startAccountReset} from '@/login/reset/account-reset'
 
 const SelectOtherDeviceContainer = () => {
   const devices = useProvisionState(s => s.devices)
@@ -12,7 +12,6 @@ const SelectOtherDeviceContainer = () => {
   const navigateUp = C.Router2.navigateUp
   const _onBack = navigateUp
   const onBack = useSafeSubmit(_onBack, false)
-  const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
 
   const onResetAccount = () => {
     startAccountReset(false, username)

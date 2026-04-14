@@ -1,23 +1,21 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {submitResetPrompt} from './account-reset'
 
-type Props = {route: {params: {hasWallet: boolean}}}
+type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
 
 const ConfirmReset = ({route}: Props) => {
-  const {hasWallet} = route.params
-  const error = AutoReset.useAutoResetState(s => s.error)
-  const submitResetPrompt = AutoReset.useAutoResetState(s => s.dispatch.dynamic.submitResetPrompt)
+  const {hasWallet, resetKey} = route.params
   const onContinue = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.confirmReset)
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
   }
   const onCancelReset = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.cancelReset)
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.cancelReset)
   }
   const onClose = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.nothing)
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.nothing)
   }
 
   const [checks, setChecks] = React.useState({
@@ -35,11 +33,6 @@ const ConfirmReset = ({route}: Props) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="errors">
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}

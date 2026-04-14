@@ -1,31 +1,56 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
+import {ignorePromise} from '@/constants/utils'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import logger from '@/logger'
+import {useConfigState} from '@/stores/config'
 import {formatDurationForAutoreset} from '@/util/timestamp'
+import {RPCError} from '@/util/errors'
 
 const ResetModal = () => {
-  const isResetActive = AutoReset.useAutoResetState(s => s.active)
-  return isResetActive ? <ResetModalImpl /> : null
-}
-
-const ResetModalImpl = () => {
-  const {active, endTime, error, onCancelReset} = AutoReset.useAutoResetState(
+  const {active, endTime} = useConfigState(
     C.useShallow(s => ({
-      active: s.active,
-      endTime: s.endTime,
-      error: s.error,
-      onCancelReset: s.dispatch.cancelReset,
+      active: !!s.badgeState?.resetState.active,
+      endTime: s.badgeState?.resetState.endTime ?? 0,
     }))
   )
-  const navigateUp = C.Router2.navigateUp
-  React.useEffect(() => {
-    if (!active) {
-      navigateUp()
-    }
-  }, [active, navigateUp])
+  return active ? <ResetModalImpl endTime={endTime} /> : null
+}
+
+const ResetModalImpl = ({endTime}: {endTime: number}) => {
+  const [dismissed, setDismissed] = React.useState(false)
+  const [error, setError] = React.useState('')
   const [now] = React.useState(() => Date.now())
   const timeLeft = endTime - now
+  const onCancelReset = React.useCallback(() => {
+    setError('')
+    const f = async () => {
+      logger.info('Cancelled autoreset from logged-in user')
+      try {
+        await T.RPCGen.accountCancelResetRpcPromise(undefined, C.waitingKeyAutoresetCancel)
+        setDismissed(true)
+      } catch (error_) {
+        if (!(error_ instanceof RPCError)) {
+          return
+        }
+        logger.error('Error in CancelAutoreset', error_)
+        switch (error_.code) {
+          case T.RPCGen.StatusCode.scnosession:
+          case T.RPCGen.StatusCode.scnotfound:
+            setDismissed(true)
+            return
+          default:
+            setError(error_.desc)
+        }
+      }
+    }
+    ignorePromise(f())
+  }, [])
+
+  if (dismissed) {
+    return null
+  }
 
   const msg =
     timeLeft < 0

@@ -1,24 +1,24 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
+import {useConfigState} from '@/stores/config'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {enterResetPipeline} from './account-reset'
 
 type Props = {route: {params: {username: string}}}
 
 const EnterPassword = ({route}: Props) => {
   const {username} = route.params
   const [password, setPassword] = React.useState('')
-  const error = AutoReset.useAutoResetState(s => s.error)
-  const endTime = AutoReset.useAutoResetState(s => s.endTime)
+  const [error, setError] = React.useState('')
+  const endTime = useConfigState(s => s.badgeState?.resetState.endTime ?? 0)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const nav = useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
 
-  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onContinue = () => {
-    resetAccount(username, password)
+    enterResetPipeline({onError: setError, password, username})
   }
 
   const [now] = React.useState(() => Date.now())

@@ -4,6 +4,7 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
 import {navToProfile} from '@/constants/router'
+import {startAccountReset} from '@/login/reset/account-reset'
 
 declare global {
   var __hmr_startupOnce: boolean | undefined
@@ -21,7 +22,6 @@ declare global {
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseArchiveStateType from '@/stores/archive'
-import type * as UseAutoResetStateType from '@/stores/autoreset'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
@@ -39,7 +39,6 @@ import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
 import {storeRegistry} from '@/stores/store-registry'
-import {useAutoResetState} from '@/stores/autoreset'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
@@ -191,20 +190,6 @@ export const initTeamBuildingCallbacks = () => {
   }
 }
 
-export const initAutoResetCallbacks = () => {
-  const currentState = useAutoResetState.getState()
-  useAutoResetState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        onStartProvision: (username: string, fromReset: boolean) => {
-          storeRegistry.getState('provision').dispatch.startProvision(username, fromReset)
-        },
-      },
-    },
-  })
-}
-
 export const initChat2Callbacks = () => {
   const currentState = useChatState.getState()
   useChatState.setState({
@@ -317,7 +302,7 @@ export const initRecoverPasswordCallbacks = () => {
           useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
         },
         onStartAccountReset: (skipPassword: boolean, username: string) => {
-          useAutoResetState.getState().dispatch.startAccountReset(skipPassword, username)
+          startAccountReset(skipPassword, username)
         },
       },
     },
@@ -613,7 +598,6 @@ export const initSharedSubscriptions = () => {
     })
   )
 
-  initAutoResetCallbacks()
   initChat2Callbacks()
   initTeamBuildingCallbacks()
   initTeamsCallbacks()
@@ -637,9 +621,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'keybase.1.NotifyBadges.badgeState':
       {
-        const {useAutoResetState} = require('@/stores/autoreset') as typeof UseAutoResetStateType
-        useAutoResetState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {badgeState} = action.payload.params
         useModalHeaderState
           .getState()
