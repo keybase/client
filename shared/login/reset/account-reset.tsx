@@ -3,6 +3,7 @@ import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
+import {consumeKeyed, registerKeyed} from '@/stores/flow-handles'
 import {storeRegistry} from '@/stores/store-registry'
 import {RPCError} from '@/util/errors'
 
@@ -12,10 +13,11 @@ type EnterResetPipelineParams = {
   username: string
 }
 
-let nextResetPromptKey = 0
-const pendingResetPrompts = new Map<string, (action: T.RPCGen.ResetPromptResponse) => void>()
+const resetOwner = 'reset'
+const resetPromptSlot = 'submitResetPrompt'
 
-const makeResetPromptKey = () => `autoreset:${++nextResetPromptKey}`
+const registerResetPrompt = (handle: (action: T.RPCGen.ResetPromptResponse) => void) =>
+  registerKeyed(resetOwner, resetPromptSlot, handle)
 
 export const startAccountReset = (skipPassword: boolean, username: string) => {
   navigateAppend({name: 'recoverPasswordPromptResetAccount', params: {skipPassword, username}}, true)
@@ -31,11 +33,9 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
       }
     ) => {
       if (params.prompt.t === T.RPCGen.ResetPromptType.complete) {
-        const resetKey = makeResetPromptKey()
         const {hasWallet} = params.prompt.complete
         logger.info('Showing final reset screen')
-        pendingResetPrompts.set(resetKey, (action: T.RPCGen.ResetPromptResponse) => {
-          pendingResetPrompts.delete(resetKey)
+        const resetKey = registerResetPrompt((action: T.RPCGen.ResetPromptResponse) => {
           response.result(action)
           if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
             storeRegistry.getState('provision').dispatch.startProvision(username, true)
@@ -81,5 +81,5 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
 }
 
 export const submitResetPrompt = (resetKey: string, action: T.RPCGen.ResetPromptResponse) => {
-  pendingResetPrompts.get(resetKey)?.(action)
+  consumeKeyed(resetKey, action)
 }

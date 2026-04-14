@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
+import {resetAllStores} from '@/util/zustand'
 
 const mockStartProvision = jest.fn()
 
@@ -34,6 +35,7 @@ afterEach(() => {
   mockNavigateAppend.mockReset()
   mockNavUpToScreen.mockReset()
   mockStartProvision.mockReset()
+  resetAllStores()
 })
 
 test('startAccountReset navigates into the reset flow', () => {

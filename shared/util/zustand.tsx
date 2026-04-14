@@ -21,6 +21,7 @@ export const defaultReset = () => {}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
+const externalResetters = new Map<string, () => void>()
 
 // HMR store registry — preserves store instances across hot module reloads
 // Uses globalThis so the registry survives module re-evaluation during HMR
@@ -93,6 +94,10 @@ export const createZustand = <T extends HasReset>(
   return store
 }
 
+export const registerExternalResetter = (key: string, resetter: () => void) => {
+  externalResetters.set(key, resetter)
+}
+
 export const resetAllStores = (isDebug?: boolean) => {
   for (const resetter of resetters) {
     resetter(isDebug)
@@ -101,6 +106,9 @@ export const resetAllStores = (isDebug?: boolean) => {
     resetter(isDebug)
   }
   resettersAndDelete.length = 0
+  for (const resetter of externalResetters.values()) {
+    resetter()
+  }
 }
 
 export type ImmerStateCreator<T extends HasReset> = StateCreator<T, [['zustand/immer', never]]>
