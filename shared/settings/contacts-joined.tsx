@@ -25,14 +25,14 @@ export const FollowButton = (props: FollowProps) => {
   const followsYou = useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
 
   React.useEffect(() => {
     if (!guiID) {
-      showUser(username, false, true)
+      loadProfile(username)
     }
-  }, [username, guiID, showUser])
+  }, [username, guiID, loadProfile])
 
   const onFollow = () => changeFollow(guiID, true)
   const onUnfollow = () => changeFollow(guiID, false)

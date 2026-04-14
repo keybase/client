@@ -40,9 +40,9 @@ const Container = (ownProps: OwnProps) => {
     navigateAppend({name: 'chatBlockingModal', params: {username}})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const _onReload = (username: string) => {
-    showUser(username, false)
+    loadProfile(username)
   }
   const onAccept = () => _onFollow(_guiID, true)
   const onAddToTeam = () => _onAddToTeam(username)

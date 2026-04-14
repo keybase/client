@@ -10,7 +10,6 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
-import {generateGUIID} from '@/constants/utils'
 import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
@@ -75,7 +74,7 @@ const Container = (ownProps: OwnProps) => {
   )
   const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
   const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
-  const loadProfile = useTrackerState(s => s.dispatch.load)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
   const navigateAppend = C.Router2.navigateAppend
@@ -92,7 +91,7 @@ const Container = (ownProps: OwnProps) => {
       [{sigID}, C.waitingKeyProfile],
       () => {
         navToProfile(ownProps.username)
-        loadProfile({assertion: ownProps.username, guiID: generateGUIID(), inTracker: false, reason: ''})
+        loadProfile(ownProps.username, false)
       },
       () => {}
     )

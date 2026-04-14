@@ -8,12 +8,12 @@ type Props = {users?: Array<string>}
 type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const onClickUsername = (username: string) => {
     if (C.isMobile) {
       navToProfile(username)
     } else {
-      showUser(username, true)
+      showTracker(username)
     }
   }
   const content: Array<string | {text: string; onClick: () => void}> =

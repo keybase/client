@@ -43,22 +43,17 @@ test('closeTracker removes the shown tracker entry by guiID and updateResult cha
   expect(useTrackerState.getState().showTrackerSet.has('alice')).toBe(false)
 })
 
-test('showUser delegates to load and the deferred profile callback', () => {
+test('loadProfile delegates to load with a profile load', () => {
   const load = jest.fn()
-  const onShowUserProfile = jest.fn()
   useTrackerState.setState(s => ({
     ...s,
     dispatch: {
       ...s.dispatch,
-      defer: {
-        ...s.dispatch.defer,
-        onShowUserProfile,
-      },
       load: load as never,
     },
   }))
 
-  useTrackerState.getState().dispatch.showUser('alice', false)
+  useTrackerState.getState().dispatch.loadProfile('alice')
 
   expect(load).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -69,7 +64,29 @@ test('showUser delegates to load and the deferred profile callback', () => {
       reason: '',
     })
   )
-  expect(onShowUserProfile).toHaveBeenCalledWith('alice')
+})
+
+test('showTracker delegates to load with a tracker load', () => {
+  const load = jest.fn()
+  useTrackerState.setState(s => ({
+    ...s,
+    dispatch: {
+      ...s.dispatch,
+      load: load as never,
+    },
+  }))
+
+  useTrackerState.getState().dispatch.showTracker('alice')
+
+  expect(load).toHaveBeenCalledWith(
+    expect.objectContaining({
+      assertion: 'alice',
+      forceDisplay: true,
+      ignoreCache: true,
+      inTracker: true,
+      reason: '',
+    })
+  )
 })
 
 test('notifySummary and notifyRow enrich an existing tracker entry', () => {

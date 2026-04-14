@@ -38,12 +38,13 @@ const useUserData = (username: string) => {
         d: s.getDetails(username),
         getProofSuggestions: s.dispatch.getProofSuggestions,
         loadNonUserProfile: s.dispatch.loadNonUserProfile,
+        loadProfile: s.dispatch.loadProfile,
         nonUserDetails: s.getNonUserDetails(username),
-        showUser: s.dispatch.showUser,
       }
     })
   )
-  const {d, getProofSuggestions, loadNonUserProfile, nonUserDetails, showUser, _suggestionKeys} = trackerState
+  const {d, getProofSuggestions, loadProfile, loadNonUserProfile, nonUserDetails, _suggestionKeys} =
+    trackerState
   const notAUser = d.state === 'notAUserYet'
 
   const commonProps = {
@@ -138,7 +139,7 @@ const useUserData = (username: string) => {
       loadNonUserProfile(username)
     }
     if (state !== 'notAUserYet') {
-      showUser(username, false, true)
+      loadProfile(username)
 
       if (isYou) {
         getProofSuggestions()

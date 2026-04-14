@@ -12,7 +12,7 @@ import {useConfigState} from '@/stores/config'
 import {openURL as openUrl} from '@/util/misc'
 import {subtitle} from '@/util/platforms'
 import {useCurrentUserState} from '@/stores/current-user'
-import {generateGUIID, ignorePromise} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {navToProfile} from '@/constants/router'
@@ -108,7 +108,7 @@ type Step =
 
 const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
-  const loadProfile = useTrackerState(s => s.dispatch.load)
+  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const proofSuggestions = useTrackerState(s => s.proofSuggestions)
   const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
@@ -168,8 +168,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     }
   }, [])
 
-  const loadCurrentProfile = () =>
-    loadProfile({assertion: currentUsername, guiID: generateGUIID(), inTracker: false, reason: ''})
+  const loadCurrentProfile = () => loadProfile(currentUsername, false)
 
   const closeModal = () => {
     cancelSession()

@@ -331,9 +331,6 @@ export const initTracker2Callbacks = () => {
       ...currentState.dispatch,
       defer: {
         ...currentState.dispatch.defer,
-        onShowUserProfile: (username: string) => {
-          navToProfile(username)
-        },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
           useUsersState.getState().dispatch.updates(updates)
         },

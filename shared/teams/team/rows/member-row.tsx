@@ -330,12 +330,12 @@ const Container = (ownProps: OwnProps) => {
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const onShowTracker = () => {
     if (C.isMobile) {
       navToProfile(username)
     } else {
-      showUser(username, true)
+      showTracker(username)
     }
   }
   const props = {

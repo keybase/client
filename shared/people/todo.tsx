@@ -9,7 +9,6 @@ import * as Kb from '@/common-adapters'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import type {AppTab} from '@/constants/tabs'
-import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -138,10 +137,8 @@ const AvatarUserTask = (props: TodoOwnProps) => (
 
 const BioTask = (props: TodoOwnProps) => {
   const myUsername = useCurrentUserState(s => s.username)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
   const onConfirm = () => {
-    // Ensure tracker state exists and the profile view is up to date.
-    showUser(myUsername, false)
+    navToProfile(myUsername)
   }
   return <BasicTask {...props} onConfirm={onConfirm} />
 }

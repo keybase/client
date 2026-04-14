@@ -7,6 +7,7 @@ import {openURL} from '@/util/misc'
 import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
@@ -77,9 +78,13 @@ function ConnectedRow(ownProps: OwnProps) {
     )
   }
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const openUserTracker = (username: string) => {
-    showUser(username, true)
+    if (C.isMobile) {
+      navToProfile(username)
+    } else {
+      showTracker(username)
+    }
   }
 
   const onBrowseGitRepo = () =>

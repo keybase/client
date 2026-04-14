@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {navToProfile} from '@/constants/router'
@@ -25,9 +24,8 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     letResetUserBackIn(id, username)
   }
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onViewProfile = (username: string) => () => {
-    C.isMobile ? navToProfile(username) : showUser(username, true)
+  const onOpenProfile = (username: string) => () => {
+    navToProfile(username)
   }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(
@@ -100,7 +98,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
             <Kb.Button
               mode="Secondary"
               label={'View ' + p + "'s profile"}
-              onClick={onViewProfile(p)}
+              onClick={onOpenProfile(p)}
               style={Kb.Styles.collapseStyles([styles.button, styles.secondaryOnRed])}
               labelStyle={styles.secondaryOnRedLabel}
             />

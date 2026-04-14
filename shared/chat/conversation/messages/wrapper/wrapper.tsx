@@ -108,13 +108,13 @@ function AuthorSection(p: AuthorProps) {
   const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
 
   const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
 
   const onAuthorClick = () => {
     if (C.isMobile) {
       navToProfile(showUsername)
     } else {
-      showUser(showUsername, true)
+      showTracker(showUsername)
     }
   }
 

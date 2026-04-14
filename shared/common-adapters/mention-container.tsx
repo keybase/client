@@ -24,12 +24,12 @@ const Container = (ownProps: OwnProps) => {
     }
   })()
 
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const _onClick = () => {
     if (C.isMobile) {
       navToProfile(username)
     } else {
-      showUser(username, true)
+      showTracker(username)
     }
   }
   const onClick = Chat.isSpecialMention(username) ? undefined : _onClick

@@ -179,12 +179,12 @@ const Container = (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-  const showUser = useTrackerState(s => s.dispatch.showUser)
+  const showTracker = useTrackerState(s => s.dispatch.showTracker)
   const _onShowTracker = (username: string) => {
     if (C.isMobile) {
       navToProfile(username)
     } else {
-      showUser(username, true)
+      showTracker(username)
     }
   }
   const navigateAppend = C.Router2.navigateAppend
