@@ -17,7 +17,7 @@ let mockChatState: MockChatState
 
 jest.mock('@/constants', () => {
   const React = require('react')
-  const actual = jest.requireActual('@/constants')
+  const actual = jest.requireActual<typeof import('@/constants')>('@/constants')
   return {
     ...actual,
     Router2: {
@@ -26,9 +26,14 @@ jest.mock('@/constants', () => {
       useSafeFocusEffect: jest.fn(),
     },
     useOnMountOnce: (cb: () => void) => {
+      const ranRef = React.useRef(false)
       React.useEffect(() => {
+        if (ranRef.current) {
+          return
+        }
+        ranRef.current = true
         cb()
-      }, [])
+      }, [cb])
     },
     useRPC: jest.fn(),
   }
@@ -55,6 +60,7 @@ jest.mock('@/stores/current-user', () => ({
 }))
 
 jest.mock('@react-navigation/core', () => ({
+  createNavigationContainerRef: jest.fn(() => ({current: null})),
   useIsFocused: jest.fn(() => true),
 }))
 
