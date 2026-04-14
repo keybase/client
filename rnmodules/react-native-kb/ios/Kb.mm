@@ -468,7 +468,12 @@ RCT_EXPORT_METHOD(getRegistrationToken: (RCTPromiseResolveBlock)resolve reject: 
 
 RCT_EXPORT_METHOD(setApplicationIconBadgeNumber: (double)badgeNumber) {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [UIApplication sharedApplication].applicationIconBadgeNumber = (NSInteger)badgeNumber;
+    NSInteger count = (NSInteger)badgeNumber;
+    NSLog(@"Kb.setApplicationIconBadgeNumber: count=%ld, persisting KeybaseActiveBadge", (long)count);
+    [UIApplication sharedApplication].applicationIconBadgeNumber = count;
+    // Persist the active account's badge count so AppDelegate can restore it
+    // when a loud push for a different account temporarily sets the wrong value.
+    [[NSUserDefaults standardUserDefaults] setInteger:count forKey:@"KeybaseActiveBadge"];
   });
 }
 

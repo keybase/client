@@ -376,6 +376,39 @@ public class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate,
       var notificationDict = Dictionary(
         uniqueKeysWithValues: notification.map { (String(describing: $0.key), $0.value) })
       notificationDict["userInteraction"] = false
+
+      // For loud pushes (chat.newmessage and others) the system has already
+      // applied the aps.badge value from the payload to the app icon before
+      // this callback fires. If the push is addressed to a different account
+      // than the one currently active, that badge value is wrong. Restore the
+      // last badge count that was set for the active account (persisted by
+      // setApplicationIconBadgeNumber in Kb.mm) before the home screen renders.
+      let apsBadge = ((notification["aps"] as? [AnyHashable: Any])?["badge"] as? NSNumber)?.intValue
+      NSLog(
+        "didReceiveRemoteNotification: type=%@ apsBadge=%@ savedBadge=%d",
+        type, apsBadge.map(String.init) ?? "nil",
+        UserDefaults.standard.integer(forKey: "KeybaseActiveBadge"))
+      let notifUID: String
+      if type == "chat.newmessage" {
+        notifUID = notification["uid"] as? String ?? ""
+      } else {
+        notifUID = notification["i"] as? String ?? ""
+      }
+      if !notifUID.isEmpty {
+        let activeUID = Keybasego.KeybaseGetActiveUID() ?? ""
+        NSLog(
+          "didReceiveRemoteNotification: notifUID=%@ activeUID=%@", notifUID, activeUID)
+        if !activeUID.isEmpty && notifUID != activeUID {
+          let savedBadge = UserDefaults.standard.integer(forKey: "KeybaseActiveBadge")
+          NSLog(
+            "didReceiveRemoteNotification: non-active account push, resetting badge to %d",
+            savedBadge)
+          UIApplication.shared.applicationIconBadgeNumber = savedBadge
+        }
+      } else {
+        NSLog("didReceiveRemoteNotification: no UID field in push, skipping badge check")
+      }
+
       KbEmitPushNotification(notificationDict)
       completionHandler(.newData)
     }

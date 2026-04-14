@@ -11,7 +11,14 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     if let soundName = soundName {
       content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
     }
-    content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
+    if badgeCount >= 0 {
+      content.badge = NSNumber(value: badgeCount)
+      // Keep the persisted active-account badge in sync so AppDelegate can
+      // restore it when a loud push for a different account temporarily sets
+      // the wrong system badge (see didReceiveRemoteNotification).
+      UserDefaults.standard.set(badgeCount, forKey: "KeybaseActiveBadge")
+      NSLog("PushNotifier localNotification: persisting KeybaseActiveBadge=%d", badgeCount)
+    }
     content.title = title ?? ""
     content.body = msg ?? ""
     content.userInfo = ["convID": convID ?? "", "type": typ ?? ""]

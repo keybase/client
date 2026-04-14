@@ -628,6 +628,17 @@ func Version() string {
 	return libkb.VersionString()
 }
 
+// GetActiveUID returns the UID of the currently active logged-in account as a
+// hex string, or an empty string if no account is active or the context is not
+// yet initialised. Called from the iOS AppDelegate to detect push notifications
+// that are addressed to a different account than the one currently logged in.
+func GetActiveUID() string {
+	if kbCtx == nil {
+		return ""
+	}
+	return string(kbCtx.Env.GetUID())
+}
+
 func IsAppStateForeground() bool {
 	if !isInited() {
 		return false
