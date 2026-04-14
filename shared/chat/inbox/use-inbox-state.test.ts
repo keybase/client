@@ -17,7 +17,9 @@ let mockChatState: MockChatState
 
 jest.mock('@/constants', () => {
   const React = require('react')
-  const actual = jest.requireActual<typeof import('@/constants')>('@/constants')
+  const actual = jest.requireActual('@/constants') as Record<string, unknown> & {
+    Router2: Record<string, unknown>
+  }
   return {
     ...actual,
     Router2: {
