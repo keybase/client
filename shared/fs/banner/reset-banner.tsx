@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {navToProfile} from '@/constants/router'
@@ -14,7 +13,6 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
     const pathElems = T.FS.getPathElements(currPath)
     if (pathElems.length < 3) return
@@ -28,7 +26,6 @@ const ConnectedBanner = (ownProps: OwnProps) => {
 
   const onOpenProfile = (username: string) => () => {
     navToProfile(username)
-    loadProfile(username, false)
   }
   const onOpenWithoutResetUsers = () =>
     _onOpenWithoutResetUsers(
