@@ -7,9 +7,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
-let inboxNumSmallRowsLoaded = false
-let inboxNumSmallRowsCache: number | undefined
-
 export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
@@ -37,14 +34,20 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
+  const inboxNumSmallRowsLoadedRef = React.useRef(false)
   const inboxNumSmallRowsUserChangedRef = React.useRef(false)
+
+  React.useEffect(() => {
+    setInboxNumSmallRowsState(5)
+    inboxNumSmallRowsLoadedRef.current = false
+    inboxNumSmallRowsUserChangedRef.current = false
+  }, [username])
 
   const setInboxNumSmallRows = (rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
-    inboxNumSmallRowsCache = rows
-    inboxNumSmallRowsLoaded = true
+    inboxNumSmallRowsLoadedRef.current = true
     setInboxNumSmallRowsState(rows)
     if (!persist) {
       return
@@ -114,10 +117,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     if (!ready) {
       return
     }
-    if (inboxNumSmallRowsLoaded) {
-      if (inboxNumSmallRowsCache !== undefined) {
-        setInboxNumSmallRowsState(inboxNumSmallRowsCache)
-      }
+    if (inboxNumSmallRowsLoadedRef.current) {
       return
     }
     const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
@@ -131,10 +131,9 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
         ) {
           return
         }
-        inboxNumSmallRowsLoaded = true
+        inboxNumSmallRowsLoadedRef.current = true
         const count = rows.i ?? -1
         if (count > 0) {
-          inboxNumSmallRowsCache = count
           setInboxNumSmallRowsState(count)
         }
       },
@@ -142,7 +141,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
         if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
           return
         }
-        inboxNumSmallRowsLoaded = true
+        inboxNumSmallRowsLoadedRef.current = true
       }
     )
     return () => {
