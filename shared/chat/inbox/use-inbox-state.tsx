@@ -7,6 +7,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
+let inboxNumSmallRowsLoaded = false
+let inboxNumSmallRowsCache: number | undefined
+
 export function useInboxState(conversationIDKey?: string, isSearching = false) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
@@ -33,15 +36,20 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   } = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
+  const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
+  const inboxNumSmallRowsUserChangedRef = React.useRef(false)
 
   const setInboxNumSmallRows = (rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
+    inboxNumSmallRowsCache = rows
+    inboxNumSmallRowsLoaded = true
     setInboxNumSmallRowsState(rows)
     if (!persist) {
       return
     }
+    inboxNumSmallRowsUserChangedRef.current = true
     const f = async () => {
       try {
         await T.RPCGen.configGuiSetValueRpcPromise({
@@ -102,17 +110,47 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
 
   React.useEffect(() => {
+    const ready = loggedIn && !!username
+    if (!ready) {
+      return
+    }
+    if (inboxNumSmallRowsLoaded) {
+      if (inboxNumSmallRowsCache !== undefined) {
+        setInboxNumSmallRowsState(inboxNumSmallRowsCache)
+      }
+      return
+    }
+    const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
+    inboxNumSmallRowsLoadVersionRef.current = loadVersion
     loadInboxNumSmallRows(
       [{path: 'ui.inboxSmallRows'}],
       rows => {
+        if (
+          inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
+          inboxNumSmallRowsUserChangedRef.current
+        ) {
+          return
+        }
+        inboxNumSmallRowsLoaded = true
         const count = rows.i ?? -1
         if (count > 0) {
+          inboxNumSmallRowsCache = count
           setInboxNumSmallRowsState(count)
         }
       },
-      () => {}
+      () => {
+        if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
+          return
+        }
+        inboxNumSmallRowsLoaded = true
+      }
     )
-  }, [loadInboxNumSmallRows])
+    return () => {
+      if (inboxNumSmallRowsLoadVersionRef.current === loadVersion) {
+        inboxNumSmallRowsLoadVersionRef.current++
+      }
+    }
+  }, [loadInboxNumSmallRows, loggedIn, username])
 
   React.useEffect(() => {
     const ready = loggedIn && !!username && (!C.isMobile || isFocused)

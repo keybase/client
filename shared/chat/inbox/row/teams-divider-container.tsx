@@ -28,12 +28,13 @@ const TeamsDividerContainer = React.memo(function TeamsDividerContainer(props: P
   }, [rows])
 
   const visibleBadges = React.useMemo(() => {
+    void badgeStateVersion
     let total = 0
     for (const conversationIDKey of visibleSmallConvIDs) {
       total += Chat.getConvoState(conversationIDKey).badge
     }
-    return {total, version: badgeStateVersion}
-  }, [badgeStateVersion, visibleSmallConvIDs]).total
+    return total
+  }, [badgeStateVersion, visibleSmallConvIDs])
 
   const hiddenSmallBadgeCount = Math.max(0, smallTeamBadgeCount - visibleBadges)
   return <TeamsDivider {...rest} badgeCount={hiddenSmallBadgeCount} />
