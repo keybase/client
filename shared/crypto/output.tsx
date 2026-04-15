@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
@@ -167,7 +166,7 @@ export const CryptoOutputActionsBar = ({
   }
 
   const navigateUp = C.Router2.navigateUp
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onReplyInChat = (username: string) => {
     navigateUp()
     previewConversation({participants: [username], reason: 'search'})

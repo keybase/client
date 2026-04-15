@@ -297,7 +297,7 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
     startAddMembersWizard(teamID)
     addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>

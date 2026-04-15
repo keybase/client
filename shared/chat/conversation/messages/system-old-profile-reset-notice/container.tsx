@@ -1,5 +1,6 @@
 import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
+import {previewConversation} from '@/constants/router'
 import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
 
@@ -12,7 +13,6 @@ const SystemOldProfileResetNotice = () => {
   const onOpenConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
     Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const startConversation = (participants: ReadonlyArray<string>) => {
     previewConversation({participants, reason: 'fromAReset'})
   }

@@ -192,26 +192,6 @@ export const initChat2Callbacks = () => {
   })
 }
 
-export const initTeamsCallbacks = () => {
-  const currentState = useTeamsState.getState()
-  useTeamsState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
-          storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
-        },
-        onChatPreviewConversation: (
-          p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
-        ) => {
-          storeRegistry.getState('chat').dispatch.previewConversation(p)
-        },
-      },
-    },
-  })
-}
-
 export const initRecoverPasswordCallbacks = () => {
   const currentState = useRecoverPasswordState.getState()
   useRecoverPasswordState.setState({
@@ -238,8 +218,8 @@ export const initSharedSubscriptions = () => {
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
     chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
-    chatNavigateToInbox: () => storeRegistry.getState('chat').dispatch.navigateToInbox(),
-    chatPreviewConversation: p => storeRegistry.getState('chat').dispatch.previewConversation(p),
+    chatNavigateToInbox: Util.navigateToInbox,
+    chatPreviewConversation: Util.previewConversation,
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
     teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
     usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
@@ -498,7 +478,6 @@ export const initSharedSubscriptions = () => {
 
   initChat2Callbacks()
   initTeamBuildingCallbacks()
-  initTeamsCallbacks()
   initRecoverPasswordCallbacks()
 }
 

@@ -12,6 +12,7 @@ import {
   getModalStack,
   navToThread,
   setChatRootParams,
+  type PreviewConversationParams,
 } from '@/constants/router'
 import {isIOS} from '@/constants/platform'
 import {updateImmer} from '@/constants/utils'
@@ -50,7 +51,7 @@ import * as Strings from '@/constants/strings'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
-import type {useChatState, RefreshReason} from '@/stores/chat'
+import type {RefreshReason} from '@/stores/chat'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -254,9 +255,7 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatNavigateToInbox: () => void
-      chatPreviewConversation: (
-        p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
-      ) => void
+      chatPreviewConversation: (p: PreviewConversationParams) => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void

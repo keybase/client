@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import * as Kb from '@/common-adapters'
@@ -23,7 +22,7 @@ const Container = (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
     ownProps
   const {navigateAppend, switchTab} = C.Router2
-  const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
+  const navigateToInbox = C.Router2.navigateToInbox
   const onConfirm = () => {
     if (url) {
       openURL(url)

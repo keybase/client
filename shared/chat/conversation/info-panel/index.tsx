@@ -2,6 +2,7 @@ import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
+import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
@@ -40,12 +41,10 @@ const InfoPanelConnector = (ownProps: Props) => {
       clearAttachmentView()
     }
   }, [showInfoPanel, clearAttachmentView])
-  const onGoToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
-
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)
     if (!lastSNO && shouldNavigateOut) {
-      onGoToInbox()
+      navigateToInbox()
     }
   }
 
