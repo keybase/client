@@ -190,6 +190,7 @@ export const newTeamWizardEmptyState = {
 export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
 
 const inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
+const queuedMemberReloads = new Set<T.Teams.TeamID>()
 
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
@@ -872,7 +873,7 @@ export type State = Store & {
     finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
-    getMembers: (teamID: T.Teams.TeamID) => Promise<void>
+    getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
@@ -1452,14 +1453,23 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getMembers: async (teamID: T.Teams.TeamID) => {
+    getMembers: async (teamID: T.Teams.TeamID, forceReload = false) => {
       if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
         logger.warn(`bail on invalid team ID ${teamID}`)
         return
       }
       const inflight = inflightMemberLoads.get(teamID)
       if (inflight) {
-        return inflight
+        if (!forceReload) {
+          return inflight
+        }
+        queuedMemberReloads.add(teamID)
+        return inflight.finally(() => {
+          if (!queuedMemberReloads.delete(teamID)) {
+            return
+          }
+          return get().dispatch.getMembers(teamID)
+        })
       }
       const promise = (async () => {
         try {

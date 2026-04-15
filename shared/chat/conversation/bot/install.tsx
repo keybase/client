@@ -58,13 +58,13 @@ export const useRefreshBotMembershipOnSuccess = (
           preview => {
             setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
             if (teamIDToRefresh) {
-              C.ignorePromise(getMembers(teamIDToRefresh))
+              C.ignorePromise(getMembers(teamIDToRefresh, true))
             }
             onSuccess()
           },
           () => {
             if (teamIDToRefresh) {
-              C.ignorePromise(getMembers(teamIDToRefresh))
+              C.ignorePromise(getMembers(teamIDToRefresh, true))
             }
             onSuccess()
           }
