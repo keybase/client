@@ -191,6 +191,15 @@ export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, user
 
 const inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
 const queuedMemberReloads = new Set<T.Teams.TeamID>()
+let memberLoadGeneration = 0
+
+const clearMemberLoadTracking = () => {
+  memberLoadGeneration += 1
+  inflightMemberLoads.clear()
+  queuedMemberReloads.clear()
+}
+
+Z.registerExternalResetter('teams-member-loads', clearMemberLoadTracking)
 
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
@@ -1463,6 +1472,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         logger.warn(`bail on invalid team ID ${teamID}`)
         return
       }
+      const generation = memberLoadGeneration
       const inflight = inflightMemberLoads.get(teamID)
       if (inflight) {
         if (!forceReload) {
@@ -1470,16 +1480,23 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
         queuedMemberReloads.add(teamID)
         await inflight
+        if (generation !== memberLoadGeneration) {
+          return
+        }
         if (!queuedMemberReloads.delete(teamID)) {
           return
         }
         return get().dispatch.getMembers(teamID)
       }
-      const promise = (async () => {
+      let promise: Promise<void>
+      promise = (async () => {
         try {
           const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
             id: teamID,
           })
+          if (generation !== memberLoadGeneration) {
+            return
+          }
           const members = rpcDetailsToMemberInfos(res ?? [])
           set(s => {
             s.teamIDToMembers.set(teamID, members)
@@ -1495,7 +1512,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             logger.error(`Error updating members for ${teamID}: ${error.desc}`)
           }
         } finally {
-          inflightMemberLoads.delete(teamID)
+          if (inflightMemberLoads.get(teamID) === promise) {
+            inflightMemberLoads.delete(teamID)
+          }
         }
       })()
       inflightMemberLoads.set(teamID, promise)
