@@ -35,10 +35,10 @@ const ConfirmReset = ({route}: Props) => {
   }, [navigation, resolvePrompt])
 
   React.useEffect(() => {
-    return () => {
+    return navigation.addListener('beforeRemove', () => {
       resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-    }
-  }, [resolvePrompt])
+    })
+  }, [navigation, resolvePrompt])
 
   const onContinue = () => {
     resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)
