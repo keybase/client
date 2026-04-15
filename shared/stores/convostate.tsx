@@ -5,8 +5,10 @@ import * as PlatformSpecific from '@/util/platform-specific'
 import {
   clearModals,
   navigateAppend,
+  navigateToInbox,
   navigateUp,
   navUpToScreen,
+  previewConversation,
   switchTab,
   getVisibleScreen,
   getModalStack,
@@ -254,8 +256,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-      chatNavigateToInbox: () => void
-      chatPreviewConversation: (p: PreviewConversationParams) => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
       teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
@@ -432,12 +432,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatMetasReceived: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatNavigateToInbox: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatPreviewConversation: () => {
     throw new Error('convostate defer not initialized')
   },
   chatUnboxRows: () => {
@@ -777,7 +771,7 @@ const createSlice =
 
       const onClick = () => {
         useConfigState.getState().dispatch.showMain()
-        get().dispatch.defer.chatNavigateToInbox()
+        navigateToInbox()
         get().dispatch.navigateToThread('desktopNotification')
       }
       const onClose = () => {}
@@ -1633,7 +1627,7 @@ const createSlice =
       },
       blockConversation: reportUser => {
         const f = async () => {
-          get().dispatch.defer.chatNavigateToInbox()
+          navigateToInbox()
           useConfigState.getState().dispatch.defer.persistRoute?.(false, false)
           await T.RPCChat.localSetConversationStatusLocalRpcPromise({
             conversationID: get().getConvID(),
@@ -1736,7 +1730,7 @@ const createSlice =
             // Nav to inbox but don't use findNewConversation since changeSelectedConversation
             // does that with better information. It knows the conversation is hidden even before
             // that state bounces back.
-            get().dispatch.defer.chatNavigateToInbox()
+            navigateToInbox()
             get().dispatch.showInfoPanel(false, undefined)
           }
 
@@ -2055,7 +2049,7 @@ const createSlice =
               // no longer in team
               if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
                 get().dispatch.defer.chatInboxRefresh('maybeKickedFromTeam')
-                get().dispatch.defer.chatNavigateToInbox()
+                navigateToInbox()
               }
               if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
                 // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -2827,7 +2821,7 @@ const createSlice =
         // remove all bad people
         const goodParticipants = new Set(participantInfo.all)
         meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-        get().dispatch.defer.chatPreviewConversation({
+        previewConversation({
           participants: [...goodParticipants],
           reason: 'resetChatWithoutThem',
         })

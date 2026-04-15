@@ -177,8 +177,6 @@ export const initSharedSubscriptions = () => {
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
     chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
-    chatNavigateToInbox: Util.navigateToInbox,
-    chatPreviewConversation: Util.previewConversation,
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
     teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
     usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
