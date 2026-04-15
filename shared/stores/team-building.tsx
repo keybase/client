@@ -11,6 +11,7 @@ import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
 import {navigateUp, getModalStack} from '@/constants/router'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useUsersState} from '@/stores/users'
 export {allServices, selfToUser} from '@/constants/team-building'
 export {searchWaitingKey} from '@/constants/strings'
@@ -49,8 +50,6 @@ export type State = Store & {
       onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
-      onGetSettingsContactsImportEnabled: () => boolean | undefined
-      onGetSettingsContactsUserCountryCode: () => string | undefined
       onShowUserProfile: (username: string) => void
     }
     fetchUserRecs: () => void
@@ -306,12 +305,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
       },
-      onGetSettingsContactsImportEnabled: () => {
-        throw new Error('onGetSettingsContactsImportEnabled not properly initialized')
-      },
-      onGetSettingsContactsUserCountryCode: () => {
-        throw new Error('onGetSettingsContactsUserCountryCode not properly initialized')
-      },
       onShowUserProfile: (_username: string) => {
         throw new Error('onShowUserProfile not properly initialized')
       },
@@ -330,8 +323,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts =
-            get().dispatch.defer.onGetSettingsContactsImportEnabled() && includeContacts
+          const expectingContacts = useSettingsContactsState.getState().importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -432,7 +424,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = get().dispatch.defer.onGetSettingsContactsUserCountryCode()
+          const {userCountryCode: userRegion} = useSettingsContactsState.getState()
           users = await specialContactSearch(_users, searchQuery, userRegion)
         } else {
           users = _users

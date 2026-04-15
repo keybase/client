@@ -121,12 +121,6 @@ export const initTeamBuildingCallbacks = () => {
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
     },
-    onGetSettingsContactsImportEnabled: () => {
-      return useSettingsContactsState.getState().importEnabled
-    },
-    onGetSettingsContactsUserCountryCode: () => {
-      return useSettingsContactsState.getState().userCountryCode
-    },
     onShowUserProfile: (username: string) => {
       navToProfile(username)
     },
