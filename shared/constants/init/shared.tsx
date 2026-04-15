@@ -47,7 +47,6 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
-import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
@@ -185,10 +184,6 @@ export const initChat2Callbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       defer: {
-        onGetDaemonState: () => {
-          const daemonState = storeRegistry.getState('daemon')
-          return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
-        },
         onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
           return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
         },
@@ -217,21 +212,6 @@ export const initTeamsCallbacks = () => {
           p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
         ) => {
           storeRegistry.getState('chat').dispatch.previewConversation(p)
-        },
-      },
-    },
-  })
-}
-
-export const initPushCallbacks = () => {
-  const currentState = usePushState.getState()
-  usePushState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onGetDaemonHandshakeState: () => {
-          return useDaemonState.getState().handshakeState
         },
       },
     },
@@ -525,7 +505,6 @@ export const initSharedSubscriptions = () => {
   initChat2Callbacks()
   initTeamBuildingCallbacks()
   initTeamsCallbacks()
-  initPushCallbacks()
   initRecoverPasswordCallbacks()
 }
 

@@ -9,7 +9,6 @@ import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/constants/router'
 import {ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
@@ -32,6 +31,7 @@ import {storeRegistry} from '@/stores/store-registry'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 
@@ -228,7 +228,6 @@ export type State = Store & {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     defer: {
-      onGetDaemonState: () => Pick<DaemonState, 'dispatch' | 'handshakeVersion'>
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
       ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
@@ -386,9 +385,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       ignorePromise(f())
     },
     defer: {
-      onGetDaemonState: () => {
-        throw new Error('onGetDaemonState not properly initialized')
-      },
       onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
         throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
       },
@@ -446,7 +442,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = get().dispatch.defer.onGetDaemonState()
+      const {handshakeVersion, dispatch} = useDaemonState.getState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
